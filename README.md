@@ -83,6 +83,7 @@ export LIBVA_DRIVER_NAME=iHD
 - DG1/SG1
 - Alchemist(DG2)/ATSM
 - MTLx (MTL: Meteor Lake, ARL-S/H: Arrow Lake)
+- LNL (Lunar Lake)
 
 
 ## Components and Features
@@ -195,9 +196,7 @@ Media-driver requires special i915 kernel mode driver (KMD) version to support t
 1. Intel(R) Media Driver for VAAPI is recommended to be built against gcc compiler v6.1
 or later, which officially supported C++11.
 
-2. SKL: Green or other incorrect color will be observed in output frames when using YV12/I420 as input format for csc/scaling/blending/rotation, etc. on Ubuntu 16.04 stock (with kernel 4.10). The issue can be addressed with the kernel patch: [WaEnableYV12BugFixInHalfSliceChicken7](https://cgit.freedesktop.org/drm-tip/commit/?id=0b71cea29fc29bbd8e9dd9c641fee6bd75f68274)
-
-3. HuC firmware is necessary for AVC/HEVC/VP9/AV1 low power encoding bitrate control, including CBR, VBR, etc. The [default kernel configuration](https://elixir.bootlin.com/linux/latest/source/drivers/gpu/drm/i915/gt/uc/intel_uc.c#L21) didn't enable HuC loading for TGL/RKL and legacy platforms but enabled it from ADL+ platforms. You could change the HuC setting with ```"options i915 enable_guc=2" > /etc/modprobe.d/i915.conf``` under root. For ADL+ platforms, the kernel loads HuC as default if the [related platform HuC binary](https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/tree/i915) exists in ```/lib/firware/i915```. The HuC firmwares available on different platforms are:
+2. HuC firmware is necessary for AVC/HEVC/VP9/AV1 low power encoding bitrate control, including CBR, VBR, etc. The [default kernel configuration](https://elixir.bootlin.com/linux/latest/source/drivers/gpu/drm/i915/gt/uc/intel_uc.c#L21) didn't enable HuC loading for TGL/RKL and legacy platforms but enabled it from ADL+ platforms. You could change the HuC setting with ```"options i915 enable_guc=2" > /etc/modprobe.d/i915.conf``` under root. For ADL+ platforms, the kernel loads HuC as default if the [related platform HuC binary](https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/tree/i915) exists in ```/lib/firware/i915```. The HuC firmwares available on different platforms are:
    - APL/KBL: starting from kernel 4.11, HuC loading is disabled as default, so set `i915.enable_guc=2`
    - CFL: starting from kernel 4.15, HuC loading is disabled as default, so set `i915.enable_guc=2`
    - ICL: starting from kernel 5.2, HuC loading is disabled as default, so set `i915.enable_guc=2`
@@ -209,6 +208,9 @@ or later, which officially supported C++11.
    - DG1/SG1: [intel-gpu/intel-gpu-i915-backports](https://github.com/intel-gpu/intel-gpu-i915-backports)
    - Alchemist(DG2): starting from kernel 6.2
    - ATSM: [intel-gpu/intel-gpu-i915-backports](https://github.com/intel-gpu/intel-gpu-i915-backports)
+   - MTL/ARL: starting from kernel 6.8
+
+3. Lunar Lake platform is officialy supported from [intel-media-24.3.1](https://github.com/intel/media-driver/releases/tag/intel-media-24.3.1) for decoding and video processing features. Encoding support will be later.
 
 4. Other more known issues, please refer to [media-driver/wiki](https://github.com/intel/media-driver/wiki) "Known Issues" pages.
 ##### (*) Other names and brands may be claimed as property of others.
