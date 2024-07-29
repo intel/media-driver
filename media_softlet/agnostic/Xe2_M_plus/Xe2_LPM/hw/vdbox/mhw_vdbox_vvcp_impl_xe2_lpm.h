@@ -146,7 +146,8 @@ public:
                 PATCH_LIST_COMMAND(mhw::vdbox::vvcp::VVCP_TILE_CODING_CMD) +
                 PATCH_LIST_COMMAND(mhw::vdbox::vvcp::VVCP_VD_CONTROL_STATE_CMD) * 2 +
                 PATCH_LIST_COMMAND(mhw::vdbox::vvcp::VD_PIPELINE_FLUSH_CMD) +
-                PATCH_LIST_COMMAND(mhw::vdbox::vvcp::VVCP_PIPE_MODE_SELECT_CMD);
+                PATCH_LIST_COMMAND(mhw::vdbox::vvcp::VVCP_PIPE_MODE_SELECT_CMD) +
+                PATCH_LIST_COMMAND(MI_BATCH_BUFFER_START_CMD);
 
             *tileCommandsSize  = cmd_t::VVCP_TILE_CODING_CMD::byteSize + 
                                  mhw::mi::xe2_lpm_base_next::Cmd::MI_BATCH_BUFFER_END_CMD::byteSize;
