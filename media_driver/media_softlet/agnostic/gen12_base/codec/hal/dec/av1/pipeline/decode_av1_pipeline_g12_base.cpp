@@ -90,7 +90,7 @@ MOS_STATUS Av1PipelineG12_Base::Initialize(void *settings)
     m_decodecp = Create_DecodeCpInterface(codecSettings, m_hwInterface->GetCpInterface(), m_hwInterface->GetOsInterface());
     if (m_decodecp)
     {
-        m_decodecp->RegisterParams(codecSettings);
+        DECODE_CHK_STATUS(m_decodecp->RegisterParams(codecSettings));
     }
     DECODE_CHK_STATUS(CreateFeatureManager());
     DECODE_CHK_STATUS(m_featureManager->Init(codecSettings));

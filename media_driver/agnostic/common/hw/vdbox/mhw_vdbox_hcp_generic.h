@@ -961,12 +961,11 @@ protected:
         sliceInfoParam.dwDataLength[0] = hevcSliceState->pHevcSliceParams->slice_data_size;
         sliceInfoParam.dwDataLength[1] = hevcSliceState->pHevcSliceParams->slice_data_size;
 
-        m_cpInterface->SetHcpProtectionState(
+        MHW_MI_CHK_STATUS(m_cpInterface->SetHcpProtectionState(
             true,
             cmdBuffer,
             nullptr,
-            &sliceInfoParam
-        );
+            &sliceInfoParam));
 
         return eStatus;
     }

@@ -264,7 +264,7 @@ public:
     {
         m_cpInterface = cpInterface;
         MHW_CHK_NULL_RETURN(m_cpInterface);
-        m_cpInterface->RegisterMiInterfaceNext(m_miItf);
+        MHW_MI_CHK_STATUS(m_cpInterface->RegisterMiInterfaceNext(m_miItf));
         return MOS_STATUS_SUCCESS;
     }
 
