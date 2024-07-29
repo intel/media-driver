@@ -6188,12 +6188,6 @@ MOS_STATUS CodechalEncHevcStateG9::SetupBrcConstantTable(PMOS_SURFACE brcConstan
         CODECHAL_ENC_HEVC_B_MB_ENC_CURBE_G9 cmd, *curbe = &cmd;
         CODECHAL_ENCODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(curbe, sizeof(cmd), defaultCurbe, curbeSize));
 
-        if(curbe == nullptr)
-        {
-            eStatus = MOS_STATUS_NULL_POINTER;
-            return eStatus;
-        }
-
         if(curbe->DW3.BlockBasedSkipEnable)
         {
             MOS_SecureMemcpy(data, size, m_skipThread[1], sizeof(m_skipThread[1]));
