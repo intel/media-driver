@@ -3963,6 +3963,11 @@ VAStatus DdiMedia_DestroyBuffer (
             break;
             //return va_STATUS_SUCCESS;
     }
+    if (buf->lock)
+    {
+        //buf->lock->unlock(); //todo: lock ahead firstly?
+        MOS_Delete(buf->lock); //todo: delete lock to avoid leak? check MOS_FreeMemory(buf) in code
+    }
     MOS_FreeMemory(buf);
 
     DdiMedia_DestroyBufFromVABufferID(mediaCtx, buffer_id);
