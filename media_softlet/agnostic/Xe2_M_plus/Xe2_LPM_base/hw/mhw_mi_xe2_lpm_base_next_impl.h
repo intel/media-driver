@@ -32,7 +32,7 @@
 #include "mhw_mi_hwcmd_xe2_lpm_base_next.h"
 #include "mhw_mi_itf.h"
 #include "mhw_impl.h"
-#include "mhw_mmio_xe_lpm_plus.h"
+#include "mhw_mmio_xe2_lpm_base.h"
 
 #define MHW_MI_TEE_DEFAULT_WATCHDOG_THRESHOLD_IN_MS 200
 
@@ -317,8 +317,8 @@ public:
             break;
             // TEE
         case MOS_GPU_CONTEXT_TEE:
-            MediaResetParam.watchdogCountCtrlOffset      = WATCHDOG_COUNT_CTRL_OFFSET_TEECS_XE_LPM_PLUS;
-            MediaResetParam.watchdogCountThresholdOffset = WATCHDOG_COUNT_THRESTHOLD_OFFSET_TEECS_XE_LPM_PLUS;
+            MediaResetParam.watchdogCountCtrlOffset      = WATCHDOG_COUNT_CTRL_OFFSET_TEECS_XE2_LPM_BASE ;
+            MediaResetParam.watchdogCountThresholdOffset = WATCHDOG_COUNT_THRESTHOLD_OFFSET_TEECS_XE2_LPM_BASE ;
             break;
             // Default
         default:

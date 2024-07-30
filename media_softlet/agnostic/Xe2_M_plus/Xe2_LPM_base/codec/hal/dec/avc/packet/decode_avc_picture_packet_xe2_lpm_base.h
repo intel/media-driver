@@ -29,10 +29,10 @@
 
 #include "decode_avc_picture_packet.h"
 #include "codec_hw_xe2_lpm_base.h"
-#include "mhw_vdbox_xe_lpm_plus_base.h"
+#include "mhw_vdbox_xe2_lpm_base.h"
 #include "decode_downsampling_packet.h"
 
-using namespace mhw::vdbox::xe_lpm_plus_base;
+using namespace mhw::vdbox::xe2_lpm_base;
 
 namespace decode
 {

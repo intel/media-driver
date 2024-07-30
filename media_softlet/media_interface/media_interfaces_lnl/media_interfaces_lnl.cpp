@@ -43,7 +43,9 @@
 #include "media_interfaces_mcpy_next.h"
 
 // use vdenc from Xe_LPM_plus instead of Xe2_LPM
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_vdenc_impl_xe_lpm_plus.h"
+#endif
 
 #ifndef _FULL_OPEN_SOURCE
 #include "igvpkrn_xe2_hpg.h"

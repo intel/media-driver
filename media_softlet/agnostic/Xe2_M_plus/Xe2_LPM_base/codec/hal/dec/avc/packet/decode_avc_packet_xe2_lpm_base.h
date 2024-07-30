@@ -27,7 +27,7 @@
 #ifndef __DECODE_AVC_PACKET_XE2_LPM_BASE_H__
 #define __DECODE_AVC_PACKET_XE2_LPM_BASE_H__
 
-#include "mhw_vdbox_xe_lpm_plus_base.h"
+#include "mhw_vdbox_xe2_lpm_base.h"
 #include "codec_hw_xe2_lpm_base.h"
 #include "decode_avc_packet.h"
 

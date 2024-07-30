@@ -62,6 +62,9 @@
 #define WATCHDOG_COUNT_CTRL_OFFSET_VECS_XE2_LPM_BASE                                              0x1C8178
 #define WATCHDOG_COUNT_THRESTHOLD_OFFSET_VECS_XE2_LPM_BASE                                        0x1C817C
 
+#define WATCHDOG_COUNT_CTRL_OFFSET_TEECS_XE2_LPM_BASE                                              0x11A178
+#define WATCHDOG_COUNT_THRESTHOLD_OFFSET_TEECS_XE2_LPM_BASE                                        0x11A17C
+
 //VDBOX HCP
 #define WATCHDOG_COUNT_CTRL_OFFSET_INIT_XE2_LPM_BASE                                              0x1C0178
 #define WATCHDOG_COUNT_THRESTHOLD_OFFSET_INIT_XE2_LPM_BASE                                        0x1C017C
@@ -146,12 +149,44 @@
 #define M_MMIO_MEDIA_HIGH_OFFSET                                                         0x200000 //!< High bound of VDBox and VEBox MMIO offset
 
 //Render
+#define M_MMIO_RCS_AUX_TABLE_BASE_LOW                                                    0x4200
+#define M_MMIO_RCS_AUX_TABLE_BASE_HIGH                                                   0x4204
+#define M_MMIO_RCS_AUX_TABLE_INVALIDATE                                                  0x4208
 #define M_MMIO_RCS_HW_FE_REMAP_RANGE_BEGIN                                               0x2000
 #define M_MMIO_RCS_HW_FE_REMAP_RANGE_END                                                 0x27FF
+#define M_MMIO_RCS_AUX_TBL_REMAP_RANGE_BEGIN                                             0x4200
+#define M_MMIO_RCS_AUX_TBL_REMAP_RANGE_END                                               0x420F
 #define M_MMIO_RCS_TRTT_REMAP_RANGE_BEGIN                                                0x4400
 #define M_MMIO_RCS_TRTT_REMAP_RANGE_END                                                  0x441F
 
+#define M_MMIO_MEDIA_REG_BASE                                                            0X380000//!<Media Engine Base
+
+//VD
+#define M_MMIO_VD0_AUX_TABLE_BASE_LOW                                                    0x4210
+#define M_MMIO_VD0_AUX_TABLE_BASE_HIGH                                                   0x4214
+#define M_MMIO_VD0_AUX_TABLE_INVALIDATE                                                  0x4218
+#define M_MMIO_VD1_AUX_TABLE_BASE_LOW                                                    0x4220
+#define M_MMIO_VD1_AUX_TABLE_BASE_HIGH                                                   0x4224
+#define M_MMIO_VD1_AUX_TABLE_INVALIDATE                                                  0x4228
+#define M_MMIO_VD2_AUX_TABLE_BASE_LOW                                                    0x4290
+#define M_MMIO_VD2_AUX_TABLE_BASE_HIGH                                                   0x4294
+#define M_MMIO_VD2_AUX_TABLE_INVALIDATE                                                  0x4298
+#define M_MMIO_VD3_AUX_TABLE_BASE_LOW                                                    0x42A0
+#define M_MMIO_VD3_AUX_TABLE_BASE_HIGH                                                   0x42A4
+#define M_MMIO_VD3_AUX_TABLE_INVALIDATE                                                  0x42A8
+
+//VE
+#define M_MMIO_VE0_AUX_TABLE_BASE_LOW                                                    0x4230
+#define M_MMIO_VE0_AUX_TABLE_BASE_HIGH                                                   0x4234
+#define M_MMIO_VE0_AUX_TABLE_INVALIDATE                                                  0x4238
+#define M_MMIO_VE1_AUX_TABLE_BASE_LOW                                                    0x42B0
+#define M_MMIO_VE1_AUX_TABLE_BASE_HIGH                                                   0x42B4
+#define M_MMIO_VE1_AUX_TABLE_INVALIDATE                                                  0x42B8
+
 //Compute
+#define M_MMIO_CCS0_AUX_TABLE_BASE_LOW                                                   0x42C0
+#define M_MMIO_CCS0_AUX_TABLE_BASE_HIGH                                                  0x42C4
+#define M_MMIO_CCS0_AUX_TABLE_INVALIDATE                                                 0x42C8
 #define M_MMIO_CCS0_HW_FRONT_END_BASE_BEGIN                                              0x1A000
 #define M_MMIO_CCS0_HW_FRONT_END_BASE_END                                                0x1A7FF
 #define M_MMIO_CCS1_HW_FRONT_END_BASE_BEGIN                                              0x1C000
@@ -172,5 +207,9 @@
 #define REG_TIMESTAMP_BASE_XE2_LPM_BASE                                                           0x2358
 
 #define M_CCS_HW_FRONT_END_MMIO_MASK                                                     0x7FF
+
+//Bilitter engine
+#define M_MMIO_BLT_AUX_TABLE_BASE_LOW 0x4240
+#define M_MMIO_BLT_AUX_TABLE_BASE_HIGH 0x4244
 
 #endif   //__MHW_MMIO_XE2_LPM_BASE_H__

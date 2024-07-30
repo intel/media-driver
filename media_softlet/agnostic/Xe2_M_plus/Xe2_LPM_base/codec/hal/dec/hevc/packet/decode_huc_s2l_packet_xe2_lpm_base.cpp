@@ -26,10 +26,10 @@
 #include "decode_huc_s2l_packet_xe2_lpm_base.h"
 #include "mhw_vdbox.h"
 #include "decode_resource_auto_lock.h"
-#include "mhw_vdbox_xe_lpm_plus_base.h"
+#include "mhw_vdbox_xe2_lpm_base.h"
 #include "mhw_mi_hwcmd_xe2_lpm_base_next.h"
 
-using namespace mhw::vdbox::xe_lpm_plus_base;
+using namespace mhw::vdbox::xe2_lpm_base;
 
 namespace decode {
 

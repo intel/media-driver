@@ -451,7 +451,7 @@ protected:
     }
 MEDIA_CLASS_DEFINE_END(mhw__vdbox__hcp__xe2_lpm_base__BaseImpl)
 };
-}  // namespace xe_lpm_plus_base
+}  // namespace xe2_lpm_base
 }  // namespace hcp
 }  // namespace vdbox
 }  // namespace mhw

@@ -65,4 +65,4 @@ MEDIA_CLASS_DEFINE_END(decode__JpegDecodePktXe2_Lpm_Base)
 
 }
 
-#endif //__DECODE_JPEG_PACKET_XE_LPM_PLUS_H__
+#endif //__DECODE_JPEG_PACKET_XE2_LPM_H__

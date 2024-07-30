@@ -25,7 +25,7 @@
 //!
 #include "decode_avc_picture_packet_xe2_lpm_base.h"
 
-using namespace mhw::vdbox::xe_lpm_plus_base;
+using namespace mhw::vdbox::xe2_lpm_base;
 
 namespace decode
 {

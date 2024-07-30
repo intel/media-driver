@@ -43,7 +43,7 @@ set(SOFTLET_COMMON_HEADERS_
     ${TMP_HEADERS_}
 )
 
-source_group( "SharedNext\\Xe_LPM_plus_base\\shared\\MediaCopy" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+source_group( "SharedNext\\Xe2_LPM_base\\shared\\MediaCopy" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
 
 set(SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_
     ${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_}

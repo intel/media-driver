@@ -80,4 +80,4 @@ protected:
 MEDIA_CLASS_DEFINE_END(DecodeVp9PipelineAdapterXe2_Lpm_Base)
 };
 
-#endif // !__DECODE_VP9_PIPELINE_ADAPTER_XE_LPM_PLUS_BASE_H__
+#endif // !__DECODE_VP9_PIPELINE_ADAPTER_XE2_LPM_BASE_H__

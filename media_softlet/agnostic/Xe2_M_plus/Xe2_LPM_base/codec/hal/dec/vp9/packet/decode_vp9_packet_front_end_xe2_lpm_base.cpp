@@ -32,9 +32,9 @@
 #include "decode_status_report_defs.h"
 #include "decode_resource_auto_lock.h"
 #include "hal_oca_interface_next.h"
-#include "mhw_vdbox_xe_lpm_plus_base.h"
+#include "mhw_vdbox_xe2_lpm_base.h"
 
-using namespace mhw::vdbox::xe_lpm_plus_base;
+using namespace mhw::vdbox::xe2_lpm_base;
 namespace decode
 {
 

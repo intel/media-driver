@@ -21,7 +21,7 @@
 */
 //!
 //! \file     mhw_vdbox_huc_impl_xe2_lpm.h
-//! \brief    MHW VDBOX HUC interface common base for Xe_LPM_plus
+//! \brief    MHW VDBOX HUC interface common base for Xe2_LPM
 //! \details
 //!
 

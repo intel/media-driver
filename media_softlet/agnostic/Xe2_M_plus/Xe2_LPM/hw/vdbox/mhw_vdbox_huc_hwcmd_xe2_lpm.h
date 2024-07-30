@@ -1025,4 +1025,4 @@ MEDIA_CLASS_DEFINE_END(mhw__vdbox__huc__xe2_lpm_base__xe2_lpm__Cmd)
 
 #pragma pack()
 
-#endif  // __MHW_VDBOX_HUC_HWCMD_XE_LPM_PLUS_H__
+#endif  // __MHW_VDBOX_HUC_HWCMD_XE2_LPM_H__

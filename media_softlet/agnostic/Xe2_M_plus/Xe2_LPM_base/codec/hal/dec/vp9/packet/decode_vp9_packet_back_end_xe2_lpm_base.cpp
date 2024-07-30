@@ -33,9 +33,9 @@
 #include "decode_resource_auto_lock.h"
 #include "hal_oca_interface_next.h"
 #include "decode_vp9_picture_packet_xe2_lpm_base.h"
-#include "mhw_vdbox_xe_lpm_plus_base.h"
+#include "mhw_vdbox_xe2_lpm_base.h"
 
-using namespace mhw::vdbox::xe_lpm_plus_base;
+using namespace mhw::vdbox::xe2_lpm_base;
 
 namespace decode
 {
