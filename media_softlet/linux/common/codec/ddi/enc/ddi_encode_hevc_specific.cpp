@@ -1537,6 +1537,7 @@ CODECHAL_MODE DdiEncodeHevc::GetEncodeCodecMode(
     {
     case VAProfileHEVCMain:
     case VAProfileHEVCMain10:
+    case VAProfileHEVCMain422_10:
     case VAProfileHEVCMain444:
     case VAProfileHEVCMain444_10:
     case VAProfileHEVCSccMain:

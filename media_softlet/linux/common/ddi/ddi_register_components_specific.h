@@ -45,6 +45,9 @@ static bool RegisteredHevcMain =
 static bool RegisteredHevcMain10 =
     DdiEncodeFactory::
         Register<encode::DdiEncodeHevc>(ComponentInfo{VAProfileHEVCMain10, VAEntrypointEncSlice});
+static bool RegisteredHevcMain422_10 =
+    DdiEncodeFactory::
+        Register<encode::DdiEncodeHevc>(ComponentInfo{VAProfileHEVCMain422_10, VAEntrypointEncSlice});
 static bool RegisteredHevcMain444 =
     DdiEncodeFactory::
         Register<encode::DdiEncodeHevc>(ComponentInfo{VAProfileHEVCMain444, VAEntrypointEncSlice});
