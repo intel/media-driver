@@ -1035,7 +1035,7 @@ private:
         PMOS_INTERFACE                       osInterface);
 
     //!
-    //! \brief Update the forward reference frames for VPHAL input surface
+    //! \brief Update the future reference frames for VPHAL input surface
     //! \param  [in]  vpCtx
     //!         VP context
     //! \param  [in]  vaDrvCtx
@@ -1047,14 +1047,14 @@ private:
     //!
     //! \returns VA_STATUS_SUCCESS if call succeeds
     //!
-    VAStatus DdiUpdateProcPipelineForwardReferenceFrames(
+    VAStatus DdiUpdateProcPipelineFutureReferenceFrames(
         PDDI_VP_CONTEXT                vpCtx,
         VADriverContextP               vaDrvCtx,
         PVPHAL_SURFACE                 vpHalSrcSurf,
         VAProcPipelineParameterBuffer  *pipelineParam);
 
     //!
-    //! \brief Update the backward reference frames for VPHAL input surface
+    //! \brief Update the past reference frames for VPHAL input surface
     //!
     //! \param [in]  vpCtx
     //!        VP context
@@ -1066,7 +1066,7 @@ private:
     //!        Pipeline parameter from application (VAProcPipelineParameterBuffer)
     //! \returns VA_STATUS_SUCCESS if call succeeds
     //!
-    VAStatus DdiUpdateProcPipelineBackwardReferenceFrames(
+    VAStatus DdiUpdateProcPipelinePastReferenceFrames(
         PDDI_VP_CONTEXT               vpCtx,
         VADriverContextP              vaDrvCtx,
         PVPHAL_SURFACE                vpHalSrcSurf,

@@ -822,6 +822,23 @@ VAStatus DdiVpFunctions::QueryVideoProcPipelineCaps(
     pipelineCaps->min_output_width           = VP_MIN_PIC_WIDTH;
     pipelineCaps->min_output_height          = VP_MIN_PIC_WIDTH;
 
+    
+    for (int i = 0; i < filtersNum; i++) {
+        void *pData;
+        DdiMedia_MapBuffer(ctx, filters[i], &pData);
+        DDI_CHK_NULL(pData, "nullptr pData", VA_STATUS_ERROR_INVALID_PARAMETER);
+        VAProcFilterParameterBufferBase* base_param = (VAProcFilterParameterBufferBase*) pData;
+        if (base_param->type == VAProcFilterDeinterlacing)
+        {
+            VAProcFilterParameterBufferDeinterlacing *di_param = (VAProcFilterParameterBufferDeinterlacing *)base_param;
+            if (di_param->algorithm == VAProcDeinterlacingMotionAdaptive ||
+                di_param->algorithm == VAProcDeinterlacingMotionCompensated)
+            {
+                pipelineCaps->num_forward_references = 1;
+            }
+        }
+    }
+
     return VA_STATUS_SUCCESS;
 }
 
@@ -2209,7 +2226,7 @@ MOS_STATUS DdiVpFunctions::VpHalDdiSetupSplitScreenDemoMode(
     return eStatus;
 }
 
-VAStatus DdiVpFunctions::DdiUpdateProcPipelineForwardReferenceFrames(
+VAStatus DdiVpFunctions::DdiUpdateProcPipelineFutureReferenceFrames(
     PDDI_VP_CONTEXT               vpCtx,
     VADriverContextP              vaDrvCtx,
     PVPHAL_SURFACE                vpHalSrcSurf,
@@ -2230,13 +2247,13 @@ VAStatus DdiVpFunctions::DdiUpdateProcPipelineForwardReferenceFrames(
     DDI_VP_CHK_NULL(mediaCtx, "nullptr mediaCtx!", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     surface = vpHalSrcSurf;
-    if (!pipelineParam->forward_references)
+    if (!pipelineParam->backward_references)
     {
         DDI_VP_NORMALMESSAGE("nullptr pipelineParam->forward_references");
         return VA_STATUS_SUCCESS;
     }
 
-    for (uint32_t i = 0; i < pipelineParam->num_forward_references; i++)
+    for (uint32_t i = 0; i < pipelineParam->num_backward_references; i++)
     {
         if (surface->pFwdRef == nullptr)
         {
@@ -2255,9 +2272,9 @@ VAStatus DdiVpFunctions::DdiUpdateProcPipelineForwardReferenceFrames(
             surface->pFwdRef->dwWidth       = vpHalSrcSurf->dwWidth;
             surface->pFwdRef->dwHeight      = vpHalSrcSurf->dwHeight;
             surface->pFwdRef->dwPitch       = vpHalSrcSurf->dwPitch;
-            surface->uFwdRefCount           = pipelineParam->num_forward_references - i;
+            surface->uFwdRefCount           = pipelineParam->num_backward_references - i;
         }
-        refSurfBuffObj = MediaLibvaCommonNext::GetSurfaceFromVASurfaceID(mediaCtx, pipelineParam->forward_references[i]);
+        refSurfBuffObj = MediaLibvaCommonNext::GetSurfaceFromVASurfaceID(mediaCtx, pipelineParam->backward_references[i]);
         DDI_VP_CHK_NULL(refSurfBuffObj, "nullptr refSurfBuffObj!", VA_STATUS_ERROR_INVALID_SURFACE);
 
         surface->pFwdRef->OsResource.bo          = refSurfBuffObj->bo;
@@ -2277,7 +2294,7 @@ VAStatus DdiVpFunctions::DdiUpdateProcPipelineForwardReferenceFrames(
     return VA_STATUS_SUCCESS;
 }
 
-VAStatus DdiVpFunctions::DdiUpdateProcPipelineBackwardReferenceFrames(
+VAStatus DdiVpFunctions::DdiUpdateProcPipelinePastReferenceFrames(
     PDDI_VP_CONTEXT               vpCtx,
     VADriverContextP              vaDrvCtx,
     PVPHAL_SURFACE                vpHalSrcSurf,
@@ -2298,13 +2315,13 @@ VAStatus DdiVpFunctions::DdiUpdateProcPipelineBackwardReferenceFrames(
     DDI_VP_CHK_NULL(mediaCtx, "nullptr mediaCtx!", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     surface = vpHalSrcSurf;
-    if(!pipelineParam->backward_references)
+    if(!pipelineParam->forward_references)
     {
         DDI_VP_NORMALMESSAGE("nullptr pipelineParam->backward_references");
         return VA_STATUS_SUCCESS;
     }
 
-    for (uint32_t i = 0; i < pipelineParam->num_backward_references; i++)
+    for (uint32_t i = 0; i < pipelineParam->num_forward_references; i++)
     {
         if (surface->pBwdRef == nullptr)
         {
@@ -2323,9 +2340,9 @@ VAStatus DdiVpFunctions::DdiUpdateProcPipelineBackwardReferenceFrames(
             surface->pBwdRef->dwWidth       = vpHalSrcSurf->dwWidth;
             surface->pBwdRef->dwHeight      = vpHalSrcSurf->dwHeight;
             surface->pBwdRef->dwPitch       = vpHalSrcSurf->dwPitch;
-            surface->uBwdRefCount           = pipelineParam->num_backward_references - i;
+            surface->uBwdRefCount           = pipelineParam->num_forward_references - i;
         }
-        refSurfBuffObj = MediaLibvaCommonNext::GetSurfaceFromVASurfaceID(mediaCtx, pipelineParam->backward_references[i]);
+        refSurfBuffObj = MediaLibvaCommonNext::GetSurfaceFromVASurfaceID(mediaCtx, pipelineParam->forward_references[i]);
         DDI_VP_CHK_NULL(refSurfBuffObj, "nullptr refSurfBuffObj!", VA_STATUS_ERROR_INVALID_SURFACE);
 
         surface->pBwdRef->OsResource.bo          = refSurfBuffObj->bo;
@@ -4097,15 +4114,15 @@ VAStatus DdiVpFunctions::DdiSetProcPipelineParams(
     }
 
     // Update fwd and bkward ref frames: Required for Advanced processing - will be supported in the future
-    vpHalSrcSurf->uFwdRefCount = pipelineParam->num_forward_references;
+    vpHalSrcSurf->uFwdRefCount = pipelineParam->num_backward_references;
 
-    vaStatus = DdiUpdateProcPipelineForwardReferenceFrames(vpCtx, vaDrvCtx, vpHalSrcSurf, pipelineParam);
-    DDI_CHK_RET(vaStatus, "Failed to update forward reference frames!");
+    vaStatus = DdiUpdateProcPipelineFutureReferenceFrames(vpCtx, vaDrvCtx, vpHalSrcSurf, pipelineParam);
+    DDI_CHK_RET(vaStatus, "Failed to update future reference frames!");
 
-    vpHalSrcSurf->uBwdRefCount = pipelineParam->num_backward_references;
+    vpHalSrcSurf->uBwdRefCount = pipelineParam->num_forward_references;
 
-    vaStatus = DdiUpdateProcPipelineBackwardReferenceFrames(vpCtx, vaDrvCtx, vpHalSrcSurf, pipelineParam);
-    DDI_CHK_RET(vaStatus, "Failed to update backward reference frames!");
+    vaStatus = DdiUpdateProcPipelinePastReferenceFrames(vpCtx, vaDrvCtx, vpHalSrcSurf, pipelineParam);
+    DDI_CHK_RET(vaStatus, "Failed to update past reference frames!");
 
     // Check if filter values changed,if yes, then reset all filters for this surface
 
