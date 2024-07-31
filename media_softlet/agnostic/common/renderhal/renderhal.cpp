@@ -5132,7 +5132,8 @@ MOS_STATUS RenderHal_InitCommandBuffer(
     pCmdBuffer->Attributes.bMediaPreemptionEnabled =
         (pRenderHal->bEnableGpgpuMidBatchPreEmption ||
         pRenderHal->bEnableGpgpuMidThreadPreEmption ||
-        pRenderHal->pRenderHalPltInterface->IsPreemptionEnabled(pRenderHal));
+            pRenderHal->pRenderHalPltInterface->IsPreemptionEnabled(pRenderHal)) &&
+        !pRenderHal->forceDisablePreemption;
 
     if (pGenericPrologParams)
     {
@@ -5535,7 +5536,12 @@ MOS_STATUS RenderHal_SendMediaStates(
     // Send L3 Cache Configuration
     MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pRenderHalPltInterface->SetL3Cache(pRenderHal, pCmdBuffer));
 
-    MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pRenderHalPltInterface->EnablePreemption(pRenderHal, pCmdBuffer));
+    // if forceDisablePreemption is true, preemption will be disabled by NeedsMidBatchPreEmptionSupport in command buffer header. 
+    // skip preemption control bit configure as it won't take effect. 
+    if (!pRenderHal->forceDisablePreemption)
+    {
+        MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pRenderHalPltInterface->EnablePreemption(pRenderHal, pCmdBuffer));
+    }
 
     // Send Debug Control, LRI commands used here & hence must be launched from a secure bb
     MHW_RENDERHAL_CHK_STATUS_RETURN(RenderHal_AddDebugControl(pRenderHal, pCmdBuffer));

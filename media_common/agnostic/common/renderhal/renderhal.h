@@ -1282,6 +1282,10 @@ typedef struct _RENDERHAL_INTERFACE
     MediaPerfProfiler           *pPerfProfiler = nullptr; //!< Performance data profiler
     bool                        eufusionBypass = false;
     MediaUserSettingSharedPtr   userSettingPtr = nullptr; //!< Shared pointer to User Setting instance
+
+    // if it's true, will disable preemption by setting NeedsMidBatchPreEmptionSupport flag in command buffer attribute as false;
+    // will also skip preemption control bits configure.
+    bool                        forceDisablePreemption = false;
     //---------------------------
     // HW interface functions
     //---------------------------

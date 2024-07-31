@@ -117,7 +117,9 @@ MOS_STATUS RenderCopyStateNext::Initialize()
     RenderHalSettings.iMediaStates = 32;
     MCPY_CHK_STATUS_RETURN(m_renderHal->pfnInitialize(m_renderHal, &RenderHalSettings));
 
-    m_renderHal->sseuTable = defaultSSEUTable;
+    m_renderHal->sseuTable              = defaultSSEUTable;
+    m_renderHal->forceDisablePreemption = true;
+
     return MOS_STATUS_SUCCESS;
 }
 
