@@ -35,7 +35,7 @@
 #if (_RELEASE_INTERNAL || _DEBUG)
 #if defined(CM_DIRECT_GUC_SUPPORT)
 #include "work_queue_mngr.h"
-#include "KmGucClientInterface.h"
+#include <FirmwareManager/GpuFW/GucModule/commoninc/KmGucClientInterface.h>
 #endif
 #endif
 
