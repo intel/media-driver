@@ -860,10 +860,9 @@ namespace decode
     {
         DECODE_FUNC_CALL();
         uint32_t sliceLvlBufSize = 0;
-        CodechalHwInterfaceNext * _m_hwInterface = dynamic_cast<CodechalHwInterfaceNext *>(m_hwInterface);
-        if (_m_hwInterface != nullptr)
+        if (m_hwInterface != nullptr)
         {
-            DECODE_CHK_STATUS(_m_hwInterface->GetVvcpSliceLvlCmdSize(&sliceLvlBufSize));
+            DECODE_CHK_STATUS(m_hwInterface->GetVvcpSliceLvlCmdSize(&sliceLvlBufSize));
             sliceLvlBufSize = MOS_ALIGN_CEIL(sliceLvlBufSize, 64);
         }
         return sliceLvlBufSize * sliceNum;

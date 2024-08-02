@@ -56,10 +56,10 @@ MOS_STATUS VvcDecodeS2LPktXe2_Lpm_Base::Execute(MOS_COMMAND_BUFFER &cmdBuffer, b
 
     // Check HuC_STATUS2 bit6, if bit6 > 0 HW continue execution following cmd, otherwise it send a COND BB END cmd.
     uint32_t compareOperation = mhw::mi::xe2_lpm_base_next::Cmd::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::COMPARE_OPERATION_MADGREATERTHANIDD;
-    CodechalHwInterfaceXe2_Lpm_Base * _m_hwInterface = dynamic_cast<CodechalHwInterfaceXe2_Lpm_Base *>(m_hwInterface);
-    if (_m_hwInterface != nullptr)
+    CodechalHwInterfaceXe2_Lpm_Base *hwInterface    = dynamic_cast<CodechalHwInterfaceXe2_Lpm_Base *>(m_hwInterface);
+    if (hwInterface != nullptr)
     {
-        DECODE_CHK_STATUS(_m_hwInterface->SendCondBbEndCmd(osResource, offset, 0, false, false, compareOperation, &cmdBuffer));
+        DECODE_CHK_STATUS(hwInterface->SendCondBbEndCmd(osResource, offset, 0, false, false, compareOperation, &cmdBuffer));
     }
 
     if (!m_vvcPipeline->IsSingleTaskPhaseSupported())

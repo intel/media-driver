@@ -551,10 +551,9 @@ public:
             m_vdencItf    = std::static_pointer_cast<mhw::vdbox::vdenc::Itf>(hwInterface->GetVdencInterfaceNext());
             m_hucItf      = std::static_pointer_cast<mhw::vdbox::huc::Itf>(hwInterface->GetHucInterfaceNext());
 
-            CodechalHwInterfaceNext *_m_hwInterface = dynamic_cast<CodechalHwInterfaceNext *>(m_hwInterface);
-            if (_m_hwInterface != nullptr)
+            if (m_hwInterface != nullptr)
             {
-                m_vvcpItf = std::static_pointer_cast<mhw::vdbox::vvcp::Itf>(_m_hwInterface->GetVvcpInterfaceNext());
+                m_vvcpItf = std::static_pointer_cast<mhw::vdbox::vvcp::Itf>(m_hwInterface->GetVvcpInterfaceNext());
             }
         }
     }
