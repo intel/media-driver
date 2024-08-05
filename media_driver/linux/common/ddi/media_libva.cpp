@@ -4609,6 +4609,7 @@ VAStatus DdiMedia_CreateImage(
     gmmParams.Type              = RESOURCE_2D;
     gmmParams.Flags.Gpu.Video   = true;
     gmmParams.Format            = mediaCtx->m_caps->ConvertFourccToGmmFmt(format->fourcc);
+    gmmParams.Flags.Info.Linear = 1;
 
     if (gmmParams.Format == GMM_FORMAT_INVALID)
     {
@@ -4693,6 +4694,16 @@ VAStatus DdiMedia_CreateImage(
             vaimg->pitches[1] = pitch;
             vaimg->offsets[0] = 0;
             vaimg->offsets[1] = offsetU;
+            if (height % 2 == 1)
+            {
+                uint32_t upperSize = pitch * MOS_ALIGN_CEIL(height, 2) / 2;
+                uint32_t lowerSize = pitch * height / 2;
+                uint32_t remainSize = size - offsetU;
+                if (remainSize >= lowerSize && remainSize < upperSize)
+                {
+                    vaimg->data_size = offsetU + pitch * MOS_ALIGN_CEIL(height, 2) / 2;
+                }
+            }
             break;
         case VA_FOURCC_YV12:
             vaimg->num_planes = 3;
@@ -5692,18 +5703,20 @@ VAStatus DdiMedia_PutImage(
             {
                 DDI_MEDIA_SURFACE uPlane = *mediaSurface;
 
-                uint32_t chromaHeight      = 0;
-                uint32_t chromaPitch       = 0;
-                DdiMedia_GetChromaPitchHeight(DdiMedia_MediaFormatToOsFormat(uPlane.format), uPlane.iPitch, uPlane.iHeight, &chromaPitch, &chromaHeight);
+                uint32_t realChromaHeight      = 0;
+                uint32_t alignedChromaHeight   = 0;
+                uint32_t chromaPitch           = 0;
+                DdiMedia_GetChromaPitchHeight(DdiMedia_MediaFormatToOsFormat(uPlane.format), uPlane.iPitch, uPlane.iRealHeight, &chromaPitch, &realChromaHeight);
+                DdiMedia_GetChromaPitchHeight(DdiMedia_MediaFormatToOsFormat(uPlane.format), uPlane.iPitch, uPlane.iHeight, &chromaPitch, &alignedChromaHeight);
 
                 uint8_t *uSrc = (uint8_t *)imageData + vaimg->offsets[1];
                 uint8_t *uDst = yDst + mediaSurface->iPitch * mediaSurface->iHeight;
-                DdiMedia_CopyPlane(uDst, chromaPitch, uSrc, vaimg->pitches[1], chromaHeight);
+                DdiMedia_CopyPlane(uDst, chromaPitch, uSrc, vaimg->pitches[1], realChromaHeight);
                 if (vaimg->num_planes > 2)
                 {
                     uint8_t *vSrc = (uint8_t *)imageData + vaimg->offsets[2];
-                    uint8_t *vDst = uDst + chromaPitch * chromaHeight;
-                    DdiMedia_CopyPlane(vDst, chromaPitch, vSrc, vaimg->pitches[2], chromaHeight);
+                    uint8_t *vDst = uDst + chromaPitch * alignedChromaHeight;
+                    DdiMedia_CopyPlane(vDst, chromaPitch, vSrc, vaimg->pitches[2], realChromaHeight);
                 }
             }
         } 
