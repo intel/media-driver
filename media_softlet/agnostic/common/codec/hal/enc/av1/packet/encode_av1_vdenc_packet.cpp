@@ -1887,8 +1887,13 @@ namespace encode{
         m_basicFeature->m_numSlices = tileNum;
         auto &miCpyMemMemParams     = m_miItf->MHW_GETPAR_F(MI_COPY_MEM_MEM)();
         auto &storeDataParams       = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+
+        //memeset EncodedBitstreamWrittenBytesCount
         storeDataParams             = {};
         storeDataParams.pOsResource = m_basicFeature->m_resMetadataBuffer;
+        storeDataParams.dwResourceOffset = resourceOffset.dwEncodedBitstreamWrittenBytesCount;
+        storeDataParams.dwValue          = 0;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
 
         for (uint32_t tileIdx = 0; tileIdx < tileNum; tileIdx++)
         {
