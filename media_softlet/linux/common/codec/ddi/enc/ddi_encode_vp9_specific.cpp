@@ -587,6 +587,9 @@ VAStatus DdiEncodeVp9::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
     vp9PicParam->PicFlags.fields.comp_prediction_mode         = picParam->pic_flags.bits.comp_prediction_mode;
     vp9PicParam->PicFlags.fields.super_frame                  = picParam->pic_flags.bits.super_frame_flag;
     vp9PicParam->PicFlags.fields.seg_update_data              = picParam->pic_flags.bits.segmentation_enabled;
+#if VA_CHECK_VERSION(1, 23, 0)
+    vp9PicParam->PicFlags.fields.seg_id_block_size            = picParam->seg_id_block_size;
+#endif
 
     vp9PicParam->SrcFrameWidthMinus1          = picParam->frame_width_src - 1;
     vp9PicParam->SrcFrameHeightMinus1         = picParam->frame_height_src - 1;
