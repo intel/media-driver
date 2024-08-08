@@ -2839,20 +2839,22 @@ mos_query_device_blob_xe(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info)
             gfx_info->MaxSlicesSupported = hwconfig[i+2];
         }
 
-        if (INTEL_HWCONFIG_MAX_DUAL_SUBSLICES_SUPPORTED == hwconfig[i])
+        if ((INTEL_HWCONFIG_MAX_DUAL_SUBSLICES_SUPPORTED == hwconfig[i])
+            || (INTEL_HWCONFIG_MAX_SUBSLICE == hwconfig[i]))
         {
             assert(hwconfig[i+1] == 1);
             gfx_info->SubSliceCount = hwconfig[i+2];
             gfx_info->MaxSubSlicesSupported = hwconfig[i+2];
         }
 
-        if (INTEL_HWCONFIG_MAX_NUM_EU_PER_DSS == hwconfig[i])
+        if ((INTEL_HWCONFIG_MAX_NUM_EU_PER_DSS == hwconfig[i])
+            || (INTEL_HWCONFIG_MAX_EU_PER_SUBSLICE == hwconfig[i]))
         {
             assert(hwconfig[i+1] == 1);
             gfx_info->MaxEuPerSubSlice = hwconfig[i+2];
         }
 
-        if (INTEL_HWCONFIG_L3_CACHE_SIZE_IN_KB == hwconfig[i])
+        if (INTEL_HWCONFIG_DEPRECATED_L3_CACHE_SIZE_IN_KB == hwconfig[i])
         {
             assert(hwconfig[i+1] == 1);
             gfx_info->L3CacheSizeInKb = hwconfig[i+2];
@@ -3216,13 +3218,15 @@ mos_get_driver_info_xe(struct mos_bufmgr *bufmgr, struct LinuxDriverInfo *drvInf
                 drvInfo->sliceCount = hw_config[i+2];
             }
 
-            if (INTEL_HWCONFIG_MAX_DUAL_SUBSLICES_SUPPORTED == hw_config[i])
+            if ((INTEL_HWCONFIG_MAX_DUAL_SUBSLICES_SUPPORTED == hw_config[i])
+                || (INTEL_HWCONFIG_MAX_SUBSLICE == hw_config[i]))
             {
                 assert(hw_config[i+1] == 1);
                 drvInfo->subSliceCount = hw_config[i+2];
             }
 
-            if (INTEL_HWCONFIG_MAX_NUM_EU_PER_DSS == hw_config[i])
+            if ((INTEL_HWCONFIG_MAX_NUM_EU_PER_DSS == hw_config[i])
+                || (INTEL_HWCONFIG_MAX_EU_PER_SUBSLICE == hw_config[i]))
             {
                 assert(hw_config[i+1] == 1);
                 MaxEuPerSubSlice = hw_config[i+2];

@@ -5085,7 +5085,7 @@ static int mos_bufmgr_query_device_blob(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_
             gfx_info->MaxEuPerSubSlice = hw_info[i+2];
         }
 
-        if (INTEL_HWCONFIG_L3_CACHE_SIZE_IN_KB == hw_info[i])
+        if (INTEL_HWCONFIG_DEPRECATED_L3_CACHE_SIZE_IN_KB == hw_info[i])
         {
             if (hw_info[i+1] != 1)
             {
