@@ -230,8 +230,8 @@ namespace encode {
                 ENCODE_ASSERTMESSAGE("TargetBitRate is zero!");
                 return MOS_STATUS_INVALID_PARAMETER;
             }
-            hucVdencBrcInitDmem->SlidingWindow_Size_U32     = m_basicFeature->m_hevcSeqParams->SlidingWindowSize;
-            hucVdencBrcInitDmem->SLIDINGWINDOW_MaxRateRatio = m_basicFeature->m_hevcSeqParams->MaxBitRatePerSlidingWindow * 100 / m_basicFeature->m_hevcSeqParams->TargetBitRate;
+            hucVdencBrcInitDmem->SlidingWindow_Size_U32     = MOS_MIN((uint32_t)m_basicFeature->m_hevcSeqParams->SlidingWindowSize, 60);
+            hucVdencBrcInitDmem->SLIDINGWINDOW_MaxRateRatio = (uint8_t)((uint64_t)m_basicFeature->m_hevcSeqParams->MaxBitRatePerSlidingWindow * 100 / m_basicFeature->m_hevcSeqParams->TargetBitRate);
         }
         else
         {
