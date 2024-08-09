@@ -174,7 +174,7 @@ MOS_STATUS VeboxCopyStateNext::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE 
     MediaPerfProfiler* perfProfiler = MediaPerfProfiler::Instance();
     VEBOX_COPY_CHK_NULL_RETURN(perfProfiler);
     VEBOX_COPY_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd((void*)this, m_osInterface, m_miItf, &cmdBuffer));
-
+    VEBOX_COPY_CHK_STATUS_RETURN(NullHW::StartPredicateNext(m_osInterface, m_miItf, &cmdBuffer));
     // Set Vebox MMIO
     VEBOX_COPY_CHK_STATUS_RETURN(m_miItf->AddVeboxMMIOPrologCmd(&cmdBuffer));
 
@@ -213,6 +213,7 @@ MOS_STATUS VeboxCopyStateNext::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE 
         }
         VEBOX_COPY_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
     }
+    VEBOX_COPY_CHK_STATUS_RETURN(NullHW::StopPredicateNext(m_osInterface, m_miItf, &cmdBuffer));
     VEBOX_COPY_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectEndCmd((void*)this, m_osInterface, m_miItf, &cmdBuffer));
 
     HalOcaInterfaceNext::On1stLevelBBEnd(cmdBuffer, *m_osInterface);
