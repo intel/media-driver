@@ -41,7 +41,7 @@ public:
 
     virtual MOS_STATUS Execute(void *params);
 
-    virtual MOS_STATUS Allocate(CodechalSetting *codecHalSettings) = 0;
+    virtual MOS_STATUS Allocate(CodechalSetting *codecHalSettings);
 
     virtual MOS_STATUS GetStatusReport(void *status, uint16_t numStatus);
 

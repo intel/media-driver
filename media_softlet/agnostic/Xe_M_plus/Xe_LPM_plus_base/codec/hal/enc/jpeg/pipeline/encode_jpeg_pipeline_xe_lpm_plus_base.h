@@ -46,10 +46,7 @@ public:
 
     virtual ~JpegPipelineXe_Lpm_Plus_Base() {}
 
-    MOS_STATUS InitMmcState();
-
-protected:
-    virtual MOS_STATUS Initialize(void *settings) override;
+    virtual MOS_STATUS InitMmcState() override;
 
 MEDIA_CLASS_DEFINE_END(encode__JpegPipelineXe_Lpm_Plus_Base)
 };

@@ -45,6 +45,16 @@ MOS_STATUS EncodeJpegPipelineAdapter::Execute(void    *params)
     return m_encoder->Execute();
 }
 
+MOS_STATUS EncodeJpegPipelineAdapter::Allocate(CodechalSetting *codecHalSettings)
+{
+    ENCODE_FUNC_CALL();
+
+    m_encoder = std::make_shared<encode::JpegPipeline>(m_hwInterface, m_debugInterface);
+    ENCODE_CHK_NULL_RETURN(m_encoder);
+
+    return m_encoder->Init(codecHalSettings);
+}
+
 MOS_STATUS EncodeJpegPipelineAdapter::GetStatusReport(
     void                *status,
     uint16_t            numStatus)

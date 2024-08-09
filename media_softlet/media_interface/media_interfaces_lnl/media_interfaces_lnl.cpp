@@ -440,7 +440,7 @@ MOS_STATUS CodechalInterfacesXe2_Lpm::Initialize(
 #ifdef _JPEG_ENCODE_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_JPEG)
         {
-            m_codechalDevice = MOS_New(EncodeJpegPipelineAdapterXe_Lpm_Plus_Base, hwInterface, debugInterface);
+            m_codechalDevice = MOS_New(EncodeJpegPipelineAdapter, hwInterface, debugInterface);
             if (m_codechalDevice == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");

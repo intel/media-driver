@@ -31,39 +31,6 @@
 
 namespace encode {
 
-MOS_STATUS JpegPipelineXe_Lpm_Plus_Base::Initialize(void *settings)
-{
-    ENCODE_FUNC_CALL();
-
-    CodechalSetting *codecSettings = (CodechalSetting *)settings;
-    ENCODE_CHK_NULL_RETURN(m_hwInterface);
-    ENCODE_CHK_STATUS_RETURN(m_hwInterface->Initialize(codecSettings));
-    ENCODE_CHK_STATUS_RETURN(InitMmcState());
-    ENCODE_CHK_STATUS_RETURN(JpegPipeline::Initialize(settings));
-
-    CODECHAL_DEBUG_TOOL(
-        if (m_debugInterface != nullptr) {
-            MOS_Delete(m_debugInterface);
-        }
-        m_debugInterface = MOS_New(CodechalDebugInterface);
-        ENCODE_CHK_NULL_RETURN(m_debugInterface);
-        ENCODE_CHK_NULL_RETURN(m_mediaCopyWrapper);
-        ENCODE_CHK_STATUS_RETURN(
-            m_debugInterface->Initialize(m_hwInterface, m_codecFunction, m_mediaCopyWrapper));
-
-        if (m_statusReportDebugInterface != nullptr) {
-            MOS_Delete(m_statusReportDebugInterface);
-        }
-        m_statusReportDebugInterface = MOS_New(CodechalDebugInterface);
-        ENCODE_CHK_NULL_RETURN(m_statusReportDebugInterface);
-        ENCODE_CHK_STATUS_RETURN(
-            m_statusReportDebugInterface->Initialize(m_hwInterface, m_codecFunction, m_mediaCopyWrapper)););
-
-    ENCODE_CHK_STATUS_RETURN(GetSystemVdboxNumber());
-
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS JpegPipelineXe_Lpm_Plus_Base::InitMmcState()
 {
 #ifdef _MMC_SUPPORTED

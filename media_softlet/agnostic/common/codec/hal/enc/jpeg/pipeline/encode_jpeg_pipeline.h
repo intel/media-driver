@@ -56,6 +56,8 @@ public:
 
     virtual MOS_STATUS Init(void *settings) override;
 
+    virtual MOS_STATUS InitMmcState();
+
 protected:
     virtual MOS_STATUS Initialize(void *settings) override;
     virtual MOS_STATUS Uninitialize() override;
