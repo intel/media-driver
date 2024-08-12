@@ -184,8 +184,6 @@ public:
     VPHAL_SURFACE                m_Source = {};
     VPHAL_SURFACE                m_Target = {};
     bool                         m_bNullHwRenderCopy = false;
-    RENDERHAL_SURFACE            RenderHalSource = {}; // source for mhw
-    RENDERHAL_SURFACE            RenderHalTarget = {}; // target for mhw
 };
 
 #endif // __MEDIA_RENDER_COPY_H__

@@ -215,7 +215,6 @@ MOS_STATUS RenderCopyStateNext::SetupKernel(
 
     pcKernelBin = m_KernelBin;
     dwKernelBinSize = m_KernelBinSize;
-    MCPY_NORMALMESSAGE("kernel name %s , kernel size %d", *(char *)pcKernelBin, dwKernelBinSize);
 
     if (nullptr == m_pKernelBin)
     {
@@ -497,7 +496,8 @@ MOS_STATUS RenderCopyStateNext::SetupSurfaceStates()
     int32_t                         iBTEntry;
     PRENDERHAL_INTERFACE            pRenderHal  = m_renderHal;
     PMEDIACOPY_RENDER_DATA          pRenderData = &m_RenderData;
-
+    RENDERHAL_SURFACE               RenderHalSource = {};  // source for mhw
+    RENDERHAL_SURFACE               RenderHalTarget = {};
     MCPY_CHK_NULL_RETURN(pRenderHal);
     MCPY_CHK_NULL_RETURN(pRenderData);
     // Source surface
@@ -522,7 +522,7 @@ MOS_STATUS RenderCopyStateNext::SetupSurfaceStates()
 
     if (Format_NV12 == m_Target.Format)
     {
-         // set NV12 as 2 plane
+        // set NV12 as 2 plane because render copy only uses DP reading&writing.
         RenderHalSource.SurfType = RENDERHAL_SURF_OUT_RENDERTARGET;
         RenderHalTarget.SurfType = RENDERHAL_SURF_OUT_RENDERTARGET;
     }

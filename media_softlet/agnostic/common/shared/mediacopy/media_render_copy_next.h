@@ -181,8 +181,6 @@ public:
     MOS_SURFACE                  m_Source = {};
     MOS_SURFACE                  m_Target = {};
     bool                         m_bNullHwRenderCopy = false;
-    RENDERHAL_SURFACE            RenderHalSource = {}; // source for mhw
-    RENDERHAL_SURFACE            RenderHalTarget = {}; // target for mhw
 
     uint32_t                     m_WalkerWidthBlockSize = 128;
     uint32_t                     m_WalkerHeightBlockSize = 8;

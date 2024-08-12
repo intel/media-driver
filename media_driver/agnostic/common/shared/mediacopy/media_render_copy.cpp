@@ -254,7 +254,8 @@ MOS_STATUS RenderCopyState::SetupSurfaceStates()
     int32_t                         iBTEntry;
     PRENDERHAL_INTERFACE            pRenderHal  = m_renderHal;
     PMEDIACOPY_RENDER_DATA          pRenderData = &m_RenderData;
-
+    RENDERHAL_SURFACE               RenderHalSource = {};  // source for mhw
+    RENDERHAL_SURFACE               RenderHalTarget = {};  // target for mhw
     MCPY_CHK_NULL_RETURN(pRenderHal);
     MCPY_CHK_NULL_RETURN(pRenderData);
     // Source surface
