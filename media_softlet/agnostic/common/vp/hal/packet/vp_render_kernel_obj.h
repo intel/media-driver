@@ -84,6 +84,7 @@ typedef struct _SURFACE_PARAMS
     SurfaceType surfType;
     bool        isOutput;
     bool        needVerticalStirde;
+    bool        combineChannelY;
 } SURFACE_PARAMS, *PSURFACE_PARAMS;
 
 using KERNEL_CONFIGS = std::map<VpKernelID, void *>; // Only for legacy/non-cm kernels

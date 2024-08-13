@@ -702,6 +702,8 @@ typedef enum _RENDERHAL_PLANE_DEFINITION
     RENDERHAL_PLANES_R32G32B32A32F,
     RENDERHAL_PLANES_Y8_ADV,
     RENDERHAL_PLANES_G32R32F,
+    RENDERHAL_PLANES_NV12_2PLANES_COMBINED,
+    RENDERHAL_PLANES_P016_2PLANES_COMBINED,
 
     RENDERHAL_PLANES_DEFINITION_COUNT
 } RENDERHAL_PLANE_DEFINITION, *PRENDERHAL_PLANE_DEFINITION;
@@ -1028,7 +1030,7 @@ typedef struct _RENDERHAL_SURFACE_STATE_PARAMS
     uint32_t                        forceCommonSurfaceMessage : 1;
     uint32_t                        surfaceType               : 11;
     MOS_COMPONENT                   Component                 : 4;
-    uint32_t                        reserved                  : 1;
+    uint32_t                        combineChannelY           : 1;              // Combine 2 Luma Channel pixels into 1 pixel, so that kernel can reduce write times
     RENDERHAL_MEMORY_OBJECT_CONTROL MemObjCtl;                                  // Caching attributes
 } RENDERHAL_SURFACE_STATE_PARAMS, *PRENDERHAL_SURFACE_STATE_PARAMS;
 
@@ -1394,10 +1396,11 @@ typedef struct _RENDERHAL_INTERFACE
                 PRENDERHAL_SURFACE_STATE_PARAMS pParams);
 
     MOS_STATUS (*pfnGetPlaneDefinitionForCommonMessage) (
-                PRENDERHAL_INTERFACE            pRenderHal,
-                MOS_FORMAT                      format,
-                bool                            isRenderTarget,
-                RENDERHAL_PLANE_DEFINITION      &planeDefinition);
+        PRENDERHAL_INTERFACE             pRenderHal,
+        MOS_FORMAT                       format,
+        PRENDERHAL_SURFACE_STATE_PARAMS &pParam,
+        bool                             isRenderTarget,
+        RENDERHAL_PLANE_DEFINITION      &planeDefinition);
 
     //---------------------------
     // State Setup - HW + OS Specific

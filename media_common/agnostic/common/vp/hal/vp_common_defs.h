@@ -185,6 +185,7 @@ enum VpKernelID
     kernelRenderCopy,
 
     kernelL0FcCommon,
+    kernelL0FcFP,
 
     baseKernelMaxNumID
 };
