@@ -1,6 +1,6 @@
 /*===================== begin_copyright_notice ==================================
 
-# Copyright (c) 2022, Intel Corporation
+# Copyright (c) 2022-2024, Intel Corporation
 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,11 @@
 #include <cstdint>
 #include <cstddef>
 #include "media_class_trace.h"
+
+#ifdef IGFX_AVP_INTERFACE_EXT_SUPPORT
+#include "mhw_vdbox_avp_hwcmd_ext.h"
+#endif
+
 
 namespace mhw
 {
@@ -762,7 +767,7 @@ public:
                 uint32_t                 Reserved1650 : __CODEGEN_BITFIELD(18, 24); //!< Reserved
                 uint32_t                 FrameszoverstatusenFramebitratemaxreportmask : __CODEGEN_BITFIELD(25, 25); //!< FRAMESZOVERSTATUSEN_FRAMEBITRATEMAXREPORTMASK
                 uint32_t                 FrameszunderstatusenFramebitrateminreportmask : __CODEGEN_BITFIELD(26, 26); //!< FRAMESZUNDERSTATUSEN_FRAMEBITRATEMINREPORTMASK
-                uint32_t                 RhoDomainStreamoutEnableFlag : __CODEGEN_BITFIELD(27, 27); //!< Rho Domain Streamout Enable Flag
+                uint32_t                 AVP_PIC_STATE_DW51_BIT27 : __CODEGEN_BITFIELD(27, 27); 
                 uint32_t                 Reserved1660 : __CODEGEN_BITFIELD(28, 31); //!< Reserved
             };
             uint32_t                     Value;

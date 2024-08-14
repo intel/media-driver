@@ -31,6 +31,10 @@
 #include "mhw_vdbox_avp_impl_xe2_lpm_base.h"
 #include "mhw_vdbox_avp_hwcmd_xe2_lpm.h"
 
+#ifdef IGFX_AVP_INTERFACE_EXT_SUPPORT
+#include "mhw_vdbox_avp_impl_xe2_lpm_ext.h"
+#endif
+
 namespace mhw
 {
 namespace vdbox
@@ -55,53 +59,20 @@ public:
         _MHW_SETCMD_CALLBASE(AVP_PIC_STATE);
 
 #ifdef _MEDIA_RESERVED
-    #define DO_FIELDS()                                                   \
-    DO_FIELD(DW64, Reserved2048, params.avpPicStatePar0);                 \
-    DO_FIELD(DW51, RhoDomainStreamoutEnableFlag, params.rhoDomainEnable); \
-    DO_FIELD(DW75, RhoDomainQp, params.rhoDomainQP);                      
-    #include "mhw_hwcmd_process_cmdfields.h"   
-#else
-    #define DO_FIELDS()       \
-
-    #include "mhw_hwcmd_process_cmdfields.h"                      
-#endif   
-
+    #define DO_FIELDS_EXT() \
+        __MHW_VDBOX_AVP_WRAPPER_EXT(AVP_PIC_STATE_IMPL_XE2_LPM)              
+#endif  
+    #include "mhw_hwcmd_process_cmdfields.h"
     }
 
     _MHW_SETCMD_OVERRIDE_DECL(AVP_PIPE_BUF_ADDR_STATE)
     {
         _MHW_SETCMD_CALLBASE(AVP_PIPE_BUF_ADDR_STATE);
 
-        MHW_RESOURCE_PARAMS resourceParams = {};
-        resourceParams.dwLsbNum            = MHW_VDBOX_HCP_GENERAL_STATE_SHIFT;
-        resourceParams.HwCommandType       = MOS_MFX_PIPE_BUF_ADDR;
-
-        if (!Mos_ResourceIsNull(params.rhoDomainThresholdTableBuffer))
-        {
-            InitMocsParams(resourceParams, &cmd.RhoDomainThresholdsBufferAddressAttributes.DW0.Value, 1, 6);
-
-            MOS_SURFACE details = {};
-            MOS_ZeroMemory(&details, sizeof(details));
-            details.Format = Format_Invalid;
-            MHW_MI_CHK_STATUS(this->m_osItf->pfnGetResourceInfo(this->m_osItf, params.rhoDomainThresholdTableBuffer, &details));
-
-            cmd.RhoDomainThresholdsBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.mmcStatePreDeblock);
-            cmd.RhoDomainThresholdsBufferAddressAttributes.DW0.CompressionType                    = MmcRcEnabled(params.mmcStatePreDeblock);
-            cmd.RhoDomainThresholdsBufferAddressAttributes.DW0.TileMode                           = GetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
-
-            resourceParams.presResource    = params.rhoDomainThresholdTableBuffer;
-            resourceParams.dwOffset        = 0;
-            resourceParams.pdwCmd          = (cmd.RhoDomainThresholdsBufferAddress.DW0_1.Value);
-            resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(RhoDomainThresholdsBufferAddress);
-            resourceParams.bIsWritable     = true;
-
-            MHW_MI_CHK_STATUS(AddResourceToCmd(
-                this->m_osItf,
-                this->m_currentCmdBuf,
-                &resourceParams));
-        }
-
-        return MOS_STATUS_SUCCESS;
+#ifdef _MEDIA_RESERVED
+        __MHW_VDBOX_AVP_WRAPPER_EXT(AVP_PIPE_BUF_ADDR_STATE_IMPL_XE2_LPM)
+#endif
+        return MOS_STATUS_SUCCESS; 
     }
 MEDIA_CLASS_DEFINE_END(mhw__vdbox__avp__xe2_lpm_base__xe2_lpm__Impl)
 };
