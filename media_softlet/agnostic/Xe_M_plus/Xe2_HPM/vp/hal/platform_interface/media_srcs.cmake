@@ -1,4 +1,4 @@
-# Copyright (c) 2024, Intel Corporation
+# Copyright (c) 2020-2024, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,6 +18,28 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(hw)
-media_include_subdirectory(vp)
-media_include_subdirectory(shared)
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/vp_platform_interface_xe2_hpm.cpp
+)
+
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/vp_platform_interface_xe2_hpm.h
+)
+
+set(SOFTLET_VP_SOURCES_
+    ${SOFTLET_VP_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+set(SOFTLET_VP_HEADERS_
+    ${SOFTLET_VP_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+source_group( VpHalNext\\Xe2_HPM\\PlatformInterface FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
+set(TMP_SOURCES_ "")
+set(TMP_HEADERS_ "")
+set(SOFTLET_VP_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_VP_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
