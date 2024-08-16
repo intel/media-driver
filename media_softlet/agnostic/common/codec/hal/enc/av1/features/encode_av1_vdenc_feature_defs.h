@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020 - 2023, Intel Corporation
+* Copyright (c) 2020 - 2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -41,6 +41,9 @@ struct Av1FeatureIDs : public FeatureIDs
         av1BrcFeature,
         av1LplaEncFeature,
         av1FullEncFeature,
+        av1Scc,
+        av1Aqm,
+        av1FastPass,
 #if _MEDIA_RESERVED
 #define AV1_FEATURE_IDS_EXT
 #include "encode_av1_vdenc_feature_defs_ext.h"
