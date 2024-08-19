@@ -354,6 +354,7 @@ namespace encode {
 
         statusReportData->pFrmStatsInfo = ((EncodeStatusReportData *)report)->pFrmStatsInfo;
         statusReportData->pBlkStatsInfo = ((EncodeStatusReportData *)report)->pBlkStatsInfo;
+        statusReportData->pBlkQualityInfo = ((EncodeStatusReportData*)report)->pBlkQualityInfo;
 
         if (m_enableRcs)
         {

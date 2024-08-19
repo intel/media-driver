@@ -489,7 +489,8 @@ typedef struct _CODEC_AV1_ENCODE_PICTURE_PARAMS
         struct
         {
             uint8_t enable_frame : 1;
-            uint8_t reserved     : 7;
+            uint8_t enable_block : 1;
+            uint8_t reserved     : 6;
         } fields;
         uint8_t value;
     } QualityInfoSupportFlags;
