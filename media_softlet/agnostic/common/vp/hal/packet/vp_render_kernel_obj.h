@@ -79,14 +79,6 @@ typedef struct _KERNEL_TUNING_PARAMS
     uint32_t euThreadSchedulingMode;
 } KERNEL_TUNING_PARAMS, *PKERNEL_TUNING_PARAMS;
 
-typedef struct _SURFACE_PARAMS
-{
-    SurfaceType surfType;
-    bool        isOutput;
-    bool        needVerticalStirde;
-    bool        combineChannelY;
-} SURFACE_PARAMS, *PSURFACE_PARAMS;
-
 using KERNEL_CONFIGS = std::map<VpKernelID, void *>; // Only for legacy/non-cm kernels
 using KERNEL_ARGS = std::vector<KRN_ARG>;
 using KERNEL_SAMPLER_STATE_GROUP = std::map<SamplerIndex, MHW_SAMPLER_STATE_PARAM>;
@@ -94,7 +86,6 @@ using KERNEL_SAMPLER_STATES = std::vector<MHW_SAMPLER_STATE_PARAM>;
 using KERNEL_SAMPLER_INDEX = std::vector<SamplerIndex>;
 using KERNEL_SURFACE_CONFIG = std::map<SurfaceType, KERNEL_SURFACE_STATE_PARAM>;
 using KERNEL_SURFACE_BINDING_INDEX = std::map<SurfaceType, std::set<uint32_t>>;
-using KERNEL_ARG_INDEX_SURFACE_MAP = std::map<uint32_t, SURFACE_PARAMS>;
 using KERNEL_STATELESS_BUFF_CONFIG = std::map<SurfaceType, uint64_t>;
 using KERNEL_BINDELESS_SURFACE = std::map<SurfaceType, std::set<uint32_t>>;
 using KERNEL_BINDELESS_SAMPLER = std::map<uint32_t, uint32_t>;
@@ -360,7 +351,6 @@ public:
     {
         VP_PUBLIC_CHK_STATUS_RETURN(GetCurbeState(curbe, curbeLength));
         VP_PUBLIC_CHK_STATUS_RETURN(GetAlignedLength(curbeLength, curbeLengthAligned, kernelParam, dwBlockAlign));
-        PrintCurbe(static_cast<uint8_t *>(curbe), curbeLength);
         return MOS_STATUS_SUCCESS;
     }
 
@@ -409,8 +399,6 @@ public:
     }
 
     virtual void DumpSurface(VP_SURFACE *pSurface,PCCHAR fileName);
-
-    virtual void PrintCurbe(uint8_t *pCurbe, uint32_t curbeLength);
 
     // Kernel Common configs
     virtual MOS_STATUS GetKernelSettings(RENDERHAL_KERNEL_PARAM &settsings)

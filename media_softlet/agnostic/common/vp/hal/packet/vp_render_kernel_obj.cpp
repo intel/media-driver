@@ -619,34 +619,6 @@ finish:
     return eStatus;
 }
 
-void VpRenderKernelObj::PrintCurbe(uint8_t* pCurbe, uint32_t curbeLength)
-{
-#if (_DEBUG || _RELEASE_INTERNAL)
-    std::string curbeString = "";
-    if (curbeLength > 0 && pCurbe != nullptr)
-    {
-        for (uint32_t i = 0; i < curbeLength; ++i)
-        {
-            uint8_t           iData = pCurbe[i];
-            std::stringstream hex;
-            if (i % 8 == 0)
-            {
-                hex << "offset " << std::setw(3) << std::setfill('0') << i << ": ";
-            }
-            hex << "0x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<int>(iData) << " ";
-            curbeString += hex.str();
-            if (i % 8 == 7)
-            {
-                curbeString += "\n";
-            }
-        }
-    }
-    VP_RENDER_VERBOSEMESSAGE("Curbe Data Length = %d, Content = \n%s",
-        curbeLength,
-        curbeString.c_str());
-#endif
-}
-
 void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
 {
     uint8_t* pData;

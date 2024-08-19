@@ -23,6 +23,7 @@
 #define __VP_RENDER_COMMON_H__
 
 #include <stdint.h>
+#include "surface_type.h"
 
 namespace vp
 {
@@ -132,6 +133,15 @@ struct KRN_EXECUTE_ENV
 using SurfaceIndex = uint32_t;
 using SamplerIndex = uint32_t;
 using KernelIndex  = uint32_t;              // index of current kernel in KERNEL_PARAMS_LIST
+
+typedef struct _SURFACE_PARAMS
+{
+    SurfaceType surfType;
+    bool        isOutput;
+    bool        needVerticalStirde;
+    bool        combineChannelY;
+} SURFACE_PARAMS, *PSURFACE_PARAMS;
+using KERNEL_ARG_INDEX_SURFACE_MAP = std::map<uint32_t, SURFACE_PARAMS>;
 
 enum KERNEL_SUBMISSION_MODE
 {
