@@ -187,10 +187,8 @@ public:
         return false;
     }
 
-    MOS_STATUS SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight, bool isEncoder) override
+    MOS_STATUS SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight, bool isEncoder, uint32_t codecMode) override
     {
-        MEDIA_WA_TABLE *waTable = nullptr;
-
         MHW_FUNCTION_ENTER;
         MHW_MI_CHK_NULL(this->m_osItf);
         if (this->m_osItf->bMediaReset == false ||
@@ -198,9 +196,6 @@ public:
         {
             return MOS_STATUS_SUCCESS;
         }
-
-        waTable = this->m_osItf->pfnGetWaTable(this->m_osItf);
-        MHW_CHK_NULL_RETURN(waTable);
 
         if (isEncoder)
         {
@@ -234,6 +229,13 @@ public:
             else
             {
                 MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_720P_WATCHDOG_THRESHOLD_IN_MS;
+            }
+
+            if ((CODECHAL_STANDARD)codecMode == CODECHAL_AV1)
+            {
+                // This is temporary solution to address the inappropriate threshold setting for high bit-rate AV1 decode.
+                // The final solution will incorporate bitstream size, increasing the setting when the bit-rate is high.
+                MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_AV1_WATCHDOG_THRESHOLD_IN_MS;
             }
         }
 

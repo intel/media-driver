@@ -60,6 +60,7 @@ namespace decode
         if (m_isFirstTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse() ||
             (m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile))
         {
+            DECODE_CHK_STATUS(m_miItf->SetWatchdogTimerThreshold(m_av1BasicFeature->m_width, m_av1BasicFeature->m_height, false, CODECHAL_AV1));
             DECODE_CHK_STATUS(Mos_Solo_PreProcessDecode(m_osInterface, &m_av1BasicFeature->m_destSurface));
 
             DECODE_CHK_NULL(m_hwInterface->GetVdencInterfaceNext());

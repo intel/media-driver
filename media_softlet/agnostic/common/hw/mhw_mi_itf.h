@@ -31,6 +31,7 @@
 #include "mhw_itf.h"
 #include "mhw_mi_cmdpar.h"
 #include "mhw_cp_interface.h"
+#include "media_defs.h"
 
 #define _MI_CMD_DEF(DEF)                  \
     DEF(MI_SEMAPHORE_WAIT);               \
@@ -85,7 +86,7 @@ public:
 
     virtual ~Itf() = default;
 
-    virtual MOS_STATUS SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight, bool isEncoder) = 0;
+    virtual MOS_STATUS SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight, bool isEncoder, uint32_t codecMode = CODECHAL_STANDARD_MAX) = 0;
 
     virtual MOS_STATUS SetWatchdogTimerRegisterOffset(MOS_GPU_CONTEXT gpuContext) = 0;
 

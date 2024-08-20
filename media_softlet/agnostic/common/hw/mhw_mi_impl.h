@@ -137,7 +137,7 @@ public:
         return formattedOpCode;
     }
 
-    MOS_STATUS SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight, bool isEncoder) override
+    MOS_STATUS SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight, bool isEncoder, uint32_t codecMode) override
     {
         return MOS_STATUS_SUCCESS;
     }
