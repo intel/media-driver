@@ -230,17 +230,11 @@ MOS_STATUS MediaCopyState_Xe_Hpm::MediaRenderCopy(PMOS_RESOURCE src, PMOS_RESOUR
 MOS_STATUS MediaCopyState_Xe_Hpm::PreCheckCpCopy(
     MCPY_STATE_PARAMS src, MCPY_STATE_PARAMS dest, MCPY_METHOD preferMethod)
 {
-    if ((preferMethod == MCPY_METHOD_POWERSAVING)
-        && (src.CpMode == MCPY_CPMODE_CP)
-        && (dest.CpMode == MCPY_CPMODE_CLEAR))
+    if (preferMethod == MCPY_METHOD_POWERSAVING &&
+        (src.CpMode == MCPY_CPMODE_CP || dest.CpMode == MCPY_CPMODE_CP))
     {
-        //Allow blt engine to do copy when dst buffer is staging buffer and allocate in system mem, since protection off with blt engine.
-        //Current only used for small localbar cases.
-        m_allowCPBltCopy = true;
-    }
-    else
-    {
-        m_allowCPBltCopy = false;
+        MCPY_ASSERTMESSAGE("BLT Copy with CP is not supported");
+        return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     }
 
     return MOS_STATUS_SUCCESS;

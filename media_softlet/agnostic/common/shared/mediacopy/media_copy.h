@@ -295,7 +295,6 @@ protected:
 
 public:
     PMOS_INTERFACE       m_osInterface    = nullptr;
-    bool                 m_allowCPBltCopy = false;  // allow cp call media copy only for output clear cases.
 
 protected:
     PMOS_MUTEX           m_inUseGPUMutex        = nullptr; // Mutex for in-use GPU context

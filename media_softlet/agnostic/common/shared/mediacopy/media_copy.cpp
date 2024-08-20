@@ -139,7 +139,8 @@ MOS_STATUS MediaCopyBaseState::CapabilityCheck(
     // common policy check
     // legal check
     // Blt engine does not support protection, allow the copy if dst is staging buffer in system mem
-    if (preferMethod == MCPY_METHOD_POWERSAVING && mcpySrc.CpMode == MCPY_CPMODE_CP && mcpyDst.CpMode == MCPY_CPMODE_CLEAR && !m_allowCPBltCopy)
+    if (preferMethod == MCPY_METHOD_POWERSAVING &&
+        (mcpySrc.CpMode == MCPY_CPMODE_CP || mcpyDst.CpMode == MCPY_CPMODE_CP))
     {
         MCPY_ASSERTMESSAGE("illegal usage");
         return MOS_STATUS_INVALID_PARAMETER;
@@ -182,6 +183,13 @@ MOS_STATUS MediaCopyBaseState::CapabilityCheck(
 MOS_STATUS MediaCopyBaseState::PreCheckCpCopy(
     MCPY_STATE_PARAMS src, MCPY_STATE_PARAMS dest, MCPY_METHOD preferMethod)
 {
+    if (preferMethod == MCPY_METHOD_POWERSAVING &&
+        (src.CpMode == MCPY_CPMODE_CP || dest.CpMode == MCPY_CPMODE_CP))
+    {
+        MCPY_ASSERTMESSAGE("BLT Copy with CP is not supported");
+        return MOS_STATUS_PLATFORM_NOT_SUPPORTED;
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
