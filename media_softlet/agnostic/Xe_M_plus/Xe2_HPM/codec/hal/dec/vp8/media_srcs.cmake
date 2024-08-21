@@ -1,4 +1,4 @@
-# Copyright (c) 2024, Intel Corporation
+# Copyright (c) 2021-2024, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,10 +18,5 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(Xe_LPM_plus_base)
-if(XE_LPM_PLUS_SUPPORT)
-    media_include_subdirectory(Xe_LPM_plus)
-endif()
-if(XE2_HPM_SUPPORT)
-    media_include_subdirectory(Xe2_HPM)
-endif()
+media_include_subdirectory(pipeline)
+media_include_subdirectory(mmc)

@@ -18,10 +18,18 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(Xe_LPM_plus_base)
-if(XE_LPM_PLUS_SUPPORT)
-    media_include_subdirectory(Xe_LPM_plus)
-endif()
-if(XE2_HPM_SUPPORT)
-    media_include_subdirectory(Xe2_HPM)
-endif()
+set(SOFTLET_DECODE_COMMON_SOURCES_
+    ${SOFTLET_DECODE_COMMON_SOURCES_}
+    ${CMAKE_CURRENT_LIST_DIR}/decode_mem_compression_xe2_hpm.cpp
+)
+
+set(SOFTLET_DECODE_COMMON_HEADERS_
+    ${SOFTLET_DECODE_COMMON_HEADERS_}
+    ${CMAKE_CURRENT_LIST_DIR}/decode_mem_compression_xe2_hpm.h
+)
+source_group( CodecHalNext\\Xe2_HPM\\Decode FILES ${SOFTLET_DECODE_COMMON_SOURCES_} ${SOFTLET_DECODE_COMMON_HEADERS_})
+
+set(SOFTLET_DECODE_COMMON_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_DECODE_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

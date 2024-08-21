@@ -1,4 +1,4 @@
-# Copyright (c) 2024, Intel Corporation
+# Copyright (c) 2021-2024, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,10 +18,23 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(Xe_LPM_plus_base)
-if(XE_LPM_PLUS_SUPPORT)
-    media_include_subdirectory(Xe_LPM_plus)
+if(${MPEG2_Decode_Supported} STREQUAL "yes")
+set(SOFTLET_DECODE_MPEG2_SOURCES_
+    ${SOFTLET_DECODE_MPEG2_SOURCES_}
+    ${CMAKE_CURRENT_LIST_DIR}/decode_mpeg2_mem_compression_xe2_hpm.cpp
+)
+
+set(SOFTLET_DECODE_MPEG2_HEADERS_
+    ${SOFTLET_DECODE_MPEG2_HEADERS_}
+    ${CMAKE_CURRENT_LIST_DIR}/decode_mpeg2_mem_compression_xe2_hpm.h
+)
+
+source_group( CodecHalNext\\Xe2_HPM\\Decode FILES ${SOFTLET_DECODE_MPEG2_SOURCES_} ${SOFTLET_DECODE_MPEG2_HEADERS_})
+
 endif()
-if(XE2_HPM_SUPPORT)
-    media_include_subdirectory(Xe2_HPM)
-endif()
+
+
+set(SOFTLET_DECODE_MPEG2_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_DECODE_MPEG2_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

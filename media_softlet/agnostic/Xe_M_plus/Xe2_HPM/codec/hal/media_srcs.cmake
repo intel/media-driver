@@ -18,10 +18,4 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(Xe_LPM_plus_base)
-if(XE_LPM_PLUS_SUPPORT)
-    media_include_subdirectory(Xe_LPM_plus)
-endif()
-if(XE2_HPM_SUPPORT)
-    media_include_subdirectory(Xe2_HPM)
-endif()
+media_include_subdirectory(dec)
