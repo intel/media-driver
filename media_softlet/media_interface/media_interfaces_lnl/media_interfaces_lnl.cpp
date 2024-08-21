@@ -47,7 +47,7 @@
 #include "mhw_vdbox_vdenc_impl_xe_lpm_plus.h"
 #endif
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igvpkrn_xe2_hpg.h"
 #include "igvpkrn_xe2_hpg_cmfcpatch.h"
 #include "igvpkrn_l0_xe2_hpg.h"
@@ -139,7 +139,7 @@ void VphalInterfacesXe2_Lpm::InitPlatformKernelBinary(
 {
     static vp::VpKernelConfigXe2_Hpg kernelConfig;
     vpPlatformInterface->SetKernelConfig(&kernelConfig);
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     vpPlatformInterface->SetVpFCKernelBinary(
                         IGVPKRN_XE2_HPG,
                         IGVPKRN_XE2_HPG_SIZE,
@@ -147,7 +147,6 @@ void VphalInterfacesXe2_Lpm::InitPlatformKernelBinary(
                         IGVPKRN_XE2_HPG_CMFCPATCH_SIZE);
 
     vpPlatformInterface->AddVpNativeAdvKernelEntryToList(IGVP3DLUT_GENERATION_XE2_HPG, IGVP3DLUT_GENERATION_XE2_HPG_SIZE, "hdr_3dlut_l0");
-
 #endif
 }
 

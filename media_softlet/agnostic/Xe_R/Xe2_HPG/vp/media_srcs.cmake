@@ -18,6 +18,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-
+if(ENABLE_KERNELS AND ENABLE_NONFREE_KERNELS)
 media_include_subdirectory(kernel)
+endif()
 media_include_subdirectory(kernel_config)

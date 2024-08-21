@@ -42,7 +42,7 @@
 #include "media_render_common.h"
 #include "vpkrnheader.h"
 
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igvpkrn_xe2_hpg.h"
 #endif
 
@@ -51,9 +51,12 @@ class MhwInterfacesNext;
 RenderCopyxe2_Lpm::RenderCopyxe2_Lpm(PMOS_INTERFACE  osInterface, MhwInterfacesNext *mhwInterfaces):
     RenderCopyStateNext(osInterface, mhwInterfaces)
 {
-#ifndef _FULL_OPEN_SOURCE
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
     m_KernelBin     = (const void*)IGVPKRN_XE2_HPG;
     m_KernelBinSize = IGVPKRN_XE2_HPG_SIZE;
+#else
+    m_KernelBin     = nullptr;
+    m_KernelBinSize = 0;
 #endif
 }
 
