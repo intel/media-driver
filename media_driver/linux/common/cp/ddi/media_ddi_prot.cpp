@@ -96,7 +96,6 @@ VAStatus DdiMediaProtected::DdiMedia_CreateProtectedSession(
     if (cpCaps->IsCpConfigId(config_id))
     {
         DdiMediaProtected *prot = DdiMediaProtected::GetInstance(DDI_PROTECTED_CONTENT);
-
         DDI_CHK_NULL(prot, "nullptr prot", VA_STATUS_ERROR_ALLOCATION_FAILED);
         vaStatus = prot->CreateProtectedSession(ctx, config_id - DDI_CP_GEN_CONFIG_ATTRIBUTES_BASE, protected_session);
     }
@@ -122,11 +121,11 @@ VAStatus DdiMediaProtected::DdiMedia_DestroyProtectedSession(
     VAStatus vaStatus = VA_STATUS_SUCCESS;
     uint32_t            ctxType = DDI_MEDIA_CONTEXT_TYPE_NONE;
     void *ctxPtr = DdiMedia_GetContextFromProtectedSessionID(ctx, protected_session, &ctxType);
+    DDI_CHK_NULL(ctxPtr, "nullptr prot", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     if (ctxType == DDI_MEDIA_CONTEXT_TYPE_PROTECTED_CONTENT)
     {
         DdiMediaProtected *prot = DdiMediaProtected::GetInstance(DDI_PROTECTED_CONTENT);
-
         DDI_CHK_NULL(prot, "nullptr prot", VA_STATUS_ERROR_ALLOCATION_FAILED);
         vaStatus = prot->DestroyProtectedSession(ctx, protected_session);
     }
@@ -156,7 +155,6 @@ VAStatus DdiMediaProtected::DdiMedia_AttachProtectedSession(
     if (ctxType == DDI_MEDIA_CONTEXT_TYPE_PROTECTED_CONTENT)
     {
         DdiMediaProtected *prot = DdiMediaProtected::GetInstance(DDI_PROTECTED_CONTENT);
-
         DDI_CHK_NULL(prot, "nullptr prot", VA_STATUS_ERROR_ALLOCATION_FAILED);
         vaStatus = prot->AttachProtectedSession(ctx, context, protected_session);
     }
@@ -218,7 +216,6 @@ VAStatus DdiMediaProtected::DdiMedia_ProtectedSessionExecute(
     if (ctxType == DDI_MEDIA_CONTEXT_TYPE_PROTECTED_CONTENT)
     {
         DdiMediaProtected *prot = DdiMediaProtected::GetInstance(DDI_PROTECTED_CONTENT);
-
         DDI_CHK_NULL(prot, "nullptr prot", VA_STATUS_ERROR_ALLOCATION_FAILED);
         vaStatus = prot->ProtectedSessionExecute(ctx, protected_session, data);
     }
@@ -243,6 +240,8 @@ VAStatus DdiMediaProtected::DdiMedia_ProtectedSessionCreateBuffer(
     DDI_FUNCTION_ENTER();
 
     DDI_CHK_NULL(ctx, "nullptr ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(data, "nullptr data", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(bufId, "nullptr bufId", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     VAStatus vaStatus = VA_STATUS_SUCCESS;
     uint32_t ctxType = DDI_MEDIA_CONTEXT_TYPE_NONE;
@@ -252,7 +251,6 @@ VAStatus DdiMediaProtected::DdiMedia_ProtectedSessionCreateBuffer(
     if (ctxType == DDI_MEDIA_CONTEXT_TYPE_PROTECTED_CONTENT)
     {
         DdiMediaProtected *prot = DdiMediaProtected::GetInstance(DDI_PROTECTED_CONTENT);
-
         DDI_CHK_NULL(prot, "nullptr prot", VA_STATUS_ERROR_ALLOCATION_FAILED);
         vaStatus = prot->ProtectedSessionCreateBuffer(ctx, context, type, size, num_elements, data, bufId);
     }
@@ -326,6 +324,12 @@ void DdiMedia_FreeProtectedSessionHeap(
     int32_t vaContextOffset,
     int32_t ctxNums)
 {
+    if (nullptr == ctx || nullptr == contextHeap)
+    {
+        DDI_ASSERTMESSAGE("DDI: Invalid input arguments");
+        return;
+    }
+
     PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT mediaContextHeapBase = (PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT)contextHeap->pHeapBase;
     if (nullptr == mediaContextHeapBase)
         return;
@@ -353,6 +357,12 @@ static void* DdiMedia_GetVaContextFromHeap(
     uint32_t index,
     PMEDIA_MUTEX_T mutex)
 {
+    if (nullptr == mutex)
+    {
+        DDI_ASSERTMESSAGE("DDI: Invalid input arguments");
+        return nullptr;
+    }
+
     PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT  vaCtxHeapElmt = nullptr;
     void                              *context = nullptr;
 
