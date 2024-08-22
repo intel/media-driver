@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -61,7 +61,11 @@ public:
         HucLaInit,
         HucLaUpdate,
         hevcVdencPacket422,
-        EncodeCheckHucLoad,
+        EncodeCheckHucLoad
+#if ((_DEBUG || _RELEASE_INTERNAL) && _MEDIA_RESERVED)
+        ,
+        hevcVdencMvdumpPacket
+#endif
     };
 
 protected:
