@@ -42,6 +42,13 @@ static const VAConfigAttribValEncRateControlExt VP9Common_VAEntrypointEncSlice_e
     {CODECHAL_ENCODE_VP9_MAX_NUM_TEMPORAL_LAYERS - 1,1,0}
 };
 
+#if VA_CHECK_VERSION(1, 23, 0)
+static const VAConfigAttribValEncVP9 VP9Common_VAEntrypointEncSlice_encVP9
+{
+    {15,0,0}
+};
+#endif
+
 //! \brief  Definition for ConfigDataList
 static ConfigDataList configDataList_VAProfileVP9Profile0_VAEntrypointEncSlice_Xe_Lpm_plus_r0 =
 { 
@@ -87,6 +94,9 @@ static const AttribList attribList_VAProfileVP9Profile0_VAEntrypointEncSlice_Xe_
    {VAConfigAttribEncPackedHeaders, VA_ENC_PACKED_HEADER_RAW_DATA},
    //just to match with legacy correct value 2
    {VAConfigAttribEncMaxRefFrames, 3},
+#if VA_CHECK_VERSION(1, 23, 0)
+   {VAConfigAttribEncVP9, VP9Common_VAEntrypointEncSlice_encVP9.value},
+#endif
    {VAConfigAttribRateControl, VA_RC_CQP | VA_RC_ICQ | VA_RC_CBR | VA_RC_VBR | VA_RC_MB},
    {VAConfigAttribProcessingRate, VA_PROCESSING_RATE_ENCODE},
    {VAConfigAttribEncTileSupport, 1},
@@ -112,6 +122,9 @@ static const AttribList attribList_VAProfileVP9Profile1_VAEntrypointEncSlice_Xe_
    {VAConfigAttribEncPackedHeaders, VA_ENC_PACKED_HEADER_RAW_DATA},
    //just to match with legacy correct value 2
    {VAConfigAttribEncMaxRefFrames, 3},
+#if VA_CHECK_VERSION(1, 23, 0)
+   {VAConfigAttribEncVP9, VP9Common_VAEntrypointEncSlice_encVP9.value},
+#endif
    {VAConfigAttribRateControl, VA_RC_CQP | VA_RC_ICQ | VA_RC_CBR | VA_RC_VBR | VA_RC_MB},
    {VAConfigAttribProcessingRate, VA_PROCESSING_RATE_ENCODE},
    {VAConfigAttribEncTileSupport, 1},
@@ -137,6 +150,9 @@ static const AttribList attribList_VAProfileVP9Profile2_VAEntrypointEncSlice_Xe_
    {VAConfigAttribEncPackedHeaders, VA_ENC_PACKED_HEADER_RAW_DATA},
    //just to match with legacy correct value 2
    {VAConfigAttribEncMaxRefFrames, 3},
+#if VA_CHECK_VERSION(1, 23, 0)
+   {VAConfigAttribEncVP9, VP9Common_VAEntrypointEncSlice_encVP9.value},
+#endif
    {VAConfigAttribRateControl, VA_RC_CQP | VA_RC_ICQ | VA_RC_CBR | VA_RC_VBR | VA_RC_MB},
    {VAConfigAttribProcessingRate, VA_PROCESSING_RATE_ENCODE},
    {VAConfigAttribEncTileSupport, 1},
@@ -162,6 +178,9 @@ static const AttribList attribList_VAProfileVP9Profile3_VAEntrypointEncSlice_Xe_
    {VAConfigAttribEncPackedHeaders, VA_ENC_PACKED_HEADER_RAW_DATA},
    //just to match with legacy correct value 2
    {VAConfigAttribEncMaxRefFrames, 3},
+#if VA_CHECK_VERSION(1, 23, 0)
+   {VAConfigAttribEncVP9, VP9Common_VAEntrypointEncSlice_encVP9.value},
+#endif
    {VAConfigAttribRateControl, VA_RC_CQP | VA_RC_ICQ | VA_RC_CBR | VA_RC_VBR | VA_RC_MB},
    {VAConfigAttribProcessingRate, VA_PROCESSING_RATE_ENCODE},
    {VAConfigAttribEncTileSupport, 1},
