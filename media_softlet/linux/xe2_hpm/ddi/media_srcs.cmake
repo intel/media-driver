@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2024, Intel Corporation
+# Copyright (c) 2024, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,22 +18,18 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(common)
-if(XE_LPM_PLUS_SUPPORT)
-    media_include_subdirectory(xe_lpm_plus_r0)
-    media_include_subdirectory(xe_lpm_plus)
-endif()
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/caps_register_specific_xe2_hpm.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_sysinfo_bmg.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_sku_wa_bmg.cpp
+)
 
-if(MTL OR ARL)
-    media_include_subdirectory(Xe_M_plus)
-endif()
+set(SOFTLET_DDI_SOURCES_
+    ${SOFTLET_DDI_SOURCES_}
+    ${TMP_SOURCES_}
+)
 
-if(XE2_LPM_SUPPORT)
-media_include_subdirectory(xe2_lpm)
-media_include_subdirectory(xe2_lpm_r0)
-endif()
-
-if(XE2_HPM_SUPPORT)
-media_include_subdirectory(xe2_hpm)
-media_include_subdirectory(xe2_hpm_r0)
-endif()
+set(SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_
+    ${SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

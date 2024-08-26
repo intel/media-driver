@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2024, Intel Corporation
+# Copyright (c) 2024, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -6,7 +6,7 @@
 # the rights to use, copy, modify, merge, publish, distribute, sublicense,
 # and/or sell copies of the Software, and to permit persons to whom the
 # Software is furnished to do so, subject to the following conditions:
-#
+# 
 # The above copyright notice and this permission notice shall be included
 # in all copies or substantial portions of the Software.
 #
@@ -18,22 +18,16 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(common)
-if(XE_LPM_PLUS_SUPPORT)
-    media_include_subdirectory(xe_lpm_plus_r0)
-    media_include_subdirectory(xe_lpm_plus)
-endif()
+set (TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/capstable_data_mpeg2_decode_xe2_hpm_r0_specific.h
+)
 
-if(MTL OR ARL)
-    media_include_subdirectory(Xe_M_plus)
-endif()
+set (SOFTLET_DDI_HEADERS_
+    ${SOFTLET_DDI_HEADERS_}
+    ${TMP_HEADERS_}
+)
 
-if(XE2_LPM_SUPPORT)
-media_include_subdirectory(xe2_lpm)
-media_include_subdirectory(xe2_lpm_r0)
-endif()
-
-if(XE2_HPM_SUPPORT)
-media_include_subdirectory(xe2_hpm)
-media_include_subdirectory(xe2_hpm_r0)
-endif()
+set(SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_
+    ${SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
