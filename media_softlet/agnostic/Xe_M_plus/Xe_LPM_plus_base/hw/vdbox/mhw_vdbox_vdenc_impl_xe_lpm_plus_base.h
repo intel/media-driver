@@ -53,13 +53,13 @@ protected:
     {
         _MHW_SETCMD_CALLBASE(VDENC_PIPE_MODE_SELECT);
         
-    #define DO_FIELDS()                                                                              \
-        DO_FIELD(DW4, VDENC_PIPE_MODE_SELECT_DW4_BIT22_XE_LPM_PLUS, params.VdencPipeModeSelectPar2); \
-        DO_FIELD(DW4, VDENC_PIPE_MODE_SELECT_DW4_BIT24_XE_LPM_PLUS, params.VdencPipeModeSelectPar3); \
-        DO_FIELD(DW4, VDENC_PIPE_MODE_SELECT_DW4_BIT26_XE_LPM_PLUS, params.VdencPipeModeSelectPar4); \
-        DO_FIELD(DW4, VDENC_PIPE_MODE_SELECT_DW4_BIT28_XE_LPM_PLUS, params.VdencPipeModeSelectPar5); \
-        DO_FIELD(DW4, VDENC_PIPE_MODE_SELECT_DW4_BIT16, params.VdencPipeModeSelectPar6);             \
-        DO_FIELD(DW4, VDENC_PIPE_MODE_SELECT_DW4_BIT18, params.VdencPipeModeSelectPar7);             \
+    #define DO_FIELDS()                                                                  \
+        DO_FIELD(DW4, VDENC_PIPE_MODE_SELECT_DW4_BIT22, params.VdencPipeModeSelectPar2); \
+        DO_FIELD(DW4, VDENC_PIPE_MODE_SELECT_DW4_BIT24, params.VdencPipeModeSelectPar3); \
+        DO_FIELD(DW4, VDENC_PIPE_MODE_SELECT_DW4_BIT26, params.VdencPipeModeSelectPar4); \
+        DO_FIELD(DW4, VDENC_PIPE_MODE_SELECT_DW4_BIT28, params.VdencPipeModeSelectPar5); \
+        DO_FIELD(DW4, VDENC_PIPE_MODE_SELECT_DW4_BIT16, params.VdencPipeModeSelectPar6); \
+        DO_FIELD(DW4, VDENC_PIPE_MODE_SELECT_DW4_BIT18, params.VdencPipeModeSelectPar7); \
         DO_FIELD(DW4, VDENC_PIPE_MODE_SELECT_DW4_BIT12, 0);
 
     #include "mhw_hwcmd_process_cmdfields.h"

@@ -3814,10 +3814,10 @@ public:
                 uint32_t VDENC_PIPE_MODE_SELECT_DW4_BIT18 : __CODEGEN_BITFIELD(18, 19);                //!<
                 uint32_t Reserved_148 : __CODEGEN_BITFIELD(20, 20);                                    //!<
                 uint32_t VDENC_PIPE_MODE_SELECT_DW4_BIT21 : __CODEGEN_BITFIELD(21, 21);                //!<
-                uint32_t VDENC_PIPE_MODE_SELECT_DW4_BIT22_XE_LPM_PLUS : __CODEGEN_BITFIELD(22, 23);    //!<
-                uint32_t VDENC_PIPE_MODE_SELECT_DW4_BIT24_XE_LPM_PLUS : __CODEGEN_BITFIELD(24, 25);    //!<
-                uint32_t VDENC_PIPE_MODE_SELECT_DW4_BIT26_XE_LPM_PLUS : __CODEGEN_BITFIELD(26, 27);    //!<
-                uint32_t VDENC_PIPE_MODE_SELECT_DW4_BIT28_XE_LPM_PLUS : __CODEGEN_BITFIELD(28, 29);    //!<
+                uint32_t VDENC_PIPE_MODE_SELECT_DW4_BIT22 : __CODEGEN_BITFIELD(22, 23);    //!<
+                uint32_t VDENC_PIPE_MODE_SELECT_DW4_BIT24 : __CODEGEN_BITFIELD(24, 25);    //!<
+                uint32_t VDENC_PIPE_MODE_SELECT_DW4_BIT26 : __CODEGEN_BITFIELD(26, 27);    //!<
+                uint32_t VDENC_PIPE_MODE_SELECT_DW4_BIT28 : __CODEGEN_BITFIELD(28, 29);    //!<
                 uint32_t Reserved_158 : __CODEGEN_BITFIELD(30, 31);                                    //!<
             };
             uint32_t Value;

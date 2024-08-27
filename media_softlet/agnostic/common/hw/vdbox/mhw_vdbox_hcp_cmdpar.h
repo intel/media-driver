@@ -34,15 +34,6 @@
 #include "mhw_vdbox.h"
 #include "mhw_vdbox_cmdpar.h"
 
-#ifdef IGFX_HCP_INTERFACE_EXT_SUPPORT
-#include "mhw_vdbox_hcp_cmdpar_ext.h"
-#define __MHW_VDBOX_HCP_WRAPPER(STUFF)
-#define __MHW_VDBOX_HCP_WRAPPER_EXT(STUFF) STUFF
-#else
-#define __MHW_VDBOX_HCP_WRAPPER(STUFF) STUFF
-#define __MHW_VDBOX_HCP_WRAPPER_EXT(STUFF)
-#endif
-
 namespace mhw
 {
 namespace vdbox
@@ -282,7 +273,7 @@ struct _MHW_PAR_T(HCP_PIC_STATE)
     uint8_t  bNotFirstPass                           = 0;
     PCODEC_HEVC_EXT_PIC_PARAMS pHevcExtPicParams     = nullptr;
     PCODEC_HEVC_SCC_PIC_PARAMS pHevcSccPicParams     = nullptr;
-    bool     hcpPicStatePar0                         = false;
+    bool     vdaqmEnable                             = false;
 };
 
 struct _MHW_PAR_T(HCP_SURFACE_STATE)

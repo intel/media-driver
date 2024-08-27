@@ -56,7 +56,7 @@ protected:
         _MHW_SETCMD_CALLBASE(MFX_AVC_IMG_STATE);
 
         #define DO_FIELDS() \
-        DO_FIELD(DW3, Reserved117, params.mfxAvcImgStatePar0)
+        DO_FIELD(DW3, Reserved117, params.vdaqmEnable)
 
 #include "mhw_hwcmd_process_cmdfields.h"
     }

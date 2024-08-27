@@ -445,7 +445,7 @@ protected:
         _MHW_SETCMD_CALLBASE(HCP_PIC_STATE);
 
 #define DO_FIELDS() \
-    DO_FIELD(DW36, Reserved1153, params.hcpPicStatePar0)
+    DO_FIELD(DW36, Reserved1153, params.vdaqmEnable)
 
 #include "mhw_hwcmd_process_cmdfields.h"
     }
