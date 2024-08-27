@@ -35,6 +35,9 @@
 #include <stdint.h>
 #include <map>
 #include <utility>
+#if _MEDIA_RESERVED
+#include "encode_recycle_resource_ext.h"
+#endif
 
 namespace encode
 {
@@ -59,6 +62,11 @@ namespace encode
         PreEncRawSurface,
         PreEncRef0,
         PreEncRef1,
+        VdaqmBuffer0,
+        VdaqmBuffer1,
+        VdaqmBuffer2,
+        VdaqmBuffer3,
+        VdaqmBuffer4,
 #if _MEDIA_RESERVED
 #define RECYCLE_IDS_EXT
 #include "encode_recycle_resource_ext.h"
