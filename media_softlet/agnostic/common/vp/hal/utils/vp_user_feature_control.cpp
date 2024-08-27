@@ -409,6 +409,38 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
         // Default value
         m_ctrlValDefault.bEnableL03DLut = false;
     }
+
+    bool bForceL0FC   = false;
+    eRegKeyReadStatus = ReadUserSettingForDebug(
+        m_userSettingPtr,
+        bForceL0FC,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_L0_FC,
+        MediaUserSetting::Group::Sequence);
+    if (MOS_SUCCEEDED(eRegKeyReadStatus))
+    {
+        m_ctrlValDefault.bForceL0FC = bForceL0FC;
+    }
+    else
+    {
+        // Default value
+        m_ctrlValDefault.bForceL0FC = false;
+    }
+
+    bool bDisableL0FcFp = false;
+    eRegKeyReadStatus   = ReadUserSettingForDebug(
+        m_userSettingPtr,
+        bDisableL0FcFp,
+        __MEDIA_USER_FEATURE_VALUE_DISABLE_VP_L0_FC_FP,
+        MediaUserSetting::Group::Sequence);
+    if (MOS_SUCCEEDED(eRegKeyReadStatus))
+    {
+        m_ctrlValDefault.bDisableL0FcFp = bDisableL0FcFp;
+    }
+    else
+    {
+        // Default value
+        m_ctrlValDefault.bDisableL0FcFp = false;
+    }
 #endif
     return MOS_STATUS_SUCCESS;
 }
@@ -436,4 +468,14 @@ PMOS_OCA_LOG_USER_FEATURE_CONTROL_INFO VpUserFeatureControl::GetOcaFeautreContro
         m_pOcaFeatureControlInfo = (PMOS_OCA_LOG_USER_FEATURE_CONTROL_INFO)MOS_AllocAndZeroMemory(sizeof(MOS_OCA_LOG_USER_FEATURE_CONTROL_INFO));
     }
     return m_pOcaFeatureControlInfo;
+}
+
+
+bool VpUserFeatureControl::EnableL0FC()
+{
+    bool bEnableL0FC = (m_vpPlatformInterface && m_vpPlatformInterface->SupportL0FC());
+#if (_DEBUG || _RELEASE_INTERNAL)
+    bEnableL0FC |= m_ctrlVal.bForceL0FC;
+#endif
+    return bEnableL0FC;
 }

@@ -235,45 +235,103 @@ void Policy::UnregisterFeatures()
 
 MOS_STATUS Policy::RegisterFcFeatures()
 {
-    PolicyFeatureHandler *p = MOS_New(PolicyFcHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeFcOnRender, p));
+    VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface())
+    VpUserFeatureControl *vpUserFeatureControl = m_vpInterface.GetHwInterface()->m_userFeatureControl;
+    VP_PUBLIC_CHK_NULL_RETURN(vpUserFeatureControl);
 
-    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeLumakeyOnRender, p));
+    if (vpUserFeatureControl->EnableL0FC())
+    {
+        //switch FC from native CM kernel to L0 kernel
+        PolicyFeatureHandler *p = MOS_New(PolicyL0FcHandler, m_hwCaps);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeFcOnRender, p));
 
-    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeBlendingOnRender, p));
+        p = MOS_New(PolicyL0FcFeatureHandler, m_hwCaps);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeLumakeyOnRender, p));
 
-    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeColorFillOnRender, p));
+        p = MOS_New(PolicyL0FcFeatureHandler, m_hwCaps);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeBlendingOnRender, p));
 
-    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeAlphaOnRender, p));
+        p = MOS_New(PolicyL0FcFeatureHandler, m_hwCaps);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeColorFillOnRender, p));
 
-    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeCscOnRender, p));
+        p = MOS_New(PolicyL0FcFeatureHandler, m_hwCaps);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeAlphaOnRender, p));
 
-    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeScalingOnRender, p));
+        p = MOS_New(PolicyL0FcFeatureHandler, m_hwCaps);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeCscOnRender, p));
 
-    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeRotMirOnRender, p));
+        p = MOS_New(PolicyL0FcFeatureHandler, m_hwCaps);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeScalingOnRender, p));
 
-    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeDiOnRender, p));
+        p = MOS_New(PolicyL0FcFeatureHandler, m_hwCaps);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeRotMirOnRender, p));
 
-    p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-    VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeProcampOnRender, p));
+        p = MOS_New(PolicyL0FcFeatureHandler, m_hwCaps);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeDiOnRender, p));
+
+        p = MOS_New(PolicyL0FcFeatureHandler, m_hwCaps);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeProcampOnRender, p));
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        VpFeatureReport *vpFeatureReport = m_vpInterface.GetHwInterface()->m_reporting;
+        if (vpFeatureReport)
+        {
+            vpFeatureReport->GetFeatures().isL0FC = true;
+        }
+#endif
+    }
+    else
+    {
+        PolicyFeatureHandler *p = MOS_New(PolicyFcHandler, m_hwCaps);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeFcOnRender, p));
+
+        p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeLumakeyOnRender, p));
+
+        p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeBlendingOnRender, p));
+
+        p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeColorFillOnRender, p));
+
+        p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeAlphaOnRender, p));
+
+        p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeCscOnRender, p));
+
+        p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeScalingOnRender, p));
+
+        p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeRotMirOnRender, p));
+
+        p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeDiOnRender, p));
+
+        p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
+        VP_PUBLIC_CHK_NULL_RETURN(p);
+        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeProcampOnRender, p));
+    }
 
     return MOS_STATUS_SUCCESS;
 }

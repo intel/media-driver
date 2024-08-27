@@ -51,6 +51,8 @@
 #include "igvpkrn_xe2_hpg.h"
 #include "igvpkrn_xe2_hpg_cmfcpatch.h"
 #include "igvpkrn_l0_xe2_hpg.h"
+#include "igvpfc_common_xe2.h"
+#include "igvpfc_fp_xe2.h"
 #endif
 
 using namespace mhw::vdbox::avp::xe2_lpm_base;
@@ -147,6 +149,8 @@ void VphalInterfacesXe2_Lpm::InitPlatformKernelBinary(
                         IGVPKRN_XE2_HPG_CMFCPATCH_SIZE);
 
     vpPlatformInterface->AddVpNativeAdvKernelEntryToList(IGVP3DLUT_GENERATION_XE2_HPG, IGVP3DLUT_GENERATION_XE2_HPG_SIZE, "hdr_3dlut_l0");
+    AddVpNativeKernelEntryToListFc_commonXe2(*vpPlatformInterface);
+    AddVpNativeKernelEntryToListFc_fpXe2(*vpPlatformInterface);
 #endif
 }
 

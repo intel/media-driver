@@ -229,6 +229,23 @@ MOS_STATUS VpPipeline::UserFeatureReport()
             }
 #endif
         }
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_reporting->GetFeatures().isL0FC)
+        {
+            VP_PUBLIC_NORMALMESSAGE("VP L0 FC Enabled");
+            ReportUserSettingForDebug(
+                m_userSettingPtr,
+                __MEDIA_USER_FEATURE_VALUE_VP_L0_FC_ENABLED,
+                1,
+                MediaUserSetting::Group::Sequence);
+
+            ReportUserSettingForDebug(
+                m_userSettingPtr,
+                __MEDIA_USER_FEATURE_VALUE_VP_L0_FC_REPORT,
+                m_reporting->GetFeatures().diffLogL0FC,
+                MediaUserSetting::Group::Sequence);
+        }
+#endif
 
         m_reporting->GetFeatures().VPApogeios = m_currentFrameAPGEnabled;
     }

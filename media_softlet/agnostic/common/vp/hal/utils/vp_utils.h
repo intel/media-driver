@@ -330,6 +330,13 @@ protected:
 // For L0 3DLut
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_L0_3DLUT                   "Enable L0 3DLUT"
 #define __MEDIA_USER_FEATURE_VALUE_VP_L0_3DLUT_ENABLED                  "L0 3DLUT Enabled"
+
+// For L0 FC
+#define __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_L0_FC                      "Enable L0 FC"
+#define __MEDIA_USER_FEATURE_VALUE_DISABLE_VP_L0_FC_FP                  "Disable L0 FC FP"
+#define __MEDIA_USER_FEATURE_VALUE_VP_L0_FC_ENABLED                     "L0 FC Enabled"
+#define __MEDIA_USER_FEATURE_VALUE_VP_L0_FC_REPORT                      "L0 FC Diff Report"
+
 #endif  //(_DEBUG || _RELEASE_INTERNAL)
 
 class VpUtils
