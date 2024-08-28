@@ -1975,7 +1975,7 @@ PMOS_RESOURCE GpuContextSpecificNext::GetOcaRTLogResource(PMOS_RESOURCE globalIn
     // than 2 video processors, the value may be overwritten and wrong allocation Index in array may be used.
     // To avoid this, use duplicate MOS_RESOURCE instance in GPU Context to ensure differnt iAllocationIndex
     // array of OcaRTLogResources being used for different GPU Context.
-    if (!m_ocaRtLogResInited)
+    if (!m_ocaRtLogResInited && globalInst)
     {
         m_ocaRtLogResource = *globalInst;
         m_ocaRtLogResInited = true;
