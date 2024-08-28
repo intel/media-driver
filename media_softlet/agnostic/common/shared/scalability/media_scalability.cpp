@@ -45,44 +45,13 @@ MediaScalability::MediaScalability(MediaContext *mediaContext) :
 
 bool MediaScalability::IsScalabilityModeMatched(ScalabilityPars *params)
 {
-    bool isMatched = false;
-
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-
-    if (m_osInterface == nullptr)
-    {
-        return false;
-    }
-    if (m_osInterface->bEnableDbgOvrdInVE)
-    {
-        isMatched = true;
-    }
-    else
-#endif
-    {
-        isMatched = m_scalabilityOption->IsScalabilityOptionMatched(params);
-    }
-
-    return isMatched;
+    return m_scalabilityOption->IsScalabilityOptionMatched(params);
 }
 
 bool MediaScalability::IsScalabilityModeMatched(MediaScalabilityOption &scalabOption)
 {
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (m_osInterface == nullptr)
-    {
-        return false;
-    }
-    if (m_osInterface->bEnableDbgOvrdInVE)
-    {
-        return true;
-    }
-    else
-#endif
-    {
-        return m_scalabilityOption->IsScalabilityOptionMatched(scalabOption);
-    }
+
+    return m_scalabilityOption->IsScalabilityOptionMatched(scalabOption);
 }
 
 bool MediaScalability::IsGpuCtxCreateOptionMatched(PMOS_GPUCTX_CREATOPTIONS_ENHANCED gpuCtxCreateOption1, PMOS_GPUCTX_CREATOPTIONS_ENHANCED gpuCtxCreateOption2)

@@ -190,6 +190,7 @@ typedef enum _MOS_FORCE_VEBOX
 #define MOS_FORCEENGINE_MASK                         0xf
 #define MOS_FORCEENGINE_ENGINEID_BITSNUM             4 //each VDBOX ID occupies 4 bits see defintion MOS_FORCE_VDBOX
 #define MOS_INVALID_FORCEENGINE_VALUE                0xffffffff
+#define MOS_INVALID_ENGINE_INSTANCE                  0xff // this invalid engine instance value aligns with KMD
 #endif
 
 typedef struct _MOS_VIRTUALENGINE_INTERFACE *PMOS_VIRTUALENGINE_INTERFACE;
@@ -2201,7 +2202,7 @@ struct _MOS_GPUCTX_CREATOPTIONS_ENHANCED : public _MOS_GPUCTX_CREATOPTIONS
 #if (_DEBUG || _RELEASE_INTERNAL)
         for (auto i = 0; i < MOS_MAX_ENGINE_INSTANCE_PER_CLASS; i++)
         {
-            EngineInstance[i] = 0xff;
+            EngineInstance[i] = MOS_INVALID_ENGINE_INSTANCE;
         }
 #endif
     }
@@ -2227,7 +2228,7 @@ struct _MOS_GPUCTX_CREATOPTIONS_ENHANCED : public _MOS_GPUCTX_CREATOPTIONS
 #if (_DEBUG || _RELEASE_INTERNAL)
             for (auto i = 0; i < MOS_MAX_ENGINE_INSTANCE_PER_CLASS; i++)
             {
-                EngineInstance[i] = 0xff;
+                EngineInstance[i] = MOS_INVALID_ENGINE_INSTANCE;
             }
 #endif
         }
