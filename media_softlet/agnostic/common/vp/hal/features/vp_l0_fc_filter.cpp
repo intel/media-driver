@@ -798,8 +798,8 @@ MOS_STATUS VpL0FcFilter::ConvertRotationToKrnParam(VPHAL_ROTATION rotation, floa
         scaling.rotateIndices[1]  = 0;
         scaling.src.startX        = startLeft;
         scaling.src.startY        = startBottom;
-        scaling.src.strideX       = strideY;
-        scaling.src.strideY       = -strideX;
+        scaling.src.strideX       = strideX;
+        scaling.src.strideY       = -strideY;
         break;
     case VPHAL_ROTATION_180:
         scaling.rotateIndices[0]  = 0;
@@ -814,8 +814,8 @@ MOS_STATUS VpL0FcFilter::ConvertRotationToKrnParam(VPHAL_ROTATION rotation, floa
         scaling.rotateIndices[1]  = 0;
         scaling.src.startX        = startRight;
         scaling.src.startY        = startTop;
-        scaling.src.strideX       = -strideY;
-        scaling.src.strideY       = strideX;
+        scaling.src.strideX       = -strideX;
+        scaling.src.strideY       = strideY;
         break;
     case VPHAL_MIRROR_HORIZONTAL:
         scaling.rotateIndices[0]  = 0;
@@ -838,16 +838,16 @@ MOS_STATUS VpL0FcFilter::ConvertRotationToKrnParam(VPHAL_ROTATION rotation, floa
         scaling.rotateIndices[1]  = 0;
         scaling.src.startX        = startRight;
         scaling.src.startY        = startBottom;
-        scaling.src.strideX       = -strideY;
-        scaling.src.strideY       = -strideX;
+        scaling.src.strideX       = -strideX;
+        scaling.src.strideY       = -strideY;
         break;
     case VPHAL_ROTATE_90_MIRROR_HORIZONTAL:
         scaling.rotateIndices[0]  = 1;
         scaling.rotateIndices[1]  = 0;
         scaling.src.startX        = startLeft;
         scaling.src.startY        = startTop;
-        scaling.src.strideX       = strideY;
-        scaling.src.strideY       = strideX;
+        scaling.src.strideX       = strideX;
+        scaling.src.strideY       = strideY;
         break;
     default:
         VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
@@ -913,12 +913,17 @@ MOS_STATUS VpL0FcFilter::ConvertScalingRotToKrnParam(
     scaling.trg.top    = rcDst.top;
     scaling.trg.bottom = rcDst.bottom;
 
-    float strideX     = (float)(rcSrc.right - rcSrc.left) / (rcDst.right - rcDst.left) / inputWidth;
-    float strideY     = (float)(rcSrc.bottom - rcSrc.top) / (rcDst.bottom - rcDst.top) / inputHeight;
-    float startLeft   = (float)rcSrc.left / inputWidth;
-    float startRight  = (float)(rcSrc.right - 1) / inputWidth;
-    float startTop    = (float)rcSrc.top / inputHeight;
-    float startBottom = (float)(rcSrc.bottom - 1) / inputHeight;
+    bool  isVerticalRotate = VpUtils::IsVerticalRotation(rotation);
+    float rcDstWidth       = static_cast<float>(rcDst.right - rcDst.left);
+    float rcDstHeight      = static_cast<float>(rcDst.bottom - rcDst.top);
+    float rcSrcWidth       = static_cast<float>(rcSrc.right - rcSrc.left);
+    float rcSrcHeight      = static_cast<float>(rcSrc.bottom - rcSrc.top);
+    float strideX          = isVerticalRotate ? rcSrcWidth / rcDstHeight / inputWidth : rcSrcWidth / rcDstWidth / inputWidth;
+    float strideY          = isVerticalRotate ? rcSrcHeight / rcDstWidth / inputHeight : rcSrcHeight / rcDstHeight / inputHeight;
+    float startLeft        = (float)rcSrc.left / inputWidth;
+    float startRight       = (float)(rcSrc.right - 1) / inputWidth;
+    float startTop         = (float)rcSrc.top / inputHeight;
+    float startBottom      = (float)(rcSrc.bottom - 1) / inputHeight;
     VP_PUBLIC_CHK_STATUS_RETURN(ConvertRotationToKrnParam(rotation, strideX, strideY, startLeft, startRight, startTop, startBottom, scaling));
 
     return MOS_STATUS_SUCCESS;
