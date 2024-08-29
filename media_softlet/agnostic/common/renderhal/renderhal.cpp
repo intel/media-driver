@@ -818,8 +818,8 @@ extern const MHW_SURFACE_PLANES g_cRenderHal_SurfacePlanes[RENDERHAL_PLANES_DEFI
     {
         2,
         {
-            {MHW_Y_PLANE, 2, 1, 1, 1, 2, 0, MHW_GFX3DSTATE_SURFACEFORMAT_R8G8_UNORM},
-            {MHW_U_PLANE, 2, 2, 1, 1, 2, 0, MHW_GFX3DSTATE_SURFACEFORMAT_R8G8_UNORM}
+            {MHW_Y_PLANE, 2, 1, 1, 1, 2, 0, MHW_GFX3DSTATE_SURFACEFORMAT_R16G16_UNORM},
+            {MHW_U_PLANE, 2, 2, 1, 1, 2, 0, MHW_GFX3DSTATE_SURFACEFORMAT_R16G16_UNORM}
         }
     },
 };
