@@ -183,6 +183,7 @@ struct _VP_EXECUTE_CAPS
             uint64_t b1K1DLutInUse  : 1;
             uint64_t bCcmCsc        : 1;
             uint64_t bDemosaicInUse : 1;
+            uint64_t enableSFCLinearOutputByTileConvert : 1;  //true if do tileconvert from tileF to linear for SFC linear output
 
             // SFC features
             uint64_t bSfcCsc        : 1;   // Sfc Csc enabled
@@ -249,6 +250,7 @@ typedef struct _VP_EngineEntry
             uint64_t sfcOnlyFeatureExists : 1;  // The feature exists, which only support sfc.
             uint64_t bTemperalInputInuse : 1;   // true if replace input
             uint64_t outputWithLumaKey : 1;
+            uint64_t enableSFCLinearOutputByTileConvert : 1;  //true if do tileconvert from tileF to linear for SFC linear output
         };
         uint64_t value;
     };

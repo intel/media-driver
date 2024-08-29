@@ -1239,6 +1239,7 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
     {
         scalingEngine->usedForNextPass = false;
     }
+
     if (scalingEngine->value != 0)
     {
         VP_PUBLIC_NORMALMESSAGE("Scaling Feature Already been processed, Skip further process");
@@ -1256,6 +1257,16 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
         scalingParams->scalingPreference = VPHAL_SCALING_PREFER_SFC;
     }
 
+    if (userFeatureControl->IsSFCLinearOutputByTileConvertEnabled() &&
+        scalingParams->output.dwWidth <= 1152        &&
+        scalingParams->output.dwPitch != 128         &&
+        scalingParams->output.dwPitch != 256         &&
+        (scalingParams->output.dwPitch % 1024) !=0   &&
+        scalingParams->output.tileMode == MOS_TILE_LINEAR_GMM)
+    {
+        scalingEngine->enableSFCLinearOutputByTileConvert = true;
+        VP_PUBLIC_NORMALMESSAGE("enable sfcLinearOutputByTileConvert, output width %d, output pitch %d, output tilemode %d", scalingParams->output.dwWidth, scalingParams->output.dwPitch, scalingParams->output.tileMode);
+    }
     dwSurfaceWidth        = scalingParams->input.dwWidth;
     dwSurfaceHeight       = scalingParams->input.dwHeight;
     dwOutputSurfaceWidth  = scalingParams->output.dwWidth;
@@ -2438,7 +2449,10 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
         caps.bTemperalInputInuse = engineCaps.bTemperalInputInuse;
         caps.b1K1DLutInUse       = engineCaps.is1K1DLutSurfaceInUse;
     }
-
+    if (caps.bSFC && engineCapsInputPipe.enableSFCLinearOutputByTileConvert)
+    {
+        caps.enableSFCLinearOutputByTileConvert = engineCapsInputPipe.enableSFCLinearOutputByTileConvert;
+    }
     VP_PUBLIC_NORMALMESSAGE("Execute Caps, value 0x%llx (bVebox %d, bSFC %d, bRender %d, bComposite %d, bOutputPipeFeatureInuse %d, bIECP %d, bForceCscToRender %d, bDiProcess2ndField %d)",
         caps.value, caps.bVebox, caps.bSFC, caps.bRender, caps.bComposite, caps.bOutputPipeFeatureInuse, caps.bIECP,
         caps.bForceCscToRender, caps.bDiProcess2ndField);
@@ -3140,6 +3154,7 @@ MOS_STATUS Policy::UpdateFeatureTypeWithEngineSingleLayer(SwFilterSubPipe *featu
                 {
                     engineCaps->bEnabled = 1;
                     engineCaps->SfcNeeded = 1;
+                    caps.enableSFCLinearOutputByTileConvert |= engineCaps->enableSFCLinearOutputByTileConvert;
                 }
                 // Choose SFC as execution engine
                 VP_PUBLIC_CHK_STATUS_RETURN(UpdateExeCaps(feature, caps, engineCaps->SfcNeeded ? EngineTypeVeboxSfc : EngineTypeVebox));

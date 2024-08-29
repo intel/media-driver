@@ -337,6 +337,7 @@ protected:
 #define __MEDIA_USER_FEATURE_VALUE_VP_L0_FC_ENABLED                     "L0 FC Enabled"
 #define __MEDIA_USER_FEATURE_VALUE_VP_L0_FC_REPORT                      "L0 FC Diff Report"
 
+#define __MEDIA_USER_FEATURE_VALUE_ENABLE_VESFC_LINEAR_OUTPUT_BY_TILECONVERT "Enable VESFC Linearoutput By TileConvert"
 #endif  //(_DEBUG || _RELEASE_INTERNAL)
 
 class VpUtils

@@ -442,6 +442,25 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
         m_ctrlValDefault.bDisableL0FcFp = false;
     }
 #endif
+#if (_DEBUG || _RELEASE_INTERNAL)
+    bool enableSFCLinearOutputByTileConvert = 0;
+    eRegKeyReadStatus   = ReadUserSettingForDebug(
+        m_userSettingPtr,
+        enableSFCLinearOutputByTileConvert,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VESFC_LINEAR_OUTPUT_BY_TILECONVERT,
+        MediaUserSetting::Group::Device);
+    if (MOS_SUCCEEDED(eRegKeyReadStatus))
+    {
+        m_ctrlValDefault.enableSFCLinearOutputByTileConvert = enableSFCLinearOutputByTileConvert;
+    }
+    else
+#endif
+    {
+        // Default value
+        m_ctrlValDefault.enableSFCLinearOutputByTileConvert = false;
+    }
+    VP_PUBLIC_NORMALMESSAGE("enableSFCLinearOutputByTileConvert value is set as %d.", m_ctrlValDefault.enableSFCLinearOutputByTileConvert);
+
     return MOS_STATUS_SUCCESS;
 }
 

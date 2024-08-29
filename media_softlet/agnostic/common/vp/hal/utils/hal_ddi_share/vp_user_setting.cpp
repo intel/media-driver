@@ -411,6 +411,13 @@ MOS_STATUS VpUserSetting::InitVpUserSetting(MediaUserSettingSharedPtr userSettin
         0,
         true);
 
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VESFC_LINEAR_OUTPUT_BY_TILECONVERT,
+        MediaUserSetting::Group::Device,
+        0,
+        true);
+
 #endif
 
     return MOS_STATUS_SUCCESS;

@@ -396,6 +396,7 @@ MOS_STATUS SwFilterScaling::Configure(VP_PIPELINE_PARAMS &params, bool isInputSu
         m_Params.rotation.rotationNeeded    = false;
         m_Params.output.dwWidth             = surfOutput->dwWidth;
         m_Params.output.dwHeight            = surfOutput->dwHeight;
+        m_Params.output.dwPitch             = surfOutput->dwPitch;
         m_Params.input.rcDst                = surfInput->rcDst;
         m_Params.output.rcSrc               = surfOutput->rcSrc;
         m_Params.output.rcDst               = surfOutput->rcDst;
@@ -406,6 +407,7 @@ MOS_STATUS SwFilterScaling::Configure(VP_PIPELINE_PARAMS &params, bool isInputSu
         m_Params.rotation.rotationNeeded    = true;
         m_Params.output.dwWidth             = surfOutput->dwHeight;
         m_Params.output.dwHeight            = surfOutput->dwWidth;
+        m_Params.output.dwPitch             = surfOutput->dwPitch;
         RECT_ROTATE(m_Params.input.rcDst, surfInput->rcDst);
         RECT_ROTATE(m_Params.output.rcSrc, surfOutput->rcSrc);
         RECT_ROTATE(m_Params.output.rcDst, surfOutput->rcDst);
@@ -497,6 +499,7 @@ MOS_STATUS SwFilterScaling::Configure(VEBOX_SFC_PARAMS &params)
         m_Params.rotation.rotationNeeded = false;
         m_Params.output.dwWidth     = params.output.surface->dwWidth;
         m_Params.output.dwHeight    = params.output.surface->dwHeight;
+        m_Params.output.dwPitch     = params.output.surface->dwPitch;
         m_Params.input.rcDst        = params.output.rcDst;
         m_Params.output.rcSrc       = recOutput;
         m_Params.output.rcDst       = recOutput;
@@ -507,6 +510,7 @@ MOS_STATUS SwFilterScaling::Configure(VEBOX_SFC_PARAMS &params)
         m_Params.rotation.rotationNeeded = true;
         m_Params.output.dwWidth     = params.output.surface->dwHeight;
         m_Params.output.dwHeight    = params.output.surface->dwWidth;
+        m_Params.output.dwPitch     = params.output.surface->dwPitch;
 
         RECT_ROTATE(m_Params.input.rcDst, params.output.rcDst);
         RECT_ROTATE(m_Params.output.rcSrc, recOutput);
@@ -545,6 +549,7 @@ MOS_STATUS SwFilterScaling::Configure(PVP_SURFACE surfInput, PVP_SURFACE surfOut
     m_Params.rotation.rotationNeeded    = false;
     m_Params.output.dwWidth             = surfOutput->osSurface->dwWidth;
     m_Params.output.dwHeight            = surfOutput->osSurface->dwHeight;
+    m_Params.output.dwPitch             = surfOutput->osSurface->dwPitch;
     m_Params.output.rcSrc               = surfOutput->rcSrc;
     m_Params.output.rcDst               = surfOutput->rcDst;
     m_Params.output.rcMaxSrc            = surfOutput->rcMaxSrc;

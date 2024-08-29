@@ -73,6 +73,7 @@ public:
         bool               clearVideoViewMode = false;
         uint32_t           splitFramePortions = 1;
         bool               decompForInterlacedSurfWaEnabled = false;
+        bool               enableSFCLinearOutputByTileConvert = false;
     };
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -111,6 +112,11 @@ public:
         return m_ctrlVal.bDisableL0FcFp;
     }
 #endif
+
+    bool IsSFCLinearOutputByTileConvertEnabled()
+    {
+        return m_ctrlVal.enableSFCLinearOutputByTileConvert;
+    }
 
     virtual MOS_STATUS CreateUserSettingForDebug();
 

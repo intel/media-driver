@@ -444,6 +444,7 @@ struct FeatureParamScaling : public FeatureParam
     {
         uint32_t                dwWidth  = 0;
         uint32_t                dwHeight = 0;
+        uint32_t                dwPitch  = 0;
         RECT                    rcSrc    = {0, 0, 0, 0};
         RECT                    rcDst    = {0, 0, 0, 0};  //!< Input dst rect without rotate being applied.
         RECT                    rcMaxSrc = {0, 0, 0, 0};

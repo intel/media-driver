@@ -78,6 +78,7 @@ public:
 #endif
         bool                          VeboxScalability    = false;                        //!< Vebox Scalability flag
         bool                          VPApogeios          = false;                        //!< VP Apogeios flag
+        bool                          sfcLinearOutputByTileConvert = false;               //!< enableSFCLinearOutputByTileConvert
     };
 
     virtual ~VpFeatureReport(){};

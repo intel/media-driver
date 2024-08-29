@@ -222,6 +222,11 @@ VpResourceManager::~VpResourceManager()
         m_allocator.DestroyVpSurface(m_vebox1DLookUpTables);
     }
 
+    if (m_innerTileConvertInput)
+    {
+        m_allocator.DestroyVpSurface(m_innerTileConvertInput);
+    }
+
     if (m_temperalInput)
     {
         m_allocator.DestroyVpSurface(m_temperalInput);
@@ -1888,7 +1893,27 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
         }
     }
     // cappipe
+    if (caps.enableSFCLinearOutputByTileConvert)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
+            m_innerTileConvertInput,
+            "TempTargetSurface",
+            outputSurface->osSurface->Format,
+            MOS_GFXRES_2D,
+            MOS_TILE_Y,
+            outputSurface->osSurface->dwWidth,
+            outputSurface->osSurface->dwHeight,
+            false,
+            MOS_MMC_DISABLED,
+            bAllocated,
+            false,
+            IsDeferredResourceDestroyNeeded()));
 
+        m_innerTileConvertInput->ColorSpace = outputSurface->ColorSpace;
+        m_innerTileConvertInput->rcSrc      = outputSurface->rcSrc;
+        m_innerTileConvertInput->rcDst      = outputSurface->rcDst;
+        m_innerTileConvertInput->rcMaxSrc   = outputSurface->rcMaxSrc;
+    }
     return MOS_STATUS_SUCCESS;
 }
 
@@ -2231,6 +2256,11 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
     {
         // Insert DV 1Dlut surface
         surfGroup.insert(std::make_pair(SurfaceType1k1dLut, m_vebox1DLookUpTables));
+    }
+
+    if (caps.enableSFCLinearOutputByTileConvert)
+    {
+        surfGroup.insert(std::make_pair(SurfaceTypeInnerTileConvertInput, m_innerTileConvertInput));
     }
 
     // Update previous Dn output flag for next frame to use.

@@ -40,6 +40,11 @@
 #include "media_scalability_defs.h"
 #include "renderhal_platform_interface_next.h"
 
+#define SURFACE_DW_UY_OFFSET(pSurface) \
+    ((pSurface) != nullptr ? ((pSurface)->UPlaneOffset.iSurfaceOffset - (pSurface)->dwOffset) / (pSurface)->dwPitch + (pSurface)->UPlaneOffset.iYOffset : 0)
+
+#define SURFACE_DW_VY_OFFSET(pSurface) \
+    ((pSurface) != nullptr ? ((pSurface)->VPlaneOffset.iSurfaceOffset - (pSurface)->dwOffset) / (pSurface)->dwPitch + (pSurface)->VPlaneOffset.iYOffset : 0)
 namespace vp {
 
 #define INTERP(x0, x1, x, y0, y1)   ((uint32_t) floor(y0+(x-x0)*(y1-y0)/(double)(x1-x0)))
@@ -1870,6 +1875,7 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
     pMmioRegisters  = m_miItf->GetMmioRegisters();
     pCmdBufferInUse = CmdBuffer;
 
+    auto report      = (VpFeatureReport *)(m_hwInterface->m_reporting);
     auto scalability = GetMediaScalability();
     VP_RENDER_CHK_NULL_RETURN(m_veboxItf);
     mhw::vebox::VEBOX_STATE_PAR& veboxStateCmdParams = m_veboxItf->MHW_GETPAR_F(VEBOX_STATE)();
@@ -2054,6 +2060,12 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
             VP_RENDER_CHK_STATUS_RETURN(scalability->SyncPipe(syncAllPipes, 0, pCmdBufferInUse));
         }
 
+        if (m_PacketCaps.enableSFCLinearOutputByTileConvert)
+        {
+            VP_RENDER_CHK_STATUS_RETURN(AddTileConvertStates(CmdBuffer, MhwVeboxSurfaceStateCmdParams));
+            report->GetFeatures().sfcLinearOutputByTileConvert = true;
+        }
+
         //---------------------------------
         // Write GPU Status Tag for Tag based synchronization
         //---------------------------------
@@ -2118,13 +2130,149 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
         scalability->SetCurrentPipeIndex(inputPipe);
     }
 
-    auto report                             = (VpFeatureReport *)(m_hwInterface->m_reporting);
     report->GetFeatures().VeboxScalability  = bMultipipe;
 
     MT_LOG2(MT_VP_HAL_RENDER_VE, MT_NORMAL, MT_VP_MHW_VE_SCALABILITY_EN, bMultipipe, MT_VP_MHW_VE_SCALABILITY_USE_SFC, m_IsSfcUsed);
 
     return eStatus;
 }
+
+MOS_STATUS VpVeboxCmdPacket::AddTileConvertStates(MOS_COMMAND_BUFFER *CmdBuffer, MHW_VEBOX_SURFACE_STATE_CMD_PARAMS &MhwVeboxSurfaceStateCmdParams)
+{
+    // Prepare Vebox_Surface_State, surface input/and output are the same but the compressed status.
+    VP_RENDER_CHK_STATUS_RETURN(InitVeboxSurfaceStateCmdParamsForTileConvert(&MhwVeboxSurfaceStateCmdParams, m_renderTarget->osSurface, m_originalOutput->osSurface));
+
+    //---------------------------------
+    // Send CMD: Vebox_Surface_State
+    //---------------------------------
+    VP_RENDER_CHK_STATUS_RETURN(m_veboxItf->AddVeboxSurfaces(
+        CmdBuffer,
+        &MhwVeboxSurfaceStateCmdParams));
+
+    HalOcaInterfaceNext::OnDispatch(*CmdBuffer, *m_osInterface, m_miItf, *m_miItf->GetMmioRegisters());
+
+    //---------------------------------
+    // Send CMD: Vebox_Tiling_Convert
+    //---------------------------------
+    VP_RENDER_CHK_STATUS_RETURN(m_veboxItf->AddVeboxTilingConvert(CmdBuffer, &MhwVeboxSurfaceStateCmdParams.SurfInput, &MhwVeboxSurfaceStateCmdParams.SurfOutput));
+
+    auto &flushDwParams = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+    flushDwParams       = {};
+    VP_RENDER_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(CmdBuffer));
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpVeboxCmdPacket::InitVeboxSurfaceStateCmdParamsForTileConvert(
+    PMHW_VEBOX_SURFACE_STATE_CMD_PARAMS mhwVeboxSurfaceStateCmdParams,
+    PMOS_SURFACE                        inputSurface,
+    PMOS_SURFACE                        outputSurface)
+{
+    MOS_STATUS status               = MOS_STATUS_SUCCESS;
+    bool       inputIsLinearBuffer  = false;
+    bool       outputIsLinearBuffer = false;
+    uint32_t   bpp                  = 1;
+    uint32_t   inputWidth           = 0;
+    uint32_t   outputWidth          = 0;
+
+    VP_RENDER_CHK_NULL_RETURN(inputSurface);
+    VP_RENDER_CHK_NULL_RETURN(outputSurface);
+    VP_RENDER_CHK_NULL_RETURN(mhwVeboxSurfaceStateCmdParams);
+
+    MOS_ZeroMemory(mhwVeboxSurfaceStateCmdParams, sizeof(*mhwVeboxSurfaceStateCmdParams));
+
+    mhwVeboxSurfaceStateCmdParams->SurfInput.bActive = mhwVeboxSurfaceStateCmdParams->SurfOutput.bActive = true;
+    mhwVeboxSurfaceStateCmdParams->SurfInput.dwBitDepth = mhwVeboxSurfaceStateCmdParams->SurfOutput.dwBitDepth = inputSurface->dwDepth;
+    mhwVeboxSurfaceStateCmdParams->SurfInput.dwHeight                                                          = mhwVeboxSurfaceStateCmdParams->SurfOutput.dwHeight =
+        MOS_MIN(inputSurface->dwHeight, ((outputSurface != nullptr) ? outputSurface->dwHeight : inputSurface->dwHeight));
+    mhwVeboxSurfaceStateCmdParams->SurfInput.dwWidth = mhwVeboxSurfaceStateCmdParams->SurfOutput.dwWidth =
+        MOS_MIN(inputSurface->dwWidth, ((outputSurface != nullptr) ? outputSurface->dwWidth : inputSurface->dwWidth));
+    mhwVeboxSurfaceStateCmdParams->SurfInput.Format = mhwVeboxSurfaceStateCmdParams->SurfOutput.Format = inputSurface->Format;
+
+    MOS_SURFACE inputDetails, outputDetails;
+    MOS_ZeroMemory(&inputDetails, sizeof(inputDetails));
+    MOS_ZeroMemory(&outputDetails, sizeof(outputDetails));
+    inputDetails.Format  = Format_Invalid;
+    outputDetails.Format = Format_Invalid;
+
+    VP_RENDER_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(
+        m_osInterface,
+        &inputSurface->OsResource,
+        &inputDetails));
+
+    VP_RENDER_CHK_STATUS_RETURN(m_osInterface->pfnGetResourceInfo(
+        m_osInterface,
+        &outputSurface->OsResource,
+        &outputDetails));
+
+    // Following settings are enabled only when outputSurface is availble
+    inputIsLinearBuffer  = (inputDetails.dwHeight == 1) ? true : false;
+    outputIsLinearBuffer = (outputDetails.dwHeight == 1) ? true : false;
+
+    inputWidth  = inputSurface->dwWidth;
+    outputWidth = outputSurface->dwWidth;
+
+    if (inputIsLinearBuffer)
+    {
+        bpp = outputDetails.dwPitch / outputDetails.dwWidth;
+        if (outputDetails.dwPitch % outputDetails.dwWidth != 0)
+        {
+            inputWidth = outputDetails.dwPitch / bpp;
+        }
+    }
+    else if (outputIsLinearBuffer)
+    {
+        bpp = inputDetails.dwPitch / inputDetails.dwWidth;
+        if (inputDetails.dwPitch % inputDetails.dwWidth != 0)
+        {
+            outputWidth = inputDetails.dwPitch / bpp;
+        }
+    }
+    else
+    {
+        VP_RENDER_NORMALMESSAGE("2D to 2D, no need for bpp setting.");
+    }
+
+    if (inputSurface->dwPitch > 0 &&
+        (inputSurface->Format == Format_P010 ||
+            inputSurface->Format == Format_P016 ||
+            inputSurface->Format == Format_NV12))
+    {
+        mhwVeboxSurfaceStateCmdParams->SurfInput.dwUYoffset = (!inputIsLinearBuffer) ? SURFACE_DW_UY_OFFSET(inputSurface) : inputSurface->dwHeight;
+
+        mhwVeboxSurfaceStateCmdParams->SurfOutput.dwUYoffset = (!outputIsLinearBuffer) ? SURFACE_DW_UY_OFFSET(outputSurface) : outputSurface->dwHeight;
+    }
+
+    mhwVeboxSurfaceStateCmdParams->SurfInput.rcMaxSrc.left = mhwVeboxSurfaceStateCmdParams->SurfOutput.rcMaxSrc.left = 0;
+    mhwVeboxSurfaceStateCmdParams->SurfInput.rcMaxSrc.right = mhwVeboxSurfaceStateCmdParams->SurfOutput.rcMaxSrc.right = (long)inputSurface->dwWidth;
+    mhwVeboxSurfaceStateCmdParams->SurfInput.rcMaxSrc.top = mhwVeboxSurfaceStateCmdParams->SurfOutput.rcMaxSrc.top = 0;
+    mhwVeboxSurfaceStateCmdParams->SurfInput.rcMaxSrc.bottom = mhwVeboxSurfaceStateCmdParams->SurfOutput.rcMaxSrc.bottom = (long)inputSurface->dwHeight;
+    mhwVeboxSurfaceStateCmdParams->bOutputValid                                                                          = true;
+
+    //double buffer resolve
+    mhwVeboxSurfaceStateCmdParams->SurfInput.TileType         = inputSurface->TileType;
+    mhwVeboxSurfaceStateCmdParams->SurfInput.TileModeGMM      = inputSurface->TileModeGMM;
+    mhwVeboxSurfaceStateCmdParams->SurfInput.bGMMTileEnabled  = inputSurface->bGMMTileEnabled;
+    mhwVeboxSurfaceStateCmdParams->SurfOutput.TileType        = outputSurface->TileType;
+    mhwVeboxSurfaceStateCmdParams->SurfOutput.TileModeGMM     = outputSurface->TileModeGMM;
+    mhwVeboxSurfaceStateCmdParams->SurfOutput.bGMMTileEnabled = outputSurface->bGMMTileEnabled;
+    mhwVeboxSurfaceStateCmdParams->SurfInput.dwOffset         = inputSurface->dwOffset;
+    mhwVeboxSurfaceStateCmdParams->SurfOutput.dwOffset        = outputSurface->dwOffset;
+
+    // When surface is 1D but processed as 2D, fake a min(pitch, width) is needed as the pitch API passed may less surface width in 1D surface
+    mhwVeboxSurfaceStateCmdParams->SurfInput.dwPitch              = (inputIsLinearBuffer) ? MOS_MIN(inputWidth * bpp, inputSurface->dwPitch) : inputSurface->dwPitch;
+    mhwVeboxSurfaceStateCmdParams->SurfOutput.dwPitch             = (outputIsLinearBuffer) ? MOS_MIN(outputWidth * bpp, outputSurface->dwPitch) : outputSurface->dwPitch;
+    mhwVeboxSurfaceStateCmdParams->SurfInput.pOsResource          = &(inputSurface->OsResource);
+    mhwVeboxSurfaceStateCmdParams->SurfOutput.pOsResource         = &(outputSurface->OsResource);
+    mhwVeboxSurfaceStateCmdParams->SurfInput.dwYoffset            = inputSurface->YPlaneOffset.iYOffset;
+    mhwVeboxSurfaceStateCmdParams->SurfOutput.dwYoffset           = outputSurface->YPlaneOffset.iYOffset;
+    mhwVeboxSurfaceStateCmdParams->SurfInput.dwCompressionFormat  = inputSurface->CompressionFormat;
+    mhwVeboxSurfaceStateCmdParams->SurfOutput.dwCompressionFormat = outputSurface->CompressionFormat;
+    mhwVeboxSurfaceStateCmdParams->SurfInput.CompressionMode      = inputSurface->CompressionMode;
+    mhwVeboxSurfaceStateCmdParams->SurfOutput.CompressionMode     = outputSurface->CompressionMode;
+
+    return status;
+}
+
 
 void VpVeboxCmdPacket::AddCommonOcaMessage(PMOS_COMMAND_BUFFER pCmdBufferInUse, MOS_CONTEXT_HANDLE pOsContext, PMOS_INTERFACE pOsInterface, PRENDERHAL_INTERFACE pRenderHal, PMHW_MI_MMIOREGISTERS pMmioRegisters)
 {
@@ -2396,6 +2544,16 @@ MOS_STATUS VpVeboxCmdPacket::Init()
         m_renderTarget->Clean();
     }
 
+    if (nullptr == m_originalOutput)
+    {
+        m_originalOutput = m_allocator->AllocateVpSurface();
+        VP_CHK_SPACE_NULL_RETURN(m_originalOutput);
+    }
+    else
+    {
+        m_originalOutput->Clean();
+    }
+
     MOS_ZeroMemory(&m_veboxPacketSurface, sizeof(VEBOX_PACKET_SURFACE_PARAMS));
     m_surfSetting.Clean();
 
@@ -2577,9 +2735,6 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
     m_allocator->UpdateResourceUsageType(&inputSurface->osSurface->OsResource, MOS_HW_RESOURCE_USAGE_VP_INPUT_PICTURE_FF);
     m_allocator->UpdateResourceUsageType(&outputSurface->osSurface->OsResource, MOS_HW_RESOURCE_USAGE_VP_OUTPUT_PICTURE_FF);
 
-    // Set current src = current primary input
-    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->CopyVpSurface(*m_renderTarget ,*outputSurface));
-
     // Init packet surface params.
     m_surfSetting                                   = surfSetting;
     m_veboxPacketSurface.pCurrInput                 = GetSurface(SurfaceTypeVeboxInput);
@@ -2593,6 +2748,18 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
     m_veboxPacketSurface.pAlphaOrVignette           = GetSurface(SurfaceTypeAlphaOrVignette);
     m_veboxPacketSurface.pLaceOrAceOrRgbHistogram   = GetSurface(SurfaceTypeLaceAceRGBHistogram);
     m_veboxPacketSurface.pSurfSkinScoreOutput       = GetSurface(SurfaceTypeSkinScore);
+    m_veboxPacketSurface.pInnerTileConvertInput     = GetSurface(SurfaceTypeInnerTileConvertInput);
+    // Set current src = current primary input
+    if (m_veboxPacketSurface.pInnerTileConvertInput)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->CopyVpSurface(*m_renderTarget, *m_veboxPacketSurface.pInnerTileConvertInput));
+
+        VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->CopyVpSurface(*m_originalOutput, *outputSurface));
+    }
+    else
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->CopyVpSurface(*m_renderTarget, *outputSurface));
+    }
 
     VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pCurrInput);
     VP_RENDER_CHK_NULL_RETURN(m_veboxPacketSurface.pStatisticsOutput);
@@ -2723,6 +2890,7 @@ VpVeboxCmdPacket:: ~VpVeboxCmdPacket()
     m_allocator->DestroyVpSurface(m_currentSurface);
     m_allocator->DestroyVpSurface(m_previousSurface);
     m_allocator->DestroyVpSurface(m_renderTarget);
+    m_allocator->DestroyVpSurface(m_originalOutput);
 }
 
 //!

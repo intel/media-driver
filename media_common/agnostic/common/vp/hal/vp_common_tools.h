@@ -173,6 +173,8 @@ typedef struct _VP_CONFIG
     uint32_t   dwReportedVeboxScalability;  // Reported Vebox Scalability
     uint32_t   dwCurrentVPApogeios;         // Current VP Apogieos
     uint32_t   dwReportedVPApogeios;        // Reported VP Apogieos
+    uint32_t   dwCurrentSFCLinearOutputByTileConvert;   // Current enableSFCLinearOutputByTileConvert
+    uint32_t   dwReportedSFCLinearOutputByTileConvert;  // Reported enableSFCLinearOutputByTileConvert
 
     // Configurations for cache control
     uint32_t   dwDndiReferenceBuffer;

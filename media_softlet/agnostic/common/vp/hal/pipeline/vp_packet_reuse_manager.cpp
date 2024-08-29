@@ -1106,6 +1106,13 @@ MOS_STATUS VpPacketReuseManager::UpdatePacketPipeConfig(PacketPipe *&pipe)
         return MOS_STATUS_SUCCESS;
     }
 
+    if (caps.enableSFCLinearOutputByTileConvert)
+    {
+        VP_PUBLIC_NORMALMESSAGE("Not reusable for enableSFCLinearOutputByTileConvert case.");
+        m_reusable = false;
+        return MOS_STATUS_SUCCESS;
+    }
+
     if (m_TeamsPacket && !m_TeamsPacket_reuse)
     {
         auto it = m_pipeReused_TeamsPacket.find(curIndex);

@@ -134,6 +134,8 @@ void VpFeatureReport::SetConfigValues(
     // Report Vebox Scalability
     configValues->dwCurrentVeboxScalability = m_features.VeboxScalability;
 
+    configValues->dwCurrentSFCLinearOutputByTileConvert = m_features.sfcLinearOutputByTileConvert;
+
     // Report VP Apogeios
     configValues->dwCurrentVPApogeios       = m_features.VPApogeios;
 
@@ -149,7 +151,8 @@ void VpFeatureReport::SetConfigValues(
         RTCompressMode %d, \
         PrimaryCompressible %d, \
         PrimaryCompressMode %d, \
-        CompositionMode %d",
+        CompositionMode %d, \
+        sfcLinearOutputByTileConvert",
         m_features.outputPipeMode,
         m_features.hdrMode,
         m_features.veFeatureInUse,
@@ -160,7 +163,8 @@ void VpFeatureReport::SetConfigValues(
         m_features.rtCompressMode,
         m_features.primaryCompressible,
         m_features.primaryCompressMode,
-        m_features.compositionMode);
+        m_features.compositionMode,
+        m_features.sfcLinearOutputByTileConvert);
 
     if (traceEvent)
     {
