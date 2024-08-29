@@ -4285,6 +4285,8 @@ MOS_STATUS RenderHal_GetPlaneDefinitionForCommonMessage(
     case Format_Y410:
     case Format_P210:
     case Format_P216:
+    case Format_R5G6B5:
+    case Format_R8G8B8:
         //already handled rightly in normal non-adv GetPlaneDefinition
         break;
     case Format_NV12:

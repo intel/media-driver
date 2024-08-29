@@ -642,6 +642,8 @@ MOS_STATUS VpL0FcFilter::GetChromaSitingFactor(MOS_FORMAT format, uint8_t& hitSe
     case Format_Y410:
     case Format_Y416:
     case Format_400P:
+    case Format_R5G6B5:
+    case Format_R8G8B8:
         hitSecPlaneFactorX = 1;
         hitSecPlaneFactorY = 1;
         break;
@@ -714,6 +716,7 @@ MOS_STATUS VpL0FcFilter::GetBitNumber(MOS_FORMAT format, uint8_t *pOriginBitNumb
     case Format_VYUY:
     case Format_NV12:
     case Format_400P:
+    case Format_R8G8B8:
         storedBitNumber = 8;
         originBitNumber = 8;
         alphaBitNumber  = 0;
@@ -1029,6 +1032,8 @@ MOS_STATUS VpL0FcFilter::ConvertInputChannelIndicesToKrnParam(MOS_FORMAT format,
     case Format_B10G10R10A2:
     case Format_A16R16G16B16:
     case Format_A16R16G16B16F:
+    case Format_R5G6B5:
+    case Format_R8G8B8:
         inputChannelIndices[0] = 0;
         inputChannelIndices[1] = 1;
         inputChannelIndices[2] = 2;
@@ -1125,6 +1130,8 @@ MOS_STATUS VpL0FcFilter::ConvertPlaneNumToKrnParam(MOS_FORMAT format, bool isInp
     case Format_Y410:
     case Format_Y416:
     case Format_400P:
+    case Format_R5G6B5:
+    case Format_R8G8B8:
         planeNum = 1;
         break;
     case Format_NV12:
@@ -1224,6 +1231,8 @@ MOS_STATUS VpL0FcFilter::ConvertOuputChannelIndicesToKrnParam(MOS_FORMAT format,
     case Format_B10G10R10A2:
     case Format_A16R16G16B16:
     case Format_A16R16G16B16F:
+    case Format_R5G6B5:
+    case Format_R8G8B8:
         dynamicChannelIndices[0] = 0;
         dynamicChannelIndices[1] = 1;
         dynamicChannelIndices[2] = 2;
