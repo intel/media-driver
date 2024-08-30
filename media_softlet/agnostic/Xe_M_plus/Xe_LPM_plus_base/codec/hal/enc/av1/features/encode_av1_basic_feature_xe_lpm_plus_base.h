@@ -27,9 +27,6 @@
 #define __ENCODE_AV1_BASIC_FEATURE_XE_LPM_PLUS_BASE_H__
 
 #include "encode_av1_basic_feature.h"
-#if _MEDIA_RESERVED
-#include "codec_def_encode_av1_ext.h"
-#endif
 
 namespace encode
 {

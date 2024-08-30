@@ -886,7 +886,7 @@ public:
         {
             struct
             {
-                uint32_t                 Reserved2048                                     : __CODEGEN_BITFIELD( 0,  0)    ; //!< Reserved2048
+                uint32_t                 VDAQMenable                                      : __CODEGEN_BITFIELD( 0,  0)    ; //!< VDAQM enable
                 uint32_t                 Reserved1                                        : __CODEGEN_BITFIELD( 1, 31)    ; //!< Reserved MBZ
             };
             uint32_t                     Value;

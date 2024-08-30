@@ -35,6 +35,9 @@
 #include "mhw_vdbox_avp_itf.h"
 #include "mhw_vdbox_huc_itf.h"
 #include "encode_mem_compression.h"
+#if _MEDIA_RESERVED
+#include "codec_def_encode_av1_ext.h"
+#endif
 
 namespace encode
 {

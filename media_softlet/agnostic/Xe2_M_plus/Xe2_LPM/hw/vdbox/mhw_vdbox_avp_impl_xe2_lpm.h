@@ -58,6 +58,9 @@ public:
     {
         _MHW_SETCMD_CALLBASE(AVP_PIC_STATE);
 
+#define DO_FIELDS() \
+    DO_FIELD(DW64, VDAQMenable, params.VdaqmEnable);
+
 #ifdef _MEDIA_RESERVED
     #define DO_FIELDS_EXT() \
         __MHW_VDBOX_AVP_WRAPPER_EXT(AVP_PIC_STATE_IMPL_XE2_LPM)              
