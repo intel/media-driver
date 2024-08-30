@@ -374,6 +374,8 @@ public:
         m_isInExePipe = isInExePipe;
     }
 
+    VP_MHWINTERFACE* GetHwInterface();
+
 protected:
     VpInterface &m_vpInterface;
     FeatureType m_type = FeatureTypeInvalid;

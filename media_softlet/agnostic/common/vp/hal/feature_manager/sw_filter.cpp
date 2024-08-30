@@ -135,6 +135,13 @@ void SwFilter::DestroySwFilter(SwFilter* p)
     }
 }
 
+VP_MHWINTERFACE *SwFilter::GetHwInterface()
+{
+    VP_FUNC_CALL();
+
+    return m_vpInterface.GetHwInterface();
+}
+
 /****************************************************************************************************/
 /*                                      SwFilterCsc                                                 */
 /****************************************************************************************************/

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -224,7 +224,7 @@ public:
 
 
 private:
-    uint32_t Get1stPassScaledSize(uint32_t input, uint32_t output, bool is2PassNeeded);
+    uint32_t Get1stPassScaledSize(uint32_t input, uint32_t output, bool is2PassNeeded, uint32_t alignUnit);
 
     PacketParamFactory<VpSfcScalingParameter> m_PacketParamFactory;
 

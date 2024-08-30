@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2022, Intel Corporation
+* Copyright (c) 2018-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -293,7 +293,6 @@ union RESOURCE_ASSIGNMENT_HINT
     uint32_t value[RESOURCE_ASSIGNMENT_HINT_SIZE];
 };
 
-using PVP_MHWINTERFACE = VP_MHWINTERFACE * ;
 using VP_EXECUTE_CAPS  = _VP_EXECUTE_CAPS;
 using VP_PACKET_ENGINE = _VP_PACKET_ENGINE;
 using PVP_SURFACE      = VP_SURFACE*;

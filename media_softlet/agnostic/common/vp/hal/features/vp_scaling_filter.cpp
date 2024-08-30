@@ -844,7 +844,7 @@ HwFilterParameter *PolicySfcScalingHandler::CreateHwFilterParam(VP_EXECUTE_CAPS 
     }
 }
 
-uint32_t PolicySfcScalingHandler::Get1stPassScaledSize(uint32_t input, uint32_t output, bool is2PassNeeded)
+uint32_t PolicySfcScalingHandler::Get1stPassScaledSize(uint32_t input, uint32_t output, bool is2PassNeeded, uint32_t alignUnit)
 {
     VP_FUNC_CALL();
 
@@ -859,16 +859,18 @@ uint32_t PolicySfcScalingHandler::Get1stPassScaledSize(uint32_t input, uint32_t 
     float       ratioFor1stPass = 0;
     uint32_t    scaledSize      = 0;
 
+    // make sure the scaled Width/Height was aligned in sfc2pass case
     if (input >= output)
     {
         ratioFor1stPass = m_hwCaps.m_rules.sfcMultiPassSupport.scaling.downScaling.ratioFor1stPass;
-        scaledSize = MOS_MAX(output, (uint32_t)(input * ratioFor1stPass));
+        scaledSize      = MOS_ALIGN_FLOOR(MOS_MAX(output, (uint32_t)(input * ratioFor1stPass)), alignUnit);
     }
     else
     {
         ratioFor1stPass = m_hwCaps.m_rules.sfcMultiPassSupport.scaling.upScaling.ratioFor1stPass;
-        scaledSize = MOS_MIN(output, (uint32_t)(input * ratioFor1stPass));
+        scaledSize      = MOS_ALIGN_CEIL(MOS_MIN(output, (uint32_t)(input * ratioFor1stPass)), alignUnit);
     }
+
     return scaledSize;
 }
 
@@ -881,6 +883,13 @@ MOS_STATUS PolicySfcScalingHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFi
 
     if (caps.b1stPassOfSfc2PassScaling)
     {
+        uint32_t         widthAlignUnit  = 0;
+        uint32_t         heightAlignUnit = 0;
+        PVP_MHWINTERFACE hwInterface     = featureScaling->GetHwInterface();
+        VP_PUBLIC_CHK_NULL_RETURN(hwInterface);
+        VP_PUBLIC_CHK_NULL_RETURN(hwInterface->m_vpPlatformInterface);
+        hwInterface->m_vpPlatformInterface->GetInputFrameWidthHeightAlignUnit(hwInterface, widthAlignUnit, heightAlignUnit, false, CODECHAL_STANDARD_MAX, jpegYUV400);
+
         SwFilterScaling *filter2ndPass = featureScaling;
         SwFilterScaling *filter1ndPass = (SwFilterScaling *)feature.Clone();
 
@@ -898,8 +907,8 @@ MOS_STATUS PolicySfcScalingHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFi
         uint32_t outputWidth = params1stPass.input.rcDst.right - params1stPass.input.rcDst.left;
         uint32_t outputHeight = params1stPass.input.rcDst.bottom - params1stPass.input.rcDst.top;
 
-        uint32_t scaledWidth = Get1stPassScaledSize(inputWidth, outputWidth, filter1ndPass->GetFilterEngineCaps().sfc2PassScalingNeededX);
-        uint32_t scaledHeight = Get1stPassScaledSize(inputHeight, outputHeight, filter1ndPass->GetFilterEngineCaps().sfc2PassScalingNeededY);
+        uint32_t scaledWidth  = Get1stPassScaledSize(inputWidth, outputWidth, filter1ndPass->GetFilterEngineCaps().sfc2PassScalingNeededX, widthAlignUnit);
+        uint32_t scaledHeight = Get1stPassScaledSize(inputHeight, outputHeight, filter1ndPass->GetFilterEngineCaps().sfc2PassScalingNeededY, heightAlignUnit);
 
         VP_PUBLIC_NORMALMESSAGE("2 pass sfc scaling setting: (%dx%d)->(%dx%d)->(%dx%d)",
             inputWidth, inputHeight, scaledWidth, scaledHeight, outputWidth, outputHeight);
