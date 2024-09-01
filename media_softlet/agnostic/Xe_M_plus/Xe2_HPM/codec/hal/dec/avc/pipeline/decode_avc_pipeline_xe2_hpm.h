@@ -47,6 +47,13 @@ public:
 
     virtual ~AvcPipelineXe2_Hpm(){};
 
+    //!
+    //! \brief  Finish the execution for each frame
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS Execute() override;
+
 protected:
     //!
     //! \brief  Create sub packets

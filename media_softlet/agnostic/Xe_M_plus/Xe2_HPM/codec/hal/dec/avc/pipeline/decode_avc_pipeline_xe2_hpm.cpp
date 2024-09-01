@@ -29,6 +29,7 @@
 #include "decode_avc_slice_packet_xe_lpm_plus_base.h"
 #include "decode_avc_picture_packet_xe_lpm_plus_base.h"
 #include "decode_mem_compression_xe2_hpm.h"
+#include "decode_common_feature_defs.h"
 
 namespace decode
 {
@@ -80,4 +81,64 @@ MOS_STATUS AvcPipelineXe2_Hpm::InitMmcState()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS AvcPipelineXe2_Hpm::Execute()
+{
+    PERF_UTILITY_AUTO((__FUNCTION__ + std::to_string((int)m_pipeMode)).c_str(), PERF_DECODE, PERF_LEVEL_HAL);
+
+    if (m_pipeMode == decodePipeModeProcess)
+    {
+        DECODE_CHK_STATUS(m_preSubPipeline->Execute());
+
+        if (IsCompleteBitstream())
+        {
+            DECODE_CHK_STATUS(InitContext());
+            DECODE_CHK_STATUS(ActivateDecodePackets());
+            DECODE_CHK_STATUS(ExecuteActivePackets());
+#ifdef _DECODE_PROCESSING_SUPPORTED
+            DecodeDownSamplingFeature *downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature *>(
+                m_featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
+            if (downSamplingFeature != nullptr)
+            {
+                if (downSamplingFeature->m_inputSurface != nullptr && downSamplingFeature->m_isReferenceOnlyPattern == true)
+                {
+                    //add copy between dest surface  and proc input surface
+                    m_osInterface->pfnDoubleBufferCopyResource(
+                        m_osInterface,
+                        &m_basicFeature->m_destSurface.OsResource,
+                        &downSamplingFeature->m_inputSurface->OsResource,
+                        false);
+                }
+            }
+#endif
+#if (_DEBUG || _RELEASE_INTERNAL)
+            DECODE_CHK_STATUS(StatusCheck());
+#ifdef _MMC_SUPPORTED
+            if (m_mmcState != nullptr)
+            {
+                m_mmcState->ReportSurfaceMmcMode(&(m_basicFeature->m_destSurface));
+            }
+#endif
+#endif
+
+            // Only update user features for the first frame.
+            if (m_basicFeature->m_frameNum == 0)
+            {
+                DECODE_CHK_STATUS(UserFeatureReport());
+            }
+
+            if (m_basicFeature->m_avcPicParams)
+            {
+                if (m_basicFeature->m_secondField || CodecHal_PictureIsFrame(m_basicFeature->m_avcPicParams->CurrPic))
+                {
+                    DecodeFrameIndex++;
+                    m_basicFeature->m_frameNum = DecodeFrameIndex;
+                }
+            }
+            DECODE_CHK_STATUS(m_statusReport->Reset());
+        }
+        DECODE_CHK_STATUS(m_postSubPipeline->Execute());
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
 }

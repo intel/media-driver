@@ -67,7 +67,7 @@ static const AttribList attribList_VAProfileH264Main_VAEntrypointVLD_Xe2_Hpm_r0
 {
    {VAConfigAttribRTFormat, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_RGB32},
    {VAConfigAttribDecSliceMode, VA_DEC_SLICE_MODE_NORMAL | VA_DEC_SLICE_MODE_BASE},
-   {VAConfigAttribDecProcessing, VA_DEC_PROCESSING},
+   {VAConfigAttribDecProcessing, VA_DEC_PROCESSING_NONE},
    {VAConfigAttribMaxPictureWidth, CODEC_4K_MAX_PIC_WIDTH},
    {VAConfigAttribMaxPictureHeight, CODEC_4K_MAX_PIC_HEIGHT},
    {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
@@ -79,7 +79,7 @@ static const AttribList attribList_VAProfileH264High_VAEntrypointVLD_Xe2_Hpm_r0
 {
    {VAConfigAttribRTFormat, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_RGB32},
    {VAConfigAttribDecSliceMode, VA_DEC_SLICE_MODE_NORMAL | VA_DEC_SLICE_MODE_BASE},
-   {VAConfigAttribDecProcessing, VA_DEC_PROCESSING},
+   {VAConfigAttribDecProcessing, VA_DEC_PROCESSING_NONE},
    {VAConfigAttribMaxPictureWidth, CODEC_4K_MAX_PIC_WIDTH},
    {VAConfigAttribMaxPictureHeight, CODEC_4K_MAX_PIC_HEIGHT},
    {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
@@ -91,7 +91,7 @@ static const AttribList attribList_VAProfileH264ConstrainedBaseline_VAEntrypoint
 {
    {VAConfigAttribRTFormat, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_RGB32},
    {VAConfigAttribDecSliceMode, VA_DEC_SLICE_MODE_NORMAL | VA_DEC_SLICE_MODE_BASE},
-   {VAConfigAttribDecProcessing, VA_DEC_PROCESSING},
+   {VAConfigAttribDecProcessing, VA_DEC_PROCESSING_NONE},
    {VAConfigAttribMaxPictureWidth, CODEC_4K_MAX_PIC_WIDTH},
    {VAConfigAttribMaxPictureHeight, CODEC_4K_MAX_PIC_HEIGHT},
    {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
