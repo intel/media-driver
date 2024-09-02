@@ -822,6 +822,13 @@ extern const MHW_SURFACE_PLANES g_cRenderHal_SurfacePlanes[RENDERHAL_PLANES_DEFI
             {MHW_U_PLANE, 2, 2, 1, 1, 2, 0, MHW_GFX3DSTATE_SURFACEFORMAT_R16G16_UNORM}
         }
     },
+    // RENDERHAL_PLANES_YUY2_2PLANES_WIDTH_UNALIGNED
+    {   2,
+        {
+            { MHW_Y_PLANE, 1, 1, 2, 2, 2, 0, MHW_GFX3DSTATE_SURFACEFORMAT_R8G8_UNORM },
+            { MHW_U_PLANE, 2, 1, 1, 2, 1, 0, MHW_GFX3DSTATE_SURFACEFORMAT_R8G8B8A8_UNORM }
+        }
+    },
 };
 
 //!
@@ -4318,7 +4325,7 @@ MOS_STATUS RenderHal_GetPlaneDefinitionForCommonMessage(
         else
         {
             //For reading, packed 422 formats use R8G8 for Y and A8R8G8B8 for UV
-            planeDefinition = RENDERHAL_PLANES_YUY2_2PLANES;
+            planeDefinition = RENDERHAL_PLANES_YUY2_2PLANES_WIDTH_UNALIGNED;
         }
         break;
     case Format_Y210:
