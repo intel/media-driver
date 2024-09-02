@@ -886,12 +886,12 @@ struct EncodeStatusReport
 
     struct BLOCK_QUALITY_INFO
     {
-        BLOCK_SSIM_INFO* BlockSsim2DS;  /*!< for 2X DS ssim per 4*4 piexl block. */
-        BLOCK_SSIM_INFO* BlockSsim4DS;  /*!< for 4X DS ssim per 4*4 piexl block. */
-        BLOCK_SSIM_INFO* BlockSsim8DS;  /*!< for 8X DS ssim per 4*4 piexl block. */
-        BLOCK_SSIM_INFO* BlockSsim16DS; /*!< for 16X DS ssim per 4*4 piexl block. */
-        uint32_t         reserved1[32];
-        uint64_t         reserved2[12];
+        BLOCK_SSIM_INFO BlockSsim2DS;  /*!< for 2X DS ssim per 4*4 piexl block. */
+        BLOCK_SSIM_INFO BlockSsim4DS;  /*!< for 4X DS ssim per 4*4 piexl block. */
+        BLOCK_SSIM_INFO BlockSsim8DS;  /*!< for 8X DS ssim per 4*4 piexl block. */
+        BLOCK_SSIM_INFO BlockSsim16DS; /*!< for 16X DS ssim per 4*4 piexl block.*/
+        uint32_t        reserved1[32];
+        uint64_t        reserved2[12];
     };
 
     CODECHAL_STATUS                 CodecStatus;            //!< Status for the picture associated with this status report
