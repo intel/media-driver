@@ -2054,6 +2054,10 @@ void VpL0FcFilter::ReportDiffLog(const L0_FC_COMP_PARAM &compParam)
     {
         reportLog |= (1llu << 16);
     }
+
+    //actually walked into L0 FC. Always set to 1 when L0 FC Filter take effect. "L0 FC Enabled" may be 1 but not walked into L0 FC, cause it may fall back in wrapper class
+    reportLog |= (1llu << 31);
+
     VP_PUBLIC_NORMALMESSAGE("L0FC vs FC Difference Report Log: 0x%x", reportLog);
 #endif
 }

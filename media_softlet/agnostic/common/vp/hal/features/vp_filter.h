@@ -625,7 +625,7 @@ public:
     virtual MOS_STATUS UpdateUnusedFeature(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index);
     FeatureType GetType();
     HwFilterParameter *GetHwFeatureParameterFromPool();
-    MOS_STATUS ReleaseHwFeatureParameter(HwFilterParameter *&pParam);
+    virtual MOS_STATUS ReleaseHwFeatureParameter(HwFilterParameter *&pParam);
 protected:
     FeatureType m_Type = FeatureTypeInvalid;
     std::vector<HwFilterParameter *> m_Pool;

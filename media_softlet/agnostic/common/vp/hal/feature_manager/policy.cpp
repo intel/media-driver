@@ -238,100 +238,59 @@ MOS_STATUS Policy::RegisterFcFeatures()
     VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface())
     VpUserFeatureControl *vpUserFeatureControl = m_vpInterface.GetHwInterface()->m_userFeatureControl;
     VP_PUBLIC_CHK_NULL_RETURN(vpUserFeatureControl);
+    bool enableL0FC = vpUserFeatureControl->EnableL0FC();
 
-    if (vpUserFeatureControl->EnableL0FC())
-    {
-        //switch FC from native CM kernel to L0 kernel
-        PolicyFeatureHandler *p = MOS_New(PolicyL0FcHandler, m_hwCaps);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeFcOnRender, p));
+    //Legacy Fc and L0 FC switching will be done in the wrapper handler class
+    //It will use Legacy FC if vpUserFeatureControl->EnableL0FC() is not true, which means specific platform not support L0 FC
+    //It will fall back to legacy FC when vp execute caps show bLegacyFC is true, which means some formats L0 FC not supported yet
+    //In the future, after all caps formats added for L0 FC, the wrapper will be removed and only register specific L0/Legacy FC handler
+    PolicyFeatureHandler *p = MOS_New(PolicyFcWrapHandler, m_hwCaps, enableL0FC);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeFcOnRender, p));
 
-        p = MOS_New(PolicyL0FcFeatureHandler, m_hwCaps);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeLumakeyOnRender, p));
+    p = MOS_New(PolicyFcFeatureWrapHandler, m_hwCaps, enableL0FC);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeLumakeyOnRender, p));
 
-        p = MOS_New(PolicyL0FcFeatureHandler, m_hwCaps);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeBlendingOnRender, p));
+    p = MOS_New(PolicyFcFeatureWrapHandler, m_hwCaps, enableL0FC);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeBlendingOnRender, p));
 
-        p = MOS_New(PolicyL0FcFeatureHandler, m_hwCaps);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeColorFillOnRender, p));
+    p = MOS_New(PolicyFcFeatureWrapHandler, m_hwCaps, enableL0FC);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeColorFillOnRender, p));
 
-        p = MOS_New(PolicyL0FcFeatureHandler, m_hwCaps);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeAlphaOnRender, p));
+    p = MOS_New(PolicyFcFeatureWrapHandler, m_hwCaps, enableL0FC);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeAlphaOnRender, p));
 
-        p = MOS_New(PolicyL0FcFeatureHandler, m_hwCaps);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeCscOnRender, p));
+    p = MOS_New(PolicyFcFeatureWrapHandler, m_hwCaps, enableL0FC);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeCscOnRender, p));
 
-        p = MOS_New(PolicyL0FcFeatureHandler, m_hwCaps);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeScalingOnRender, p));
+    p = MOS_New(PolicyFcFeatureWrapHandler, m_hwCaps, enableL0FC);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeScalingOnRender, p));
 
-        p = MOS_New(PolicyL0FcFeatureHandler, m_hwCaps);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeRotMirOnRender, p));
+    p = MOS_New(PolicyFcFeatureWrapHandler, m_hwCaps, enableL0FC);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeRotMirOnRender, p));
 
-        p = MOS_New(PolicyL0FcFeatureHandler, m_hwCaps);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeDiOnRender, p));
+    p = MOS_New(PolicyFcFeatureWrapHandler, m_hwCaps, enableL0FC);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeDiOnRender, p));
 
-        p = MOS_New(PolicyL0FcFeatureHandler, m_hwCaps);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeProcampOnRender, p));
+    p = MOS_New(PolicyFcFeatureWrapHandler, m_hwCaps, enableL0FC);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeProcampOnRender, p));
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-        VpFeatureReport *vpFeatureReport = m_vpInterface.GetHwInterface()->m_reporting;
-        if (vpFeatureReport)
-        {
-            vpFeatureReport->GetFeatures().isL0FC = true;
-        }
-#endif
-    }
-    else
+    VpFeatureReport *vpFeatureReport = m_vpInterface.GetHwInterface()->m_reporting;
+    if (vpFeatureReport)
     {
-        PolicyFeatureHandler *p = MOS_New(PolicyFcHandler, m_hwCaps);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeFcOnRender, p));
-
-        p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeLumakeyOnRender, p));
-
-        p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeBlendingOnRender, p));
-
-        p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeColorFillOnRender, p));
-
-        p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeAlphaOnRender, p));
-
-        p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeCscOnRender, p));
-
-        p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeScalingOnRender, p));
-
-        p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeRotMirOnRender, p));
-
-        p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeDiOnRender, p));
-
-        p = MOS_New(PolicyFcFeatureHandler, m_hwCaps);
-        VP_PUBLIC_CHK_NULL_RETURN(p);
-        m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeProcampOnRender, p));
+        vpFeatureReport->GetFeatures().isL0FC = enableL0FC;
     }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1059,6 +1018,13 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature, bool isCamPipeWithBaye
         return MOS_STATUS_SUCCESS;
     }
 
+    if (cscParams->formatInput == Format_422H ||
+        cscParams->formatInput == Format_422V)
+    {
+        //422H and 422V input not supported by L0 FC yet. Will remove the restriction after they are enabled
+        cscEngine->forceLegacyFC = true;
+    }
+
     bool isAlphaSettingSupportedBySfc =
         IsAlphaSettingSupportedBySfc(cscParams->formatInput, cscParams->formatOutput, cscParams->pAlphaParams);
     bool isAlphaSettingSupportedByVebox =
@@ -1246,6 +1212,19 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
 
         PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);
         return MOS_STATUS_SUCCESS;
+    }
+
+    //For BT2020 color fill, fall back to legacy FC. 
+    //Legacy FC and L0 FC both not support BT2020 as target Cspace ColorFill, Legacy FC will do wrong color
+    //Will remove restriction after L0 FC enabled BT2020 target color fill
+    if (IS_COLOR_SPACE_BT2020(scalingParams->csc.colorSpaceOutput) &&
+        scalingParams->pColorFillParams != nullptr                 &&
+        (scalingParams->input.rcDst.left > scalingParams->output.rcDst.left   ||
+         scalingParams->input.rcDst.right < scalingParams->output.rcDst.right ||
+         scalingParams->input.rcDst.top > scalingParams->output.rcDst.top     ||
+         scalingParams->input.rcDst.bottom < scalingParams->output.rcDst.bottom))
+    {
+        scalingEngine->forceLegacyFC = true;
     }
 
     // For AVS sampler not enabled case, HQ/Fast scaling should go to SFC.
@@ -2414,7 +2393,10 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
             }
             // For vebox + render with features, which can be done on both sfc and render, 
             // and sfc is not must have, sfc should not be selected and those features should be done on render.
-            caps.bSFC                  = engineCaps.nonVeboxFeatureExists && engineCaps.sfcOnlyFeatureExists;
+            caps.bSFC = engineCaps.nonVeboxFeatureExists && engineCaps.sfcOnlyFeatureExists;
+            // For L0 FC not supported formats, fallback to legacy FC
+            caps.bFallbackLegacyFC = engineCaps.forceLegacyFC;
+
         }
         else
         {
@@ -2448,6 +2430,7 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
         caps.bDiProcess2ndField = engineCaps.diProcess2ndField;
         caps.bTemperalInputInuse = engineCaps.bTemperalInputInuse;
         caps.b1K1DLutInUse       = engineCaps.is1K1DLutSurfaceInUse;
+        caps.bFallbackLegacyFC   = engineCaps.forceLegacyFC;
     }
     if (caps.bSFC && engineCapsInputPipe.enableSFCLinearOutputByTileConvert)
     {
@@ -3271,7 +3254,7 @@ MOS_STATUS Policy::LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilte
     uint64_t gpuVa = osInterface->pfnGetResourceGfxAddress(osInterface, &output->osSurface->OsResource);
     VP_PUBLIC_NORMALMESSAGE("target, gpuVa = 0x%llx", gpuVa);
 
-    PolicyFcHandler *fcHandler = dynamic_cast<PolicyFcHandler *>(it->second);
+    PolicyFcWrapHandler *fcHandler = dynamic_cast<PolicyFcWrapHandler *>(it->second);
     VP_PUBLIC_CHK_NULL_RETURN(fcHandler);
     VP_PUBLIC_CHK_STATUS_RETURN(fcHandler->LayerSelectForProcess(layerIndexes, featurePipe, caps));
 
