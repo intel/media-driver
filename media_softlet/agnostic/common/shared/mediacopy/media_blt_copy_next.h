@@ -318,6 +318,16 @@ protected:
     //!
     MOS_STATUS SetPrologParamsforCmdbuffer(PMOS_COMMAND_BUFFER cmdBuffer);
 
+     //!
+    //! \brief    Set BCS_SWCTR cmd
+    //! \details  Set BCS_SWCTR for Cmdbuffer
+    //! \param    PMOS_COMMAND_BUFFER
+    //!           [in] Pointer to PMOS_COMMAND_BUFFER
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS SetBCSSWCTR(MOS_COMMAND_BUFFER *cmdBuffer);
+
  public:
     PMOS_INTERFACE     m_osInterface      = nullptr;
     MhwInterfacesNext *m_mhwInterfaces    = nullptr;

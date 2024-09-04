@@ -248,6 +248,21 @@ public:
     }
 
 protected:
+        //!
+    //! \brief    Get Block copy MOCS
+    //! \details  BLT function to get the MOCS
+    //! \param    [in] MOS_HW_RESOURCE_DEF
+    //!           Pointer to UsageDef
+    //! \return   uint32_t
+    //!           return the MOCS value
+    //!
+    uint32_t GetBlockCopyBltMOCS(MOS_HW_RESOURCE_DEF UsageDef)
+    {
+        // MemoryObject will get 7 bits data. bit[0] for encrypt and bits[1-7] for MOCS.
+        return m_osItf->pfnCachePolicyGetMemoryObject(UsageDef,
+                    m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+    }
+
     using base_t = blt::Impl<mhw::blt::xe_lpm_plus_next::Cmd>;
 MEDIA_CLASS_DEFINE_END(mhw__blt__xe_lpm_plus_next__Impl)
 };  // Impl

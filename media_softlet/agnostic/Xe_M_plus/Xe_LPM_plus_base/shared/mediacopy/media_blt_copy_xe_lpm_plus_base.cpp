@@ -68,3 +68,17 @@ MOS_STATUS BltStateXe_Lpm_Plus_Base::Initialize()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS BltStateXe_Lpm_Plus_Base::SetBCSSWCTR(MOS_COMMAND_BUFFER *cmdBuffer)
+{
+    BLT_CHK_NULL_RETURN(m_miItf);
+    BLT_CHK_NULL_RETURN(cmdBuffer);
+
+    auto &Register       = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
+    Register             = {};
+    Register.dwRegister  = mhw::blt::xe_lpm_plus_next::Cmd::BCS_SWCTRL_CMD::REGISTER_OFFSET;
+    mhw::blt::xe_lpm_plus_next::Cmd::BCS_SWCTRL_CMD swctrl;
+    Register.dwData = swctrl.DW0.Value;
+    BLT_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer));
+
+    return MOS_STATUS_SUCCESS;
+}

@@ -137,15 +137,11 @@ public:
         cmd.DW0.InstructionTargetOpcode = 0x41;
         cmd.DW0.ColorDepth              = params.dwColorDepth;
         cmd.DW1.DestinationPitch        = params.dwDstPitch - 1;
-        cmd.DW1.DestinationMocsValue    =
-            this->m_osItf->pfnCachePolicyGetMemoryObject(MOS_GMM_RESOURCE_USAGE_BLT_DESTINATION,
-                                                         m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+        cmd.DW1.DestinationMocsValue    = GetBlockCopyBltMOCS(MOS_GMM_RESOURCE_USAGE_BLT_DESTINATION);
 
         cmd.DW1.DestinationTiling             = GetFastTilingMode(dstTiledMode);
         cmd.DW8.SourceTiling                  = GetFastTilingMode(srcTiledMode);
-        cmd.DW8.SourceMocs                    =
-            this->m_osItf->pfnCachePolicyGetMemoryObject(MOS_GMM_RESOURCE_USAGE_BLT_SOURCE,
-                                                         m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+        cmd.DW8.SourceMocs                    = GetBlockCopyBltMOCS(MOS_GMM_RESOURCE_USAGE_BLT_SOURCE);
 
         cmd.DW2.DestinationX1CoordinateLeft   = 0;
         cmd.DW2.DestinationY1CoordinateTop    = 0;
@@ -223,6 +219,22 @@ public:
     }
 
 protected:
+    //!
+    //! \brief    Get Block copy MOCS
+    //! \details  BLT function to get the MOCS
+    //! \param    [in] MOS_HW_RESOURCE_DEF
+    //!           Pointer to UsageDef
+    //! \return   uint32_t
+    //!           return the MOCS value
+    //!
+    virtual uint32_t GetBlockCopyBltMOCS(MOS_HW_RESOURCE_DEF UsageDef)
+    {
+        // MemoryObject will get 7 bits data. only bits[1-7] save MOCS, while some
+        // platoforms only use 4 bits mocs.
+        return (m_osItf->pfnCachePolicyGetMemoryObject(UsageDef,
+                    m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue & 0x1E) >>1;
+    }
+
     using base_t = Itf;
 MEDIA_CLASS_DEFINE_END(mhw__blt__Impl)
 };

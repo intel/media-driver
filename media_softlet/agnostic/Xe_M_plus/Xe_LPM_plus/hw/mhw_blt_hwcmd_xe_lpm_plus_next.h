@@ -535,6 +535,58 @@ public:
         static const size_t byteSize = 88;
     };
 
+    struct BCS_SWCTRL_CMD
+    {
+        union
+        {
+            struct
+            {
+               /// DWORD 0
+               uint32_t Tile4Source                   : __CODEGEN_BITFIELD(0, 0);   ///< U1
+               uint32_t Tile4Destination              : __CODEGEN_BITFIELD(1, 1);   ///< U1
+               uint32_t SystemMemoryThrottleThreshold : __CODEGEN_BITFIELD(2, 15);  ///< U14
+               uint32_t Mask                          : __CODEGEN_BITFIELD(16, 31); ///< U16
+            };
+            uint32_t Value;
+        } DW0;
+
+        //////////////////////////////////////////////////////////////////////////
+        /// @name LOCAL ENUMERATIONS
+        /// @{
+        /// @brief U1
+        enum TILE_4_SOURCE
+        {
+            TILE_4_SOURCE_XMAJOR = 0,  ///<
+            TILE_4_SOURCE_TILE4  = 1,  ///<
+        };
+
+        /// @brief U1
+        enum TILE_4_DESTINATION
+        {
+            TILE_4_DESTINATION_XMAJOR = 0,  ///<
+            TILE_4_DESTINATION_TILE4  = 1,  ///
+        };
+        /// @brief
+        enum CONSTANTS_TYPE
+        {
+            COMMAND_LENGTH  = 1,        ///<
+            REGISTER_OFFSET = 0x22200,  ///<
+        };
+        //! \name Initializations
+
+        //! \brief Explicit member initialization function
+        BCS_SWCTRL_CMD()
+        {
+            DW0.Value                         = 0;
+            DW0.Tile4Source                   = TILE_4_SOURCE_XMAJOR;
+            DW0.Tile4Destination              = TILE_4_DESTINATION_XMAJOR;
+            DW0.SystemMemoryThrottleThreshold = 0x40;
+            DW0.Mask                          = 0x0;
+        }
+        static const size_t dwSize   = 1;
+        static const size_t byteSize = 4;
+    };
+
     //!
     //! \brief XY_FAST_COPY_BLT
     //! \details

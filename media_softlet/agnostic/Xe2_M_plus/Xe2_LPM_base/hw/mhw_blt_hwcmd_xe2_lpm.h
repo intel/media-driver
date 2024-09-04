@@ -520,6 +520,62 @@ public:
         static const size_t byteSize = 88;
     };
 
+    //////////////////////////////////////////////////////////////////////////
+    /// @brief BCS_SWCTRL
+    /// @details
+    ///
+    ///
+    struct BCS_SWCTRL
+    {
+        union
+        {
+            struct
+            {
+               /// DWORD 0
+               uint32_t Reserved_0 : __CODEGEN_BITFIELD(0, 1);                  ///< U2
+               uint32_t Disable256Bctypegeneration : __CODEGEN_BITFIELD(2, 2);  ///< U1
+               uint32_t ForceEnable4bitCCSupdate : __CODEGEN_BITFIELD(3, 3);    ///< U1
+               uint32_t Reserved_4 : __CODEGEN_BITFIELD(4, 15);                 ///< U12
+               uint32_t Mask : __CODEGEN_BITFIELD(16, 31);                      ///< U16
+            };
+            uint32_t Value;
+        } DW0;
+
+        //////////////////////////////////////////////////////////////////////////
+        /// @name LOCAL ENUMERATIONS
+        /// @{
+
+        /// @brief U1
+        enum DISABLE_256B_CTYPE_GENERATION
+        {
+            DISABLE_256B_CTYPE_GENERATION_EN  = 0,  ///< Enable 256B ctype generation.
+            DISABLE_256B_CTYPE_GENERATION_DIS = 1,  ///< Disable 256B ctype generation logic
+        };
+
+        /// @brief U1
+        enum FORCE_ENABLE_4_BIT_CCS_UPDATE
+        {
+            FORCE_ENABLE_4_BIT_CCS_UPDATE_DISABLE = 0,  ///<
+            FORCE_ENABLE_4_BIT_CCS_UPDATE_ENABLE  = 1,  ///<
+        };
+
+        /// @brief
+        enum CONSTANTS_TYPE
+        {
+            COMMAND_LENGTH  = 1,        ///<
+            REGISTER_OFFSET = 0x22200,  ///<
+        };
+
+        /// @brief Explicit member initialization function
+        BCS_SWCTRL()
+        {
+            DW0.Value = 0x0;
+            //DW0.Common.Disable256Bctypegeneration                     = DISABLE_256B_CTYPE_GENERATION_EN;
+            //DW0.Common.ForceEnable4bitCCSupdate                       = FORCE_ENABLE_4_BIT_CCS_UPDATE_DISABLE;
+            //DW0.Common.Mask                                           = 0x0;
+        }
+    };
+
     //!
     //! \brief XY_FAST_COPY_BLT
     //! \details

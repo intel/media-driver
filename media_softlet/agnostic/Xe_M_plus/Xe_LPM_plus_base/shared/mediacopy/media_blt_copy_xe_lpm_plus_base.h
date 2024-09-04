@@ -52,6 +52,17 @@ public:
     //!
     virtual MOS_STATUS Initialize();
 
+protected:
+    //!
+    //! \brief    Set BCS_SWCTR cmd
+    //! \details  Set BCS_SWCTR for Cmdbuffer
+    //! \param    PMOS_COMMAND_BUFFER
+    //!           [in] Pointer to PMOS_COMMAND_BUFFER
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS SetBCSSWCTR(MOS_COMMAND_BUFFER *cmdBuffer);
+
 MEDIA_CLASS_DEFINE_END(BltStateXe_Lpm_Plus_Base)
 };
 

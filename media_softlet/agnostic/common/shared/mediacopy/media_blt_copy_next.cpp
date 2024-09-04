@@ -36,7 +36,6 @@
 #ifdef min
 #undef min
 #endif
-
 //!
 //! \brief    BltStateNext constructor
 //! \details  Initialize the BltStateNext members.
@@ -874,21 +873,7 @@ MOS_STATUS BltStateNext::SubmitCMD(
             pBltStateParam->pDstSurface,
             MCPY_PLANE_Y));
 
-        auto& Register = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
-        Register = {};
-        Register.dwRegister = mhw_blt_state::BCS_SWCTRL_XE::REGISTER_OFFSET;
-        mhw_blt_state::BCS_SWCTRL_XE swctrl;
-        if (pBltStateParam->pSrcSurface->TileType != MOS_TILE_LINEAR)
-        {
-            swctrl.DW0.Tile4Source = 1;
-        }
-        if (pBltStateParam->pDstSurface->TileType != MOS_TILE_LINEAR)
-        {//output tiled
-            swctrl.DW0.Tile4Destination = 1;
-        }
-        Register.dwData = swctrl.DW0.Value;
-        BLT_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(&cmdBuffer));
-
+        BLT_CHK_STATUS_RETURN(SetBCSSWCTR(&cmdBuffer));
         BLT_CHK_STATUS_RETURN(m_miItf->AddBLTMMIOPrologCmd(&cmdBuffer));
         BLT_CHK_STATUS_RETURN(m_bltItf->AddBlockCopyBlt(
             &cmdBuffer,
@@ -1076,4 +1061,10 @@ MOS_STATUS BltStateNext::SetPrologParamsforCmdbuffer(PMOS_COMMAND_BUFFER cmdBuff
    }
 
    return eStatus;
+}
+
+MOS_STATUS BltStateNext::SetBCSSWCTR(MOS_COMMAND_BUFFER *cmdBuffer)
+{
+   MOS_UNUSED(cmdBuffer);
+   return MOS_STATUS_SUCCESS;
 }
