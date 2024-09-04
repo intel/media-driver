@@ -1552,6 +1552,7 @@ MOS_STATUS VpL0FcFilter::GenerateFcFastExpressKrnParam(L0_FC_COMP_PARAM &compPar
     L0_FC_FP_KRN_IMAGE_PARAM  imageParam  = {};
     L0_FC_FP_KRN_TARGET_PARAM targetParam = {};
     VP_RENDER_CHK_STATUS_RETURN(GenerateFastExpressInputOutputParam(compParam, imageParam, targetParam));
+    PrintFastExpressKrnParam(imageParam, targetParam);
 
     uint32_t                     localSize[3]        = {16, 2, 1};  // localWidth, localHeight, localDepth
     uint32_t                     workItemNum         = targetParam.alignedTrgRectSize.width * targetParam.alignedTrgRectSize.height;
@@ -1766,6 +1767,91 @@ MOS_STATUS VpL0FcFilter::ConvertAlignedTrgRectToKrnParam(VP_SURFACE *inputSurf, 
 
 
     return MOS_STATUS_SUCCESS;
+}
+
+void VpL0FcFilter::PrintFastExpressKrnParam(L0_FC_FP_KRN_IMAGE_PARAM& imageParam, L0_FC_FP_KRN_TARGET_PARAM& targetParam)
+{
+#if (_DEBUG || _RELEASE_INTERNAL)
+    VP_PUBLIC_NORMALMESSAGE("L0 FC FP ImageParam: CSC %f %f %f %f", imageParam.csc.s0123[0], imageParam.csc.s0123[1], imageParam.csc.s0123[2], imageParam.csc.s0123[3]);
+    VP_PUBLIC_NORMALMESSAGE("L0 FC FP ImageParam: CSC %f %f %f %f", imageParam.csc.s4567[0], imageParam.csc.s4567[1], imageParam.csc.s4567[2], imageParam.csc.s4567[3]);
+    VP_PUBLIC_NORMALMESSAGE("L0 FC FP ImageParam: CSC %f %f %f %f", imageParam.csc.s89AB[0], imageParam.csc.s89AB[1], imageParam.csc.s89AB[2], imageParam.csc.s89AB[3]);
+    VP_PUBLIC_NORMALMESSAGE("L0 FC FP ImageParam: CSC %f %f %f %f", imageParam.csc.sCDEF[0], imageParam.csc.sCDEF[1], imageParam.csc.sCDEF[2], imageParam.csc.sCDEF[3]);
+
+    VP_PUBLIC_NORMALMESSAGE("L0 FC FP ImageParam: inputChannelIndices %u %u %u %u",
+        imageParam.inputChannelIndices[0],
+        imageParam.inputChannelIndices[1],
+        imageParam.inputChannelIndices[2],
+        imageParam.inputChannelIndices[3]);
+
+    VP_PUBLIC_NORMALMESSAGE("L0 FC FP ImageParam: Scaling Src, startX %f, StartY %f, StrideX %f, StrideY %f",
+        imageParam.scaleParam.src.startX,
+        imageParam.scaleParam.src.startY,
+        imageParam.scaleParam.src.strideX,
+        imageParam.scaleParam.src.strideY);
+    VP_PUBLIC_NORMALMESSAGE("L0 FC FP ImageParam: Scaling Dst Rect, left %u, right %u, top %u, bottom %u",
+        imageParam.scaleParam.trg.left,
+        imageParam.scaleParam.trg.right,
+        imageParam.scaleParam.trg.top,
+        imageParam.scaleParam.trg.bottom);
+    VP_PUBLIC_NORMALMESSAGE("L0 FC FP ImageParam: Rotation, indices[0] %u, indices[1] %u",
+        imageParam.scaleParam.rotateIndices[0],
+        imageParam.scaleParam.rotateIndices[1]);
+    VP_PUBLIC_NORMALMESSAGE("L0 FC FP ImageParam: CoordShift isChromaShift %d, CommonShiftX %f, CommonShiftY %f,  ChromaShiftX %f, ChromaShiftY %f",
+        imageParam.controlSetting.isChromaShift,
+        imageParam.coordShift.commonShiftX,
+        imageParam.coordShift.commonShiftY,
+        imageParam.coordShift.chromaShiftX,
+        imageParam.coordShift.chromaShiftY);
+
+    VP_PUBLIC_NORMALMESSAGE("L0 FC FP ImageParam: inputPlaneNum %u, SamplerType %d, ignoreSrcPixelAlpha %d, ignoreDstPixelAlpha %d",
+        imageParam.inputPlaneNum,
+        imageParam.controlSetting.samplerType,
+        imageParam.controlSetting.ignoreSrcPixelAlpha,
+        imageParam.controlSetting.ignoreDstPixelAlpha);
+
+    VP_PUBLIC_NORMALMESSAGE("L0 FC FP TargeParam: dynamicChannelIndices %u %u %u %u",
+        targetParam.dynamicChannelIndices[0],
+        targetParam.dynamicChannelIndices[1],
+        targetParam.dynamicChannelIndices[2],
+        targetParam.dynamicChannelIndices[3]);
+
+    VP_PUBLIC_NORMALMESSAGE("L0 FC FP TargeParam: Combined Channel Indices %u %u",
+        targetParam.combineChannelIndices[0],
+        targetParam.combineChannelIndices[1]);
+
+    VP_PUBLIC_NORMALMESSAGE("L0 FC FP TargeParam: Target ROI Rect, left %u, right %u, top %u, bottom %u",
+        targetParam.targetROI.left,
+        targetParam.targetROI.right,
+        targetParam.targetROI.top,
+        targetParam.targetROI.bottom);
+
+    VP_PUBLIC_NORMALMESSAGE("L0 FC FP TargeParam: background %f %f %f %f",
+        targetParam.background[0],
+        targetParam.background[1],
+        targetParam.background[2],
+        targetParam.background[3]);
+
+    VP_PUBLIC_NORMALMESSAGE("L0 FC FP TargeParam: chromaSiting: secPlaneFactorX %d, secPlaneFactorY %d",
+        targetParam.controlSetting.hitSecPlaneFactorX,
+        targetParam.controlSetting.hitSecPlaneFactorY);
+    VP_PUBLIC_NORMALMESSAGE("L0 FC FP TargeParam: chromaSiting: chromaSitingFactorLeftTop %f, chromaSitingFactorRightTop %f, chromaSitingFactorLeftBottom %f, chromaSitingFactorRightBottom %f",
+        targetParam.chromaSitingFactor[0],
+        targetParam.chromaSitingFactor[1],
+        targetParam.chromaSitingFactor[2],
+        targetParam.chromaSitingFactor[3]);
+
+    VP_PUBLIC_NORMALMESSAGE("L0 FC FP TargeParam: planeNum %u, enableColorFill %d, alphaLayerIndex %d, fAlpha %f",
+        targetParam.planeNumber,
+        targetParam.controlSetting.isColorFill,
+        targetParam.controlSetting.alphaLayerIndex,
+        targetParam.alpha);
+
+    VP_PUBLIC_NORMALMESSAGE("L0 FC FP TargeParam: Aligned RECT x %d, y %d, width %d, height %d",
+        targetParam.alignedTrgRectStart.x,
+        targetParam.alignedTrgRectStart.y,
+        targetParam.alignedTrgRectSize.width,
+        targetParam.alignedTrgRectSize.height);
+#endif
 }
 
 MOS_STATUS VpL0FcFilter::SetPerfTag(L0_FC_COMP_PARAM& compParam, VPHAL_PERFTAG& perfTag)

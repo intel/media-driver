@@ -257,6 +257,7 @@ protected:
     MOS_STATUS SetupSingleFcFastExpressKrnArg(L0_FC_FP_KRN_IMAGE_PARAM &imageParams, L0_FC_FP_KRN_TARGET_PARAM &targetParam, uint32_t localSize[3], uint32_t globalSize[3], KRN_ARG &krnArg, bool &bInit);
     MOS_STATUS SetupSingleFcFastExpressBti(uint32_t uIndex, const L0_FC_COMP_PARAM &compParam, SURFACE_PARAMS &surfaceParam, bool &bInit);
     MOS_STATUS ConvertAlignedTrgRectToKrnParam(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, bool enableColorFill, L0_FC_FP_KRN_TARGET_PARAM &targetParam);
+    void       PrintFastExpressKrnParam(L0_FC_FP_KRN_IMAGE_PARAM &imageParam, L0_FC_FP_KRN_TARGET_PARAM &targetParam);
 
     MOS_STATUS SetPerfTag(L0_FC_COMP_PARAM &compParam, VPHAL_PERFTAG &perfTag);
 
