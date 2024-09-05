@@ -306,6 +306,7 @@ protected:
 #define __VPHAL_HDR_ENABLE_KERNEL_DUMP                                  "VPHAL HDR Enable Kernel Dump"
 #define __VPHAL_HDR_H2S_RGB_TM                                          "VPHAL H2S TM RGB Based"
 #define __VPHAL_HDR_3DLUT_CPU_PATH                                      "HDR 3DLut Table Use CPU Caculate"
+#define __VPHAL_FORCE_VP_3DLUT_KERNEL_ONLY                              "Force VP 3DLut Kernel Only"
 
 // Compression
 #define __VPHAL_MMC_ENABLE                                              "VP MMC In Use"

@@ -877,6 +877,7 @@ struct FeatureParamHdr : public FeatureParam
     VPHAL_HDR_LUT_MODE lutMode                                              = VPHAL_HDR_LUT_MODE_NONE; //!< LUT Mode
     VPHAL_HDR_LUT_MODE globalLutMode                                        = VPHAL_HDR_LUT_MODE_NONE; //!< Global LUT mode control for debugging purpose
     bool               bGpuGenerate3DLUT                                    = false;               //!< Flag for per frame GPU generation of 3DLUT
+    bool               is3DLutKernelOnly                                    = false;
 
     PVPHAL_COLORFILL_PARAMS pColorFillParams                     = nullptr;               //!< ColorFill - BG only
     bool                    bDisableAutoMode                     = false;                 //!< Force to disable Hdr auto mode tone mapping for debugging purpose

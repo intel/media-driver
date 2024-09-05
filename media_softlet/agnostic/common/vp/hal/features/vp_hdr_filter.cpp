@@ -564,7 +564,10 @@ MOS_STATUS PolicyRenderHdr3DLutCalHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS cap
         filter2ndPass->GetFilterEngineCaps().RenderNeeded = 0;
         filter2ndPass->GetFilterEngineCaps().VeboxNeeded  = 1;
         filter2ndPass->GetFilterEngineCaps().isolated     = 0;
-
+        if (featureHdr->GetSwFilterParams().is3DLutKernelOnly)
+        {
+            filter2ndPass->GetFilterEngineCaps().forceBypassWorkload = 1;
+        }
         if (featureHdr->GetSwFilterParams().formatOutput == Format_A8B8G8R8 || featureHdr->GetSwFilterParams().formatOutput == Format_A8R8G8B8)
         {
             filter2ndPass->GetFilterEngineCaps().VeboxARGBOut = 1;

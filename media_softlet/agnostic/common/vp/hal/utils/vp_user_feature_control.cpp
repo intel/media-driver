@@ -342,6 +342,22 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
         m_ctrlValDefault.force3DLutInterpolation = 0;
     }
 
+    uint32_t is3DLutKernelOnly = 0;
+    eRegKeyReadStatus                = ReadUserSettingForDebug(
+        m_userSettingPtr,
+        is3DLutKernelOnly,
+        __VPHAL_FORCE_VP_3DLUT_KERNEL_ONLY,
+        MediaUserSetting::Group::Sequence);
+    if (MOS_SUCCEEDED(eRegKeyReadStatus))
+    {
+        m_ctrlValDefault.is3DLutKernelOnly = is3DLutKernelOnly;
+    }
+    else
+    {
+        // Default value
+        m_ctrlValDefault.is3DLutKernelOnly = 0;
+    }
+
     //SFC NV12/P010 Linear Output.
     uint32_t enabledSFCNv12P010LinearOutput = 0;
     eRegKeyReadStatus = ReadUserSettingForDebug(

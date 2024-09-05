@@ -328,6 +328,11 @@ MOS_STATUS Policy::CreateHwFilter(SwFilterPipe &subSwFilterPipe, HwFilter *&pFil
     {
         VP_PUBLIC_ASSERTMESSAGE("Create HW Filter Failed, Return Error");
         MT_ERR2(MT_VP_HAL_POLICY, MT_ERROR_CODE, MOS_STATUS_UNIMPLEMENTED, MT_CODE_LINE, __LINE__);
+        if (m_vpInterface.GetHwInterface()->m_userFeatureControl->Is3DLutKernelOnly())
+        {
+            VP_PUBLIC_NORMALMESSAGE("Bypass This Workload due to 3dlut kenrel test, Return True");
+            return MOS_STATUS_SUCCESS;
+        }
         return MOS_STATUS_UNIMPLEMENTED;
     }
     MT_LOG(MT_VP_FEATURE_GRAPH_SETUPEXECUTESWFILTER_END, MT_NORMAL);
@@ -2048,6 +2053,11 @@ MOS_STATUS Policy::GetHdrExecutionCaps(SwFilter *feature)
     }
     else if (Is3DLutKernelSupported())
     {
+        if (userFeatureControl->Is3DLutKernelOnly())
+        {
+            hdrParams->is3DLutKernelOnly = true;
+        }
+
         if (hdrParams->uiMaxContentLevelLum != m_savedMaxCLL || hdrParams->uiMaxDisplayLum != m_savedMaxDLL ||
             hdrParams->hdrMode != m_savedHdrMode)
         {
@@ -2403,6 +2413,13 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
             caps.bSFC = !engineCapsOutputPipe.sfcNotSupported && engineCaps.nonVeboxFeatureExists;
         }
     }
+    else if (engineCapsInputPipe.forceBypassWorkload)
+    {
+        caps.bVebox               = 0;
+        caps.bSFC                 = 0;
+        caps.bRender              = 0;
+        caps.forceBypassWorkload  = 1;
+    }
     else
     {
         if (!engineCapsInputPipe.fcSupported)
@@ -2553,7 +2570,7 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
     VP_EngineEntry engineCapsIsolated = {};     // Input pipe engine caps for isolated feature exists case.
     VP_EngineEntry engineCapsForVeboxSfc = {};  // Input pipe engine caps for non-fc feature exists case.
     VP_EngineEntry engineCapsForFc = {};        // Input pipe engine caps for fc supported by all features cases.
-    VP_EngineEntry engineCapsForHdrKernel = {0}; // Input pipe engine caps for hdr kernel supported by all features cases.
+    VP_EngineEntry engineCapsForHdrKernel = {0};  // Input pipe engine caps for hdr kernel supported by all features cases.
     for (uint32_t pipeIndex = 0; pipeIndex < featurePipe.GetSurfaceCount(true); ++pipeIndex)
     {
         SwFilterSubPipe *featureSubPipe = featurePipe.GetSwFilterSubPipe(true, pipeIndex);
@@ -2598,6 +2615,11 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
                     engineCapsForVeboxSfc.veboxNotSupported = engineCaps.veboxNotSupported;
                     engineCapsForFc.veboxNotSupported       = engineCaps.veboxNotSupported;
                     VP_PUBLIC_NORMALMESSAGE("veboxNotSupported flag is set.");
+                }
+                if (engineCaps.forceBypassWorkload)
+                {
+                    engineCapsInputPipe.forceBypassWorkload = engineCaps.forceBypassWorkload;
+                    VP_PUBLIC_NORMALMESSAGE("Set engineCapsInputPipe forceDisableForVebox true.");
                 }
                 continue;
             }
@@ -2747,6 +2769,10 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
         VP_PUBLIC_NORMALMESSAGE("engineCapsForVeboxSfc selected.");
         engineCapsInputPipe = engineCapsForVeboxSfc;
     }
+    else if (engineCapsInputPipe.forceBypassWorkload)
+    {
+        VP_PUBLIC_NORMALMESSAGE("Still use engineCapsInputPipe forceBypassWorkload set true.");
+    }
     else
     {
         VP_PUBLIC_NORMALMESSAGE("engineCapsForFc selected.");
@@ -2890,6 +2916,24 @@ MOS_STATUS Policy::FilterFeatureCombination(SwFilterPipe &swFilterPipe, bool isI
                 VP_PUBLIC_NORMALMESSAGE("Disable feature 0x%x since vebox cannot be used.", filterID);
                 PrintFeatureExecutionCaps("Disable feature since vebox cannot be used", feature->GetFilterEngineCaps());
             }
+        }
+    }
+    else if (engineCapsCombined.forceBypassWorkload)
+    {
+        for (auto filterID : m_featurePool)
+        {
+            auto feature = pipe->GetSwFilter(FeatureType(filterID));
+            if (feature && feature->GetFilterEngineCaps().bEnabled)
+            {
+                feature->GetFilterEngineCaps().bEnabled     = 0;
+                feature->GetFilterEngineCaps().VeboxNeeded  = 0;
+                feature->GetFilterEngineCaps().SfcNeeded    = 0;
+                feature->GetFilterEngineCaps().RenderNeeded = 0;
+                feature->GetFilterEngineCaps()              = {0};
+                feature->GetFilterEngineCaps().forceBypassWorkload = 1;
+                VP_PUBLIC_NORMALMESSAGE("Disable feature 0x%x because of  bypass this workload.", filterID);
+                PrintFeatureExecutionCaps("Disable feature because of  bypass this workload.", feature->GetFilterEngineCaps());     
+            }       
         }
     }
 
@@ -3080,6 +3124,11 @@ MOS_STATUS Policy::BuildExecuteHwFilter(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS&
                 }
             }
         }
+    }
+    else if (caps.forceBypassWorkload)
+    {
+        VP_PUBLIC_NORMALMESSAGE("No engine is assigned. Skip this process for test usage.");
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_SUCCESS);
     }
     else
     {

@@ -200,6 +200,7 @@ struct _VP_EXECUTE_CAPS
             uint64_t bSegmentation  : 1;
             uint64_t bHdr           : 1;
             uint64_t bFallbackLegacyFC : 1;     // only valid when vpUserFeatureControl->EnableL0FC() is true
+            uint64_t forceBypassWorkload : 1;  // If true, force to bypass workload.
         };
         uint64_t value;
     };
@@ -253,6 +254,7 @@ typedef struct _VP_EngineEntry
             uint64_t bTemperalInputInuse : 1;   // true if replace input
             uint64_t outputWithLumaKey : 1;
             uint64_t enableSFCLinearOutputByTileConvert : 1;  //true if do tileconvert from tileF to linear for SFC linear output
+            uint64_t forceBypassWorkload : 1;   // If true, force to bypass workload.
         };
         uint64_t value;
     };

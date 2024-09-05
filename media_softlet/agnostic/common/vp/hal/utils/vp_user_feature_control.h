@@ -52,6 +52,7 @@ public:
         bool cscCosffPatchModeDisabled      = false;
         bool ForceEnableVeboxOutputSurf     = false;
         bool veboxTypeH                     = false;
+        bool is3DLutKernelOnly              = false;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
         bool forceDecompressedOutput        = false;
@@ -75,6 +76,11 @@ public:
         bool               decompForInterlacedSurfWaEnabled = false;
         bool               enableSFCLinearOutputByTileConvert = false;
     };
+
+    uint32_t Is3DLutKernelOnly()
+    {
+        return m_ctrlVal.is3DLutKernelOnly;
+    }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     bool IsForceDecompressedOutput()
