@@ -1707,8 +1707,6 @@ struct _VDENC_AVC_IMG_STATE_CMD
     {
         MOS_ZeroMemory(this, sizeof(*this));
         DW0.Value                                        = 0x70850018;
-        DW1.Value                                        = 0x18180000;
-        DW2.Value                                        = 0x00800000;
         DW22.Value                                       = 0x33000000;
     }
 
