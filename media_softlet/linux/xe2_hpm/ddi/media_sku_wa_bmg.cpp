@@ -297,6 +297,8 @@ static bool InitBmgMediaWaExt(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_WA(waTable, Wa_15013906446, 1);
 
+    MEDIA_WR_WA(waTable, Wa_15016458807, 1);
+
     return true;
 }
 

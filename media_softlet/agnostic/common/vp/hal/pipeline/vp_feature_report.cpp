@@ -152,7 +152,7 @@ void VpFeatureReport::SetConfigValues(
         PrimaryCompressible %d, \
         PrimaryCompressMode %d, \
         CompositionMode %d, \
-        sfcLinearOutputByTileConvert",
+        sfcLinearOutputByTileConvert %d",
         m_features.outputPipeMode,
         m_features.hdrMode,
         m_features.veFeatureInUse,

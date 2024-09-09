@@ -2136,9 +2136,33 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
 
     return eStatus;
 }
+// Meida copy has the same logic, when Format_R10G10B10A2/Format_B10G10R10A2, the output is AYUV, and in this WA there is corruption for these two format.
+MOS_FORMAT VpVeboxCmdPacket::AdjustFormatForTileConvert(MOS_FORMAT format)
+{
+    if (format == Format_R10G10B10A2 ||
+        format == Format_B10G10R10A2 ||
+        format == Format_Y410 ||
+        format == Format_Y210)
+    {
+        // RGB10 not supported without IECP. Re-map RGB10/RGB10 as AYUV
+        // Y410/Y210 has HW issue. Remap to AYUV.
+        return Format_AYUV;
+    }
+    else if (format == Format_A8)
+    {
+        return Format_P8;
+    }
+    else
+    {
+        return format;
+    }
+}
 
 MOS_STATUS VpVeboxCmdPacket::AddTileConvertStates(MOS_COMMAND_BUFFER *CmdBuffer, MHW_VEBOX_SURFACE_STATE_CMD_PARAMS &MhwVeboxSurfaceStateCmdParams)
 {
+    auto &flushDwParams = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+    flushDwParams       = {};
+    VP_RENDER_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(CmdBuffer));
     // Prepare Vebox_Surface_State, surface input/and output are the same but the compressed status.
     VP_RENDER_CHK_STATUS_RETURN(InitVeboxSurfaceStateCmdParamsForTileConvert(&MhwVeboxSurfaceStateCmdParams, m_renderTarget->osSurface, m_originalOutput->osSurface));
 
@@ -2155,9 +2179,7 @@ MOS_STATUS VpVeboxCmdPacket::AddTileConvertStates(MOS_COMMAND_BUFFER *CmdBuffer,
     // Send CMD: Vebox_Tiling_Convert
     //---------------------------------
     VP_RENDER_CHK_STATUS_RETURN(m_veboxItf->AddVeboxTilingConvert(CmdBuffer, &MhwVeboxSurfaceStateCmdParams.SurfInput, &MhwVeboxSurfaceStateCmdParams.SurfOutput));
-
-    auto &flushDwParams = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
-    flushDwParams       = {};
+    flushDwParams = {};
     VP_RENDER_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(CmdBuffer));
     return MOS_STATUS_SUCCESS;
 }
@@ -2186,7 +2208,7 @@ MOS_STATUS VpVeboxCmdPacket::InitVeboxSurfaceStateCmdParamsForTileConvert(
         MOS_MIN(inputSurface->dwHeight, ((outputSurface != nullptr) ? outputSurface->dwHeight : inputSurface->dwHeight));
     mhwVeboxSurfaceStateCmdParams->SurfInput.dwWidth = mhwVeboxSurfaceStateCmdParams->SurfOutput.dwWidth =
         MOS_MIN(inputSurface->dwWidth, ((outputSurface != nullptr) ? outputSurface->dwWidth : inputSurface->dwWidth));
-    mhwVeboxSurfaceStateCmdParams->SurfInput.Format = mhwVeboxSurfaceStateCmdParams->SurfOutput.Format = inputSurface->Format;
+    mhwVeboxSurfaceStateCmdParams->SurfInput.Format = mhwVeboxSurfaceStateCmdParams->SurfOutput.Format = AdjustFormatForTileConvert(inputSurface->Format);
 
     MOS_SURFACE inputDetails, outputDetails;
     MOS_ZeroMemory(&inputDetails, sizeof(inputDetails));

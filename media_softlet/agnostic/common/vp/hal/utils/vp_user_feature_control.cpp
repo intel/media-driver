@@ -472,8 +472,9 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
     else
 #endif
     {
+        auto *waTable = m_osInterface->pfnGetWaTable(m_osInterface);
         // Default value
-        m_ctrlValDefault.enableSFCLinearOutputByTileConvert = false;
+        m_ctrlValDefault.enableSFCLinearOutputByTileConvert = MEDIA_IS_WA(waTable, Wa_15016458807);
     }
     VP_PUBLIC_NORMALMESSAGE("enableSFCLinearOutputByTileConvert value is set as %d.", m_ctrlValDefault.enableSFCLinearOutputByTileConvert);
 

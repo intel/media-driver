@@ -931,6 +931,7 @@ public:
         MOS_COMMAND_BUFFER *CmdBuffer,
         MHW_VEBOX_SURFACE_STATE_CMD_PARAMS &MhwVeboxSurfaceStateCmdParams);
 
+    MOS_FORMAT AdjustFormatForTileConvert(MOS_FORMAT format);
     // TGNE
     uint32_t dwGlobalNoiseLevel_Temporal  = 0;  //!< Global Temporal Noise Level for Y
     uint32_t dwGlobalNoiseLevelU_Temporal = 0;  //!< Global Temporal Noise Level for U

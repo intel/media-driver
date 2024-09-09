@@ -1246,6 +1246,9 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
         scalingParams->output.dwPitch != 128         &&
         scalingParams->output.dwPitch != 256         &&
         (scalingParams->output.dwPitch % 1024) !=0   &&
+        !(scalingParams->formatOutput == Format_RGBP ||
+         scalingParams->formatOutput == Format_BGRP  ||
+         scalingParams->formatOutput == Format_R8G8B8) &&
         scalingParams->output.tileMode == MOS_TILE_LINEAR_GMM)
     {
         scalingEngine->enableSFCLinearOutputByTileConvert = true;
