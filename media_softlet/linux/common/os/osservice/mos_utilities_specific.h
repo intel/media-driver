@@ -51,6 +51,7 @@ class MosMutex;
 #else
 #define USER_FEATURE_FILE                   "/etc/igfx_user_feature.txt"
 #define USER_FEATURE_FILE_NEXT              "/etc/igfx_user_feature_next.txt"
+#define USER_FEATURE_FILE_REPORT            "/etc/igfx_user_feature_report.txt"
 #endif
 #define UF_KEY_ID                           "[KEY]"
 #define UF_VALUE_ID                         "[VALUE]"

@@ -67,8 +67,6 @@ int32_t g_mosMemoryFailSimulateAllocCounter = 0;
 int32_t *MosUtilities::m_mosAllocMemoryFailSimulateAllocCounter = &g_mosMemoryFailSimulateAllocCounter;
 #endif
 
-static bool s_skipToReportReg = false;
-
 double MosUtilities::MosGetTime()
 {
     struct timespec ts = {};
@@ -1552,14 +1550,6 @@ MOS_STATUS MosUtilities::MosInitializeReg(RegBufferMap &regBufferMap)
         if (regStream.good())
         {
             std::string id       = "";
-
-            static const char *disableReportRegKeyList[] = {
-#if (_DEBUG || _RELEASE_INTERNAL)
-                __MEDIA_USER_FEATURE_VALUE_ENABLE_MEDIA_CCS,
-#endif
-                "INTEL MEDIA ALLOC MODE"
-            };
-            static const uint32_t disableReportRegKeyListCount = sizeof(disableReportRegKeyList) / sizeof(disableReportRegKeyList[0]);
             while(!regStream.eof())
             {
                 std::string line = "";
@@ -1598,17 +1588,6 @@ MOS_STATUS MosUtilities::MosInitializeReg(RegBufferMap &regBufferMap)
                         {
                             auto &keys = regBufferMap[id];
                             keys[name] = value;
-                            if (s_skipToReportReg == false && id == USER_SETTING_CONFIG_PATH)
-                            {
-                                for (uint32_t i = 0; i < disableReportRegKeyListCount; i++)
-                                {
-                                    if (strcmp(name.c_str(), disableReportRegKeyList[i]) == 0)
-                                    {
-                                        s_skipToReportReg = true;
-                                        break;
-                                    }
-                                }
-                            }
                         }
                     }
                 }
@@ -1629,11 +1608,6 @@ MOS_STATUS MosUtilities::MosInitializeReg(RegBufferMap &regBufferMap)
 MOS_STATUS MosUtilities::MosUninitializeReg(RegBufferMap &regBufferMap)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
-
-    if (s_skipToReportReg)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
 
     if (regBufferMap.size() == 0)
     {
@@ -1660,7 +1634,7 @@ MOS_STATUS MosUtilities::MosUninitializeReg(RegBufferMap &regBufferMap)
         if (regFile.good())
         {
             regFile.close();
-            regStream.open(USER_FEATURE_FILE_NEXT, std::ios::out | std::ios::trunc);
+            regStream.open(USER_FEATURE_FILE_REPORT, std::ios::out | std::ios::trunc);
         }
         else
         {
@@ -1668,24 +1642,21 @@ MOS_STATUS MosUtilities::MosUninitializeReg(RegBufferMap &regBufferMap)
             return status;
         }
 #else
-        regStream.open(USER_FEATURE_FILE_NEXT, std::ios::out | std::ios::trunc);
+        regStream.open(USER_FEATURE_FILE_REPORT, std::ios::out | std::ios::trunc);
 #endif
         if (regStream.good())
         {
-            for(auto pair: regBufferMap)
+            regStream << iter->first << "\n";
+
+            auto &keys = iter->second;
+            for (auto key: keys)
             {
-                regStream << pair.first << "\n";
-
-                auto &keys = regBufferMap[pair.first];
-                for (auto key: keys)
-                {
-                    auto name = key.first;
-                    regStream << key.first << "=" << key.second << "\n";
-                }
-
-                keys.clear();
-                regStream << std::endl;
+                auto name = key.first;
+                regStream << key.first << "=" << key.second << "\n";
             }
+
+            keys.clear();
+            regStream << std::endl;
             regBufferMap.clear();
             regStream.flush();
         }
