@@ -1619,7 +1619,8 @@ MOS_STATUS CodechalDecodeHevcG12::SendPictureLongFormat()
         if ((!m_shortFormatInUse && !CodecHalDecodeScalabilityIsFESeparateSubmission(m_scalabilityState) &&
                 !m_isRealTile) ||
             CodecHalDecodeScalabilityIsBEPhaseG12(m_scalabilityState) ||
-            CodecHalDecodeScalabilityIsFirstRealTilePhase(m_scalabilityState))
+            CodecHalDecodeScalabilityIsFirstRealTilePhase(m_scalabilityState) ||
+            (m_secureDecoder != nullptr && m_osInterface->phasedSubmission))
         {
             MHW_MI_FORCE_WAKEUP_PARAMS forceWakeupParams;
             MOS_ZeroMemory(&forceWakeupParams, sizeof(MHW_MI_FORCE_WAKEUP_PARAMS));
