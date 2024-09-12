@@ -552,6 +552,7 @@ protected:
 
     // Fc Resource
     VP_SURFACE *m_cmfcCoeff                                   = nullptr;
+    VP_SURFACE *m_fcIntermediaSurfaceInput[8]                 = {};
     //for decompreesion sync on interlace input of FC
     VP_SURFACE *m_decompressionSyncSurface                                  = nullptr;
     // Hdr Resource

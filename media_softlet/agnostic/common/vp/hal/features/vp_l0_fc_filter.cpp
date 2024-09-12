@@ -28,6 +28,7 @@
 #include "vp_render_cmd_packet.h"
 #include "igvpfc_common_args.h"
 #include "igvpfc_fp_args.h"
+#include "igvpfc_444PL3_input_args.h"
 #include <vector>
 
 namespace vp
@@ -68,6 +69,11 @@ MOS_STATUS VpL0FcFilter::Destroy()
     }
     for (auto &handle : m_fcFastExpressKrnArgs)
     {
+        KRN_ARG &krnArg = handle.second;
+        MOS_FreeMemAndSetNull(krnArg.pData);
+    }
+    for (auto &handle : m_fc444PL3InputKrnArgs)
+    { 
         KRN_ARG &krnArg = handle.second;
         MOS_FreeMemAndSetNull(krnArg.pData);
     }
@@ -115,6 +121,15 @@ MOS_STATUS VpL0FcFilter::InitKrnParams(L0_FC_KERNEL_PARAMS &krnParams, SwFilterP
     ReportDiffLog(compParam);
     
     L0_FC_KERNEL_PARAM param = {};
+    for (uint32_t i = 0; i < compParam.layerNumber; ++i)
+    {
+        if (compParam.inputLayersParam[i].needIntermediaSurface)
+        {
+            VP_RENDER_CHK_STATUS_RETURN(GenerateFc444PL3InputParam(compParam.inputLayersParam[i], compParam.layerNumber, param, i));
+            krnParams.push_back(param);
+        }
+    }
+
     if (FastExpressConditionMeet(compParam))
     {
         VP_RENDER_CHK_STATUS_RETURN(GenerateFcFastExpressKrnParam(compParam, param));
@@ -126,6 +141,151 @@ MOS_STATUS VpL0FcFilter::InitKrnParams(L0_FC_KERNEL_PARAMS &krnParams, SwFilterP
     //Set Perf Tag should be called after Generate Krn Param
     VP_PUBLIC_CHK_STATUS_RETURN(SetPerfTag(compParam, param.kernelConfig.perfTag));
     krnParams.push_back(param);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpL0FcFilter::GenerateFc444PL3InputParam(L0_FC_LAYER_PARAM &layer, uint32_t layerNumber, L0_FC_KERNEL_PARAM &param, uint32_t layerIndex)
+{
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface->m_vpPlatformInterface);
+    param = {};
+    uint32_t                     localSize[3]            = {128, 2, 1};  // localWidth, localHeight, localDepth
+    uint32_t                     threadWidth             = layer.surf->osSurface->dwWidth / localSize[0] + (layer.surf->osSurface->dwWidth % localSize[0] != 0);
+    uint32_t                     threadHeight            = layer.surf->osSurface->dwHeight / localSize[1] +(layer.surf->osSurface->dwHeight % localSize[1] != 0);
+    KERNEL_ARGS                  krnArgs                 = {};
+    KERNEL_ARG_INDEX_SURFACE_MAP krnStatefulSurfaces     = {};
+    uint32_t                     inputChannelIndices[4]  = {};
+    uint32_t                     outputChannelIndices[4] = {};
+    uint32_t                     planeChannelIndics      = 0;
+    std::string                  krnName                 = "ImageRead_fc_444PL3_input";
+
+    auto handle = m_pvpMhwInterface->m_vpPlatformInterface->GetKernelPool().find(krnName);
+    VP_PUBLIC_CHK_NOT_FOUND_RETURN(handle, &m_pvpMhwInterface->m_vpPlatformInterface->GetKernelPool());
+    KERNEL_BTIS kernelBtis = handle->second.GetKernelBtis();
+    KERNEL_ARGS kernelArgs = handle->second.GetKernelArgs();
+
+    VP_PUBLIC_CHK_STATUS_RETURN(ConvertInputChannelIndicesToKrnParam(layer.surf->osSurface->Format, inputChannelIndices));
+    VP_PUBLIC_CHK_STATUS_RETURN(ConvertOuputChannelIndicesToKrnParam(layer.interMediaOverwriteSurface, outputChannelIndices));
+    for (auto const &kernelArg : kernelArgs)
+    {
+        uint32_t uIndex    = kernelArg.uIndex;
+        auto     argHandle = m_fc444PL3InputKrnArgs.find(uIndex);
+        if (argHandle == m_fc444PL3InputKrnArgs.end())
+        {
+            KRN_ARG krnArg = {};
+            argHandle      = m_fc444PL3InputKrnArgs.insert(std::make_pair(uIndex, krnArg)).first;
+            VP_PUBLIC_CHK_NOT_FOUND_RETURN(argHandle, &m_fc444PL3InputKrnArgs);
+        }
+        KRN_ARG &krnArg = argHandle->second;
+        bool     bInit  = true;
+        krnArg.uIndex   = uIndex;
+        krnArg.eArgKind = kernelArg.eArgKind;
+        if (krnArg.pData == nullptr)
+        {
+            if (kernelArg.uSize > 0)
+            {
+                krnArg.uSize = kernelArg.uSize;
+                krnArg.pData = MOS_AllocAndZeroMemory(kernelArg.uSize);
+            }
+        }
+        else
+        {
+            VP_PUBLIC_CHK_VALUE_RETURN(krnArg.uSize, kernelArg.uSize);
+            MOS_ZeroMemory(krnArg.pData, krnArg.uSize);
+        }
+                
+        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc444PL3InputKrnArg(localSize, krnArg, bInit, inputChannelIndices, outputChannelIndices, planeChannelIndics));
+
+        if (bInit)
+        {
+            krnArgs.push_back(krnArg);
+        }
+    }
+
+    for (auto const &kernelBti : kernelBtis)
+    {
+        uint32_t       uIndex       = kernelBti.first;
+        SURFACE_PARAMS surfaceParam = {};
+        bool           bInit        = true;
+
+        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc444PL3InputBti(uIndex, surfaceParam, layerIndex, bInit));
+
+        if (bInit)
+        {
+            krnStatefulSurfaces.insert(std::make_pair(uIndex, surfaceParam));
+        }
+    }
+
+    param.kernelArgs             = krnArgs;
+    param.kernelName             = krnName;
+    param.kernelId               = kernelL0Fc444PL3Input;
+    param.threadWidth            = threadWidth;
+    param.threadHeight           = threadHeight;
+    param.localWidth             = localSize[0];
+    param.localHeight            = localSize[1];
+    param.kernelStatefulSurfaces = krnStatefulSurfaces;
+
+        return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpL0FcFilter::SetupSingleFc444PL3InputKrnArg(uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit, uint32_t inputChannelIndices[4], uint32_t outputChannelIndices[4], uint32_t planeChannelIndices)
+{
+    switch (krnArg.uIndex)
+    {
+    case FC_444PL3_INPUT_IMAGEREAD_INPUTINDEX:
+        VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
+        static_cast<uint32_t *>(krnArg.pData)[0] = inputChannelIndices[0];
+        static_cast<uint32_t *>(krnArg.pData)[1] = inputChannelIndices[1];
+        static_cast<uint32_t *>(krnArg.pData)[2] = inputChannelIndices[2];
+        static_cast<uint32_t *>(krnArg.pData)[3] = inputChannelIndices[3];
+        break;
+    case FC_444PL3_INPUT_IMAGEREAD_OUTPUTINDEX:
+        // use input instead
+        static_cast<uint32_t *>(krnArg.pData)[0] = outputChannelIndices[0];
+        static_cast<uint32_t *>(krnArg.pData)[1] = outputChannelIndices[1];
+        static_cast<uint32_t *>(krnArg.pData)[2] = outputChannelIndices[2];
+        static_cast<uint32_t *>(krnArg.pData)[3] = outputChannelIndices[3];
+        break;
+    case FC_444PL3_INPUT_IMAGEREAD_PLANEINDEX:
+        VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
+        *(uint32_t *)krnArg.pData = planeChannelIndices;
+        break;
+    case FC_444PL3_INPUT_IMAGEREAD_ENQUEUED_LOCAL_SIZE:
+    case FC_444PL3_INPUT_IMAGEREAD_LOCAL_SIZE:
+        VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
+        static_cast<uint32_t *>(krnArg.pData)[0] = localSize[0];
+        static_cast<uint32_t *>(krnArg.pData)[1] = localSize[1];
+        static_cast<uint32_t *>(krnArg.pData)[2] = localSize[2];
+        break;
+    default:
+        bInit = false;
+        break;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpL0FcFilter::SetupSingleFc444PL3InputBti(uint32_t uIndex, SURFACE_PARAMS &surfaceParam, uint32_t layerIndex, bool &bInit)
+{
+    switch (uIndex)
+    {
+    case FC_444PL3_INPUT_IMAGEREAD_INPUTPLANE0:
+        surfaceParam.surfType = SurfaceType(SurfaceTypeFcInputLayer0 + layerIndex);
+        break;
+    case FC_444PL3_INPUT_IMAGEREAD_INPUTPLANE1:
+    case FC_444PL3_INPUT_IMAGEREAD_INPUTPLANE2:
+        surfaceParam.surfType = SurfaceTypeInvalid;
+        break;
+    case FC_444PL3_INPUT_IMAGEREAD_OUTPUTPLANE:
+        surfaceParam.surfType = SurfaceType(SurfaceTypeFcIntermediaInput + layerIndex);
+        surfaceParam.isOutput = true;
+        break;
+    default:
+        bInit = false;
+        break;
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -328,7 +488,8 @@ MOS_STATUS VpL0FcFilter::SetupSingleFcCommonBti(uint32_t uIndex, const L0_FC_COM
     case FC_COMMON_FASTCOMP_INPUT0PL0:
         if (compParam.layerNumber > 0)
         {
-            surfaceParam.surfType = SurfaceTypeFcInputLayer0;
+            surfaceParam.surfType = compParam.inputLayersParam[0].needIntermediaSurface ? 
+                                    SurfaceTypeFcIntermediaInput : SurfaceTypeFcInputLayer0;
             if (compParam.inputLayersParam[0].diParams.enabled &&
                 compParam.inputLayersParam[0].diParams.params.DIMode == DI_MODE_BOB)
             {
@@ -343,7 +504,7 @@ MOS_STATUS VpL0FcFilter::SetupSingleFcCommonBti(uint32_t uIndex, const L0_FC_COM
     case FC_COMMON_FASTCOMP_INPUT1PL0:
         if (compParam.layerNumber > 1)
         {
-            surfaceParam.surfType = SurfaceType(SurfaceTypeFcInputLayer0 + 1);
+            surfaceParam.surfType = compParam.inputLayersParam[1].needIntermediaSurface ? SurfaceType(SurfaceTypeFcIntermediaInput + 1) : SurfaceType(SurfaceTypeFcInputLayer0 + 1);
             if (compParam.inputLayersParam[1].diParams.enabled &&
                 compParam.inputLayersParam[1].diParams.params.DIMode == DI_MODE_BOB)
             {
@@ -358,7 +519,7 @@ MOS_STATUS VpL0FcFilter::SetupSingleFcCommonBti(uint32_t uIndex, const L0_FC_COM
     case FC_COMMON_FASTCOMP_INPUT2PL0:
         if (compParam.layerNumber > 2)
         {
-            surfaceParam.surfType = SurfaceType(SurfaceTypeFcInputLayer0 + 2);
+            surfaceParam.surfType = compParam.inputLayersParam[2].needIntermediaSurface ? SurfaceType(SurfaceTypeFcIntermediaInput + 2) : SurfaceType(SurfaceTypeFcInputLayer0 + 2);
             if (compParam.inputLayersParam[2].diParams.enabled &&
                 compParam.inputLayersParam[2].diParams.params.DIMode == DI_MODE_BOB)
             {
@@ -373,7 +534,7 @@ MOS_STATUS VpL0FcFilter::SetupSingleFcCommonBti(uint32_t uIndex, const L0_FC_COM
     case FC_COMMON_FASTCOMP_INPUT3PL0:
         if (compParam.layerNumber > 3)
         {
-            surfaceParam.surfType = SurfaceType(SurfaceTypeFcInputLayer0 + 3);
+            surfaceParam.surfType = compParam.inputLayersParam[3].needIntermediaSurface ? SurfaceType(SurfaceTypeFcIntermediaInput + 3) : SurfaceType(SurfaceTypeFcInputLayer0 + 3);
             if (compParam.inputLayersParam[3].diParams.enabled &&
                 compParam.inputLayersParam[3].diParams.params.DIMode == DI_MODE_BOB)
             {
@@ -388,7 +549,7 @@ MOS_STATUS VpL0FcFilter::SetupSingleFcCommonBti(uint32_t uIndex, const L0_FC_COM
     case FC_COMMON_FASTCOMP_INPUT4PL0:
         if (compParam.layerNumber > 4)
         {
-            surfaceParam.surfType = SurfaceType(SurfaceTypeFcInputLayer0 + 4);
+            surfaceParam.surfType = compParam.inputLayersParam[4].needIntermediaSurface ? SurfaceType(SurfaceTypeFcIntermediaInput + 4) : SurfaceType(SurfaceTypeFcInputLayer0 + 4);
             if (compParam.inputLayersParam[4].diParams.enabled &&
                 compParam.inputLayersParam[4].diParams.params.DIMode == DI_MODE_BOB)
             {
@@ -403,7 +564,7 @@ MOS_STATUS VpL0FcFilter::SetupSingleFcCommonBti(uint32_t uIndex, const L0_FC_COM
     case FC_COMMON_FASTCOMP_INPUT5PL0:
         if (compParam.layerNumber > 5)
         {
-            surfaceParam.surfType = SurfaceType(SurfaceTypeFcInputLayer0 + 5);
+            surfaceParam.surfType = compParam.inputLayersParam[5].needIntermediaSurface ? SurfaceType(SurfaceTypeFcIntermediaInput + 5) : SurfaceType(SurfaceTypeFcInputLayer0 + 5);
             if (compParam.inputLayersParam[5].diParams.enabled &&
                 compParam.inputLayersParam[5].diParams.params.DIMode == DI_MODE_BOB)
             {
@@ -418,7 +579,7 @@ MOS_STATUS VpL0FcFilter::SetupSingleFcCommonBti(uint32_t uIndex, const L0_FC_COM
     case FC_COMMON_FASTCOMP_INPUT6PL0:
         if (compParam.layerNumber > 6)
         {
-            surfaceParam.surfType = SurfaceType(SurfaceTypeFcInputLayer0 + 6);
+            surfaceParam.surfType = compParam.inputLayersParam[6].needIntermediaSurface ? SurfaceType(SurfaceTypeFcIntermediaInput + 6) : SurfaceType(SurfaceTypeFcInputLayer0 + 6);
             if (compParam.inputLayersParam[6].diParams.enabled &&
                 compParam.inputLayersParam[6].diParams.params.DIMode == DI_MODE_BOB)
             {
@@ -433,7 +594,7 @@ MOS_STATUS VpL0FcFilter::SetupSingleFcCommonBti(uint32_t uIndex, const L0_FC_COM
     case FC_COMMON_FASTCOMP_INPUT7PL0:
         if (compParam.layerNumber > 7)
         {
-            surfaceParam.surfType = SurfaceType(SurfaceTypeFcInputLayer0 + 7);
+            surfaceParam.surfType = compParam.inputLayersParam[7].needIntermediaSurface ? SurfaceType(SurfaceTypeFcIntermediaInput + 7) : SurfaceType(SurfaceTypeFcInputLayer0 + 7);
             if (compParam.inputLayersParam[7].diParams.enabled &&
                 compParam.inputLayersParam[7].diParams.params.DIMode == DI_MODE_BOB)
             {
@@ -534,6 +695,18 @@ MOS_STATUS VpL0FcFilter::InitLayer(SwFilterPipe& executingPipe, bool isInputPipe
 
     layer.layerID       = index;
     layer.layerIDOrigin = index;
+
+    if (layer.surf->osSurface->Format == Format_RGBP ||
+        layer.surf->osSurface->Format == Format_BGRP)
+    {
+        layer.needIntermediaSurface = true;
+        layer.interMediaOverwriteSurface = Format_A8R8G8B8;
+    }
+    else if (layer.surf->osSurface->Format == Format_444P)
+    {
+        layer.needIntermediaSurface = true;
+        layer.interMediaOverwriteSurface = Format_AYUV;
+    }
 
     SwFilterScaling *scaling = dynamic_cast<SwFilterScaling *>(executingPipe.GetSwFilter(isInputPipe, index, FeatureType::FeatureTypeScaling));
     layer.scalingMode        = scaling ? scaling->GetSwFilterParams().scalingMode : defaultScalingMode;
@@ -760,14 +933,14 @@ MOS_STATUS VpL0FcFilter::GenerateInputImageParam(L0_FC_LAYER_PARAM &layer, VPHAL
     VP_FUNC_CALL();
     VP_PUBLIC_CHK_NULL_RETURN(layer.surf);
     VP_PUBLIC_CHK_NULL_RETURN(layer.surf->osSurface);
-
+    MOS_FORMAT surfOverwriteFormat = layer.needIntermediaSurface ? layer.interMediaOverwriteSurface : layer.surf->osSurface->Format;
     uint32_t inputWidth  = MOS_MIN(static_cast<uint32_t>(layer.surf->osSurface->dwWidth), static_cast<uint32_t>(layer.surf->rcSrc.right));
     uint32_t inputHeight = MOS_MIN(static_cast<uint32_t>(layer.surf->osSurface->dwHeight), static_cast<uint32_t>(layer.surf->rcSrc.bottom));
     VP_PUBLIC_CHK_STATUS_RETURN(ConvertCscToKrnParam(layer.surf->ColorSpace, mainCSpace, imageParam.csc));
-    VP_PUBLIC_CHK_STATUS_RETURN(ConvertInputChannelIndicesToKrnParam(layer.surf->osSurface->Format, imageParam.inputChannelIndices));
+    VP_PUBLIC_CHK_STATUS_RETURN(ConvertInputChannelIndicesToKrnParam(surfOverwriteFormat, imageParam.inputChannelIndices));
     VP_PUBLIC_CHK_STATUS_RETURN(ConvertScalingRotToKrnParam(layer.surf->rcSrc, layer.surf->rcDst, layer.scalingMode, inputWidth, inputHeight, layer.rotation, imageParam.scale, imageParam.controlSetting.samplerType, imageParam.coordShift));
-    VP_PUBLIC_CHK_STATUS_RETURN(ConvertChromaUpsampleToKrnParam(layer.surf->osSurface->Format, layer.surf->ChromaSiting, layer.scalingMode, inputWidth, inputHeight, imageParam.coordShift.chromaShiftX, imageParam.coordShift.chromaShiftY, imageParam.controlSetting.isChromaShift));
-    VP_PUBLIC_CHK_STATUS_RETURN(ConvertPlaneNumToKrnParam(layer.surf->osSurface->Format, true, imageParam.inputPlaneNum));
+    VP_PUBLIC_CHK_STATUS_RETURN(ConvertChromaUpsampleToKrnParam(surfOverwriteFormat, layer.surf->ChromaSiting, layer.scalingMode, inputWidth, inputHeight, imageParam.coordShift.chromaShiftX, imageParam.coordShift.chromaShiftY, imageParam.controlSetting.isChromaShift));
+    VP_PUBLIC_CHK_STATUS_RETURN(ConvertPlaneNumToKrnParam(surfOverwriteFormat, true, imageParam.inputPlaneNum));
     VP_PUBLIC_CHK_STATUS_RETURN(ConvertBlendingToKrnParam(layer.blendingParams, imageParam.controlSetting.ignoreSrcPixelAlpha, imageParam.controlSetting.ignoreDstPixelAlpha, imageParam.constAlphs));    
     
     if (layer.lumaKey.enabled)
@@ -1034,6 +1207,8 @@ MOS_STATUS VpL0FcFilter::ConvertInputChannelIndicesToKrnParam(MOS_FORMAT format,
     case Format_A16R16G16B16F:
     case Format_R5G6B5:
     case Format_R8G8B8:
+    case Format_RGBP:
+    case Format_444P:
         inputChannelIndices[0] = 0;
         inputChannelIndices[1] = 1;
         inputChannelIndices[2] = 2;
@@ -1102,6 +1277,12 @@ MOS_STATUS VpL0FcFilter::ConvertInputChannelIndicesToKrnParam(MOS_FORMAT format,
     case Format_400P:
         inputChannelIndices[0] = 0;
         inputChannelIndices[1] = 0;
+        inputChannelIndices[2] = 0;
+        inputChannelIndices[3] = 3;
+        break;
+    case Format_BGRP:
+        inputChannelIndices[0] = 2;
+        inputChannelIndices[1] = 1;
         inputChannelIndices[2] = 0;
         inputChannelIndices[3] = 3;
         break;
@@ -1636,7 +1817,7 @@ MOS_STATUS VpL0FcFilter::SetupSingleFcFastExpressBti(uint32_t uIndex, const L0_F
     switch (uIndex)
     {
     case FC_FP_FASTEXPRESS_INPUTPL0:
-        surfaceParam.surfType = SurfaceTypeFcInputLayer0;
+        surfaceParam.surfType = compParam.inputLayersParam[0].needIntermediaSurface ? SurfaceTypeFcIntermediaInput : SurfaceTypeFcInputLayer0;
         if (compParam.inputLayersParam[0].diParams.enabled &&
             compParam.inputLayersParam[0].diParams.params.DIMode == DI_MODE_BOB)
         {
@@ -1708,6 +1889,7 @@ MOS_STATUS VpL0FcFilter::GenerateFastExpressInputOutputParam(L0_FC_COMP_PARAM &c
     VP_FUNC_CALL();
     L0_FC_LAYER_PARAM &inputLayer  = compParam.inputLayersParam[0];
     L0_FC_LAYER_PARAM &outputLayer = compParam.outputLayerParam;
+    MOS_FORMAT         surfOverwriteFormat = inputLayer.needIntermediaSurface ? inputLayer.interMediaOverwriteSurface : inputLayer.surf->osSurface->Format;
     VP_PUBLIC_CHK_NULL_RETURN(inputLayer.surf);
     VP_PUBLIC_CHK_NULL_RETURN(inputLayer.surf->osSurface);
     VP_PUBLIC_CHK_NULL_RETURN(outputLayer.surf);
@@ -1716,10 +1898,10 @@ MOS_STATUS VpL0FcFilter::GenerateFastExpressInputOutputParam(L0_FC_COMP_PARAM &c
     uint32_t inputWidth  = MOS_MIN(static_cast<uint32_t>(inputLayer.surf->osSurface->dwWidth), static_cast<uint32_t>(inputLayer.surf->rcSrc.right));
     uint32_t inputHeight = MOS_MIN(static_cast<uint32_t>(inputLayer.surf->osSurface->dwHeight), static_cast<uint32_t>(inputLayer.surf->rcSrc.bottom));
     VP_PUBLIC_CHK_STATUS_RETURN(ConvertCscToKrnParam(inputLayer.surf->ColorSpace, compParam.mainCSpace, imageParam.csc));
-    VP_PUBLIC_CHK_STATUS_RETURN(ConvertInputChannelIndicesToKrnParam(inputLayer.surf->osSurface->Format, imageParam.inputChannelIndices));
+    VP_PUBLIC_CHK_STATUS_RETURN(ConvertInputChannelIndicesToKrnParam(surfOverwriteFormat, imageParam.inputChannelIndices));
     VP_PUBLIC_CHK_STATUS_RETURN(ConvertScalingRotToKrnParam(inputLayer.surf->rcSrc, inputLayer.surf->rcDst, inputLayer.scalingMode, inputWidth, inputHeight, inputLayer.rotation, imageParam.scaleParam, imageParam.controlSetting.samplerType, imageParam.coordShift));
-    VP_PUBLIC_CHK_STATUS_RETURN(ConvertChromaUpsampleToKrnParam(inputLayer.surf->osSurface->Format, inputLayer.surf->ChromaSiting, inputLayer.scalingMode, inputWidth, inputHeight, imageParam.coordShift.chromaShiftX, imageParam.coordShift.chromaShiftY, imageParam.controlSetting.isChromaShift));
-    VP_PUBLIC_CHK_STATUS_RETURN(ConvertPlaneNumToKrnParam(inputLayer.surf->osSurface->Format, true, imageParam.inputPlaneNum));
+    VP_PUBLIC_CHK_STATUS_RETURN(ConvertChromaUpsampleToKrnParam(surfOverwriteFormat, inputLayer.surf->ChromaSiting, inputLayer.scalingMode, inputWidth, inputHeight, imageParam.coordShift.chromaShiftX, imageParam.coordShift.chromaShiftY, imageParam.controlSetting.isChromaShift));
+    VP_PUBLIC_CHK_STATUS_RETURN(ConvertPlaneNumToKrnParam(surfOverwriteFormat, true, imageParam.inputPlaneNum));
 
     VP_PUBLIC_CHK_STATUS_RETURN(ConvertAlignedTrgRectToKrnParam(inputLayer.surf, outputLayer.surf, compParam.enableColorFill, targetParam));
     VP_PUBLIC_CHK_STATUS_RETURN(ConvertPlaneNumToKrnParam(outputLayer.surf->osSurface->Format, false, targetParam.planeNumber));

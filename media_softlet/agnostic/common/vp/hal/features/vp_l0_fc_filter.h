@@ -56,6 +56,8 @@ struct L0_FC_LAYER_PARAM
     VPHAL_BLENDING_PARAMS    blendingParams = {};
     VPHAL_PROCAMP_PARAMS     procampParams  = {};
     L0_FC_DI_PARAMS          diParams       = {};
+    bool                     needIntermediaSurface = false;
+    MOS_FORMAT               interMediaOverwriteSurface = Format_Any;
 };
 
 struct L0_FC_COMP_PARAM
@@ -224,6 +226,10 @@ protected:
     MOS_STATUS SetupSingleFcCommonKrnArg(uint32_t layerNum, std::vector<L0_FC_KRN_IMAGE_PARAM> &imageParams, L0_FC_KRN_TARGET_PARAM &targetParam, uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit);
     MOS_STATUS SetupSingleFcCommonBti(uint32_t uIndex, const L0_FC_COMP_PARAM &compParam, SURFACE_PARAMS &surfaceParam, bool &bInit);
 
+    MOS_STATUS GenerateFc444PL3InputParam(L0_FC_LAYER_PARAM &layer, uint32_t layerNumber, L0_FC_KERNEL_PARAM &param, uint32_t layerIndex);
+    MOS_STATUS SetupSingleFc444PL3InputKrnArg(uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit, uint32_t inputChannelIndices[4], uint32_t outputChannelIndices[4], uint32_t planeChannelIndices);
+    MOS_STATUS SetupSingleFc444PL3InputBti(uint32_t uIndex, SURFACE_PARAMS &surfaceParam, uint32_t layerIndex, bool &bInit);
+
     MOS_STATUS GetDefaultScalingMode(VPHAL_SCALING_MODE &defaultScalingMode, SwFilterPipe &executedPipe);
     MOS_STATUS GetChromaSitingFactor(MOS_FORMAT format, uint8_t &hitSecPlaneFactorX, uint8_t &hitSecPlaneFactorY);
     MOS_STATUS GetBitNumber(MOS_FORMAT format, uint8_t *pOriginBitNumber, uint8_t *pStoredBitNumber, uint8_t *pAlphaBitNumber);
@@ -267,6 +273,7 @@ protected:
     //to avoid duplicate allocate and free
     KERNEL_INDEX_ARG_MAP m_fcCommonKrnArgs;
     KERNEL_INDEX_ARG_MAP m_fcFastExpressKrnArgs;
+    KERNEL_INDEX_ARG_MAP m_fc444PL3InputKrnArgs;
     
 MEDIA_CLASS_DEFINE_END(vp__VpL0FcFilter)
 };

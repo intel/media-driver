@@ -42,6 +42,9 @@ VpRenderL0FcKernel::VpRenderL0FcKernel(PVP_MHWINTERFACE hwInterface, VpKernelID 
     case kernelL0FcFP:
         m_kernelName = "FastExpress_fc_fp";
         break;
+    case kernelL0Fc444PL3Input:
+        m_kernelName = "ImageRead_fc_444PL3_input";
+        break;
     default:
         m_kernelName.assign("");
         VP_RENDER_ASSERTMESSAGE("Kernel ID cannot map to Kernel Name");
@@ -317,10 +320,14 @@ MOS_STATUS VpRenderL0FcKernel::SetupSurfaceState()
                                               .DwordValue;
         pRenderSurfaceParams->Component = COMPONENT_VPCommon;
         
-        kernelSurfaceParam.surfaceOverwriteParams.updatedSurfaceParams = true;
-        kernelSurfaceParam.surfaceOverwriteParams.format               = surf->second->osSurface->Format;
-        kernelSurfaceParam.surfaceOverwriteParams.width                = MOS_MIN(static_cast<uint16_t>(surf->second->osSurface->dwWidth), static_cast<uint16_t>(surf->second->rcSrc.right));
-        kernelSurfaceParam.surfaceOverwriteParams.height               = MOS_MIN(static_cast<uint16_t>(surf->second->osSurface->dwHeight), static_cast<uint16_t>(surf->second->rcSrc.bottom));
+        if (m_kernelId == kernelL0FcCommon ||
+            m_kernelId == kernelL0FcFP)
+        {
+            kernelSurfaceParam.surfaceOverwriteParams.updatedSurfaceParams = true;
+            kernelSurfaceParam.surfaceOverwriteParams.format               = surf->second->osSurface->Format;
+            kernelSurfaceParam.surfaceOverwriteParams.width                = MOS_MIN(static_cast<uint16_t>(surf->second->osSurface->dwWidth), static_cast<uint16_t>(surf->second->rcSrc.right));
+            kernelSurfaceParam.surfaceOverwriteParams.height               = MOS_MIN(static_cast<uint16_t>(surf->second->osSurface->dwHeight), static_cast<uint16_t>(surf->second->rcSrc.bottom));
+        }
         
         if (surfHandle->second.needVerticalStirde)
         {

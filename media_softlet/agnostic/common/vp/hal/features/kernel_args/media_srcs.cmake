@@ -26,6 +26,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/igvp3dlut_args.h
     ${CMAKE_CURRENT_LIST_DIR}/igvpfc_common_args.h
     ${CMAKE_CURRENT_LIST_DIR}/igvpfc_fp_args.h
+    ${CMAKE_CURRENT_LIST_DIR}/igvpfc_444PL3_input_args.h
 )
 
 set(SOFTLET_VP_SOURCES_
