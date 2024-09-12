@@ -499,6 +499,7 @@ protected:
     //! \brief   mos resource usage type, set mocs index
     //!
     MOS_HW_RESOURCE_DEF m_mocsMosResUsageType = MOS_MP_RESOURCE_USAGE_DEFAULT;
+    OsContextNext       *m_osContextPtr = nullptr;
 MEDIA_CLASS_DEFINE_END(GraphicsResourceNext)
 };
 #endif // #ifndef __MOS_GRAPHICS_RESOURCE_NEXT_H__
