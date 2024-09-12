@@ -75,13 +75,17 @@ MOS_STATUS MediaStatusReport::GetReport(uint16_t requireNum, void *status)
         reportedCount++;
         generatedReportCount++;
     }
+
+    // update incomplete/unavailable status
+    uint32_t updatedCount = reportedCount;
     if (generatedReportCount < requireNum)
     {
         for (auto i = generatedReportCount; i < requireNum; i++)
         {
             eStatus = SetStatus(((uint8_t *)status + m_sizeOfReport * i),
-                                CounterToIndex(reportedCount),
+                                CounterToIndex(updatedCount),
                                 i >= availableCount);
+            updatedCount++;
         }
     }
 
