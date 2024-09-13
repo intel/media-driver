@@ -387,7 +387,6 @@ MOS_STATUS MediaCopyBaseState::ValidateResource(const MOS_SURFACE &src, const MO
 //!
 MOS_STATUS MediaCopyBaseState::SurfaceCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst, MCPY_METHOD preferMethod)
 {
-    MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     MOS_SURFACE SrcResDetails, DstResDetails;
@@ -450,29 +449,6 @@ MOS_STATUS MediaCopyBaseState::SurfaceCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst,
         MT_SURF_TILE_TYPE,      DstResDetails.TileType,
         MT_SURF_COMP_MODE,      mcpyDst.CompressionMode);
 
-#if (_DEBUG || _RELEASE_INTERNAL) && !defined(LINUX)
-    TRACEDATA_MEDIACOPY eventData = {0};
-    TRACEDATA_MEDIACOPY_INIT(
-        eventData,
-        src->AllocationInfo.m_AllocationHandle,
-        SrcResDetails.dwWidth,
-        SrcResDetails.dwHeight,
-        SrcResDetails.Format,
-        *((int64_t *)&src->pGmmResInfo->GetResFlags().Gpu),
-        *((int64_t *)&src->pGmmResInfo->GetResFlags().Info),
-        src->pGmmResInfo->GetSetCpSurfTag(0, 0),
-        dst->AllocationInfo.m_AllocationHandle,
-        DstResDetails.dwWidth,
-        DstResDetails.dwHeight,
-        DstResDetails.Format,
-        *((int64_t *)&dst->pGmmResInfo->GetResFlags().Gpu),
-        *((int64_t *)&dst->pGmmResInfo->GetResFlags().Info),
-        dst->pGmmResInfo->GetSetCpSurfTag(0, 0)
-    );
-
-    MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_INFO, &eventData, sizeof(eventData), nullptr, 0);
-#endif
-
     MCPY_CHK_STATUS_RETURN(PreCheckCpCopy(mcpySrc, mcpyDst, preferMethod));
 
     MCPY_CHK_STATUS_RETURN(CapabilityCheck(SrcResDetails.Format,
@@ -485,7 +461,6 @@ MOS_STATUS MediaCopyBaseState::SurfaceCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst,
 
     MCPY_CHK_STATUS_RETURN(TaskDispatch(mcpySrc, mcpyDst, mcpyEngine));
 
-    MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
     return eStatus;
 }
 

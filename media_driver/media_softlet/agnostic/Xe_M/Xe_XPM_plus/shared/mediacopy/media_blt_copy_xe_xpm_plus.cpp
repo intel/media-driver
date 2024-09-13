@@ -626,6 +626,7 @@ MOS_STATUS BltStateXe_Xpm_Plus::CopyMainSurface(
 
     BLT_CHK_NULL_RETURN(src);
     BLT_CHK_NULL_RETURN(dst);
+    MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_START, nullptr, 0, nullptr, 0);
 
     MOS_ZeroMemory(&bltStateParam, sizeof(BLT_STATE_PARAM));
     bltStateParam.bCopyMainSurface = true;
@@ -634,6 +635,7 @@ MOS_STATUS BltStateXe_Xpm_Plus::CopyMainSurface(
 
     BLT_CHK_STATUS_RETURN(SubmitCMD(&bltStateParam));
 
+    MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_END, nullptr, 0, nullptr, 0);
     return MOS_STATUS_SUCCESS;
 }
 
