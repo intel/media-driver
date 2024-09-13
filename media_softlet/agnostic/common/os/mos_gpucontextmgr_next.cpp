@@ -220,8 +220,8 @@ GpuContextNext *GpuContextMgrNext::GetGpuContext(GPU_CONTEXT_HANDLE gpuContextHa
     }
     else
     {
-        MOS_OS_ASSERTMESSAGE("GPU context array is empty or got invalid index, something must be wrong!");
-        MT_ERR2(MT_MOS_GPUCXT_GET, MT_MOS_GPUCXT_MGR_PTR, (int64_t)this, MT_MOS_GPUCXT_HANDLE, gpuContextHandle);
+        MOS_OS_NORMALMESSAGE("Gpu context may have been deleted already!");
+        MT_LOG2(MT_MOS_GPUCXT_GET, MT_NORMAL, MT_MOS_GPUCXT_MGR_PTR, (int64_t)this, MT_MOS_GPUCXT_HANDLE, gpuContextHandle);
         gpuContext = nullptr;
     }
     MosUtilities::MosUnlockMutex(m_gpuContextArrayMutex);
