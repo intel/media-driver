@@ -32,7 +32,6 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <signal.h>
-#include <pciaccess.h>
 #include <getopt.h>
 #include <stdlib.h>
 #include <unistd.h>

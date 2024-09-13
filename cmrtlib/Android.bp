@@ -1,0 +1,80 @@
+cc_library_shared {
+    name: "libigfxcmrt",
+
+    srcs: [
+        "agnostic/share/cm_printf_host.cpp",
+        "agnostic/share/cm_rt_helpers.cpp",
+        "agnostic/share/cm_avs_state_msg_ex.cpp",
+        "agnostic/hardware/cm_device.cpp",
+        "agnostic/hardware/cm_device_export.cpp",
+        "agnostic/hardware/cm_surface_manager.cpp",
+        "agnostic/hardware/cm_timer.cpp",
+        "agnostic/hardware/cm_queue.cpp",
+        "agnostic/hardware/cm_perf_statistics.cpp",
+        "agnostic/hardware/cm_kernel_debugger.cpp",
+        "linux/share/cm_performance.cpp",
+        "linux/hardware/cm_device_os.cpp",
+        "linux/hardware/cm_surface_manager_os.cpp",
+        "linux/hardware/cm_device_export_os.cpp",
+        "linux/hardware/cm_timer_os.cpp",
+    ],
+
+    local_include_dirs: [
+        "agnostic/share",
+        "agnostic/hardware",
+        "linux/share",
+        "linux/hardware",
+    ],
+
+    cflags: [
+        "-Wno-error",
+        "-Wno-unused-variable",
+        "-Wno-unused-parameter",
+        "-Wno-unused-private-field",
+        "-Wno-non-virtual-dtor",
+        "-DANDROID",
+        "-DCM_RT_EXPORTS",
+        "-DISTDLIB_UMD",
+        "-DVPHAL",
+        "-D__CT__",
+        "-fno-strict-aliasing",
+        "-D_FORTIFY_SOURCE=2",
+    ],
+
+    header_libs: [
+        "libva_headers",
+    ],
+
+    shared_libs: [
+        "libc",
+        "libdl",
+        "libcutils",
+        "liblog",
+        "libutils",
+        "libm",
+        "libva",
+        "libva-android",
+    ],
+    vendor: true,
+    enabled: false,
+    arch: {
+        x86_64: {
+            enabled: true,
+        },
+    },
+}
+
+cc_library_headers {
+    name: "libcmrt_headers",
+    export_include_dirs: [
+        "linux/hardware",
+    ],
+
+    vendor: true,
+    enabled: false,
+    arch: {
+        x86_64: {
+            enabled: true,
+        },
+    },
+}
