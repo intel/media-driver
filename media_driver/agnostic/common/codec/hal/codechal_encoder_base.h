@@ -879,17 +879,17 @@ struct EncodeStatusReport
     {
         uint32_t NumBlockInColumns;
         uint32_t NumBlockInRows;
-        uint8_t* BlockSsimArray; /*!< ssim per 4*4 piexl block. */
+        uint8_t* BlockSsimArray;
         uint32_t reserved1[2];
-        uint64_t reserved2[2];   /*!< Reserved for future use. */
+        uint64_t reserved2[2];
     };
 
     struct BLOCK_QUALITY_INFO
     {
-        BLOCK_SSIM_INFO BlockSsim2DS;  /*!< for 2X DS ssim per 4*4 piexl block. */
-        BLOCK_SSIM_INFO BlockSsim4DS;  /*!< for 4X DS ssim per 4*4 piexl block. */
-        BLOCK_SSIM_INFO BlockSsim8DS;  /*!< for 8X DS ssim per 4*4 piexl block. */
-        BLOCK_SSIM_INFO BlockSsim16DS; /*!< for 16X DS ssim per 4*4 piexl block.*/
+        BLOCK_SSIM_INFO BlockSsim2DS;
+        BLOCK_SSIM_INFO BlockSsim4DS;
+        BLOCK_SSIM_INFO BlockSsim8DS;
+        BLOCK_SSIM_INFO BlockSsim16DS;
         uint32_t        reserved1[32];
         uint64_t        reserved2[12];
     };
