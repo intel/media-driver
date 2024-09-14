@@ -612,7 +612,7 @@ MOS_STATUS MediaDebugInterface::ReAllocateSurface(
         &allocParams,
         &pSurface->OsResource));
 
-    if (!m_osInterface->apoMosEnabled)
+    if (!m_osInterface->apoMosEnabled && !m_osInterface->apoMosForLegacyRuntime)
     {
         MOS_SURFACE details;
         MOS_ZeroMemory(&details, sizeof(details));
