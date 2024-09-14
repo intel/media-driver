@@ -242,7 +242,7 @@ MOS_STATUS VpL0FcFilter::SetupSingleFc444PL3InputKrnArg(uint32_t localSize[3], K
         static_cast<uint32_t *>(krnArg.pData)[3] = inputChannelIndices[3];
         break;
     case FC_444PL3_INPUT_IMAGEREAD_OUTPUTINDEX:
-        // use input instead
+        VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
         static_cast<uint32_t *>(krnArg.pData)[0] = outputChannelIndices[0];
         static_cast<uint32_t *>(krnArg.pData)[1] = outputChannelIndices[1];
         static_cast<uint32_t *>(krnArg.pData)[2] = outputChannelIndices[2];
