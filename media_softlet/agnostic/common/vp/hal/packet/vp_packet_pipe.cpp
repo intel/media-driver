@@ -371,6 +371,13 @@ void PacketPipeFactory::ReturnPacketPipe(PacketPipe *&pPipe)
         return;
     }
     pPipe->Clean();
-    m_Pool.push_back(pPipe);
+    if (std::find(m_Pool.begin(), m_Pool.end(), pPipe) == m_Pool.end())
+    {
+        m_Pool.push_back(pPipe);
+    }
+    else
+    {
+        VP_PUBLIC_ASSERTMESSAGE("packetPipe %p is existing in m_Pool!, m_Pool size is %d.", pPipe, (uint32_t)m_Pool.size());
+    }
     pPipe = nullptr;
 }
