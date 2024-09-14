@@ -42,14 +42,6 @@ public:
     VeboxCopyStateXe_Lpm_Plus_Base(PMOS_INTERFACE    osInterface, MhwInterfacesNext* mhwInterfaces);
 
     virtual ~VeboxCopyStateXe_Lpm_Plus_Base();
-    //!
-    //! \brief    Vebox Copy State initialize
-    //! \details  Initialize the Vebox Copy State, create Vebox Copy State context.
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-
-protected:
 
 MEDIA_CLASS_DEFINE_END(VeboxCopyStateXe_Lpm_Plus_Base)
 };

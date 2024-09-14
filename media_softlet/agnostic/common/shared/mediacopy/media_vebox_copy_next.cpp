@@ -132,7 +132,7 @@ MOS_STATUS VeboxCopyStateNext::CopyMainSurface(PMOS_RESOURCE src, PMOS_RESOURCE 
     VeboxGpuNode = (MOS_GPU_NODE)(GpuNodeLimit.dwGpuNodeToUse);
     VeboxGpuContext = (VeboxGpuNode == MOS_GPU_NODE_VE) ? MOS_GPU_CONTEXT_VEBOX : MOS_GPU_CONTEXT_VEBOX2;
     // Create VEBOX/VEBOX2 Context
-    VEBOX_COPY_CHK_STATUS_RETURN(m_veboxItf->CreateGpuContext(
+    VEBOX_COPY_CHK_STATUS_RETURN(CreateGpuContext(
         m_osInterface,
         VeboxGpuContext,
         VeboxGpuNode));
@@ -585,4 +585,40 @@ void VeboxCopyStateNext::AdjustSurfaceFormat(MOS_SURFACE &surface)
     {
         surface.Format = Format_P8;
     }
+}
+
+MOS_STATUS VeboxCopyStateNext::CreateGpuContext(
+    PMOS_INTERFACE  pOsInterface,
+    MOS_GPU_CONTEXT VeboxGpuContext,
+    MOS_GPU_NODE    VeboxGpuNode)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    MHW_CHK_NULL_RETURN(pOsInterface);
+
+    if (!MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(pOsInterface))
+    {
+        MOS_GPUCTX_CREATOPTIONS createOption;
+        // Create VEBOX/VEBOX2 Context
+        MHW_CHK_STATUS_RETURN(pOsInterface->pfnCreateGpuContext(
+            pOsInterface,
+            VeboxGpuContext,
+            VeboxGpuNode,
+            &createOption));
+    }
+    else
+    {
+        MOS_GPUCTX_CREATOPTIONS_ENHANCED createOptionenhanced;
+        // vebox copy always uses 1 vebox to copy each frame.
+        createOptionenhanced.LRCACount = 1;
+
+        // Create virtual engine context for vebox
+        MHW_CHK_STATUS_RETURN(pOsInterface->pfnCreateGpuContext(
+            pOsInterface,
+            VeboxGpuContext,
+            VeboxGpuNode,
+            &createOptionenhanced));
+    }
+
+    return eStatus;
 }

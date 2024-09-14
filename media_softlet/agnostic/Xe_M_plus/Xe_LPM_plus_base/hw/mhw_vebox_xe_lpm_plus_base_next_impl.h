@@ -3223,59 +3223,6 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
         return eStatus;
     }
 
-    //!
-    //! \brief    Create Gpu Context for Vebox
-    //! \details  Create Gpu Context for Vebox
-    //! \param    [in] pOsInterface
-    //!           OS interface
-    //! \param    [in] VeboxGpuContext
-    //!           Vebox Gpu Context
-    //! \param    [in] VeboxGpuNode
-    //!           Vebox Gpu Node
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS CreateGpuContext(
-        PMOS_INTERFACE  pOsInterface,
-        MOS_GPU_CONTEXT VeboxGpuContext,
-        MOS_GPU_NODE    VeboxGpuNode) override
-    {
-        MOS_STATUS           eStatus = MOS_STATUS_SUCCESS;
-
-        MHW_CHK_NULL_RETURN(pOsInterface);
-
-        Mos_SetVirtualEngineSupported(pOsInterface, true);
-        pOsInterface->pfnVirtualEngineSupported(pOsInterface, true, true);
-
-        if (!MOS_VE_CTXBASEDSCHEDULING_SUPPORTED(pOsInterface))
-        {
-            MOS_GPUCTX_CREATOPTIONS createOption;
-
-            // Create VEBOX/VEBOX2 Context
-            MHW_CHK_STATUS_RETURN(pOsInterface->pfnCreateGpuContext(
-                pOsInterface,
-                VeboxGpuContext,
-                VeboxGpuNode,
-                &createOption));
-        }
-        else
-        {
-            MOS_GPUCTX_CREATOPTIONS_ENHANCED createOptionenhanced;
-
-            createOptionenhanced.LRCACount = 1;
-            createOptionenhanced.UsingSFC = true;
-
-            // Create VEBOX/VEBOX2 Context
-            MHW_CHK_STATUS_RETURN(pOsInterface->pfnCreateGpuContext(
-                pOsInterface,
-                VeboxGpuContext,
-                VeboxGpuNode,
-                &createOptionenhanced));
-        }
-
-        return eStatus;
-    }
-
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_STATUS ValidateVeboxScalabilityConfig()
     {
