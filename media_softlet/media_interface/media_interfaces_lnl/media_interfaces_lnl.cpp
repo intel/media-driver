@@ -411,7 +411,6 @@ MOS_STATUS CodechalInterfacesXe2_Lpm::Initialize(
     }
     else if (CodecHalIsEncode(CodecFunction))
     {
-#ifdef _MEDIA_RESERVED
 #if defined (_AVC_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_AVC)
         {
@@ -428,24 +427,11 @@ MOS_STATUS CodechalInterfacesXe2_Lpm::Initialize(
         }
         else
 #endif
+#ifdef _MEDIA_RESERVED
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_VP9)
         {
             m_codechalDevice = MOS_New(EncodeVp9VdencPipelineAdapterXe2_Lpm, hwInterface, debugInterface);
-            if (m_codechalDevice == nullptr)
-            {
-                CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
-                CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
-            }
-            return MOS_STATUS_SUCCESS;
-        }
-        else
-#endif
-
-#ifdef _JPEG_ENCODE_SUPPORTED
-        if (info->Mode == CODECHAL_ENCODE_MODE_JPEG)
-        {
-            m_codechalDevice = MOS_New(EncodeJpegPipelineAdapter, hwInterface, debugInterface);
             if (m_codechalDevice == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
@@ -476,6 +462,21 @@ MOS_STATUS CodechalInterfacesXe2_Lpm::Initialize(
         }
         else
 #endif
+#endif
+
+#ifdef _JPEG_ENCODE_SUPPORTED
+        if (info->Mode == CODECHAL_ENCODE_MODE_JPEG)
+        {
+            m_codechalDevice = MOS_New(EncodeJpegPipelineAdapter, hwInterface, debugInterface);
+            if (m_codechalDevice == nullptr)
+            {
+                CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
+                CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
+            }
+            return MOS_STATUS_SUCCESS;
+        }
+        else
+#endif
 
 #if defined(_HEVC_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_HEVC)
@@ -492,7 +493,6 @@ MOS_STATUS CodechalInterfacesXe2_Lpm::Initialize(
             }
         }
         else
-#endif
 #endif
         {
             CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported encode function requested.");

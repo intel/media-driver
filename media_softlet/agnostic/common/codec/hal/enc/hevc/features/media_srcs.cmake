@@ -36,6 +36,8 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_basic_feature_422.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_fullenc.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_preenc.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_aqm.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/encode_vdenc_hevc_fastpass.cpp
 )
 
 set(TMP_HEADERS_
@@ -54,6 +56,8 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_basic_feature_422.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_fullenc.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_preenc.h
+    ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_aqm.h
+    ${CMAKE_CURRENT_LIST_DIR}/encode_vdenc_hevc_fastpass.h
 )
 
 set(SOFTLET_ENCODE_HEVC_HEADERS_
