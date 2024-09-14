@@ -26,6 +26,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/encode_lpla.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_preenc_basic_feature.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_preenc_const_settings.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/encode_aqm_feature.cpp
 )
 
 set(TMP_HEADERS_
@@ -37,6 +38,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/encode_preenc_basic_feature.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_preenc_const_settings.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_preenc_defs.h
+    ${CMAKE_CURRENT_LIST_DIR}/encode_aqm_feature.h
 )
 
 set(SOFTLET_ENCODE_COMMON_HEADERS_
