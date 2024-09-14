@@ -109,6 +109,20 @@ MOS_STATUS MediaMemDeCompNext::MemoryDecompress(PMOS_RESOURCE targetResource)
             {
                 VPHAL_MEMORY_DECOMP_CHK_NULL_RETURN(m_renderMutex);
                 MosUtilities::MosLockMutex(m_renderMutex);
+
+#if (_DEBUG || _RELEASE_INTERNAL) && !defined(LINUX)
+                TRACEDATA_MEDIA_MEM_DECOMP eventData = {0};
+                TRACEDATA_MEDIA_MEM_DECOMP_INIT(
+                    eventData,
+                    targetResource->AllocationInfo.m_AllocationHandle,
+                    targetSurface.dwWidth,
+                    targetSurface.dwHeight,
+                    targetSurface.Format,
+                    *((int64_t *)&targetResource->pGmmResInfo->GetResFlags().Gpu),
+                    *((int64_t *)&targetResource->pGmmResInfo->GetResFlags().Info)
+                );
+                MOS_TraceEventExt(EVENT_DDI_MEDIA_MEM_DECOMP_CALLBACK, EVENT_TYPE_INFO, &eventData, sizeof(eventData), nullptr, 0);
+#endif
                 eStatus = RenderDecompCMD(&targetSurface);
                 if (eStatus != MOS_STATUS_SUCCESS)
                 {
@@ -266,6 +280,29 @@ MOS_STATUS MediaMemDeCompNext::MediaMemoryCopy(PMOS_RESOURCE inputResource, PMOS
         &targetSurface.OsResource,
         MOS_GPU_CONTEXT_VEBOX,
         false);
+
+#if (_DEBUG || _RELEASE_INTERNAL) && !defined(LINUX)
+    TRACEDATA_MEDIACOPY eventData = {0};
+    TRACEDATA_MEDIACOPY_INIT(
+        eventData,
+        inputResource->AllocationInfo.m_AllocationHandle,
+        sourceSurface.dwWidth,
+        sourceSurface.dwHeight,
+        sourceSurface.Format,
+        *((int64_t *)&inputResource->pGmmResInfo->GetResFlags().Gpu),
+        *((int64_t *)&inputResource->pGmmResInfo->GetResFlags().Info),
+        inputResource->pGmmResInfo->GetSetCpSurfTag(0, 0),
+        outputResource->AllocationInfo.m_AllocationHandle,
+        targetSurface.dwWidth,
+        targetSurface.dwHeight,
+        targetSurface.Format,
+        *((int64_t *)&outputResource->pGmmResInfo->GetResFlags().Gpu),
+        *((int64_t *)&outputResource->pGmmResInfo->GetResFlags().Info),
+        outputResource->pGmmResInfo->GetSetCpSurfTag(0, 0)
+
+    );
+    MOS_TraceEventExt(EVENT_MEDIA_COPY, EVENT_TYPE_INFO, &eventData, sizeof(eventData), nullptr, 0);
+#endif
 
     VPHAL_MEMORY_DECOMP_CHK_STATUS_RETURN(RenderDoubleBufferDecompCMD(&sourceSurface, &targetSurface));
 
