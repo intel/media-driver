@@ -97,12 +97,11 @@
 #include "encode_hevc_vdenc_pipeline_adapter_xe2_lpm_base.h"
 #endif
 
-#ifdef _MEDIA_RESERVED
-
 #ifdef _AV1_ENCODE_VDENC_SUPPORTED
 #include "encode_av1_vdenc_pipeline_adapter_xe2_lpm.h"
 #endif
 
+#ifdef _MEDIA_RESERVED
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
 #include "encode_vp9_vdenc_pipeline_adapter_xe2_lpm.h"
 #endif
