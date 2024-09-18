@@ -124,13 +124,17 @@ void MosOcaRTLogMgr::UnregisterRes(OsContextNext *osDriverContext)
     if (!resInterface.osInterface || !resInterface.osInterface->pfnFreeResource)
     {
         MOS_SafeFreeMemory(resInterface.ocaRTLogResource);
+        resInterface.ocaRTLogResource = nullptr;
         MOS_SafeFreeMemory(resInterface.osInterface);
+        resInterface.osInterface = nullptr;
         return;
     }
     resInterface.osInterface->pfnFreeResource(resInterface.osInterface, resInterface.ocaRTLogResource);
     MOS_SafeFreeMemory(resInterface.ocaRTLogResource);
+    resInterface.ocaRTLogResource = nullptr;
     Mos_DestroyInterface(resInterface.osInterface);
     MOS_SafeFreeMemory(resInterface.osInterface);
+    resInterface.osInterface = nullptr;
 }
 
 MosOcaRTLogMgr::MosOcaRTLogMgr()
