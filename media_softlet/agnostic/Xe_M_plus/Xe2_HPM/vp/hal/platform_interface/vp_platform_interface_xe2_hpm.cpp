@@ -81,6 +81,51 @@ MOS_STATUS VpPlatformInterfaceXe2_Hpm::InitVpVeboxSfcHwCaps(VP_VEBOX_ENTRY_REC *
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpPlatformInterfaceXe2_Hpm::InitVpRenderHwCaps()
+{
+    VP_FUNC_CALL();
+
+    if (m_isRenderDisabled)
+    {
+        VP_PUBLIC_NORMALMESSAGE("Bypass InitVpRenderHwCaps, since render disabled.");
+        return MOS_STATUS_SUCCESS;
+    }
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+    VP_RENDER_CHK_NULL_RETURN(m_vpKernelBinary.kernelBin);
+    VP_RENDER_CHK_NULL_RETURN(m_vpKernelBinary.fcPatchKernelBin);
+#endif
+    // Only Lpm Plus will use this base function
+    m_modifyKdllFunctionPointers = KernelDll_ModifyFunctionPointers_Next;
+#if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+    InitVPFCKernels(
+        g_KdllRuleTable_Next,
+        m_vpKernelBinary.kernelBin,
+        m_vpKernelBinary.kernelBinSize,
+        m_vpKernelBinary.fcPatchKernelBin,
+        m_vpKernelBinary.fcPatchKernelBinSize,
+        m_modifyKdllFunctionPointers);
+#endif
+
+    if (!m_vpIsaKernelBinaryList.empty())
+    {
+        // Init CM kernel form VP ISA Kernel Binary List
+        for (auto &curKernelEntry : m_vpIsaKernelBinaryList)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(InitVpCmKernels(curKernelEntry.kernelBin, curKernelEntry.kernelBinSize, curKernelEntry.postfix, curKernelEntry.payloadOffset));
+        }
+    }
+
+    if (!m_vpNativeAdvKernelBinaryList.empty())
+    {
+        // Init native adv kernel form VP Native adv kernel Binary List
+        for (auto &curKernelEntry : m_vpNativeAdvKernelBinaryList)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(InitVpNativeAdvKernels(curKernelEntry.first, curKernelEntry.second));
+        }
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
 VPFeatureManager *VpPlatformInterfaceXe2_Hpm::CreateFeatureChecker(_VP_MHWINTERFACE *hwInterface)
 {
     VP_FUNC_CALL();
