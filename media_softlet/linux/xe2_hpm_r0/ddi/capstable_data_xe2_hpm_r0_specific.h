@@ -358,7 +358,7 @@ static const ProfileMap profileMap_Xe2_Hpm_r0
     {VAProfileJPEGBaseline, &entrypointMap_VAProfileJPEGBaseline_Xe2_Hpm_r0},
 #endif
 
-#if defined(_AV1_DECODE_SUPPORTED)
+#if defined(_AV1_ENCODE_VDENC_SUPPORTED) || defined(_AV1_DECODE_SUPPORTED)
     {VAProfileAV1Profile0, &entrypointMap_VAProfileAV1Profile0_Xe2_Hpm_r0},
 #endif
 

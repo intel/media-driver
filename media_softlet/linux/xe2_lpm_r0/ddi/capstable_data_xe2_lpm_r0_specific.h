@@ -40,7 +40,7 @@
 #if defined(_AV1_ENCODE_VDENC_SUPPORTED)
 #include "capstable_data_av1_encode_xe2_lpm_r0_specific.h"
 #endif
-#if defined(_VP9_ENCODE_VDENC_SUPPORTED)
+#if defined(_VP9_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
 #include "capstable_data_vp9_encode_xe2_lpm_r0_specific.h"
 #endif
 
@@ -295,7 +295,7 @@ static const EntrypointMap entrypointMap_VAProfileAV1Profile0_Xe2_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileVP9Profile0_Xe2_Lpm_r0
 {
-#if defined(_VP9_ENCODE_VDENC_SUPPORTED)
+#if defined(_VP9_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
     {VAEntrypointEncSlice, &entrypointMap_VAProfileVP9Profile0_Data_Xe2_Lpm_r0},
 #endif
 
@@ -306,7 +306,7 @@ static const EntrypointMap entrypointMap_VAProfileVP9Profile0_Xe2_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileVP9Profile1_Xe2_Lpm_r0
 {
-#if defined(_VP9_ENCODE_VDENC_SUPPORTED)
+#if defined(_VP9_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
     {VAEntrypointEncSlice, &entrypointMap_VAProfileVP9Profile1_Data_Xe2_Lpm_r0},
 #endif
 
@@ -317,7 +317,7 @@ static const EntrypointMap entrypointMap_VAProfileVP9Profile1_Xe2_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileVP9Profile2_Xe2_Lpm_r0
 {
-#if defined(_VP9_ENCODE_VDENC_SUPPORTED)
+#if defined(_VP9_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
     {VAEntrypointEncSlice, &entrypointMap_VAProfileVP9Profile2_Data_Xe2_Lpm_r0},
 #endif
 
@@ -328,7 +328,7 @@ static const EntrypointMap entrypointMap_VAProfileVP9Profile2_Xe2_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileVP9Profile3_Xe2_Lpm_r0
 {
-#if defined(_VP9_ENCODE_VDENC_SUPPORTED)
+#if defined(_VP9_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
     {VAEntrypointEncSlice, &entrypointMap_VAProfileVP9Profile3_Data_Xe2_Lpm_r0},
 #endif
 
@@ -412,7 +412,7 @@ static const ProfileMap profileMap_Xe2_Lpm_r0
     {VAProfileAV1Profile0, &entrypointMap_VAProfileAV1Profile0_Xe2_Lpm_r0},
 #endif
 
-#if defined(_VP9_ENCODE_VDENC_SUPPORTED) || defined(_VP9_DECODE_SUPPORTED)
+#if (defined(_VP9_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)) || defined(_VP9_DECODE_SUPPORTED)
     {VAProfileVP9Profile3, &entrypointMap_VAProfileVP9Profile3_Xe2_Lpm_r0},
     {VAProfileVP9Profile2, &entrypointMap_VAProfileVP9Profile2_Xe2_Lpm_r0},
     {VAProfileVP9Profile1, &entrypointMap_VAProfileVP9Profile1_Xe2_Lpm_r0},
