@@ -198,6 +198,10 @@ MOS_STATUS DecodePipeline::Initialize(void *settings)
     m_delayMiliseconds = ReadUserFeature(m_userSettingPtr, "Delay Miliseconds", MediaUserSetting::Group::Sequence).Get<uint32_t>();
 #endif
 
+#if MHW_HWCMDPARSER_ENABLED
+    mhw::HwcmdParser::InitInstance(m_osInterface, mhw::HwcmdParser::AddOnMode::NoAddOn);
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -291,6 +295,15 @@ MOS_STATUS DecodePipeline::Prepare(void *params)
     DECODE_CHK_STATUS(m_subPacketManager->Prepare());
 
     DECODE_CHK_STATUS(Mos_Solo_SetGpuAppTaskEvent(m_osInterface, decodeParams->m_gpuAppTaskEvent));
+
+#if MHW_HWCMDPARSER_ENABLED
+    auto instance = mhw::HwcmdParser::GetInstance();
+    if (instance)
+    {
+        // use I as default frame type
+        instance->Update('I', (void *)m_featureManager, mhw::HwcmdParser::WorkloadType::Decode);
+    }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
