@@ -221,7 +221,9 @@ protected:
     MOS_STATUS InitKrnParams(L0_FC_KERNEL_PARAMS &krnParam, SwFilterPipe &executingPipe);
     MOS_STATUS InitLayer(SwFilterPipe &executingPipe, bool isInputPipe, int index, VPHAL_SCALING_MODE defaultScalingMode, L0_FC_LAYER_PARAM &layer);
     MOS_STATUS InitCompParam(SwFilterPipe &executingPipe, L0_FC_COMP_PARAM &compParam);
-
+    MOS_STATUS GenerateFc420PL3InputParam(L0_FC_LAYER_PARAM &inputLayersParam, uint32_t index, L0_FC_KERNEL_PARAM &param);
+    MOS_STATUS SetupSingleFc420PL3InputBti(uint32_t uIndex, uint32_t layIndex, SURFACE_PARAMS &surfaceParam, bool &bInit);
+    MOS_STATUS SetupSingleFc420PL3InputKrnArg(uint32_t srcSurfaceWith, uint32_t srcSurfaceHeight, uint32_t lumaChannelIndices, uint32_t chromaChannelIndices[4], uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit);
     MOS_STATUS GenerateFcCommonKrnParam(L0_FC_COMP_PARAM &compParam, L0_FC_KERNEL_PARAM &param);
     MOS_STATUS SetupSingleFcCommonKrnArg(uint32_t layerNum, std::vector<L0_FC_KRN_IMAGE_PARAM> &imageParams, L0_FC_KRN_TARGET_PARAM &targetParam, uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit);
     MOS_STATUS SetupSingleFcCommonBti(uint32_t uIndex, const L0_FC_COMP_PARAM &compParam, SURFACE_PARAMS &surfaceParam, bool &bInit);
@@ -239,6 +241,7 @@ protected:
     MOS_STATUS ConvertScalingRotToKrnParam(RECT &rcSrc, RECT &rcDst, VPHAL_SCALING_MODE scalingMode, uint32_t inputWidth, uint32_t inputHeight, VPHAL_ROTATION rotation, L0_FC_KRN_SCALE_PARAM &scaling, uint8_t &samplerType, L0_FC_KRN_COORD_SHIFT_PARAM &coordShift);
     MOS_STATUS ConvertRotationToKrnParam(VPHAL_ROTATION rotation, float strideX, float strideY, float startLeft, float startRight, float startTop, float startBottom, L0_FC_KRN_SCALE_PARAM &scaling);
     MOS_STATUS ConvertChromaUpsampleToKrnParam(MOS_FORMAT format, uint32_t chromaSitingLoc, VPHAL_SCALING_MODE scalingMode, uint32_t inputWidth, uint32_t inputHeight, float &chromaShiftX, float &chromaShiftY, uint8_t &isChromaShift);
+    MOS_STATUS ConvertInputSingleChannelIndexToKrnParam(MOS_FORMAT format, uint32_t &inputChannelIndex);
     MOS_STATUS ConvertInputChannelIndicesToKrnParam(MOS_FORMAT format, uint32_t* inputChannelIndices);
     MOS_STATUS ConvertPlaneNumToKrnParam(MOS_FORMAT format, bool isInput, uint32_t &planeNum);
     MOS_STATUS ConvertBlendingToKrnParam(VPHAL_BLENDING_PARAMS &blend, uint8_t &ignoreSrcPixelAlpha, uint8_t &ignoreDstPixelAlpha, float &constAlpha);
@@ -272,6 +275,7 @@ protected:
 
     //to avoid duplicate allocate and free
     KERNEL_INDEX_ARG_MAP m_fcCommonKrnArgs;
+    KERNEL_INDEX_ARG_MAP m_fc420PL3InputKrnArgs;
     KERNEL_INDEX_ARG_MAP m_fcFastExpressKrnArgs;
     KERNEL_INDEX_ARG_MAP m_fc444PL3InputKrnArgs;
     

@@ -4292,12 +4292,16 @@ MOS_STATUS RenderHal_GetPlaneDefinitionForCommonMessage(
     case Format_Y410:
     case Format_P210:
     case Format_P216:
+    case Format_I420:
     case Format_R5G6B5:
     case Format_R8G8B8:
     case Format_RGBP:
     case Format_BGRP:
     case Format_444P:
         //already handled rightly in normal non-adv GetPlaneDefinition
+        break;
+    case Format_YV12:
+        planeDefinition = RENDERHAL_PLANES_PL3;
         break;
     case Format_NV12:
         if (pParam->combineChannelY)

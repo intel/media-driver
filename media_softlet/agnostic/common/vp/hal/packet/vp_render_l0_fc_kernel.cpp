@@ -45,6 +45,9 @@ VpRenderL0FcKernel::VpRenderL0FcKernel(PVP_MHWINTERFACE hwInterface, VpKernelID 
     case kernelL0Fc444PL3Input:
         m_kernelName = "ImageRead_fc_444PL3_input";
         break;
+    case kernelL0Fc420PL3Input:
+        m_kernelName = "ImageRead_fc_420PL3_input";
+        break;
     default:
         m_kernelName.assign("");
         VP_RENDER_ASSERTMESSAGE("Kernel ID cannot map to Kernel Name");
@@ -319,7 +322,6 @@ MOS_STATUS VpRenderL0FcKernel::SetupSurfaceState()
                                                m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface)))
                                               .DwordValue;
         pRenderSurfaceParams->Component = COMPONENT_VPCommon;
-        
         if (m_kernelId == kernelL0FcCommon ||
             m_kernelId == kernelL0FcFP)
         {
@@ -328,7 +330,7 @@ MOS_STATUS VpRenderL0FcKernel::SetupSurfaceState()
             kernelSurfaceParam.surfaceOverwriteParams.width                = MOS_MIN(static_cast<uint16_t>(surf->second->osSurface->dwWidth), static_cast<uint16_t>(surf->second->rcSrc.right));
             kernelSurfaceParam.surfaceOverwriteParams.height               = MOS_MIN(static_cast<uint16_t>(surf->second->osSurface->dwHeight), static_cast<uint16_t>(surf->second->rcSrc.bottom));
         }
-        
+
         if (surfHandle->second.needVerticalStirde)
         {
             switch (surf->second->SampleType)
