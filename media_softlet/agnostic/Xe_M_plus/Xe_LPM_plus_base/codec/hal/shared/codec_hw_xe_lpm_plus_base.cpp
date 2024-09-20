@@ -28,7 +28,6 @@
 
 #include "codec_hw_xe_lpm_plus_base.h"
 #include "mhw_vdbox_xe_lpm_plus_base.h"
-#include "mhw_vdbox_huc_hwcmd_xe_lpm_plus.h"
 
 // Currently initialized with dummy values, just as an example. Will be updated later.
 const CODECHAL_SSEU_SETTING CodechalHwInterfaceXe_Lpm_Plus_Base::m_defaultSsEuLutXeLpmPlus[CODECHAL_NUM_MEDIA_STATES_XE_LPM_PLUS_BASE] =
