@@ -103,11 +103,9 @@ cmake_dependent_option(PVC
 
 option(MTL "Enable MTL support" ON)
 
-cmake_dependent_option(ARL
-    "Enable ARL support" ON
-    "MTL" OFF)
+option(ARL "Enable ARL support" ON)
 
-if(MTL)
+if(MTL OR ARL)
     option(XE_LPM_PLUS_SUPPORT "Enable XE_LPM_PLUS support" ON)
     option(XE_LPG "Enable XE_LPG support" ON)
 endif()
