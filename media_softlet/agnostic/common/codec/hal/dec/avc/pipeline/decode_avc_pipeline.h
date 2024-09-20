@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -135,6 +135,14 @@ protected:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS CreateSubPackets(DecodeSubPacketManager& subPacketManager, CodechalSetting &codecSettings) override;
+    
+    //!
+    //! \brief  Copy decode dest surface to downsampling input surface if
+    //!         a explicit copy needed for non downsampling platforms
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS HandleRefOnlySurfaces();
 
 #if USE_CODECHAL_DEBUG_TOOL
     MOS_STATUS DumpPicParams(

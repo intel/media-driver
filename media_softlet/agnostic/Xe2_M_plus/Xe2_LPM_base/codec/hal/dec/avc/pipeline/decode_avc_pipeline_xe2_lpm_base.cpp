@@ -251,22 +251,8 @@ MOS_STATUS AvcPipelineXe2_Lpm_Base::Execute()
             DECODE_CHK_STATUS(InitContext());
             DECODE_CHK_STATUS(ActivateDecodePackets());
             DECODE_CHK_STATUS(ExecuteActivePackets());
-#ifdef _DECODE_PROCESSING_SUPPORTED
-            DecodeDownSamplingFeature *downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature *>(
-                m_featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
-            if (downSamplingFeature != nullptr)
-            {
-                if (downSamplingFeature->m_inputSurface != nullptr && downSamplingFeature->m_isReferenceOnlyPattern == true)
-                {
-                    //add copy between dest surface  and proc input surface
-                    m_osInterface->pfnDoubleBufferCopyResource(
-                        m_osInterface, 
-                        &m_basicFeature->m_destSurface.OsResource, 
-                        &downSamplingFeature->m_inputSurface->OsResource, 
-                        false);
-                }
-            }
-#endif
+            DECODE_CHK_STATUS(HandleRefOnlySurfaces());
+
 #if (_DEBUG || _RELEASE_INTERNAL)
             DECODE_CHK_STATUS(StatusCheck());
 #ifdef _MMC_SUPPORTED

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2022, Intel Corporation
+* Copyright (c) 2018-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -257,6 +257,26 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
+    MOS_STATUS AvcPipeline::HandleRefOnlySurfaces()
+    {
+        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+#ifdef _DECODE_PROCESSING_SUPPORTED
+        DecodeDownSamplingFeature *downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature *>(
+            m_featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
+        if (downSamplingFeature != nullptr)
+        {
+            if (downSamplingFeature->m_inputSurface != nullptr && downSamplingFeature->m_isReferenceOnlyPattern == true)
+            {
+                eStatus = m_osInterface->pfnDoubleBufferCopyResource(
+                            m_osInterface,
+                            &m_basicFeature->m_destSurface.OsResource,
+                            &downSamplingFeature->m_inputSurface->OsResource,
+                            false);
+            }
+        }
+#endif
+        return eStatus;
+    }
 #if USE_CODECHAL_DEBUG_TOOL
 MOS_STATUS AvcPipeline::DumpPicParams(
     PCODEC_AVC_PIC_PARAMS picParams)
