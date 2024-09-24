@@ -264,6 +264,9 @@ public:
         return m_pipeReused;
     }
 
+protected: 
+    void ReturnPacketPipeReused();
+
 protected:
     bool m_reusable = false;    // Current parameter can be reused.
     PacketPipe *m_pipeReused = nullptr;

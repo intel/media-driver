@@ -808,7 +808,7 @@ MOS_STATUS VpPacketReuseManager::PreparePacketPipeReuse(SwFilterPipe *&swFilterP
 
         if (m_pipeReused)
         {
-            m_packetPipeFactory.ReturnPacketPipe(m_pipeReused);
+            ReturnPacketPipeReused();
         }
 
         return MOS_STATUS_SUCCESS;
@@ -834,7 +834,7 @@ MOS_STATUS VpPacketReuseManager::PreparePacketPipeReuse(SwFilterPipe *&swFilterP
                 isPacketPipeReused = false;
                 if (m_pipeReused)
                 {
-                    m_packetPipeFactory.ReturnPacketPipe(m_pipeReused);
+                    ReturnPacketPipeReused();
                 }
                 return MOS_STATUS_SUCCESS;
             }
@@ -948,29 +948,7 @@ MOS_STATUS VpPacketReuseManager::PreparePacketPipeReuse(SwFilterPipe *&swFilterP
 
             m_TeamsPacket_reuse = false;
 
-            foundPipe = false;
-            for (index = 0; index < m_pipeReused_TeamsPacket.size(); index++)
-            {
-                auto pipeReuseHandle = m_pipeReused_TeamsPacket.find(index);
-                if (pipeReuseHandle != m_pipeReused_TeamsPacket.end() &&
-                    m_pipeReused == pipeReuseHandle->second)
-                {
-                    foundPipe = true;
-                    break;
-                }
-            }
-
-            if (foundPipe == false)
-            {
-                if (m_pipeReused)
-                {
-                    m_packetPipeFactory.ReturnPacketPipe(m_pipeReused);
-                }
-            }
-            else
-            {
-                m_pipeReused = nullptr;
-            }
+            ReturnPacketPipeReused();
 
             return MOS_STATUS_SUCCESS;
         }
@@ -1014,29 +992,7 @@ MOS_STATUS VpPacketReuseManager::PreparePacketPipeReuse(SwFilterPipe *&swFilterP
         // m_pipeReused will be udpated in UpdatePacketPipeConfig.
         VP_PUBLIC_NORMALMESSAGE("Packet cannot be reused.");
 
-        foundPipe = false;
-        for (index = 0; index < m_pipeReused_TeamsPacket.size(); index++)
-        {
-            auto pipeReuseHandle = m_pipeReused_TeamsPacket.find(index);
-            if (pipeReuseHandle != m_pipeReused_TeamsPacket.end() &&
-                m_pipeReused == pipeReuseHandle->second)
-            {
-                foundPipe = true;
-                break;
-            }
-        }
-
-        if (foundPipe == false)
-        {
-            if (m_pipeReused)
-            {
-                m_packetPipeFactory.ReturnPacketPipe(m_pipeReused);
-            }
-        }
-        else
-        {
-            m_pipeReused = nullptr;
-        }
+        ReturnPacketPipeReused();
 
         return MOS_STATUS_SUCCESS;
     }
@@ -1133,10 +1089,7 @@ MOS_STATUS VpPacketReuseManager::UpdatePacketPipeConfig(PacketPipe *&pipe)
 
     if (!m_TeamsPacket)
     {
-        if (m_pipeReused)
-        {
-            m_packetPipeFactory.ReturnPacketPipe(m_pipeReused);
-        }
+        ReturnPacketPipeReused();
     }
 
     m_pipeReused = pipe;
@@ -1146,3 +1099,21 @@ MOS_STATUS VpPacketReuseManager::UpdatePacketPipeConfig(PacketPipe *&pipe)
     return MOS_STATUS_SUCCESS;
 }
 
+void VpPacketReuseManager::ReturnPacketPipeReused()
+{
+    VP_FUNC_CALL();
+    if (nullptr == m_pipeReused)
+    {
+        return;
+    }
+    for (const auto &pair : m_pipeReused_TeamsPacket)
+    {
+        if (pair.second == m_pipeReused)
+        {
+            m_pipeReused = nullptr;
+            return;
+        }
+    }
+    m_packetPipeFactory.ReturnPacketPipe(m_pipeReused);
+    return;
+}
