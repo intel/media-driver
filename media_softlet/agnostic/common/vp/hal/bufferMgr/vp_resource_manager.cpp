@@ -1125,6 +1125,10 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
                 false,
                 IsDeferredResourceDestroyNeeded(),
                 MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER));
+
+            m_fcIntermediaSurfaceInput[i]->rcSrc      = inputSurfaces[i]->rcSrc;
+            m_fcIntermediaSurfaceInput[i]->rcDst      = inputSurfaces[i]->rcDst;
+            m_fcIntermediaSurfaceInput[i]->SampleType = inputSurfaces[i]->SampleType;
             surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcIntermediaInput + i), m_fcIntermediaSurfaceInput[i]));
         }
     }
