@@ -538,7 +538,10 @@ const MHW_VEBOX_SETTINGS g_Vebox_Settings =
         MHW_PAGE_SIZE,         //!< uiVertexTableSize
         MHW_PAGE_SIZE,         //!< uiCapturePipeStateSize
         MHW_PAGE_SIZE * 2,     //!< uiGammaCorrectionStateSize
-        MHW_PAGE_SIZE * 18     //!< uiHdrStateSize
+        MHW_PAGE_SIZE * 18,    //!< uiHdrStateSize
+#if (_DEBUG || _RELEASE_INTERNAL)
+        0                      //!< uiEngineDataSize
+#endif
 };
 
 enum MHW_VEBOX_INDEX

@@ -1946,7 +1946,9 @@ MOS_STATUS VpVeboxCmdPacket::RenderVeboxCmd(
         VP_RENDER_CHK_STATUS_RETURN(pRenderHal->pRenderHalPltInterface->AddPerfCollectStartCmd(pRenderHal, pOsInterface, pCmdBufferInUse));
 
         VP_RENDER_CHK_STATUS_RETURN(NullHW::StartPredicateNext(pOsInterface, m_miItf, pCmdBufferInUse));
-
+#if (_DEBUG || _RELEASE_INTERNAL)
+        VP_RENDER_CHK_STATUS_RETURN(StoreCSEngineIdRegMem(pCmdBufferInUse, pVeboxHeap));
+#endif
         // Add compressible info of input/output surface to log
         if (this->m_currentSurface && VeboxSurfaceStateCmdParams.pSurfOutput)
         {

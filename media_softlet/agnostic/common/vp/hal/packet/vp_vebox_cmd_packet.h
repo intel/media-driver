@@ -951,6 +951,14 @@ public:
     {
         return MOS_STATUS_SUCCESS;
     }
+
+    virtual MOS_STATUS StoreCSEngineIdRegMem(
+        MOS_COMMAND_BUFFER *cmdBuffer,
+        const MHW_VEBOX_HEAP *veboxHeap)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
 #endif
 
 protected:

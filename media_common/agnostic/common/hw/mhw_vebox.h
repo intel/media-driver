@@ -72,6 +72,11 @@
 //!
 #define MHW_MAX_VEBOX_STATES    16
 
+//!
+//! \brief  Vebox engine class ID value from https://gfxspecs.intel.com/Predator/Home/Index/60421
+//!
+#define MHW_VEBOX_ENGINE_CLASS_ID    2
+
 #define MHW_PI                     3.14159265358979324f         //!< Definition the const pi
 
 //!
@@ -859,12 +864,26 @@ typedef struct _MHW_VEBOX_SURFACE_CNTL_PARAMS
 } MHW_VEBOX_SURFACE_CNTL_PARAMS, *PMHW_VEBOX_SURFACE_CNTL_PARAMS;
 
 //!
+//! \brief  VEBOX Engine ID data struct in accordance with CommandStreamEngineIDDefintionRegister
+//!
+typedef struct _MHW_VEBOX_ENGINE_DATA
+{
+    uint32_t       classId            : 3;
+    uint32_t       reserved1          : 1;
+    uint32_t       instanceId         : 6;
+    uint32_t       reserved2          : 22;
+} MHW_VEBOX_ENGINE_DATA, *PMHW_VEBOX_ENGINE_DATA;
+
+//!
 //! \brief  VEBOX Heap State Structure
 //!
 typedef struct _MHW_VEBOX_HEAP_STATE
 {
     bool        bBusy;                                      // true if the state is in use (must sync before use)
     uint32_t    dwSyncTag;                                  // Vebox heap state sync tag
+#if (_DEBUG || _RELEASE_INTERNAL)
+    volatile MHW_VEBOX_ENGINE_DATA   *engineData;           // Pointer to EngineIDDefintion Register data
+#endif
 } MHW_VEBOX_HEAP_STATE, *PMHW_VEBOX_HEAP_STATE;
 
 //!
@@ -882,6 +901,9 @@ typedef struct _MHW_VEBOX_HEAP
     uint32_t                uiCapturePipeStateOffset;                           // Capture Pipe state offset
     uint32_t                uiGammaCorrectionStateOffset;                       // Gamma Correction state offset
     uint32_t                uiHdrStateOffset;                                   // Hdr State offset
+#if (_DEBUG || _RELEASE_INTERNAL)
+    uint32_t                uiEngineDataOffset;                                 // Engine data Offset
+#endif
     uint32_t                uiInstanceSize;                                     // Size of single instance of VEBOX states
     uint32_t                uiStateHeapSize;                                    // Total size of VEBOX States heap
     PMHW_VEBOX_HEAP_STATE   pStates;                                            // Array of VEBOX Heap States
@@ -909,6 +931,9 @@ typedef struct
     uint32_t            uiCapturePipeStateSize;                                 // Capture Pipe State Size (Gen8+)
     uint32_t            uiGammaCorrectionStateSize;                             // Gamma Correction State Size (Gen9+)
     uint32_t            uiHdrStateSize;                                         // HDR State Size
+#if (_DEBUG || _RELEASE_INTERNAL)
+    uint32_t            uiEngineDataSize;                                       // Engine data Size
+#endif
 } MHW_VEBOX_SETTINGS, *PMHW_VEBOX_SETTINGS;
 typedef const MHW_VEBOX_SETTINGS CMHW_VEBOX_SETTINGS, *PCMHW_VEBOX_SETTINGS;
 

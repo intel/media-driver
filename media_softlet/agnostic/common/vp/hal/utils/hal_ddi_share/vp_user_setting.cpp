@@ -425,6 +425,20 @@ MOS_STATUS VpUserSetting::InitVpUserSetting(MediaUserSettingSharedPtr userSettin
         0,
         true);
 
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_ID_REPORT,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_USED_VEBOX_ID,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
 #endif
 
     return MOS_STATUS_SUCCESS;

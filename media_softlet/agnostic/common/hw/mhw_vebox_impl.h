@@ -191,6 +191,9 @@ public:
 
         if (m_veboxHeap)
         {
+#if (_DEBUG || _RELEASE_INTERNAL)
+            ReportVeboxId();
+#endif
             if (!Mos_ResourceIsNull(&m_veboxHeap->DriverResource))
             {
                 if (m_veboxHeap->pLockedDriverResourceMem)
@@ -273,7 +276,13 @@ public:
 
         m_veboxHeap->uiHdrStateOffset = uiOffset;
         uiOffset += m_veboxSettings.uiHdrStateSize;
-
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_veboxIdReportEnabled)
+        {
+            m_veboxHeap->uiEngineDataOffset = uiOffset;
+            uiOffset += m_veboxSettings.uiEngineDataSize;
+        }
+#endif
         m_veboxHeap->uiInstanceSize = uiOffset;
 
         // Appending VeboxHeap sync data after all vebox heap instances
@@ -570,8 +579,24 @@ public:
         pVeboxHeap->uiNextState = (pVeboxHeap->uiNextState + 1) %
             (m_veboxSettings.uiNumInstances);
 
-        //Clean the memory of current veboxheap to avoid the history states
         uiOffset = pVeboxHeap->uiCurState * pVeboxHeap->uiInstanceSize;
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_veboxIdReportEnabled)
+        {
+            if (pVeboxCurState->engineData && MHW_VEBOX_ENGINE_CLASS_ID ==(*pVeboxCurState->engineData).classId)
+            {
+                // Record old engine instance id before memory clearance when reusing heap state
+                m_usedVeboxID |= 1 << (*pVeboxCurState->engineData).instanceId;
+            }
+            if (nullptr == pVeboxCurState->engineData)
+            {
+                pVeboxCurState->engineData =
+                    (MHW_VEBOX_ENGINE_DATA*)(pVeboxHeap->pLockedDriverResourceMem + uiOffset +
+                        pVeboxHeap->uiEngineDataOffset);
+            }
+        }
+#endif
+        //Clean the memory of current veboxheap to avoid the history states
         MOS_ZeroMemory(pVeboxHeap->pLockedDriverResourceMem + uiOffset, pVeboxHeap->uiInstanceSize);
 
         return eStatus;
@@ -864,6 +889,34 @@ public:
 
         return eStatus;
     }
+
+    bool IsVeboxIdReportEnabled() override
+    {
+        return m_veboxIdReportEnabled;
+    }
+
+    MOS_STATUS ReportVeboxId() override
+    {
+        if (m_veboxIdReportEnabled)
+        {
+            MHW_CHK_NULL_RETURN(m_veboxHeap);
+            MHW_CHK_NULL_RETURN(m_veboxHeap->pStates);
+            for (uint32_t index = 0; index < m_veboxSettings.uiNumInstances; index++)
+            {
+                const MHW_VEBOX_HEAP_STATE &curInstance = m_veboxHeap->pStates[index];
+                if (curInstance.engineData && MHW_VEBOX_ENGINE_CLASS_ID == (*curInstance.engineData).classId)
+                {
+                    m_usedVeboxID |= 1 << (*curInstance.engineData).instanceId;
+                }
+            }
+            ReportUserSettingForDebug(
+                m_userSettingPtr,
+                __MEDIA_USER_FEATURE_VALUE_USED_VEBOX_ID,
+                m_usedVeboxID,
+                MediaUserSetting::Group::Sequence);
+        }
+        return MOS_STATUS_SUCCESS;
+    }
 #endif
 
     MOS_STATUS VeboxAdjustBoundary(
@@ -1044,7 +1097,10 @@ protected:
     MHW_VEBOX_GAMUT_PARAMS  m_veboxGamutParams = {};
 
     int                    m_veboxHeapInUse = 0;
-
+#if (_DEBUG || _RELEASE_INTERNAL)
+    bool                   m_veboxIdReportEnabled = false;
+    uint32_t               m_usedVeboxID = 0;
+#endif
 MEDIA_CLASS_DEFINE_END(mhw__vebox__Impl)
 };
 }  // namespace render
