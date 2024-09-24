@@ -51,11 +51,6 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    virtual bool IsKernelCached() override
-    {
-        return true;
-    }
-
 protected:
     virtual MOS_STATUS SetupSurfaceState() override;
     virtual MOS_STATUS SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, bool bSyncFlag, bool flushL1 = false);

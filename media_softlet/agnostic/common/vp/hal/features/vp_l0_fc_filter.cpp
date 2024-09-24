@@ -91,17 +91,24 @@ MOS_STATUS VpL0FcFilter::Destroy()
         KRN_ARG &krnArg = handle.second;
         MOS_FreeMemAndSetNull(krnArg.pData);
     }
-    for (auto &handle : m_fc420PL3InputKrnArgs)
+    for (std::pair<const uint32_t, KERNEL_INDEX_ARG_MAP> &singleLayerHandle : m_fc420PL3InputMultiLayersKrnArgs)
     {
-        KRN_ARG &krnArg = handle.second;
-        MOS_FreeMemAndSetNull(krnArg.pData);
+        KERNEL_INDEX_ARG_MAP &krnArgs = singleLayerHandle.second;
+        for (auto &handle : krnArgs)
+        {
+            KRN_ARG &krnArg = handle.second;
+            MOS_FreeMemAndSetNull(krnArg.pData);
+        }
     }
-    for (auto &handle : m_fc444PL3InputKrnArgs)
-    { 
-        KRN_ARG &krnArg = handle.second;
-        MOS_FreeMemAndSetNull(krnArg.pData);
+    for (std::pair<const uint32_t, KERNEL_INDEX_ARG_MAP> &singleLayerHandle : m_fc444PL3InputMultiLayersKrnArgs)
+    {
+        KERNEL_INDEX_ARG_MAP &krnArgs = singleLayerHandle.second;
+        for (auto &handle : krnArgs)
+        {
+            KRN_ARG &krnArg = handle.second;
+            MOS_FreeMemAndSetNull(krnArg.pData);
+        }
     }
-
     return MOS_STATUS_SUCCESS;
 }
 
@@ -214,16 +221,24 @@ MOS_STATUS VpL0FcFilter::GenerateFc420PL3InputParam(L0_FC_LAYER_PARAM &inputLaye
     VP_PUBLIC_CHK_NOT_FOUND_RETURN(handle, &m_pvpMhwInterface->m_vpPlatformInterface->GetKernelPool());
     KERNEL_BTIS kernelBtis = handle->second.GetKernelBtis();
     KERNEL_ARGS kernelArgs = handle->second.GetKernelArgs();
+    auto        argLayerHandle = m_fc420PL3InputMultiLayersKrnArgs.find(index);
+    if (argLayerHandle == m_fc420PL3InputMultiLayersKrnArgs.end())
+    {
+        KERNEL_INDEX_ARG_MAP fc420PL3InputSingleLayerKrnArgs = {};
+        argLayerHandle = m_fc420PL3InputMultiLayersKrnArgs.insert(std::make_pair(index, fc420PL3InputSingleLayerKrnArgs)).first;
+        VP_PUBLIC_CHK_NOT_FOUND_RETURN(argLayerHandle, &m_fc420PL3InputMultiLayersKrnArgs);
+    }
+    KERNEL_INDEX_ARG_MAP &fc420PL3InputKrnArgs = argLayerHandle->second;
 
     for (auto const &kernelArg : kernelArgs)
     {
         uint32_t uIndex    = kernelArg.uIndex;
-        auto     argHandle = m_fc420PL3InputKrnArgs.find(uIndex);
-        if (argHandle == m_fc420PL3InputKrnArgs.end())
+        auto     argHandle = fc420PL3InputKrnArgs.find(uIndex);
+        if (argHandle == fc420PL3InputKrnArgs.end())
         {
             KRN_ARG krnArg = {};
-            argHandle      = m_fc420PL3InputKrnArgs.insert(std::make_pair(uIndex, krnArg)).first;
-            VP_PUBLIC_CHK_NOT_FOUND_RETURN(argHandle, &m_fc420PL3InputKrnArgs);
+            argHandle      = fc420PL3InputKrnArgs.insert(std::make_pair(uIndex, krnArg)).first;
+            VP_PUBLIC_CHK_NOT_FOUND_RETURN(argHandle, &fc420PL3InputKrnArgs);
         }
         KRN_ARG &krnArg = argHandle->second;
         bool     bInit  = true;
@@ -293,15 +308,24 @@ MOS_STATUS VpL0FcFilter::GenerateFc444PL3InputParam(L0_FC_LAYER_PARAM &layer, ui
 
     VP_PUBLIC_CHK_STATUS_RETURN(ConvertInputChannelIndicesToKrnParam(layer.surf->osSurface->Format, inputChannelIndices));
     VP_PUBLIC_CHK_STATUS_RETURN(ConvertOuputChannelIndicesToKrnParam(layer.interMediaOverwriteSurface, outputChannelIndices));
+    auto argLayerHandle = m_fc444PL3InputMultiLayersKrnArgs.find(layerIndex);
+    if (argLayerHandle == m_fc444PL3InputMultiLayersKrnArgs.end())
+    {
+        KERNEL_INDEX_ARG_MAP fc444PL3InputSingleLayerKrnArgs = {};
+        argLayerHandle = m_fc444PL3InputMultiLayersKrnArgs.insert(std::make_pair(layerIndex, fc444PL3InputSingleLayerKrnArgs)).first;
+        VP_PUBLIC_CHK_NOT_FOUND_RETURN(argLayerHandle, &m_fc420PL3InputMultiLayersKrnArgs);
+    }
+    KERNEL_INDEX_ARG_MAP &fc444PL3InputKrnArgs = argLayerHandle->second;
+
     for (auto const &kernelArg : kernelArgs)
     {
         uint32_t uIndex    = kernelArg.uIndex;
-        auto     argHandle = m_fc444PL3InputKrnArgs.find(uIndex);
-        if (argHandle == m_fc444PL3InputKrnArgs.end())
+        auto     argHandle = fc444PL3InputKrnArgs.find(uIndex);
+        if (argHandle == fc444PL3InputKrnArgs.end())
         {
             KRN_ARG krnArg = {};
-            argHandle      = m_fc444PL3InputKrnArgs.insert(std::make_pair(uIndex, krnArg)).first;
-            VP_PUBLIC_CHK_NOT_FOUND_RETURN(argHandle, &m_fc444PL3InputKrnArgs);
+            argHandle      = fc444PL3InputKrnArgs.insert(std::make_pair(uIndex, krnArg)).first;
+            VP_PUBLIC_CHK_NOT_FOUND_RETURN(argHandle, &fc444PL3InputKrnArgs);
         }
         KRN_ARG &krnArg = argHandle->second;
         bool     bInit  = true;

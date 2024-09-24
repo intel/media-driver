@@ -275,9 +275,9 @@ protected:
 
     //to avoid duplicate allocate and free
     KERNEL_INDEX_ARG_MAP m_fcCommonKrnArgs;
-    KERNEL_INDEX_ARG_MAP m_fc420PL3InputKrnArgs;
     KERNEL_INDEX_ARG_MAP m_fcFastExpressKrnArgs;
-    KERNEL_INDEX_ARG_MAP m_fc444PL3InputKrnArgs;
+    MULTI_LAYERS_KERNEL_INDEX_ARG_MAP m_fc420PL3InputMultiLayersKrnArgs;
+    MULTI_LAYERS_KERNEL_INDEX_ARG_MAP m_fc444PL3InputMultiLayersKrnArgs;
     
 MEDIA_CLASS_DEFINE_END(vp__VpL0FcFilter)
 };
