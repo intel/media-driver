@@ -121,7 +121,7 @@ MOS_STATUS VpPlatformInterfacsXe2_Lpm::InitVpRenderHwCaps()
         // Init native adv kernel form VP Native adv kernel Binary List
         for (auto &curKernelEntry : m_vpNativeAdvKernelBinaryList)
         {
-            VP_PUBLIC_CHK_STATUS_RETURN(InitVpNativeAdvKernels(curKernelEntry.first, curKernelEntry.second));
+            InitVpNativeAdvKernels(curKernelEntry.first, curKernelEntry.second);
         }
     }
     return MOS_STATUS_SUCCESS;

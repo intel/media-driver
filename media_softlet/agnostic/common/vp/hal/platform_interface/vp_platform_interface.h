@@ -180,7 +180,7 @@ public:
         std::string           postfix = "",
         uint32_t              payloadOffset = CM_PAYLOAD_OFFSET);
 
-    virtual MOS_STATUS InitVpNativeAdvKernels(
+    virtual void InitVpNativeAdvKernels(
         std::string kernelName,
         VP_KERNEL_BINARY_ENTRY kernelBinaryEntry);
 

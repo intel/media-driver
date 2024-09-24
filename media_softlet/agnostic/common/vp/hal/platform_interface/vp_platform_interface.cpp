@@ -339,13 +339,13 @@ MOS_STATUS VpPlatformInterface::InitVpRenderHwCaps()
         // Init native adv kernel form VP Native adv kernel Binary List
         for (auto &curKernelEntry : m_vpNativeAdvKernelBinaryList)
         {
-            VP_PUBLIC_CHK_STATUS_RETURN(InitVpNativeAdvKernels(curKernelEntry.first, curKernelEntry.second));
+            InitVpNativeAdvKernels(curKernelEntry.first, curKernelEntry.second);
         }
     }
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpPlatformInterface::InitVpNativeAdvKernels(
+void VpPlatformInterface::InitVpNativeAdvKernels(
     std::string            kernelName,
     VP_KERNEL_BINARY_ENTRY kernelBinaryEntry)
 {
@@ -359,7 +359,7 @@ MOS_STATUS VpPlatformInterface::InitVpNativeAdvKernels(
     vpKernel.SetKernelBinSize(kernelBinaryEntry.kernelBinSize);
     m_kernelPool.insert(std::make_pair(vpKernel.GetKernelName(), vpKernel));
 
-    return MOS_STATUS_SUCCESS;
+    return;
 }
 
 MOS_STATUS VpPlatformInterface::InitVpCmKernels(
