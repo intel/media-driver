@@ -198,9 +198,8 @@ enum CODECHAL_MODE
     CODECHAL_ENCODE_MODE_HEVC               = 38,
     CODECHAL_ENCODE_MODE_VP9                = 39,
     CODECHAL_ENCODE_MODE_AV1                = 40,
-    CODECHAL_ENCODE_MODE_END                = 41,
-
-    CODECHAL_Rsvd                           = 64,
+    CODECHAL_Rsvd                           = 41,
+    CODECHAL_ENCODE_MODE_END                = 42,
 
     CODECHAL_UNSUPPORTED_MODE               = 96
 };
