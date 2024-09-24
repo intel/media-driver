@@ -2252,11 +2252,11 @@ MOS_STATUS VpL0FcFilter::SetPerfTag(L0_FC_COMP_PARAM& compParam, VPHAL_PERFTAG& 
     }
     if (rotation)
     {
-        perfTag = VPHAL_PERFTAG(VPHAL_ROT + compParam.layerNumber);
+        perfTag = VPHAL_PERFTAG(VPHAL_ROT + compParam.layerNumber - 1);
     }
     else if (primary)
     {
-        perfTag = VPHAL_PERFTAG(VPHAL_PRI + compParam.layerNumber);
+        perfTag = VPHAL_PERFTAG(VPHAL_PRI + compParam.layerNumber - 1);
     }
     else
     {
@@ -2512,6 +2512,12 @@ void VpL0FcFilter::ReportDiffLog(const L0_FC_COMP_PARAM &compParam)
             {
                 //fixed alpha not used in legacy FC
                 reportLog |= (1llu << 7);
+            }
+
+            if (format == Format_R5G6B5)
+            {
+                //legacy FC will drop (16 - 5/6/5) of LSB
+                reportLog |= (1llu << 8);
             }
         }
     }
