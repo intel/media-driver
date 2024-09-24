@@ -460,18 +460,6 @@ MOS_STATUS EncodeHevcVdencConstSettings::PrepareConstSettings()
             m_hevcVdencRoundingPrecisionEnabled,
             MediaUserSetting::Group::Sequence);
 #endif
-/*
-        MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-        MOS_UserFeature_ReadValue_ID(
-            nullptr,
-            __MEDIA_USER_FEATURE_VALUE_HEVC_RDO_ENABLE_ID,
-            &userFeatureData,
-            m_osItf->pOsContext);
-        m_hevcRdoqEnabled = (userFeatureData.i32Data) ? true : false;
-#if (_DEBUG || _RELEASE_INTERNAL)
-        WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_HEVC_RDO_ENABLE_ID, m_hevcRdoqEnabled, m_osItf->pOsContext);
-#endif
-*/
     }
 
     return MOS_STATUS_SUCCESS;
