@@ -445,6 +445,26 @@ public:
 
     static bool IsVerticalRotation(VPHAL_ROTATION rotation);
 
+    //!
+    //! \brief    Performs Color Space Convert for Sample Pixel
+    //! \details  Performs Color Space Convert from Src Color Spase to Dst Color Spase
+    //! \param    [out] pOutput
+    //!           Pointer to float
+    //! \param    [in] pInput
+    //!           Pointer to VPHAL_COLOR_SAMPLE_8
+    //! \param    [in] srcCspace
+    //!           Source Color Space
+    //! \param    [in] dstCspace
+    //!           Dest Color Space
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful
+    //!
+    static MOS_STATUS GetPixelWithCSCForColorFill(
+        VPHAL_COLOR_SAMPLE_8 &input,
+        float                 output[4],
+        VPHAL_CSPACE          srcCspace,
+        VPHAL_CSPACE          dstCspace);
+
 private:
     //!
     //! \brief    Performs Color Space Convert for Sample 8 bit Using Specified Coeff Matrix

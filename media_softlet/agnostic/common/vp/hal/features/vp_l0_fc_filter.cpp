@@ -35,6 +35,24 @@
 namespace vp
 {
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    enum class L0FcDiffReportShift
+    {
+        BilinearScaling          = 0,   // bilinear scaling shift difference
+        MediaSpecificSampler     = 1,   //1 plane and 2 plane surface state read difference
+        Format400PRead           = 2,   //400P has issue on legacy FC even with nearest sampler
+        Rotation                 = 3,   //rotation shift place is different with legacy FC
+        Procamp                  = 4,   //procamp is not enabled
+        LumaKey                  = 5,   //luma key cases will have difference for float(L0FC) vs int(FC)
+        ChromasittingOn422Packed = 6,   //422 packed no chromasiting on legacy FC
+        FixedAlpha               = 7,   //fixed alpha not used in legacy FC
+        FormatRGB565Write        = 8,   //legacy FC will drop (16 - 5/6/5) of LSB
+        BT2020ColorFill          = 9,   //legacy didn't support color fill w/ BT2020 as target color space. It will use black or green as background in legacy case
+        FastExpress              = 16,  //walked into fastexpress path
+        L0FcEnabled              = 31   //actually walked into L0 FC. Always set to 1 when L0 FC Filter take effect. "L0 FC Enabled" may be 1 but not walked into L0 FC, cause it may fall back in wrapper class
+    };
+#endif
+
 VpL0FcFilter::VpL0FcFilter(PVP_MHWINTERFACE vpMhwInterface) : VpFilter(vpMhwInterface)
 {
 }
@@ -1834,33 +1852,9 @@ MOS_STATUS VpL0FcFilter::ConvertColorFillToKrnParam(bool enableColorFill, VPHAL_
     isColorFill = enableColorFill;
     if (enableColorFill)
     {
-        MEDIA_CSPACE         srcCspace = colorFillParams.CSpace;
-        VPHAL_COLOR_SAMPLE_8 srcColor  = {};
-        VPHAL_COLOR_SAMPLE_8 dstColor  = {};
-        srcColor.dwValue               = colorFillParams.Color;
-        if (!VpUtils::GetCscMatrixForRender8Bit(&dstColor, &srcColor, srcCspace, dstCspace))
-        {
-            VP_PUBLIC_ASSERTMESSAGE("Color fill covert fail. srcCspace %d, dstCspace %d", srcCspace, dstCspace);
-        }
-        else
-        {
-            VP_PUBLIC_NORMALMESSAGE("Color fill background covert from srcCspace %d to dstCspace %d", srcCspace, dstCspace);
-        }
-
-        if ((dstCspace == CSpace_sRGB) || (dstCspace == CSpace_stRGB) || IS_COLOR_SPACE_BT2020_RGB(dstCspace))
-        {
-            background[0] = (float)dstColor.R / 255;
-            background[1] = (float)dstColor.G / 255;
-            background[2] = (float)dstColor.B / 255;
-            background[3] = (float)dstColor.A / 255;
-        }
-        else
-        {
-            background[0] = (float)dstColor.Y / 255;
-            background[1] = (float)dstColor.U / 255;
-            background[2] = (float)dstColor.V / 255;
-            background[3] = (float)dstColor.a / 255;
-        }
+        VPHAL_COLOR_SAMPLE_8 srcColor = {};
+        srcColor.dwValue              = colorFillParams.Color;
+        VP_PUBLIC_CHK_STATUS_RETURN(VpUtils::GetPixelWithCSCForColorFill(srcColor, background, colorFillParams.CSpace, dstCspace));
     }
 
     return MOS_STATUS_SUCCESS;
@@ -2450,37 +2444,37 @@ void VpL0FcFilter::ReportDiffLog(const L0_FC_COMP_PARAM &compParam)
                 if (layer.scalingMode == VPHAL_SCALING_BILINEAR)
                 {
                     // bilinear scaling shift difference
-                    reportLog |= (1llu << 0);
+                    reportLog |= (1llu << int(L0FcDiffReportShift::BilinearScaling));
                     if (format == Format_NV12 ||
                         format == Format_P010 ||
                         format == Format_P016)
                     {
                         //1 plane and 2 plane surface state read difference
-                        reportLog |= (1llu << 1);
+                        reportLog |= (1llu << int(L0FcDiffReportShift::MediaSpecificSampler));
                     }
                 }
 
                 if (format == Format_400P)
                 {
                     //400P has issue on legacy FC even with nearest sampler
-                    reportLog |= (1llu << 2);
+                    reportLog |= (1llu << int(L0FcDiffReportShift::Format400PRead));
                 }
             }   
         }
         if (layer.rotation != VPHAL_ROTATION_IDENTITY)
         {
             //rotation shift place is different with legacy FC
-            reportLog |= (1llu << 3);
+            reportLog |= (1llu << int(L0FcDiffReportShift::Rotation));
         }
         if (layer.diParams.enabled || layer.procampParams.bEnabled)
         {
-            //di and procamp is not enabled
-            reportLog |= (1llu << 4);
+            //procamp is not enabled
+            reportLog |= (1llu << int(L0FcDiffReportShift::Procamp));
         }
         if (layer.lumaKey.enabled)
         {
             //luma key cases will have difference for float(L0FC) vs int(FC)
-            reportLog |= (1llu << 5);
+            reportLog |= (1llu << int(L0FcDiffReportShift::LumaKey));
         }
     }
 
@@ -2500,7 +2494,7 @@ void VpL0FcFilter::ReportDiffLog(const L0_FC_COMP_PARAM &compParam)
                 targetSurf->ChromaSiting & CHROMA_SITING_HORZ_CENTER)
             {
                 //422 packed no chromasiting on legacy FC
-                reportLog |= (1llu << 6);
+                reportLog |= (1llu << int(L0FcDiffReportShift::ChromasittingOn422Packed));
             }
 
             if ((format == Format_A8R8G8B8 ||
@@ -2511,23 +2505,29 @@ void VpL0FcFilter::ReportDiffLog(const L0_FC_COMP_PARAM &compParam)
                 compParam.compAlpha.AlphaMode == VPHAL_ALPHA_FILL_MODE_OPAQUE)
             {
                 //fixed alpha not used in legacy FC
-                reportLog |= (1llu << 7);
+                reportLog |= (1llu << int(L0FcDiffReportShift::FixedAlpha));
             }
 
             if (format == Format_R5G6B5)
             {
                 //legacy FC will drop (16 - 5/6/5) of LSB
-                reportLog |= (1llu << 8);
+                reportLog |= (1llu << int(L0FcDiffReportShift::FormatRGB565Write));
             }
+        }
+        if (compParam.enableColorFill &&
+            IS_COLOR_SPACE_BT2020(targetSurf->ColorSpace))
+        {
+            //legacy didn't support color fill w/ BT2020 as target color space. It will use black or green as background in legacy case
+            reportLog |= (1llu << int(L0FcDiffReportShift::BT2020ColorFill));
         }
     }
     if (FastExpressConditionMeet(compParam))
     {
-        reportLog |= (1llu << 16);
+        reportLog |= (1llu << int(L0FcDiffReportShift::FastExpress));
     }
 
     //actually walked into L0 FC. Always set to 1 when L0 FC Filter take effect. "L0 FC Enabled" may be 1 but not walked into L0 FC, cause it may fall back in wrapper class
-    reportLog |= (1llu << 31);
+    reportLog |= (1llu << int(L0FcDiffReportShift::L0FcEnabled));
 
     VP_PUBLIC_NORMALMESSAGE("L0FC vs FC Difference Report Log: 0x%x", reportLog);
 #endif

@@ -20,6 +20,7 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include <cmath>
 #include "vp_utils.h"
 #include "vp_common.h"
 #include "hal_kerneldll_next.h"
@@ -406,4 +407,132 @@ bool VpUtils::GetCscMatrixForRender8BitWithCoeff(
     }
 
     return bResult;
+}
+
+MOS_STATUS VpUtils::GetPixelWithCSCForColorFill(
+    VPHAL_COLOR_SAMPLE_8 &input,
+    float                 output[4],
+    VPHAL_CSPACE          srcCspace,
+    VPHAL_CSPACE          dstCspace)
+{
+    VPHAL_COLOR_SAMPLE_8 dstColor = {};
+    if (IS_COLOR_SPACE_BT2020(srcCspace))
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Not support color fill input color space BT2020. Because DDI struct only contains 8 bit, which cannot accommodate BT2020");
+    }
+    else if (IS_COLOR_SPACE_BT2020(dstCspace))
+    {
+        // Target is BT2020, which is not supported by legacy convert
+        VP_PUBLIC_NORMALMESSAGE("Will do special convert to BT2020. Source Cspace %d. Target Cspace %d", srcCspace, dstColor);
+        float pCscMatrix[12]     = {};
+        auto  SDRDegamma_sRGB_x1 = [](float c) -> float {
+            if (c <= VPHAL_HDR_EOTF_COEFF1_TRADITIONNAL_GAMMA_SRGB)
+            {
+                return c * VPHAL_HDR_EOTF_COEFF2_TRADITIONNAL_GAMMA_SRGB;
+            }
+            else
+            {
+                return pow(VPHAL_HDR_EOTF_COEFF3_TRADITIONNAL_GAMMA_SRGB * c + VPHAL_HDR_EOTF_COEFF4_TRADITIONNAL_GAMMA_SRGB, VPHAL_HDR_EOTF_COEFF5_TRADITIONNAL_GAMMA_SRGB);
+            }
+        };
+        auto HDRGamma_x1 = [](float c) -> float {
+            if (c <= 0.0181)
+            {
+                return c * 4.5f;
+            }
+            else
+            {
+                return 1.0993f * pow(c, 0.45f) - 0.0993f;
+            }
+        };
+
+        //Convert to sRGB
+        VPHAL_COLOR_SAMPLE_8 interColorRGB = {};
+        if (!GetCscMatrixForRender8Bit(&interColorRGB, &input, srcCspace, CSpace_sRGB))
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_UNIMPLEMENTED);
+        }
+        //Degamma sRGB IEC 61966-2-1:1999
+        float R   = SDRDegamma_sRGB_x1((float)interColorRGB.R / 255);
+        float G   = SDRDegamma_sRGB_x1((float)interColorRGB.G / 255);
+        float B   = SDRDegamma_sRGB_x1((float)interColorRGB.B / 255);
+        output[3] = (float)interColorRGB.A / 255;
+
+        //CCM ITU-R BT.2087-0
+        float R2020 = 0.329282097415f * G + 0.043313797587f * B + 0.627404078626f * R;
+        float G2020 = 0.919541035593f * G + 0.011361189924f * B + 0.069097233123f * R;
+        float B2020 = 0.088013255546f * G + 0.895595009604f * B + 0.016391587664f * R;
+
+        //Gamma BT2020 ITU-R BT.2020-2
+        R2020 = HDRGamma_x1(MOS_CLAMP_MIN_MAX(R2020, 0.f, 1.f));
+        G2020 = HDRGamma_x1(MOS_CLAMP_MIN_MAX(G2020, 0.f, 1.f));
+        B2020 = HDRGamma_x1(MOS_CLAMP_MIN_MAX(B2020, 0.f, 1.f));
+
+        KernelDll_GetCSCMatrix(CSpace_BT2020_RGB, dstCspace, pCscMatrix);
+        output[0] = pCscMatrix[0] * R2020 + pCscMatrix[1] * G2020 + pCscMatrix[2] * B2020 + pCscMatrix[3] / 1023;
+        output[1] = pCscMatrix[4] * R2020 + pCscMatrix[5] * G2020 + pCscMatrix[6] * B2020 + pCscMatrix[7] / 1023;
+        output[2] = pCscMatrix[8] * R2020 + pCscMatrix[9] * G2020 + pCscMatrix[10] * B2020 + pCscMatrix[11] / 1023;
+
+        //clamp
+        output[0] = MOS_CLAMP_MIN_MAX(output[0], 0.f, 1.f);
+        output[1] = MOS_CLAMP_MIN_MAX(output[1], 0.f, 1.f);
+        output[2] = MOS_CLAMP_MIN_MAX(output[2], 0.f, 1.f);
+    }
+    else if (srcCspace == dstCspace)
+    {
+        // no conversion needed
+        output[0] = (float)input.YY / 255;     //R or Y
+        output[1] = (float)input.Cb / 255;     //G or U
+        output[2] = (float)input.Cr / 255;     //B or V
+        output[3] = (float)input.Alpha / 255;  //A       
+    }
+    else if (dstCspace == CSpace_BT601Gray || dstCspace == CSpace_BT601Gray_FullRange)
+    {
+        //Target is Gray Color Space, not supported by legacy convert
+        VP_PUBLIC_NORMALMESSAGE("Will do special convert to Gray CSpace. Source Cspace %d. Target Cspace %d", srcCspace, dstColor);
+        float        pCscMatrix[12] = {};
+        int32_t      iCscMatrix[12] = {};
+        VPHAL_CSPACE interCSpace    = (dstCspace == CSpace_BT601Gray_FullRange ? CSpace_BT601_FullRange : CSpace_BT601);
+        KernelDll_GetCSCMatrix(srcCspace, interCSpace, pCscMatrix);
+
+        // convert float to fixed point format for the 3x4 matrix
+        for (int32_t i = 0; i < 12; ++i)
+        {
+            // multiply by 2^20 and round up
+            iCscMatrix[i] = (int32_t)((pCscMatrix[i] * 1048576.0f) + 0.5f);
+        }
+
+        int32_t luma = (input.YY * iCscMatrix[0] + input.Cb * iCscMatrix[1] + input.Cr * iCscMatrix[2] + iCscMatrix[3] + 0x00080000) >> 20;
+        output[0]    = (float)MOS_CLAMP_MIN_MAX(luma, 0, 255) / 255;
+        output[1]    = 0;
+        output[2]    = 0;
+        output[3]    = (float)input.Alpha / 255;
+    }
+    else
+    {
+        //legacy convert
+        if (VpUtils::GetCscMatrixForRender8Bit(&dstColor, &input, srcCspace, dstCspace))
+        {
+            if ((dstCspace == CSpace_sRGB) || (dstCspace == CSpace_stRGB) || IS_COLOR_SPACE_BT2020_RGB(dstCspace))
+            {
+                output[0] = (float)dstColor.R / 255;
+                output[1] = (float)dstColor.G / 255;
+                output[2] = (float)dstColor.B / 255;
+                output[3] = (float)dstColor.A / 255;
+            }
+            else
+            {
+                output[0] = (float)dstColor.Y / 255;
+                output[1] = (float)dstColor.U / 255;
+                output[2] = (float)dstColor.V / 255;
+                output[3] = (float)dstColor.a / 255;
+            }
+        }
+        else
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Not supported color fill cspace convert. Source Cspace %d. Target Cspace %d", srcCspace, dstColor);
+        }
+    } 
+
+    return MOS_STATUS_SUCCESS;
 }

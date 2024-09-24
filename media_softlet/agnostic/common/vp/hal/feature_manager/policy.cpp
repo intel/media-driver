@@ -1219,19 +1219,6 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
         return MOS_STATUS_SUCCESS;
     }
 
-    //For BT2020 color fill, fall back to legacy FC. 
-    //Legacy FC and L0 FC both not support BT2020 as target Cspace ColorFill, Legacy FC will do wrong color
-    //Will remove restriction after L0 FC enabled BT2020 target color fill
-    if (IS_COLOR_SPACE_BT2020(scalingParams->csc.colorSpaceOutput) &&
-        scalingParams->pColorFillParams != nullptr                 &&
-        (scalingParams->input.rcDst.left > scalingParams->output.rcDst.left   ||
-         scalingParams->input.rcDst.right < scalingParams->output.rcDst.right ||
-         scalingParams->input.rcDst.top > scalingParams->output.rcDst.top     ||
-         scalingParams->input.rcDst.bottom < scalingParams->output.rcDst.bottom))
-    {
-        scalingEngine->forceLegacyFC = true;
-    }
-
     // For AVS sampler not enabled case, HQ/Fast scaling should go to SFC.
     // And Ief should only be done by SFC.
     if (!m_hwCaps.m_rules.isAvsSamplerSupported &&
