@@ -70,7 +70,12 @@ namespace encode
 
         EncoderParams *encodeParams = (EncoderParams *)params;
 
-        ENCODE_CHK_STATUS_RETURN(SetSequenceStructs());
+        // If new seq, need to set sequence structs
+        // If RATECONTROL_CQL, need to update quality and bitrate .etc
+        if (encodeParams->bNewSeq || m_basicFeature->m_av1SeqParams->RateControlMethod == RATECONTROL_CQL)
+        {
+            ENCODE_CHK_STATUS_RETURN(SetSequenceStructs());
+        }
 
         const auto& seqParams = *m_basicFeature->m_av1SeqParams;
 
