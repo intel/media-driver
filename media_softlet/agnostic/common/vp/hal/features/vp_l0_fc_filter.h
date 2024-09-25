@@ -223,7 +223,7 @@ protected:
     MOS_STATUS InitCompParam(SwFilterPipe &executingPipe, L0_FC_COMP_PARAM &compParam);
     MOS_STATUS GenerateFc420PL3InputParam(L0_FC_LAYER_PARAM &inputLayersParam, uint32_t index, L0_FC_KERNEL_PARAM &param);
     MOS_STATUS SetupSingleFc420PL3InputBti(uint32_t uIndex, uint32_t layIndex, SURFACE_PARAMS &surfaceParam, bool &bInit);
-    MOS_STATUS SetupSingleFc420PL3InputKrnArg(uint32_t srcSurfaceWith, uint32_t srcSurfaceHeight, uint32_t lumaChannelIndices, uint32_t chromaChannelIndices[4], uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit);
+    MOS_STATUS SetupSingleFc420PL3InputKrnArg(uint32_t srcSurfaceWidth, uint32_t srcSurfaceHeight, uint32_t lumaChannelIndices, uint32_t chromaChannelIndices[4], uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit);
     MOS_STATUS GenerateFcCommonKrnParam(L0_FC_COMP_PARAM &compParam, L0_FC_KERNEL_PARAM &param);
     MOS_STATUS SetupSingleFcCommonKrnArg(uint32_t layerNum, std::vector<L0_FC_KRN_IMAGE_PARAM> &imageParams, L0_FC_KRN_TARGET_PARAM &targetParam, uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit);
     MOS_STATUS SetupSingleFcCommonBti(uint32_t uIndex, const L0_FC_COMP_PARAM &compParam, SURFACE_PARAMS &surfaceParam, bool &bInit);
