@@ -237,7 +237,8 @@ protected:
     MOS_STATUS GetBitNumber(MOS_FORMAT format, uint8_t *pOriginBitNumber, uint8_t *pStoredBitNumber, uint8_t *pAlphaBitNumber);
 
     MOS_STATUS GenerateInputImageParam(L0_FC_LAYER_PARAM &layer, VPHAL_CSPACE mainCSpace, L0_FC_KRN_IMAGE_PARAM &imageParam);
-    MOS_STATUS ConvertCscToKrnParam(VPHAL_CSPACE srcColorSpace, VPHAL_CSPACE dstColorSpace, L0_FC_KRN_CSC_MATRIX &csc);
+    MOS_STATUS ConvertProcampAndCscToKrnParam(VPHAL_CSPACE srcColorSpace, VPHAL_CSPACE dstColorSpace, L0_FC_KRN_CSC_MATRIX &csc, VPHAL_PROCAMP_PARAMS &procampParams);
+    MOS_STATUS GenerateProcampCscMatrix(VPHAL_CSPACE srcColorSpace, VPHAL_CSPACE dstColorSpace, float * cscMatrix, VPHAL_PROCAMP_PARAMS &procampParams);
     MOS_STATUS ConvertScalingRotToKrnParam(RECT &rcSrc, RECT &rcDst, VPHAL_SCALING_MODE scalingMode, uint32_t inputWidth, uint32_t inputHeight, VPHAL_ROTATION rotation, L0_FC_KRN_SCALE_PARAM &scaling, uint8_t &samplerType, L0_FC_KRN_COORD_SHIFT_PARAM &coordShift);
     MOS_STATUS ConvertRotationToKrnParam(VPHAL_ROTATION rotation, float strideX, float strideY, float startLeft, float startRight, float startTop, float startBottom, L0_FC_KRN_SCALE_PARAM &scaling);
     MOS_STATUS ConvertChromaUpsampleToKrnParam(MOS_FORMAT format, uint32_t chromaSitingLoc, VPHAL_SCALING_MODE scalingMode, uint32_t inputWidth, uint32_t inputHeight, float &chromaShiftX, float &chromaShiftY, uint8_t &isChromaShift);

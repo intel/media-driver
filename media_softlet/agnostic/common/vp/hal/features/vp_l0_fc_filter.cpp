@@ -964,7 +964,6 @@ MOS_STATUS VpL0FcFilter::InitLayer(SwFilterPipe& executingPipe, bool isInputPipe
         layer.blendingParams.BlendType = BLEND_NONE;
     }
 
-    //procamp is not enabled for L0 FC
     SwFilterProcamp *procamp = dynamic_cast<SwFilterProcamp *>(executingPipe.GetSwFilter(isInputPipe, index, FeatureType::FeatureTypeProcamp));
     if (procamp && procamp->GetSwFilterParams().procampParams)
     {
@@ -1154,7 +1153,7 @@ MOS_STATUS VpL0FcFilter::GenerateInputImageParam(L0_FC_LAYER_PARAM &layer, VPHAL
     MOS_FORMAT surfOverwriteFormat = layer.needIntermediaSurface ? layer.interMediaOverwriteSurface : layer.surf->osSurface->Format;
     uint32_t inputWidth  = MOS_MIN(static_cast<uint32_t>(layer.surf->osSurface->dwWidth), static_cast<uint32_t>(layer.surf->rcSrc.right));
     uint32_t inputHeight = MOS_MIN(static_cast<uint32_t>(layer.surf->osSurface->dwHeight), static_cast<uint32_t>(layer.surf->rcSrc.bottom));
-    VP_PUBLIC_CHK_STATUS_RETURN(ConvertCscToKrnParam(layer.surf->ColorSpace, mainCSpace, imageParam.csc));
+    VP_PUBLIC_CHK_STATUS_RETURN(ConvertProcampAndCscToKrnParam(layer.surf->ColorSpace, mainCSpace, imageParam.csc, layer.procampParams));
     VP_PUBLIC_CHK_STATUS_RETURN(ConvertInputChannelIndicesToKrnParam(surfOverwriteFormat, imageParam.inputChannelIndices));
     VP_PUBLIC_CHK_STATUS_RETURN(ConvertScalingRotToKrnParam(layer.surf->rcSrc, layer.surf->rcDst, layer.scalingMode, inputWidth, inputHeight, layer.rotation, imageParam.scale, imageParam.controlSetting.samplerType, imageParam.coordShift));
     VP_PUBLIC_CHK_STATUS_RETURN(ConvertChromaUpsampleToKrnParam(surfOverwriteFormat, layer.surf->ChromaSiting, layer.scalingMode, inputWidth, inputHeight, imageParam.coordShift.chromaShiftX, imageParam.coordShift.chromaShiftY, imageParam.controlSetting.isChromaShift));
@@ -1249,26 +1248,136 @@ MOS_STATUS VpL0FcFilter::ConvertRotationToKrnParam(VPHAL_ROTATION rotation, floa
 
     return MOS_STATUS_SUCCESS;
 }
+MOS_STATUS VpL0FcFilter::GenerateProcampCscMatrix(VPHAL_CSPACE srcColorSpace, VPHAL_CSPACE dstColorSpace, float * cscMatrix, VPHAL_PROCAMP_PARAMS &procampParams)
+{
+    VP_FUNC_CALL();
 
-MOS_STATUS VpL0FcFilter::ConvertCscToKrnParam(VPHAL_CSPACE srcColorSpace, VPHAL_CSPACE dstColorSpace, L0_FC_KRN_CSC_MATRIX &csc)
+    VP_PUBLIC_NORMALMESSAGE("Procamp enabled. srcColorSpace %d, dstColorSpace %d.", srcColorSpace, dstColorSpace);
+    float backCscMatrix[12] = {};  // back  matrix (YUV->RGB)
+    float preCscMatrix[12] = {};  // pre matrix (RGB->YUV) (YUV->YUV)
+    bool  bBackCscEnabled   = false;
+    bool  bPreCscEnabled    = false;
+
+    if (IS_COLOR_SPACE_RGB(dstColorSpace) && !IS_COLOR_SPACE_RGB(srcColorSpace))
+    {
+        KernelDll_GetCSCMatrix(srcColorSpace, dstColorSpace, backCscMatrix);
+        bBackCscEnabled = true;  // YUV -> RGB
+    }
+    else if (IS_COLOR_SPACE_RGB(srcColorSpace) && !IS_COLOR_SPACE_RGB(dstColorSpace))
+    {
+        KernelDll_GetCSCMatrix(srcColorSpace, dstColorSpace, preCscMatrix);
+        bPreCscEnabled = true;  // RGB -> YUV
+    }
+    else if (IS_COLOR_SPACE_BT709_RGB(srcColorSpace) && IS_COLOR_SPACE_BT709_RGB(dstColorSpace))
+    {
+        KernelDll_GetCSCMatrix(srcColorSpace, CSpace_BT709, preCscMatrix);
+        KernelDll_GetCSCMatrix(CSpace_BT709, dstColorSpace, backCscMatrix);
+        bPreCscEnabled = bBackCscEnabled = true;  // 8bit RGB -> RGB
+    }
+    else if (IS_COLOR_SPACE_BT2020_RGB(srcColorSpace) && IS_COLOR_SPACE_BT2020_RGB(dstColorSpace))
+    {
+        KernelDll_GetCSCMatrix(srcColorSpace, CSpace_BT2020, preCscMatrix);
+        KernelDll_GetCSCMatrix(CSpace_BT2020, dstColorSpace, backCscMatrix);
+        bPreCscEnabled = bBackCscEnabled = true;  // 10bit RGB -> RGB
+    }
+    else
+    {
+        if (srcColorSpace != dstColorSpace)
+        {
+            KernelDll_GetCSCMatrix(srcColorSpace, dstColorSpace, preCscMatrix);
+            bPreCscEnabled = true; // YUV -> YUV
+            VP_PUBLIC_NORMALMESSAGE("YUV to YUV colorspace. Need pre csc matrix.");
+        }
+        else
+        {
+            VP_PUBLIC_NORMALMESSAGE("The same colorspace. No need pre or back csc matrix.");
+        }
+    }
+
+    // Calculate procamp parameters
+    // BT2020 is [0, 1023], BT709 is [0, 255], BT2020 need * 4.
+    int   coefficient = IS_COLOR_SPACE_BT2020(dstColorSpace) ? 4 : 1;
+    float brightness, contrast, hue, saturation;
+    brightness = procampParams.fBrightness;
+    contrast   = procampParams.fContrast;
+    hue        = procampParams.fHue * (3.1415926535897932f / 180.0f);
+    saturation = procampParams.fSaturation;
+
+    // procamp matrix
+    //
+    // [Y']   [ c            0          0  ] [Y]   [ 16  - 16 * c + b              ]
+    // [U'] = [ 0   c*s*cos(h)  c*s*sin(h) ] [U] + [ 128 - 128*c*s*(cos(h)+sin(h)) ]
+    // [V']   [ 0  -c*s*sin(h)  c*s*cos(h) ] [V]   [ 128 - 128*c*s*(cos(h)-sin(h)) ]
+
+    float procampMatrix[12] = {};
+
+    procampMatrix[0]  = contrast;
+    procampMatrix[1]  = 0.0f;
+    procampMatrix[2]  = 0.0f;
+    procampMatrix[3]  = 16.0f * coefficient - 16.0f * coefficient * contrast + brightness;
+    procampMatrix[4]  = 0.0f;
+    procampMatrix[5]  = (float)cos(hue) * contrast * saturation;
+    procampMatrix[6]  = (float)sin(hue) * contrast * saturation;
+    procampMatrix[7]  = 128.0f * coefficient * (1.0f - procampMatrix[5] - procampMatrix[6]);
+    procampMatrix[8]  = 0.0f;
+    procampMatrix[9]  = -procampMatrix[6];
+    procampMatrix[10] = procampMatrix[5];
+    procampMatrix[11] = 128.0f * coefficient * (1.0f - procampMatrix[5] + procampMatrix[6]);
+
+    // Calculate final CSC matrix [backcsc] * [pa] * [precsc]
+    if (bPreCscEnabled)
+    {  // Calculate [pa] * [precsc]
+        KernelDll_MatrixProduct(procampMatrix, procampMatrix, preCscMatrix);
+    }
+
+    if (bBackCscEnabled)
+    {  // Calculate [backcsc] * [pa]
+        //        or [backcsc] * [pa] * [precsc]
+        KernelDll_MatrixProduct(procampMatrix, backCscMatrix, procampMatrix);
+    }
+
+    // Use the output matrix copy into csc matrix to generate kernel CSC parameters
+    MOS_SecureMemcpy(cscMatrix, sizeof(float) * 12, (void *)procampMatrix, sizeof(float)*12);
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpL0FcFilter::ConvertProcampAndCscToKrnParam(VPHAL_CSPACE srcColorSpace, VPHAL_CSPACE dstColorSpace, L0_FC_KRN_CSC_MATRIX &csc, VPHAL_PROCAMP_PARAMS &procampParams)
 {
     VP_FUNC_CALL();
     csc = {};
-    if (srcColorSpace == dstColorSpace)
-    {
-        csc.s0123[0] = csc.s4567[1] = csc.s89AB[2] = 1;
-        return MOS_STATUS_SUCCESS;
-    }
-    
     float cscMatrix[12] = {};
-    KernelDll_GetCSCMatrix(srcColorSpace, dstColorSpace, cscMatrix);
+    if (procampParams.bEnabled)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(GenerateProcampCscMatrix(srcColorSpace, dstColorSpace, cscMatrix, procampParams));
+    }
+    else
+    {
+        if (srcColorSpace == dstColorSpace)
+        {
+            csc.s0123[0] = csc.s4567[1] = csc.s89AB[2] = 1;
+            return MOS_STATUS_SUCCESS;
+        }
+
+        KernelDll_GetCSCMatrix(srcColorSpace, dstColorSpace, cscMatrix);
+    }
+
+    // Save finalMatrix into csc
     VP_PUBLIC_CHK_STATUS_RETURN(MOS_SecureMemcpy(csc.s0123, sizeof(csc.s0123), &cscMatrix[0], sizeof(float) * 3));
     VP_PUBLIC_CHK_STATUS_RETURN(MOS_SecureMemcpy(csc.s4567, sizeof(csc.s4567), &cscMatrix[4], sizeof(float) * 3));
     VP_PUBLIC_CHK_STATUS_RETURN(MOS_SecureMemcpy(csc.s89AB, sizeof(csc.s89AB), &cscMatrix[8], sizeof(float) * 3));
-    csc.sCDEF[0] = cscMatrix[3] / 255;
-    csc.sCDEF[1] = cscMatrix[7] / 255;
-    csc.sCDEF[2] = cscMatrix[11] / 255;
 
+    if (IS_COLOR_SPACE_BT2020(dstColorSpace))
+    {
+        csc.sCDEF[0] = cscMatrix[3] / 1023;
+        csc.sCDEF[1] = cscMatrix[7] / 1023;
+        csc.sCDEF[2] = cscMatrix[11] / 1023;
+    }
+    else
+    {
+        csc.sCDEF[0] = cscMatrix[3] / 255;
+        csc.sCDEF[1] = cscMatrix[7] / 255;
+        csc.sCDEF[2] = cscMatrix[11] / 255;
+    }
     return MOS_STATUS_SUCCESS;
 }
 
@@ -2112,7 +2221,7 @@ MOS_STATUS VpL0FcFilter::GenerateFastExpressInputOutputParam(L0_FC_COMP_PARAM &c
 
     uint32_t inputWidth  = MOS_MIN(static_cast<uint32_t>(inputLayer.surf->osSurface->dwWidth), static_cast<uint32_t>(inputLayer.surf->rcSrc.right));
     uint32_t inputHeight = MOS_MIN(static_cast<uint32_t>(inputLayer.surf->osSurface->dwHeight), static_cast<uint32_t>(inputLayer.surf->rcSrc.bottom));
-    VP_PUBLIC_CHK_STATUS_RETURN(ConvertCscToKrnParam(inputLayer.surf->ColorSpace, compParam.mainCSpace, imageParam.csc));
+    VP_PUBLIC_CHK_STATUS_RETURN(ConvertProcampAndCscToKrnParam(inputLayer.surf->ColorSpace, compParam.mainCSpace, imageParam.csc, inputLayer.procampParams));
     VP_PUBLIC_CHK_STATUS_RETURN(ConvertInputChannelIndicesToKrnParam(surfOverwriteFormat, imageParam.inputChannelIndices));
     VP_PUBLIC_CHK_STATUS_RETURN(ConvertScalingRotToKrnParam(inputLayer.surf->rcSrc, inputLayer.surf->rcDst, inputLayer.scalingMode, inputWidth, inputHeight, inputLayer.rotation, imageParam.scaleParam, imageParam.controlSetting.samplerType, imageParam.coordShift));
     VP_PUBLIC_CHK_STATUS_RETURN(ConvertChromaUpsampleToKrnParam(surfOverwriteFormat, inputLayer.surf->ChromaSiting, inputLayer.scalingMode, inputWidth, inputHeight, imageParam.coordShift.chromaShiftX, imageParam.coordShift.chromaShiftY, imageParam.controlSetting.isChromaShift));
@@ -2492,7 +2601,7 @@ void VpL0FcFilter::ReportDiffLog(const L0_FC_COMP_PARAM &compParam)
         }
         if (layer.diParams.enabled || layer.procampParams.bEnabled)
         {
-            //procamp is not enabled
+            //di or procamp used
             reportLog |= (1llu << int(L0FcDiffReportShift::Procamp));
         }
         if (layer.lumaKey.enabled)
