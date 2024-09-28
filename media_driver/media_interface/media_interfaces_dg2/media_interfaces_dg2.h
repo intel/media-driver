@@ -134,7 +134,11 @@
 
 #include "cm_hal_xe_xpm.h"
 
-#endif // _MEDIA_RESERVED
+#else // _MEDIA_RESERVED
+
+#include "cm_hal_g12.h"
+
+#endif // !_MEDIA_RESERVED
 
 #include "vphal_xe_xpm.h"
 #include "vphal_xe_hpm.h"
@@ -356,15 +360,17 @@ static const L3ConfigRegisterValues DG2_L3_PLANES[DG2_L3_CONFIG_COUNT] =
     {0x80000000, 0x70000080, 0, 0},  //  256   0    0    224  32  512
 };
 
-#ifdef _MEDIA_RESERVED
 class CMHalInterfacesXe_Hpm : public CMHalDevice
 {
 protected:
+#ifdef _MEDIA_RESERVED
     using CMHal = CmHalXe_Xpm;
+#else
+    using CMHal = CM_HAL_G12_X;
+#endif
     MOS_STATUS Initialize(
         CM_HAL_STATE *pCmState);
 };
-#endif
 
 class VphalInterfacesXe_Hpm : public VphalDevice
 {

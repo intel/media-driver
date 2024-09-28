@@ -187,6 +187,7 @@ static bool dg2RegisteredMhw =
 #define PLATFORM_INTEL_DG2    22
 #define GENX_XEHP              11
 #define GENX_DG2              13
+#define GENX_TGLLP            12
 
 MOS_STATUS MhwInterfacesDg2::Initialize(
     CreateParams params,
@@ -916,7 +917,6 @@ MOS_STATUS CodechalInterfacesNextXe_Hpm::Initialize(
     return MOS_STATUS_SUCCESS;
 }
 
-#ifdef _MEDIA_RESERVED
 static bool dg2RegisteredCMHal =
     MediaFactory<uint32_t, CMHalDevice>::
     Register<CMHalInterfacesXe_Hpm>((uint32_t)IGFX_DG2);
@@ -933,12 +933,18 @@ MOS_STATUS CMHalInterfacesXe_Hpm::Initialize(CM_HAL_STATE *pCmState)
         MHW_ASSERTMESSAGE("Create CM Hal interfaces failed.")
         return MOS_STATUS_NO_SPACE;
     }
+#ifdef _MEDIA_RESERVED
     device->SetCopyKernelIsa((void*)pGPUCopy_kernel_isa_dg2, iGPUCopy_kernel_isa_size_dg2);
     device->SetInitKernelIsa((void*)pGPUInit_kernel_isa_dg2, iGPUInit_kernel_isa_size_dg2);
+#endif
 
     m_cmhalDevice = device;
     m_cmhalDevice->SetGenPlatformInfo(PLATFORM_INTEL_DG2, PLATFORM_INTEL_GT2, "DG2");
-    uint32_t cisaIDs[] = { GENX_DG2 , GENX_XEHP };
+#ifdef _MEDIA_RESVERED
+    uint32_t cisaIDs[] = { GENX_DG2, GENX_XEHP };
+#else
+    uint32_t cisaIDs[] = { GENX_TGLLP, GENX_DG2, GENX_XEHP };
+#endif
     m_cmhalDevice->AddSupportedCisaIDs(cisaIDs, sizeof(cisaIDs)/sizeof(uint32_t));
 
     if (pCmState->skuTable && MEDIA_IS_SKU(pCmState->skuTable, FtrCCSNode))
@@ -951,7 +957,6 @@ MOS_STATUS CMHalInterfacesXe_Hpm::Initialize(CM_HAL_STATE *pCmState)
     m_cmhalDevice->m_l3ConfigCount = DG2_L3_CONFIG_COUNT;
     return MOS_STATUS_SUCCESS;
 }
-#endif
 
 static bool dg2RegisteredRenderHal =
     MediaFactory<uint32_t, RenderHalDevice>::
