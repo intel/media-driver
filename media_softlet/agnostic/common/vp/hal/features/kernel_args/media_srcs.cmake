@@ -27,6 +27,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/igvpfc_common_args.h
     ${CMAKE_CURRENT_LIST_DIR}/igvpfc_fp_args.h
     ${CMAKE_CURRENT_LIST_DIR}/igvpfc_420PL3_input_args.h
+    ${CMAKE_CURRENT_LIST_DIR}/igvpfc_420PL3_output_args.h
     ${CMAKE_CURRENT_LIST_DIR}/igvpfc_444PL3_input_args.h
 )
 

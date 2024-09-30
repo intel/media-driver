@@ -4293,6 +4293,7 @@ MOS_STATUS RenderHal_GetPlaneDefinitionForCommonMessage(
     case Format_P210:
     case Format_P216:
     case Format_I420:
+    case Format_IYUV:
     case Format_R5G6B5:
     case Format_R8G8B8:
     case Format_RGBP:
@@ -4324,7 +4325,7 @@ MOS_STATUS RenderHal_GetPlaneDefinitionForCommonMessage(
     case Format_YVYU:
     case Format_UYVY:
     case Format_VYUY:
-        if (isRenderTarget)
+        if (pParam->isOutput)
         {
             //For writing, packed 422 formats use R8 to write each channel separately
             planeDefinition = RENDERHAL_PLANES_R8;
@@ -4337,7 +4338,7 @@ MOS_STATUS RenderHal_GetPlaneDefinitionForCommonMessage(
         break;
     case Format_Y210:
     case Format_Y216:
-        if (isRenderTarget)
+        if (pParam->isOutput)
         {
             //For writing, packed 422 formats use R16 to write each channel separately
             planeDefinition = RENDERHAL_PLANES_R16_UNORM;

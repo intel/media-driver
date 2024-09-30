@@ -140,6 +140,7 @@ typedef struct _SURFACE_PARAMS
     bool        isOutput;
     bool        needVerticalStirde;
     bool        combineChannelY;
+    uint32_t    reserved[4];
 } SURFACE_PARAMS, *PSURFACE_PARAMS;
 using KERNEL_ARG_INDEX_SURFACE_MAP = std::map<uint32_t, SURFACE_PARAMS>;
 

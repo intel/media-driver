@@ -54,6 +54,7 @@
 #include "igvpfc_common_xe2.h"
 #include "igvpfc_fp_xe2.h"
 #include "igvpfc_420PL3_input_xe2.h"
+#include "igvpfc_420PL3_output_xe2.h"
 #include "igvpfc_444PL3_input_xe2.h"
 #endif
 
@@ -154,6 +155,7 @@ void VphalInterfacesXe2_Lpm::InitPlatformKernelBinary(
     AddVpNativeKernelEntryToListFc_commonXe2(*vpPlatformInterface);
     AddVpNativeKernelEntryToListFc_fpXe2(*vpPlatformInterface);
     AddVpNativeKernelEntryToListFc_420pl3_inputXe2(*vpPlatformInterface);
+    AddVpNativeKernelEntryToListFc_420pl3_outputXe2(*vpPlatformInterface);
     AddVpNativeKernelEntryToListFc_444pl3_inputXe2(*vpPlatformInterface);
 #endif
 }

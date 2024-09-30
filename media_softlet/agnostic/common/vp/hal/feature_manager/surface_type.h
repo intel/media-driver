@@ -93,6 +93,7 @@ enum SurfaceType
     SurfaceTypeFcCscCoeff                = 0x2400,
     SurfaceTypeDecompressionSync         = 0x2500,
     SurfaceTypeFcIntermediaInput         = 0x2510,
+    SurfaceTypeFcIntermediaOutput        = 0x2520,
 
     // 3DLut Kernel
     SurfaceType3DLut2D   = 0x2600,
