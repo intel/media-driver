@@ -2144,7 +2144,7 @@ uint32_t MosUtilities::MosGetThreadId(
 
 uint32_t MosUtilities::MosGetCurrentThreadId()
 {
-    return (uint32_t)pthread_self();
+    return (uintptr_t)pthread_self();
 }
 
 MOS_STATUS MosUtilities::MosWaitThread(
