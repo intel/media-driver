@@ -621,6 +621,15 @@ MOS_STATUS DecodePipeline::StatusCheck()
 {
     DECODE_FUNC_CALL();
 
+#if MHW_HWCMDPARSER_ENABLED
+    auto instance = mhw::HwcmdParser::GetInstance();
+    if (instance)
+    {
+        // Json dump for each frame
+        instance->DumpOutput();
+    }
+#endif
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_delayMiliseconds > 0)
     {
