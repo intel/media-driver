@@ -13,9 +13,9 @@ $ make headers_install INSTALL_HDR_PATH=/path/to/install
 
 The last update was done at the following kernel commit:
 
-commit b2121f2bd2232cd0556b2182078d159d81497885 (HEAD -> drm-xe-next, origin/drm-xe-next)
+commit f2881dfdaaa9ec873dbd383ef5512fc31e576cbb (HEAD -> drm-xe-next, origin/drm-xe-next)
 
-drm/xe: Extend uAPI to query HuC micro-controler firmware version
+drm/xe/oa/uapi: Make bit masks unsigned
 
 The infrastructure to query GuC firmware version is already in place. It
 is extended with a new micro-controller type to query the HuC firmware
