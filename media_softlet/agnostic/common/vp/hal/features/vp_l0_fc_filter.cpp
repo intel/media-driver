@@ -48,7 +48,8 @@ namespace vp
         ChromasittingOn422Packed = 6,   //422 packed no chromasiting on legacy FC
         FixedAlpha               = 7,   //fixed alpha not used in legacy FC
         FormatRGB565Write        = 8,   //legacy FC will drop (16 - 5/6/5) of LSB
-        BT2020ColorFill          = 9,   //legacy didn't support color fill w/ BT2020 as target color space. It will use black or green as background in legacy case
+        BT2020ColorFill          = 9,   //legacy didn't support color fill w/ BT2020 as target color space. It will use black or green as background in legacy 
+        ChromaSitingOnPL3        = 10,  //legacy didn't support 3 plane chromasiting CDS. So legacy FC will only do left top for PL3 output
         FastExpress              = 16,  //walked into fastexpress path
         L0FcEnabled              = 31   //actually walked into L0 FC. Always set to 1 when L0 FC Filter take effect. "L0 FC Enabled" may be 1 but not walked into L0 FC, cause it may fall back in wrapper class
     };
@@ -1994,22 +1995,26 @@ MOS_STATUS VpL0FcFilter::ConvertOutputChannelIndicesToKrnParam(MOS_FORMAT format
     case Format_Y216:
         dynamicChannelIndices[0] = 0;
         dynamicChannelIndices[1] = 1;
-        dynamicChannelIndices[2] = 3;
+        dynamicChannelIndices[2] = 0;
+        dynamicChannelIndices[3] = 1;
         break;
     case Format_YVYU:
         dynamicChannelIndices[0] = 0;
-        dynamicChannelIndices[1] = 3;
+        dynamicChannelIndices[1] = 1;
         dynamicChannelIndices[2] = 1;
+        dynamicChannelIndices[3] = 0;
         break;
     case Format_UYVY:
         dynamicChannelIndices[0] = 1;
         dynamicChannelIndices[1] = 0;
-        dynamicChannelIndices[2] = 2;
+        dynamicChannelIndices[2] = 0;
+        dynamicChannelIndices[3] = 1;
         break;
     case Format_VYUY:
         dynamicChannelIndices[0] = 1;
-        dynamicChannelIndices[1] = 2;
-        dynamicChannelIndices[2] = 0;
+        dynamicChannelIndices[1] = 0;
+        dynamicChannelIndices[2] = 1;
+        dynamicChannelIndices[3] = 0;
         break;
     case Format_YV12:
     case Format_I420:
@@ -2817,6 +2822,15 @@ void VpL0FcFilter::ReportDiffLog(const L0_FC_COMP_PARAM &compParam)
             {
                 //422 packed no chromasiting on legacy FC
                 reportLog |= (1llu << int(L0FcDiffReportShift::ChromasittingOn422Packed));
+            }
+
+            if ((format == Format_YV12 ||
+                 format == Format_IYUV ||
+                 format == Format_I420) &&
+                targetSurf->ChromaSiting != (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_TOP))
+            {
+                //legacy didn't support 3 plane chromasiting CDS. So legacy FC will only do left top for PL3 output
+                reportLog |= (1llu << int(L0FcDiffReportShift::ChromaSitingOnPL3));
             }
 
             if ((format == Format_A8R8G8B8 ||

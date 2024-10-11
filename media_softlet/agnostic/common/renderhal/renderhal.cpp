@@ -4148,14 +4148,7 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
         // Adjust the width
         if (bWidthInDword)
         {
-            if (pParams->forceCommonSurfaceMessage &&
-                (PlaneDefinition == RENDERHAL_PLANES_R8 ||
-                 PlaneDefinition == RENDERHAL_PLANES_R16_UNORM))
-            {
-                //For packed 422 formats, single channel format is used for writing, so the width need to be double.
-                dwSurfaceWidth = dwSurfaceWidth << 1;
-            }
-            else if (PlaneDefinition == RENDERHAL_PLANES_R32G32B32A32F)
+            if (PlaneDefinition == RENDERHAL_PLANES_R32G32B32A32F)
             {
                 dwSurfaceWidth = dwSurfaceWidth << 2;
             }
@@ -4327,8 +4320,8 @@ MOS_STATUS RenderHal_GetPlaneDefinitionForCommonMessage(
     case Format_VYUY:
         if (pParam->isOutput)
         {
-            //For writing, packed 422 formats use R8 to write each channel separately
-            planeDefinition = RENDERHAL_PLANES_R8;
+            //For writing, packed 422 formats use R8G8 to write half pixel(YU/YV) separately
+            planeDefinition = RENDERHAL_PLANES_R8G8_UNORM;
         }
         else
         {
@@ -4340,8 +4333,8 @@ MOS_STATUS RenderHal_GetPlaneDefinitionForCommonMessage(
     case Format_Y216:
         if (pParam->isOutput)
         {
-            //For writing, packed 422 formats use R16 to write each channel separately
-            planeDefinition = RENDERHAL_PLANES_R16_UNORM;
+            //For writing, packed 422 formats use R16G16 to write half pixel(YU/YV) separately
+            planeDefinition = RENDERHAL_PLANES_R16G16_UNORM;
         }
         else
         {

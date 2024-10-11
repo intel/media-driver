@@ -355,18 +355,6 @@ MOS_STATUS VpRenderL0FcKernel::SetupSurfaceState()
             }
         }
 
-        if (surf->second->SurfType == SURF_OUT_RENDERTARGET &&
-           (surf->second->osSurface->Format == Format_YUY2 ||
-            surf->second->osSurface->Format == Format_Y210 ||
-            surf->second->osSurface->Format == Format_Y216 ||
-            surf->second->osSurface->Format == Format_YUYV ||
-            surf->second->osSurface->Format == Format_YVYU ||
-            surf->second->osSurface->Format == Format_UYVY ||
-            surf->second->osSurface->Format == Format_VYUY))
-        {
-            pRenderSurfaceParams->bWidthInDword_Y = true;
-        }
-
         if (surf->second->osSurface->Format == Format_Buffer)
         {
             kernelSurfaceParam.surfaceOverwriteParams.updatedSurfaceParams = true;
