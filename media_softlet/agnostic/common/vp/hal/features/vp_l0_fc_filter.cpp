@@ -1439,31 +1439,31 @@ MOS_STATUS VpL0FcFilter::GenerateProcampCscMatrix(VPHAL_CSPACE srcColorSpace, VP
 
     if (IS_COLOR_SPACE_RGB(dstColorSpace) && !IS_COLOR_SPACE_RGB(srcColorSpace))
     {
-        KernelDll_GetCSCMatrix(srcColorSpace, dstColorSpace, backCscMatrix);
+        VP_PUBLIC_CHK_STATUS_RETURN(VpUtils::GetNormalizedCSCMatrix(srcColorSpace, dstColorSpace, backCscMatrix));
         bBackCscEnabled = true;  // YUV -> RGB
     }
     else if (IS_COLOR_SPACE_RGB(srcColorSpace) && !IS_COLOR_SPACE_RGB(dstColorSpace))
     {
-        KernelDll_GetCSCMatrix(srcColorSpace, dstColorSpace, preCscMatrix);
+        VP_PUBLIC_CHK_STATUS_RETURN(VpUtils::GetNormalizedCSCMatrix(srcColorSpace, dstColorSpace, preCscMatrix));
         bPreCscEnabled = true;  // RGB -> YUV
     }
     else if (IS_COLOR_SPACE_BT709_RGB(srcColorSpace) && IS_COLOR_SPACE_BT709_RGB(dstColorSpace))
     {
-        KernelDll_GetCSCMatrix(srcColorSpace, CSpace_BT709, preCscMatrix);
-        KernelDll_GetCSCMatrix(CSpace_BT709, dstColorSpace, backCscMatrix);
+        VP_PUBLIC_CHK_STATUS_RETURN(VpUtils::GetNormalizedCSCMatrix(srcColorSpace, CSpace_BT709, preCscMatrix));
+        VP_PUBLIC_CHK_STATUS_RETURN(VpUtils::GetNormalizedCSCMatrix(CSpace_BT709, dstColorSpace, backCscMatrix));
         bPreCscEnabled = bBackCscEnabled = true;  // 8bit RGB -> RGB
     }
     else if (IS_COLOR_SPACE_BT2020_RGB(srcColorSpace) && IS_COLOR_SPACE_BT2020_RGB(dstColorSpace))
     {
-        KernelDll_GetCSCMatrix(srcColorSpace, CSpace_BT2020, preCscMatrix);
-        KernelDll_GetCSCMatrix(CSpace_BT2020, dstColorSpace, backCscMatrix);
+        VP_PUBLIC_CHK_STATUS_RETURN(VpUtils::GetNormalizedCSCMatrix(srcColorSpace, CSpace_BT2020, preCscMatrix));
+        VP_PUBLIC_CHK_STATUS_RETURN(VpUtils::GetNormalizedCSCMatrix(CSpace_BT2020, dstColorSpace, backCscMatrix));
         bPreCscEnabled = bBackCscEnabled = true;  // 10bit RGB -> RGB
     }
     else
     {
         if (srcColorSpace != dstColorSpace)
         {
-            KernelDll_GetCSCMatrix(srcColorSpace, dstColorSpace, preCscMatrix);
+            VP_PUBLIC_CHK_STATUS_RETURN(VpUtils::GetNormalizedCSCMatrix(srcColorSpace, dstColorSpace, preCscMatrix));
             bPreCscEnabled = true; // YUV -> YUV
             VP_PUBLIC_NORMALMESSAGE("YUV to YUV colorspace. Need pre csc matrix.");
         }
@@ -1474,8 +1474,6 @@ MOS_STATUS VpL0FcFilter::GenerateProcampCscMatrix(VPHAL_CSPACE srcColorSpace, VP
     }
 
     // Calculate procamp parameters
-    // BT2020 is [0, 1023], BT709 is [0, 255], BT2020 need * 4.
-    int   coefficient = IS_COLOR_SPACE_BT2020(dstColorSpace) ? 4 : 1;
     float brightness, contrast, hue, saturation;
     brightness = procampParams.fBrightness;
     contrast   = procampParams.fContrast;
@@ -1493,15 +1491,15 @@ MOS_STATUS VpL0FcFilter::GenerateProcampCscMatrix(VPHAL_CSPACE srcColorSpace, VP
     procampMatrix[0]  = contrast;
     procampMatrix[1]  = 0.0f;
     procampMatrix[2]  = 0.0f;
-    procampMatrix[3]  = 16.0f * coefficient - 16.0f * coefficient * contrast + brightness;
+    procampMatrix[3]  = (16.0f - 16.0f * contrast + brightness) / 255.f;
     procampMatrix[4]  = 0.0f;
     procampMatrix[5]  = (float)cos(hue) * contrast * saturation;
     procampMatrix[6]  = (float)sin(hue) * contrast * saturation;
-    procampMatrix[7]  = 128.0f * coefficient * (1.0f - procampMatrix[5] - procampMatrix[6]);
+    procampMatrix[7]  = (128.0f * (1.0f - procampMatrix[5] - procampMatrix[6])) / 255.f;
     procampMatrix[8]  = 0.0f;
     procampMatrix[9]  = -procampMatrix[6];
     procampMatrix[10] = procampMatrix[5];
-    procampMatrix[11] = 128.0f * coefficient * (1.0f - procampMatrix[5] + procampMatrix[6]);
+    procampMatrix[11] = (128.0f * (1.0f - procampMatrix[5] + procampMatrix[6])) / 255.f;
 
     // Calculate final CSC matrix [backcsc] * [pa] * [precsc]
     if (bPreCscEnabled)
@@ -1516,7 +1514,7 @@ MOS_STATUS VpL0FcFilter::GenerateProcampCscMatrix(VPHAL_CSPACE srcColorSpace, VP
     }
 
     // Use the output matrix copy into csc matrix to generate kernel CSC parameters
-    MOS_SecureMemcpy(cscMatrix, sizeof(float) * 12, (void *)procampMatrix, sizeof(float)*12);
+    MOS_SecureMemcpy(cscMatrix, sizeof(float) * 12, (void *)procampMatrix, sizeof(float) * 12);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1537,26 +1535,17 @@ MOS_STATUS VpL0FcFilter::ConvertProcampAndCscToKrnParam(VPHAL_CSPACE srcColorSpa
             return MOS_STATUS_SUCCESS;
         }
 
-        KernelDll_GetCSCMatrix(srcColorSpace, dstColorSpace, cscMatrix);
+        VP_PUBLIC_CHK_STATUS_RETURN(VpUtils::GetNormalizedCSCMatrix(srcColorSpace, dstColorSpace, cscMatrix));
     }
 
     // Save finalMatrix into csc
     VP_PUBLIC_CHK_STATUS_RETURN(MOS_SecureMemcpy(csc.s0123, sizeof(csc.s0123), &cscMatrix[0], sizeof(float) * 3));
     VP_PUBLIC_CHK_STATUS_RETURN(MOS_SecureMemcpy(csc.s4567, sizeof(csc.s4567), &cscMatrix[4], sizeof(float) * 3));
     VP_PUBLIC_CHK_STATUS_RETURN(MOS_SecureMemcpy(csc.s89AB, sizeof(csc.s89AB), &cscMatrix[8], sizeof(float) * 3));
+    csc.sCDEF[0] = cscMatrix[3];
+    csc.sCDEF[1] = cscMatrix[7];
+    csc.sCDEF[2] = cscMatrix[11];
 
-    if (IS_COLOR_SPACE_BT2020(dstColorSpace))
-    {
-        csc.sCDEF[0] = cscMatrix[3] / 1023;
-        csc.sCDEF[1] = cscMatrix[7] / 1023;
-        csc.sCDEF[2] = cscMatrix[11] / 1023;
-    }
-    else
-    {
-        csc.sCDEF[0] = cscMatrix[3] / 255;
-        csc.sCDEF[1] = cscMatrix[7] / 255;
-        csc.sCDEF[2] = cscMatrix[11] / 255;
-    }
     return MOS_STATUS_SUCCESS;
 }
 

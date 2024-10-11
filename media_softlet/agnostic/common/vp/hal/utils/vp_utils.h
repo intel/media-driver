@@ -468,6 +468,23 @@ public:
         VPHAL_CSPACE          srcCspace,
         VPHAL_CSPACE          dstCspace);
 
+    //!
+    //! \brief    Get Color Space Convert Normalized Matrix
+    //! \details  Get Color Space Convert Normalized Matrix
+    //! \param    [out] pCSC_Matrix
+    //!           Pointer to float
+    //! \param    [in] src
+    //!           Source Color Space
+    //! \param    [in] dst
+    //!           Target Color Space
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful
+    //!
+    static MOS_STATUS GetNormalizedCSCMatrix(
+        MEDIA_CSPACE src,
+        MEDIA_CSPACE dst,
+        float        cscMatrix[12]);
+
 private:
     //!
     //! \brief    Performs Color Space Convert for Sample 8 bit Using Specified Coeff Matrix
