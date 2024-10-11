@@ -1729,11 +1729,16 @@ MOS_STATUS VpL0FcFilter::ConvertInputChannelIndicesToKrnParam(MOS_FORMAT format,
     case Format_A16R16G16B16F:
     case Format_R5G6B5:
     case Format_R8G8B8:
-    case Format_RGBP:
     case Format_444P:
         inputChannelIndices[0] = 0;
         inputChannelIndices[1] = 1;
         inputChannelIndices[2] = 2;
+        inputChannelIndices[3] = 3;
+        break;
+    case Format_RGBP:
+        inputChannelIndices[0] = 2;
+        inputChannelIndices[1] = 0;
+        inputChannelIndices[2] = 1;
         inputChannelIndices[3] = 3;
         break;
     case Format_AYUV:
