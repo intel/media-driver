@@ -38,11 +38,6 @@ OcaRtLogSectionMgr::OcaRtLogSectionMgr()
 
 OcaRtLogSectionMgr::~OcaRtLogSectionMgr()
 {
-    m_LockedHeap    = nullptr;
-    m_HeapSize      = 0;
-    m_Offset        = 0;
-    m_HeapHandle    = -1;
-    m_IsInitialized = false;
 }
 
 uint8_t *OcaRtLogSectionMgr::GetMemAddress()
@@ -114,16 +109,15 @@ void OcaRtLogSectionMgr::Init(uint8_t* logSysMem, uint32_t size, uint32_t compon
         m_LockedHeap = logSysMem;
         m_HeapSize   = size;
         m_Offset     = offset;
-        m_HeapHandle = -1;
+        m_HeapHandle = 0;
         m_EntryCount = (componentSize - sizeof(MOS_OCA_RTLOG_SECTION_HEADER))/ MOS_OCA_RTLOG_ENTRY_SIZE;
-
         m_IsInitialized = true;
     }
 }
 
-int32_t OcaRtLogSectionMgr::AllocHeapHandle()
+uint32_t OcaRtLogSectionMgr::AllocHeapHandle()
 {
-    return MosUtilities::MosAtomicIncrement(&m_HeapHandle);
+    return (uint32_t)MosUtilities::MosAtomicIncrement((int32_t *)&m_HeapHandle);
 }
 
 MOS_STATUS OcaRtLogSectionMgr::InsertUid(MOS_OCA_RTLOG_SECTION_HEADER sectionHeader)
@@ -145,10 +139,15 @@ MOS_STATUS OcaRtLogSectionMgr::InsertData(MOS_OCA_RTLOG_HEADER header, const voi
         {
             return MOS_STATUS_NO_SPACE;
         }
-        int32_t heapHandle = AllocHeapHandle()%m_EntryCount;
+        if (0 == m_EntryCount)
+        {
+            MOS_OS_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
+        uint32_t heapHandle = AllocHeapHandle() % m_EntryCount;
         if (heapHandle < m_EntryCount)
         {
             uint8_t *copyAddr = (uint8_t *)m_LockedHeap + m_Offset + heapHandle * MOS_OCA_RTLOG_ENTRY_SIZE;
+            MOS_OS_CHK_NULL_RETURN(copyAddr);
             MOS_OS_CHK_STATUS_RETURN(MOS_SecureMemcpy(copyAddr, sizeof(MOS_OCA_RTLOG_HEADER), &header, sizeof(MOS_OCA_RTLOG_HEADER)));
             uint32_t copySize = header.paramCount * (sizeof(int32_t) + sizeof(int64_t));
             MOS_OS_CHK_STATUS_RETURN(MOS_SecureMemcpy(copyAddr + sizeof(MOS_OCA_RTLOG_HEADER), copySize, param, copySize));
