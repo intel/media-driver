@@ -124,8 +124,9 @@ namespace encode
         uint32_t    UPD_UserMaxFrame             = 0;
         uint32_t    UPD_UserMaxFramePB           = 0;
         uint8_t     UPD_Randomaccess             = 0;
+        uint8_t     UPD_AdaptiveTUEnabled        = 0;
 
-        uint8_t     RSVD[43] = {};  // 64 bytes aligned
+        uint8_t     RSVD[42] = {};  // 64 bytes aligned
     };
     C_ASSERT(256 == sizeof(VdencHevcHucBrcUpdateDmem));
 
@@ -257,7 +258,8 @@ namespace encode
         static constexpr uint32_t               m_vdboxHucHevcBrcLowdelayKernelDescriptor = 10;//!< Huc HEVC Brc low delay kernel descriptor
 
         // Batch Buffer for VDEnc
-        MOS_RESOURCE                            m_vdencReadBatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][VDENC_BRC_NUM_OF_PASSES] = {};  //!< VDEnc read batch buffer
+        MOS_RESOURCE                            m_vdencReadBatchBufferOrigin[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][VDENC_BRC_NUM_OF_PASSES] = {};  //!< VDEnc read batch buffer
+        MOS_RESOURCE                            m_vdencReadBatchBufferTU7[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][VDENC_BRC_NUM_OF_PASSES]    = {};  //!< VDEnc read batch buffer
         MOS_RESOURCE                            m_vdencBrcConstDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {};                        //!< VDEnc brc constant data buffer
 
         MOS_RESOURCE                            m_dataFromPicsBuffer = {}; //!< Data Buffer of Current and Reference Pictures for Weighted Prediction
@@ -275,6 +277,7 @@ namespace encode
         uint32_t                                m_vdencBrcConstDataBufferSize = sizeof(VdencHevcHucBrcConstantData);                 //!< Offset of BRC const data buffer
         uint32_t                                m_slbDataSizeInBytes = 0;                          //!< Size of SLB Data
         uint8_t                                 m_tcbrcQualityBoost = 0;
+        bool                                    m_bufConstSizeFlagForAdaptiveTU = false;           //!< VdencBatchBufferPerSliceConstSize flag for adaptiveTU
 
         MOS_RESOURCE m_vdencBrcInitDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {}; //!< VDEnc BrcInit DMEM buffer
 

@@ -123,7 +123,8 @@ struct VdencAvcHucBrcUpdateDmem
     uint16_t     UPD_NumSlicesForRounding;
     uint32_t     UPD_UserMaxFramePB;        // In Bytes
     uint8_t      UPD_ExtCurrFrameType;      // correctly calculated FrameType for all cases (including hierarchy golden BGops)
-    uint8_t      RSVD2[3];
+    uint8_t      UPD_AdaptiveTUEnabled;
+    uint8_t      RSVD2[2];
 };
 
 struct VdencAvcHucBrcConstantData
@@ -248,7 +249,8 @@ protected:
     uint32_t m_vdencBrcUpdateDmemBufferSize = sizeof(VdencAvcHucBrcUpdateDmem);         //!< Offset of BRC update DMEM buffer
     uint32_t m_vdencBrcConstDataBufferSize  = sizeof(VdencAvcHucBrcConstantData);       //!< Offset of BRC const data buffer
 
-    PMOS_RESOURCE m_vdencBrcImageStatesReadBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM]                     = {};  //!< Read-only VDENC+PAK IMG STATE buffer.
+    PMOS_RESOURCE m_vdencBrcImageStatesReadBufferOrigin[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM]               = {};  //!< Read-only VDENC+PAK IMG STATE buffer.
+    PMOS_RESOURCE m_vdencBrcImageStatesReadBufferTU7[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM]                  = {};  //!< Read-only VDENC+PAK IMG STATE buffer.
     PMOS_RESOURCE m_vdencBrcUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][VDENC_BRC_NUM_OF_PASSES] = {};  //!< Brc Update DMEM Buffer Array.
     PMOS_RESOURCE m_vdencBrcConstDataBuffer[CODECHAL_ENCODE_VDENC_BRC_CONST_BUFFER_NUM]                    = {};  //!< BRC Const Data Buffer for each frame type.
 

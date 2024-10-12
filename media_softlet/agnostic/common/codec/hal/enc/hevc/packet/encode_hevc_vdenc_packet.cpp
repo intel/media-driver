@@ -1397,6 +1397,10 @@ namespace encode
                 secondLevelBatchBufferUsed->dwOffset,
                 false,
                 m_basicFeature->m_vdencBatchBufferPerSlicePart2Size[currSlcIdx]);
+            if (m_basicFeature->m_hevcPicParams->AdaptiveTUEnabled == 0)
+            {
+                SETPAR_AND_ADDCMD(VDENC_HEVC_VP9_TILE_SLICE_STATE, m_vdencItf, &cmdBuffer);
+            }
         }
         else
         {
@@ -1412,8 +1416,10 @@ namespace encode
             ENCODE_CHK_STATUS_RETURN(AddAllCmds_HCP_PAK_INSERT_OBJECT(&cmdBuffer));
 
             SETPAR_AND_ADDCMD(VDENC_WEIGHTSOFFSETS_STATE, m_vdencItf, &cmdBuffer);
+
+            SETPAR_AND_ADDCMD(VDENC_HEVC_VP9_TILE_SLICE_STATE, m_vdencItf, &cmdBuffer);
         }
-        SETPAR_AND_ADDCMD(VDENC_HEVC_VP9_TILE_SLICE_STATE, m_vdencItf, &cmdBuffer);
+        
         SETPAR_AND_ADDCMD(VDENC_WALKER_STATE, m_vdencItf, &cmdBuffer);
         return eStatus;
     }

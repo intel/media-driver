@@ -978,6 +978,8 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
         } fields;
         uint8_t value;
     } QualityInfoSupportFlags;
+
+    uint8_t AdaptiveTUEnabled;
 } CODEC_HEVC_ENCODE_PICTURE_PARAMS, *PCODEC_HEVC_ENCODE_PICTURE_PARAMS;
 
 /*! \brief Slice-level parameters of a compressed picture for HEVC encoding.

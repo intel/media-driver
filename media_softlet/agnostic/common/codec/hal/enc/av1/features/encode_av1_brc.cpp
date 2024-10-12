@@ -85,6 +85,15 @@ namespace encode
             "Encode RateControl Method",
             m_rcMode,
             MediaUserSetting::Group::Sequence);
+        
+        ENCODE_CHK_NULL_RETURN(m_basicFeature->m_av1PicParams);
+        MediaUserSetting::Value outValue;
+        ReadUserSetting(
+            m_userSettingPtr,
+            outValue,
+            "Adaptive TU Enable",
+            MediaUserSetting::Group::Sequence);
+        m_basicFeature->m_av1PicParams->AdaptiveTUEnabled |= outValue.Get<uint8_t>(); 
 #endif
         return MOS_STATUS_SUCCESS;
     }
@@ -211,6 +220,7 @@ namespace encode
         dmem->UPD_CurHeight = (uint16_t)m_basicFeature->m_oriFrameHeight;
         dmem->UPD_Asyn = 0;
         dmem->UPD_EnableAdaptiveRounding = (m_basicFeature->m_roundingMethod == RoundingMethod::adaptiveRounding);
+        dmem->UPD_AdaptiveTUEnabled = picParams->AdaptiveTUEnabled;
 
         if (seqParams->GopRefDist == 16 && m_rcMode == RATECONTROL_CQL)
             dmem->UPD_MaxBRCLevel = 4;

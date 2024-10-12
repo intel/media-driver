@@ -143,8 +143,9 @@ namespace encode
         uint8_t     UPD_CQMEnabled;
         uint8_t     UPD_TempCurrentlayer;
         uint8_t     UPD_TempScalable;
+        uint8_t     UPD_AdaptiveTUEnabled;
 
-        uint8_t     RSVD8[62];
+        uint8_t     RSVD8[61];
     };
 
     typedef struct _HUC_MODE_COST
@@ -235,7 +236,8 @@ namespace encode
         static constexpr uint32_t               m_vdboxHucAv1BrcUpdateKernelDescriptor = 19;//!< Huc AV1 Brc init kernel descriptor
 
         // Batch Buffer for VDEnc
-        MOS_RESOURCE                            m_vdencReadBatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][VDENC_BRC_NUM_OF_PASSES] = {};  //!< VDEnc read batch buffer
+        MOS_RESOURCE                            m_vdencReadBatchBufferOrigin[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][VDENC_BRC_NUM_OF_PASSES] = {};  //!< VDEnc read batch buffer
+        MOS_RESOURCE                            m_vdencReadBatchBufferTU7[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][VDENC_BRC_NUM_OF_PASSES]    = {};  //!< VDEnc read batch buffer
         MOS_RESOURCE                            m_vdencPakInsertBatchBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {};                      //!< VDEnc read batch buffer
         MOS_RESOURCE                            m_vdencBrcConstDataBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {};                        //!< VDEnc brc constant data buffer
 

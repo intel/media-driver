@@ -1050,6 +1050,8 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     */
     uint8_t         QpModulationStrength;
 
+    uint8_t         AdaptiveTUEnabled;
+
     /*! \brief StatusReportEnable
     *
     *  Request features to be enabled at status report.

@@ -190,6 +190,14 @@ MOS_STATUS AvcEncodeBRC::Update(void *params)
         "Encode RateControl Method",
         m_rcMode,
         MediaUserSetting::Group::Sequence);
+
+    MediaUserSetting::Value outValue;
+    ReadUserSetting(
+        m_userSettingPtr,
+        outValue,
+        "Adaptive TU Enable",
+        MediaUserSetting::Group::Sequence);
+    m_basicFeature->m_picParam->AdaptiveTUEnabled |= outValue.Get<uint8_t>();
 #endif
     return MOS_STATUS_SUCCESS;
 }
@@ -639,6 +647,8 @@ MOS_STATUS AvcEncodeBRC::SetDmemForUpdate(void *params, uint16_t currPass, bool 
 
     hucVdencBrcUpdateDmem->UPD_PAKPassNum_U8 = (uint8_t)currPass;
     hucVdencBrcUpdateDmem->UPD_MaxNumPass_U8 = m_featureManager->GetNumPass();
+
+    hucVdencBrcUpdateDmem->UPD_AdaptiveTUEnabled = avcPicParams->AdaptiveTUEnabled;
 
     uint32_t numP = 0;
     if (avcSeqParams->GopRefDist && (avcSeqParams->GopPicSize > 0))

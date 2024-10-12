@@ -104,6 +104,15 @@ namespace encode
             "HEVC VDEnc ACQP Enable",
             m_hevcVDEncAcqpEnabled,
             MediaUserSetting::Group::Sequence);
+
+        ENCODE_CHK_NULL_RETURN(m_basicFeature->m_hevcPicParams);
+        MediaUserSetting::Value outValue;
+        ReadUserSetting(
+            m_userSettingPtr,
+            outValue,
+            "Adaptive TU Enable",
+            MediaUserSetting::Group::Sequence);
+        m_basicFeature->m_hevcPicParams->AdaptiveTUEnabled |= outValue.Get<uint8_t>();
 #endif
         return MOS_STATUS_SUCCESS;
     }
@@ -285,6 +294,8 @@ namespace encode
         hucVdencBrcUpdateDmem->SceneChgCurIntraPctThreshold_U8 = brcSettings.sceneChgCurIntraPctThreshold_U8;
 
         hucVdencBrcUpdateDmem->UPD_Randomaccess = m_basicFeature->m_hevcSeqParams->LowDelayMode == 1 ? 0 : 1;
+
+        hucVdencBrcUpdateDmem->UPD_AdaptiveTUEnabled = m_basicFeature->m_hevcPicParams->AdaptiveTUEnabled;
 
         return MOS_STATUS_SUCCESS;
     }
