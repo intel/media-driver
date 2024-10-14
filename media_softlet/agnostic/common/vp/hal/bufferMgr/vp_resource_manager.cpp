@@ -1142,6 +1142,8 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
     // Allocate L0 fc intermedia outputSurface
     {
         MOS_FORMAT fcIntermediaSurfaceOutputFormat = Format_Any;
+        VP_PUBLIC_CHK_NULL_RETURN(outputSurface);
+        VP_PUBLIC_CHK_NULL_RETURN(outputSurface->osSurface);
         switch (outputSurface->osSurface->Format)
         {
         case Format_RGBP:
