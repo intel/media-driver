@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2023, Intel Corporation
+* Copyright (c) 2009-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -529,6 +529,8 @@ struct MosStreamState
     bool mediaReset                             = false;    //!< Flag to indicate media reset is enabled
 
     bool forceMediaCompressedWrite              = false;    //!< Flag to force media compressed write
+
+    bool enableDecodeLowLatency                 = false;    //!< Flag to enable decode low latency by frequency boost
 
     bool simIsActive                            = false;    //!< Flag to indicate if Simulation is enabled
     MOS_NULL_RENDERING_FLAGS nullHwAccelerationEnable = {}; //!< To indicate which components to enable Null HW support
