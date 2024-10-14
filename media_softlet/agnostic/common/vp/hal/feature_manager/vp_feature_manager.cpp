@@ -55,7 +55,9 @@ MOS_STATUS VpFeatureManagerNext::Init(void* settings)
         m_policy = MOS_New(Policy, m_vpInterface);
     }
     VP_PUBLIC_CHK_NULL_RETURN(m_policy);
-
+    vp::VpPlatformInterface *vpPlatformInterface = m_vpInterface.GetHwInterface()->m_vpPlatformInterface;
+    VP_PUBLIC_CHK_NULL_RETURN(vpPlatformInterface);
+    VP_PUBLIC_CHK_STATUS_RETURN(vpPlatformInterface->InitVpFeatureSupportBits());
     VP_PUBLIC_CHK_STATUS_RETURN(RegisterFeatures());
     return m_policy->Initialize();
 }

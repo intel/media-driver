@@ -74,6 +74,8 @@ public:
 
     virtual MOS_STATUS InitPolicyRules(VP_POLICY_RULES &rules) override;
 
+    virtual MOS_STATUS InitVpFeatureSupportBits() override;
+
 protected:
     bool m_disableSfcDithering = false;
 

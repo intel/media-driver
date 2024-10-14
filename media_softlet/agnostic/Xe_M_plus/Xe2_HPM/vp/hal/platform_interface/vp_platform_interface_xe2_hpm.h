@@ -74,6 +74,8 @@ public:
 
     virtual MOS_STATUS InitPolicyRules(VP_POLICY_RULES &rules) override;
 
+    virtual MOS_STATUS InitVpFeatureSupportBits() override;
+
     virtual bool IsVeboxScalabilityWith4KNotSupported(
         VP_MHWINTERFACE           vpMhwInterface);
 

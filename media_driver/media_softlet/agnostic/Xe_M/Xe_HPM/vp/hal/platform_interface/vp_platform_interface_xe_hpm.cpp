@@ -263,3 +263,10 @@ MOS_STATUS VpPlatformInterfaceXe_Hpm::ConfigureVpScalability(VP_MHWINTERFACE &vp
 
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS VpPlatformInterfaceXe_Hpm::InitVpFeatureSupportBits()
+{
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_STATUS_RETURN(VpPlatformInterface::InitVpFeatureSupportBits());
+    return MOS_STATUS_SUCCESS;
+}

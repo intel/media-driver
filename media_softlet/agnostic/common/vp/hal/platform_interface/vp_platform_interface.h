@@ -41,6 +41,27 @@ class SfcRenderBase;
 class VpKernelSet;
 typedef void (*DelayLoadedFunc)(vp::VpPlatformInterface &vpPlatformInterface);
 
+//! Struct VP_FEATURE_SUPPORT_BITS
+//! \brief define VP support feature bits
+//!
+typedef struct _VP_FEATURE_SUPPORT_BITS
+{
+    union
+    {
+        struct
+        {
+#ifdef _MEDIA_RESERVED
+#include "vp_feature_support_bits_ext.h"
+#else
+            uint64_t vpFeatureSupportBitsReserved : 1;
+#endif
+        };
+        uint64_t value = 0;
+    };
+} VP_FEATURE_SUPPORT_BITS;
+
+C_ASSERT(sizeof(_VP_FEATURE_SUPPORT_BITS) == sizeof(uint64_t));
+
 struct VP_KERNEL_BINARY_ENTRY
 {
     const uint32_t        *kernelBin    = nullptr;
@@ -421,6 +442,16 @@ public:
         return false;
     }
 
+    virtual MOS_STATUS InitVpFeatureSupportBits()
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    virtual VP_FEATURE_SUPPORT_BITS& GetVpFeatureSupportBits()
+    {
+        return m_vpFeatureSupportBits;
+    }
+
 protected:
     PMOS_INTERFACE m_pOsInterface = nullptr;
     VP_KERNEL_BINARY m_vpKernelBinary = {};                 //!< vp kernels
@@ -445,7 +476,7 @@ protected:
 
     bool m_isRenderDisabled = false;
     VpFrameTracker *m_frameTracker     = nullptr;
-
+    VP_FEATURE_SUPPORT_BITS m_vpFeatureSupportBits = {};
     MEDIA_CLASS_DEFINE_END(vp__VpPlatformInterface)
 };
 
