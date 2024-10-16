@@ -19,8 +19,8 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef __VP_RENDER_L0_FC_KERNEL_H__
-#define __VP_RENDER_L0_FC_KERNEL_H__
+#ifndef __VP_RENDER_OCL_FC_KERNEL_H__
+#define __VP_RENDER_OCL_FC_KERNEL_H__
 
 #include "vp_platform_interface.h"
 #include "vp_render_kernel_obj.h"
@@ -28,11 +28,11 @@
 namespace vp
 {
 
-class VpRenderL0FcKernel : public VpRenderKernelObj
+class VpRenderOclFcKernel : public VpRenderKernelObj
 {
 public:
-    VpRenderL0FcKernel(PVP_MHWINTERFACE hwInterface, VpKernelID kernelID, uint32_t kernelIndex, PVpAllocator allocator);
-    virtual ~VpRenderL0FcKernel();
+    VpRenderOclFcKernel(PVP_MHWINTERFACE hwInterface, VpKernelID kernelID, uint32_t kernelIndex, PVpAllocator allocator);
+    virtual ~VpRenderOclFcKernel();
 
     virtual MOS_STATUS Init(VpRenderKernel &kernel);
     virtual MOS_STATUS GetCurbeState(void *&curbe, uint32_t &curbeLength);
@@ -70,10 +70,10 @@ protected:
     int32_t                      m_linearSamplerIndex  = -1;
     int32_t                      m_nearestSamplerIndex = -1;
     std ::vector<uint8_t>        m_inlineData          = {};
-    L0_FC_KERNEL_CONFIG          m_kernelConfig        = {};
+    OCL_FC_KERNEL_CONFIG         m_kernelConfig        = {};
     KERNEL_ARG_INDEX_SURFACE_MAP m_argIndexSurfMap     = {};
 
-MEDIA_CLASS_DEFINE_END(vp__VpRenderL0FcKernel)
+MEDIA_CLASS_DEFINE_END(vp__VpRenderOclFcKernel)
 };
 }  // namespace vp
-#endif  //__VP_RENDER_L0_FC_KERNEL_H__
+#endif  //__VP_RENDER_OCL_FC_KERNEL_H__

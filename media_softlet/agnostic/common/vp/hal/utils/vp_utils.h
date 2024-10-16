@@ -332,11 +332,11 @@ protected:
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_L0_3DLUT                   "Enable L0 3DLUT"
 #define __MEDIA_USER_FEATURE_VALUE_VP_L0_3DLUT_ENABLED                  "L0 3DLUT Enabled"
 
-// For L0 FC
-#define __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_L0_FC                      "Enable L0 FC"
-#define __MEDIA_USER_FEATURE_VALUE_DISABLE_VP_L0_FC_FP                  "Disable L0 FC FP"
-#define __MEDIA_USER_FEATURE_VALUE_VP_L0_FC_ENABLED                     "L0 FC Enabled"
-#define __MEDIA_USER_FEATURE_VALUE_VP_L0_FC_REPORT                      "L0 FC Diff Report"
+// For OCL FC
+#define __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_OCL_FC                      "Enable OCL FC"
+#define __MEDIA_USER_FEATURE_VALUE_DISABLE_VP_OCL_FC_FP                  "Disable OCL FC FP"
+#define __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_SUPPORTED                   "OCL FC Supported"
+#define __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_REPORT                      "OCL FC Diff Report"
 
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_VESFC_LINEAR_OUTPUT_BY_TILECONVERT "Enable VESFC Linearoutput By TileConvert"
 

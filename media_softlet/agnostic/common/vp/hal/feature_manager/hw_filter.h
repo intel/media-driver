@@ -49,7 +49,7 @@
 #include "vp_hdr_render_filter.h"
 #include "vp_di_filter.h"
 #include "vp_fc_filter.h"
-#include "vp_l0_fc_filter.h"
+#include "vp_ocl_fc_filter.h"
 #include "vp_fc_wrap_filter.h"
 
 namespace vp

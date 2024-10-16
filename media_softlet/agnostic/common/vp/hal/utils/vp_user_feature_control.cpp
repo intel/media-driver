@@ -426,36 +426,36 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
         m_ctrlValDefault.bEnableL03DLut = false;
     }
 
-    bool bForceL0FC   = false;
+    bool bForceOclFC   = false;
     eRegKeyReadStatus = ReadUserSettingForDebug(
         m_userSettingPtr,
-        bForceL0FC,
-        __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_L0_FC,
+        bForceOclFC,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_OCL_FC,
         MediaUserSetting::Group::Sequence);
     if (MOS_SUCCEEDED(eRegKeyReadStatus))
     {
-        m_ctrlValDefault.bForceL0FC = bForceL0FC;
+        m_ctrlValDefault.bForceOclFC = bForceOclFC;
     }
     else
     {
         // Default value
-        m_ctrlValDefault.bForceL0FC = false;
+        m_ctrlValDefault.bForceOclFC = false;
     }
 
-    bool bDisableL0FcFp = false;
+    bool bDisableOclFcFp = false;
     eRegKeyReadStatus   = ReadUserSettingForDebug(
         m_userSettingPtr,
-        bDisableL0FcFp,
-        __MEDIA_USER_FEATURE_VALUE_DISABLE_VP_L0_FC_FP,
+        bDisableOclFcFp,
+        __MEDIA_USER_FEATURE_VALUE_DISABLE_VP_OCL_FC_FP,
         MediaUserSetting::Group::Sequence);
     if (MOS_SUCCEEDED(eRegKeyReadStatus))
     {
-        m_ctrlValDefault.bDisableL0FcFp = bDisableL0FcFp;
+        m_ctrlValDefault.bDisableOclFcFp = bDisableOclFcFp;
     }
     else
     {
         // Default value
-        m_ctrlValDefault.bDisableL0FcFp = false;
+        m_ctrlValDefault.bDisableOclFcFp = false;
     }
 #endif
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -507,11 +507,11 @@ PMOS_OCA_LOG_USER_FEATURE_CONTROL_INFO VpUserFeatureControl::GetOcaFeautreContro
 }
 
 
-bool VpUserFeatureControl::EnableL0FC()
+bool VpUserFeatureControl::EnableOclFC()
 {
-    bool bEnableL0FC = (m_vpPlatformInterface && m_vpPlatformInterface->SupportL0FC());
+    bool bEnableOclFC = (m_vpPlatformInterface && m_vpPlatformInterface->SupportOclFC());
 #if (_DEBUG || _RELEASE_INTERNAL)
-    bEnableL0FC |= m_ctrlVal.bForceL0FC;
+    bEnableOclFC |= m_ctrlVal.bForceOclFC;
 #endif
-    return bEnableL0FC;
+    return bEnableOclFC;
 }

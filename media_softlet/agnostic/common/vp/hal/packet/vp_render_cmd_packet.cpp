@@ -2077,7 +2077,7 @@ MOS_STATUS VpRenderCmdPacket::SetFcParams(PRENDER_FC_PARAMS params)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderCmdPacket::SetL0FcParams(PRENDER_L0_FC_PARAMS params)
+MOS_STATUS VpRenderCmdPacket::SetOclFcParams(PRENDER_OCL_FC_PARAMS params)
 {
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(params);

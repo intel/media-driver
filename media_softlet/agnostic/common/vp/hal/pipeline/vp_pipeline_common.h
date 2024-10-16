@@ -199,7 +199,7 @@ struct _VP_EXECUTE_CAPS
             uint64_t bHVSCalc       : 1;
             uint64_t bSegmentation  : 1;
             uint64_t bHdr           : 1;
-            uint64_t bFallbackLegacyFC : 1;     // only valid when vpUserFeatureControl->EnableL0FC() is true
+            uint64_t bFallbackLegacyFC : 1;     // only valid when vpUserFeatureControl->EnableOclFC() is true
             uint64_t forceBypassWorkload : 1;  // If true, force to bypass workload.
         };
         uint64_t value;
@@ -227,7 +227,7 @@ typedef struct _VP_EngineEntry
             uint64_t is1K1DLutSurfaceInUse : 1;  // 1K1DLut surface in use
             uint64_t isHdr33LutSizeEnabled : 1;
             uint64_t isBayerInputInUse : 1;
-            uint64_t forceLegacyFC : 1;          // true if L0 FC not support the format, fall back to legacy FC
+            uint64_t forceLegacyFC : 1;          // true if OCL FC not support the format, fall back to legacy FC
 
             // set by GetXxxPipeEnginCaps
             uint64_t bypassIfVeboxSfcInUse : 1;  // Bypass the feature if vebox or sfc in use. In such case, VeboxNeeded and

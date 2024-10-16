@@ -462,12 +462,12 @@ using RENDER_FC_PARAMS  = _RENDER_FC_PARAMS;
 using PRENDER_FC_PARAMS = RENDER_FC_PARAMS *;
 
 
-struct L0_FC_KERNEL_CONFIG
+struct OCL_FC_KERNEL_CONFIG
 {
     VPHAL_PERFTAG perfTag = VPHAL_NONE;
 };
 
-struct L0_FC_KERNEL_PARAM
+struct OCL_FC_KERNEL_PARAM
 {
     KERNEL_ARGS                  kernelArgs;
     std::string                  kernelName;
@@ -477,18 +477,18 @@ struct L0_FC_KERNEL_PARAM
     uint32_t                     localWidth;
     uint32_t                     localHeight;
     KERNEL_ARG_INDEX_SURFACE_MAP kernelStatefulSurfaces;
-    L0_FC_KERNEL_CONFIG          kernelConfig;
+    OCL_FC_KERNEL_CONFIG         kernelConfig;
     void                         Init();
 };
 
-using L0_FC_KERNEL_PARAMS = std::vector<L0_FC_KERNEL_PARAM>;
-struct _RENDER_L0_FC_PARAMS
+using OCL_FC_KERNEL_PARAMS = std::vector<OCL_FC_KERNEL_PARAM>;
+struct _RENDER_OCL_FC_PARAMS
 {
-    L0_FC_KERNEL_PARAMS fc_kernelParams = {};
-    void                Init();
+    OCL_FC_KERNEL_PARAMS fc_kernelParams = {};
+    void                 Init();
 };
-using RENDER_L0_FC_PARAMS  = _RENDER_L0_FC_PARAMS;
-using PRENDER_L0_FC_PARAMS = RENDER_L0_FC_PARAMS *;
+using RENDER_OCL_FC_PARAMS  = _RENDER_OCL_FC_PARAMS;
+using PRENDER_OCL_FC_PARAMS = RENDER_OCL_FC_PARAMS *;
 
 struct _RENDER_HDR_PARAMS
 {

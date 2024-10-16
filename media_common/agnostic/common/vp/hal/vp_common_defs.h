@@ -184,11 +184,11 @@ enum VpKernelID
     // mediacopy-render copy
     kernelRenderCopy,
 
-    kernelL0FcCommon,
-    kernelL0FcFP,
-    kernelL0Fc444PL3Input,
-    kernelL0Fc420PL3Input,
-    kernelL0Fc420PL3Output,
+    kernelOclFcCommon,
+    kernelOclFcFP,
+    kernelOclFc444PL3Input,
+    kernelOclFc420PL3Input,
+    kernelOclFc420PL3Output,
     baseKernelMaxNumID
 };
 

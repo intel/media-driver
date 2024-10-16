@@ -1093,7 +1093,7 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
         allocated));
     surfSetting.surfGroup.insert(std::make_pair(SurfaceTypeDecompressionSync, m_decompressionSyncSurface));
 
-    // Allocate L0 fc intermedia inputSurface
+    // Allocate OCL FC intermedia inputSurface
     for (uint32_t i = 0; i < inputSurfaces.size(); ++i)
     {
         VP_PUBLIC_CHK_NULL_RETURN(inputSurfaces[i]);
@@ -1139,7 +1139,7 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
             surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcIntermediaInput + i), m_fcIntermediaSurfaceInput[i]));
         }
     }
-    // Allocate L0 fc intermedia outputSurface
+    // Allocate OCL FC intermedia outputSurface
     {
         MOS_FORMAT fcIntermediaSurfaceOutputFormat = Format_Any;
         VP_PUBLIC_CHK_NULL_RETURN(outputSurface);

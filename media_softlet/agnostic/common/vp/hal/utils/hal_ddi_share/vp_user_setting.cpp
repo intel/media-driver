@@ -392,28 +392,28 @@ MOS_STATUS VpUserSetting::InitVpUserSetting(MediaUserSettingSharedPtr userSettin
 
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
-        __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_L0_FC,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_OCL_FC,
         MediaUserSetting::Group::Sequence,
         0,
         true);
 
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
-        __MEDIA_USER_FEATURE_VALUE_DISABLE_VP_L0_FC_FP,
+        __MEDIA_USER_FEATURE_VALUE_DISABLE_VP_OCL_FC_FP,
         MediaUserSetting::Group::Sequence,
         0,
         true);
 
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
-        __MEDIA_USER_FEATURE_VALUE_VP_L0_FC_ENABLED,
+        __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_SUPPORTED,
         MediaUserSetting::Group::Sequence,
         0,
         true);
 
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
-        __MEDIA_USER_FEATURE_VALUE_VP_L0_FC_REPORT,
+        __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_REPORT,
         MediaUserSetting::Group::Sequence,
         0,
         true);

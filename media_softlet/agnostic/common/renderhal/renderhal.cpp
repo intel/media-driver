@@ -4249,8 +4249,8 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
 }
 
 //!
-//! \brief    Get Plane Definition For L0 FC
-//! \details  Get Specific Plane Definition for L0 FC usage
+//! \brief    Get Plane Definition For OCL FC
+//! \details  Get Specific Plane Definition for OCL FC usage
 //! \param    PRENDERHAL_INTERFACE pRenderHal
 //!           [in] Pointer to Hardware Interface Structure
 //! \param    MOS_FORMAT format

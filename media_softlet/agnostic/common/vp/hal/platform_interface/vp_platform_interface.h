@@ -136,7 +136,7 @@ public:
     }
 
 
-    //for L0 use only
+    //for OCL use only
     uint32_t &GetCurbeSize()
     {
         return m_curbeSize;
@@ -167,14 +167,14 @@ protected:
     uint32_t                    m_kernelBinSize = 0;
     // CM Kernel Execution Code Offset
     uint32_t                    m_kernelBinOffset = 0;
-    // CM Kernel Arguments or L0 Kernel Arguments
+    // CM Kernel Arguments or OCL Kernel Arguments
     KERNEL_ARGS                 m_kernelArgs;
     std::string                 m_kernelName = {};
     // CM Compositing Kernel patch file buffer and size
     const void                  *m_fcPatchBin = nullptr;
     uint32_t                    m_fcPatchBinSize = 0;
 
-    //for L0 use only
+    //for OCL use only
     uint32_t m_curbeSize = 0;
     KERNEL_BTIS     m_kernelBtis;
     KRN_EXECUTE_ENV m_kernelExeEnv = {};
@@ -370,7 +370,7 @@ public:
         uint32_t        kernelBinSize,
         std::string     kernelName);
 
-    //for L0 kernel use only
+    //for OCL kernel use only
     virtual void InitVpDelayedNativeAdvKernel(
         const uint32_t  *kernelBin,
         uint32_t         kernelBinSize,
@@ -437,7 +437,7 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    virtual bool SupportL0FC()
+    virtual bool SupportOclFC()
     {
         return false;
     }

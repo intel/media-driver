@@ -21,12 +21,12 @@
 */
 //!
 //! \file     vp_fc_wrap_filter.h
-//! \brief    Defines the common interface for legacy fc and L0 fc wrapper
+//! \brief    Defines the common interface for legacy fc and OCL fc wrapper
 //!           this file is for the base interface which is shared by all wrap fc in driver.
 #ifndef __VP_FC_WRAP_FILTER_H__
 #define __VP_FC_WRAP_FILTER_H__
 
-#include "vp_l0_fc_filter.h"
+#include "vp_ocl_fc_filter.h"
 #include "vp_fc_filter.h"
 
 namespace vp
@@ -35,7 +35,7 @@ namespace vp
 class PolicyFcFeatureWrapHandler : public PolicyFeatureHandler
 {
 public:
-    PolicyFcFeatureWrapHandler(VP_HW_CAPS &hwCaps, bool enableL0FC);
+    PolicyFcFeatureWrapHandler(VP_HW_CAPS &hwCaps, bool enableOclFC);
 
     virtual ~PolicyFcFeatureWrapHandler();
 
@@ -50,17 +50,17 @@ public:
     virtual MOS_STATUS ReleaseHwFeatureParameter(HwFilterParameter *&pParam) override;
 
 private:
-    bool                      m_enableL0FC         = false;
-    PolicyL0FcFeatureHandler *m_l0fcFeatureHandler = nullptr;
-    PolicyFcFeatureHandler   *m_fcFeatureHandler   = nullptr;
+    bool                       m_enableOclFC         = false;
+    PolicyOclFcFeatureHandler *m_oclfcFeatureHandler = nullptr;
+    PolicyFcFeatureHandler    *m_fcFeatureHandler    = nullptr;
 
-MEDIA_CLASS_DEFINE_END(vp__PolicyFcFeatureWrapHandler)
+    MEDIA_CLASS_DEFINE_END(vp__PolicyFcFeatureWrapHandler)
 };
 
 class PolicyFcWrapHandler : public PolicyFeatureHandler
 {
 public:
-    PolicyFcWrapHandler(VP_HW_CAPS &hwCaps, bool enableL0FC);
+    PolicyFcWrapHandler(VP_HW_CAPS &hwCaps, bool enableOclFC);
 
     virtual ~PolicyFcWrapHandler();
 
@@ -77,13 +77,13 @@ public:
     virtual MOS_STATUS ReleaseHwFeatureParameter(HwFilterParameter *&pParam) override;
 
 private:
-    bool               m_enableL0FC  = false;
-    PolicyL0FcHandler *m_l0fcHandler = nullptr;
-    PolicyFcHandler   *m_fcHandler   = nullptr;
+    bool                m_enableOclFC   = false;
+    PolicyOclFcHandler *m_oclfcHandler = nullptr;
+    PolicyFcHandler    *m_fcHandler    = nullptr;
 
-MEDIA_CLASS_DEFINE_END(vp__PolicyFcWrapHandler)
+    MEDIA_CLASS_DEFINE_END(vp__PolicyFcWrapHandler)
 };
 
-}
+}  // namespace vp
 
 #endif

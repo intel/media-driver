@@ -230,19 +230,19 @@ MOS_STATUS VpPipeline::UserFeatureReport()
 #endif
         }
 #if (_DEBUG || _RELEASE_INTERNAL)
-        if (m_reporting->GetFeatures().isL0FC)
+        if (m_reporting->GetFeatures().isOclFC)
         {
-            VP_PUBLIC_NORMALMESSAGE("VP L0 FC Enabled");
+            VP_PUBLIC_NORMALMESSAGE("VP OCL FC Supported");
             ReportUserSettingForDebug(
                 m_userSettingPtr,
-                __MEDIA_USER_FEATURE_VALUE_VP_L0_FC_ENABLED,
+                __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_SUPPORTED,
                 1,
                 MediaUserSetting::Group::Sequence);
 
             ReportUserSettingForDebug(
                 m_userSettingPtr,
-                __MEDIA_USER_FEATURE_VALUE_VP_L0_FC_REPORT,
-                m_reporting->GetFeatures().diffLogL0FC,
+                __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_REPORT,
+                m_reporting->GetFeatures().diffLogOclFC,
                 MediaUserSetting::Group::Sequence);
         }
 #endif
