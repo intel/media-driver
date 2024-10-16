@@ -40,3 +40,4 @@ set(MEDIA_BIN_INCLUDE_DIR
     ${MEDIA_BIN_INCLUDE_DIR}
     ${CMAKE_CURRENT_LIST_DIR}
 )
+media_add_curr_to_include_path()

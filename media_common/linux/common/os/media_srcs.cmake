@@ -44,3 +44,5 @@ set(SOFTLET_MOS_PUBLIC_INCLUDE_DIRS_
 )
 
 endif() # CMAKE_WDDM_LINUX
+
+media_add_curr_to_include_path()

@@ -40,7 +40,6 @@
 #include <sys/types.h>
 #include <sys/sem.h>
 #include <sys/mman.h>
-#include "mos_compat.h" // libc variative definitions: backtrace
 #include "mos_user_setting.h"
 #include "mos_utilities_specific.h"
 #include "mos_utilities.h"

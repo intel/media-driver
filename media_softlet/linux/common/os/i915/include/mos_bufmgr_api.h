@@ -29,6 +29,7 @@
 #define MOS_BUFMGR_API_H
 
 #include <stdio.h>
+#include <errno.h>
 #include "drm.h"
 #include "libdrm_macros.h"
 #include "media_skuwa_specific.h"

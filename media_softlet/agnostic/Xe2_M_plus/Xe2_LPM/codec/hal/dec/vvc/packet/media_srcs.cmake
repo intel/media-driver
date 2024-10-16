@@ -32,6 +32,8 @@ set(SOFTLET_DECODE_VVC_HEADERS_
 
 source_group( CodecHalNext\\Xe2_Lpm\\Decode FILES ${SOFTLET_DECODE_VVC_SOURCES_} ${SOFTLET_DECODE_VVC_HEADERS_})
 
+media_add_curr_to_include_path()
+
 endif()
 
 

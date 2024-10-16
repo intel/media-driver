@@ -61,3 +61,4 @@ set(SOFTLET_VP_HAL_DDI_SHARED_INCLUDE_DIRS_
 source_group( VpHalNext\\Shared FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
 set(TMP_SOURCES_ "")
 set(TMP_HEADERS_ "")
+media_add_curr_to_include_path()
