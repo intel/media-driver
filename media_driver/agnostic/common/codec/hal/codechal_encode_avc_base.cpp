@@ -2839,6 +2839,14 @@ MOS_STATUS CodechalEncodeAvcBase::SetPictureStructs()
         }
     }
 
+    //save reference surface
+    for (uint8_t i = 0; i < CODEC_AVC_MAX_NUM_REF_FRAME; i++)
+    {
+        if (picParams->RefFrameListSurface[i].dwSize != 0 && avcRefList[i] != NULL)
+        {
+            avcRefList[i]->sRefReconBuffer = picParams->RefFrameListSurface[i];
+        }
+    }
     return eStatus;
 }
 
