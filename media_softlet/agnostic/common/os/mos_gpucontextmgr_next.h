@@ -1,5 +1,5 @@
 ﻿/*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -169,7 +169,10 @@ protected:
 
     //! \brief    Gpu context array mutex
     PMOS_MUTEX m_gpuContextArrayMutex = nullptr;
-    
+
+    //! \brief    Gpu context array mutex for delete
+    PMOS_MUTEX m_gpuContextDeleteArrayMutex = nullptr;
+
     //! \brief    Gpu context count
     uint32_t m_gpuContextCount = 0;
     uint32_t m_gpuContextHanleForNonCycledCase = 0;
