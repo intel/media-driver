@@ -107,6 +107,10 @@ public:
     virtual MOS_STATUS Execute(PVP_PIPELINE_PARAMS params) = 0;
 
     virtual void Destroy();
+    virtual bool IsOclFCEnabled()
+    {
+        return m_vpPipeline->IsOclFCEnabled();
+    }
 
 protected:
     //!

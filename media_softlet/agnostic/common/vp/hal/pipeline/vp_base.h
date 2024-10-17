@@ -184,6 +184,11 @@ public:
 
     VpExtIntfBase *extIntf = nullptr;
 
+    virtual bool IsOclFCEnabled()
+    {
+        return false;
+    }
+
 protected:
     virtual bool IsApoEnabled()
     {

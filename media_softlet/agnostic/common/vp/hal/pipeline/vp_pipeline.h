@@ -227,6 +227,11 @@ public:
         return m_allocator;
     }
 
+    virtual bool IsOclFCEnabled()
+    {
+        return m_vpMhwInterface.m_userFeatureControl->EnableOclFC();
+    }
+
     // for debug purpose
 #if (_DEBUG || _RELEASE_INTERNAL)
     //!
