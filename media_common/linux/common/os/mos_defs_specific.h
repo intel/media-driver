@@ -29,6 +29,7 @@
 
 #include <pthread.h>
 #include <semaphore.h>
+#include <cstdint>
 #include <string>
 
 typedef pthread_mutex_t         MOS_MUTEX, *PMOS_MUTEX;         //!< mutex pointer
