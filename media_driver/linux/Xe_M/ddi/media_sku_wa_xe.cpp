@@ -71,8 +71,8 @@ static struct LinuxCodecInfo XehpSdvCodecInfo =
     .vp8Encoding    = 0,
     .hevcVdenc      = 0,
     .vp9Vdenc       = 0,
-    .adv0Decoding   = 1,
-    .adv1Decoding   = 1,
+    .adv0Decoding   = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
+    .adv1Decoding   = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
 };
 
 static struct LinuxCodecInfo Dg2CodecInfo =
@@ -96,8 +96,8 @@ static struct LinuxCodecInfo Dg2CodecInfo =
     .vp8Encoding    = 0,
     .hevcVdenc      = 1,
     .vp9Vdenc       = 1,
-    .adv0Decoding   = 1,
-    .adv1Decoding   = 1,
+    .adv0Decoding   = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
+    .adv1Decoding   = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
 };
 
 static struct LinuxCodecInfo PvcCodecInfo =
@@ -131,8 +131,8 @@ static struct LinuxCodecInfo PvcCodecInfo =
     .hevcVdenc      = 0,
     .vp9Vdenc       = 0,
 #endif
-    .adv0Decoding   = 1,
-    .adv1Decoding   = 1,
+    .adv0Decoding   = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
+    .adv1Decoding   = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
 };
 
 static bool InitTglMediaSkuExt(struct GfxDeviceInfo *devInfo,
