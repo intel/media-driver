@@ -53,7 +53,6 @@ set(GCC_SECURE_LINK_FLAGS "-z relro -z now")
 set(CMAKE_SKIP_RPATH ON)
 
 #include paths
-include_directories(${CMAKE_CURRENT_LIST_DIR}/../proprietary/share/)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/../agnostic/share)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/../agnostic/hardware)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/../linux/share)

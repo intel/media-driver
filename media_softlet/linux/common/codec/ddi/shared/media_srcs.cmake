@@ -49,3 +49,4 @@ set(SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_
     ${CMAKE_CURRENT_LIST_DIR}
 )
 endif()
+media_add_curr_to_include_path()

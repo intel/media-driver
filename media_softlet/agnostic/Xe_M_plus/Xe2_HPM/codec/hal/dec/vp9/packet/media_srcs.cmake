@@ -31,6 +31,8 @@ set(SOFTLET_DECODE_VP9_HEADERS_
 
 source_group( CodecHalNext\\Xe2_HPM\\Decode FILES ${SOFTLET_DECODE_VP9_SOURCES_} ${SOFTLET_DECODE_VP9_HEADERS_} )
 
+media_add_curr_to_include_path()
+
 endif()
 
 set(SOFTLET_DECODE_VP9_PRIVATE_INCLUDE_DIRS_
