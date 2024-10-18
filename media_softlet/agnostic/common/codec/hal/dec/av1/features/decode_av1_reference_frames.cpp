@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2023, Intel Corporation
+* Copyright (c) 2019-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -103,11 +103,17 @@ namespace decode
             {
                 PCODEC_PICTURE refFrameList = &(picParams.m_refFrameMap[0]);
                 uint8_t refPicIndex = picParams.m_refFrameIdx[i];
-                if (refPicIndex >= av1TotalRefsPerFrame)
+                uint8_t frameIdx = 0xFF;
+                if (refPicIndex < av1TotalRefsPerFrame &&
+                    refFrameList[refPicIndex].FrameIdx < CODECHAL_MAX_DPB_NUM_AV1)
                 {
-                    continue;
+                    frameIdx = refFrameList[refPicIndex].FrameIdx;
                 }
-                m_activeReferenceList.push_back(refFrameList[refPicIndex].FrameIdx);
+                else
+                {
+                    MOS_STATUS hr = GetValidReferenceIndex(&frameIdx);
+                }
+                m_activeReferenceList.push_back(frameIdx);
             }
         }
 
@@ -118,7 +124,7 @@ namespace decode
     {
         DECODE_FUNC_CALL();
 
-        if (frameIndex > CODECHAL_MAX_DPB_NUM_AV1)
+        if (frameIndex >= CODECHAL_MAX_DPB_NUM_AV1)
         {
             DECODE_ASSERTMESSAGE("Invalid reference frame index");
             return nullptr;
@@ -147,6 +153,10 @@ namespace decode
         for(auto i = 0; i < av1NumInterRefFrames; i++)
         {
             auto index = m_picParams->m_refFrameIdx[i];
+            if (index >= av1TotalRefsPerFrame)
+            {
+                continue;
+            }
             uint8_t frameIdx = m_picParams->m_refFrameMap[index].FrameIdx;
             if (frameIdx >= m_basicFeature->m_maxFrameIndex)
             {
@@ -175,6 +185,10 @@ namespace decode
         for (auto i = 0; i < av1NumInterRefFrames; i++)
         {
             auto    index    = m_picParams->m_refFrameIdx[i];
+            if (index >= av1TotalRefsPerFrame)
+            {
+                continue;
+            }
             uint8_t frameIdx = m_picParams->m_refFrameMap[index].FrameIdx;
             if (frameIdx >= m_basicFeature->m_maxFrameIndex)
             {
@@ -570,7 +584,6 @@ namespace decode
                 DECODE_ASSERTMESSAGE("Hit invalid refFrameList[%d].FrameIdx=%d\n", refPicIndex, refFrameList[refPicIndex].FrameIdx);
             }
         }
-
         return hr;
     }
     }  // namespace decode
