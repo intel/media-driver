@@ -228,6 +228,12 @@ MOS_STATUS AvcReferenceFrames::UpdateSlice()
             picParams->pic_init_qp_minus26 + 26 + slcParams->slice_qp_delta;
     }
 
+    if (slcParams->num_ref_idx_l0_active_minus1 >= CODEC_MAX_NUM_REF_FIELD || slcParams->num_ref_idx_l1_active_minus1 >= CODEC_MAX_NUM_REF_FIELD)
+    {
+        ENCODE_ASSERTMESSAGE("Invalid slice parameters.");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
     for (uint32_t sliceCount = 0; sliceCount < m_basicFeature->m_numSlices; sliceCount++)
     {
         if (m_pictureCodingType != I_TYPE)
