@@ -45,6 +45,9 @@ VpRenderOclFcKernel::VpRenderOclFcKernel(PVP_MHWINTERFACE hwInterface, VpKernelI
     case kernelOclFc444PL3Input:
         m_kernelName = "ImageRead_fc_444PL3_input";
         break;
+    case kernelOclFc444PL3Output:
+        m_kernelName = "ImageWrite_fc_444PL3_output";
+        break;
     case kernelOclFc420PL3Input:
         m_kernelName = "ImageRead_fc_420PL3_input";
         break;

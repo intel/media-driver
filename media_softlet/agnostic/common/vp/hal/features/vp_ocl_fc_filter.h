@@ -233,6 +233,9 @@ protected:
     MOS_STATUS GenerateFc444PL3InputParam(OCL_FC_LAYER_PARAM &layer, uint32_t layerNumber, OCL_FC_KERNEL_PARAM &param, uint32_t layerIndex);
     MOS_STATUS SetupSingleFc444PL3InputKrnArg(uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit, uint32_t inputChannelIndices[4], uint32_t outputChannelIndices[4], uint32_t planeChannelIndices);
     MOS_STATUS SetupSingleFc444PL3InputBti(uint32_t uIndex, SURFACE_PARAMS &surfaceParam, uint32_t layerIndex, bool &bInit);
+    MOS_STATUS GenerateFc444PL3OutputParam(OCL_FC_LAYER_PARAM &outputLayersParam, OCL_FC_KERNEL_PARAM &param);
+    MOS_STATUS SetupSingleFc444PL3OutputKrnArg(uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit, uint32_t inputChannelIndices[4], uint32_t outputChannelIndices[4]);
+    MOS_STATUS SetupSingleFc444PL3OutputBti(uint32_t uIndex, SURFACE_PARAMS &surfaceParam, bool &bInit);
 
     MOS_STATUS GetDefaultScalingMode(VPHAL_SCALING_MODE &defaultScalingMode, SwFilterPipe &executedPipe);
     MOS_STATUS GetChromaSitingFactor(MOS_FORMAT format, uint8_t &hitSecPlaneFactorX, uint8_t &hitSecPlaneFactorY);
@@ -282,6 +285,7 @@ protected:
     MULTI_LAYERS_KERNEL_INDEX_ARG_MAP m_fc420PL3InputMultiLayersKrnArgs;
     MULTI_LAYERS_KERNEL_INDEX_ARG_MAP m_fc444PL3InputMultiLayersKrnArgs;
     KERNEL_INDEX_ARG_MAP              m_fc420PL3OutputKrnArgs;
+    KERNEL_INDEX_ARG_MAP              m_fc444PL3OutputKrnArgs;
 
     MEDIA_CLASS_DEFINE_END(vp__VpOclFcFilter)
 };

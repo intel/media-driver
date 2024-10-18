@@ -31,6 +31,7 @@
 #include "igvpfc_420PL3_input_args.h"
 #include "igvpfc_420PL3_output_args.h"
 #include "igvpfc_444PL3_input_args.h"
+#include "igvpfc_444PL3_output_args.h"
 #include <vector>
 
 namespace vp
@@ -94,6 +95,11 @@ MOS_STATUS VpOclFcFilter::Destroy()
         MOS_FreeMemAndSetNull(krnArg.pData);
     }
     for (auto &handle : m_fc420PL3OutputKrnArgs)
+    {
+        KRN_ARG &krnArg = handle.second;
+        MOS_FreeMemAndSetNull(krnArg.pData);
+    }
+    for (auto &handle : m_fc444PL3OutputKrnArgs)
     {
         KRN_ARG &krnArg = handle.second;
         MOS_FreeMemAndSetNull(krnArg.pData);
@@ -213,6 +219,8 @@ MOS_STATUS VpOclFcFilter::InitKrnParams(OCL_FC_KERNEL_PARAMS &krnParams, SwFilte
         case Format_RGBP:
         case Format_BGRP:
         case Format_444P:
+            VP_RENDER_CHK_STATUS_RETURN(GenerateFc444PL3OutputParam(compParam.outputLayerParam, param));
+            krnParams.push_back(param);
             break;
         default:
             break;
@@ -398,6 +406,145 @@ MOS_STATUS VpOclFcFilter::GenerateFc420PL3OutputParam(OCL_FC_LAYER_PARAM &output
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpOclFcFilter::GenerateFc444PL3OutputParam(OCL_FC_LAYER_PARAM &outputLayersParam, OCL_FC_KERNEL_PARAM &param)
+{
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface->m_vpPlatformInterface);
+    param.Init();
+    VP_SURFACE *outputSurf              = outputLayersParam.surf;
+    uint32_t    inputChannelIndices[4]  = {};
+    uint32_t    outputChannelIndices[4] = {};
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
+    VP_PUBLIC_CHK_STATUS_RETURN(ConvertInputChannelIndicesToKrnParam(outputLayersParam.interMediaOverwriteSurface, inputChannelIndices));
+    VP_PUBLIC_CHK_STATUS_RETURN(ConvertOutputChannelIndicesToKrnParam(outputSurf->osSurface->Format, outputChannelIndices));
+
+    uint32_t                     srcSurfaceWidth     = outputSurf->osSurface->dwWidth;
+    uint32_t                     srcSurfaceHeight    = outputSurf->osSurface->dwHeight;
+    uint32_t                     tarSurfaceWidth     = outputSurf->osSurface->dwWidth;
+    uint32_t                     tarSurfaceHeight    = outputSurf->osSurface->dwHeight;
+    uint32_t                     localSize[3]        = {128, 2, 1};  // localWidth, localHeight, localDepth
+    uint32_t                     threadWidth         = tarSurfaceWidth / localSize[0] + (tarSurfaceWidth % localSize[0] != 0);
+    uint32_t                     threadHeight        = tarSurfaceHeight / localSize[1] + (tarSurfaceHeight % localSize[1] != 0);
+    KERNEL_ARGS                  krnArgs             = {};
+    KERNEL_ARG_INDEX_SURFACE_MAP krnStatefulSurfaces = {};
+    std::string                  krnName             = "ImageWrite_fc_444PL3_output";
+    auto                         handle              = m_pvpMhwInterface->m_vpPlatformInterface->GetKernelPool().find(krnName);
+    VP_PUBLIC_CHK_NOT_FOUND_RETURN(handle, &m_pvpMhwInterface->m_vpPlatformInterface->GetKernelPool());
+    KERNEL_BTIS kernelBtis = handle->second.GetKernelBtis();
+    KERNEL_ARGS kernelArgs = handle->second.GetKernelArgs();
+
+    for (auto const &kernelArg : kernelArgs)
+    {
+        uint32_t uIndex    = kernelArg.uIndex;
+        auto     argHandle = m_fc444PL3OutputKrnArgs.find(uIndex);
+        if (argHandle == m_fc444PL3OutputKrnArgs.end())
+        {
+            KRN_ARG krnArg = {};
+            argHandle      = m_fc444PL3OutputKrnArgs.insert(std::make_pair(uIndex, krnArg)).first;
+            VP_PUBLIC_CHK_NOT_FOUND_RETURN(argHandle, &m_fc444PL3OutputKrnArgs);
+        }
+        KRN_ARG &krnArg = argHandle->second;
+        bool     bInit  = true;
+        krnArg.uIndex   = uIndex;
+        krnArg.eArgKind = kernelArg.eArgKind;
+        if (krnArg.pData == nullptr)
+        {
+            if (kernelArg.uSize > 0)
+            {
+                krnArg.uSize = kernelArg.uSize;
+                krnArg.pData = MOS_AllocAndZeroMemory(kernelArg.uSize);
+            }
+        }
+        else
+        {
+            VP_PUBLIC_CHK_VALUE_RETURN(krnArg.uSize, kernelArg.uSize);
+            MOS_ZeroMemory(krnArg.pData, krnArg.uSize);
+        }
+        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc444PL3OutputKrnArg(localSize, krnArg, bInit, inputChannelIndices, outputChannelIndices));
+        if (bInit)
+        {
+            krnArgs.push_back(krnArg);
+        }
+    }
+
+    for (auto const &kernelBti : kernelBtis)
+    {
+        uint32_t       uIndex       = kernelBti.first;
+        SURFACE_PARAMS surfaceParam = {};
+        bool           bInit        = true;
+        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc444PL3OutputBti(uIndex, surfaceParam, bInit));
+        if (bInit)
+        {
+            krnStatefulSurfaces.insert(std::make_pair(uIndex, surfaceParam));
+        }
+    }
+    param.kernelArgs             = krnArgs;
+    param.kernelId               = kernelOclFc444PL3Output;
+    param.threadWidth            = threadWidth;
+    param.threadHeight           = threadHeight;
+    param.localWidth             = localSize[0];
+    param.localHeight            = localSize[1];
+    param.kernelStatefulSurfaces = krnStatefulSurfaces;
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpOclFcFilter::SetupSingleFc444PL3OutputBti(uint32_t uIndex, SURFACE_PARAMS &surfaceParam, bool &bInit)
+{
+    VP_FUNC_CALL();
+    switch (uIndex)
+    {
+    case FC_444PL3_OUTPUT_IMAGEWRITE_INPUTPLANE0:
+        surfaceParam.surfType = SurfaceType(SurfaceTypeFcIntermediaOutput);
+        break;
+    case FC_444PL3_OUTPUT_IMAGEWRITE_OUTPUTPLANE0:
+        surfaceParam.surfType = SurfaceType(SurfaceTypeFcTarget0);
+        surfaceParam.isOutput = true;
+        break;
+    case FC_444PL3_OUTPUT_IMAGEWRITE_OUTPUTPLANE1:
+    case FC_444PL3_OUTPUT_IMAGEWRITE_OUTPUTPLANE2:
+        surfaceParam.surfType = SurfaceTypeSubPlane;
+        break;
+    default:
+        bInit = false;
+        break;
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpOclFcFilter::SetupSingleFc444PL3OutputKrnArg(uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit, uint32_t inputChannelIndices[4], uint32_t outputChannelIndices[4])
+{
+    VP_FUNC_CALL();
+    switch (krnArg.uIndex)
+    {
+    case FC_444PL3_OUTPUT_IMAGEWRITE_INPUTINDEX:
+        VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
+        static_cast<uint32_t *>(krnArg.pData)[0] = inputChannelIndices[0];
+        static_cast<uint32_t *>(krnArg.pData)[1] = inputChannelIndices[1];
+        static_cast<uint32_t *>(krnArg.pData)[2] = inputChannelIndices[2];
+        static_cast<uint32_t *>(krnArg.pData)[3] = inputChannelIndices[3];
+        break;
+    case FC_444PL3_OUTPUT_IMAGEWRITE_OUTPUTINDEX:
+        VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
+        static_cast<uint32_t *>(krnArg.pData)[0] = outputChannelIndices[0];
+        static_cast<uint32_t *>(krnArg.pData)[1] = outputChannelIndices[1];
+        static_cast<uint32_t *>(krnArg.pData)[2] = outputChannelIndices[2];
+        static_cast<uint32_t *>(krnArg.pData)[3] = outputChannelIndices[3];
+        break;
+    case FC_444PL3_OUTPUT_IMAGEWRITE_LOCAL_SIZE:
+    case FC_444PL3_OUTPUT_IMAGEWRITE_ENQUEUED_LOCAL_SIZE:
+        VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
+        static_cast<uint32_t *>(krnArg.pData)[0] = localSize[0];
+        static_cast<uint32_t *>(krnArg.pData)[1] = localSize[1];
+        static_cast<uint32_t *>(krnArg.pData)[2] = localSize[2];
+        break;
+    default:
+        bInit = false;
+        break;
+    }
+    return MOS_STATUS_SUCCESS;
+}
 MOS_STATUS VpOclFcFilter::GenerateFc444PL3InputParam(OCL_FC_LAYER_PARAM &layer, uint32_t layerNumber, OCL_FC_KERNEL_PARAM &param, uint32_t layerIndex)
 {
     VP_FUNC_CALL();
@@ -1954,6 +2101,19 @@ MOS_STATUS VpOclFcFilter::ConvertOutputChannelIndicesToKrnParam(MOS_FORMAT forma
     case Format_R10G10B10A2:
     case Format_A16B16G16R16:
     case Format_A16B16G16R16F:
+        dynamicChannelIndices[0] = 0;
+        dynamicChannelIndices[1] = 1;
+        dynamicChannelIndices[2] = 2;
+        dynamicChannelIndices[3] = 3;
+        break;
+    case Format_RGBP:
+    case Format_BGRP:
+        dynamicChannelIndices[0] = 1;
+        dynamicChannelIndices[1] = 2;
+        dynamicChannelIndices[2] = 0;
+        dynamicChannelIndices[3] = 3;
+        break;
+    case Format_444P:
         dynamicChannelIndices[0] = 0;
         dynamicChannelIndices[1] = 1;
         dynamicChannelIndices[2] = 2;
