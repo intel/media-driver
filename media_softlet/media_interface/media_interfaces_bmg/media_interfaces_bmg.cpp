@@ -467,6 +467,7 @@ MOS_STATUS CodechalInterfacesXe2_Hpm::Initialize(
         }
         else
 #endif
+#endif
 #if defined(_AV1_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == codechalEncodeModeAv1)
         {
@@ -486,7 +487,6 @@ MOS_STATUS CodechalInterfacesXe2_Hpm::Initialize(
             }
         }
         else
-#endif
 #endif
         {
             CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported encode function requested.");
