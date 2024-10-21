@@ -4321,7 +4321,8 @@ MOS_STATUS CodechalVdencAvcState::SetSliceStructs()
         uint8_t       swapIndex                     = CODEC_AVC_NUM_UNCOMPRESSED_SURFACE;
         if (slcParams->num_ref_idx_l0_active_minus1 >= CODEC_MAX_NUM_REF_FIELD || slcParams->num_ref_idx_l1_active_minus1 >= CODEC_MAX_NUM_REF_FIELD)
         {
-            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            CODECHAL_ENCODE_ASSERTMESSAGE("Invalid slice parameters.");
+            return MOS_STATUS_INVALID_PARAMETER;
         }
 
         for (uint32_t sliceCount = 0; sliceCount < m_numSlices; sliceCount++)
