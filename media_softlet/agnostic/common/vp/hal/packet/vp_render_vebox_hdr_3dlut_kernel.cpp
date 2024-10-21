@@ -254,7 +254,7 @@ MOS_STATUS VpRenderHdr3DLutKernel::SetupSurfaceState()
     kernelSurfaceParam.isOutput                         = false;
     m_surfaceState.insert(std::make_pair(SurfaceType3DLutCoef, kernelSurfaceParam));
 
-    VP_RENDER_CHK_STATUS_RETURN(InitCoefSurface(m_maxDisplayLum, m_maxContentLevelLum, m_hdrMode));
+    VP_RENDER_CHK_STATUS_RETURN(InitCoefSurface(m_maxDisplayLum, m_maxContentLevelLum, m_hdrMode, false));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -360,7 +360,7 @@ MOS_STATUS VpRenderHdr3DLutKernel::GetWalkerSetting(KERNEL_WALKER_PARAMS &walker
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderHdr3DLutKernel::InitCoefSurface(const uint32_t maxDLL, const uint32_t maxCLL, const VPHAL_HDR_MODE hdrMode)
+MOS_STATUS VpRenderHdr3DLutKernel::InitCoefSurface(const uint32_t maxDLL, const uint32_t maxCLL, const VPHAL_HDR_MODE hdrMode, bool needTMCurveChange)
 {
     VP_FUNC_CALL();
     float  *hdrcoefBuffer = nullptr;
@@ -389,8 +389,14 @@ MOS_STATUS VpRenderHdr3DLutKernel::InitCoefSurface(const uint32_t maxDLL, const 
     {
         CalcCCMMatrix();
         MOS_SecureMemcpy(ccmMatrix, sizeof(float) * 12, color_matrix_calculation, sizeof(float) * 12);
-
-        tmMode    = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2S;
+        if ((maxDLL > 800) && needTMCurveChange)
+        {
+            tmMode = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2H;
+        }
+        else
+        {
+            tmMode = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2S;
+        }
         oetfCurve = (OETF_CURVE_TYPE)OETF_SRGB;
         tmSrcType = (TONE_MAPPING_SOURCE_TYPE)TONE_MAPPING_SOURCE_PSEUDO_Y_BT709;
     }
@@ -577,7 +583,7 @@ MOS_STATUS VpRenderHdr3DLutKernelCM::SetupSurfaceState()
     kernelSurfaceParam.isOutput                         = false;
     m_surfaceState.insert(std::make_pair(SurfaceType3DLutCoef, kernelSurfaceParam));
     
-    VP_RENDER_CHK_STATUS_RETURN(InitCoefSurface(m_maxDisplayLum, m_maxContentLevelLum, m_hdrMode));
+    VP_RENDER_CHK_STATUS_RETURN(InitCoefSurface(m_maxDisplayLum, m_maxContentLevelLum, m_hdrMode, true));
 
     return MOS_STATUS_SUCCESS;
 }
