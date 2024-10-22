@@ -254,7 +254,7 @@ MOS_STATUS VpRenderHdr3DLutKernel::SetupSurfaceState()
     kernelSurfaceParam.isOutput                         = false;
     m_surfaceState.insert(std::make_pair(SurfaceType3DLutCoef, kernelSurfaceParam));
 
-    VP_RENDER_CHK_STATUS_RETURN(InitCoefSurface(m_maxDisplayLum, m_maxContentLevelLum, m_hdrMode, false));
+    VP_RENDER_CHK_STATUS_RETURN(InitCoefSurface(m_maxDisplayLum, m_maxContentLevelLum, m_hdrMode));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -360,7 +360,7 @@ MOS_STATUS VpRenderHdr3DLutKernel::GetWalkerSetting(KERNEL_WALKER_PARAMS &walker
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderHdr3DLutKernel::InitCoefSurface(const uint32_t maxDLL, const uint32_t maxCLL, const VPHAL_HDR_MODE hdrMode, bool needTMCurveChange)
+MOS_STATUS VpRenderHdr3DLutKernel::InitCoefSurface(const uint32_t maxDLL, const uint32_t maxCLL, const VPHAL_HDR_MODE hdrMode)
 {
     VP_FUNC_CALL();
     float  *hdrcoefBuffer = nullptr;
@@ -389,7 +389,7 @@ MOS_STATUS VpRenderHdr3DLutKernel::InitCoefSurface(const uint32_t maxDLL, const 
     {
         CalcCCMMatrix();
         MOS_SecureMemcpy(ccmMatrix, sizeof(float) * 12, color_matrix_calculation, sizeof(float) * 12);
-        if ((maxDLL > 800) && needTMCurveChange)
+        if (maxDLL > 800)
         {
             tmMode = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2H;
         }
@@ -583,7 +583,7 @@ MOS_STATUS VpRenderHdr3DLutKernelCM::SetupSurfaceState()
     kernelSurfaceParam.isOutput                         = false;
     m_surfaceState.insert(std::make_pair(SurfaceType3DLutCoef, kernelSurfaceParam));
     
-    VP_RENDER_CHK_STATUS_RETURN(InitCoefSurface(m_maxDisplayLum, m_maxContentLevelLum, m_hdrMode, true));
+    VP_RENDER_CHK_STATUS_RETURN(InitCoefSurface(m_maxDisplayLum, m_maxContentLevelLum, m_hdrMode));
 
     return MOS_STATUS_SUCCESS;
 }
