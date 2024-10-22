@@ -5830,6 +5830,11 @@ MOS_STATUS CodechalVdencAvcState::InitializePicture(const EncoderParams &params)
             CODECHAL_ENCODE_AVC_TQ_INPUT_PARAMS tqInputParams;
             tqInputParams.ucQP               = sliceQP;
             tqInputParams.ucTargetUsage      = m_avcSeqParam->TargetUsage;
+            if (tqInputParams.ucTargetUsage >= NUM_VDENC_TARGET_USAGE_MODES)
+            {
+                CODECHAL_ENCODE_ASSERTMESSAGE("Invalid sequence parameter.");
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
             tqInputParams.wPictureCodingType = m_pictureCodingType;
             tqInputParams.bBrcEnabled        = false;
             tqInputParams.bVdEncEnabled      = true;
