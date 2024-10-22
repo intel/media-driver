@@ -2566,9 +2566,14 @@ MOS_STATUS MosInterface::DoubleBufferCopyResource(
             return MOS_STATUS_NULL_POINTER;
         }
     };
-
+    
+    void *mmd = nullptr;
+    if (mosDecompression && mosDecompression->GetMediaMemDecompState())
+    {
+        mmd = *mosDecompression->GetMediaMemDecompState();
+    }
     // If mmd device not registered, use media vebopx copy.
-    if (lbdMemDecomp() != MOS_STATUS_SUCCESS && mosDecompression && !mosDecompression->GetMediaMemDecompState())
+    if (lbdMemDecomp() != MOS_STATUS_SUCCESS && mosDecompression && !mmd)
     {
         MOS_OS_CRITICALMESSAGE("MMD device not registered. Use media copy instead.");
         status = MosInterface::UnifiedMediaCopyResource(streamState, inputResource, outputResource, MCPY_METHOD_BALANCE);
