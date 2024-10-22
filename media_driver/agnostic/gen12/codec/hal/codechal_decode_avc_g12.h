@@ -137,6 +137,13 @@ protected:
     //!
     virtual MOS_STATUS AllocateHistogramSurface();
 
+    //!
+    //! \brief  Detect conformance conflict and do error concealment
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS ErrorDetectAndConceal();
+
     PCODECHAL_DECODE_SINGLEPIPE_VIRTUALENGINE_STATE m_veState;  //!< single pipe virtual engine state
 
     PMOS_SURFACE m_histogramSurface = nullptr;  //!< Internal histogram buffer
