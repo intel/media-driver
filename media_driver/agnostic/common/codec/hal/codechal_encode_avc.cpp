@@ -7613,7 +7613,7 @@ MOS_STATUS CodechalEncodeAvcEnc::AllocateResourcesBrc()
     if (bBrcDistortionBufferSupported)
     {
         // BRC Distortion Surface
-        downscaledFieldHeightInMB4x = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS((m_frameHeight + 1) >> 3);
+        downscaledFieldHeightInMB4x = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS((m_frameHeight + 7) >> 3);
         width = MOS_ALIGN_CEIL((m_downscaledWidthInMb4x << 3), 64);
         height = MOS_ALIGN_CEIL((downscaledFieldHeightInMB4x << 2), 8) << 1;
 
@@ -7778,7 +7778,7 @@ MOS_STATUS CodechalEncodeAvcEnc::AllocateResourcesMbBrc()
     MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
     lockFlagsWriteOnly.WriteOnly = 1;
 
-    uint32_t downscaledFieldHeightInMB4x = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS((m_frameHeight + 1) >> 3);
+    uint32_t downscaledFieldHeightInMB4x = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS((m_frameHeight + 7) >> 3);
 
     // Mb QP Surface
     if (Mos_ResourceIsNull(&BrcBuffers.sBrcMbQpBuffer.OsResource))
