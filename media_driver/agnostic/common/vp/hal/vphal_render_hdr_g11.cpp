@@ -407,8 +407,15 @@ void Hdr3DLutGenerator::InitCoefSurface(const uint32_t maxDLL, const uint32_t ma
     {
         CalcCCMMatrix();
         MOS_SecureMemcpy(ccmMatrix, sizeof(float) * 12, color_matrix_calculation, sizeof(float) * 12);
-
-        tmMode          = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2S;
+        if (maxDLL > 800)
+        {
+            tmMode = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2H;
+            VPHAL_RENDER_NORMALMESSAGE("Change curve, maxDLL %d, hdrMode: %d!", maxDLL, tmMode);
+        }
+        else
+        {
+            tmMode = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2S;
+        }
         oetfCurve       = (OETF_CURVE_TYPE)OETF_SRGB;
         tmSrcType       = (TONE_MAPPING_SOURCE_TYPE)TONE_MAPPING_SOURCE_PSEUDO_Y_BT709;
     }

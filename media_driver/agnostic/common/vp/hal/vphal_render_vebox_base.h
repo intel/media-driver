@@ -687,8 +687,8 @@ public:
 
                                             bHdr3DLut            = false;
                                             bUseVEHdrSfc         = false;
-                                            uiMaxDisplayLum      = 4000;
-                                            uiMaxContentLevelLum = 1000;
+                                            uiMaxDisplayLum      = 800;
+                                            uiMaxContentLevelLum = 4000;
                                             hdrMode              = VPHAL_HDR_MODE_NONE;
 
                                             m_pVeboxStateParams  = nullptr;
