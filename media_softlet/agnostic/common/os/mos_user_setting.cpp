@@ -438,7 +438,7 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
         userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_MEDIA_NATIVE_FENCE_MODE,
         MediaUserSetting::Group::Device,
-        0,
+        1,
         true);
 
     return MOS_STATUS_SUCCESS;
