@@ -211,8 +211,7 @@ or later, which officially supported C++11.
    - Alchemist(DG2): starting from kernel 6.2
    - ATSM: [intel-gpu/intel-gpu-i915-backports](https://github.com/intel-gpu/intel-gpu-i915-backports)
    - MTL/ARL: starting from kernel 6.8
+   - LNL: [intel/xe-kernel](https://gitlab.freedesktop.org/drm/xe/kernel)
 
-3. Lunar Lake platform is officialy supported from [intel-media-24.3.1](https://github.com/intel/media-driver/releases/tag/intel-media-24.3.1) for decoding and video processing features. Encoding support will be later.
-
-4. Other more known issues, please refer to [media-driver/wiki](https://github.com/intel/media-driver/wiki) "Known Issues" pages.
+3. Other more known issues, please refer to [media-driver/wiki](https://github.com/intel/media-driver/wiki) "Known Issues" pages.
 ##### (*) Other names and brands may be claimed as property of others.
