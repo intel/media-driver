@@ -227,6 +227,9 @@ protected:
     static const std::map<uint32_t, ExtPathCFG> m_pathOption;
     std::string                                 m_statedConfigPath = "";
     std::string                                 m_statedReportPath = "";
+#if (_DEBUG || _RELEASE_INTERNAL)
+    std::string                                 m_pidPath = "";
+#endif
 };
 }
 }

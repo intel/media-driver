@@ -45,6 +45,9 @@ Configure::Configure(MOS_USER_FEATURE_KEY_PATH_INFO *keyPathInfo):Configure()
     }
 
     //when statePath set, will init m_statedConfigPath and m_statedReportPath with m_keyPathInfo
+#if (_DEBUG || _RELEASE_INTERNAL)
+    m_pidPath = "\\" + std::to_string(MosUtilities::MosGetPid());
+#endif
     m_statedConfigPath = subPath + m_configPath;
     m_statedReportPath = subPath + m_reportPath;
 }
@@ -145,9 +148,24 @@ MOS_STATUS Configure::Read(Value &value,
         value = useCustomValue ? customValue : def->DefaultValue();
         return MOS_STATUS_SUCCESS;
     }
-    //First, Read user setting. If succeed, return;
+    std::string path = GetReadPath(def, option);
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //First, Read pid path user setting. If succeed, return;
+    std::string pathPidSuffix = path + m_pidPath;
+    UFKEY_NEXT  keyPidSuffix  = {};
+    m_mutexLock.Lock();
+    status = MosUtilities::MosOpenRegKey(m_rootKey, pathPidSuffix, KEY_READ, &keyPidSuffix, m_regBufferMap);
+    if (status == MOS_STATUS_SUCCESS)
     {
-        std::string path = GetReadPath(def, option);
+        status = MosUtilities::MosGetRegValue(keyPidSuffix, valueName, defaultType, value, m_regBufferMap);
+        MosUtilities::MosCloseRegKey(keyPidSuffix);
+    }
+    m_mutexLock.Unlock();
+
+    //Second, if reading pid path failed, read non-pid path. If succeed, return;
+    if (status != MOS_STATUS_SUCCESS)
+#endif
+    {
         UFKEY_NEXT  key  = {};
 
         m_mutexLock.Lock();
@@ -162,7 +180,7 @@ MOS_STATUS Configure::Read(Value &value,
         m_mutexLock.Unlock();
     }
 
-    //Second, if 1st failed, read envionment variable. External user setting does not set env varaible now.
+    //Third, if reading key failed, read envionment variable. External user setting does not set env varaible now.
     if (status != MOS_STATUS_SUCCESS && option == MEDIA_USER_SETTING_INTERNAL)
     {
         // read env variable if no user setting set
@@ -216,19 +234,37 @@ MOS_STATUS Configure::Write(
 
     std::string path = GetReportPath(def, option);
 
-    UFKEY_NEXT key = {};
     MOS_STATUS status = MOS_STATUS_UNKNOWN;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    std::string pathPidSuffix = path + m_pidPath;
+    UFKEY_NEXT keyPidSuffix = {};
 
     m_mutexLock.Lock();
-    status = MosUtilities::MosCreateRegKey(m_rootKey, path, KEY_WRITE, &key, m_regBufferMap);
+    status = MosUtilities::MosOpenRegKey(m_rootKey, pathPidSuffix, KEY_WRITE, &keyPidSuffix, m_regBufferMap);
 
     if (status == MOS_STATUS_SUCCESS)
     {
-        status = MosUtilities::MosSetRegValue(key, valueName, value, m_regBufferMap);
+        status = MosUtilities::MosSetRegValue(keyPidSuffix, valueName, value, m_regBufferMap);
 
-        MosUtilities::MosCloseRegKey(key);
+        MosUtilities::MosCloseRegKey(keyPidSuffix);
     }
     m_mutexLock.Unlock();
+
+    if (status != MOS_STATUS_SUCCESS)
+#endif
+    {
+        UFKEY_NEXT key = {};
+        m_mutexLock.Lock();
+        status = MosUtilities::MosCreateRegKey(m_rootKey, path, KEY_WRITE, &key, m_regBufferMap);
+
+        if (status == MOS_STATUS_SUCCESS)
+        {
+            status = MosUtilities::MosSetRegValue(key, valueName, value, m_regBufferMap);
+
+            MosUtilities::MosCloseRegKey(key);
+        }
+        m_mutexLock.Unlock();
+    }
 
     if (status != MOS_STATUS_SUCCESS)
     {
