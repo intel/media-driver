@@ -84,6 +84,7 @@ export LIBVA_DRIVER_NAME=iHD
 - Alchemist(DG2)/ATSM
 - MTLx (MTL: Meteor Lake, ARL-S/H: Arrow Lake)
 - LNL (Lunar Lake)
+- BMG (Battlemage)
 
 
 ## Components and Features
