@@ -935,7 +935,7 @@ void PerfUtility::getPerfInfo(std::vector<Tick>& record, PerfInfo* info)
 
     info->count = (uint32_t)record.size();
     double sum = 0, max = 0, min = 10000000.0;
-    for (auto t : record)
+    for (const auto &t : record)
     {
         sum += t.time;
         max = (max < t.time) ? t.time : max;
