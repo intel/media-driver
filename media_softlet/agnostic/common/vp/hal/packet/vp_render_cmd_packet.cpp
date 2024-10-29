@@ -2074,6 +2074,9 @@ MOS_STATUS VpRenderCmdPacket::SetFcParams(PRENDER_FC_PARAMS params)
     m_renderKernelParams.push_back(kernelParams);
     m_isMultiBindingTables = false;
     m_submissionMode       = SINGLE_KERNEL_ONLY;
+#if(_DEBUG || _RELEASE_INTERNAL)  
+    m_report->GetFeatures().isLegacyFCInUse = true;
+#endif
     return MOS_STATUS_SUCCESS;
 }
 

@@ -244,7 +244,18 @@ MOS_STATUS VpPipeline::UserFeatureReport()
                 __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_REPORT,
                 m_reporting->GetFeatures().diffLogOclFC,
                 MediaUserSetting::Group::Sequence);
+
+            if (m_reporting->GetFeatures().isLegacyFCInUse)
+            {
+                ReportUserSettingForDebug(
+                    m_userSettingPtr,
+                    __MEDIA_USER_FEATURE_VALUE_VP_LEGACY_FC_IN_USE,
+                    1,
+                    MediaUserSetting::Group::Sequence);
+                m_reporting->GetFeatures().isLegacyFCInUse = false;
+            }
         }
+        
 #endif
 
         m_reporting->GetFeatures().VPApogeios = m_currentFrameAPGEnabled;

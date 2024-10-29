@@ -75,6 +75,7 @@ public:
         bool                          isL03DLut           = false;
         bool                          isOclFC             = false;
         uint32_t                      diffLogOclFC        = 0;
+        bool                          isLegacyFCInUse     = false;
 #endif
         bool                          VeboxScalability    = false;                        //!< Vebox Scalability flag
         bool                          VPApogeios          = false;                        //!< VP Apogeios flag
