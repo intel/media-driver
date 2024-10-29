@@ -217,22 +217,34 @@ protected:
     } OCL_FC_FP_KRN_TARGET_PARAM;
 
 protected:
+    //common func
     MOS_STATUS InitKrnParams(OCL_FC_KERNEL_PARAMS &krnParam, SwFilterPipe &executingPipe);
     MOS_STATUS InitLayer(SwFilterPipe &executingPipe, bool isInputPipe, int index, VPHAL_SCALING_MODE defaultScalingMode, OCL_FC_LAYER_PARAM &layer);
     MOS_STATUS InitCompParam(SwFilterPipe &executingPipe, OCL_FC_COMP_PARAM &compParam);
-    MOS_STATUS GenerateFc420PL3InputParam(OCL_FC_LAYER_PARAM &inputLayersParam, uint32_t index, OCL_FC_KERNEL_PARAM &param);
-    MOS_STATUS GenerateFc420PL3OutputParam(OCL_FC_LAYER_PARAM &outputLayersParam, OCL_FC_KERNEL_PARAM &param);
-    MOS_STATUS SetupSingleFc420PL3InputBti(uint32_t uIndex, uint32_t layIndex, SURFACE_PARAMS &surfaceParam, bool &bInit);
-    MOS_STATUS SetupSingleFc420PL3OutputBti(uint32_t uIndex, SURFACE_PARAMS &surfaceParam, bool &bInit);
-    MOS_STATUS SetupSingleFc420PL3InputKrnArg(uint32_t srcSurfaceWidth, uint32_t srcSurfaceHeight, uint32_t lumaChannelIndices, uint32_t chromaChannelIndices[4], uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit);
-    MOS_STATUS SetupSingleFc420PL3OutputKrnArg(uint32_t srcSurfaceWidth, uint32_t srcSurfaceHeight, uint32_t lumaChannelIndices, uint32_t chromaChannelIndices[2], uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit);
+    MOS_STATUS SetPerfTag(OCL_FC_COMP_PARAM &compParam, VPHAL_PERFTAG &perfTag);
+
+    //OCL FC common kernel
     MOS_STATUS GenerateFcCommonKrnParam(OCL_FC_COMP_PARAM &compParam, OCL_FC_KERNEL_PARAM &param);
     MOS_STATUS SetupSingleFcCommonKrnArg(uint32_t layerNum, std::vector<OCL_FC_KRN_IMAGE_PARAM> &imageParams, OCL_FC_KRN_TARGET_PARAM &targetParam, uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit);
     MOS_STATUS SetupSingleFcCommonBti(uint32_t uIndex, const OCL_FC_COMP_PARAM &compParam, SURFACE_PARAMS &surfaceParam, bool &bInit);
+    
+    //OCL FC 420 PL3 input kernel
+    MOS_STATUS GenerateFc420PL3InputParam(OCL_FC_LAYER_PARAM &inputLayersParam, uint32_t index, OCL_FC_KERNEL_PARAM &param);
+    MOS_STATUS SetupSingleFc420PL3InputBti(uint32_t uIndex, uint32_t layIndex, SURFACE_PARAMS &surfaceParam, bool &bInit);
+    MOS_STATUS SetupSingleFc420PL3InputKrnArg(uint32_t srcSurfaceWidth, uint32_t srcSurfaceHeight, uint32_t lumaChannelIndices, uint32_t chromaChannelIndices[4], uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit);
+    MOS_STATUS ConvertInputOutputSingleChannelIndexToKrnParam(MOS_FORMAT format, uint32_t &inputChannelIndex);
 
+    //OCL FC 420 PL3 output kernel
+    MOS_STATUS GenerateFc420PL3OutputParam(OCL_FC_LAYER_PARAM &outputLayersParam, OCL_FC_KERNEL_PARAM &param);
+    MOS_STATUS SetupSingleFc420PL3OutputBti(uint32_t uIndex, SURFACE_PARAMS &surfaceParam, bool &bInit);
+    MOS_STATUS SetupSingleFc420PL3OutputKrnArg(uint32_t srcSurfaceWidth, uint32_t srcSurfaceHeight, uint32_t lumaChannelIndices, uint32_t chromaChannelIndices[2], uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit);
+
+    //OCL FC 444 PL3 input kernel
     MOS_STATUS GenerateFc444PL3InputParam(OCL_FC_LAYER_PARAM &layer, uint32_t layerNumber, OCL_FC_KERNEL_PARAM &param, uint32_t layerIndex);
     MOS_STATUS SetupSingleFc444PL3InputKrnArg(uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit, uint32_t inputChannelIndices[4], uint32_t outputChannelIndices[4], uint32_t planeChannelIndices);
     MOS_STATUS SetupSingleFc444PL3InputBti(uint32_t uIndex, SURFACE_PARAMS &surfaceParam, uint32_t layerIndex, bool &bInit);
+    
+    //OCL FC 444 PL3 output kernel
     MOS_STATUS GenerateFc444PL3OutputParam(OCL_FC_LAYER_PARAM &outputLayersParam, OCL_FC_KERNEL_PARAM &param);
     MOS_STATUS SetupSingleFc444PL3OutputKrnArg(uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit, uint32_t inputChannelIndices[4], uint32_t outputChannelIndices[4]);
     MOS_STATUS SetupSingleFc444PL3OutputBti(uint32_t uIndex, SURFACE_PARAMS &surfaceParam, bool &bInit);
@@ -241,17 +253,18 @@ protected:
     MOS_STATUS GetChromaSitingFactor(MOS_FORMAT format, uint8_t &hitSecPlaneFactorX, uint8_t &hitSecPlaneFactorY);
     MOS_STATUS GetBitNumber(MOS_FORMAT format, uint8_t *pOriginBitNumber, uint8_t *pStoredBitNumber, uint8_t *pAlphaBitNumber);
 
+    //OCL FC common kernel input image parameter generate
     MOS_STATUS GenerateInputImageParam(OCL_FC_LAYER_PARAM &layer, VPHAL_CSPACE mainCSpace, OCL_FC_KRN_IMAGE_PARAM &imageParam);
     MOS_STATUS ConvertProcampAndCscToKrnParam(VPHAL_CSPACE srcColorSpace, VPHAL_CSPACE dstColorSpace, OCL_FC_KRN_CSC_MATRIX &csc, VPHAL_PROCAMP_PARAMS &procampParams);
     MOS_STATUS GenerateProcampCscMatrix(VPHAL_CSPACE srcColorSpace, VPHAL_CSPACE dstColorSpace, float *cscMatrix, VPHAL_PROCAMP_PARAMS &procampParams);
     MOS_STATUS ConvertScalingRotToKrnParam(RECT &rcSrc, RECT &rcDst, VPHAL_SCALING_MODE scalingMode, uint32_t inputWidth, uint32_t inputHeight, VPHAL_ROTATION rotation, OCL_FC_KRN_SCALE_PARAM &scaling, uint8_t &samplerType, OCL_FC_KRN_COORD_SHIFT_PARAM &coordShift);
     MOS_STATUS ConvertRotationToKrnParam(VPHAL_ROTATION rotation, float strideX, float strideY, float startLeft, float startRight, float startTop, float startBottom, OCL_FC_KRN_SCALE_PARAM &scaling);
     MOS_STATUS ConvertChromaUpsampleToKrnParam(MOS_FORMAT format, uint32_t chromaSitingLoc, VPHAL_SCALING_MODE scalingMode, uint32_t inputWidth, uint32_t inputHeight, float &chromaShiftX, float &chromaShiftY, uint8_t &isChromaShift);
-    MOS_STATUS ConvertInputOutputSingleChannelIndexToKrnParam(MOS_FORMAT format, uint32_t &inputChannelIndex);
     MOS_STATUS ConvertInputChannelIndicesToKrnParam(MOS_FORMAT format, uint32_t *inputChannelIndices);
     MOS_STATUS ConvertPlaneNumToKrnParam(MOS_FORMAT format, bool isInput, uint32_t &planeNum);
     MOS_STATUS ConvertBlendingToKrnParam(VPHAL_BLENDING_PARAMS &blend, uint8_t &ignoreSrcPixelAlpha, uint8_t &ignoreDstPixelAlpha, float &constAlpha);
 
+    //OCL FC common kernel output parameter
     MOS_STATUS GenerateTargetParam(OCL_FC_COMP_PARAM &compParam, OCL_FC_KRN_TARGET_PARAM &targetParam);
     MOS_STATUS ConvertOutputChannelIndicesToKrnParam(MOS_FORMAT format, uint32_t *dynamicChannelIndices);
     MOS_STATUS ConvertTargetRoiToKrnParam(RECT &outputRcDst, uint32_t outputWidth, uint32_t outputHeight, OCL_FC_KRN_RECT &targetROI);
@@ -264,17 +277,18 @@ protected:
     void PrintKrnParam(std::vector<OCL_FC_KRN_IMAGE_PARAM> &imageParams, OCL_FC_KRN_TARGET_PARAM &targetParam);
     void PrintKrnImageParam(uint32_t index, OCL_FC_KRN_IMAGE_PARAM &imageParam);
     void PrintKrnTargetParam(OCL_FC_KRN_TARGET_PARAM &targetParam);
-    void ReportDiffLog(const OCL_FC_COMP_PARAM &compParam);
+    void ReportDiffLog(const OCL_FC_COMP_PARAM &compParam, bool isFastExpressSupported);
+    void ReportFeatureLog(const OCL_FC_COMP_PARAM &compParam);
 
+    //OCL FC FastExpress
     bool       FastExpressConditionMeet(const OCL_FC_COMP_PARAM &compParam);
     MOS_STATUS GenerateFcFastExpressKrnParam(OCL_FC_COMP_PARAM &compParam, OCL_FC_KERNEL_PARAM &param);
     MOS_STATUS GenerateFastExpressInputOutputParam(OCL_FC_COMP_PARAM &compParam, OCL_FC_FP_KRN_IMAGE_PARAM &imageParam, OCL_FC_FP_KRN_TARGET_PARAM &targetParam);
-    MOS_STATUS SetupSingleFcFastExpressKrnArg(OCL_FC_FP_KRN_IMAGE_PARAM &imageParams, OCL_FC_FP_KRN_TARGET_PARAM &targetParam, uint32_t localSize[3], uint32_t globalSize[3], KRN_ARG &krnArg, bool &bInit);
+    MOS_STATUS SetupSingleFcFastExpressKrnArg(uint32_t layerNum, OCL_FC_FP_KRN_IMAGE_PARAM &imageParams, OCL_FC_FP_KRN_TARGET_PARAM &targetParam, uint32_t localSize[3], uint32_t globalSize[3], KRN_ARG &krnArg, bool &bInit);
     MOS_STATUS SetupSingleFcFastExpressBti(uint32_t uIndex, const OCL_FC_COMP_PARAM &compParam, SURFACE_PARAMS &surfaceParam, bool &bInit);
     MOS_STATUS ConvertAlignedTrgRectToKrnParam(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, bool enableColorFill, OCL_FC_FP_KRN_TARGET_PARAM &targetParam);
     void       PrintFastExpressKrnParam(OCL_FC_FP_KRN_IMAGE_PARAM &imageParam, OCL_FC_FP_KRN_TARGET_PARAM &targetParam);
 
-    MOS_STATUS SetPerfTag(OCL_FC_COMP_PARAM &compParam, VPHAL_PERFTAG &perfTag);
 
     SwFilterPipe         *m_executingPipe     = nullptr;
     PRENDER_OCL_FC_PARAMS m_renderOclFcParams = nullptr;

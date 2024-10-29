@@ -54,6 +54,27 @@ enum class OclFcDiffReportShift
     FastExpress              = 16,  //walked into fastexpress path
     OclFcEnabled             = 31   //actually walked into Ocl FC. Always set to 1 when Ocl FC Filter take effect. "OCL FC Enabled" may be 1 but not walked into OCL FC, cause it may fall back in wrapper class
 };
+
+union OclFcFeatureReport
+{
+    struct
+    {
+        //following bits for input layer features. Showing the count of the layers which use the feature.
+        uint32_t layerCount     : 4;   //input layer count
+        uint32_t procamp        : 4;
+        uint32_t rotation       : 4;
+        uint32_t chromaUpSample : 4;
+        uint32_t lumaKey        : 4;
+        uint32_t deinterlace    : 4;
+        uint32_t reserved1      : 4;
+        //following bits for output layer features. Whether the feature is used
+        uint32_t colorFill      : 1;
+        uint32_t alpha          : 1;
+        uint32_t reserved2      : 2;
+    };
+    uint32_t value = 0;
+};
+C_ASSERT(sizeof(OclFcFeatureReport) == sizeof(uint32_t));
 #endif
 
 VpOclFcFilter::VpOclFcFilter(PVP_MHWINTERFACE vpMhwInterface) : VpFilter(vpMhwInterface)
@@ -132,6 +153,8 @@ void OCL_FC_KERNEL_PARAM::Init()
     kernelId     = kernelCombinedFc;
     threadWidth  = 0;
     threadHeight = 0;
+    localWidth   = 0;
+    localHeight  = 0;
     kernelConfig = {};
     kernelStatefulSurfaces.clear();
 }
@@ -161,8 +184,10 @@ MOS_STATUS VpOclFcFilter::InitKrnParams(OCL_FC_KERNEL_PARAMS &krnParams, SwFilte
 
     OCL_FC_COMP_PARAM compParam = {};
     VP_RENDER_CHK_STATUS_RETURN(InitCompParam(executingPipe, compParam));
+    bool isFastExpressSupported = FastExpressConditionMeet(compParam);
     PrintCompParam(compParam);
-    ReportDiffLog(compParam);
+    ReportFeatureLog(compParam);
+    ReportDiffLog(compParam, isFastExpressSupported);
 
     OCL_FC_KERNEL_PARAM param = {};
     // convert from PL3 input surface to intermedia surface
@@ -192,7 +217,7 @@ MOS_STATUS VpOclFcFilter::InitKrnParams(OCL_FC_KERNEL_PARAMS &krnParams, SwFilte
         }
     }
 
-    if (FastExpressConditionMeet(compParam))
+    if (isFastExpressSupported)
     {
         VP_RENDER_CHK_STATUS_RETURN(GenerateFcFastExpressKrnParam(compParam, param));
     }
@@ -203,6 +228,7 @@ MOS_STATUS VpOclFcFilter::InitKrnParams(OCL_FC_KERNEL_PARAMS &krnParams, SwFilte
     //Set Perf Tag should be called after Generate Krn Param
     VP_PUBLIC_CHK_STATUS_RETURN(SetPerfTag(compParam, param.kernelConfig.perfTag));
     krnParams.push_back(param);
+
     // convert from PL3 output surface to intermedia surface
     if (compParam.outputLayerParam.needIntermediaSurface == true)
     {
@@ -2347,7 +2373,7 @@ bool VpOclFcFilter::FastExpressConditionMeet(const OCL_FC_COMP_PARAM &compParam)
         return false;
     }
 #endif
-    if (compParam.layerNumber != 1)
+    if (compParam.layerNumber > 1)
     {
         return false;
     }
@@ -2356,12 +2382,28 @@ bool VpOclFcFilter::FastExpressConditionMeet(const OCL_FC_COMP_PARAM &compParam)
     VP_SURFACE               *inputSurf   = inputLayer.surf;
     VP_SURFACE               *outputSurf  = outputLayer.surf;
     if (!outputSurf ||
-        !outputSurf->osSurface ||
-        !inputSurf ||
-        !inputSurf->osSurface)
+        !outputSurf->osSurface)
     {
         return false;
     }
+
+    if (compParam.layerNumber > 0)
+    {
+        if (!inputSurf ||
+            !inputSurf->osSurface)
+        {
+            return false;
+        }
+    }
+    else
+    {
+        if (!compParam.enableColorFill)
+        {
+            //no input layer w/ no color fill means no feature for fast express
+            return false;
+        }
+    }
+
     bool trgFormatSupport = outputSurf->osSurface->Format == Format_NV12 ||
                             outputSurf->osSurface->Format == Format_P010 ||
                             outputSurf->osSurface->Format == Format_P016;
@@ -2381,10 +2423,15 @@ bool VpOclFcFilter::FastExpressConditionMeet(const OCL_FC_COMP_PARAM &compParam)
                     MOS_IS_ALIGNED(MOS_MIN(outputSurf->osSurface->dwHeight, (uint64_t)inputSurf->rcDst.bottom), 2);
     }
     if (!trgFormatSupport ||
-        !isAligned ||
-        inputLayer.blendingParams.BlendType != BLEND_NONE ||
+        !isAligned)
+    {
+        return false;
+    }
+
+    if (compParam.layerNumber == 1 &&
+       (inputLayer.blendingParams.BlendType != BLEND_NONE ||
         inputLayer.diParams.enabled ||
-        inputLayer.lumaKey.enabled)
+        inputLayer.lumaKey.enabled))
     {
         return false;
     }
@@ -2447,7 +2494,7 @@ MOS_STATUS VpOclFcFilter::GenerateFcFastExpressKrnParam(OCL_FC_COMP_PARAM &compP
             MOS_ZeroMemory(krnArg.pData, krnArg.uSize);
         }
 
-        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFcFastExpressKrnArg(imageParam, targetParam, localSize, globalSize, krnArg, bInit));
+        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFcFastExpressKrnArg(compParam.layerNumber, imageParam, targetParam, localSize, globalSize, krnArg, bInit));
 
         if (bInit)
         {
@@ -2486,11 +2533,18 @@ MOS_STATUS VpOclFcFilter::SetupSingleFcFastExpressBti(uint32_t uIndex, const OCL
     switch (uIndex)
     {
     case FC_FP_FASTEXPRESS_INPUTPL0:
-        surfaceParam.surfType = compParam.inputLayersParam[0].needIntermediaSurface ? SurfaceTypeFcIntermediaInput : SurfaceTypeFcInputLayer0;
-        if (compParam.inputLayersParam[0].diParams.enabled &&
-            compParam.inputLayersParam[0].diParams.params.DIMode == DI_MODE_BOB)
+        if (compParam.layerNumber > 0)
         {
-            surfaceParam.needVerticalStirde = true;
+            surfaceParam.surfType = compParam.inputLayersParam[0].needIntermediaSurface ? SurfaceTypeFcIntermediaInput : SurfaceTypeFcInputLayer0;
+            if (compParam.inputLayersParam[0].diParams.enabled &&
+                compParam.inputLayersParam[0].diParams.params.DIMode == DI_MODE_BOB)
+            {
+                surfaceParam.needVerticalStirde = true;
+            }
+        }
+        else
+        {
+            surfaceParam.surfType = SurfaceTypeInvalid;
         }
         break;
     case FC_FP_FASTEXPRESS_OUTPUTPL0:
@@ -2510,10 +2564,15 @@ MOS_STATUS VpOclFcFilter::SetupSingleFcFastExpressBti(uint32_t uIndex, const OCL
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpOclFcFilter::SetupSingleFcFastExpressKrnArg(OCL_FC_FP_KRN_IMAGE_PARAM &imageParams, OCL_FC_FP_KRN_TARGET_PARAM &targetParam, uint32_t localSize[3], uint32_t globalSize[3], KRN_ARG &krnArg, bool &bInit)
+MOS_STATUS VpOclFcFilter::SetupSingleFcFastExpressKrnArg(uint32_t layerNum, OCL_FC_FP_KRN_IMAGE_PARAM &imageParams, OCL_FC_FP_KRN_TARGET_PARAM &targetParam, uint32_t localSize[3], uint32_t globalSize[3], KRN_ARG &krnArg, bool &bInit)
 {
     switch (krnArg.uIndex)
     {
+    case FC_FP_FASTEXPRESS_LAYERNUMBER:
+        VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
+        VP_PUBLIC_CHK_VALUE_RETURN(krnArg.uSize, sizeof(layerNum));
+        MOS_SecureMemcpy(krnArg.pData, krnArg.uSize, &layerNum, sizeof(layerNum));
+        break;
     case FC_FP_FASTEXPRESS_IMAGEPARAM:
         VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
         VP_PUBLIC_CHK_VALUE_RETURN(krnArg.uSize, sizeof(imageParams));
@@ -2558,20 +2617,24 @@ MOS_STATUS VpOclFcFilter::GenerateFastExpressInputOutputParam(OCL_FC_COMP_PARAM 
     VP_FUNC_CALL();
     OCL_FC_LAYER_PARAM &inputLayer  = compParam.inputLayersParam[0];
     OCL_FC_LAYER_PARAM &outputLayer = compParam.outputLayerParam;
-    VP_PUBLIC_CHK_NULL_RETURN(inputLayer.surf);
-    VP_PUBLIC_CHK_NULL_RETURN(inputLayer.surf->osSurface);
     VP_PUBLIC_CHK_NULL_RETURN(outputLayer.surf);
     VP_PUBLIC_CHK_NULL_RETURN(outputLayer.surf->osSurface);
-    MOS_FORMAT inputSurfOverwriteFormat  = inputLayer.needIntermediaSurface ? inputLayer.interMediaOverwriteSurface : inputLayer.surf->osSurface->Format;
     MOS_FORMAT outputSurfOverwriteFormat = outputLayer.needIntermediaSurface ? outputLayer.interMediaOverwriteSurface : outputLayer.surf->osSurface->Format;
 
-    uint32_t inputWidth  = MOS_MIN(static_cast<uint32_t>(inputLayer.surf->osSurface->dwWidth), static_cast<uint32_t>(inputLayer.surf->rcSrc.right));
-    uint32_t inputHeight = MOS_MIN(static_cast<uint32_t>(inputLayer.surf->osSurface->dwHeight), static_cast<uint32_t>(inputLayer.surf->rcSrc.bottom));
-    VP_PUBLIC_CHK_STATUS_RETURN(ConvertProcampAndCscToKrnParam(inputLayer.surf->ColorSpace, compParam.mainCSpace, imageParam.csc, inputLayer.procampParams));
-    VP_PUBLIC_CHK_STATUS_RETURN(ConvertInputChannelIndicesToKrnParam(inputSurfOverwriteFormat, imageParam.inputChannelIndices));
-    VP_PUBLIC_CHK_STATUS_RETURN(ConvertScalingRotToKrnParam(inputLayer.surf->rcSrc, inputLayer.surf->rcDst, inputLayer.scalingMode, inputWidth, inputHeight, inputLayer.rotation, imageParam.scaleParam, imageParam.controlSetting.samplerType, imageParam.coordShift));
-    VP_PUBLIC_CHK_STATUS_RETURN(ConvertChromaUpsampleToKrnParam(inputSurfOverwriteFormat, inputLayer.surf->ChromaSiting, inputLayer.scalingMode, inputWidth, inputHeight, imageParam.coordShift.chromaShiftX, imageParam.coordShift.chromaShiftY, imageParam.controlSetting.isChromaShift));
-    VP_PUBLIC_CHK_STATUS_RETURN(ConvertPlaneNumToKrnParam(inputSurfOverwriteFormat, true, imageParam.inputPlaneNum));
+    if (compParam.layerNumber == 1)
+    {
+        VP_PUBLIC_CHK_NULL_RETURN(inputLayer.surf);
+        VP_PUBLIC_CHK_NULL_RETURN(inputLayer.surf->osSurface);
+        MOS_FORMAT inputSurfOverwriteFormat = inputLayer.needIntermediaSurface ? inputLayer.interMediaOverwriteSurface : inputLayer.surf->osSurface->Format;
+        uint32_t   inputWidth               = MOS_MIN(static_cast<uint32_t>(inputLayer.surf->osSurface->dwWidth), static_cast<uint32_t>(inputLayer.surf->rcSrc.right));
+        uint32_t   inputHeight              = MOS_MIN(static_cast<uint32_t>(inputLayer.surf->osSurface->dwHeight), static_cast<uint32_t>(inputLayer.surf->rcSrc.bottom));
+
+        VP_PUBLIC_CHK_STATUS_RETURN(ConvertProcampAndCscToKrnParam(inputLayer.surf->ColorSpace, compParam.mainCSpace, imageParam.csc, inputLayer.procampParams));
+        VP_PUBLIC_CHK_STATUS_RETURN(ConvertInputChannelIndicesToKrnParam(inputSurfOverwriteFormat, imageParam.inputChannelIndices));
+        VP_PUBLIC_CHK_STATUS_RETURN(ConvertScalingRotToKrnParam(inputLayer.surf->rcSrc, inputLayer.surf->rcDst, inputLayer.scalingMode, inputWidth, inputHeight, inputLayer.rotation, imageParam.scaleParam, imageParam.controlSetting.samplerType, imageParam.coordShift));
+        VP_PUBLIC_CHK_STATUS_RETURN(ConvertChromaUpsampleToKrnParam(inputSurfOverwriteFormat, inputLayer.surf->ChromaSiting, inputLayer.scalingMode, inputWidth, inputHeight, imageParam.coordShift.chromaShiftX, imageParam.coordShift.chromaShiftY, imageParam.controlSetting.isChromaShift));
+        VP_PUBLIC_CHK_STATUS_RETURN(ConvertPlaneNumToKrnParam(inputSurfOverwriteFormat, true, imageParam.inputPlaneNum));
+    }
 
     VP_PUBLIC_CHK_STATUS_RETURN(ConvertAlignedTrgRectToKrnParam(inputLayer.surf, outputLayer.surf, compParam.enableColorFill, targetParam));
     VP_PUBLIC_CHK_STATUS_RETURN(ConvertPlaneNumToKrnParam(outputSurfOverwriteFormat, false, targetParam.planeNumber));
@@ -2591,8 +2654,6 @@ MOS_STATUS VpOclFcFilter::GenerateFastExpressInputOutputParam(OCL_FC_COMP_PARAM 
 
 MOS_STATUS VpOclFcFilter::ConvertAlignedTrgRectToKrnParam(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, bool enableColorFill, OCL_FC_FP_KRN_TARGET_PARAM &targetParam)
 {
-    VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
-    VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
     VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
 
@@ -2606,6 +2667,8 @@ MOS_STATUS VpOclFcFilter::ConvertAlignedTrgRectToKrnParam(VP_SURFACE *inputSurf,
     }
     else
     {
+        VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
+        VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
         alignedRect.left   = MOS_ALIGN_FLOOR(MOS_MAX(0, inputSurf->rcDst.left), 8);
         alignedRect.right  = MOS_ALIGN_CEIL(MOS_MIN(outputSurf->osSurface->dwWidth, (uint64_t)inputSurf->rcDst.right), 8);
         alignedRect.top    = MOS_ALIGN_FLOOR(MOS_MAX(0, inputSurf->rcDst.top), 4);
@@ -2897,7 +2960,7 @@ void VpOclFcFilter::PrintKrnTargetParam(OCL_FC_KRN_TARGET_PARAM &targetParam)
 #endif
 }
 
-void VpOclFcFilter::ReportDiffLog(const OCL_FC_COMP_PARAM &compParam)
+void VpOclFcFilter::ReportDiffLog(const OCL_FC_COMP_PARAM &compParam, bool isFastExpressSupported)
 {
     VP_FUNC_CALL();
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -2908,6 +2971,7 @@ void VpOclFcFilter::ReportDiffLog(const OCL_FC_COMP_PARAM &compParam)
         return;
     }
     uint32_t &reportLog = vpFeatureReport->GetFeatures().diffLogOclFC;
+    reportLog           = 0;
     //check 422 input
     for (uint32_t i = 0; i < compParam.layerNumber; ++i)
     {
@@ -3007,7 +3071,7 @@ void VpOclFcFilter::ReportDiffLog(const OCL_FC_COMP_PARAM &compParam)
             reportLog |= (1llu << int(OclFcDiffReportShift::BT2020ColorFill));
         }
     }
-    if (FastExpressConditionMeet(compParam))
+    if (isFastExpressSupported)
     {
         reportLog |= (1llu << int(OclFcDiffReportShift::FastExpress));
     }
@@ -3016,6 +3080,55 @@ void VpOclFcFilter::ReportDiffLog(const OCL_FC_COMP_PARAM &compParam)
     reportLog |= (1llu << int(OclFcDiffReportShift::OclFcEnabled));
 
     VP_PUBLIC_NORMALMESSAGE("OclFC vs FC Difference Report Log: 0x%x", reportLog);
+#endif
+}
+
+void VpOclFcFilter::ReportFeatureLog(const OCL_FC_COMP_PARAM& compParam)
+{
+    VP_FUNC_CALL();
+#if (_DEBUG || _RELEASE_INTERNAL)
+    VpFeatureReport   *vpFeatureReport = m_pvpMhwInterface->m_reporting;
+    if (vpFeatureReport == nullptr)
+    {
+        VP_PUBLIC_ASSERTMESSAGE("vpFeatureReportExt is nullptr");
+        return;
+    }
+    OclFcFeatureReport featureLog = {};
+    featureLog.layerCount         = compParam.layerNumber;
+    for (uint32_t i = 0; i < compParam.layerNumber; ++i)
+    {
+        const OCL_FC_LAYER_PARAM &layer = compParam.inputLayersParam[i];
+        if (layer.procampParams.bEnabled)
+        {
+            featureLog.procamp += 1;
+        }
+        if (layer.rotation != VPHAL_ROTATION_IDENTITY)
+        {
+            featureLog.rotation += 1;
+        }
+        if (layer.diParams.enabled)
+        {
+            featureLog.deinterlace += 1;
+        }
+        if (layer.lumaKey.enabled)
+        {
+            featureLog.lumaKey += 1;
+        }
+        if (layer.surf && (!(layer.surf->ChromaSiting & CHROMA_SITING_VERT_CENTER) || !(layer.surf->ChromaSiting & CHROMA_SITING_HORZ_CENTER)))
+        {
+            featureLog.chromaUpSample += 1;
+        }
+    }
+    if (compParam.enableColorFill)
+    {
+        featureLog.colorFill = 1;
+    }
+    if (compParam.bAlphaCalculateEnable)
+    {
+        featureLog.alpha = 1;
+    }
+
+    vpFeatureReport->GetFeatures().featureLogOclFC = featureLog.value;
 #endif
 }
 

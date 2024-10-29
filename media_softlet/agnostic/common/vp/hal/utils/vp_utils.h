@@ -336,6 +336,7 @@ protected:
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_OCL_FC                      "Enable OCL FC"
 #define __MEDIA_USER_FEATURE_VALUE_DISABLE_VP_OCL_FC_FP                  "Disable OCL FC FP"
 #define __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_SUPPORTED                   "OCL FC Supported"
+#define __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_FEATURE_REPORT              "OCL FC Feature Report"
 #define __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_REPORT                      "OCL FC Diff Report"
 #define __MEDIA_USER_FEATURE_VALUE_VP_LEGACY_FC_IN_USE                   "Legacy FC In Use"
 

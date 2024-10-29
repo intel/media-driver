@@ -241,6 +241,12 @@ MOS_STATUS VpPipeline::UserFeatureReport()
 
             ReportUserSettingForDebug(
                 m_userSettingPtr,
+                __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_FEATURE_REPORT,
+                m_reporting->GetFeatures().featureLogOclFC,
+                MediaUserSetting::Group::Sequence);
+
+            ReportUserSettingForDebug(
+                m_userSettingPtr,
                 __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_REPORT,
                 m_reporting->GetFeatures().diffLogOclFC,
                 MediaUserSetting::Group::Sequence);
