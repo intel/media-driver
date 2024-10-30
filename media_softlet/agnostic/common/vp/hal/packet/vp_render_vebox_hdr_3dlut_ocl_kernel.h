@@ -19,12 +19,12 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef __VP_RENDER_VEBOX_HDR_3DLUT_L0_KERNEL_H__
-#define __VP_RENDER_VEBOX_HDR_3DLUT_L0_KERNEL_H__
+#ifndef __VP_RENDER_VEBOX_HDR_3DLUT_OCL_KERNEL_H__
+#define __VP_RENDER_VEBOX_HDR_3DLUT_OCL_KERNEL_H__
 
 #include "vp_render_cmd_packet.h"
 #include "vp_render_vebox_hdr_3dlut_kernel.h"
-#define VP_HDR_KERNEL_NAME_L0_3DLUT "fillLutTable_3dlut"
+#define VP_HDR_KERNEL_NAME_OCL_3DLUT "fillLutTable_3dlut"
 namespace vp
 {
 //!
@@ -32,11 +32,11 @@ namespace vp
 //! \details  These Enmu Values are passed to media kernel for further processing.
 //!
 
-class VpRenderHdr3DLutL0Kernel : public VpRenderKernelObj
+class VpRenderHdr3DLutOclKernel : public VpRenderKernelObj
 {
 public:
-    VpRenderHdr3DLutL0Kernel(PVP_MHWINTERFACE hwInterface, PVpAllocator allocator);
-    virtual ~VpRenderHdr3DLutL0Kernel();
+    VpRenderHdr3DLutOclKernel(PVP_MHWINTERFACE hwInterface, PVpAllocator allocator);
+    virtual ~VpRenderHdr3DLutOclKernel();
 
     virtual MOS_STATUS Init(VpRenderKernel& kernel);
     virtual MOS_STATUS GetCurbeState(void *&curbe, uint32_t &curbeLength) override;
@@ -83,9 +83,9 @@ protected:
     KRN_EXECUTE_ENV              m_kernelEnv                     = {};
     KERNEL_ARG_INDEX_SURFACE_MAP m_argIndexSurfMap  = {};
 
-    MEDIA_CLASS_DEFINE_END(vp__VpRenderHdr3DLutL0Kernel)
+    MEDIA_CLASS_DEFINE_END(vp__VpRenderHdr3DLutOclKernel)
 };
 
 }  // namespace vp
 
-#endif //__RENDER_VEBOX_HDR_3DLUT_L0_KERNEL__
+#endif //__RENDER_VEBOX_HDR_3DLUT_OCL_KERNEL__

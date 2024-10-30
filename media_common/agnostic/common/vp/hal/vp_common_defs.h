@@ -197,7 +197,7 @@ enum VpKernelIDNext
 {
     vpKernelIDNextBase = 0x200,
     kernelHdr3DLutCalc = vpKernelIDNextBase,
-    kernelHdr3DLutCalcL0,
+    kernelHdr3DLutCalcOcl,
     kernelHVSCalc,
     vpKernelIDNextMax
 };

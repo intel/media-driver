@@ -378,14 +378,14 @@ MOS_STATUS VpUserSetting::InitVpUserSetting(MediaUserSettingSharedPtr userSettin
 
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
-        __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_L0_3DLUT,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_OCL_3DLUT,
         MediaUserSetting::Group::Sequence,
         0,
         true);
 
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
-        __MEDIA_USER_FEATURE_VALUE_VP_L0_3DLUT_ENABLED,
+        __MEDIA_USER_FEATURE_VALUE_VP_OCL_3DLUT_ENABLED,
         MediaUserSetting::Group::Sequence,
         0,
         true);

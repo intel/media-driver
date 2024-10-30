@@ -410,20 +410,20 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
         m_ctrlValDefault.enableIFNCC = false;
     }
 
-    bool bEnableL03DLut = false;
+    bool bEnableOCL3DLut = false;
     eRegKeyReadStatus   = ReadUserSettingForDebug(
         m_userSettingPtr,
-        bEnableL03DLut,
-        __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_L0_3DLUT,
+        bEnableOCL3DLut,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_OCL_3DLUT,
         MediaUserSetting::Group::Sequence);
     if (MOS_SUCCEEDED(eRegKeyReadStatus))
     {
-        m_ctrlValDefault.bEnableL03DLut = bEnableL03DLut;
+        m_ctrlValDefault.bEnableOcl3DLut = bEnableOCL3DLut;
     }
     else
     {
         // Default value
-        m_ctrlValDefault.bEnableL03DLut = false;
+        m_ctrlValDefault.bEnableOcl3DLut = false;
     }
 
     bool bForceOclFC   = false;
@@ -509,9 +509,18 @@ PMOS_OCA_LOG_USER_FEATURE_CONTROL_INFO VpUserFeatureControl::GetOcaFeautreContro
 
 bool VpUserFeatureControl::EnableOclFC()
 {
-    bool bEnableOclFC = (m_vpPlatformInterface && m_vpPlatformInterface->SupportOclFC());
+    bool bEnableOclFC = (m_vpPlatformInterface && m_vpPlatformInterface->SupportOclKernel());
 #if (_DEBUG || _RELEASE_INTERNAL)
     bEnableOclFC |= m_ctrlVal.bForceOclFC;
 #endif
     return bEnableOclFC;
+}
+
+bool VpUserFeatureControl::EnableOcl3DLut()
+{
+    bool bEnableOcl3DLut = (m_vpPlatformInterface && m_vpPlatformInterface->SupportOclKernel());
+#if (_DEBUG || _RELEASE_INTERNAL)
+    bEnableOcl3DLut |= m_ctrlVal.bEnableOcl3DLut;
+#endif
+    return bEnableOcl3DLut;
 }

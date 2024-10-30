@@ -54,7 +54,7 @@ MOS_STATUS VpHdrFilter::Prepare()
 MOS_STATUS VpHdrFilter::Destroy()
 {
     VP_FUNC_CALL();
-    for (auto &handle : m_renderHdr3DLutL0Params)
+    for (auto &handle : m_renderHdr3DLutOclParams)
     {
         KRN_ARG &krnArg = handle.second;
         MOS_FreeMemAndSetNull(krnArg.pData);
@@ -116,7 +116,7 @@ MOS_STATUS VpHdrFilter::CalculateEngineParams(
         m_renderHdr3DLutParams.threadWidth  = hdrParams.lutSize;
         m_renderHdr3DLutParams.threadHeight = hdrParams.lutSize;
 
-        if (hdrParams.isL0KernelEnabled == false)
+        if (hdrParams.isOclKernelEnabled == false)
         {
             KRN_ARG krnArg  = {};
             krnArg.uIndex   = 0;
@@ -157,18 +157,18 @@ MOS_STATUS VpHdrFilter::CalculateEngineParams(
             uint32_t    localDepth             = 1;
             m_renderHdr3DLutParams.localWidth  = localWidth;
             m_renderHdr3DLutParams.localHeight = localHeight;
-            m_renderHdr3DLutParams.kernelId    = (VpKernelID)kernelHdr3DLutCalcL0;
+            m_renderHdr3DLutParams.kernelId    = (VpKernelID)kernelHdr3DLutCalcOcl;
 
             //step 1: setting curbe arguments
             for (auto const &kernelArg : kernelArgs)
             {
                 uint32_t uIndex    = kernelArg.uIndex;
-                auto     argHandle = m_renderHdr3DLutL0Params.find(uIndex);
-                if (argHandle == m_renderHdr3DLutL0Params.end())
+                auto     argHandle = m_renderHdr3DLutOclParams.find(uIndex);
+                if (argHandle == m_renderHdr3DLutOclParams.end())
                 {
                     KRN_ARG krnArg = {};
-                    argHandle      = m_renderHdr3DLutL0Params.insert(std::make_pair(uIndex, krnArg)).first;
-                    VP_PUBLIC_CHK_NOT_FOUND_RETURN(argHandle, &m_renderHdr3DLutL0Params);
+                    argHandle      = m_renderHdr3DLutOclParams.insert(std::make_pair(uIndex, krnArg)).first;
+                    VP_PUBLIC_CHK_NOT_FOUND_RETURN(argHandle, &m_renderHdr3DLutOclParams);
                 }
                 KRN_ARG &krnArg = argHandle->second;
                 krnArg.uIndex   = uIndex;
