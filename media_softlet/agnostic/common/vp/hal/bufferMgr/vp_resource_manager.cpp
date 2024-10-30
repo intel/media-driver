@@ -1236,7 +1236,11 @@ MOS_STATUS VpResourceManager::AssignExecuteResource(std::vector<FeatureType> &fe
     VP_FUNC_CALL();
 
     std::vector<VP_SURFACE *> inputSurfaces, pastSurfaces, futureSurfaces;
-    for (uint32_t i = 0; i < executedFilters.GetSurfaceCount(true); ++i)
+    auto surfaceCount = executedFilters.GetSurfaceCount(true);
+    inputSurfaces.reserve(surfaceCount);
+    pastSurfaces.reserve(surfaceCount);
+    futureSurfaces.reserve(surfaceCount);
+    for (uint32_t i = 0; i < surfaceCount; ++i)
     {
         VP_SURFACE *inputSurface = GetCopyInstOfExtSurface(executedFilters.GetSurface(true, i));
         VP_PUBLIC_CHK_NULL_RETURN(inputSurface);
@@ -1281,7 +1285,11 @@ MOS_STATUS VpResourceManager::GetUpdatedExecuteResource(std::vector<FeatureType>
     VP_FUNC_CALL();
 
     std::vector<VP_SURFACE *> inputSurfaces, pastSurfaces, futureSurfaces;
-    for (uint32_t i = 0; i < swfilterPipe.GetSurfaceCount(true); ++i)
+    auto surfaceCount = swfilterPipe.GetSurfaceCount(true);
+    inputSurfaces.reserve(surfaceCount);
+    pastSurfaces.reserve(surfaceCount);
+    futureSurfaces.reserve(surfaceCount);
+    for (uint32_t i = 0; i < surfaceCount; ++i)
     {
         VP_SURFACE *inputSurface = GetCopyInstOfExtSurface(swfilterPipe.GetSurface(true, i));
         VP_PUBLIC_CHK_NULL_RETURN(inputSurface);

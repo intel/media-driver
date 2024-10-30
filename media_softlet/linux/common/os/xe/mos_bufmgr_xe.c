@@ -1825,6 +1825,8 @@ __mos_gem_bo_wait_timeline_rendering_with_flags_xe(struct mos_linux_bo *bo,
                 rw_flags);
     bufmgr_gem->m_lock.unlock();
 
+    handles.reserve(timeline_data.size());
+    points.reserve(timeline_data.size());
     for (auto it : timeline_data)
     {
         handles.push_back(it.first);

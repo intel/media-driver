@@ -737,6 +737,7 @@ MOS_STATUS SwFilterPipe::AddSwFilterUnordered(SwFilter *swFilter, bool isInputPi
         VP_PUBLIC_CHK_NULL_RETURN(pipe);
         if ((size_t)index <= pipes.size())
         {
+            pipes.reserve(index - pipes.size() + 1); // +1 because <= operator
             for (int32_t i = (int)pipes.size(); i <= index; ++i)
             {
                 pipes.push_back(nullptr);
@@ -925,6 +926,7 @@ MOS_STATUS SwFilterPipe::AddSurface(VP_SURFACE *&surf, bool isInputSurface, uint
     auto &surfaces = isInputSurface ? m_InputSurfaces : m_OutputSurfaces;
     auto &pipes = isInputSurface ? m_InputPipes : m_OutputPipes;
 
+    surfaces.reserve(index - surfaces.size()); // +1 because <= operator
     for (uint32_t i = surfaces.size(); i <= index; ++i)
     {
         surfaces.push_back(nullptr);
@@ -947,6 +949,7 @@ MOS_STATUS SwFilterPipe::AddSurface(VP_SURFACE *&surf, bool isInputSurface, uint
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
+    pipes.reserve(index - pipes.size() + 1); // +1 because <= operator
     for (uint32_t i = pipes.size(); i <= index; ++i)
     {
         pipes.push_back(nullptr);

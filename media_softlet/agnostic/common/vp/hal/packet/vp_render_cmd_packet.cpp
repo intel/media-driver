@@ -369,6 +369,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSamplerStates()
         VP_RENDER_CHK_STATUS_RETURN(m_kernel->SetSamplerStates(m_kernelSamplerStateGroup));
     }
 
+    samplerStates.reserve(m_kernelSamplerStateGroup.size());
     for (int samplerIndex = 0, activeSamplerLeft = m_kernelSamplerStateGroup.size(); activeSamplerLeft > 0; ++samplerIndex)
     {
         auto it = m_kernelSamplerStateGroup.find(samplerIndex);
