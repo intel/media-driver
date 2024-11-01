@@ -208,6 +208,7 @@ MOS_STATUS Mhw_AddResourceToCmd_GfxAddress(
     PatchEntryParams.forceDwordOffset = pParams->dwSharedMocsOffset;
     PatchEntryParams.cmdBufBase       = pbCmdBufBase;
     PatchEntryParams.presResource     = pParams->presResource;
+    PatchEntryParams.cmdBuffer        = pCmdBuffer;
 
     // Add patch entry
     MHW_CHK_STATUS_RETURN(pOsInterface->pfnSetPatchEntry(
