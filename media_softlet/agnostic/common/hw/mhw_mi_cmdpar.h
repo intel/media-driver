@@ -276,9 +276,9 @@ namespace mi
         uint32_t                    dwResourceOffset              = 0;
         uint32_t                    dwDataDW1                     = 0;                // Value to Write
         uint32_t                    dwDataDW2                     = 0;
-        bool                        bVideoPipelineCacheInvalidate = false;
         uint32_t                    postSyncOperation             = 0;
         uint32_t                    bQWordEnable                  = 0;
+        bool                        bVideoPipelineCacheInvalidate = false;
         bool                        bEnablePPCFlush               = false;
     };
 

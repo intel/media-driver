@@ -166,18 +166,11 @@ struct HucInputCmd2
 //!
 struct Vp9CmdInitializerParams
 {
-    uint8_t                             vdencMvCosts[12] = { 0 };
-    uint8_t                             vdencRdMvCosts[12] = { 0 };
-    uint8_t                             vdencHmeMvCosts[8] = { 0 };
-    uint8_t                             vdencModeCosts[CODEC_VDENC_NUM_MODE_COST] = { 0 };
-
-    uint16_t                            pictureCodingType   = 0;
-
     PCODEC_VP9_ENCODE_SEQUENCE_PARAMS   seqParams           = nullptr;
     PCODEC_VP9_ENCODE_PIC_PARAMS        picParams           = nullptr;
+    PCODEC_VP9_ENCODE_SEGMENT_PARAMS    segmentParams       = nullptr;
     bool                                segmentationEnabled = false;
     bool                                segmentMapProvided  = false;
-    PCODEC_VP9_ENCODE_SEGMENT_PARAMS    segmentParams       = nullptr;
     bool                                prevFrameSegEnabled = false;
     uint8_t                             numRefFrames        = 0;
     bool                                me16Enabled         = false;
@@ -197,6 +190,12 @@ struct Vp9CmdInitializerParams
     uint16_t                            rdQpLambda                      = 0;
     bool                                vdencPakOnlyMultipassEnabled    = false;
 
+    uint8_t                             vdencMvCosts[12] = { 0 };
+    uint8_t                             vdencRdMvCosts[12] = { 0 };
+    uint8_t                             vdencHmeMvCosts[8] = { 0 };
+    uint8_t                             vdencModeCosts[CODEC_VDENC_NUM_MODE_COST] = { 0 };
+
+    uint16_t                            pictureCodingType   = 0;
 };
 #endif
 

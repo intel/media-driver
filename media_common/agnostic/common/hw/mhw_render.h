@@ -132,13 +132,12 @@ typedef struct _MHW_RENDER_ENGINE_CAPS
 typedef struct _MHW_STATE_BASE_ADDR_PARAMS
 {
     PMOS_RESOURCE           presGeneralState;
-    uint32_t                dwGeneralStateSize;
     PMOS_RESOURCE           presDynamicState;
-    uint32_t                dwDynamicStateSize;
-    bool                    bDynamicStateRenderTarget;
     PMOS_RESOURCE           presIndirectObjectBuffer;
-    uint32_t                dwIndirectObjectBufferSize;
     PMOS_RESOURCE           presInstructionBuffer;
+    uint32_t                dwGeneralStateSize;
+    uint32_t                dwDynamicStateSize;
+    uint32_t                dwIndirectObjectBufferSize;
     uint32_t                dwInstructionBufferSize;
     uint32_t                mocs4InstructionCache;
     uint32_t                mocs4GeneralState;
@@ -147,6 +146,7 @@ typedef struct _MHW_STATE_BASE_ADDR_PARAMS
     uint32_t                mocs4IndirectObjectBuffer;
     uint32_t                mocs4StatelessDataport;
     uint32_t                l1CacheConfig;
+    bool                    bDynamicStateRenderTarget;
     bool                    addressDis;
 } MHW_STATE_BASE_ADDR_PARAMS, *PMHW_STATE_BASE_ADDR_PARAMS;
 

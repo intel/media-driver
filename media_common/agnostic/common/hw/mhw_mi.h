@@ -190,8 +190,8 @@ typedef struct _MHW_PIPE_CONTROL_PARAMS
 typedef struct _MHW_MI_COPY_MEM_MEM_PARAMS
 {
     PMOS_RESOURCE               presSrc;
-    uint32_t                    dwSrcOffset;
     PMOS_RESOURCE               presDst;
+    uint32_t                    dwSrcOffset;
     uint32_t                    dwDstOffset;
 } MHW_MI_COPY_MEM_MEM_PARAMS, *PMHW_MI_COPY_MEM_MEM_PARAMS;
 
@@ -260,9 +260,9 @@ typedef struct _MHW_MI_FLUSH_DW_PARAMS
     uint32_t                    dwResourceOffset;
     uint32_t                    dwDataDW1;                                        // Value to Write
     uint32_t                    dwDataDW2;
-    bool                        bVideoPipelineCacheInvalidate;
     uint32_t                    postSyncOperation;
     uint32_t                    bQWordEnable;
+    bool                        bVideoPipelineCacheInvalidate;
     bool                        bEnablePPCFlush;
 } MHW_MI_FLUSH_DW_PARAMS, *PMHW_MI_FLUSH_DW_PARAMS;
 
