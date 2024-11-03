@@ -39,22 +39,22 @@ public:
 
     int AssignBindingTable();
 
-    int GetBindingTableOffset(int btIndex = -1);
+    int GetBindingTableOffset(int btIndex = -1) const;
 
     virtual int AddSurfaceState(CmSurfaceState *surfState, int bteIndex = -1, int btIndex = -1);
 
     int AddScratchSpace(CmScratchSpace *scratch);
 
-    MOS_STATUS PrepareResourcesForCp();
+    MOS_STATUS PrepareResourcesForCp() const;
 
     static void DumpSSH(CM_HAL_STATE *cmhal, PMOS_COMMAND_BUFFER cmdBuf); // to dump legacy path
 
-    void DumpSSH();
+    void DumpSSH() const;
 
 protected:
     int GetFreeBindingTableEntries(int surfNum, int btIndex = -1);
     int GetFreeSurfStateIndex(int surfNum);
-    int EstimateBTSize(int maxBteNum, std::map<int, CmSurfaceState *> &reservedBteIndex);
+    int EstimateBTSize(int maxBteNum, std::map<int, CmSurfaceState *> &reservedBteIndex) const;
     
 private:
     struct _BteFlag
@@ -69,7 +69,7 @@ private:
             _map |= temp;
         }
 
-        inline bool IsSet(int start, int count)
+        inline bool IsSet(int start, int count) const
         {
             uint64_t mask = 0xffffffff >> (32-count);
             std::bitset<256> temp(mask);

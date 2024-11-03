@@ -165,7 +165,7 @@ public:
 
     static int32_t Destroy(CmKernelRT *&kernel, CmProgramRT *&program);
 
-    int32_t GetThreadCount(uint32_t &count);
+    int32_t GetThreadCount(uint32_t &count) const;
 
     CM_RT_API int32_t SetThreadCount(uint32_t count);
 
@@ -272,7 +272,7 @@ public:
 
     int32_t CollectKernelSurface();
 
-    int32_t GetKernelSurfaces(bool *&surfArray);
+    int32_t GetKernelSurfaces(bool *&surfArray) const;
 
     int32_t ResetKernelSurfaces();
 
@@ -339,7 +339,7 @@ protected:
     int32_t CalcKernelDataSize(uint32_t movInstNum,
                                uint32_t numArgs,
                                uint32_t argSize,
-                               uint32_t &totalKernelDataSize);
+                               uint32_t &totalKernelDataSize) const;
 
     int32_t GetArgCountPlusSurfArray(uint32_t &argSize, uint32_t &argCountPlus);
 
@@ -397,15 +397,15 @@ protected:
 
     int32_t SetArgsSingleVme(CmSurfaceVme *vmeSurface,
                              uint8_t *vmeArgValueArray,
-                             uint16_t *cmSufacesArray);
+                             uint16_t *cmSufacesArray) const;
 
-    int32_t GetVmeSurfaceIndex(uint32_t *vmeIndexArray,
+    static int32_t GetVmeSurfaceIndex(uint32_t *vmeIndexArray,
                                uint32_t *vmeCmIndexArray,
                                uint32_t index,
                                uint32_t *outputValue);
 
     CmSurface *GetSurfaceFromSurfaceArray(SurfaceIndex *value,
-                                          uint32_t indexSurfaceArray);
+                                          uint32_t indexSurfaceArray) const;
 
     void ArgLog(std::ostringstream &oss,
                 uint32_t index,

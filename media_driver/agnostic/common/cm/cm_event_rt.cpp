@@ -242,7 +242,7 @@ int32_t CmEventRT::ModifyStatus(CM_STATUS status, uint64_t elapsedTime)
     return CM_SUCCESS;
 }
 
-int32_t CmEventRT::GetQueue(CmQueueRT *& queue)
+int32_t CmEventRT::GetQueue(CmQueueRT *& queue) const
 {
     queue = m_queue;
     return CM_SUCCESS;
@@ -331,7 +331,7 @@ int32_t CmEventRT::GetHWStartTime(LARGE_INTEGER* time)
 
 }
 
-uint32_t CmEventRT::GetKernelCount()
+uint32_t CmEventRT::GetKernelCount() const
 {
     return m_kernelCount;
 }
@@ -466,7 +466,7 @@ int32_t CmEventRT::SetCompleteTime( LARGE_INTEGER time )
     return CM_SUCCESS;
 }
 
-int32_t CmEventRT::GetIndex( uint32_t & index )
+int32_t CmEventRT::GetIndex( uint32_t & index ) const
 {
     index = m_index;
     return CM_SUCCESS;
@@ -513,7 +513,7 @@ int32_t CmEventRT::SetTaskOsData( void  *data )
 //| Purpose:    Get Task ID
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmEventRT::GetTaskDriverId( int32_t & id )
+int32_t CmEventRT::GetTaskDriverId( int32_t & id ) const
 {
     id = m_taskDriverId;
     return CM_SUCCESS;
@@ -595,7 +595,7 @@ finish:
 //| Purpose:    Get m_status.
 //| Returns:    return m_status.
 //*-----------------------------------------------------------------------------
-CM_STATUS CmEventRT::GetStatusWithoutFlush()
+CM_STATUS CmEventRT::GetStatusWithoutFlush() const
 {
     return m_status;
 }
