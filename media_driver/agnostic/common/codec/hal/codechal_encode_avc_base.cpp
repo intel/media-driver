@@ -3270,6 +3270,11 @@ MOS_STATUS CodechalEncodeAvcBase::SetSliceStructs()
         {
             for (uint8_t i = 0; i < (slcParams->num_ref_idx_l0_active_minus1 + 1); i++)
             {
+                if (slcParams->RefPicList[0][i].FrameIdx >= CODEC_AVC_MAX_NUM_REF_FRAME)
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("Invalid slice parameters.");
+                    return MOS_STATUS_INVALID_PARAMETER;
+                }
                 slcParams->PicOrder[0][i].Picture.FrameIdx =
                     m_picIdx[slcParams->RefPicList[0][i].FrameIdx].ucPicIdx;
                 slcParams->PicOrder[0][i].Picture.PicFlags =
@@ -3280,6 +3285,11 @@ MOS_STATUS CodechalEncodeAvcBase::SetSliceStructs()
         {
             for (uint8_t i = 0; i < (slcParams->num_ref_idx_l1_active_minus1 + 1); i++)
             {
+                if (slcParams->RefPicList[1][i].FrameIdx >= CODEC_AVC_MAX_NUM_REF_FRAME)
+                {
+                    CODECHAL_ENCODE_ASSERTMESSAGE("Invalid slice parameters.");
+                    return MOS_STATUS_INVALID_PARAMETER;
+                }
                 slcParams->PicOrder[1][i].Picture.FrameIdx =
                     m_picIdx[slcParams->RefPicList[1][i].FrameIdx].ucPicIdx;
                 slcParams->PicOrder[1][i].Picture.PicFlags =
