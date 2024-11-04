@@ -190,6 +190,7 @@ enum VpKernelID
     kernelOclFc444PL3Output,
     kernelOclFc420PL3Input,
     kernelOclFc420PL3Output,
+    kernelOclFc422HVInput,
     baseKernelMaxNumID
 };
 

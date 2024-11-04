@@ -54,6 +54,9 @@ VpRenderOclFcKernel::VpRenderOclFcKernel(PVP_MHWINTERFACE hwInterface, VpKernelI
     case kernelOclFc420PL3Output:
         m_kernelName = "ImageWrite_fc_420PL3_output";
         break;
+    case kernelOclFc422HVInput:
+        m_kernelName = "ImageRead_fc_422HV_input";
+        break;
     default:
         m_kernelName.assign("");
         VP_RENDER_ASSERTMESSAGE("Kernel ID cannot map to Kernel Name");

@@ -47,17 +47,19 @@ struct OCL_FC_DI_PARAMS
 
 struct OCL_FC_LAYER_PARAM
 {
-    VP_SURFACE            *surf                       = nullptr;
-    uint32_t               layerID                    = 0;
-    uint32_t               layerIDOrigin              = 0;  //!< Origin layerID before layerSkipped, which can be used to reference surfaces in SurfaceGroup.
-    VPHAL_SCALING_MODE     scalingMode                = VPHAL_SCALING_NEAREST;
-    VPHAL_ROTATION         rotation                   = VPHAL_ROTATION_IDENTITY;
-    OCL_FC_LUMA_KEY_PARAMS lumaKey                    = {};
-    VPHAL_BLENDING_PARAMS  blendingParams             = {};
-    VPHAL_PROCAMP_PARAMS   procampParams              = {};
-    OCL_FC_DI_PARAMS       diParams                   = {};
-    bool                   needIntermediaSurface      = false;
-    MOS_FORMAT             interMediaOverwriteSurface = Format_Any;
+    VP_SURFACE            *surf                             = nullptr;
+    uint32_t               layerID                          = 0;
+    uint32_t               layerIDOrigin                    = 0;  //!< Origin layerID before layerSkipped, which can be used to reference surfaces in SurfaceGroup.
+    VPHAL_SCALING_MODE     scalingMode                      = VPHAL_SCALING_NEAREST;
+    VPHAL_ROTATION         rotation                         = VPHAL_ROTATION_IDENTITY;
+    OCL_FC_LUMA_KEY_PARAMS lumaKey                          = {};
+    VPHAL_BLENDING_PARAMS  blendingParams                   = {};
+    VPHAL_PROCAMP_PARAMS   procampParams                    = {};
+    OCL_FC_DI_PARAMS       diParams                         = {};
+    bool                   needIntermediaSurface            = false;
+    bool                   needSepareateIntermediaSecPlane  = false;
+    MOS_FORMAT             intermediaFormat                 = Format_Any;
+    MOS_FORMAT             separateIntermediaSecPlaneFormat = Format_Any;
 };
 
 struct OCL_FC_COMP_PARAM
@@ -239,6 +241,11 @@ protected:
     MOS_STATUS SetupSingleFc420PL3OutputBti(uint32_t uIndex, SURFACE_PARAMS &surfaceParam, bool &bInit);
     MOS_STATUS SetupSingleFc420PL3OutputKrnArg(uint32_t srcSurfaceWidth, uint32_t srcSurfaceHeight, uint32_t lumaChannelIndices, uint32_t chromaChannelIndices[2], uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit);
 
+    //OCL FC 422HV/411P input kernel
+    MOS_STATUS GenerateFc422HVInputParam(OCL_FC_LAYER_PARAM &inputLayersParam, uint32_t index, OCL_FC_KERNEL_PARAM &param);
+    MOS_STATUS SetupSingleFc422HVInputBti(uint32_t uIndex, uint32_t layIndex, SURFACE_PARAMS &surfaceParam, bool &bInit);
+    MOS_STATUS SetupSingleFc422HVInputKrnArg(uint32_t srcSurfaceWidthPL1, uint32_t srcSurfaceHeightPL1, uint32_t channelIndex, uint32_t chromaChannelIndices[4], uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit);
+    
     //OCL FC 444 PL3 input kernel
     MOS_STATUS GenerateFc444PL3InputParam(OCL_FC_LAYER_PARAM &layer, uint32_t layerNumber, OCL_FC_KERNEL_PARAM &param, uint32_t layerIndex);
     MOS_STATUS SetupSingleFc444PL3InputKrnArg(uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit, uint32_t inputChannelIndices[4], uint32_t outputChannelIndices[4], uint32_t planeChannelIndices);
@@ -260,8 +267,8 @@ protected:
     MOS_STATUS ConvertScalingRotToKrnParam(RECT &rcSrc, RECT &rcDst, VPHAL_SCALING_MODE scalingMode, uint32_t inputWidth, uint32_t inputHeight, VPHAL_ROTATION rotation, OCL_FC_KRN_SCALE_PARAM &scaling, uint8_t &samplerType, OCL_FC_KRN_COORD_SHIFT_PARAM &coordShift);
     MOS_STATUS ConvertRotationToKrnParam(VPHAL_ROTATION rotation, float strideX, float strideY, float startLeft, float startRight, float startTop, float startBottom, OCL_FC_KRN_SCALE_PARAM &scaling);
     MOS_STATUS ConvertChromaUpsampleToKrnParam(MOS_FORMAT format, uint32_t chromaSitingLoc, VPHAL_SCALING_MODE scalingMode, uint32_t inputWidth, uint32_t inputHeight, float &chromaShiftX, float &chromaShiftY, uint8_t &isChromaShift);
-    MOS_STATUS ConvertInputChannelIndicesToKrnParam(MOS_FORMAT format, uint32_t *inputChannelIndices);
-    MOS_STATUS ConvertPlaneNumToKrnParam(MOS_FORMAT format, bool isInput, uint32_t &planeNum);
+    MOS_STATUS ConvertInputChannelIndicesToKrnParam(MOS_FORMAT format, MOS_FORMAT separateIntermediaSecPlaneFormat, uint32_t *inputChannelIndices);
+    MOS_STATUS ConvertPlaneNumToKrnParam(MOS_FORMAT format, bool needSeparateIntermediaSecPlane, bool isInput, uint32_t &planeNum);
     MOS_STATUS ConvertBlendingToKrnParam(VPHAL_BLENDING_PARAMS &blend, uint8_t &ignoreSrcPixelAlpha, uint8_t &ignoreDstPixelAlpha, float &constAlpha);
 
     //OCL FC common kernel output parameter
@@ -298,6 +305,7 @@ protected:
     KERNEL_INDEX_ARG_MAP              m_fcFastExpressKrnArgs;
     MULTI_LAYERS_KERNEL_INDEX_ARG_MAP m_fc420PL3InputMultiLayersKrnArgs;
     MULTI_LAYERS_KERNEL_INDEX_ARG_MAP m_fc444PL3InputMultiLayersKrnArgs;
+    MULTI_LAYERS_KERNEL_INDEX_ARG_MAP m_fc422HVInputMultiLayersKrnArgs;
     KERNEL_INDEX_ARG_MAP              m_fc420PL3OutputKrnArgs;
     KERNEL_INDEX_ARG_MAP              m_fc444PL3OutputKrnArgs;
 

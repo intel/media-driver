@@ -257,6 +257,10 @@ VpResourceManager::~VpResourceManager()
         {
             m_allocator.DestroyVpSurface(m_fcIntermediaSurfaceInput[i]);
         }
+        if (m_fcSeparateIntermediaSurfaceSecPlaneInput[i])
+        {
+            m_allocator.DestroyVpSurface(m_fcSeparateIntermediaSurfaceSecPlaneInput[i]);
+        }
     }
     if (m_fcIntermediaSurfaceOutput)
     {
@@ -1098,30 +1102,48 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
     {
         VP_PUBLIC_CHK_NULL_RETURN(inputSurfaces[i]);
         VP_PUBLIC_CHK_NULL_RETURN(inputSurfaces[i]->osSurface);
-        MOS_FORMAT fcIntermediaSurfaceInputFormat = Format_Any;
+        MOS_FORMAT fcIntermediaInputFormat                 = Format_Any;
+        MOS_FORMAT fcSeparateIntermediaSecPlaneInputFormat = Format_Any;
+        uint32_t   widthPL1Factor                          = 1;
+        uint32_t   heightPL1Factor                         = 1;
         switch (inputSurfaces[i]->osSurface->Format)
         {
         case Format_RGBP:
         case Format_BGRP:
-            fcIntermediaSurfaceInputFormat = Format_A8R8G8B8;
+            fcIntermediaInputFormat = Format_A8R8G8B8;
             break;
         case Format_444P:
-            fcIntermediaSurfaceInputFormat = Format_AYUV;
+            fcIntermediaInputFormat = Format_AYUV;
             break;
         case Format_I420:
         case Format_YV12:
         case Format_IYUV:
-            fcIntermediaSurfaceInputFormat = Format_NV12;
+            fcIntermediaInputFormat = Format_NV12;
+            break;
+        case Format_422H:
+            fcIntermediaInputFormat                 = Format_R8UN;
+            fcSeparateIntermediaSecPlaneInputFormat = Format_R8G8UN;
+            widthPL1Factor                          = 2;
+            break;
+        case Format_422V:
+            fcIntermediaInputFormat                 = Format_R8UN;
+            fcSeparateIntermediaSecPlaneInputFormat = Format_R8G8UN;
+            heightPL1Factor                         = 2;
+            break;
+        case Format_411P:
+            fcIntermediaInputFormat                 = Format_R8UN;
+            fcSeparateIntermediaSecPlaneInputFormat = Format_R8G8UN;
+            widthPL1Factor                          = 4;
             break;
         default:
             break;
         }
-        if (fcIntermediaSurfaceInputFormat != Format_Any)
+        if (fcIntermediaInputFormat != Format_Any)
         {
             VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
                 m_fcIntermediaSurfaceInput[i],
                 "fcIntermediaSurfaceInput",
-                fcIntermediaSurfaceInputFormat,
+                fcIntermediaInputFormat,
                 MOS_GFXRES_2D,
                 MOS_TILE_Y,
                 inputSurfaces[i]->osSurface->dwWidth,
@@ -1133,10 +1155,35 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
                 IsDeferredResourceDestroyNeeded(),
                 MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER));
 
-            m_fcIntermediaSurfaceInput[i]->rcSrc      = inputSurfaces[i]->rcSrc;
-            m_fcIntermediaSurfaceInput[i]->rcDst      = inputSurfaces[i]->rcDst;
-            m_fcIntermediaSurfaceInput[i]->SampleType = inputSurfaces[i]->SampleType;
+            m_fcIntermediaSurfaceInput[i]->rcSrc         = inputSurfaces[i]->rcSrc;
+            m_fcIntermediaSurfaceInput[i]->rcDst         = inputSurfaces[i]->rcDst;
+            m_fcIntermediaSurfaceInput[i]->SampleType    = inputSurfaces[i]->SampleType;
             surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcIntermediaInput + i), m_fcIntermediaSurfaceInput[i]));
+        }
+        if (fcSeparateIntermediaSecPlaneInputFormat != Format_Any)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
+                m_fcSeparateIntermediaSurfaceSecPlaneInput[i],
+                "fcSeparateIntermediaSurfaceSecPlaneInput",
+                fcSeparateIntermediaSecPlaneInputFormat,
+                MOS_GFXRES_2D,
+                MOS_TILE_Y,
+                inputSurfaces[i]->osSurface->dwWidth / widthPL1Factor,
+                inputSurfaces[i]->osSurface->dwHeight / heightPL1Factor,
+                false,
+                MOS_MMC_DISABLED,
+                allocated,
+                false,
+                IsDeferredResourceDestroyNeeded(),
+                MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER));
+
+            m_fcSeparateIntermediaSurfaceSecPlaneInput[i]->rcSrc.top    = inputSurfaces[i]->rcSrc.top / heightPL1Factor;
+            m_fcSeparateIntermediaSurfaceSecPlaneInput[i]->rcSrc.bottom = inputSurfaces[i]->rcSrc.bottom / heightPL1Factor;
+            m_fcSeparateIntermediaSurfaceSecPlaneInput[i]->rcSrc.left   = inputSurfaces[i]->rcSrc.left / widthPL1Factor;
+            m_fcSeparateIntermediaSurfaceSecPlaneInput[i]->rcSrc.right  = inputSurfaces[i]->rcSrc.right / widthPL1Factor;
+            m_fcSeparateIntermediaSurfaceSecPlaneInput[i]->rcDst        = inputSurfaces[i]->rcDst;
+            m_fcSeparateIntermediaSurfaceSecPlaneInput[i]->SampleType   = inputSurfaces[i]->SampleType;
+            surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcSeparateIntermediaInputSecPlane + i), m_fcSeparateIntermediaSurfaceSecPlaneInput[i]));
         }
     }
     // Allocate OCL FC intermedia outputSurface

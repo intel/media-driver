@@ -88,17 +88,18 @@ enum SurfaceType
     SurfaceTypeFixFuncEnd               = SurfaceTypeGeneralEnd + 0x2000, //for fix function usage
 
     // FC
-    SurfaceTypeFcInputLayer0             = SurfaceTypeFixFuncEnd + 0x100,
-    SurfaceTypeFcInputLayerMax           = SurfaceTypeFcInputLayer0 + SURFACETYPE_SIZE8,
-    SurfaceTypeFcInputLayer0Field1Dual   = SurfaceTypeFixFuncEnd + 0x200,
-    SurfaceTypeFcInputLayerMaxField1Dual = SurfaceTypeFcInputLayer0Field1Dual + SURFACETYPE_SIZE8,
-    SurfaceTypeFcTarget0                 = SurfaceTypeFixFuncEnd + 0x300,
-    SurfaceTypeFcTarget1                 = SurfaceTypeFixFuncEnd + 0x400,
-    SurfaceTypeFcCscCoeff                = SurfaceTypeFixFuncEnd + 0x500,
-    SurfaceTypeDecompressionSync         = SurfaceTypeFixFuncEnd + 0x600,
-    SurfaceTypeFcIntermediaInput         = SurfaceTypeFixFuncEnd + 0x700,
-    SurfaceTypeFcIntermediaOutput        = SurfaceTypeFixFuncEnd + 0x800,
-    SurfaceTypeFcEnd                     = SurfaceTypeFixFuncEnd + 0x900,
+    SurfaceTypeFcInputLayer0                     = SurfaceTypeFixFuncEnd + 0x100,
+    SurfaceTypeFcInputLayerMax                   = SurfaceTypeFcInputLayer0 + SURFACETYPE_SIZE8,
+    SurfaceTypeFcInputLayer0Field1Dual           = SurfaceTypeFixFuncEnd + 0x200,
+    SurfaceTypeFcInputLayerMaxField1Dual         = SurfaceTypeFcInputLayer0Field1Dual + SURFACETYPE_SIZE8,
+    SurfaceTypeFcTarget0                         = SurfaceTypeFixFuncEnd + 0x300,
+    SurfaceTypeFcTarget1                         = SurfaceTypeFixFuncEnd + 0x400,
+    SurfaceTypeFcCscCoeff                        = SurfaceTypeFixFuncEnd + 0x500,
+    SurfaceTypeDecompressionSync                 = SurfaceTypeFixFuncEnd + 0x600,
+    SurfaceTypeFcIntermediaInput                 = SurfaceTypeFixFuncEnd + 0x700,
+    SurfaceTypeFcSeparateIntermediaInputSecPlane = SurfaceTypeFixFuncEnd + 0x800,
+    SurfaceTypeFcIntermediaOutput                = SurfaceTypeFixFuncEnd + 0x900,
+    SurfaceTypeFcEnd                             = SurfaceTypeFixFuncEnd + 0xa00,
 
     // 3DLut Kernel
     SurfaceType3DLut2D                   = SurfaceTypeFcEnd + 0x100,
