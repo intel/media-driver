@@ -87,7 +87,7 @@ MOS_STATUS VpRenderOclFcKernel::Init(VpRenderKernel &kernel)
     for (auto &arg : kernel.GetKernelArgs())
     {
         arg.pData = nullptr;
-        m_kernelArgs.insert(std::make_pair(arg.uIndex,arg));
+        m_kernelArgs.emplace(arg.uIndex,arg);
     }
 
     m_kernelBtis = kernel.GetKernelBtis();
@@ -121,7 +121,7 @@ MOS_STATUS VpRenderOclFcKernel::SetSamplerStates(KERNEL_SAMPLER_STATE_GROUP &sam
         if (m_linearSamplerIndex >= 0)
         {
             VP_RENDER_NORMALMESSAGE("Bilinear Sampler Set on Sampler Index %d", m_linearSamplerIndex);
-            samplerStateGroup.insert(std::make_pair(m_linearSamplerIndex, samplerStateParam));
+            samplerStateGroup.emplace(m_linearSamplerIndex, samplerStateParam);
         }
         else
         {
@@ -140,7 +140,7 @@ MOS_STATUS VpRenderOclFcKernel::SetSamplerStates(KERNEL_SAMPLER_STATE_GROUP &sam
         if (m_nearestSamplerIndex >= 0)
         {
             VP_RENDER_NORMALMESSAGE("Nearest Sampler Set on Sampler Index %d", m_nearestSamplerIndex);
-            samplerStateGroup.insert(std::make_pair(m_nearestSamplerIndex, samplerStateParam));
+            samplerStateGroup.emplace(m_nearestSamplerIndex, samplerStateParam);
         }
         else
         {
@@ -364,7 +364,7 @@ MOS_STATUS VpRenderOclFcKernel::SetupSurfaceState()
             kernelSurfaceParam.surfaceOverwriteParams.bufferResource       = true;
         }
 
-        m_surfaceState.insert(std::make_pair(surfType, kernelSurfaceParam));
+        m_surfaceState.emplace(surfType, kernelSurfaceParam);
 
         UpdateCurbeBindingIndex(surfType, bti);
     }

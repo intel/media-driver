@@ -72,7 +72,7 @@ MOS_STATUS DecodeSubPipeline::RegisterPacket(uint32_t packetId, MediaPacket& pac
     auto iter = m_packetList.find(packetId);
     if (iter == m_packetList.end())
     {
-        m_packetList.insert(std::make_pair(packetId, &packet));
+        m_packetList.emplace(packetId, &packet);
     }
 
     return MOS_STATUS_SUCCESS;
