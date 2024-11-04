@@ -1637,11 +1637,14 @@ MOS_STATUS CodechalDecodeHevcG12::SendPictureLongFormat()
         }
 
         HalOcaInterface::On1stLevelBBStart(scdryCmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
+        HalOcaInterface::OnDispatch(scdryCmdBuffer, *m_osInterface, *m_miInterface, *m_miInterface->GetMmioRegisters());       
     }
     else
     {
         HalOcaInterface::On1stLevelBBStart(primCmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
+        HalOcaInterface::OnDispatch(primCmdBuffer, *m_osInterface, *m_miInterface, *m_miInterface->GetMmioRegisters()); 
     }
+    
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(InitPicLongFormatMhwParams());
 

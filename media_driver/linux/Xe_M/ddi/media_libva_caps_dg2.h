@@ -56,7 +56,8 @@ public:
             {VP9, Vdenc, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10BPP |
              VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_YUV444_10 | VA_RT_FORMAT_RGB32 |
              VA_RT_FORMAT_RGB32_10BPP},
-            {AV1, Vdenc, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10BPP}
+            {AV1, Vdenc, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10BPP |
+             VA_RT_FORMAT_RGB32 | VA_RT_FORMAT_RGB32_10BPP}
         };
         m_encodeFormatTable = (struct EncodeFormatTable*)(&encodeFormatTableDG2[0]);
         m_encodeFormatCount = sizeof(encodeFormatTableDG2)/sizeof(struct EncodeFormatTable);

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1497,6 +1497,8 @@ namespace decode{
                 }
             }
         }
+
+        DECODE_CHK_STATUS(m_av1BasicFeature->m_refFrames.GetValidReferenceIndex(&picStateParams.m_validRefPicIdx));
 
         return MOS_STATUS_SUCCESS;
     }

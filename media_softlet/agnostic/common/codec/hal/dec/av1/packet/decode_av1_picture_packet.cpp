@@ -1072,7 +1072,7 @@ namespace decode{
                 }
                 else
                 {
-                    MOS_STATUS hr = m_av1BasicFeature->m_refFrames.GetValidReferenceIndex(&refPicIndex);
+                    DECODE_CHK_STATUS(m_av1BasicFeature->m_refFrames.GetValidReferenceIndex(&refPicIndex));
                 }
 
                 horizontalScaleFactor = (m_refList[refPicIndex]->m_frameWidth * m_av1ScalingFactor + (curFrameWidth >> 1)) / curFrameWidth;

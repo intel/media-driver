@@ -328,15 +328,17 @@ protected:
 #define __MEDIA_USER_FEATURE_VALUE_INTER_FRAME_MEMORY_NINJA_START_COUNTER "InterFrameNinjaStartCounter"
 #define __MEDIA_USER_FEATURE_VALUE_INTER_FRAME_MEMORY_NINJA_END_COUNTER "InterFrameNinjaEndCounter"
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_IFNCC                         "EnableIFNCC"
-// For L0 3DLut
-#define __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_L0_3DLUT                   "Enable L0 3DLUT"
-#define __MEDIA_USER_FEATURE_VALUE_VP_L0_3DLUT_ENABLED                  "L0 3DLUT Enabled"
+// For OCL 3DLut
+#define __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_OCL_3DLUT                  "Enable OCL 3DLUT"
+#define __MEDIA_USER_FEATURE_VALUE_VP_OCL_3DLUT_ENABLED                 "OCL 3DLUT Enabled"
 
 // For OCL FC
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_OCL_FC                      "Enable OCL FC"
 #define __MEDIA_USER_FEATURE_VALUE_DISABLE_VP_OCL_FC_FP                  "Disable OCL FC FP"
 #define __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_SUPPORTED                   "OCL FC Supported"
+#define __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_FEATURE_REPORT              "OCL FC Feature Report"
 #define __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_REPORT                      "OCL FC Diff Report"
+#define __MEDIA_USER_FEATURE_VALUE_VP_LEGACY_FC_IN_USE                   "Legacy FC In Use"
 
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_VESFC_LINEAR_OUTPUT_BY_TILECONVERT "Enable VESFC Linearoutput By TileConvert"
 

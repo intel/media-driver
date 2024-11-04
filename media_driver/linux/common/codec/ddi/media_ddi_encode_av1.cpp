@@ -453,6 +453,7 @@ VAStatus DdiEncodeAV1::ParseSeqParams(void *ptr)
 #else
     av1SeqParams->SeqFlags.fields.HierarchicalFlag = seqParams->reserved8b;
 #endif
+    av1SeqParams->SeqFlags.fields.DisplayFormatSwizzle = NeedDisplayFormatSwizzle(m_encodeCtx->RTtbl.pCurrentRT);
 
     return VA_STATUS_SUCCESS;
 }

@@ -218,12 +218,12 @@ MOS_STATUS VpPipeline::UserFeatureReport()
             {
                 m_reporting->GetFeatures().rtOldCacheSetting = (uint8_t)(m_vpMhwInterface.m_renderHal->oldCacheSettingForTargetSurface);
             }
-            if (m_reporting->GetFeatures().isL03DLut)
+            if (m_reporting->GetFeatures().isOcl3DLut)
             {
-                VP_PUBLIC_NORMALMESSAGE("VP L0 3DLut Enabled");
+                VP_PUBLIC_NORMALMESSAGE("VP OCL 3DLut Enabled");
                 ReportUserSettingForDebug(
                     m_userSettingPtr,
-                    __MEDIA_USER_FEATURE_VALUE_VP_L0_3DLUT_ENABLED,
+                    __MEDIA_USER_FEATURE_VALUE_VP_OCL_3DLUT_ENABLED,
                     1,
                     MediaUserSetting::Group::Sequence);
             }
@@ -241,10 +241,27 @@ MOS_STATUS VpPipeline::UserFeatureReport()
 
             ReportUserSettingForDebug(
                 m_userSettingPtr,
+                __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_FEATURE_REPORT,
+                m_reporting->GetFeatures().featureLogOclFC,
+                MediaUserSetting::Group::Sequence);
+
+            ReportUserSettingForDebug(
+                m_userSettingPtr,
                 __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_REPORT,
                 m_reporting->GetFeatures().diffLogOclFC,
                 MediaUserSetting::Group::Sequence);
+
+            if (m_reporting->GetFeatures().isLegacyFCInUse)
+            {
+                ReportUserSettingForDebug(
+                    m_userSettingPtr,
+                    __MEDIA_USER_FEATURE_VALUE_VP_LEGACY_FC_IN_USE,
+                    1,
+                    MediaUserSetting::Group::Sequence);
+                m_reporting->GetFeatures().isLegacyFCInUse = false;
+            }
         }
+        
 #endif
 
         m_reporting->GetFeatures().VPApogeios = m_currentFrameAPGEnabled;

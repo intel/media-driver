@@ -308,8 +308,10 @@ MOS_STATUS CodechalDecodeAvcG12::DecodeStateLevel()
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &cmdBuffer, 0));
 
     auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(m_vdboxIndex);
-    HalOcaInterface::On1stLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
 
+    HalOcaInterface::On1stLevelBBStart(cmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
+    HalOcaInterface::OnDispatch(cmdBuffer, *m_osInterface, *m_miInterface, *m_miInterface->GetMmioRegisters());
+    
     MHW_MI_FORCE_WAKEUP_PARAMS forceWakeupParams;
     MOS_ZeroMemory(&forceWakeupParams, sizeof(MHW_MI_FORCE_WAKEUP_PARAMS));
     forceWakeupParams.bMFXPowerWellControl = true;

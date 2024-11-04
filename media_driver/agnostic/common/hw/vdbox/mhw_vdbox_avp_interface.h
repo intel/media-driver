@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -93,6 +93,7 @@ struct MhwVdboxAvpPicStateParams
     uint8_t                         m_refOrderHints[7];
     uint8_t                         m_savedRefOrderHints[7][7];
     uint8_t                         m_refMaskMfProj;
+    uint8_t                         m_validRefPicIdx;
 };
 
 struct MhwVdboxAvpPakInsertObjParams

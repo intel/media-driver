@@ -331,6 +331,11 @@ protected:
 
     void UnlockPendingOcaBuffers(PMOS_COMMAND_BUFFER cmdBuffer, PMOS_CONTEXT mosContext);
 
+    virtual MOS_GPU_COMPONENT_ID GetGpuComponentId()
+    {
+        return MOS_GPU_COMPONENT_DEFAULT;
+    }
+
 protected:
     //! \brief    internal command buffer pool per gpu context
     std::vector<CommandBufferNext *> m_cmdBufPool;

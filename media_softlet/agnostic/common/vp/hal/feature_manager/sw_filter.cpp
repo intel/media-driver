@@ -1318,9 +1318,9 @@ MOS_STATUS SwFilterHdr::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
     auto userFeatureControl = m_vpInterface.GetHwInterface()->m_userFeatureControl;
     auto vpPlatformInterface = m_vpInterface.GetHwInterface()->m_vpPlatformInterface;
     VpFeatureReport *vpFeatureReport  = dynamic_cast<VpFeatureReport *>(m_vpInterface.GetHwInterface()->m_reporting);
+    m_Params.isOclKernelEnabled          = userFeatureControl->EnableOcl3DLut();
 #if (_DEBUG || _RELEASE_INTERNAL)
-    m_Params.isL0KernelEnabled               = (vpPlatformInterface->IsAdvanceNativeKernelSupported() && userFeatureControl->EnableL03DLut());
-    vpFeatureReport->GetFeatures().isL03DLut = m_Params.isL0KernelEnabled;
+    vpFeatureReport->GetFeatures().isOcl3DLut = m_Params.isOclKernelEnabled;
 #endif
 
     VP_PUBLIC_CHK_NULL_RETURN(surfInput);

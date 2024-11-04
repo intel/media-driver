@@ -243,7 +243,7 @@ protected:
     VEBOX_HDR_PARAMS m_veboxHdrParams = {};
     RENDER_HDR_3DLUT_CAL_PARAMS m_renderHdr3DLutParams = {};
     RENDER_HDR_PARAMS           m_renderHdrParams      = {};
-    KERNEL_INDEX_ARG_MAP        m_renderHdr3DLutL0Params = {};
+    KERNEL_INDEX_ARG_MAP        m_renderHdr3DLutOclParams = {};
     SwFilterPipe                *m_executedPipe        = nullptr;
 
     SurfaceType m_surfType3DLut         = SurfaceType3DLut;

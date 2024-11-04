@@ -1215,7 +1215,7 @@ MOS_STATUS GpuContextSpecificNext::MapResourcesToAuxTable(mos_linux_bo *cmd_bo)
     MOS_OS_CHK_NULL_RETURN(osCtx);
 
     AuxTableMgr *auxTableMgr = osCtx->GetAuxTableMgr();
-    if (auxTableMgr)
+    if (auxTableMgr && m_currentNumPatchLocations > 0)
     {
         // Map compress allocations to aux table if it is not mapped.
         for (uint32_t i = 0; i < m_numAllocations; i++)

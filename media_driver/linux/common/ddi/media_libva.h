@@ -43,6 +43,7 @@
 #include <va/va_backend_prot.h>
 #endif
 #ifdef ANDROID
+#include <va/va_android.h>
 #if VA_MAJOR_VERSION < 1
 #include "va_internal_android.h"
 #endif

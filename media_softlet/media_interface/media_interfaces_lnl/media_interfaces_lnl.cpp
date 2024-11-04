@@ -57,6 +57,7 @@
 #include "igvpfc_420PL3_output_xe2.h"
 #include "igvpfc_444PL3_input_xe2.h"
 #include "igvpfc_444PL3_output_xe2.h"
+#include "igvp3dlut_xe2.h"
 #endif
 
 using namespace mhw::vdbox::avp::xe2_lpm_base;
@@ -159,6 +160,7 @@ void VphalInterfacesXe2_Lpm::InitPlatformKernelBinary(
     AddVpNativeKernelEntryToListFc_420pl3_outputXe2(*vpPlatformInterface);
     AddVpNativeKernelEntryToListFc_444pl3_inputXe2(*vpPlatformInterface);
     AddVpNativeKernelEntryToListFc_444pl3_outputXe2(*vpPlatformInterface);
+    AddVpNativeKernelEntryToList3dlutXe2(*vpPlatformInterface);
 #endif
 }
 

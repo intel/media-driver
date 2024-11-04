@@ -66,7 +66,7 @@ static ConfigDataList configDataList_VAProfileAV1Profile0_VAEntrypointEncSlice_X
 //!
 static const AttribList attribList_VAProfileAV1Profile0_VAEntrypointEncSlice_Xe2_hpm_r0
 {
-   {VAConfigAttribRTFormat, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10},
+   {VAConfigAttribRTFormat, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV420_10 | VA_RT_FORMAT_RGB32 | VA_RT_FORMAT_RGB32_10BPP},
    {VAConfigAttribEncDynamicScaling, 0},
    {VAConfigAttribEncDirtyRect, VA_ATTRIB_NOT_SUPPORTED},
    {VAConfigAttribEncAV1Ext2, VAProfileAV1Profile0_VAEntrypointEncSlice_encAV1Ext2_Xe2_hpm_r0.value},

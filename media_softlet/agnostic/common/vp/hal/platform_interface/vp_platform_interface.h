@@ -437,7 +437,7 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    virtual bool SupportOclFC()
+    virtual bool SupportOclKernel()
     {
         return false;
     }
