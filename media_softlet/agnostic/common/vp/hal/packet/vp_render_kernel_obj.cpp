@@ -256,7 +256,7 @@ MOS_STATUS VpRenderKernelObj::SetupStatelessBufferResource(SurfaceType surf, boo
             &curSurf->osSurface->OsResource,
             isWrite,
             true));
-        m_statelessArray.insert(std::make_pair(surf, ui64GfxAddress));
+        m_statelessArray.emplace(surf, ui64GfxAddress);
     }
 
     return MOS_STATUS_SUCCESS;

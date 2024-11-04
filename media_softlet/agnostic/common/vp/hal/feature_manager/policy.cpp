@@ -157,69 +157,69 @@ MOS_STATUS Policy::RegisterFeatures()
     // Vebox/Sfc features.
     PolicyFeatureHandler *p = MOS_New(PolicySfcCscHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeCscOnSfc, p));
+    m_VeboxSfcFeatureHandlers.emplace(FeatureTypeCscOnSfc, p);
 
     p = MOS_New(PolicySfcRotMirHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeRotMirOnSfc, p));
+    m_VeboxSfcFeatureHandlers.emplace(FeatureTypeRotMirOnSfc, p);
 
     p = MOS_New(PolicySfcScalingHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeScalingOnSfc, p));
+    m_VeboxSfcFeatureHandlers.emplace(FeatureTypeScalingOnSfc, p);
 
     p = MOS_New(PolicyVeboxDnHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeDnOnVebox, p));
+    m_VeboxSfcFeatureHandlers.emplace(FeatureTypeDnOnVebox, p);
 
     p = MOS_New(PolicyRenderDnHVSCalHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeDnHVSCalOnRender, p));
+    m_RenderFeatureHandlers.emplace(FeatureTypeDnHVSCalOnRender, p);
 
     p = MOS_New(PolicyVeboxCscHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeCscOnVebox, p));
+    m_VeboxSfcFeatureHandlers.emplace(FeatureTypeCscOnVebox, p);
 
     p = MOS_New(PolicyVeboxSteHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeSteOnVebox, p));
+    m_VeboxSfcFeatureHandlers.emplace(FeatureTypeSteOnVebox, p);
 
     p = MOS_New(PolicyVeboxTccHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeTccOnVebox, p));
+    m_VeboxSfcFeatureHandlers.emplace(FeatureTypeTccOnVebox, p);
 
     p = MOS_New(PolicyVeboxProcampHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeProcampOnVebox, p));
+    m_VeboxSfcFeatureHandlers.emplace(FeatureTypeProcampOnVebox, p);
 
     p = MOS_New(PolicyVeboxHdrHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeHdrOnVebox, p));
+    m_VeboxSfcFeatureHandlers.emplace(FeatureTypeHdrOnVebox, p);
 
     p = MOS_New(PolicyRenderHdr3DLutCalHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeHdr3DLutCalOnRender, p));
+    m_RenderFeatureHandlers.emplace(FeatureTypeHdr3DLutCalOnRender, p);
 
     p = MOS_New(PolicyRenderHdrHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeHdrOnRender, p));
+    m_RenderFeatureHandlers.emplace(FeatureTypeHdrOnRender, p);
 
     p = MOS_New(PolicyDiHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeDiOnVebox, p));
+    m_VeboxSfcFeatureHandlers.emplace(FeatureTypeDiOnVebox, p);
 
     p = MOS_New(PolicySfcColorFillHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeColorFillOnSfc, p));
+    m_VeboxSfcFeatureHandlers.emplace(FeatureTypeColorFillOnSfc, p);
 
     p = MOS_New(PolicySfcAlphaHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeAlphaOnSfc, p));
+    m_VeboxSfcFeatureHandlers.emplace(FeatureTypeAlphaOnSfc, p);
 
     VP_PUBLIC_CHK_STATUS_RETURN(RegisterFcFeatures());
 
     p = MOS_New(PolicyVeboxCgcHandler, m_hwCaps);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeCgcOnVebox, p));
+    m_VeboxSfcFeatureHandlers.emplace(FeatureTypeCgcOnVebox, p);
 
     p = MOS_New(PolicyAiHandler, m_hwCaps, m_vpInterface.GetGraphManager());
     VP_PUBLIC_CHK_NULL_RETURN(p);
@@ -289,43 +289,43 @@ MOS_STATUS Policy::RegisterFcFeatures()
     //In the future, after all caps formats added for OCL FC, the wrapper will be removed and only register specific OCL/Legacy FC handler
     PolicyFeatureHandler *p = MOS_New(PolicyFcWrapHandler, m_hwCaps, enableOclFC);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeFcOnRender, p));
+    m_RenderFeatureHandlers.emplace(FeatureTypeFcOnRender, p);
 
     p = MOS_New(PolicyFcFeatureWrapHandler, m_hwCaps, enableOclFC);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeLumakeyOnRender, p));
+    m_RenderFeatureHandlers.emplace(FeatureTypeLumakeyOnRender, p);
 
     p = MOS_New(PolicyFcFeatureWrapHandler, m_hwCaps, enableOclFC);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeBlendingOnRender, p));
+    m_RenderFeatureHandlers.emplace(FeatureTypeBlendingOnRender, p);
 
     p = MOS_New(PolicyFcFeatureWrapHandler, m_hwCaps, enableOclFC);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeColorFillOnRender, p));
+    m_RenderFeatureHandlers.emplace(FeatureTypeColorFillOnRender, p);
 
     p = MOS_New(PolicyFcFeatureWrapHandler, m_hwCaps, enableOclFC);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeAlphaOnRender, p));
+    m_RenderFeatureHandlers.emplace(FeatureTypeAlphaOnRender, p);
 
     p = MOS_New(PolicyFcFeatureWrapHandler, m_hwCaps, enableOclFC);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeCscOnRender, p));
+    m_RenderFeatureHandlers.emplace(FeatureTypeCscOnRender, p);
 
     p = MOS_New(PolicyFcFeatureWrapHandler, m_hwCaps, enableOclFC);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeScalingOnRender, p));
+    m_RenderFeatureHandlers.emplace(FeatureTypeScalingOnRender, p);
 
     p = MOS_New(PolicyFcFeatureWrapHandler, m_hwCaps, enableOclFC);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeRotMirOnRender, p));
+    m_RenderFeatureHandlers.emplace(FeatureTypeRotMirOnRender, p);
 
     p = MOS_New(PolicyFcFeatureWrapHandler, m_hwCaps, enableOclFC);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeDiOnRender, p));
+    m_RenderFeatureHandlers.emplace(FeatureTypeDiOnRender, p);
 
     p = MOS_New(PolicyFcFeatureWrapHandler, m_hwCaps, enableOclFC);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeProcampOnRender, p));
+    m_RenderFeatureHandlers.emplace(FeatureTypeProcampOnRender, p);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     VpFeatureReport *vpFeatureReport = m_vpInterface.GetHwInterface()->m_reporting;

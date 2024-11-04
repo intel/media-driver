@@ -3433,7 +3433,7 @@ MOS_STATUS VpRenderHdrKernel::SetupSurfaceState()
 
         surfParam.surfaceOverwriteParams.renderSurfaceParams.MemObjCtl = m_surfMemCacheCtl.SourceSurfMemObjCtl;
 
-        m_surfaceState.insert(std::make_pair(SurfaceType(SurfaceTypeHdrInputLayer0 + i), surfParam));
+        m_surfaceState.emplace(SurfaceType(SurfaceTypeHdrInputLayer0 + i), surfParam);
 
         auto OETF1DLUT = m_surfaceGroup->find(SurfaceType(SurfaceTypeHdrOETF1DLUTSurface0 + i));
         VP_SURFACE *OETF1DLUTSrc = (m_surfaceGroup->end() != OETF1DLUT) ? OETF1DLUT->second : nullptr;
@@ -3468,7 +3468,7 @@ MOS_STATUS VpRenderHdrKernel::SetupSurfaceState()
         {
             surfaceResource.surfaceOverwriteParams.renderSurfaceParams.MemObjCtl                = m_surfMemCacheCtl.Lut2DSurfMemObjCtl;
             UpdateCurbeBindingIndex(SurfaceType(SurfaceTypeHdrOETF1DLUTSurface0 + i), iBTentry + VPHAL_HDR_BTINDEX_OETF1DLUT_OFFSET);
-            m_surfaceState.insert(std::make_pair(SurfaceType(SurfaceTypeHdrOETF1DLUTSurface0 + i), surfaceResource));
+            m_surfaceState.emplace(SurfaceType(SurfaceTypeHdrOETF1DLUTSurface0 + i), surfaceResource);
         }
         else if (m_hdrParams->LUTMode[i] == VPHAL_HDR_LUT_MODE_3D)
         {
@@ -3476,7 +3476,7 @@ MOS_STATUS VpRenderHdrKernel::SetupSurfaceState()
             UpdateCurbeBindingIndex(SurfaceType(SurfaceTypeHdrCRI3DLUTSurface0 + i), iBTentry + VPHAL_HDR_BTINDEX_CRI3DLUT_OFFSET);
             surfaceResource.surfaceOverwriteParams.renderSurfaceParams.bWidthInDword_Y          = false;
             surfaceResource.surfaceOverwriteParams.renderSurfaceParams.bWidthInDword_UV         = false;
-            m_surfaceState.insert(std::make_pair(SurfaceType(SurfaceTypeHdrCRI3DLUTSurface0 + i), surfaceResource));
+            m_surfaceState.emplace(SurfaceType(SurfaceTypeHdrCRI3DLUTSurface0 + i), surfaceResource);
         }
     }
 
@@ -3509,7 +3509,7 @@ MOS_STATUS VpRenderHdrKernel::SetupSurfaceState()
 
         surfParam.surfaceOverwriteParams.renderSurfaceParams.MemObjCtl = m_surfMemCacheCtl.TargetSurfMemObjCtl;
 
-        m_surfaceState.insert(std::make_pair(SurfaceType(SurfaceTypeHdrTarget0 + i), surfParam));
+        m_surfaceState.emplace(SurfaceType(SurfaceTypeHdrTarget0 + i), surfParam);
 
         //update render GMM resource usage type
         m_allocator->UpdateResourceUsageType(&layer->osSurface->OsResource, MOS_HW_RESOURCE_USAGE_VP_OUTPUT_PICTURE_RENDER);
@@ -3545,12 +3545,12 @@ MOS_STATUS VpRenderHdrKernel::SetupSurfaceState()
     if (m_hdrParams->bUsingAutoModePipe && bHasAutoModeLayer)
     {
         UpdateCurbeBindingIndex(SurfaceTypeHdrAutoModeCoeff, VPHAL_HDR_BTINDEX_COEFF);
-        m_surfaceState.insert(std::make_pair(SurfaceTypeHdrAutoModeCoeff, surfCoeffParam));
+        m_surfaceState.emplace(SurfaceTypeHdrAutoModeCoeff, surfCoeffParam);
     }
     else
     {
         UpdateCurbeBindingIndex(SurfaceTypeHdrCoeff, VPHAL_HDR_BTINDEX_COEFF);
-        m_surfaceState.insert(std::make_pair(SurfaceTypeHdrCoeff, surfCoeffParam));
+        m_surfaceState.emplace(SurfaceTypeHdrCoeff, surfCoeffParam);
     }
 
     return MOS_STATUS_SUCCESS;

@@ -6804,7 +6804,7 @@ MOS_STATUS RenderHal_SetAndGetSamplerStates(
                     break;
                 }
 
-                samplerMap.insert(std::make_pair(i, stateOffsets));
+                samplerMap.emplace(i, stateOffsets);
 
                 if (MOS_FAILED(eStatus))
                 {

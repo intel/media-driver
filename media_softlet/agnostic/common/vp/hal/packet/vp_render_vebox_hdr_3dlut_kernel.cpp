@@ -249,10 +249,10 @@ MOS_STATUS VpRenderHdr3DLutKernel::SetupSurfaceState()
 
     UpdateCurbeBindingIndex(SurfaceType3DLut, BI_VEBOX_HDR_3DLUT_3DLUT);
     kernelSurfaceParam.isOutput                         = true;
-    m_surfaceState.insert(std::make_pair(SurfaceType3DLut, kernelSurfaceParam));
+    m_surfaceState.emplace(SurfaceType3DLut, kernelSurfaceParam);
     UpdateCurbeBindingIndex(SurfaceType3DLutCoef, BI_VEBOX_HDR_3DLUT_COEF);
     kernelSurfaceParam.isOutput                         = false;
-    m_surfaceState.insert(std::make_pair(SurfaceType3DLutCoef, kernelSurfaceParam));
+    m_surfaceState.emplace(SurfaceType3DLutCoef, kernelSurfaceParam);
 
     VP_RENDER_CHK_STATUS_RETURN(InitCoefSurface(m_maxDisplayLum, m_maxContentLevelLum, m_hdrMode));
 
@@ -593,10 +593,10 @@ MOS_STATUS VpRenderHdr3DLutKernelCM::SetupSurfaceState()
 
     UpdateCurbeBindingIndex(SurfaceType3DLut, BI_VEBOX_HDR_3DLUT_3DLUT_CM);
     kernelSurfaceParam.isOutput                         = true;
-    m_surfaceState.insert(std::make_pair(SurfaceType3DLut, kernelSurfaceParam));
+    m_surfaceState.emplace(SurfaceType3DLut, kernelSurfaceParam);
     UpdateCurbeBindingIndex(SurfaceType3DLutCoef, BI_VEBOX_HDR_3DLUT_COEF_CM);
     kernelSurfaceParam.isOutput                         = false;
-    m_surfaceState.insert(std::make_pair(SurfaceType3DLutCoef, kernelSurfaceParam));
+    m_surfaceState.emplace(SurfaceType3DLutCoef, kernelSurfaceParam);
     
     VP_RENDER_CHK_STATUS_RETURN(InitCoefSurface(m_maxDisplayLum, m_maxContentLevelLum, m_hdrMode));
 

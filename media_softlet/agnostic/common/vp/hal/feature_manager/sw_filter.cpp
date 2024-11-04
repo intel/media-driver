@@ -2369,7 +2369,7 @@ MOS_STATUS SwFilterSet::AddSwFilter(SwFilter *swFilter)
         VP_PUBLIC_ASSERTMESSAGE("Invalid parameter! SwFilter for feature %d has already been exists in swFilterSet!", swFilter->GetFeatureType());
         return MOS_STATUS_INVALID_PARAMETER;
     }
-    m_swFilters.insert(std::make_pair(swFilter->GetFeatureType(), swFilter));
+    m_swFilters.emplace(swFilter->GetFeatureType(), swFilter);
     swFilter->SetLocation(this);
     return MOS_STATUS_SUCCESS;
 }

@@ -885,7 +885,7 @@ MOS_STATUS MosOcaInterfaceSpecific::InsertOcaBufHandleMap(uint32_t *key, MOS_OCA
     MOS_OS_CHK_NULL_RETURN(key);
 
     MosOcaAutoLock autoLock(m_ocaMutex);
-    auto success = m_hOcaMap.insert(std::make_pair(key, handle));
+    auto success = m_hOcaMap.emplace(key, handle);
     if (!success.second)
     {
         // Should never come to here.
