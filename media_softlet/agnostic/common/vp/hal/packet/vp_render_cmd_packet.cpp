@@ -266,7 +266,7 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
                 m_renderData.iInlineLength,
                 m_renderData.scoreboardParams));
 
-            m_kernelRenderData.insert(std::make_pair(it->first, m_renderData));
+            m_kernelRenderData.emplace(it->first, m_renderData);
         }
     }
     else if (m_submissionMode == MULTI_KERNELS_SINGLE_MEDIA_STATE)
@@ -335,7 +335,7 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
 
             VP_RENDER_CHK_STATUS_RETURN(SetupWalkerParams());
 
-            m_kernelRenderData.insert(std::make_pair(it->first, m_renderData));
+            m_kernelRenderData.emplace(it->first, m_renderData);
         }
 
         VP_RENDER_CHK_STATUS_RETURN(m_renderHal->pfnSetVfeStateParams(
@@ -2069,7 +2069,7 @@ MOS_STATUS VpRenderCmdPacket::SetFcParams(PRENDER_FC_PARAMS params)
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(params);
 
-    m_kernelConfigs.insert(std::make_pair(params->kernelId, (void *)params));
+    m_kernelConfigs.emplace(params->kernelId, (void *)params);
 
     KERNEL_PARAMS kernelParams = {};
     kernelParams.kernelId      = params->kernelId;
@@ -2101,7 +2101,7 @@ MOS_STATUS VpRenderCmdPacket::SetOclFcParams(PRENDER_OCL_FC_PARAMS params)
 
         m_renderKernelParams.push_back(kernelParam);
 
-        m_kernelConfigs.insert(std::make_pair(krnParams.kernelId, (void *)(&krnParams.kernelConfig)));
+        m_kernelConfigs.emplace(krnParams.kernelId, (void *)(&krnParams.kernelConfig));
     }
 
     m_submissionMode            = MULTI_KERNELS_SINGLE_MEDIA_STATE;
@@ -2144,7 +2144,7 @@ MOS_STATUS VpRenderCmdPacket::SetHdr3DLutParams(
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(params);
 
-    m_kernelConfigs.insert(std::make_pair(params->kernelId, (void *)params));
+    m_kernelConfigs.emplace(params->kernelId, (void *)params);
 
     KERNEL_PARAMS kernelParams = {};
     kernelParams.kernelId = params->kernelId;
@@ -2187,7 +2187,7 @@ MOS_STATUS VpRenderCmdPacket::SetDnHVSParams(
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(params);
 
-    m_kernelConfigs.insert(std::make_pair(params->kernelId, (void *)params));
+    m_kernelConfigs.emplace(params->kernelId, (void *)params);
 
     KERNEL_PARAMS kernelParams = {};
     kernelParams.kernelId      = params->kernelId;
@@ -2249,10 +2249,10 @@ MOS_STATUS VpRenderCmdPacket::SetHdrParams(PRENDER_HDR_PARAMS params)
         default:
             break;
         }
-        m_kernelSamplerStateGroup.insert(std::make_pair(i, samplerStateParam));
+        m_kernelSamplerStateGroup.emplace(i, samplerStateParam);
     }
 
-    m_kernelConfigs.insert(std::make_pair(params->kernelId, (void *)params));
+    m_kernelConfigs.emplace(params->kernelId, (void *)params);
 
     kernelParams.kernelId                  = params->kernelId;
     kernelParams.kernelThreadSpace.uWidth  = params->threadWidth;

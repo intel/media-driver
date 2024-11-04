@@ -316,7 +316,7 @@ MOS_STATUS VpRenderFcKernel::SetupSurfaceState()
                                     m_surfMemCacheCtl.PrimaryInputSurfMemObjCtl :
                                     m_surfMemCacheCtl.InputSurfMemObjCtl;
 
-        m_surfaceState.insert(std::make_pair(SurfaceType(SurfaceTypeFcInputLayer0 + layer->layerID), surfParam));
+        m_surfaceState.emplace(SurfaceType(SurfaceTypeFcInputLayer0 + layer->layerID), surfParam);
 
         //update render GMM resource usage type
         m_allocator->UpdateResourceUsageType(&layer->surf->osSurface->OsResource, MOS_HW_RESOURCE_USAGE_VP_INPUT_PICTURE_RENDER);
@@ -332,7 +332,7 @@ MOS_STATUS VpRenderFcKernel::SetupSurfaceState()
             }
 
             UpdateCurbeBindingIndex(SurfaceType(SurfaceTypeFcInputLayer0Field1Dual + layer->layerID), s_bindingTableIndexField[layer->layerID]);
-            m_surfaceState.insert(std::make_pair(SurfaceType(SurfaceTypeFcInputLayer0Field1Dual + layer->layerID), surfParamField));
+            m_surfaceState.emplace(SurfaceType(SurfaceTypeFcInputLayer0Field1Dual + layer->layerID), surfParamField);
 
             //update render GMM resource usage type
             m_allocator->UpdateResourceUsageType(&layer->surfField->osSurface->OsResource, MOS_HW_RESOURCE_USAGE_VP_INPUT_PICTURE_RENDER);
@@ -380,7 +380,7 @@ MOS_STATUS VpRenderFcKernel::SetupSurfaceState()
 
         surfParam.surfaceOverwriteParams.renderSurfaceParams.MemObjCtl = m_surfMemCacheCtl.TargetSurfMemObjCtl;
 
-        m_surfaceState.insert(std::make_pair(SurfaceType(SurfaceTypeFcTarget0 + i), surfParam));
+        m_surfaceState.emplace(SurfaceType(SurfaceTypeFcTarget0 + i), surfParam);
 
         //update render GMM resource usage type
         m_allocator->UpdateResourceUsageType(&compParams.target[i].surf->osSurface->OsResource, MOS_HW_RESOURCE_USAGE_VP_OUTPUT_PICTURE_RENDER);
@@ -411,7 +411,7 @@ MOS_STATUS VpRenderFcKernel::SetupSurfaceState()
         surfParam.surfaceOverwriteParams.renderSurfaceParams.Boundary      = RENDERHAL_SS_BOUNDARY_ORIGINAL;
         surfParam.surfaceOverwriteParams.renderSurfaceParams.bWidth16Align = false;
         surfParam.surfaceOverwriteParams.renderSurfaceParams.MemObjCtl     = m_surfMemCacheCtl.InputSurfMemObjCtl;
-        m_surfaceState.insert(std::make_pair(SurfaceTypeFcCscCoeff, surfParam));
+        m_surfaceState.emplace(SurfaceTypeFcCscCoeff, surfParam);
     }
 
     return MOS_STATUS_SUCCESS;
@@ -2828,7 +2828,7 @@ MOS_STATUS VpRenderFcKernel::SetSamplerStates(KERNEL_SAMPLER_STATE_GROUP& sample
             samplerStateParam.Unorm.AddressV            = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
             samplerStateParam.Unorm.AddressW            = MHW_GFX3DSTATE_TEXCOORDMODE_CLAMP;
 
-            samplerStateGroup.insert(std::make_pair(samplerIndex, samplerStateParam));
+            samplerStateGroup.emplace(samplerIndex, samplerStateParam);
 
             VP_RENDER_NORMALMESSAGE("Scaling Info: layer %d, layerOrigin %d, entry %d, format %d, scalingMode %d, samplerType %d, samplerFilterMode %d, samplerIndex %d, yuvPlane %d",
                 layer.layerID, layer.layerIDOrigin, entryIndex, layer.surf->osSurface->Format, layer.scalingMode, samplerType, samplerStateParam.Unorm.SamplerFilterMode, samplerIndex, entry->YUVPlane);

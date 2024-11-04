@@ -510,7 +510,7 @@ public:
       return I->second;
     Symbols.push_back(Symbol(Name, 0, nullptr, 0));
     Symbol *S = &Symbols.back();
-    SymbolMap.insert(std::make_pair(Name, S));
+    SymbolMap.emplace(Name, S);
     return S;
   }
 
