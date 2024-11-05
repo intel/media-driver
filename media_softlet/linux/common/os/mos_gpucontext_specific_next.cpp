@@ -671,25 +671,29 @@ void GpuContextSpecificNext::Clear()
     }
     MOS_FreeMemAndSetNull(m_statusBufferResource);
 
-    MosUtilities::MosLockMutex(m_cmdBufPoolMutex);
-
-    if (m_cmdBufMgr)
+    if(m_cmdBufPoolMutex)
     {
-        for (auto& curCommandBuffer : m_cmdBufPool)
+        MosUtilities::MosLockMutex(m_cmdBufPoolMutex);
+
+        if (m_cmdBufMgr)
         {
-            auto curCommandBufferSpecific = static_cast<CommandBufferSpecificNext *>(curCommandBuffer);
-            if (curCommandBufferSpecific == nullptr)
-                continue;
-            curCommandBufferSpecific->waitReady(); // wait ready and return to comamnd buffer manager.
-            m_cmdBufMgr->ReleaseCmdBuf(curCommandBuffer);
+            for (auto& curCommandBuffer : m_cmdBufPool)
+            {
+                auto curCommandBufferSpecific = static_cast<CommandBufferSpecificNext *>(curCommandBuffer);
+                if (curCommandBufferSpecific == nullptr)
+                    continue;
+                curCommandBufferSpecific->waitReady(); // wait ready and return to comamnd buffer manager.
+                m_cmdBufMgr->ReleaseCmdBuf(curCommandBuffer);
+            }
         }
+
+        m_cmdBufPool.clear();
+
+        MosUtilities::MosUnlockMutex(m_cmdBufPoolMutex);
+        MosUtilities::MosDestroyMutex(m_cmdBufPoolMutex);
+        m_cmdBufPoolMutex = nullptr;
     }
 
-    m_cmdBufPool.clear();
-
-    MosUtilities::MosUnlockMutex(m_cmdBufPoolMutex);
-    MosUtilities::MosDestroyMutex(m_cmdBufPoolMutex);
-    m_cmdBufPoolMutex = nullptr;
     MOS_SafeFreeMemory(m_commandBuffer);
     m_commandBuffer = nullptr;
     MOS_SafeFreeMemory(m_allocationList);
