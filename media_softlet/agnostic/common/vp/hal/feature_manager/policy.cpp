@@ -1023,13 +1023,6 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature, bool isCamPipeWithBaye
         return MOS_STATUS_SUCCESS;
     }
 
-    if (cscParams->formatInput == Format_422H ||
-        cscParams->formatInput == Format_422V)
-    {
-        //422H and 422V input not supported by OCL FC yet. Will remove the restriction after they are enabled
-        cscEngine->forceLegacyFC = true;
-    }
-
     bool isAlphaSettingSupportedBySfc =
         IsAlphaSettingSupportedBySfc(cscParams->formatInput, cscParams->formatOutput, cscParams->pAlphaParams);
     bool isAlphaSettingSupportedByVebox =

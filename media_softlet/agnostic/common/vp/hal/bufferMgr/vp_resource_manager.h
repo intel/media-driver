@@ -551,9 +551,10 @@ protected:
     VP_SURFACE *m_temperalInput                               = nullptr;
 
     // Fc Resource
-    VP_SURFACE *m_cmfcCoeff                                   = nullptr;
-    VP_SURFACE *m_fcIntermediaSurfaceOutput                         = nullptr;
-    VP_SURFACE *m_fcIntermediaSurfaceInput[VP_COMP_MAX_LAYERS]      = {};
+    VP_SURFACE *m_cmfcCoeff                                                    = nullptr;
+    VP_SURFACE *m_fcIntermediaSurfaceOutput                                    = nullptr;
+    VP_SURFACE *m_fcIntermediaSurfaceInput[VP_COMP_MAX_LAYERS]                 = {};
+    VP_SURFACE *m_fcSeparateIntermediaSurfaceSecPlaneInput[VP_COMP_MAX_LAYERS] = {};
     //for decompreesion sync on interlace input of FC
     VP_SURFACE *m_decompressionSyncSurface                                  = nullptr;
     // Hdr Resource

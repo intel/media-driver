@@ -133,6 +133,7 @@ MOS_STATUS VpKernelSet::CreateSingleKernelObject(
     case kernelOclFc420PL3Output:
     case kernelOclFc444PL3Input:
     case kernelOclFc444PL3Output:
+    case kernelOclFc422HVInput:
         kernel = (VpRenderKernelObj *)MOS_New(VpRenderOclFcKernel, m_hwInterface, kernelId, kernelIndex, m_allocator);
         VP_RENDER_CHK_NULL_RETURN(kernel);
         break;
