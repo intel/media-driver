@@ -43,9 +43,6 @@ AvcVdencFastPass_Xe2_Hpm::AvcVdencFastPass_Xe2_Hpm(
     m_basicFeature = dynamic_cast<AvcBasicFeature *>(encFeatureManager->GetFeature(FeatureIDs::basicFeature));
     ENCODE_CHK_NULL_NO_STATUS_RETURN(m_basicFeature);
 
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS avcSeqParams = m_basicFeature->m_seqParam;
-    ENCODE_CHK_NULL_NO_STATUS_RETURN(avcSeqParams);
-
     if (hwInterface)
     {
         m_userSettingPtr = hwInterface->GetOsInterface()->pfnGetUserSettingInstance(hwInterface->GetOsInterface());
@@ -58,10 +55,6 @@ AvcVdencFastPass_Xe2_Hpm::AvcVdencFastPass_Xe2_Hpm(
         MediaUserSetting::Group::Sequence);
 
     m_enabled = outValue.Get<bool>();
-    if (avcSeqParams->GopRefDist > 1)  //xe2_hpm HW restriction, no B frame
-    {
-        m_enabled = false;
-    }
 
     if (m_enabled)
     {
@@ -80,13 +73,18 @@ AvcVdencFastPass_Xe2_Hpm::AvcVdencFastPass_Xe2_Hpm(
 
 MOS_STATUS AvcVdencFastPass_Xe2_Hpm::Update(void *params)
 {
+    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS avcSeqParams = m_basicFeature->m_seqParam;
+    ENCODE_CHK_NULL_RETURN(avcSeqParams);
+
+    if (avcSeqParams->GopRefDist > 1)  //xe2_hpm HW restriction, no B frame
+    {
+        m_enabled = false;
+    }
+
     if (!m_enabled)
     {
         return MOS_STATUS_SUCCESS;
     }
-
-    PCODEC_AVC_ENCODE_SEQUENCE_PARAMS avcSeqParams = m_basicFeature->m_seqParam;
-    ENCODE_CHK_NULL_RETURN(avcSeqParams);
 
     //xe2_hpm HW input surface restriction
     m_aligned_Width  = MOS_ALIGN_FLOOR(m_basicFeature->m_seqParam->FrameWidth, 256);
