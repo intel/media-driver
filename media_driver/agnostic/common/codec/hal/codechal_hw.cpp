@@ -888,10 +888,9 @@ uint32_t CodechalHwInterface::ComposeSurfaceCacheabilityControl(
 {
     CODECHAL_HW_FUNCTION_ENTER;
 
-    MHW_MEMORY_OBJECT_CONTROL_PARAMS cacheSetting = m_cacheabilitySettings[cacheabiltySettingIdx];
-
     if (m_noSeparateL3LlcCacheabilitySettings)
     {
+        MHW_MEMORY_OBJECT_CONTROL_PARAMS cacheSetting = m_cacheabilitySettings[cacheabiltySettingIdx];
         if (cacheabilityTypeRequested == codechalUncacheableWa)
         {
             if (cacheSetting.Gen8.TargetCache == CODECHAL_MO_TARGET_CACHE_ELLC)
