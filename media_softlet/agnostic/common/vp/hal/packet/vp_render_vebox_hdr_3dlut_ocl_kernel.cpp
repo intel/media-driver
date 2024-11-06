@@ -413,10 +413,7 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::SetWalkerSetting(KERNEL_THREAD_SPACE &thre
     m_walkerParam.inlineDataLength = sizeof(m_inlineData);
     m_walkerParam.inlineData       = m_inlineData;
 
-    if (m_kernelEnv.uSimdSize != 1 &&
-        (m_kernelEnv.uiWorkGroupWalkOrderDimensions[0] != 0 ||
-            m_kernelEnv.uiWorkGroupWalkOrderDimensions[1] != 0 ||
-            m_kernelEnv.uiWorkGroupWalkOrderDimensions[2] != 0))
+    if (m_kernelEnv.uSimdSize != 1)
     {
         m_walkerParam.isEmitInlineParameter = true;
         m_walkerParam.isGenerateLocalID     = true;
