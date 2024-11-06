@@ -335,8 +335,6 @@ MOS_STATUS Av1BasicFeature::UpdateFormat(void *params)
     ENCODE_CHK_NULL_RETURN(params);
     EncoderParams* encodeParams = (EncoderParams*)params;
 
-    PCODEC_VP9_ENCODE_SEQUENCE_PARAMS vp9SeqParams = nullptr;
-    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS hevcSeqParams = nullptr;
     PCODEC_AV1_ENCODE_SEQUENCE_PARAMS av1SeqParams = nullptr;
 
     av1SeqParams = static_cast<PCODEC_AV1_ENCODE_SEQUENCE_PARAMS>(encodeParams->pSeqParams);
