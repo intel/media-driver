@@ -60,10 +60,11 @@ public:
         uint32_t enabledSFCNv12P010LinearOutput = 0;
         uint32_t enabledSFCRGBPRGB24Output  = 0;
         bool     enableIFNCC                    = false;
-        bool     bEnableOcl3DLut                = false;
-        bool     bForceOclFC                    = false;
-        bool     bDisableOclFcFp                = false;
 #endif
+        VP_CTRL enableOcl3DLut              = VP_CTRL_DEFAULT;
+        VP_CTRL forceOclFC                  = VP_CTRL_DEFAULT;
+        bool    bDisableOclFcFp             = false;
+
         bool disablePacketReuse             = false;
         bool enablePacketReuseTeamsAlways   = false;
 

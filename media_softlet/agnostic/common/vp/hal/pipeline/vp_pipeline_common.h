@@ -89,6 +89,16 @@ typedef enum _VPHAL_COMP_BYPASS_MODE
     VPHAL_COMP_BYPASS_DEFAULT  = 0x2
 } VPHAL_COMP_BYPASS_MODE, *PVPHAL_COMP_BYPASS_MODE;
 
+//!
+//! \brief VP CTRL enum
+//!
+typedef enum _VP_CTRL
+{
+    VP_CTRL_DISABLE = 0,
+    VP_CTRL_ENABLE,
+    VP_CTRL_DEFAULT
+} VP_CTRL;
+
 struct VP_SURFACE
 {
     MOS_SURFACE                 *osSurface      = nullptr;         //!< mos surface
