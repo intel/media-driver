@@ -113,6 +113,11 @@ public:
 
     virtual MOS_STATUS InitVpFeatureSupportBits() override;
 
+    virtual bool SupportOclKernel() override
+    {
+        return false;
+    }
+
 protected:
     bool m_disableSfcDithering = false;
 
