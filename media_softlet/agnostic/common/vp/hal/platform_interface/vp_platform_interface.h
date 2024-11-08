@@ -439,7 +439,7 @@ public:
 
     virtual bool SupportOclKernel()
     {
-        return true;
+        return false;
     }
 
     virtual MOS_STATUS InitVpFeatureSupportBits()

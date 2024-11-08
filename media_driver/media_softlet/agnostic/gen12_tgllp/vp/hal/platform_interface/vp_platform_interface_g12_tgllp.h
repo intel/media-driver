@@ -105,11 +105,6 @@ public:
 
     virtual MOS_STATUS ConfigureVpScalability(VP_MHWINTERFACE &vpMhwInterface);
 
-    virtual bool SupportOclKernel() override
-    {
-        return false;
-    }
-
     MEDIA_CLASS_DEFINE_END(vp__VpPlatformInterfaceG12Tgllp)
 };
 

@@ -79,11 +79,6 @@ public:
     virtual bool IsVeboxScalabilityWith4KNotSupported(
         VP_MHWINTERFACE           vpMhwInterface);
 
-    virtual bool SupportOclKernel() override
-    {
-        return false;
-    }
-
 protected:
     bool m_disableSfcDithering = false;
 
