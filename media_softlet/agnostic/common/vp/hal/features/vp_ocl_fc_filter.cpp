@@ -3772,4 +3772,122 @@ HwFilterParameter *PolicyOclFcHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExe
         return nullptr;
     }
 }
+
+MOS_STATUS PolicyOclFcHandler::LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilterPipe &featurePipe, VP_EXECUTE_CAPS &caps)
+{
+    layerIndexes.clear();
+    int32_t resLayerCount = VP_COMP_MAX_LAYERS;
+
+    VP_PUBLIC_CHK_STATUS_RETURN(RemoveTransparentLayers(featurePipe));
+
+    bool        skip                      = false;
+    VP_SURFACE *output                    = featurePipe.GetSurface(false, 0);
+    bool        bilinearInUseFor3DSampler = false;
+    VP_PUBLIC_CHK_NULL_RETURN(output);
+
+    for (uint32_t i = 0; i < featurePipe.GetSurfaceCount(true); ++i)
+    {
+        VPHAL_SCALING_MODE scalingMode = VPHAL_SCALING_NEAREST;
+        VP_SURFACE        *input       = featurePipe.GetSurface(true, i);
+        SwFilterSubPipe   *subpipe     = featurePipe.GetSwFilterSubPipe(true, i);
+        VP_PUBLIC_CHK_NULL_RETURN(input);
+        VP_PUBLIC_CHK_NULL_RETURN(subpipe);
+        VP_PUBLIC_CHK_STATUS_RETURN(AddInputLayerForProcess(skip, layerIndexes, scalingMode, i, *input, *subpipe, *output, caps, resLayerCount));
+        if (skip)
+        {
+            break;
+        }
+
+        if (VPHAL_SCALING_BILINEAR == scalingMode)
+        {
+            bilinearInUseFor3DSampler = true;
+        }
+    }
+
+    // Use bilinear for layers, which is using nearest.
+    if (s_forceNearestToBilinearIfBilinearExists && bilinearInUseFor3DSampler)
+    {
+        for (uint32_t i = 0; i < layerIndexes.size(); ++i)
+        {
+            SwFilterSubPipe *subpipe = featurePipe.GetSwFilterSubPipe(true, layerIndexes[i]);
+            VP_PUBLIC_CHK_NULL_RETURN(subpipe);
+            SwFilterScaling *scaling = dynamic_cast<SwFilterScaling *>(subpipe->GetSwFilter(FeatureType::FeatureTypeScaling));
+            if (scaling && VPHAL_SCALING_NEAREST == scaling->GetSwFilterParams().scalingMode)
+            {
+                scaling->GetSwFilterParams().scalingMode = VPHAL_SCALING_BILINEAR;
+                VP_PUBLIC_NORMALMESSAGE("Scaling Info: Force nearest to bilinear for layer %d (%d)", layerIndexes[i], i);
+                MT_LOG3(MT_VP_HAL_FC_SCALINGINFO, MT_NORMAL, MT_VP_HAL_FC_LAYER, layerIndexes[i], MT_VP_HAL_SCALING_MODE, VPHAL_SCALING_NEAREST, MT_VP_HAL_SCALING_MODE_FORCE, VPHAL_SCALING_BILINEAR);
+            }
+        }
+    }
+
+    // No procamp in target being used.
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS PolicyOclFcHandler::AddInputLayerForProcess(bool &bSkip, std::vector<int> &layerIndexes, VPHAL_SCALING_MODE &scalingMode, int index, VP_SURFACE &input, SwFilterSubPipe &pipe, VP_SURFACE &output, VP_EXECUTE_CAPS &caps, int32_t &resLayerCount)
+{
+    //Legacy FC has lots of limitations.
+    //Procamp Luma key layer limitation, sampler limitation
+    //OCL FC doesn't have these limitations
+    bSkip = false;
+    --resLayerCount;
+
+    SwFilterScaling     *scaling               = dynamic_cast<SwFilterScaling *>(pipe.GetSwFilter(FeatureType::FeatureTypeScaling));
+    SwFilterDeinterlace *di                    = dynamic_cast<SwFilterDeinterlace *>(pipe.GetSwFilter(FeatureType::FeatureTypeDi));
+    VPHAL_SAMPLE_TYPE    sampleType            = input.SampleType;
+
+    VP_PUBLIC_CHK_NULL_RETURN(scaling);
+
+    scalingMode = scaling->GetSwFilterParams().scalingMode;
+    //Disable AVS scaling mode
+    if (VPHAL_SCALING_AVS == scalingMode)
+    {
+        scalingMode = VPHAL_SCALING_BILINEAR;
+    }
+
+    if (!IsInterlacedInputSupported(input))
+    {
+        sampleType = SAMPLE_PROGRESSIVE;
+        //Disable DI
+        if (di && di->IsFeatureEnabled(caps))
+        {
+            di->GetFilterEngineCaps().bEnabled = false;
+        }
+        //Disable Iscaling
+        if (scaling->IsFeatureEnabled(caps) &&
+            ISCALING_NONE != scaling->GetSwFilterParams().interlacedScalingType)
+        {
+            scaling->GetSwFilterParams().interlacedScalingType = ISCALING_NONE;
+        }
+    }
+    VP_PUBLIC_CHK_STATUS_RETURN(Get3DSamplerScalingMode(scalingMode, pipe, layerIndexes.size(), input, output));
+
+    if (resLayerCount < 0)
+    {
+        //Multipass
+        bSkip = true;
+        VP_PUBLIC_NORMALMESSAGE("Scaling Info: layer %d is not selected. layers %d",
+            index,
+            resLayerCount);
+        return MOS_STATUS_SUCCESS;
+    }
+
+    VP_PUBLIC_NORMALMESSAGE("Scaling Info: scalingMode %d is selected for layer %d", scalingMode, index);
+    MT_LOG2(MT_VP_HAL_FC_SCALINGINFO, MT_NORMAL, MT_VP_HAL_FC_LAYER, index, MT_VP_HAL_SCALING_MODE, scalingMode);
+
+    // Append source to compositing operation
+    scaling->GetSwFilterParams().scalingMode = scalingMode;
+
+    if (di)
+    {
+        di->GetSwFilterParams().sampleTypeInput = sampleType;
+    }
+
+    input.SampleType = sampleType;
+    layerIndexes.push_back(index);
+
+    return MOS_STATUS_SUCCESS;
+}
+
 }  // namespace vp

@@ -397,7 +397,11 @@ public:
         return VpRenderOclFcParameter::Create(*fcParam);
     }
 
+    virtual MOS_STATUS LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilterPipe &featurePipe, VP_EXECUTE_CAPS &caps) override;
+
 private:
+    MOS_STATUS AddInputLayerForProcess(bool &bSkip, std::vector<int> &layerIndexes, VPHAL_SCALING_MODE &scalingMode, int index, VP_SURFACE &input, SwFilterSubPipe &pipe, VP_SURFACE &output, VP_EXECUTE_CAPS &caps, int32_t &resLayers);
+
     PacketParamFactory<VpRenderOclFcParameter> m_PacketOclParamFactory;
 
     MEDIA_CLASS_DEFINE_END(vp__PolicyOclFcHandler)
