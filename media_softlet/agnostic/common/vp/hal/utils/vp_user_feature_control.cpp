@@ -520,7 +520,7 @@ bool VpUserFeatureControl::EnableOclFC()
     }
     else // if (m_ctrlVal.forceOclFC == VP_CTRL_DEFAULT)
     {
-        bEnableOclFC = (m_vpPlatformInterface && m_vpPlatformInterface->SupportOclKernel());
+        bEnableOclFC = (m_vpPlatformInterface && m_vpPlatformInterface->IsOclKernelEnabled());
     }
     VP_PUBLIC_NORMALMESSAGE("EnableOclFC set as %d", bEnableOclFC);
     return bEnableOclFC;
@@ -539,7 +539,7 @@ bool VpUserFeatureControl::EnableOcl3DLut()
     }
     else // if (m_ctrlVal.enableOcl3DLut == VP_CTRL_DEFAULT)
     {
-        bEnableOcl3DLut = (m_vpPlatformInterface && m_vpPlatformInterface->SupportOclKernel());
+        bEnableOcl3DLut = (m_vpPlatformInterface && m_vpPlatformInterface->IsOclKernelEnabled());
     }
     VP_PUBLIC_NORMALMESSAGE("EnableOcl3DLut set as %d", bEnableOcl3DLut);
     return bEnableOcl3DLut;
