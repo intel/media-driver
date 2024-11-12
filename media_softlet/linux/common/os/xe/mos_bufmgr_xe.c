@@ -84,7 +84,6 @@ typedef struct MOS_OCA_EXEC_LIST_INFO mos_oca_exec_list_info;
 
 #include "mos_bufmgr_priv.h"
 
-#define PAGE_SIZE_4K                   (1ull << 12)
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
@@ -1186,12 +1185,12 @@ __mos_bo_set_offset_xe(MOS_LINUX_BO *bo)
         else if (MEMZONE_DEVICE == bo_gem->mem_region)
         {
             alignment = MAX(bufmgr_gem->default_alignment[MOS_XE_MEM_CLASS_VRAM], PAGE_SIZE_64K);
-            offset = __mos_bo_vma_alloc_xe(bo->bufmgr, (enum mos_memory_zone)bo_gem->mem_region, bo->size, PAGE_SIZE_64K);
+            offset = __mos_bo_vma_alloc_xe(bo->bufmgr, (enum mos_memory_zone)bo_gem->mem_region, bo->size, alignment);
         }
         else if (MEMZONE_SYS == bo_gem->mem_region)
         {
             alignment = MAX(bufmgr_gem->default_alignment[MOS_XE_MEM_CLASS_SYSMEM], PAGE_SIZE_64K);
-            offset = __mos_bo_vma_alloc_xe(bo->bufmgr, (enum mos_memory_zone)bo_gem->mem_region, bo->size, PAGE_SIZE_64K);
+            offset = __mos_bo_vma_alloc_xe(bo->bufmgr, (enum mos_memory_zone)bo_gem->mem_region, bo->size, alignment);
         }
         else
         {
@@ -1350,9 +1349,10 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
      */
     create.cpu_caching = alloc->ext.cpu_cacheable ? DRM_XE_GEM_CPU_CACHING_WB : DRM_XE_GEM_CPU_CACHING_WC;
 
-    if ((strcmp(alloc->name, "MEDIA") == 0 || strcmp(alloc->name, "Media") == 0)
-        && create.cpu_caching == DRM_XE_GEM_CPU_CACHING_WC)
-            create.flags |= DRM_XE_GEM_CREATE_FLAG_SCANOUT;
+    if (alloc->ext.scanout_surf)
+    {
+        create.flags |= DRM_XE_GEM_CREATE_FLAG_SCANOUT;
+    }
 
     ret = drmIoctl(bufmgr_gem->fd,
         DRM_IOCTL_XE_GEM_CREATE,
@@ -1470,12 +1470,12 @@ mos_bo_alloc_tiled_xe(struct mos_bufmgr *bufmgr,
     unsigned long size, stride;
     uint32_t tiling;
 
-    uint32_t alignment = bufmgr_gem->default_alignment[MOS_XE_MEM_CLASS_SYSMEM];
+    uint32_t alignment = MAX(alloc_tiled->alignment, bufmgr_gem->default_alignment[MOS_XE_MEM_CLASS_SYSMEM]);
 
     if (bufmgr_gem->has_vram &&
        (MOS_MEMPOOL_VIDEOMEMORY == alloc_tiled->ext.mem_type   || MOS_MEMPOOL_DEVICEMEMORY == alloc_tiled->ext.mem_type))
     {
-        alignment = bufmgr_gem->default_alignment[MOS_XE_MEM_CLASS_VRAM];
+        alignment = MAX(alloc_tiled->alignment, bufmgr_gem->default_alignment[MOS_XE_MEM_CLASS_VRAM]);
     }
 
     do {
