@@ -33,6 +33,10 @@ const UFKEY_NEXT Configure::m_rootKey = UFKEY_INTERNAL_NEXT;
 const char *Configure::m_configPath = USER_SETTING_CONFIG_PATH;
 const char *Configure::m_reportPath = USER_SETTING_REPORT_PATH;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+std::set<std::string> Configure::m_nonPidRegPaths = {};
+#endif
+
 Configure::Configure(MOS_USER_FEATURE_KEY_PATH_INFO *keyPathInfo):Configure()
 {
     m_keyPathInfo = keyPathInfo;
@@ -134,7 +138,7 @@ MOS_STATUS Configure::Read(Value &value,
     uint32_t option)
 {
     int32_t     ret     = 0;
-    MOS_STATUS  status  = MOS_STATUS_SUCCESS;
+    MOS_STATUS  status  = MOS_STATUS_UNKNOWN;
     auto        &defs   = GetDefinitions(group);
     auto        def     = defs[MakeHash(valueName)];
     if (def == nullptr)
@@ -151,17 +155,24 @@ MOS_STATUS Configure::Read(Value &value,
     std::string path = GetReadPath(def, option);
 #if (_DEBUG || _RELEASE_INTERNAL)
     //First, Read pid path user setting. If succeed, return;
-    std::string pathPidSuffix = path + m_pidPath;
-    UFKEY_NEXT  keyPidSuffix  = {};
-    m_mutexLock.Lock();
-    status = MosUtilities::MosOpenRegKey(m_rootKey, pathPidSuffix, KEY_READ, &keyPidSuffix, m_regBufferMap);
-    if (status == MOS_STATUS_SUCCESS)
+    if (m_nonPidRegPaths.find(path) == m_nonPidRegPaths.end())
     {
-        status = MosUtilities::MosGetRegValue(keyPidSuffix, valueName, defaultType, value, m_regBufferMap);
-        MosUtilities::MosCloseRegKey(keyPidSuffix);
+        std::string pathPidSuffix = path + m_pidPath;
+        UFKEY_NEXT  keyPidSuffix  = {};
+        m_mutexLock.Lock();
+        status = MosUtilities::MosOpenRegKey(m_rootKey, pathPidSuffix, KEY_READ, &keyPidSuffix, m_regBufferMap);
+        if (status == MOS_STATUS_SUCCESS)
+        {
+            status = MosUtilities::MosGetRegValue(keyPidSuffix, valueName, defaultType, value, m_regBufferMap);
+            MosUtilities::MosCloseRegKey(keyPidSuffix);
+        }
+        else
+        {
+            // Record the reg path which does not have inner pid reg path.
+            m_nonPidRegPaths.insert(path);
+        }
+        m_mutexLock.Unlock();
     }
-    m_mutexLock.Unlock();
-
     //Second, if reading pid path failed, read non-pid path. If succeed, return;
     if (status != MOS_STATUS_SUCCESS)
 #endif
@@ -236,19 +247,27 @@ MOS_STATUS Configure::Write(
 
     MOS_STATUS status = MOS_STATUS_UNKNOWN;
 #if (_DEBUG || _RELEASE_INTERNAL)
-    std::string pathPidSuffix = path + m_pidPath;
-    UFKEY_NEXT keyPidSuffix = {};
-
-    m_mutexLock.Lock();
-    status = MosUtilities::MosOpenRegKey(m_rootKey, pathPidSuffix, KEY_WRITE, &keyPidSuffix, m_regBufferMap);
-
-    if (status == MOS_STATUS_SUCCESS)
+    if (m_nonPidRegPaths.find(path) == m_nonPidRegPaths.end())
     {
-        status = MosUtilities::MosSetRegValue(keyPidSuffix, valueName, value, m_regBufferMap);
+        std::string pathPidSuffix = path + m_pidPath;
+        UFKEY_NEXT keyPidSuffix = {};
 
-        MosUtilities::MosCloseRegKey(keyPidSuffix);
+        m_mutexLock.Lock();
+        status = MosUtilities::MosOpenRegKey(m_rootKey, pathPidSuffix, KEY_WRITE, &keyPidSuffix, m_regBufferMap);
+
+        if (status == MOS_STATUS_SUCCESS)
+        {
+            status = MosUtilities::MosSetRegValue(keyPidSuffix, valueName, value, m_regBufferMap);
+
+            MosUtilities::MosCloseRegKey(keyPidSuffix);
+        }
+        else
+        {
+            // Record the reg path which does not have inner pid reg path.
+            m_nonPidRegPaths.insert(path);
+        }
+        m_mutexLock.Unlock();
     }
-    m_mutexLock.Unlock();
 
     if (status != MOS_STATUS_SUCCESS)
 #endif
