@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2022, Intel Corporation
+* Copyright (c) 2019-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -104,6 +104,12 @@ namespace decode
         m_dataSize = decodeParams->m_dataSize;
         m_av1PicParams  = static_cast<CodecAv1PicParams*>(decodeParams->m_picParams);
         DECODE_CHK_NULL(m_av1PicParams);
+
+        if (decodeParams->m_destSurface->OsResource.Format == Format_P010 &&
+            m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+        {
+            m_bitDepth = 10;
+        }
 
         // Do error detection and concealment
         DECODE_CHK_STATUS(ErrorDetectAndConceal());
@@ -648,7 +654,18 @@ namespace decode
 
         DECODE_CHK_STATUS(UpdateDefaultCdfTable());
         DECODE_CHK_STATUS(m_refFrames.UpdatePicture(*m_av1PicParams));
-        DECODE_CHK_STATUS(m_tempBuffers.UpdatePicture(m_av1PicParams->m_currPic.FrameIdx, m_refFrameIndexList));
+        if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+        {
+            for (auto &refFrameIdx : m_refFrameIndexList)
+            {
+                DECODE_CHK_STATUS(m_tempBuffers.ActiveCurBuffer(refFrameIdx));
+            }
+            DECODE_CHK_STATUS(m_tempBuffers.ReActiveCurBuffer(m_av1PicParams->m_currPic.FrameIdx, m_refFrameIndexList));
+        }
+        else
+        {
+            DECODE_CHK_STATUS(m_tempBuffers.UpdatePicture(m_av1PicParams->m_currPic.FrameIdx, m_refFrameIndexList));
+        }
         DECODE_CHK_STATUS(SetSegmentData(*m_av1PicParams));
 
         DECODE_CHK_STATUS(CalculateGlobalMotionParams());

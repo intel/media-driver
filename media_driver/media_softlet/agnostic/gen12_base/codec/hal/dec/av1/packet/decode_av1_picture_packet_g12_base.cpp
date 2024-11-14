@@ -1131,6 +1131,11 @@ namespace decode{
             DECODE_CHK_STATUS(SetAvpRefSurfaceParams(refSurfaceParams));
             for (uint8_t i = 0; i < av1TotalRefsPerFrame; i++)
             {
+                if (m_av1BasicFeature->m_bitDepth == 10 &&
+                    m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+                {
+                    refSurfaceParams[i].psSurface->Format = Format_P010;
+                }
                 DECODE_CHK_STATUS(m_avpInterface->AddAvpSurfaceCmd(&cmdBuffer, &refSurfaceParams[i]));
             }
         }

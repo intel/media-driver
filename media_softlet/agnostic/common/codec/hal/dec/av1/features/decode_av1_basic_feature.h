@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2023, Intel Corporation
+* Copyright (c) 2019-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -113,6 +113,11 @@ namespace decode
         //!           MOS_STATUS_SUCCESS if success, else fail reason
         //!
         virtual MOS_STATUS UpdateDefaultCdfTable();
+
+        PMOS_INTERFACE GetOsInterface()
+        {
+            return m_osInterface;
+        }
 
         // Parameters passed from application
         uint16_t                        m_frameWidthAlignedMinBlk  = 0;            //!< Picture Width aligned to minBlock

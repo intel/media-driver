@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -133,7 +133,8 @@ namespace decode
 
         // For multiple tiles per frame case, picture level command is same between different tiles, so put them into 2nd
         // level BB to exectue picture level cmd only once for 1st tile of the frame and reduce SW latency eventually.
-        if (!(m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile) && !m_av1Pipeline->TileBasedDecodingInuse())
+        if (!(m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile) && !m_av1Pipeline->TileBasedDecodingInuse()
+            && !m_osInterface->pfnIsMismatchOrderProgrammingSupported())
         {
             if (m_isFirstTileInPartialFrm)
             {
@@ -256,7 +257,8 @@ namespace decode
             })
 #endif
 
-        if (m_isLastTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse())
+        if ((m_isLastTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse())
+            && !m_osInterface->pfnIsMismatchOrderProgrammingSupported())
         {
             DECODE_CHK_STATUS(m_miInterface->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
         }
