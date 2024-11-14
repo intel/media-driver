@@ -1118,6 +1118,7 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
         case Format_I420:
         case Format_YV12:
         case Format_IYUV:
+        case Format_IMC3:
             fcIntermediaInputFormat = Format_NV12;
             break;
         case Format_422H:
@@ -1201,6 +1202,7 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
             fcIntermediaSurfaceOutputFormat = Format_AYUV;
             break;
         case Format_I420:
+        case Format_IMC3:
         case Format_YV12:
         case Format_IYUV:
             fcIntermediaSurfaceOutputFormat = Format_NV12;

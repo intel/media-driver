@@ -4286,6 +4286,7 @@ MOS_STATUS RenderHal_GetPlaneDefinitionForCommonMessage(
     case Format_P210:
     case Format_P216:
     case Format_I420:
+    case Format_IMC3:
     case Format_IYUV:
     case Format_R5G6B5:
     case Format_R8G8B8:

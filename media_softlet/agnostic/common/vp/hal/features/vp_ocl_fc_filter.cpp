@@ -212,6 +212,7 @@ MOS_STATUS VpOclFcFilter::InitKrnParams(OCL_FC_KERNEL_PARAMS &krnParams, SwFilte
             case Format_I420:
             case Format_IYUV:
             case Format_YV12:
+            case Format_IMC3:
                 VP_RENDER_CHK_STATUS_RETURN(GenerateFc420PL3InputParam(compParam.inputLayersParam[i], i, param));
                 krnParams.push_back(param);
                 break;
@@ -253,6 +254,7 @@ MOS_STATUS VpOclFcFilter::InitKrnParams(OCL_FC_KERNEL_PARAMS &krnParams, SwFilte
         switch (compParam.outputLayerParam.surf->osSurface->Format)
         {
         case Format_I420:
+        case Format_IMC3:
         case Format_YV12:
         case Format_IYUV:
             VP_RENDER_CHK_STATUS_RETURN(GenerateFc420PL3OutputParam(compParam.outputLayerParam, param));
@@ -1565,6 +1567,7 @@ MOS_STATUS VpOclFcFilter::InitLayer(SwFilterPipe &executingPipe, bool isInputPip
         layer.intermediaFormat      = Format_AYUV;
         break;
     case Format_I420:
+    case Format_IMC3:
     case Format_IYUV:
     case Format_YV12:
         layer.needIntermediaSurface = true;
@@ -1721,6 +1724,7 @@ MOS_STATUS VpOclFcFilter::GetChromaSitingFactor(MOS_FORMAT format, uint8_t &hitS
         hitSecPlaneFactorY = 1;
         break;
     case Format_I420:
+    case Format_IMC3:
     case Format_IYUV:
     case Format_YV12:
         hitSecPlaneFactorX = 2;
@@ -2229,6 +2233,7 @@ MOS_STATUS VpOclFcFilter::ConvertInputOutputSingleChannelIndexToKrnParam(MOS_FOR
     {
     case Format_YV12:
     case Format_I420:
+    case Format_IMC3:
     case Format_IYUV:
     case Format_422H:
     case Format_422V:
@@ -2338,6 +2343,7 @@ MOS_STATUS VpOclFcFilter::ConvertInputChannelIndicesToKrnParam(MOS_FORMAT format
         break;
     case Format_YV12:
     case Format_I420:
+    case Format_IMC3:
     case Format_IYUV:
         inputChannelIndices[0] = 0;
         inputChannelIndices[1] = 4;
@@ -2587,6 +2593,7 @@ MOS_STATUS VpOclFcFilter::ConvertOutputChannelIndicesToKrnParam(MOS_FORMAT forma
         break;
     case Format_YV12:
     case Format_I420:
+    case Format_IMC3:
     case Format_IYUV:
         dynamicChannelIndices[0] = 0;
         dynamicChannelIndices[1] = 1;
@@ -3443,8 +3450,9 @@ void VpOclFcFilter::ReportDiffLog(const OCL_FC_COMP_PARAM &compParam, bool isFas
             }
 
             if ((format == Format_YV12 ||
-                    format == Format_IYUV ||
-                    format == Format_I420) &&
+                 format == Format_IYUV ||
+                 format == Format_I420 ||
+                 format == Format_IMC3) &&
                 targetSurf->ChromaSiting != (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_TOP))
             {
                 //legacy didn't support 3 plane chromasiting CDS. So legacy FC will only do left top for PL3 output
