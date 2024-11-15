@@ -116,6 +116,8 @@ namespace decode{
         m_allocator = m_pipeline ->GetDecodeAllocator();
         DECODE_CHK_NULL(m_allocator);
 
+        MOS_ZeroMemory(m_refSurface, sizeof(m_refSurface));
+
         return MOS_STATUS_SUCCESS;
     }
 
