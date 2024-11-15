@@ -50,6 +50,7 @@
 #include "mos_oca_interface.h"
 #include "mos_cache_manager.h"
 
+class MhwInterfacesNext;
 #define MOS_NAL_UNIT_LENGTH                 4
 #define MOS_NAL_UNIT_STARTCODE_LENGTH       3
 #define MOS_MAX_PATH_LENGTH                 256
@@ -254,12 +255,15 @@ typedef int32_t MOS_SUBMISSION_TYPE;
 #define EXTRA_PADDING_NEEDED                            4096
 #define MEDIA_CMF_UNCOMPRESSED_WRITE                    0xC
 
+struct _MHW_BATCH_BUFFER;
+typedef struct _MHW_BATCH_BUFFER MHW_BATCH_BUFFER, * PMHW_BATCH_BUFFER;
 //!
 //! \brief Structure to command buffer
 //!
 typedef struct _MOS_COMMAND_BUFFER
 {
     MOS_RESOURCE        OsResource;                 //!< OS Resource
+    PMHW_BATCH_BUFFER   syncMhwBatchBuffer;         //!< Pointer to sync mhw batch buffer
 
     // Common fields
     uint32_t            *pCmdBase;                   //!< Base    address (CPU)
@@ -573,7 +577,7 @@ struct MosStreamState
     uint32_t dwEnableMediaSoloFrameNum          = 0;        //!< The frame number at which MediaSolo will be enabled, 0 is not valid.
     int32_t  bSoloInUse                         = 0;        //!< Flag to indicate if MediaSolo is enabled
 #endif  // MOS_MEDIASOLO_SUPPORTED
-
+     MhwInterfacesNext  *mhwInterface           = nullptr;
 };
 
 // OS agnostic MOS objects
@@ -2056,6 +2060,8 @@ typedef struct _MOS_INTERFACE
 
     bool (*pfnGetCacheSetting)(MOS_COMPONENT id, uint32_t feature, bool bOut, ENGINE_TYPE engineType, MOS_CACHE_ELEMENT &element, bool isHeapSurf);
 
+    bool (* pfnIsGpuSyncByCmd) (PMOS_INTERFACE osInterface);
+
     // Virtual Engine related
     int32_t                         bSupportVirtualEngine;                        //!< Enable virtual engine flag
     int32_t                         bUseHwSemaForResSyncInVE;                     //!< Flag to indicate if UMD need to send HW sema cmd under this OS when there is a resource sync need with Virtual Engine interface 
@@ -2094,6 +2100,7 @@ typedef struct _MOS_INTERFACE
 
     //!< os interface extension
     void                            *pOsExt;
+    MhwInterfacesNext               *mhwInterface;
 } MOS_INTERFACE;
 
 #ifdef __cplusplus

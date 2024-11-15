@@ -796,4 +796,11 @@ static __inline MOS_STATUS Mhw_AddCommandCmdOrBB(
     }
 }
 
+struct MHW_SEMAPHORE_WATI_REGISTERS
+{
+    uint32_t    m_tokenRegister = 0;
+    uint32_t    m_gpr0Lo = 0;
+    uint32_t    m_gpr0Hi = 0;
+    bool        m_bMMIORemap = 0;
+};
 #endif // __MHW_UTILITIES_NEXT_H__

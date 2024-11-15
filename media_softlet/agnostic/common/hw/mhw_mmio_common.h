@@ -64,5 +64,27 @@ static constexpr uint32_t  WATCHDOG_COUNT_THRESTHOLD_OFFSET_VCS1                
 static constexpr uint32_t  WATCHDOG_COUNT_CTRL_OFFSET_VECS                                             = 0x1C8178;
 static constexpr uint32_t  WATCHDOG_COUNT_THRESTHOLD_OFFSET_VECS                                       = 0x1C817C;
 
+//Semaphore Token
+static constexpr uint32_t   MMIO_SEMAPHORE_TOKEN_RCS                                                   = 0x022b4;
+static constexpr uint32_t   MMIO_SEMAPHORE_TOKEN_CCS0                                                  = 0x1A2B4;
+static constexpr uint32_t   MMIO_SEMAPHORE_TOKEN_BCS0                                                  = 0x222B4;
+static constexpr uint32_t   MMIO_SEMAPHORE_TOKEN_TEE                                                   = 0x11A2B4;
+static constexpr uint32_t   MMIO_SEMAPHORE_TOKEN_VCS0                                                  = 0x1C02B4;
+static constexpr uint32_t   MMIO_SEMAPHORE_TOKEN_VECS0                                                 = 0x1C82B4;
 
+//CS_GPR_CCS
+static constexpr uint32_t  CCS_GP_REGISTER0_LO_OFFSET                                                  = 0x1A600;
+static constexpr uint32_t  CCS_GP_REGISTER0_HI_OFFSET                                                  = 0x1A604;
+
+//CS_GPR_BCS
+static constexpr uint32_t  BCS_GP_REGISTER0_LO_OFFSET                                                  = 0x22600;
+static constexpr uint32_t  BCS_GP_REGISTER0_HI_OFFSET                                                  = 0x22604;
+
+//CS_GPR_TEE
+static constexpr uint32_t  TEE_GP_REGISTER0_LO_OFFSET                                                  = 0x11A600;
+static constexpr uint32_t  TEE_GP_REGISTER0_HI_OFFSET                                                  = 0x11A604;
+
+//CS_GPR_VCS
+static constexpr uint32_t VCS_GP_REGISTER0_LO_OFFSET                                                   = 0x1C0600;
+static constexpr uint32_t VCS_GP_REGISTER0_HI_OFFSET                                                   = 0x1C0604;
 #endif   //__MHW_MMIO_COMMON_H__

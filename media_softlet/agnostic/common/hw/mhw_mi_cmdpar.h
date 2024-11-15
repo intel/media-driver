@@ -164,11 +164,13 @@ namespace mi
     struct _MHW_PAR_T(MI_SEMAPHORE_WAIT)
     {
         PMOS_RESOURCE               presSemaphoreMem   = nullptr;        // Semaphore memory Resource
+        uint64_t                    gpuVirtualAddress  = 0;
         uint32_t                    dwResourceOffset   = 0;
         bool                        bRegisterPollMode  = false;
         bool                        bPollingWaitMode   = false;
         uint32_t                    dwCompareOperation = 0;
         uint32_t                    dwSemaphoreData    = 0;
+        bool                        b64bCompareEnableWithGPR = 0;
         MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION CompareOperation = {};
     };
 
@@ -238,6 +240,7 @@ namespace mi
     {
         uint32_t                    dwRegister = 0;
         uint32_t                    dwData     = 0;
+        bool                        bMMIORemap = 0;
     };
 
     struct _MHW_PAR_T(MI_LOAD_REGISTER_REG)

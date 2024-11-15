@@ -292,12 +292,21 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+     virtual MOS_STATUS AddWaitInSyncBatchBuffer(
+         uint64_t fenceTokenValue,
+         uint64_t gpuVirtualAddress,
+         uint64_t waitValue,
+         MHW_BATCH_BUFFER &batchBuffer,
+         MHW_SEMAPHORE_WATI_REGISTERS &tokenRegister) override
+     {
+         return MOS_STATUS_SUCCESS;
+     }
+
 protected:
     using base_t = Itf;
 
     MHW_MI_MMIOREGISTERS    m_mmioRegisters = {};
     MhwCpInterface          *m_cpInterface  = nullptr;
-
 public:
     Impl(PMOS_INTERFACE osItf) : mhw::Impl(osItf)
     {
@@ -308,21 +317,31 @@ public:
     {
         _MHW_SETCMD_CALLBASE(MI_SEMAPHORE_WAIT);
 
-        MHW_MI_CHK_NULL(this->m_currentCmdBuf);
-        MHW_MI_CHK_NULL(params.presSemaphoreMem);
+        if(params.presSemaphoreMem)
+        {
+            MHW_MI_CHK_NULL(this->m_currentCmdBuf);
+            MHW_RESOURCE_PARAMS  resourceParams ={};
+            resourceParams.presResource    = params.presSemaphoreMem;
+            resourceParams.dwOffset        = params.dwResourceOffset;
+            resourceParams.pdwCmd          = cmd.DW2_3.Value;
+            resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(DW2_3.Value);;
+            resourceParams.dwLsbNum        = MHW_COMMON_MI_GENERAL_SHIFT;
+            resourceParams.HwCommandType   = MOS_MI_SEMAPHORE_WAIT;
 
-        MHW_RESOURCE_PARAMS  resourceParams ={};
-        resourceParams.presResource    = params.presSemaphoreMem;
-        resourceParams.dwOffset        = params.dwResourceOffset;
-        resourceParams.pdwCmd          = cmd.DW2_3.Value;
-        resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(DW2_3.Value);;
-        resourceParams.dwLsbNum        = MHW_COMMON_MI_GENERAL_SHIFT;
-        resourceParams.HwCommandType   = MOS_MI_SEMAPHORE_WAIT;
-
-        MHW_MI_CHK_STATUS(AddResourceToCmd(
-            this->m_osItf,
-            this->m_currentCmdBuf,
-            &resourceParams));
+            MHW_MI_CHK_STATUS(AddResourceToCmd(
+                this->m_osItf,
+                this->m_currentCmdBuf,
+                &resourceParams));
+        }
+        else if(params.gpuVirtualAddress != 0)
+        {
+            cmd.DW2_3.SemaphoreAddress = (params.gpuVirtualAddress) >> MHW_COMMON_MI_GENERAL_SHIFT;
+        }
+        else
+        {
+            MHW_ASSERTMESSAGE("Invalid parameter, both resource and gpuva zero.");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
 
         cmd.DW0.MemoryType         = IsGlobalGttInUse();
         cmd.DW0.WaitMode           = params.bPollingWaitMode;

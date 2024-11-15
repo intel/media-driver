@@ -281,11 +281,13 @@ typedef struct _MHW_MI_ATOMIC_PARAMS
 typedef struct _MHW_MI_SEMAPHORE_WAIT_PARAMS
 {
     PMOS_RESOURCE               presSemaphoreMem;        // Semaphore memory Resource
+    uint64_t                    gpuVirtualAddress;       // Semaphore memory Resource
     uint32_t                    dwResourceOffset;
     bool                        bRegisterPollMode;
     bool                        bPollingWaitMode;
     uint32_t                    dwCompareOperation;
     uint32_t                    dwSemaphoreData;
+    bool                        b64bComparEnableWithGPR;
     MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION       CompareOperation;
 }MHW_MI_SEMAPHORE_WAIT_PARAMS, *PMHW_MI_SEMAPHORE_WAIT_PARAMS;
 

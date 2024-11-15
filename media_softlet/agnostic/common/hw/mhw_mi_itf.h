@@ -112,6 +112,13 @@ public:
 
     virtual MOS_STATUS AddBLTMMIOPrologCmd(PMOS_COMMAND_BUFFER cmdBuffer) = 0;
 
+    virtual MOS_STATUS AddWaitInSyncBatchBuffer(
+        uint64_t fenceTokenValue,
+        uint64_t gpuVirtualAddress,
+        uint64_t waitValue,
+        MHW_BATCH_BUFFER &batchBuffer,
+        MHW_SEMAPHORE_WATI_REGISTERS &tokenRegister) = 0;
+
     _MI_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
 MEDIA_CLASS_DEFINE_END(mhw__mi__Itf)
 };
