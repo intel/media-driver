@@ -953,6 +953,11 @@ MOS_STATUS VpPacketReuseManager::PreparePacketPipeReuse(SwFilterPipe *&swFilterP
         else
         {
             auto pipe_TeamsPacket = m_pipeReused_TeamsPacket.find(index);
+            if (pipe_TeamsPacket == m_pipeReused_TeamsPacket.end())
+            {
+                VP_PUBLIC_ASSERTMESSAGE("Invalid teams packet pipe for reuse!");
+                VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+            }
 
             VpCmdPacket *packet = pipe_TeamsPacket->second->GetPacket(0);
             VP_PUBLIC_CHK_NULL_RETURN(packet);
