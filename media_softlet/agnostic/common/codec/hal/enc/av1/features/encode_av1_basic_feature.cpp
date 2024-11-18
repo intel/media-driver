@@ -362,6 +362,7 @@ MOS_STATUS Av1BasicFeature::UpdateFormat(void *params)
     {
     case Format_P010:
     case Format_R10G10B10A2:
+    case Format_B10G10R10A2:
         m_is10Bit  = true;
         m_bitDepth = 10;
         break;
