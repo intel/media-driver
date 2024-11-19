@@ -64,6 +64,9 @@ static constexpr uint32_t  WATCHDOG_COUNT_THRESTHOLD_OFFSET_VCS1                
 static constexpr uint32_t  WATCHDOG_COUNT_CTRL_OFFSET_VECS                                             = 0x1C8178;
 static constexpr uint32_t  WATCHDOG_COUNT_THRESTHOLD_OFFSET_VECS                                       = 0x1C817C;
 
+static constexpr uint32_t  WATCHDOG_COUNT_CTRL_OFFSET_TEECS                                            = 0x11A178;
+static constexpr uint32_t  WATCHDOG_COUNT_THRESTHOLD_OFFSET_TEECS                                      = 0x11A17C;
+
 //Semaphore Token
 static constexpr uint32_t   MMIO_SEMAPHORE_TOKEN_RCS                                                   = 0x022b4;
 static constexpr uint32_t   MMIO_SEMAPHORE_TOKEN_CCS0                                                  = 0x1A2B4;
