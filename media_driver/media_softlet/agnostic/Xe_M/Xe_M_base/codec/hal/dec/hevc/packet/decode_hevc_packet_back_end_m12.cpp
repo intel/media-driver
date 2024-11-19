@@ -78,6 +78,7 @@ MOS_STATUS HevcDecodeBackEndPktM12::Submit(
 
     auto mmioRegisters = m_hwInterface->GetMfxInterface()->GetMmioRegisters(MHW_VDBOX_NODE_1);
     HalOcaInterface::On1stLevelBBStart(*cmdBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, *m_miInterface, *mmioRegisters);
+    HalOcaInterface::OnDispatch(*cmdBuffer, *m_osInterface, *m_miInterface, *m_miInterface->GetMmioRegisters());
 
     DECODE_CHK_STATUS(m_miInterface->AddWatchdogTimerStopCmd(cmdBuffer));
     auto scalability = m_hevcPipeline->GetMediaScalability();
