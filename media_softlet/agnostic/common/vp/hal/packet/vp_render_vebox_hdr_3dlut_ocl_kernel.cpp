@@ -453,14 +453,7 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::InitCoefSurface(const uint32_t maxDLL, con
         CalcCCMMatrix();
         MOS_SecureMemcpy(ccmMatrix, sizeof(float) * 12, color_matrix_calculation, sizeof(float) * 12);
 
-        if (maxDLL > 800)
-        {
-            tmMode = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2H;
-        }
-        else
-        {
-            tmMode = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2S;
-        }
+        tmMode    = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2S;
         oetfCurve = (OETF_CURVE_TYPE)OETF_SRGB;
         tmSrcType = (TONE_MAPPING_SOURCE_TYPE)TONE_MAPPING_SOURCE_PSEUDO_Y_BT709;
     }
