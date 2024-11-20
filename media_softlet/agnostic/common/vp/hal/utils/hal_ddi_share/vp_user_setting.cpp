@@ -453,6 +453,20 @@ MOS_STATUS VpUserSetting::InitVpUserSetting(MediaUserSettingSharedPtr userSettin
         0,
         true);
 
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_FALLBACK_SCALING_TO_RENDER_8K,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_FALLBACK_SCALING_TO_RENDER_8K_REPORT,
+        MediaUserSetting::Group::Sequence,
+        0,
+        true);
+
 #endif
 
     return MOS_STATUS_SUCCESS;

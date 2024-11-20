@@ -76,6 +76,7 @@ public:
         uint32_t           splitFramePortions = 1;
         bool               decompForInterlacedSurfWaEnabled = false;
         bool               enableSFCLinearOutputByTileConvert = false;
+        bool               fallbackScalingToRender8K          = false;
     };
 
     uint32_t Is3DLutKernelOnly()
@@ -206,6 +207,11 @@ public:
     bool IsVeboxTypeHMode()
     {
         return m_ctrlVal.veboxTypeH;
+    }
+
+    bool IsFallbackScalingToRender8K()
+    {
+        return m_ctrlVal.fallbackScalingToRender8K;
     }
 
     MOS_STATUS SetClearVideoViewMode(bool mode)

@@ -478,6 +478,27 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
     }
     VP_PUBLIC_NORMALMESSAGE("enableSFCLinearOutputByTileConvert value is set as %d.", m_ctrlValDefault.enableSFCLinearOutputByTileConvert);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    uint32_t fallbackScalingToRender8K = 0;
+    eRegKeyReadStatus                  = ReadUserSettingForDebug(
+        m_userSettingPtr,
+        fallbackScalingToRender8K,
+        __MEDIA_USER_FEATURE_VALUE_FALLBACK_SCALING_TO_RENDER_8K,
+        MediaUserSetting::Group::Sequence,
+        true,
+        true);
+    if (MOS_SUCCEEDED(eRegKeyReadStatus))
+    {
+        m_ctrlValDefault.fallbackScalingToRender8K = fallbackScalingToRender8K;
+    }
+    else
+#endif
+    {
+        // WA ID need be added before code merge.
+        m_ctrlValDefault.fallbackScalingToRender8K = 1;
+    }
+    VP_PUBLIC_NORMALMESSAGE("fallbackScalingToRender8K %d", m_ctrlValDefault.fallbackScalingToRender8K);
+
     return MOS_STATUS_SUCCESS;
 }
 

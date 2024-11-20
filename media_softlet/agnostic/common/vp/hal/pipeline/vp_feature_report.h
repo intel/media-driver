@@ -77,6 +77,7 @@ public:
         uint32_t                      diffLogOclFC        = 0;
         uint32_t                      featureLogOclFC     = 0;
         bool                          isLegacyFCInUse     = false;
+        bool                          fallbackScalingToRender8K = false;
 #endif
         bool                          VeboxScalability    = false;                        //!< Vebox Scalability flag
         bool                          VPApogeios          = false;                        //!< VP Apogeios flag

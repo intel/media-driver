@@ -44,6 +44,16 @@ VpPipeline::VpPipeline(PMOS_INTERFACE osInterface) :
 
 VpPipeline::~VpPipeline()
 {
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_reportOnceFlag)
+    {
+        ReportUserSettingForDebug(
+            m_userSettingPtr,
+            __MEDIA_USER_FEATURE_VALUE_FALLBACK_SCALING_TO_RENDER_8K_REPORT,
+            0,
+            MediaUserSetting::Group::Sequence);
+    }
+#endif
     // Delete m_featureManager before m_resourceManager, since
     // m_resourceManager is referenced by m_featureManager.
     MOS_Delete(m_featureManager);
@@ -260,6 +270,17 @@ MOS_STATUS VpPipeline::UserFeatureReport()
                     MediaUserSetting::Group::Sequence);
                 m_reporting->GetFeatures().isLegacyFCInUse = false;
             }
+        }
+
+        if (m_reportOnceFlag && m_reporting->GetFeatures().fallbackScalingToRender8K)
+        {
+            ReportUserSettingForDebug(
+                m_userSettingPtr,
+                __MEDIA_USER_FEATURE_VALUE_FALLBACK_SCALING_TO_RENDER_8K_REPORT,
+                1,
+                MediaUserSetting::Group::Sequence);
+            m_reporting->GetFeatures().fallbackScalingToRender8K = false;
+            m_reportOnceFlag                                     = false;
         }
         
 #endif
