@@ -223,7 +223,7 @@ protected:
     MOS_STATUS InitKrnParams(OCL_FC_KERNEL_PARAMS &krnParam, SwFilterPipe &executingPipe);
     MOS_STATUS InitLayer(SwFilterPipe &executingPipe, bool isInputPipe, int index, VPHAL_SCALING_MODE defaultScalingMode, OCL_FC_LAYER_PARAM &layer);
     MOS_STATUS InitCompParam(SwFilterPipe &executingPipe, OCL_FC_COMP_PARAM &compParam);
-    MOS_STATUS SetPerfTag(OCL_FC_COMP_PARAM &compParam, VPHAL_PERFTAG &perfTag);
+    MOS_STATUS SetPerfTag(OCL_FC_COMP_PARAM &compParam, bool isFastExpress, VPHAL_PERFTAG &perfTag);
 
     //OCL FC common kernel
     MOS_STATUS GenerateFcCommonKrnParam(OCL_FC_COMP_PARAM &compParam, OCL_FC_KERNEL_PARAM &param);

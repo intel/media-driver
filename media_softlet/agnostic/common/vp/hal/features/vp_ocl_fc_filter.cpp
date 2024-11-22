@@ -243,7 +243,7 @@ MOS_STATUS VpOclFcFilter::InitKrnParams(OCL_FC_KERNEL_PARAMS &krnParams, SwFilte
         VP_RENDER_CHK_STATUS_RETURN(GenerateFcCommonKrnParam(compParam, param));
     }
     //Set Perf Tag should be called after Generate Krn Param
-    VP_PUBLIC_CHK_STATUS_RETURN(SetPerfTag(compParam, param.kernelConfig.perfTag));
+    VP_PUBLIC_CHK_STATUS_RETURN(SetPerfTag(compParam, isFastExpressSupported, param.kernelConfig.perfTag));
     krnParams.push_back(param);
 
     // convert from PL3 output surface to intermedia surface
@@ -3178,7 +3178,7 @@ void VpOclFcFilter::PrintFastExpressKrnParam(OCL_FC_FP_KRN_IMAGE_PARAM &imagePar
 #endif
 }
 
-MOS_STATUS VpOclFcFilter::SetPerfTag(OCL_FC_COMP_PARAM &compParam, VPHAL_PERFTAG &perfTag)
+MOS_STATUS VpOclFcFilter::SetPerfTag(OCL_FC_COMP_PARAM &compParam, bool isFastExpress, VPHAL_PERFTAG &perfTag)
 {
     bool rotation = false;
     bool primary  = false;
@@ -3195,17 +3195,21 @@ MOS_STATUS VpOclFcFilter::SetPerfTag(OCL_FC_COMP_PARAM &compParam, VPHAL_PERFTAG
             rotation = true;
         }
     }
-    if (rotation)
+    if (isFastExpress)
     {
-        perfTag = VPHAL_PERFTAG(VPHAL_ROT + compParam.layerNumber - 1);
+        perfTag = rotation ? VPHAL_PERFTAG(VPHAL_OCL_FC_FP_ROT) : VPHAL_PERFTAG(VPHAL_OCL_FC_FP);
+    }
+    else if (rotation)
+    {
+        perfTag = VPHAL_PERFTAG(VPHAL_OCL_FC_ROT_1LAYER + compParam.layerNumber - 1);
     }
     else if (primary)
     {
-        perfTag = VPHAL_PERFTAG(VPHAL_PRI + compParam.layerNumber - 1);
+        perfTag = VPHAL_PERFTAG(VPHAL_OCL_FC_PRI_1LAYER + compParam.layerNumber - 1);
     }
     else
     {
-        perfTag = VPHAL_PERFTAG(VPHAL_NONE + compParam.layerNumber);
+        perfTag = VPHAL_PERFTAG(VPHAL_OCL_FC_0LAYER + compParam.layerNumber);
     }
 
     return MOS_STATUS_SUCCESS;
