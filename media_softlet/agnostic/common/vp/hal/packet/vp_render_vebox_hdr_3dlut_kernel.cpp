@@ -427,6 +427,18 @@ MOS_STATUS VpRenderHdr3DLutKernel::InitCoefSurface(const uint32_t maxDLL, const 
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpRenderHdr3DLutKernel::SetPerfTag()
+{
+    VP_FUNC_CALL();
+    VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
+    auto osInterface = m_hwInterface->m_osInterface;
+    VP_RENDER_CHK_NULL_RETURN(osInterface);
+    VP_RENDER_CHK_NULL_RETURN(osInterface->pfnSetPerfTag);
+
+    osInterface->pfnSetPerfTag(osInterface, VPHAL_EU3DLUT);
+    return MOS_STATUS_SUCCESS;
+}
+
 VpRenderHdr3DLutKernelCM::VpRenderHdr3DLutKernelCM(PVP_MHWINTERFACE hwInterface, VpKernelID kernelID, uint32_t kernelIndex, PVpAllocator allocator) : 
     VpRenderHdr3DLutKernel(hwInterface, kernelID, kernelIndex, VP_HDR_KERNEL_NAME, allocator)
 {
@@ -634,5 +646,17 @@ MOS_STATUS VpRenderHdr3DLutKernelCM::SetKernelConfigs(KERNEL_CONFIGS& kernelConf
             m_maxDisplayLum, m_maxContentLevelLum, m_hdrMode);
     }
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpRenderHdr3DLutKernelCM::SetPerfTag()
+{
+    VP_FUNC_CALL();
+    VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
+    auto osInterface = m_hwInterface->m_osInterface;
+    VP_RENDER_CHK_NULL_RETURN(osInterface);
+    VP_RENDER_CHK_NULL_RETURN(osInterface->pfnSetPerfTag);
+
+    osInterface->pfnSetPerfTag(osInterface, VPHAL_EU3DLUT);
     return MOS_STATUS_SUCCESS;
 }

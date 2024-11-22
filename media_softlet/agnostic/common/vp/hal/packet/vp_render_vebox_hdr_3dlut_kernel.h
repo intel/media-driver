@@ -198,6 +198,7 @@ public:
     }
     virtual MOS_STATUS GetWalkerSetting(KERNEL_WALKER_PARAMS &walkerParam, KERNEL_PACKET_RENDER_DATA &renderData) override;
     virtual MOS_STATUS InitCoefSurface(const uint32_t maxDLL, const uint32_t maxCLL, const VPHAL_HDR_MODE hdrMode);
+    virtual MOS_STATUS SetPerfTag() override;
 
 protected:
     virtual MOS_STATUS SetupSurfaceState() override;
@@ -244,6 +245,8 @@ public:
     }
 
     virtual MOS_STATUS GetWalkerSetting(KERNEL_WALKER_PARAMS &walkerParam, KERNEL_PACKET_RENDER_DATA &renderData) override;
+
+    virtual MOS_STATUS SetPerfTag() override;
 
 protected:
     virtual MOS_STATUS SetupSurfaceState() override;

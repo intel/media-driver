@@ -229,6 +229,7 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
             VP_RENDER_CHK_NULL_RETURN(m_kernel);
 
             m_kernel->SetCacheCntl(m_surfMemCacheCtl);
+            m_kernel->SetPerfTag();
             VP_RENDER_CHK_STATUS_RETURN(SetEuThreadSchedulingMode(m_kernel->GetEuThreadSchedulingMode()));
 
             // reset render Data for current kernel

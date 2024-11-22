@@ -524,7 +524,17 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::SetKernelConfigs(KERNEL_CONFIGS &kernelCon
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpRenderHdr3DLutOclKernel::SetPerfTag()
+{
+    VP_FUNC_CALL();
+    VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
+    auto osInterface = m_hwInterface->m_osInterface;
+    VP_RENDER_CHK_NULL_RETURN(osInterface);
+    VP_RENDER_CHK_NULL_RETURN(osInterface->pfnSetPerfTag);
 
+    osInterface->pfnSetPerfTag(osInterface, VPHAL_OCL_3DLUT);
+    return MOS_STATUS_SUCCESS;
+}
 
 MOS_STATUS VpRenderHdr3DLutOclKernel::SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET_SHARED_CONTEXT *sharedContext)
 {
