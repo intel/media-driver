@@ -265,7 +265,7 @@ protected:
     uint32_t       m_maxDisplayLum                 = 1000;  //!< Maximum Display Luminance
     uint32_t       m_maxContentLevelLum            = 4000;  //!< Maximum Content Level Luminance
     VPHAL_HDR_MODE m_hdrMode                       = VPHAL_HDR_MODE_NONE;
-    std::vector<uint8_t> m_enlargePaddingSize      = {};
+
     MEDIA_CLASS_DEFINE_END(vp__VpRenderHdr3DLutKernelCM)
 };
 

@@ -50,10 +50,10 @@ MOS_STATUS VpRenderHVSKernel::Init(VpRenderKernel &kernel)
     VP_FUNC_CALL();
     m_kernelSize = kernel.GetKernelSize() + KERNEL_BINARY_PADDING_SIZE;
 
-    VP_RENDER_CHK_NULL_RETURN(kernel.GetKernelBinPointer());
-    m_enlargePaddingSize.resize(KERNEL_BINARY_PADDING_SIZE, 0);
-    m_enlargePaddingSize.insert(m_enlargePaddingSize.begin(), (uint8_t *)kernel.GetKernelBinPointer(), (uint8_t *)kernel.GetKernelBinPointer() + kernel.GetKernelSize());
-    m_kernelBinary = m_enlargePaddingSize.data() + kernel.GetKernelBinOffset();
+    uint8_t *pKernelBin = (uint8_t *)kernel.GetKernelBinPointer();
+    VP_RENDER_CHK_NULL_RETURN(pKernelBin);
+
+    m_kernelBinary = pKernelBin + kernel.GetKernelBinOffset();
 
     m_kernelArgs = kernel.GetKernelArgs();
 

@@ -236,7 +236,7 @@ protected:
     KERNEL_WALKER_PARAMS m_walkerParam = {};
 
     VEBOX_HVS_STATIC_DATA m_curbe = {};
-    std::vector<uint8_t>  m_enlargePaddingSize = {};
+
     MEDIA_CLASS_DEFINE_END(vp__VpRenderHVSKernel)
 };
 
