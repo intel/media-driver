@@ -568,7 +568,7 @@ protected:
 
     virtual MOS_STATUS SetupStatelessBuffer();
 
-    virtual MOS_STATUS SetupStatelessBufferResource(SurfaceType surf);
+    virtual MOS_STATUS SetupStatelessBufferResource(SurfaceType surf, bool isWrite);
 
     virtual MOS_STATUS GetCurbeState(void *&curbe, uint32_t &curbeLength) = 0;
 

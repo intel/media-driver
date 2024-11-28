@@ -238,7 +238,7 @@ MOS_STATUS VpRenderKernelObj::SetupStatelessBuffer()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderKernelObj::SetupStatelessBufferResource(SurfaceType surf)
+MOS_STATUS VpRenderKernelObj::SetupStatelessBufferResource(SurfaceType surf, bool isWrite)
 {
     VP_RENDER_CHK_NULL_RETURN(m_surfaceGroup);
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
@@ -254,7 +254,7 @@ MOS_STATUS VpRenderKernelObj::SetupStatelessBufferResource(SurfaceType surf)
         VP_RENDER_CHK_STATUS_RETURN(osInterface->pfnRegisterResource(
             osInterface,
             &curSurf->osSurface->OsResource,
-            false,
+            isWrite,
             true));
         m_statelessArray.insert(std::make_pair(surf, ui64GfxAddress));
     }

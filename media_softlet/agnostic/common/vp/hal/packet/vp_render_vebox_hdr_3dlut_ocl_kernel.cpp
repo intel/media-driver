@@ -285,8 +285,8 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::SetupStatelessBuffer()
 {
     VP_FUNC_CALL();
     m_statelessArray.clear();
-    VP_RENDER_CHK_STATUS_RETURN(SetupStatelessBufferResource(SurfaceType3DLutCoef));
-    VP_RENDER_CHK_STATUS_RETURN(SetupStatelessBufferResource(SurfaceType3DLut));
+    VP_RENDER_CHK_STATUS_RETURN(SetupStatelessBufferResource(SurfaceType3DLutCoef, false));
+    VP_RENDER_CHK_STATUS_RETURN(SetupStatelessBufferResource(SurfaceType3DLut, true));
     return MOS_STATUS_SUCCESS;
 }
 
