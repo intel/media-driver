@@ -731,11 +731,24 @@ MOS_STATUS Policy::GetCSCExecutionCapsHdr(SwFilter *HDR, SwFilter *CSC)
         hdrFormat = IS_COLOR_SPACE_BT2020(cscParams->output.colorSpace) ? Format_R10G10B10A2 : Format_A8R8G8B8;
     }
     VP_PUBLIC_CHK_STATUS_RETURN(Update3DLutoutputColorAndFormat(cscParams, hdrParams, hdrFormat, hdrCSpace));
-
+    
+    if (m_hwCaps.m_veboxHwEntry[hdrFormat].inputSupported &&
+        m_hwCaps.m_veboxHwEntry[cscParams->formatOutput].outputSupported &&
+        m_hwCaps.m_veboxHwEntry[cscParams->formatInput].iecp &&
+        m_hwCaps.m_veboxHwEntry[cscParams->formatInput].frontCscSupported &&
+        (hdrFormat != cscParams->formatOutput || hdrCSpace != cscParams->output.colorSpace))
+    {
+        // front end csc can be used to do the left csc feature when no sfc is needed
+        cscEngine->bEnabled           = 1;
+        cscEngine->frontEndCscNeeded  = 1;
+        cscEngine->VeboxNeeded        = 1;
+        cscEngine->hdrKernelSupported = 1;
+    }
     if (m_hwCaps.m_sfcHwEntry[hdrFormat].inputSupported &&
         m_hwCaps.m_sfcHwEntry[cscParams->formatOutput].outputSupported &&
         m_hwCaps.m_sfcHwEntry[hdrFormat].cscSupported)
     {
+        //sfc or render can be used to do the left csc feature
         if (hdrFormat == cscParams->formatOutput && hdrCSpace == cscParams->output.colorSpace)
         {
             VP_PUBLIC_NORMALMESSAGE("Skip CSC for HDR case.");
@@ -749,11 +762,12 @@ MOS_STATUS Policy::GetCSCExecutionCapsHdr(SwFilter *HDR, SwFilter *CSC)
             cscEngine->RenderNeeded = 1;
             cscEngine->fcSupported  = 1;
             cscEngine->hdrKernelSupported = 1;
+            
         }
     }
-    else
+    if (!cscEngine->bEnabled && !cscEngine->forceEnableForSfc)
     {
-        VP_PUBLIC_ASSERTMESSAGE("Post CSC for HDR not supported by SFC");
+        VP_PUBLIC_ASSERTMESSAGE("Post CSC for HDR not supported by SFC or FECSC(VEBOX)");
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
@@ -3206,9 +3220,10 @@ MOS_STATUS Policy::UpdateFeatureTypeWithEngineSingleLayer(SwFilterSubPipe *featu
             else if (caps.bVebox &&
                 (engineCaps->bEnabled && engineCaps->VeboxNeeded || caps.bIECP && filterID == FeatureTypeCsc))
             {
-                // If HDR filter exist, handle CSC previous to HDR in AddFiltersBasedOnCaps
-                if (filterID == FeatureTypeCsc && IsHDRfilterExist(featureSubPipe))
+                if (filterID == FeatureTypeCsc && IsHDRfilterExist(featureSubPipe) && !engineCaps->frontEndCscNeeded)
                 {
+                    // When front end csc is enabled and set to needed, CSC is handled in vebox FECSC. So in such case, no need to leave the CSC filter to be added in AddFiltersBasedOnCaps
+                    // When front end csc is not enabled and HDR filter exist, handle CSC previous to HDR in AddFiltersBasedOnCaps
                     VP_PUBLIC_NORMALMESSAGE("HDR exist, handle CSC previous to HDR in AddFiltersBasedOnCaps");
                     continue;
                 }
@@ -3735,7 +3750,14 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Procamp, Vebox)));
             break;
         case FeatureTypeCsc:
-            caps.bBeCSC = 1;
+            if (feature->GetFilterEngineCaps().frontEndCscNeeded)
+            {
+                caps.bFeCSC = 1;
+            }
+            else
+            {
+                caps.bBeCSC = 1;
+            }
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Csc, Vebox)));
             break;
         case FeatureTypeHdr:
@@ -3924,7 +3946,8 @@ MOS_STATUS Policy::AddFiltersBasedOnCaps(
 
     // Create and Add CSC filter for VEBOX IECP chromasiting config
     // HDR State holder: To keep same as Legacy path -- for VE 3DLut HDR, enable VE chroma up sampling when ONLY VE output.
-    if (!caps.bBeCSC && ((caps.bSFC && (caps.bIECP || caps.bDI)) || (!caps.bSFC && (caps.bIECP || caps.b3DlutOutput || caps.bBt2020ToRGB))))
+    // When FeCSC is enabled, it means the csc is done in vebox front end csc. This only happens when ONLY VE output and the platform supports 4bpp FeCSC. Then there is no need to add a new backend csc 
+    if (!caps.bBeCSC && ((caps.bSFC && (caps.bIECP || caps.bDI)) || (!caps.bSFC && (caps.bIECP || caps.b3DlutOutput || caps.bBt2020ToRGB) && !caps.bFeCSC)))
     {
         VP_PUBLIC_CHK_STATUS_RETURN(AddNewFilterOnVebox(featurePipe, pipeIndex, caps, executedFilters, executedPipeIndex, FeatureTypeCsc));
     }

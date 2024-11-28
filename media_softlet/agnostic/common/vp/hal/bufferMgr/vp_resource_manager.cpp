@@ -1457,13 +1457,24 @@ MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputForma
     // Then Check IECP, since IECP is done after DI, and the vebox downsampling not affect the vebox input.
     if (executeCaps.b3DlutOutput)
     {
-        if (IS_RGB64_FLOAT_FORMAT(outputFormat))    // SFC output FP16, YUV->ABGR16
+        if (executeCaps.bFeCSC)
         {
-            return Format_A16B16G16R16;
+            // When front end csc is enabled, the csc will be done in IECP front end csc. Then SFC only need to do scaling. So here return the output format as SFC input format
+            // This path cannot be walked in for executeCaps.bFeCSC only is true when no sfc is needed, which is decided in Policy::UpdateExeCaps
+            // Just in case fecsc+sfc is enabled in the future
+            VP_PUBLIC_ASSERTMESSAGE("VEBOX Front End CSC should not be combined with SFC. When SFC is enabled, Front End CSC should be disabled. CSC should be done on SFC");
+            return outputFormat;
         }
         else
         {
-            return IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? Format_R10G10B10A2 : Format_A8B8G8R8;
+            if (IS_RGB64_FLOAT_FORMAT(outputFormat))  // SFC output FP16, YUV->ABGR16
+            {
+                return Format_A16B16G16R16;
+            }
+            else
+            {
+                return IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? Format_R10G10B10A2 : Format_A8B8G8R8;
+            }
         }
     }
     else if (executeCaps.bIECP && executeCaps.bCGC && executeCaps.bBt2020ToRGB)

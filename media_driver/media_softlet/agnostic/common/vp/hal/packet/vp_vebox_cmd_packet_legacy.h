@@ -166,6 +166,26 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
+    virtual MOS_STATUS SetVeboxCSCParams(PVEBOX_CSC_PARAMS cscParams) override;
+
+    //!
+    //! \brief    Setup CSC Params for Vebox front end
+    //! \details  Setup surface CSC Params for Vebox
+    //! \param    [in] cscParams
+    //!           CSC Params
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS SetVeboxFeCSCParams(PVEBOX_CSC_PARAMS cscParams) override;
+
+    //!
+    //! \brief    Setup CSC Params for Vebox back end
+    //! \details  Setup surface CSC Params for Vebox
+    //! \param    [in] cscParams
+    //!           CSC Params
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
     virtual MOS_STATUS SetVeboxBeCSCParams(PVEBOX_CSC_PARAMS cscParams) override;
 
     //!

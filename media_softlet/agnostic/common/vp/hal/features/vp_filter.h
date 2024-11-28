@@ -270,6 +270,13 @@ struct _VEBOX_PROCAMP_PARAMS
     float                           fSaturation;
 };
 
+enum class VEBOX_CSC_BLOCK_TYPE
+{
+    DEFAULT,
+    BACK_END,
+    FRONT_END
+};
+
 struct _VEBOX_CSC_PARAMS
 {
     bool                            bCSCEnabled;                                 // CSC Enabled
@@ -284,6 +291,7 @@ struct _VEBOX_CSC_PARAMS
     uint32_t                        chromaUpSamplingHorizontalCoef;              // Chroma UpSampling Horizontal Coeff
     uint32_t                        chromaDownSamplingVerticalCoef;              // Chroma DownSampling Vertical Coeff
     uint32_t                        chromaDownSamplingHorizontalCoef;            // Chroma DownSampling Horizontal Coeff
+    VEBOX_CSC_BLOCK_TYPE            blockType;                                   // Use Back End CSC or Front End CSC
 };
 
 struct _RENDER_CSC_PARAMS

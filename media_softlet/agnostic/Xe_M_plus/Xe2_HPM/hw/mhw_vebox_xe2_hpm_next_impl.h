@@ -2154,6 +2154,12 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
             }
         }
 
+        // Set Front End CSC for HDR Vebox direct output
+        if (pVeboxIecpParams->bFeCSCEnable)
+        {
+            SetVeboxIecpStateFecsc(&pVeboxIecpState->FrontEndCsc, pVeboxIecpParams);
+        }
+
         // Enable Back End CSC for capture pipeline or Vebox output pipe
         if (pVeboxIecpParams->CapPipeParams.bActive ||
             pVeboxIecpParams->bCSCEnable)

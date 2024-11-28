@@ -175,6 +175,7 @@ struct _VP_EXECUTE_CAPS
             uint64_t bBt2020ToRGB   : 1;   // Vebox Bt2020 gamut compression to RGB format
             uint64_t bProcamp       : 1;   // Vebox Procamp needed
             uint64_t bBeCSC         : 1;   // Vebox back end CSC needed
+            uint64_t bFeCSC         : 1;   // Vebox front end CSC needed
             uint64_t bLACE          : 1;   // Vebox LACE Needed
             uint64_t bQueryVariance : 1;
             uint64_t bRefValid      : 1;   // Vebox Ref is Valid
@@ -237,6 +238,7 @@ typedef struct _VP_EngineEntry
             uint64_t is1K1DLutSurfaceInUse : 1;  // 1K1DLut surface in use
             uint64_t isHdr33LutSizeEnabled : 1;
             uint64_t isBayerInputInUse : 1;
+            uint64_t frontEndCscNeeded : 1;  // true if use vebox front end csc to do output csc feature instead of using backendcsc + sfc. Only using it when no scaling needed
             uint64_t forceLegacyFC : 1;          // true if OCL FC not support the format, fall back to legacy FC
 
             // set by GetXxxPipeEnginCaps
