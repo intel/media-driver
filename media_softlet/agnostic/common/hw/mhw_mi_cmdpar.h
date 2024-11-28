@@ -47,6 +47,16 @@ namespace mi
         MHW_MI_SAD_NOT_EQUAL_SDD             = 5,
     };
 
+    enum MI_CONDITIONAL_BATCH_BUFFER_END_COMPARE_OPERATION
+    {
+        COMPARE_OPERATION_MADGREATERTHANIDD        = 0,  //!< If Indirect fetched data is greater than inline data then continue.
+        COMPARE_OPERATION_MADGREATERTHANOREQUALIDD = 1,  //!< If Indirect fetched data is greater than or equal to inline data then continue.
+        COMPARE_OPERATION_MADLESSTHANIDD           = 2,  //!< If Indirect fetched data is less than inline data then continue.
+        COMPARE_OPERATION_MADLESSTHANOREQUALIDD    = 3,  //!< If Indirect fetched data is less than or equal to inline data then continue.
+        COMPARE_OPERATION_MADEQUALIDD              = 4,  //!< If Indirect fetched data is equal to inline data then continue.
+        COMPARE_OPERATION_MADNOTEQUALIDD           = 5,  //!< If Indirect fetched data is not equal to inline data then continue.
+    };
+
     enum MHW_COMMON_MI_ATOMIC_OPCODE
     {
         MHW_MI_ATOMIC_NONE = 0,
@@ -153,8 +163,8 @@ namespace mi
 
     struct MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS : public MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS
     {
-        bool                        enableEndCurrentBatchBuffLevel = false;
-        uint32_t                    compareOperation               = 0;
+        bool                                              enableEndCurrentBatchBuffLevel = false;
+        MI_CONDITIONAL_BATCH_BUFFER_END_COMPARE_OPERATION compareOperation               = COMPARE_OPERATION_MADGREATERTHANIDD;
         enum PARAMS_TYPE
         {
             ENHANCED_PARAMS = 1
