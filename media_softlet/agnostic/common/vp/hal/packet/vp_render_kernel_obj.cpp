@@ -72,6 +72,7 @@ MOS_STATUS VpRenderKernelObj::GetKernelEntry(Kdll_CacheEntry &entry)
     entry.iFilterSize   = 2;
     entry.pFilter       = nullptr;
     entry.iSize         = m_kernelSize;
+    entry.iPaddingSize  = m_kernelPaddingSize; 
     entry.pBinary       = (uint8_t *)m_kernelBinary;
     return MOS_STATUS_SUCCESS;
 }
