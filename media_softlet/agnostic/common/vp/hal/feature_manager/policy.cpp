@@ -731,11 +731,10 @@ MOS_STATUS Policy::GetCSCExecutionCapsHdr(SwFilter *HDR, SwFilter *CSC)
         hdrFormat = IS_COLOR_SPACE_BT2020(cscParams->output.colorSpace) ? Format_R10G10B10A2 : Format_A8R8G8B8;
     }
     VP_PUBLIC_CHK_STATUS_RETURN(Update3DLutoutputColorAndFormat(cscParams, hdrParams, hdrFormat, hdrCSpace));
-    
-    if (m_hwCaps.m_veboxHwEntry[hdrFormat].inputSupported &&
-        m_hwCaps.m_veboxHwEntry[cscParams->formatOutput].outputSupported &&
-        m_hwCaps.m_veboxHwEntry[cscParams->formatInput].iecp &&
-        m_hwCaps.m_veboxHwEntry[cscParams->formatInput].frontCscSupported &&
+
+    // for HDR case, vebox input format support is checking by GetHdrExecutionCaps
+    if (m_hwCaps.m_veboxHwEntry[cscParams->formatOutput].outputSupported &&
+        m_hwCaps.m_veboxHwEntry[hdrFormat].frontCscSupported &&
         (hdrFormat != cscParams->formatOutput || hdrCSpace != cscParams->output.colorSpace))
     {
         // front end csc can be used to do the left csc feature when no sfc is needed
