@@ -801,6 +801,13 @@ struct MHW_SEMAPHORE_WATI_REGISTERS
     uint32_t    m_tokenRegister = 0;
     uint32_t    m_gpr0Lo = 0;
     uint32_t    m_gpr0Hi = 0;
+    uint32_t    m_gpr1Lo = 0;
+    uint32_t    m_gpr1Hi = 0;
+    uint32_t    m_gpr2Lo = 0;
+    uint32_t    m_gpr2Hi = 0;
+    uint32_t    m_gpr3Lo = 0;
+    uint32_t    m_gpr3Hi = 0;
+    uint32_t    m_predicateResult2 = 0;
     bool        m_bMMIORemap = 0;
 };
 #endif // __MHW_UTILITIES_NEXT_H__

@@ -184,6 +184,11 @@ namespace mi
         MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION CompareOperation = {};
     };
 
+    struct _MHW_PAR_T(MI_SEMAPHORE_SIGNAL)
+    {
+        bool                        b64bSignalingEnable = 0;            //Semaphore Wait/Signal with 64 bit Token value
+    };
+
     struct _MHW_PAR_T(PIPE_CONTROL)
     {
         PMOS_RESOURCE           presDest                      = nullptr;
@@ -242,8 +247,10 @@ namespace mi
     {
         PMOS_RESOURCE               presStoreBuffer = nullptr;
         uint32_t                    dwOffset        = 0;
+        uint64_t                    gpuVirtualAddress = 0;
         uint32_t                    dwRegister      = 0;
         uint32_t                    dwOption        = 0;
+        bool                        bMMIORemap      = 0;
     };
 
     struct _MHW_PAR_T(MI_LOAD_REGISTER_IMM)
@@ -257,6 +264,7 @@ namespace mi
     {
         uint32_t                    dwSrcRegister = 0;
         uint32_t                    dwDstRegister = 0;
+        bool                        bMMIORemap    = 0;
     };
 
     struct _MHW_PAR_T(MI_FORCE_WAKEUP)
@@ -345,6 +353,7 @@ namespace mi
     {
         PMOS_RESOURCE               pOsResource       = nullptr;     // Target OS Resource
         uint32_t                    dwResourceOffset  = 0;
+        uint64_t                    gpuVirtualAddress = 0;
         bool                        bReturnData       = false;
         bool                        bInlineData       = false;
         uint32_t                    dwOperand1Data[4] = {};          // Values to Write
@@ -379,7 +388,9 @@ namespace mi
         bool                        iStallVdboxPipeline = false;
     };
     
-
+    struct _MHW_PAR_T(MI_USER_INTERRUPT)
+    {
+    };
 }  // namespace mi
 }  // namespace mhw
 

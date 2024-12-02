@@ -1873,40 +1873,6 @@ public:
     //!
     static MOS_STATUS MosFreeLibrary(HMODULE hLibModule);
 
-    //! \brief    Get Virtual Engine State
-    //! \details  [Virtual Engine Interface] Get Virtual Engine State from streamState
-    //! \details  Caller: Hal (Scalability) only
-    //! \details  This func is called when a stream (Hal instance) need to get a VE state
-    //! \details  corresponding to current GPU context.
-    //!
-    //! \param    [in] streamState
-    //!           Handle of Os Stream State
-    //!
-    //! \return   MOS_VE_HANDLE
-    //!           Handle of MOS virtual engine state, Invalid handle if get failed 
-    //!
-    static MOS_VE_HANDLE GetVirtualEngineState(
-        MOS_STREAM_HANDLE  streamState);
-
-    //!
-    //! \brief    Set Virtual Engine State
-    //! \details  [Virtual Engine Interface] Set Virtual Engine State of provided streamState
-    //! \details  Caller: Hal (Scalability) only
-    //! \details  This func is called when a stream (Hal instance) need to set an existing VE state
-    //! \details  into provided stream.
-    //!
-    //! \param    [in] streamState
-    //!           Handle of Os Stream State
-    //! \param    [in] veState
-    //!           Handle of Virtual Engine State to set
-    //!
-    //! \return   MOS_STATUS
-    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
-    //!
-    static MOS_STATUS SetVirtualEngineState(
-        MOS_STREAM_HANDLE streamState,
-        MOS_VE_HANDLE veState);
-
     //!
     //! \brief    Create Virtual Engine State
     //! \details  [Virtual Engine Interface] Create Virtual Engine State of provided streamState

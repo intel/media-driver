@@ -35,6 +35,7 @@
 
 #define _MI_CMD_DEF(DEF)                  \
     DEF(MI_SEMAPHORE_WAIT);               \
+    DEF(MI_SEMAPHORE_SIGNAL);             \
     DEF(MI_CONDITIONAL_BATCH_BUFFER_END); \
     DEF(PIPE_CONTROL);                    \
     DEF(MI_BATCH_BUFFER_START);           \
@@ -53,7 +54,9 @@
     DEF(MI_STORE_DATA_IMM);               \
     DEF(MI_MATH);                         \
     DEF(MI_COPY_MEM_MEM);                 \
-    DEF(MFX_WAIT)
+    DEF(MFX_WAIT);                        \
+    DEF(MI_USER_INTERRUPT)
+
 namespace mhw
 {
 namespace mi
@@ -116,9 +119,20 @@ public:
         uint64_t fenceTokenValue,
         uint64_t gpuVirtualAddress,
         uint64_t waitValue,
-        MHW_BATCH_BUFFER &batchBuffer,
-        MHW_SEMAPHORE_WATI_REGISTERS &tokenRegister) = 0;
+        MHW_BATCH_BUFFER *batchBuffer,
+        MHW_SEMAPHORE_WATI_REGISTERS &tokenRegister,
+        PMOS_COMMAND_BUFFER cmdbuffer) = 0;
 
+     virtual MOS_STATUS AddSignalInSyncBatchBuffer(
+         uint64_t fenceTokenValue,
+         uint64_t currentValueGpuVA,
+         uint64_t monitoredValueGpuVA,
+         uint64_t signalValue,
+         MHW_SEMAPHORE_WATI_REGISTERS &tokenRegister,
+         PMOS_COMMAND_BUFFER cmdbuffer)
+     {
+         return MOS_STATUS_SUCCESS;
+     }
     _MI_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_ITF);
 MEDIA_CLASS_DEFINE_END(mhw__mi__Itf)
 };

@@ -3036,28 +3036,6 @@ MosCpInterface *MosInterface::GetCpInterface(MOS_STREAM_HANDLE streamState)
     return streamState ? streamState->osCpInterface : nullptr;
 }
 
-MOS_VE_HANDLE MosInterface::GetVirtualEngineState(
-    MOS_STREAM_HANDLE streamState)
-{
-    MOS_OS_FUNCTION_ENTER;
-
-    return streamState ? streamState->virtualEngineInterface : nullptr;
-}
-
-MOS_STATUS MosInterface::SetVirtualEngineState(
-    MOS_STREAM_HANDLE streamState,
-    MOS_VE_HANDLE veState)
-{
-    MOS_OS_FUNCTION_ENTER;
-
-    MOS_OS_CHK_NULL_RETURN(streamState);
-    MOS_OS_CHK_NULL_RETURN(veState);
-
-    streamState->virtualEngineInterface = veState;
-
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS MosInterface::CreateVirtualEngineState(
     MOS_STREAM_HANDLE streamState,
     PMOS_VIRTUALENGINE_INIT_PARAMS veInitParms,

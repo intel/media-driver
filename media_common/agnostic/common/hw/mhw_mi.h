@@ -64,9 +64,9 @@ typedef enum _MHW_COMMON_MI_ADDRESS_SHIFT
 
 typedef enum _MHW_MI_SET_PREDICATE_ENABLE
 {
-    MHW_MI_SET_PREDICATE_DISABLE   = 0x0,
-    MHW_MI_SET_PREDICATE_ENABLE_ON_CLEAR,
-    MHW_MI_SET_PREDICATE_ENABLE_ON_SET,
+    MHW_MI_SET_PREDICATE_DISABLE   = 0x0, // Predication is Disabled and CS will process commands as usual.
+    MHW_MI_SET_PREDICATE_ENABLE_ON_CLEAR, // Following Commands will be NOOPED by CS only if the MI_PREDICATE_RESULT_2 is clear.
+    MHW_MI_SET_PREDICATE_ENABLE_ON_SET,   // Following Commands will be NOOPED by CS only if the MI_PREDICATE_RESULT_2 is set.
     MHW_MI_SET_PREDICATE_ENABLE_ALWAYS = 0xF,
 } MHW_MI_SET_PREDICATE_ENABLE;
 
