@@ -1110,7 +1110,7 @@ public:
          atomiParams.Operation         = (mhw::mi::MHW_COMMON_MI_ATOMIC_OPCODE) MHW_MI_ATOMIC_MOVE;
          atomiParams.bInlineData       = true;
          atomiParams.dwOperand1Data[0] = static_cast<uint32_t>(signalValue & 0xffffffff);
-         atomiParams.dwOperand1Data[0] = (static_cast<uint32_t>(signalValue >> 32));
+         atomiParams.dwOperand1Data[1] = (static_cast<uint32_t>(signalValue >> 32));
          auto status = MHW_ADDCMD_F(MI_ATOMIC)(cmdbuffer);
          MHW_CHK_STATUS_RETURN(status);
 
