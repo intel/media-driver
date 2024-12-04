@@ -18,6 +18,34 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(hw)
-media_include_subdirectory(vp)
-media_include_subdirectory(shared)
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/media_copy_xe3_lpm_base.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_vebox_copy_xe3_lpm_base.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_render_copy_xe3_lpm_base.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_blt_copy_xe3_lpm_base.cpp
+)
+
+
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/media_copy_xe3_lpm_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_vebox_copy_xe3_lpm_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_render_copy_xe3_lpm_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_blt_copy_xe3_lpm_base.h
+)
+
+set(SOFTLET_COMMON_SOURCES_
+    ${SOFTLET_COMMON_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+set(SOFTLET_COMMON_HEADERS_
+    ${SOFTLET_COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+source_group( "SharedNext\\Xe3_LPM_base\\shared\\MediaCopy" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+
+set(SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

@@ -18,6 +18,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(hw)
-media_include_subdirectory(vp)
-media_include_subdirectory(shared)
+media_include_subdirectory(pipeline)
+media_include_subdirectory(platform_interface)
+media_include_subdirectory(packet)
+media_include_subdirectory(feature_manager)

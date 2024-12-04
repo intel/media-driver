@@ -18,6 +18,28 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(hw)
-media_include_subdirectory(vp)
-media_include_subdirectory(shared)
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_adapter_xe3_lpm.cpp
+)
+
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/vp_pipeline_adapter_xe3_lpm.h
+)
+
+set(SOFTLET_VP_SOURCES_
+    ${SOFTLET_VP_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+set(SOFTLET_VP_HEADERS_
+    ${SOFTLET_VP_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+source_group( VpHalNext\\Xe3_LPM FILES ${TMP_SOURCES_} ${TMP_HEADERS_})
+set(TMP_SOURCES_ "")
+set(TMP_HEADERS_ "")
+set(SOFTLET_VP_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_VP_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
