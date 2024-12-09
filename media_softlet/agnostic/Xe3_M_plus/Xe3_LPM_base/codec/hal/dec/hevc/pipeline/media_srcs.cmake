@@ -1,4 +1,4 @@
-# Copyright (c) 2024, Intel Corporation
+# Copyright (c) 2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,18 +18,25 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(common)
-media_include_subdirectory(Xe_R)
-if(Xe_M_plus)
-    media_include_subdirectory(Xe_M_plus)
-endif()
-if(Xe2_M_plus)
-    media_include_subdirectory(Xe2_M_plus)
+if(${HEVC_Decode_Supported} STREQUAL "yes")
+set(SOFTLET_DECODE_HEVC_SOURCES_
+    ${SOFTLET_DECODE_HEVC_SOURCES_}
+    ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_pipeline_xe3_lpm_base.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_pipeline_adapter_xe3_lpm_base.cpp
+)
+
+set(SOFTLET_DECODE_HEVC_HEADERS_
+    ${SOFTLET_DECODE_HEVC_HEADERS_}
+    ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_pipeline_xe3_lpm_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_pipeline_adapter_xe3_lpm_base.h
+)
+
+source_group( CodecHalNext\\Xe2_LPM_base\\Decode FILES ${SOFTLET_DECODE_HEVC_SOURCES_} ${SOFTLET_DECODE_HEVC_HEADERS_})
+
 endif()
 
-if(PTL)
-    media_include_subdirectory(Xe3_M_plus)
-endif()
 
-
-include(${MEDIA_SOFTLET_EXT}/agnostic/media_srcs_ext.cmake OPTIONAL)
+set(SOFTLET_DECODE_HEVC_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_DECODE_HEVC_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

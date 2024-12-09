@@ -31,6 +31,10 @@
 #include "mhw_vdbox_avp_impl.h"
 #include "mhw_vdbox_avp_hwcmd_xe3_lpm.h"
 
+#ifdef IGFX_AVP_INTERFACE_EXT_SUPPORT
+#include "mhw_vdbox_avp_impl_xe3_lpm_base_ext.h"
+#endif
+
 namespace mhw
 {
 namespace vdbox
@@ -222,30 +226,8 @@ protected:
                 this->m_currentCmdBuf,
                 &resourceParams));
         }
+        __MHW_VDBOX_AVP_WRAPPER_EXT(AVP_PIPE_BUF_ADDR_STATE_IMPL_XE3_LPM_BASE_EXT);
 
-        if (!Mos_ResourceIsNull(params.rhoDomainThresholdTableBuffer))
-        {
-            InitMocsParams(resourceParams, &cmd.RhoDomainThresholdsBufferAddressAttributes.DW0.Value, 1, 6);
-
-            MOS_SURFACE details = {};
-            details.Format = Format_Invalid;
-            MHW_MI_CHK_STATUS(this->m_osItf->pfnGetResourceInfo(this->m_osItf, params.rhoDomainThresholdTableBuffer, &details));
-
-            cmd.RhoDomainThresholdsBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = this->MmcEnabled(params.mmcStatePreDeblock);
-            cmd.RhoDomainThresholdsBufferAddressAttributes.DW0.CompressionType                    = this->MmcRcEnabled(params.mmcStatePreDeblock);
-            cmd.RhoDomainThresholdsBufferAddressAttributes.DW0.TileMode                           = this->GetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
-
-            resourceParams.presResource    = params.rhoDomainThresholdTableBuffer;
-            resourceParams.dwOffset        = 0;
-            resourceParams.pdwCmd          = (cmd.RhoDomainThresholdsBufferAddress.DW0_1.Value);
-            resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(RhoDomainThresholdsBufferAddress);
-            resourceParams.bIsWritable     = true;
-
-            MHW_MI_CHK_STATUS(this->AddResourceToCmd(
-                this->m_osItf,
-                this->m_currentCmdBuf,
-                &resourceParams));
-        }
         return MOS_STATUS_SUCCESS;
     }
 
@@ -253,10 +235,11 @@ protected:
     {
         _MHW_SETCMD_CALLBASE(AVP_PIC_STATE);
 
-#define DO_FIELDS()                                                       \
-    DO_FIELD(DW64, VDAQMenable, params.VdaqmEnable);                      \
-    DO_FIELD(DW51, RhoDomainStreamoutEnableFlag, params.rhoDomainEnable); \
-    DO_FIELD(DW75, RhoDomainQp, params.rhoDomainQP)
+#define DO_FIELDS()                                                      \
+    DO_FIELD(DW64, VDAQMenable, params.VdaqmEnable);                     \
+
+#define DO_FIELDS_EXT()                                                  \
+    __MHW_VDBOX_AVP_WRAPPER_EXT(AVP_PIC_STATE_IMPL_XE3_LPM_BASE_EXT);
 
 #include "mhw_hwcmd_process_cmdfields.h"
     }

@@ -18,18 +18,5 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(common)
-media_include_subdirectory(Xe_R)
-if(Xe_M_plus)
-    media_include_subdirectory(Xe_M_plus)
-endif()
-if(Xe2_M_plus)
-    media_include_subdirectory(Xe2_M_plus)
-endif()
-
-if(PTL)
-    media_include_subdirectory(Xe3_M_plus)
-endif()
-
-
-include(${MEDIA_SOFTLET_EXT}/agnostic/media_srcs_ext.cmake OPTIONAL)
+media_include_subdirectory(dec)
+media_include_subdirectory(shared)
