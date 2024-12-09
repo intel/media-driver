@@ -3826,7 +3826,8 @@ MOS_FORMAT MosInterface::GmmFmtToMosFmt(
         {GMM_FORMAT_R24_UNORM_X8_TYPELESS, Format_D24S8UN},
         {GMM_FORMAT_R32_FLOAT_X8X24_TYPELESS, Format_D32S8X24_FLOAT},
         {GMM_FORMAT_R16G16_SINT_TYPE, Format_R16G16S},
-        {GMM_FORMAT_R32G32B32A32_FLOAT, Format_R32G32B32A32F}};
+        {GMM_FORMAT_R32G32B32A32_FLOAT, Format_R32G32B32A32F},
+        {GMM_FORMAT_R8G8_UNORM_TYPE, Format_R8G8UN}};
 
     auto iter = gmm2MosFmtMap.find(format);
     if (iter != gmm2MosFmtMap.end())
@@ -3888,7 +3889,8 @@ GMM_RESOURCE_FORMAT MosInterface::MosFmtToGmmFmt(MOS_FORMAT format)
         {Format_R10G10B10A2,    GMM_FORMAT_R10G10B10A2_UNORM_TYPE},
         {Format_B10G10R10A2,    GMM_FORMAT_B10G10R10A2_UNORM_TYPE},
         {Format_A16B16G16R16F,  GMM_FORMAT_R16G16B16A16_FLOAT},
-        {Format_R32G32B32A32F,  GMM_FORMAT_R32G32B32A32_FLOAT}
+        {Format_R32G32B32A32F,  GMM_FORMAT_R32G32B32A32_FLOAT},
+        {Format_R8G8UN,         GMM_FORMAT_R8G8_UNORM_TYPE}
     };
     
     auto iter = mos2GmmFmtMap.find(format);
