@@ -3594,6 +3594,7 @@ public:
             MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF,
             pOsInterface->pfnGetGmmClientContext(pOsInterface))).DwordValue;
 
+        cmd.DW17.EncDataControlFor3DLUT = 0;
         cmd.DW17.ChannelMappingSwapForLut3D   = params.LUT3D.ChannelMappingSwapForLut3D;  // B->Y, G->U, R->V for DV Perf
 
         cmd.DW17.ArbitrationPriorityControlForLut3D = params.LUT3D.ArbitrationPriorityControl;

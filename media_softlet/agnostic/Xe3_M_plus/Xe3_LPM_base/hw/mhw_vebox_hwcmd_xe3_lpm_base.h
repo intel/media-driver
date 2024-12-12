@@ -5212,7 +5212,8 @@ public:
                 uint32_t                 Lut3DStatePointerHigh                            : __CODEGEN_BITFIELD( 0, 15)    ; //!< 3D LUT State Pointer High
                 uint32_t                 Lut3DMocsTable                                   : __CODEGEN_BITFIELD(16, 21)    ; //!< 3D LUT MOCS table
                 uint32_t                 ChannelMappingSwapForLut3D                       : __CODEGEN_BITFIELD(22, 22)    ; //!< Channel mapping swap for 3D LUT
-                uint32_t                 Reserved567                                      : __CODEGEN_BITFIELD(23, 29)    ; //!< Reserved
+                uint32_t                 Reserved567                                      : __CODEGEN_BITFIELD(23, 28)    ; //!< Reserved
+                uint32_t                 EncDataControlFor3DLUT                           : __CODEGEN_BITFIELD(29, 29)    ; //!< Enc data control - For 3D LUT
                 uint32_t                 ArbitrationPriorityControlForLut3D               : __CODEGEN_BITFIELD(30, 31)    ; //!< ARBITRATION_PRIORITY_CONTROL_FOR_3D_LUT
             };
             uint32_t                     Value;
