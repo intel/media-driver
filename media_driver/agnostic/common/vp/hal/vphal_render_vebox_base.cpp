@@ -5299,8 +5299,8 @@ MOS_STATUS VPHAL_VEBOX_RENDER_DATA::Init()
     fScaleY              = 0.0f;
 
     bHdr3DLut            = false;
-    uiMaxDisplayLum      = 4000;
-    uiMaxContentLevelLum = 1000;
+    uiMaxDisplayLum      = 800;
+    uiMaxContentLevelLum = 4000;
     hdrMode              = VPHAL_HDR_MODE_NONE;
 
     return MOS_STATUS_SUCCESS;
