@@ -40,3 +40,4 @@ set(SOFTLET_COMMON_DLL_SOURCES_
 )
 
 source_group( "mos_softlet" FILES ${TMP_SOURCES_} ${TMP_SHARED_SOURCES_})
+media_add_curr_to_include_path()

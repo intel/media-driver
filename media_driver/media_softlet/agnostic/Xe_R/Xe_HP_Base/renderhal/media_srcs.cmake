@@ -43,3 +43,4 @@ set(COMMON_PRIVATE_INCLUDE_DIRS_
     ${COMMON_PRIVATE_INCLUDE_DIRS_}
     ${CMAKE_CURRENT_LIST_DIR}
 )
+media_add_curr_to_include_path()

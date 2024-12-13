@@ -44,6 +44,8 @@ source_group( CodecHalNext\\Xe2_LPM\\Encode FILES ${TMP_SOURCES_} ${TMP_HEADERS_
 set(TMP_SOURCES_ "")
 set(TMP_HEADERS_ "")
 
+media_add_curr_to_include_path()
+
 endif()
 
 set(SOFTLET_ENCODE_AV1_PRIVATE_INCLUDE_DIRS_

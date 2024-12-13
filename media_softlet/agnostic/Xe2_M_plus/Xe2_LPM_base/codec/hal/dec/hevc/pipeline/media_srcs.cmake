@@ -33,6 +33,8 @@ set(SOFTLET_DECODE_HEVC_HEADERS_
 
 source_group( CodecHalNext\\Xe2_LPM_base\\Decode FILES ${SOFTLET_DECODE_HEVC_SOURCES_} ${SOFTLET_DECODE_HEVC_HEADERS_})
 
+media_add_curr_to_include_path()
+
 endif()
 
 

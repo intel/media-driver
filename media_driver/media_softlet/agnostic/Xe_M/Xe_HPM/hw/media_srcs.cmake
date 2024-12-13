@@ -19,3 +19,5 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(vdbox)
+
+media_add_curr_to_include_path()

@@ -1,7 +1,8 @@
 #! /usr/bin/env python3
+
 """
-* Copyright (c) 2018, Intel Corporation
-*
+* Copyright (c) 2024, Intel Corporation
+
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
 * to deal in the Software without restriction, including without limitation
@@ -34,9 +35,10 @@ import os
 import os.path as path
 import re
 
-INDENT = "    "
+INDENT = "        "
+INDENT1 = "    "
 TOOL_DIR = "Tools/MediaDriverTools/Android/"
-TEMPLATE_DIR = path.join(TOOL_DIR, "mk")
+TEMPLATE_DIR = path.join(TOOL_DIR, "bp")
 
 
 def remove(f):
@@ -48,37 +50,39 @@ def getDriverName(root):
     if not path.exists(path.join(root, driver)):
         driver = "media-driver"
     if not path.exists(path.join(root, driver)):
-        raise Exception("driver path " + driver +" not existed")
+        raise Exception("driver path " + driver + " not existed")
     return driver
 
 class Generator:
-    def __init__(self, src, root, makefile=None):
-        #where to put the Android makefile
+    def __init__(self, src, root, driver_name = "", makefile=None):
+        # where to put the Android makefile
         self.makefile = makefile if makefile else src
 
-        #where is the major source file
+        # where is the major source file
         self.src = src
 
-        #driver name
+        # driver name
         driver = getDriverName(root)
-        #where to put build file and template
+
+        self.driver_name = driver_name
+        # where to put build file and template
         self.tool = path.join(root, driver, TOOL_DIR)
 
         """where to put the template"""
         self.templ = path.join(root, driver, TEMPLATE_DIR)
 
-    #major function
+    # major function
     def generate(self):
 
         if path.exists(self.src) == False:
             raise Exception(self.src + "not existed")
         self.generateMakefile()
 
-        mk = path.join(self.makefile, "Android.mk")
-        #remove old Android.mk
+        mk = path.join(self.makefile, "Android.bp")
+        # remove old Android.mk
         remove(mk)
 
-        #create new Android.mk
+        # create new Android.mk
         with open(self.getTemplatePath()) as f:
             tpl = f.read()
         tpl = tpl.replace("@LOCAL_SRC_FILES", self.getSources())
@@ -88,12 +92,12 @@ class Generator:
             f.write(tpl)
         print("generated " + self.getName() + " to " + self.makefile)
 
-    #virtuall functions
+    # virtual functions
     def getTemplate(self):
-        raise Exception("pure virtul function")
+        raise Exception("pure virtual function")
 
     def getFlagsfile(self):
-        raise Exception("pure virtul function")
+        raise Exception("pure virtual function")
 
     def getMakefile(self):
         return "Makefile"
@@ -108,19 +112,19 @@ class Generator:
         return path.join(self.tool, 'build', self.getName())
 
     def adjustSources(self, lines):
-        #print(lines)
+        # print(lines)
         return lines
 
     def adjustIncludes(self, lines):
-        #print(lines)
+        # print(lines)
         return lines
 
     def getCmakeCmd(self):
         return "cmake " + self.src
 
     def generateMakefile(self, debug=False):
-        #Win env can help us debug the script
-        #but we do not want generate makefile on Win-system
+        # Win env can help us debug the script
+        # but we do not want generate makefile on Win-system
         if os.name == "nt":
             return
         verbose = ";" if debug else "> /dev/null 2>&1;"
@@ -136,12 +140,18 @@ class Generator:
         includes = []
         lines = text.split("\n")
         for l in lines:
-            #normpath will make sure we did not refer outside.
+            # normpath will make sure we did not refer outside.
+            l = l.strip()[2:]
+            if l == '/linux':
+                continue
+
             p = path.normpath(l)
             j = p.find(self.src)
             if j != -1:
-                includes.append(p[j:].replace(self.src, "$(LOCAL_PATH)"))
-        return INDENT + ("\n" + INDENT).join(includes) if includes else ""
+                if ("Tools" in p[j:]):
+                    continue
+                includes.append((p[j:].replace(self.src, "")).lstrip("/"))
+        return INDENT + '"' + ("\n" + INDENT + '"').join(includes) if includes else ""
 
     def getDefines(self, name):
         flags = path.join(self.getBuildDir(), self.getFlagsfile())
@@ -152,17 +162,26 @@ class Generator:
             return ""
 
         line = line.replace(name + " = ", "").strip()
-        return INDENT + line.replace(" ", " \\\n" + INDENT) if line else ""
+        line = line.replace(" ", "\",\n") if line else ""
+        lines = line.split("\n")
+        lines[-1] = lines[-1] + '",'
+
+        # media-driver have common flags so indentation will be different
+        if (self.driver_name == "media-driver"):
+            print("driver name"+ self.driver_name)
+            return INDENT1 + '"' + ("\n" + INDENT1 + '"').join(lines)
+
+        return INDENT + '"' + ("\n" + INDENT + '"').join(lines)
 
     def getSources(self):
         makefile = path.join(self.getBuildDir(), self.getMakefile())
         with open(makefile) as f:
             text = f.read()
         lines = re.findall(".*?\\.o:\\n", text)
-        lines = [l.replace(".o:\n", " \\") for l in lines]
+        lines = [l.replace(".o:\n", "\",") for l in lines]
         self.adjustSources(lines)
-        #make source pretty
-        return INDENT + ("\n" + INDENT).join(lines)
+        # make source pretty
+        return INDENT + '"' + ("\n" + INDENT + '"').join(lines)
 
 
 class GmmGeneator(Generator):
@@ -175,6 +194,7 @@ class GmmGeneator(Generator):
 
     def getMakefile(self):
         return "Source/GmmLib/Makefile"
+
     def getFlagsfile(self):
         return "Source/GmmLib/CMakeFiles/igfx_gmmumd_dll.dir/flags.make"
 
@@ -184,7 +204,7 @@ class GmmGeneator(Generator):
             if j == -1:
                 lines[i] = path.join("Source/GmmLib", l)
             else:
-                lines[i] = path.join("Source", l[j+3:])
+                lines[i] = path.join("Source", l[j + 3:])
 
 
 class CmrtGeneator(Generator):
@@ -207,17 +227,17 @@ class CmrtGeneator(Generator):
             if j == -1:
                 lines[i] = path.join("linux", l)
             else:
-                lines[i] = l[j+3:]
+                lines[i] = l[j + 3:]
 
 
 class DriverGeneator(Generator):
     def __init__(self, root):
-        src = path.join(root, getDriverName(root), "media_driver")
-        super(DriverGeneator, self).__init__(src, root)
+        src = path.join(root, getDriverName(root))
+        super(DriverGeneator, self).__init__(src, root,"media-driver")
 
     def getCmakeCmd(self):
-        wd = path.join(self.src, "..")
-        cmd = 'cmake ' + wd +' -DCMAKE_INSTALL_PREFIX=/usr'
+        wd = self.src
+        cmd = 'cmake ' + wd + ' -DCMAKE_INSTALL_PREFIX=/usr'
         cmd += ' -DBUILD_ALONG_WITH_CMRTLIB=1 -DBS_DIR_GMMLIB=' + path.join(wd, '../gmmlib/Source/GmmLib/')
         cmd += ' -DBS_DIR_COMMON=' + path.join(wd, '../gmmlib/Source/Common/')
         cmd += ' -DBS_DIR_INC=' + path.join(wd, '../gmmlib/Source/inc/')
@@ -234,14 +254,21 @@ class DriverGeneator(Generator):
         return "media_driver/CMakeFiles/iHD_drv_video.dir/flags.make"
 
     def adjustSources(self, lines):
-        lines[:] = [l for l in lines if "media_libva_putsurface_linux.cpp" not in l]
+        for i, l in enumerate(lines):
+            j = l.find("__/")
+            if j == -1:
+                lines[i] = "media_driver/" + l
+            else:
+                lines[i] = l[j + 3:]
+        lines[:] = [l for l in lines if "media_libva_putsurface_linux.cpp" not in l
+                                     and '/private/' not in l and 'Tools' not in l]
 
 class Main:
 
     def run(self):
         tool = path.dirname(__file__)
         root = path.abspath(path.join(tool, "../../../../"))
-        print("root = "+root)
+        print("root = " + root)
         gens = [GmmGeneator(root), CmrtGeneator(root), DriverGeneator(root)]
         for g in gens:
             g.generate()
