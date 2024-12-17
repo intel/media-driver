@@ -767,7 +767,7 @@ MOS_STATUS EncodeScalabilityMultiPipe::SendAttrWithFrameTracking(
 
     if (frameTrackingRequested && m_frameTrackingEnabled)
     {
-        m_statusReport->GetAddress(encode::statusReportGlobalCount, resource, offset);
+        ENCODE_CHK_STATUS_RETURN(m_statusReport->GetAddress(encode::statusReportGlobalCount, resource, offset));
         cmdBuffer.Attributes.bEnableMediaFrameTracking    = true;
         cmdBuffer.Attributes.resMediaFrameTrackingSurface = resource;
         cmdBuffer.Attributes.dwMediaFrameTrackingTag      = m_statusReport->GetSubmittedCount() + 1;
