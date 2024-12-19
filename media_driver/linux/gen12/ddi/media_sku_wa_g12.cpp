@@ -442,6 +442,9 @@ static bool InitDG1MediaWa(struct GfxDeviceInfo *devInfo,
 
     /* Enable VPP copy */
     MEDIA_WR_WA(waTable, WaEnableVPPCopy, 1);
+
+    MEDIA_WR_WA(waTable, WaDisableSetObjectCapture, 1);
+
     return true;
 }
 
