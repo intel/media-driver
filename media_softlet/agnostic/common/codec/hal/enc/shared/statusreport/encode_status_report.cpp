@@ -356,7 +356,7 @@ namespace encode {
 
         statusReportData->pFrmStatsInfo = ((EncodeStatusReportData *)report)->pFrmStatsInfo;
         statusReportData->pBlkStatsInfo = ((EncodeStatusReportData *)report)->pBlkStatsInfo;
-        if (((EncodeStatusReportData *)report)->pBlkQualityInfo)
+        if (!statusReportData->pBlkQualityInfo)
         {
             statusReportData->pBlkQualityInfo = ((EncodeStatusReportData *)report)->pBlkQualityInfo;
         }
