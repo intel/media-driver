@@ -142,3 +142,10 @@ GPU_CONTEXT_HANDLE DecodeAvcPipelineAdapterXe3_Lpm_Base::GetDecodeContextHandle(
 
     return m_decoder->GetDecodeContextHandle();
 }
+
+MOS_STATUS DecodeAvcPipelineAdapterXe3_Lpm_Base::SetDecodeFormat(bool isShortFormat)
+{
+    DECODE_FUNC_CALL();
+
+    return m_decoder->SetDecodeFormat(isShortFormat);
+}
