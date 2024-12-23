@@ -504,7 +504,7 @@ namespace encode
             EncodeReadBrcPakStatsParams readBrcPakStatsParams;
             MOS_RESOURCE *              osResource = nullptr;
             uint32_t                    offset = 0;
-            m_statusReport->GetAddress(statusReportNumberPasses, osResource, offset);
+            ENCODE_CHK_STATUS_RETURN(m_statusReport->GetAddress(statusReportNumberPasses, osResource, offset));
             RUN_FEATURE_INTERFACE_RETURN(HEVCEncodeBRC, HevcFeatureIDs::hevcBrcFeature, SetReadBrcPakStatsParams, ucPass, offset, osResource, readBrcPakStatsParams);
             ReadBrcPakStatistics(&cmdBuffer, &readBrcPakStatsParams);
         }
@@ -832,7 +832,7 @@ namespace encode
                 EncodeReadBrcPakStatsParams readBrcPakStatsParams;
                 MOS_RESOURCE               *osResource = nullptr;
                 uint32_t                    offset     = 0;
-                m_statusReport->GetAddress(statusReportNumberPasses, osResource, offset);
+                ENCODE_CHK_STATUS_RETURN(m_statusReport->GetAddress(statusReportNumberPasses, osResource, offset));
                 RUN_FEATURE_INTERFACE_RETURN(HEVCEncodeBRC, HevcFeatureIDs::hevcBrcFeature, SetReadBrcPakStatsParams, ucPass, offset, osResource, readBrcPakStatsParams);
                 ReadBrcPakStatistics(&cmdBuffer, &readBrcPakStatsParams);
             }
@@ -1546,7 +1546,7 @@ MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFE
         miStoreRegMemParams.dwRegister      = mmioRegisters->hcpEncImageStatusCtrlRegOffset;
         ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
         
-        m_statusReport->GetAddress(statusReportImageStatusCtrlOfLastBRCPass, osResource, offset);
+        ENCODE_CHK_STATUS_RETURN(m_statusReport->GetAddress(statusReportImageStatusCtrlOfLastBRCPass, osResource, offset));
         miStoreRegMemParams                 = {};
         miStoreRegMemParams.presStoreBuffer = osResource;
         miStoreRegMemParams.dwOffset        = offset;

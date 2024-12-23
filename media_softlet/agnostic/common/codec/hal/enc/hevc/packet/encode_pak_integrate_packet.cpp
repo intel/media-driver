@@ -1088,7 +1088,7 @@ namespace encode {
         auto          mmioRegisters = m_hcpItf->GetMmioRegisters(m_vdboxIndex);
         MOS_RESOURCE *osResource    = nullptr;
         uint32_t      offset        = 0;
-        m_statusReport->GetAddress(statusReportImageStatusCtrl, osResource, offset);
+        ENCODE_CHK_STATUS_RETURN(m_statusReport->GetAddress(statusReportImageStatusCtrl, osResource, offset));
         //uint32_t baseOffset = (m_encodeStatusBuf.wCurrIndex * m_encodeStatusBuf.dwReportSize) + sizeof(uint32_t) * 2;  // encodeStatus is offset by 2 DWs in the resource
 
         // Write back the HCP image control register for RC6 may clean it out
