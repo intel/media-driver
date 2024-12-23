@@ -233,13 +233,11 @@ namespace encode
         else
             dmem->UPD_MaxBRCLevel = 0;
 
-        bool bAllowedPyramid = seqParams->GopRefDist != 3;
-
         if (m_basicFeature->m_pictureCodingType == I_TYPE)
         {
             dmem->UPD_CurrFrameType = AV1_BRC_FRAME_TYPE_I;
         }
-        else if (seqParams->SeqFlags.fields.HierarchicalFlag && bAllowedPyramid)
+        else if (seqParams->SeqFlags.fields.HierarchicalFlag)
         {
             if (picParams->HierarchLevelPlus1 > 0)
             {
