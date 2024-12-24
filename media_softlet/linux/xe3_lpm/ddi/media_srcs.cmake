@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023, Intel Corporation
+# Copyright (c) 2024, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,22 +18,18 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-if(MTL OR ARL)
-    media_include_subdirectory(media_interfaces_mtl)
-endif()
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/caps_register_specific_xe3_lpm.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_sysinfo_ptl.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_sku_wa_ptl.cpp
+)
 
-if(ARL)
-    media_include_subdirectory(media_interfaces_arl)
-endif()
+set(SOFTLET_DDI_SOURCES_
+    ${SOFTLET_DDI_SOURCES_}
+    ${TMP_SOURCES_}
+)
 
-if(LNL)
-    media_include_subdirectory(media_interfaces_lnl)
-endif()
-
-if(BMG)
-    media_include_subdirectory(media_interfaces_bmg)
-endif()
-
-if(PTL)
-    media_include_subdirectory(media_interfaces_ptl)
-endif()
+set(SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_
+    ${SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

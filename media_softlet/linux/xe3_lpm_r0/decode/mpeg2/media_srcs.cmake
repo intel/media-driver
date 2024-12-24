@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023, Intel Corporation
+# Copyright (c) 2024, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -6,7 +6,7 @@
 # the rights to use, copy, modify, merge, publish, distribute, sublicense,
 # and/or sell copies of the Software, and to permit persons to whom the
 # Software is furnished to do so, subject to the following conditions:
-#
+# 
 # The above copyright notice and this permission notice shall be included
 # in all copies or substantial portions of the Software.
 #
@@ -18,22 +18,4 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-if(MTL OR ARL)
-    media_include_subdirectory(media_interfaces_mtl)
-endif()
-
-if(ARL)
-    media_include_subdirectory(media_interfaces_arl)
-endif()
-
-if(LNL)
-    media_include_subdirectory(media_interfaces_lnl)
-endif()
-
-if(BMG)
-    media_include_subdirectory(media_interfaces_bmg)
-endif()
-
-if(PTL)
-    media_include_subdirectory(media_interfaces_ptl)
-endif()
+media_include_subdirectory(ddi)

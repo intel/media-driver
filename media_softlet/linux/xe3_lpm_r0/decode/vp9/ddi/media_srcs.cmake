@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023, Intel Corporation
+# Copyright (c) 2024, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -6,7 +6,7 @@
 # the rights to use, copy, modify, merge, publish, distribute, sublicense,
 # and/or sell copies of the Software, and to permit persons to whom the
 # Software is furnished to do so, subject to the following conditions:
-#
+# 
 # The above copyright notice and this permission notice shall be included
 # in all copies or substantial portions of the Software.
 #
@@ -18,22 +18,13 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-if(MTL OR ARL)
-    media_include_subdirectory(media_interfaces_mtl)
-endif()
+set (TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/capstable_data_vp9_decode_xe3_lpm_r0_specific.h
+)
 
-if(ARL)
-    media_include_subdirectory(media_interfaces_arl)
-endif()
+set (HEADERS_
+    ${HEADERS_}
+    ${TMP_HEADERS_}
+)
 
-if(LNL)
-    media_include_subdirectory(media_interfaces_lnl)
-endif()
-
-if(BMG)
-    media_include_subdirectory(media_interfaces_bmg)
-endif()
-
-if(PTL)
-    media_include_subdirectory(media_interfaces_ptl)
-endif()
+media_add_curr_to_include_path()

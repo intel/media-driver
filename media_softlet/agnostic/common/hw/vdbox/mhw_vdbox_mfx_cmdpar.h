@@ -287,9 +287,9 @@ struct _MHW_PAR_T(MFX_AVC_IMG_STATE)
     uint32_t                  numMBs                                       = 0;
     uint32_t                  imgStructImageStructureImgStructure10        = 0;
     uint32_t                  interViewOrderDisable                        = 0;
-    bool                      vdaqmEnable                                  = false;
-    
-    __MHW_VDBOX_MFX_WRAPPER_EXT(MFX_AVC_IMG_STATE_CMDPAR_EXT);
+    bool                      vdaqmEnable                                  = false;  
+    uint8_t                   bitDepthLumaMinus8                           = 0;                
+    uint8_t                   bitDepthChromaMinus8                         = 0;
 };
 
 struct _MHW_PAR_T(MFX_AVC_REF_IDX_STATE)
