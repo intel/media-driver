@@ -350,6 +350,10 @@ VAStatus MediaLibvaUtilNext::GenerateGmmParamsForNoneCompressionExternalSurface(
             gmmCustomParams.Flags.Info.Linear = true;
     }
 
+
+    // Init NotCompressed flag as true to default Create as uncompressed surface on Xe2 Compression.
+    gmmCustomParams.Flags.Info.NotCompressed = 1;
+
     switch (mediaSurface->pSurfDesc->uiPlanes)
     {
         case 1:
@@ -422,6 +426,13 @@ VAStatus MediaLibvaUtilNext::GenerateGmmParamsForCompressionExternalSurface(
     gmmCustomParams.BaseAlignment = 4096;
     gmmCustomParams.NoOfPlanes    = mediaSurface->pSurfDesc->uiPlanes;
     gmmCustomParams.CpTag         = params.cpTag;
+
+    if (MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrXe2Compression))
+    {
+        // Init NotCompressed flag as false to default Create as compressed surface w/ Xe2 Compression.
+        gmmCustomParams.Flags.Info.NotCompressed = 0;
+    }
+
     switch (params.tileFormat)
     {
         case TILING_Y:

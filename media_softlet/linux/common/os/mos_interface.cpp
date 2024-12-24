@@ -2393,8 +2393,8 @@ MOS_STATUS MosInterface::GetMemoryCompressionMode(
 
     if (MEDIA_IS_SKU(skuTable, FtrXe2Compression))
     {
-        // reusing MC to mark all media engins to turn on compression
-        if (resource->pGmmResInfo->GetResFlags().Info.MediaCompressed == 1)
+        // reusing MC to mark all media engins to turn on compression w/ NotCompressed Flag
+        if (!resource->pGmmResInfo->GetResFlags().Info.NotCompressed)
         {
             resMmcMode = MOS_MEMCOMP_MC;
         }
@@ -2939,11 +2939,12 @@ unsigned int MosInterface::GetPATIndexFromGmm(
                 return false;
             }
         };
+
         // GetDriverProtectionBits funtion could hide gmm details info,
         // and we should use GetDriverProtectionBits to replace CachePolicyGetPATIndex in future.
         // isCompressionEnable could be false temparaily.
         bool isCompressionEnable = false;
-        if (gmmResourceInfo->GetResFlags().Info.MediaCompressed     &&
+        if (gmmResourceInfo->GetResFlags().Info.NotCompressed == 0  &&
             IsFormatSupportCompression()                            &&
             gmmResourceInfo->GetResFlags().Info.Tile4 == 1          &&
             gmmResourceInfo->GetBaseWidth() > 64                    &&
