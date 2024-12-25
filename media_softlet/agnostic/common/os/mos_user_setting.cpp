@@ -1375,7 +1375,14 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         MediaUserSetting::Group::Device,
         0,
         true); // "Enable NULL HW or not"
-
+#if (_DEBUG || _RELEASE_INTERNAL)
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_NULLHW_PROXY_REPEAT_COUNT,
+        MediaUserSetting::Group::Device,
+        0,
+        true);
+#endif
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_PLATFORM,

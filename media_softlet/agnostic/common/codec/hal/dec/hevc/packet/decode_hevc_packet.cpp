@@ -27,7 +27,9 @@
 #include "decode_status_report_defs.h"
 #include "decode_predication_packet.h"
 #include "decode_marker_packet.h"
-
+#if (_DEBUG || _RELEASE_INTERNAL)
+#include "decode_nullhw_proxy_test_packet.h"
+#endif
 namespace decode {
 
 MOS_STATUS HevcDecodePkt::Init()
@@ -47,6 +49,28 @@ MOS_STATUS HevcDecodePkt::Init()
     m_allocator = m_hevcPipeline->GetDecodeAllocator();
     DECODE_CHK_NULL(m_allocator);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_osInterface->bNullHwIsEnabled)
+    {
+        auto nullhwProxy = DecodeNullHWProxyTestPkt::Instance();
+        DECODE_CHK_NULL(nullhwProxy);
+        nullhwProxy->Init(m_hevcPipeline, m_osInterface);
+    }
+#endif
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS HevcDecodePkt::Destroy()
+{
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_osInterface->bNullHwIsEnabled)
+    {
+        auto nullhwProxy = DecodeNullHWProxyTestPkt::Instance();
+        DECODE_CHK_NULL(nullhwProxy);
+        DECODE_CHK_STATUS(nullhwProxy->Destory());
+    }
+#endif
     return MOS_STATUS_SUCCESS;
 }
 
@@ -233,13 +257,25 @@ MOS_STATUS HevcDecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER*
 {
     DECODE_FUNC_CALL();
     DECODE_CHK_NULL(cmdBuffer);
-    DECODE_CHK_STATUS(MediaPacket::StartStatusReportNext(srType, cmdBuffer));
+    DECODE_CHK_NULL(m_hevcPipeline);
+    DECODE_CHK_NULL(m_osInterface);
 
     SetPerfTag(CODECHAL_DECODE_MODE_HEVCVLD, m_hevcBasicFeature->m_pictureCodingType);
 
     MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
     DECODE_CHK_NULL(perfProfiler);
-    DECODE_CHK_STATUS(perfProfiler->AddPerfCollectStartCmd((void*)m_hevcPipeline, m_osInterface, m_miItf, cmdBuffer));
+    DECODE_CHK_STATUS(perfProfiler->AddPerfCollectStartCmd((void *)m_hevcPipeline, m_osInterface, m_miItf, cmdBuffer));
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_osInterface->bNullHwIsEnabled)
+    {
+        DecodeNullHWProxyTestPkt *nullhwProxy = DecodeNullHWProxyTestPkt::Instance();
+        DECODE_CHK_NULL(nullhwProxy);
+        nullhwProxy->AddNullHwProxyCmd(m_hevcPipeline, m_osInterface, cmdBuffer);
+    }
+#endif
+
+    DECODE_CHK_STATUS(MediaPacket::StartStatusReportNext(srType, cmdBuffer));
 
     return MOS_STATUS_SUCCESS;
 }

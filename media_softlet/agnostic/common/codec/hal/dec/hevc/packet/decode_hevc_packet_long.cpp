@@ -54,6 +54,7 @@ MOS_STATUS HevcDecodeLongPkt::Init()
 
 MOS_STATUS HevcDecodeLongPkt::Destroy()
 {
+    DECODE_CHK_STATUS(HevcDecodePkt::Destroy());
     m_statusReport->UnregistObserver(this);
     return MOS_STATUS_SUCCESS;
 }

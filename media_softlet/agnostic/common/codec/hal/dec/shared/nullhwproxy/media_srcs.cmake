@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022, Intel Corporation
+# Copyright (c) 2024, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,36 +18,26 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(pipeline)
-media_include_subdirectory(packet)
-media_include_subdirectory(features)
-media_include_subdirectory(bufferMgr)
-media_include_subdirectory(scalability)
-media_include_subdirectory(statusreport)
-media_include_subdirectory(mmc)
-media_include_subdirectory(hucItf)
-media_include_subdirectory(nullhwproxy)
 
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/decode_nullhw_proxy_test_packet.h
+)
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/decode_nullhw_proxy_test_packet.cpp
+)
+set(SOFTLET_ENCODE_COMMON_HEADERS_
+    ${SOFTLET_DECODE_COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
 set(SOFTLET_DECODE_COMMON_SOURCES_
     ${SOFTLET_DECODE_COMMON_SOURCES_}
-    ${CMAKE_CURRENT_LIST_DIR}/decode_input_bitstream.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/decode_unique_id.cpp
+    ${TMP_SOURCES_}
 )
-
-set(SOFTLET_DECODE_COMMON_HEADERS_
-    ${SOFTLET_DECODE_COMMON_HEADERS_}
-    ${CMAKE_CURRENT_LIST_DIR}/decode_utils.h
-    ${CMAKE_CURRENT_LIST_DIR}/decode_vdbox_mfx_common.h
-    ${CMAKE_CURRENT_LIST_DIR}/decode_input_bitstream.h
-    ${CMAKE_CURRENT_LIST_DIR}/decode_unique_id.h
-)
-
-
-source_group( CodecHalNext\\Shared\\Decode FILES ${SOFTLET_DECODE_COMMON_SOURCES_} ${SOFTLET_DECODE_COMMON_HEADERS_} )
+source_group( CodecHalNext\\Shared\\Decode\\Proprietary FILES ${TMP_HEADERS_} ${TMP_SOURCES_})
+set(TMP_HEADERS_ "")
+set(TMP_SOURCES_ "")
 
 set(SOFTLET_DECODE_COMMON_PRIVATE_INCLUDE_DIRS_
     ${SOFTLET_DECODE_COMMON_PRIVATE_INCLUDE_DIRS_}
     ${CMAKE_CURRENT_LIST_DIR}
 )
-
-
