@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -233,24 +233,21 @@ public:
         }
         else
         {
-            if ((frameWidth * frameHeight) >= (7680 * 4320))
+            if ((frameWidth * frameHeight) > (7680 * 4320))
             {
-                MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_8K_WATCHDOG_THRESHOLD_IN_MS;
+                MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_16K_WATCHDOG_THRESHOLD_IN_MS_PLUS;
             }
-            else if ((frameWidth * frameHeight) >= (3840 * 2160))
+            else if ((frameWidth * frameHeight) > (3840 * 2160))
             {
-                MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_4K_WATCHDOG_THRESHOLD_IN_MS;
+                MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_8K_WATCHDOG_THRESHOLD_IN_MS_PLUS;
+            }
+            else if ((frameWidth * frameHeight) > (1920 * 1080))
+            {
+                MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_4K_WATCHDOG_THRESHOLD_IN_MS_PLUS;
             }
             else
             {
-                MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_720P_WATCHDOG_THRESHOLD_IN_MS;
-            }
-
-            if ((CODECHAL_STANDARD)codecMode == CODECHAL_AV1)
-            {
-                // This is temporary solution to address the inappropriate threshold setting for high bit-rate AV1 decode.
-                // The final solution will incorporate bitstream size, increasing the setting when the bit-rate is high.
-                MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_AV1_WATCHDOG_THRESHOLD_IN_MS;
+                MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_FHD_WATCHDOG_THRESHOLD_IN_MS_PLUS;
             }
         }
 

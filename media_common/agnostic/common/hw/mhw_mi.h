@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2021, Intel Corporation
+* Copyright (c) 2015-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -50,6 +50,10 @@ class MhwCpInterface;
 #define MHW_MI_DECODER_AV1_WATCHDOG_THRESHOLD_IN_MS     80
 #define MHW_MI_DECODER_16K_WATCHDOG_THRESHOLD_IN_MS     180
 #define MHW_MI_DECODER_16Kx16K_WATCHDOG_THRESHOLD_IN_MS 256
+#define MHW_MI_DECODER_FHD_WATCHDOG_THRESHOLD_IN_MS_PLUS 30
+#define MHW_MI_DECODER_4K_WATCHDOG_THRESHOLD_IN_MS_PLUS  60
+#define MHW_MI_DECODER_8K_WATCHDOG_THRESHOLD_IN_MS_PLUS  120
+#define MHW_MI_DECODER_16K_WATCHDOG_THRESHOLD_IN_MS_PLUS 200
 #define MHW_MI_WATCHDOG_COUNTS_PER_MILLISECOND         (19200123 / 1000)   // Time stamp counts per millisecond
 
 typedef enum _MHW_COMMON_MI_ADDRESS_SHIFT
