@@ -45,9 +45,7 @@ Copyright (c) 2024, Intel Corporation
 
 #include "mhw_vdbox_huc_impl_xe3_lpm.h"
 
-#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_vdenc_impl_xe3_lpm.h"
-#endif
 
 #include "codec_hw_xe3_lpm_base.h"
 

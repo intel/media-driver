@@ -58,9 +58,7 @@ Copyright (c) 2024, Intel Corporation
 #endif
 
 using namespace mhw::vdbox::avp::xe3_lpm_base;
-#ifdef _MEDIA_RESERVED
 using namespace mhw::vdbox::vdenc::xe3_lpm_base;
-#endif
 using namespace mhw::vdbox::huc::xe3_lpm_base;
 
 extern template class MediaFactory<uint32_t, CodechalDeviceNext>;
@@ -252,13 +250,11 @@ MOS_STATUS MhwInterfacesPtl_Next::Initialize(
         auto ptr = std::make_shared<mhw::vdbox::huc::xe3_lpm_base::xe3_lpm::Impl>(osInterface, m_cpInterface);
         m_hucItf = std::static_pointer_cast<mhw::vdbox::huc::Itf>(ptr);
     }
-#ifdef _MEDIA_RESERVED
     if (params.Flags.m_vdboxAll || params.Flags.m_vdenc)
     {
         auto ptr = std::make_shared<mhw::vdbox::vdenc::xe3_lpm_base::xe3_lpm::Impl>(osInterface);
         m_vdencItf = std::static_pointer_cast<mhw::vdbox::vdenc::Itf>(ptr);
     }
-#endif
     if (params.Flags.m_blt)
     {
         auto bltptr = std::make_shared<mhw::blt::xe3_lpm::Impl>(osInterface);
