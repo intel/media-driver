@@ -417,13 +417,15 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
             VP_PUBLIC_CHK_STATUS_RETURN(PacketPipe::SwitchContext(VP_PIPELINE_PACKET_VEBOX, m_scalability,
                 m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox));
         }
-
-        bool computeContextEnabled = m_userFeatureControl->IsComputeContextEnabled();
-        auto packetId              = computeContextEnabled ? VP_PIPELINE_PACKET_COMPUTE : VP_PIPELINE_PACKET_RENDER;
-        VP_PUBLIC_NORMALMESSAGE("Create GpuContext for Compute/Render (PacketId: %d).", packetId);
-        VP_PUBLIC_CHK_STATUS_RETURN(PacketPipe::SwitchContext(packetId, m_scalability,
-            m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox));
-
+        // If the environment is SA media in which there are no GT IP, we could not create/use Render or Compute GPU context.
+        if (!(m_skuTable && MEDIA_IS_SKU(m_skuTable, FtrDisableGtIpSubmissions)))
+        {
+            bool computeContextEnabled = m_userFeatureControl->IsComputeContextEnabled();
+            auto packetId              = computeContextEnabled ? VP_PIPELINE_PACKET_COMPUTE : VP_PIPELINE_PACKET_RENDER;
+            VP_PUBLIC_NORMALMESSAGE("Create GpuContext for Compute/Render (PacketId: %d).", packetId);
+            VP_PUBLIC_CHK_STATUS_RETURN(PacketPipe::SwitchContext(packetId, m_scalability,
+                m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox));
+        }
         // create SinglePipe GpuContext for multi Vebox system to avoid first frame long latency issue
         if (m_numVebox > 1 && !(m_vpSettings && m_vpSettings->clearVideoViewMode))
         {
