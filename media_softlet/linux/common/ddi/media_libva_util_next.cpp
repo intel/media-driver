@@ -765,6 +765,12 @@ VAStatus MediaLibvaUtilNext::GenerateGmmParamsForInternalSurface(
     
     DDI_CHK_CONDITION(gmmParams.Format == GMM_FORMAT_INVALID, "Unsupported format", VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT);
 
+    if (MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrXe2Compression))
+    {
+        // Init NotCompressed flag as true to default Create as uncompressed surface on Xe2 Compression.
+        gmmParams.Flags.Info.NotCompressed = 1;
+    }
+
     switch (params.tileFormat)
     {
         case TILING_Y:
@@ -787,6 +793,11 @@ VAStatus MediaLibvaUtilNext::GenerateGmmParamsForInternalSurface(
                 {
                     gmmParams.Flags.Info.MediaCompressed  = 0;
                     gmmParams.Flags.Info.RenderCompressed = 1;
+                }
+
+                if(MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrXe2Compression))
+                {
+                    gmmParams.Flags.Info.NotCompressed = 0;
                 }
 
                 if (MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrRenderCompressionOnly))
