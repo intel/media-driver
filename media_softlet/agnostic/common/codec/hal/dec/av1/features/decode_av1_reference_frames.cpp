@@ -48,6 +48,9 @@ namespace decode
         DECODE_CHK_STATUS(
             CodecUtilities::CodecHalAllocateDataList((CODEC_REF_LIST_AV1 **)m_refList, CODECHAL_MAX_DPB_NUM_LST_AV1));
 
+        DECODE_CHK_NULL(m_basicFeature);
+        m_osInterface = m_basicFeature->GetOsInterface();
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -289,6 +292,24 @@ namespace decode
         m_currRefList->m_orderHint      = picParams.m_orderHint;
         m_currRefList->m_segmentEnable  = picParams.m_av1SegData.m_enabled;
         m_currRefList->m_frameType      = picParams.m_picInfoFlags.m_fields.m_frameType;
+
+        if (m_osInterface->pfnIsMismatchOrderProgrammingSupported() && !picParams.m_seqInfoFlags.m_fields.m_filmGrainParamsPresent)
+        {
+            uint8_t surfIndex = 0;
+            while (surfIndex <= CODECHAL_MAX_DPB_NUM_AV1)
+            {
+                if (!m_allocator->ResourceIsNull(&m_basicFeature->m_refFrameSurface[surfIndex].OsResource))
+                {
+                    auto refList            = m_refList[surfIndex];
+                    refList->resRefPic      = m_basicFeature->m_refFrameSurface[surfIndex].OsResource;
+                    refList->m_frameWidth   = picParams.m_superResUpscaledWidthMinus1 + 1;  //DPB buffer are always stored in full frame resolution (Super-Res up-scaled resolution)
+                    refList->m_frameHeight  = picParams.m_superResUpscaledHeightMinus1 + 1;
+                    m_currRefList->m_miCols = MOS_ALIGN_CEIL(picParams.m_frameWidthMinus1 + 1, 8) >> av1MiSizeLog2;
+                    m_currRefList->m_miRows = MOS_ALIGN_CEIL(picParams.m_frameHeightMinus1 + 1, 8) >> av1MiSizeLog2;
+                }
+                surfIndex++;
+            }
+        }
 
         if (!AV1_KEY_OR_INRA_FRAME(picParams.m_picInfoFlags.m_fields.m_frameType) &&
             picParams.m_seqInfoFlags.m_fields.m_enableOrderHint)
@@ -560,6 +581,12 @@ namespace decode
 
         uint8_t validfPicIndex   = 0;
         bool    hasValidRefIndex = false;
+
+        //To support mismatch order programming, disable frame error concelment here as refenrence list is unreliable.
+        if(m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+        {
+            return hr;
+        }
 
         for (auto i = 0; i < av1NumInterRefFrames; i++)
         {

@@ -50,6 +50,7 @@ MOS_STATUS HevcDecodeBackEndPkt::Init()
 
 MOS_STATUS HevcDecodeBackEndPkt::Destroy()
 {
+    DECODE_CHK_STATUS(HevcDecodePkt::Destroy());
     m_statusReport->UnregistObserver(this);
     return MOS_STATUS_SUCCESS;
 }

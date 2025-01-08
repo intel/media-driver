@@ -28,6 +28,7 @@
 #define __MEDIA_USER_SETTING_CONFIGURE__H__
 
 #include <string>
+#include <set>
 #include "media_user_setting_definition.h"
 #include "mos_utilities.h"
 
@@ -229,6 +230,7 @@ protected:
     std::string                                 m_statedReportPath = "";
 #if (_DEBUG || _RELEASE_INTERNAL)
     std::string                                 m_pidPath = "";
+    static std::set<std::string>                m_nonPidRegPaths;    // Record non-pid reg path which does not have inner pid path
 #endif
 };
 }

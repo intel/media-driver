@@ -8048,6 +8048,80 @@ bool CodechalVdencAvcState::IsMBBRCControlEnabled()
     return m_mbBrcEnabled || m_avcPicParam->bNativeROI;
 }
 
+MOS_STATUS CodechalVdencAvcState::GetVulkanQueryPoolResults(
+    uint32_t queryFrameIndex,
+    void    *pData,
+    uint64_t dataOffset,
+    bool     is64bit,
+    uint8_t  reportStatus,
+    bool     reportOffset,
+    bool     reportBitstreamSize)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    EncodeStatusBuffer *encodeStatusBuf = &m_encodeStatusBuf;
+
+    uint32_t baseOffset =
+        queryFrameIndex * m_encodeStatusBuf.dwReportSize +
+        sizeof(uint32_t) * 2;  
+
+    uint8_t *bytePtr      = reinterpret_cast<uint8_t *>(pData);
+    uint64_t vkDataoffset = dataOffset;
+    uint8_t *statusData   = reinterpret_cast<uint8_t *>(m_encodeStatusBuf.pData);
+
+    size_t   dataSize      = is64bit ? sizeof(uint64_t) : sizeof(uint32_t);
+    uint64_t offsetResult  = 0;
+    uint64_t statusResult  = 1;
+    void    *pOffsetResult = &offsetResult;
+    void    *pStatusResult = &statusResult;
+
+    if (!is64bit)
+    {
+        offsetResult  = static_cast<uint32_t>(offsetResult);
+        statusResult  = static_cast<uint32_t>(statusResult);
+        pOffsetResult = reinterpret_cast<uint32_t *>(&offsetResult);
+        pStatusResult = reinterpret_cast<uint32_t *>(&statusResult);
+    }
+
+    if (reportOffset)
+    {
+        eStatus = MOS_SecureMemcpy(bytePtr + vkDataoffset, dataSize, pOffsetResult, dataSize);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to get bitstream offset.");
+            return eStatus;
+        }
+        vkDataoffset += dataSize;
+    }
+    if (reportBitstreamSize)
+    {
+        eStatus = MOS_SecureMemcpy(
+            bytePtr + vkDataoffset,
+            dataSize,
+            statusData + baseOffset + encodeStatusBuf->dwBSByteCountOffset,
+            dataSize);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to get bitstream size from status buffer.");
+            return eStatus;
+        }
+        vkDataoffset += dataSize;
+    }
+    if (reportStatus)
+    {
+        eStatus = MOS_SecureMemcpy(bytePtr + vkDataoffset, dataSize, pStatusResult, dataSize);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to get encode status");
+            return eStatus;
+        }
+    }
+
+    return eStatus;
+}
+
+
 MOS_STATUS CodechalVdencAvcState::PrepareHWMetaData(
     PMOS_RESOURCE       presMetadataBuffer,
     PMOS_RESOURCE       presSliceSizeStreamoutBuffer,

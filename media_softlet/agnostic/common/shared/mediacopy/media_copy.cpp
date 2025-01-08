@@ -146,6 +146,11 @@ MOS_STATUS MediaCopyBaseState::CapabilityCheck(
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
+    if (MCPY_METHOD_PERFORMANCE == preferMethod && !caps.engineRender)
+    {
+        MCPY_ASSERTMESSAGE("No cap support for render copy, so app could not prefer to use EU copy");
+        return MOS_STATUS_INVALID_PARAMETER;            // Bypass media copy, and let APP handle it.
+    }
     // vebox cap check.
     if (!IsVeboxCopySupported(mcpySrc.OsRes, mcpyDst.OsRes) || // format check, implemented on Gen derivate class.
         mcpySrc.bAuxSuface)
@@ -479,7 +484,7 @@ MOS_STATUS MediaCopyBaseState::SurfaceCopy(PMOS_RESOURCE src, PMOS_RESOURCE dst,
         mcpySrc, mcpyDst,
         mcpyEngineCaps, preferMethod));
 
-    CopyEnigneSelect(preferMethod, mcpyEngine, mcpyEngineCaps);
+    MCPY_CHK_STATUS_RETURN(CopyEnigneSelect(preferMethod, mcpyEngine, mcpyEngineCaps));
 
     MCPY_CHK_STATUS_RETURN(ValidateResource(SrcResDetails, DstResDetails, mcpyEngine));
 

@@ -149,6 +149,7 @@ struct EncoderStatusParameters
     uint32_t           av1FrameHdrOBUSizeByteOffset;
     uint32_t           frameWidth;
     uint32_t           frameHeight;
+    void               *pBlkQualityInfo;
 };
 
 struct ImageStatusControl

@@ -52,27 +52,6 @@ MOS_STATUS VpScalabilityMultiPipe::Destroy()
 
     SCALABILITY_CHK_STATUS_RETURN(VpScalabilityMultiPipeNext::Destroy());
 
-    if (m_veInterface)
-    {
-        if (m_veInterface->pfnVEDestroy)
-        {
-            m_veInterface->pfnVEDestroy(m_veInterface);
-        }
-        MOS_FreeMemAndSetNull(m_veInterface);
-    }
-    else
-    {
-        if (!m_osInterface->apoMosEnabled)
-        {
-            // For VE not enabled/supported case, such as vp vebox on some platform, m_veInterface is nullptr.
-            // MOS_STATUS_SUCCESS should be returned for such case.
-            if (MOS_VE_SUPPORTED(m_osInterface))
-            {
-                SCALABILITY_CHK_NULL_RETURN(m_veInterface);
-            }
-        }
-    }
-
     return MOS_STATUS_SUCCESS;
 }
 

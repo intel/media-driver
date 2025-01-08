@@ -61,10 +61,12 @@ MOS_STATUS Vp8DecodePkt::Init()
     DecodeSubPacket *subPacket = m_vp8Pipeline->GetSubPacket(DecodePacketId(m_vp8Pipeline, vp8PictureSubPacketId));
     m_picturePkt               = dynamic_cast<Vp8DecodePicPkt *>(subPacket);
     DECODE_CHK_NULL(m_picturePkt);
+    DECODE_CHK_STATUS(m_picturePkt->CalculateCommandSize(m_pictureStatesSize, m_picturePatchListSize));
 
     subPacket  = m_vp8Pipeline->GetSubPacket(DecodePacketId(m_vp8Pipeline, vp8SliceSubPacketId));
     m_slicePkt = dynamic_cast<Vp8DecodeSlcPkt *>(subPacket);
     DECODE_CHK_NULL(m_slicePkt);
+    DECODE_CHK_STATUS(m_slicePkt->CalculateCommandSize(m_sliceStatesSize, m_slicePatchListSize));
 
     m_vp8BasicFeature = dynamic_cast<Vp8BasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
     DECODE_CHK_NULL(m_vp8BasicFeature);
@@ -193,6 +195,35 @@ MOS_STATUS Vp8DecodePkt::Completed(void *mfxStatus, void *rcsStatus, void *statu
 
     DECODE_VERBOSEMESSAGE("Index = %d", statusReportData->currDecodedPic.FrameIdx);
     DECODE_VERBOSEMESSAGE("FrameCrc = 0x%x", statusReportData->frameCrc);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+uint32_t Vp8DecodePkt::CalculateCommandBufferSize()
+{
+    uint32_t commandBufferSize = 0;
+    commandBufferSize          = m_pictureStatesSize + m_sliceStatesSize;
+
+    return (commandBufferSize + COMMAND_BUFFER_RESERVED_SPACE);
+}
+
+uint32_t Vp8DecodePkt::CalculatePatchListSize()
+{
+    if (!m_osInterface->bUsesPatchList)
+    {
+        return 0;
+    }
+
+    uint32_t requestedPatchListSize = 0;
+    requestedPatchListSize          = m_picturePatchListSize + m_slicePatchListSize;
+
+    return requestedPatchListSize;
+}
+
+MOS_STATUS Vp8DecodePkt::CalculateCommandSize(uint32_t& commandBufferSize, uint32_t& requestedPatchListSize)
+{
+    commandBufferSize      = CalculateCommandBufferSize();
+    requestedPatchListSize = CalculatePatchListSize();
 
     return MOS_STATUS_SUCCESS;
 }

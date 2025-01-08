@@ -1558,7 +1558,7 @@ namespace encode{
         //initialize following
         MOS_RESOURCE *osResourceInline = nullptr;
         uint32_t      offsetInline     = 0;
-        m_statusReport->GetAddress(statusReportGlobalCount, osResourceInline, offsetInline);
+        ENCODE_CHK_STATUS_RETURN(m_statusReport->GetAddress(statusReportGlobalCount, osResourceInline, offsetInline));
         offsetInline             = m_atomicScratchBuf.operandSetSize * m_atomicScratchBuf.encodeUpdateIndex;
         uint32_t zeroValueOffset = offsetInline;
         uint32_t operand1Offset  = offsetInline + m_atomicScratchBuf.operand1Offset;

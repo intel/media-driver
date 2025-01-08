@@ -300,6 +300,40 @@ public:
         uint16_t            numStatus);
 
     //!
+    //! \brief    Get Encode Status for Vulkan Query Pool
+    //! \details  Retrieve the necessary status and results for the Vulkan query pool
+    //!           from the status buffer, such as bitstream size, hardware encoding status, bitstream offset
+    //! \param    [in] queryFrameIndex
+    //!               The specified frame index
+    //!           [in] pData
+    //!               Points to the buffer passed by Vulkan for storing the results.
+    //!           [in] dataOffset
+    //!               Starting position for writing to pData
+    //!           [in] is64bit
+    //!               Whether each result is 64-bit, otherwise 32-bit.
+    //!           [in] reportStatus
+    //!               Whether the encode status needs to be returned
+    //!           [in] reportOffset
+    //!               Whether the bitstream offset needs to be returned
+    //!           [in] reportBitstream
+    //!               Whether the bitstream size needs to be returned
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS GetVulkanQueryPoolResults(
+        uint32_t queryFrameIndex,
+        void    *pData,
+        uint64_t dataOffset,
+        bool     is64bit,
+        uint8_t  reportStatus,
+        bool     reportOffset,
+        bool     reportBitstream)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+
+    //!
     //! \brief  Destroy codechl state
     //!
     //! \return void

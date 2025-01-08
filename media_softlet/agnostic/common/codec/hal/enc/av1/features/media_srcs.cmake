@@ -34,6 +34,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/encode_av1_aqm.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_av1_scc.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_av1_fastpass.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/encode_av1_rounding_table.cpp
 )
 
 set(TMP_HEADERS_
@@ -52,6 +53,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/encode_av1_aqm.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_av1_scc.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_av1_fastpass.h
+    ${CMAKE_CURRENT_LIST_DIR}/encode_av1_rounding_table.h
 )
 
 set(SOFTLET_ENCODE_AV1_HEADERS_

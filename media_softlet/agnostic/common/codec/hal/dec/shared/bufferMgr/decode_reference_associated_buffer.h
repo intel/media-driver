@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -141,6 +141,25 @@ public:
         DECODE_FUNC_CALL();
 
         DECODE_CHK_STATUS(UpdateRefList(curFrameIdx, refFrameList, fixedFrameIdx));
+        DECODE_CHK_STATUS(ActiveCurBuffer(curFrameIdx));
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    //!
+    //! \brief  Reactive buffers for current picture
+    //! \param  [in] frameIdx
+    //!         The frame index for current picture
+    //! \param  [in] refFrameList
+    //!         The frame indicies of reference frame list
+    //! \return  MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS ReActiveCurBuffer(uint32_t curFrameIdx, const std::vector<uint32_t> &refFrameList)
+    {
+        DECODE_FUNC_CALL();
+
+        DECODE_CHK_STATUS(DeActiveCurBuffer(curFrameIdx, refFrameList));
         DECODE_CHK_STATUS(ActiveCurBuffer(curFrameIdx));
 
         return MOS_STATUS_SUCCESS;
@@ -309,6 +328,38 @@ protected:
 
                 m_availableBuffers.push_back(buffer);
                 DECODE_CHK_STATUS(m_bufferOp.Deactive(buffer));
+            }
+            else
+            {
+                ++iter;
+            }
+        }
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    //!
+    //! \brief  Deactive buffers corresponding to reference list
+    //! \param  [in] curFrameIdx
+    //!         The frame index for current picture
+    //! \param  [in] refFrameList
+    //!         The frame indicies of reference frame list
+    //! \return  MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS DeActiveCurBuffer(uint32_t curFrameIdx, const std::vector<uint32_t> &refFrameList)
+    {
+        DECODE_FUNC_CALL();
+
+        auto iter = m_activeBuffers.begin();
+        while (iter != m_activeBuffers.end())
+        {
+            if (iter->first == curFrameIdx)
+            {
+                auto buffer = iter->second;
+                iter        = m_activeBuffers.erase(iter);
+
+                m_availableBuffers.push_back(buffer);
             }
             else
             {

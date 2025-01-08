@@ -1045,7 +1045,7 @@ namespace decode
         par.HucProcessing                = true;
 
         par.HucBitstreamEnable             = 1;
-        par.EmulationPreventionByteRemoval = 1;
+        par.EmulationPreventionByteRemoval = 0;
         par.StartCodeSearchEngine          = 0;
         par.StartCodeByte0                 = 0;
         par.StartCodeByte1                 = 0;

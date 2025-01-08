@@ -182,8 +182,15 @@ public:
     // false to use nearest or bilinear based on the requirement of each layer.
     static bool s_forceNearestToBilinearIfBilinearExists;
 
+    static MOS_STATUS IsChromaSamplingNeeded(bool &isChromaUpSamplingNeeded, bool &isChromaDownSamplingNeeded, VPHAL_SURFACE_TYPE surfType, int layerIndex, MOS_FORMAT inputFormat, MOS_FORMAT outputFormat);
+
+protected:
+    static bool       IsBobDiEnabled(SwFilterDeinterlace *di, VP_SURFACE &input);
+    static bool       IsInterlacedInputSupported(VP_SURFACE &input);
+    static MOS_STATUS Get3DSamplerScalingMode(VPHAL_SCALING_MODE &scalingMode, SwFilterSubPipe &pipe, int layerIndex, VP_SURFACE &input, VP_SURFACE &output);
+    MOS_STATUS        RemoveTransparentLayers(SwFilterPipe &featurePipe);
+
 private:
-    MOS_STATUS RemoveTransparentLayers(SwFilterPipe& featurePipe);
     virtual MOS_STATUS AddInputLayerForProcess(bool &bSkip, std::vector<int> &layerIndexes, VPHAL_SCALING_MODE &scalingMode, int index, VP_SURFACE &input, SwFilterSubPipe& pipe, VP_SURFACE &output, VP_EXECUTE_CAPS& caps);
 
     PacketParamFactory<VpRenderFcParameter> m_PacketParamFactory;

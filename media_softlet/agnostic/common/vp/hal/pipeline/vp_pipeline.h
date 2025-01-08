@@ -475,6 +475,7 @@ protected:
     VpUserFeatureControl  *m_userFeatureControl = nullptr;
     std::vector<VpSinglePipeContext *> m_vpPipeContexts     = {};
     VpPipelineParamFactory            *m_pipelineParamFactory = nullptr;
+    bool                               m_reportOnceFlag       = true;
 
     MEDIA_CLASS_DEFINE_END(vp__VpPipeline)
 };

@@ -7092,6 +7092,12 @@ bool Mos_Specific_IsAsyncDevice(PMOS_INTERFACE pOsInterface)
     return false;
 }
 
+bool Mos_Specific_IsGpuSyncByCmd(
+    PMOS_INTERFACE osInterface)
+{
+    return false;
+}
+
 //! \brief    Unified OS Initializes OS Linux Interface
 //! \details  Linux OS Interface initilization
 //! \param    PMOS_INTERFACE pOsInterface
@@ -7270,6 +7276,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnInitCmInterface                        = InitCmOsDDIInterface;
 
     pOsInterface->pfnIsAsynDevice                           = Mos_Specific_IsAsyncDevice;
+    pOsInterface->pfnIsGpuSyncByCmd                         = Mos_Specific_IsGpuSyncByCmd;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     pOsInterface->pfnGetEngineLogicId                       = Mos_Specific_GetEngineLogicId;

@@ -334,6 +334,16 @@ public:
         return eStatus;
     }
 
+    inline uint32_t GetOpLength(uint32_t uiLength) 
+    {
+        #define __CODEGEN_MAX(_a, _b) (((_a) > (_b)) ? (_a) : (_b))
+        #define __CODEGEN_BITFIELD(l, h) (h) - (l) + 1
+        #define __CODEGEN_OP_LENGTH_BIAS 2
+        #define __CODEGEN_OP_LENGTH(x) (uint32_t)((__CODEGEN_MAX(x, __CODEGEN_OP_LENGTH_BIAS)) - __CODEGEN_OP_LENGTH_BIAS)
+
+        return __CODEGEN_OP_LENGTH(uiLength);
+    }
+
     protected:
         RowStoreCache m_hevcDatRowStoreCache  = {};
         RowStoreCache m_hevcDfRowStoreCache   = {};

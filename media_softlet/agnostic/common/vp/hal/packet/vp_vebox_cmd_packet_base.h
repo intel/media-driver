@@ -39,7 +39,9 @@ public:
     VpVeboxCmdPacketBase(MediaTask * task, PVP_MHWINTERFACE hwInterface, PVpAllocator &allocator, VPMediaMemComp *mmc);
     virtual ~VpVeboxCmdPacketBase();
     virtual MOS_STATUS SetSfcCSCParams(PSFC_CSC_PARAMS cscParams)       = 0;
+    virtual MOS_STATUS SetVeboxCSCParams(PVEBOX_CSC_PARAMS cscParams)   = 0;
     virtual MOS_STATUS SetVeboxBeCSCParams(PVEBOX_CSC_PARAMS cscParams) = 0;
+    virtual MOS_STATUS SetVeboxFeCSCParams(PVEBOX_CSC_PARAMS cscParams) = 0;
     virtual MOS_STATUS SetDiParams(PVEBOX_DI_PARAMS diParams)           = 0;
     virtual MOS_STATUS SetDnParams(PVEBOX_DN_PARAMS pDnParams)          = 0;
     virtual MOS_STATUS SetHdrParams(PVEBOX_HDR_PARAMS hdrParams)        = 0;

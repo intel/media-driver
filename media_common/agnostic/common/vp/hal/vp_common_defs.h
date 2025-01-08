@@ -1075,6 +1075,8 @@ struct VPHAL_RENDER_PARAMS
 
     bool bForceToRender = false;  // Force to render to perform scaling.
 
+    HANDLE gpuAppTaskEvent;  //!< GPU App task event
+
     VPHAL_RENDER_PARAMS() : uSrcCount(0),
                             pSrc(),
                             uDstCount(0),
@@ -1097,7 +1099,8 @@ struct VPHAL_RENDER_PARAMS
                             pExtensionData(nullptr),
                             bPathKernel(false),
                             bUseVEHdrSfc(false),
-                            bNonFirstFrame(false)
+                            bNonFirstFrame(false),
+                            gpuAppTaskEvent(nullptr)
     {
     }
 };

@@ -219,6 +219,14 @@ public:
     MOS_STATUS Render(VEBOX_SFC_PARAMS &param);
 
     //!
+    //! \brief    Sfc Command Size
+    //! \details  Calculate Command size of SFC commands.
+    //! \return   uint32_t
+    //!           Return calculated size
+    //!
+    uint32_t GetSfcCommandSize();
+
+    //!
     //! \brief    MediaSfcInterface initialize
     //! \details  Initialize the MediaSfcInterface.
     //! \param    mode

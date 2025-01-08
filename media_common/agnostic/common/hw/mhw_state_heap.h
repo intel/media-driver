@@ -253,6 +253,7 @@ typedef struct _MHW_KERNEL_PARAM
     void    *pExtra;                         //!< Kernel parameter
     uint8_t *pBinary;                        //!< Pointer to kernel binary
     int32_t iSize;                          //!< Kernel size
+    int32_t iPaddingSize;                   //!< Padding size  
     int32_t iGrfCount;                      //!< Number of registers
     int32_t iBTCount;                       //!< Number of BT entries
     int32_t iThreadCount;                   //!< Number of threads (max)

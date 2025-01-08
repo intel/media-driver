@@ -26,6 +26,7 @@ media_include_subdirectory(scalability)
 media_include_subdirectory(statusreport)
 media_include_subdirectory(mmc)
 media_include_subdirectory(hucItf)
+media_include_subdirectory(nullhwproxy)
 
 set(SOFTLET_DECODE_COMMON_SOURCES_
     ${SOFTLET_DECODE_COMMON_SOURCES_}

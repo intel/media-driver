@@ -109,6 +109,7 @@ static bool InitLnlShadowSku(struct GfxDeviceInfo *devInfo,
 
     bool disableMMC = false;
     skuTable->FtrE2ECompression = 1;
+    skuTable->FtrXe2Compression = 1;
     // Disable MMC for all components if set reg key
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));

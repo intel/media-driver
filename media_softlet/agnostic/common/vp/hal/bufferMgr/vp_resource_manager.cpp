@@ -1183,51 +1183,145 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
             m_fcSeparateIntermediaSurfaceSecPlaneInput[i]->rcSrc.right  = inputSurfaces[i]->rcSrc.right / widthPL1Factor;
             m_fcSeparateIntermediaSurfaceSecPlaneInput[i]->rcDst        = inputSurfaces[i]->rcDst;
             m_fcSeparateIntermediaSurfaceSecPlaneInput[i]->SampleType   = inputSurfaces[i]->SampleType;
-            surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcSeparateIntermediaInputSecPlane + i), m_fcSeparateIntermediaSurfaceSecPlaneInput[i]));
+            surfSetting.surfGroup.emplace((SurfaceType)(SurfaceTypeFcSeparateIntermediaInputSecPlane + i), m_fcSeparateIntermediaSurfaceSecPlaneInput[i]);
         }
     }
     // Allocate OCL FC intermedia outputSurface
     {
-        MOS_FORMAT fcIntermediaSurfaceOutputFormat = Format_Any;
-        VP_PUBLIC_CHK_NULL_RETURN(outputSurface);
-        VP_PUBLIC_CHK_NULL_RETURN(outputSurface->osSurface);
-        switch (outputSurface->osSurface->Format)
+        // Allocate OCL FC intermedia inputSurface
+        for (uint32_t i = 0; i < inputSurfaces.size(); ++i)
         {
-        case Format_RGBP:
-        case Format_BGRP:
-            fcIntermediaSurfaceOutputFormat = Format_A8R8G8B8;
-            break;
-        case Format_444P:
-            fcIntermediaSurfaceOutputFormat = Format_AYUV;
-            break;
-        case Format_I420:
-        case Format_YV12:
-        case Format_IYUV:
-            fcIntermediaSurfaceOutputFormat = Format_NV12;
-            break;
-        default:
-            break;
+            VP_PUBLIC_CHK_NULL_RETURN(inputSurfaces[i]);
+            VP_PUBLIC_CHK_NULL_RETURN(inputSurfaces[i]->osSurface);
+            MOS_FORMAT fcIntermediaInputFormat                 = Format_Any;
+            MOS_FORMAT fcSeparateIntermediaSecPlaneInputFormat = Format_Any;
+            uint32_t   widthPL1Factor                          = 1;
+            uint32_t   heightPL1Factor                         = 1;
+            switch (inputSurfaces[i]->osSurface->Format)
+            {
+            case Format_RGBP:
+            case Format_BGRP:
+                fcIntermediaInputFormat = Format_A8R8G8B8;
+                break;
+            case Format_444P:
+                fcIntermediaInputFormat = Format_AYUV;
+                break;
+            case Format_I420:
+            case Format_YV12:
+            case Format_IYUV:
+            case Format_IMC3:
+                fcIntermediaInputFormat = Format_NV12;
+                break;
+            case Format_422H:
+                fcIntermediaInputFormat                 = Format_R8UN;
+                fcSeparateIntermediaSecPlaneInputFormat = Format_R8G8UN;
+                widthPL1Factor                          = 2;
+                break;
+            case Format_422V:
+                fcIntermediaInputFormat                 = Format_R8UN;
+                fcSeparateIntermediaSecPlaneInputFormat = Format_R8G8UN;
+                heightPL1Factor                         = 2;
+                break;
+            case Format_411P:
+                fcIntermediaInputFormat                 = Format_R8UN;
+                fcSeparateIntermediaSecPlaneInputFormat = Format_R8G8UN;
+                widthPL1Factor                          = 4;
+                break;
+            default:
+                break;
+            }
+            if (fcIntermediaInputFormat != Format_Any)
+            {
+                VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
+                    m_fcIntermediaSurfaceInput[i],
+                    "fcIntermediaSurfaceInput",
+                    fcIntermediaInputFormat,
+                    MOS_GFXRES_2D,
+                    MOS_TILE_Y,
+                    inputSurfaces[i]->osSurface->dwWidth,
+                    inputSurfaces[i]->osSurface->dwHeight,
+                    false,
+                    MOS_MMC_DISABLED,
+                    allocated,
+                    false,
+                    IsDeferredResourceDestroyNeeded(),
+                    MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER));
+
+                m_fcIntermediaSurfaceInput[i]->rcSrc      = inputSurfaces[i]->rcSrc;
+                m_fcIntermediaSurfaceInput[i]->rcDst      = inputSurfaces[i]->rcDst;
+                m_fcIntermediaSurfaceInput[i]->SampleType = inputSurfaces[i]->SampleType;
+                surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcIntermediaInput + i), m_fcIntermediaSurfaceInput[i]));
+            }
+            if (fcSeparateIntermediaSecPlaneInputFormat != Format_Any)
+            {
+                VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
+                    m_fcSeparateIntermediaSurfaceSecPlaneInput[i],
+                    "fcSeparateIntermediaSurfaceSecPlaneInput",
+                    fcSeparateIntermediaSecPlaneInputFormat,
+                    MOS_GFXRES_2D,
+                    MOS_TILE_Y,
+                    inputSurfaces[i]->osSurface->dwWidth / widthPL1Factor,
+                    inputSurfaces[i]->osSurface->dwHeight / heightPL1Factor,
+                    false,
+                    MOS_MMC_DISABLED,
+                    allocated,
+                    false,
+                    IsDeferredResourceDestroyNeeded(),
+                    MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER));
+
+                m_fcSeparateIntermediaSurfaceSecPlaneInput[i]->rcSrc.top    = inputSurfaces[i]->rcSrc.top / heightPL1Factor;
+                m_fcSeparateIntermediaSurfaceSecPlaneInput[i]->rcSrc.bottom = inputSurfaces[i]->rcSrc.bottom / heightPL1Factor;
+                m_fcSeparateIntermediaSurfaceSecPlaneInput[i]->rcSrc.left   = inputSurfaces[i]->rcSrc.left / widthPL1Factor;
+                m_fcSeparateIntermediaSurfaceSecPlaneInput[i]->rcSrc.right  = inputSurfaces[i]->rcSrc.right / widthPL1Factor;
+                m_fcSeparateIntermediaSurfaceSecPlaneInput[i]->rcDst        = inputSurfaces[i]->rcDst;
+                m_fcSeparateIntermediaSurfaceSecPlaneInput[i]->SampleType   = inputSurfaces[i]->SampleType;
+                surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcSeparateIntermediaInputSecPlane + i), m_fcSeparateIntermediaSurfaceSecPlaneInput[i]));
+            }
         }
-        if (fcIntermediaSurfaceOutputFormat != Format_Any)
+        // Allocate OCL FC intermedia outputSurface
         {
-            VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
-                m_fcIntermediaSurfaceOutput,
-                "fcIntermediaSurfaceOutput",
-                fcIntermediaSurfaceOutputFormat,
-                MOS_GFXRES_2D,
-                MOS_TILE_Y,
-                outputSurface->osSurface->dwWidth,
-                outputSurface->osSurface->dwHeight,
-                false,
-                MOS_MMC_DISABLED,
-                allocated,
-                false,
-                IsDeferredResourceDestroyNeeded(),
-                MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER));
-            m_fcIntermediaSurfaceOutput->rcSrc      = outputSurface->rcSrc;
-            m_fcIntermediaSurfaceOutput->rcDst      = outputSurface->rcDst;
-            m_fcIntermediaSurfaceOutput->SampleType = outputSurface->SampleType;
-            surfSetting.surfGroup.emplace((SurfaceType)(SurfaceTypeFcIntermediaOutput), m_fcIntermediaSurfaceOutput);
+            MOS_FORMAT fcIntermediaSurfaceOutputFormat = Format_Any;
+            VP_PUBLIC_CHK_NULL_RETURN(outputSurface);
+            VP_PUBLIC_CHK_NULL_RETURN(outputSurface->osSurface);
+            switch (outputSurface->osSurface->Format)
+            {
+            case Format_RGBP:
+            case Format_BGRP:
+                fcIntermediaSurfaceOutputFormat = Format_A8R8G8B8;
+                break;
+            case Format_444P:
+                fcIntermediaSurfaceOutputFormat = Format_AYUV;
+                break;
+            case Format_I420:
+            case Format_IMC3:
+            case Format_YV12:
+            case Format_IYUV:
+                fcIntermediaSurfaceOutputFormat = Format_NV12;
+                break;
+            default:
+                break;
+            }
+            if (fcIntermediaSurfaceOutputFormat != Format_Any)
+            {
+                VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
+                    m_fcIntermediaSurfaceOutput,
+                    "fcIntermediaSurfaceOutput",
+                    fcIntermediaSurfaceOutputFormat,
+                    MOS_GFXRES_2D,
+                    MOS_TILE_Y,
+                    outputSurface->osSurface->dwWidth,
+                    outputSurface->osSurface->dwHeight,
+                    false,
+                    MOS_MMC_DISABLED,
+                    allocated,
+                    false,
+                    IsDeferredResourceDestroyNeeded(),
+                    MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER));
+                m_fcIntermediaSurfaceOutput->rcSrc      = outputSurface->rcSrc;
+                m_fcIntermediaSurfaceOutput->rcDst      = outputSurface->rcDst;
+                m_fcIntermediaSurfaceOutput->SampleType = outputSurface->SampleType;
+                surfSetting.surfGroup.emplace((SurfaceType)(SurfaceTypeFcIntermediaOutput), m_fcIntermediaSurfaceOutput);
+            }
         }
     }
     return MOS_STATUS_SUCCESS;
@@ -1455,13 +1549,24 @@ MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputForma
     // Then Check IECP, since IECP is done after DI, and the vebox downsampling not affect the vebox input.
     if (executeCaps.b3DlutOutput)
     {
-        if (IS_RGB64_FLOAT_FORMAT(outputFormat))    // SFC output FP16, YUV->ABGR16
+        if (executeCaps.bFeCSC)
         {
-            return Format_A16B16G16R16;
+            // When front end csc is enabled, the csc will be done in IECP front end csc. Then SFC only need to do scaling. So here return the output format as SFC input format
+            // This path cannot be walked in for executeCaps.bFeCSC only is true when no sfc is needed, which is decided in Policy::UpdateExeCaps
+            // Just in case fecsc+sfc is enabled in the future
+            VP_PUBLIC_ASSERTMESSAGE("VEBOX Front End CSC should not be combined with SFC. When SFC is enabled, Front End CSC should be disabled. CSC should be done on SFC");
+            return outputFormat;
         }
         else
         {
-            return IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? Format_R10G10B10A2 : Format_A8B8G8R8;
+            if (IS_RGB64_FLOAT_FORMAT(outputFormat))  // SFC output FP16, YUV->ABGR16
+            {
+                return Format_A16B16G16R16;
+            }
+            else
+            {
+                return IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? Format_R10G10B10A2 : Format_A8B8G8R8;
+            }
         }
     }
     else if (executeCaps.bIECP && executeCaps.bCGC && executeCaps.bBt2020ToRGB)

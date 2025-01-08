@@ -217,9 +217,8 @@ class McpyDeviceXe_Xpm_Plus : public McpyDevice
 public:
     using Mcpy = MediaCopyStateXe_Xpm_Plus;
     MOS_STATUS Initialize(
-        PMOS_INTERFACE osInterface,
-        MhwInterfaces *mhwInterfaces);
-
+        PMOS_INTERFACE osInterface);
+protected:
     MhwInterfaces* CreateMhwInterface(
         PMOS_INTERFACE osInterface);
 };

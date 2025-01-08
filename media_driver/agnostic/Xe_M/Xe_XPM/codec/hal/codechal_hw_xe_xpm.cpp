@@ -49,9 +49,6 @@ CodechalHwInterfaceXe_Xpm::CodechalHwInterfaceXe_Xpm(
 {
     CODECHAL_HW_FUNCTION_ENTER;
 
-
-    m_avpInterface = static_cast<MhwInterfacesXehp_Sdv*>(mhwInterfaces)->m_avpInterface;
-
     m_bltState = MOS_New(BltStateXe_Xpm, m_osInterface);
     if(m_bltState != nullptr)
     {

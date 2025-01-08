@@ -33,10 +33,6 @@
 
 namespace vp {
 
-static MOS_STATUS IsChromaSamplingNeeded(bool &isChromaUpSamplingNeeded, bool &isChromaDownSamplingNeeded,
-                                        VPHAL_SURFACE_TYPE surfType, int layerIndex,
-                                        MOS_FORMAT inputFormat, MOS_FORMAT outputFormat);
-
 bool PolicyFcHandler::s_forceNearestToBilinearIfBilinearExists = false;
 
 VpFcFilter::VpFcFilter(PVP_MHWINTERFACE vpMhwInterface) :
@@ -467,7 +463,7 @@ MOS_STATUS VpFcFilter::CalculateScalingParams(VP_FC_LAYER *layer, VP_FC_LAYER *t
 
     isChromaUpSamplingNeeded = false;
     isChromaDownSamplingNeeded = false;
-    VP_PUBLIC_CHK_STATUS_RETURN(IsChromaSamplingNeeded(isChromaUpSamplingNeeded, isChromaDownSamplingNeeded,
+    VP_PUBLIC_CHK_STATUS_RETURN(PolicyFcHandler::IsChromaSamplingNeeded(isChromaUpSamplingNeeded, isChromaDownSamplingNeeded,
                                                     layer->surf->SurfType, layer->layerID,
                                                     layer->surf->osSurface->Format, target->surf->osSurface->Format));
 
@@ -831,7 +827,7 @@ MOS_STATUS PolicyFcHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &fe
     return MOS_STATUS_SUCCESS;
 }
 
-bool IsInterlacedInputSupported(VP_SURFACE &input)
+bool PolicyFcHandler::IsInterlacedInputSupported(VP_SURFACE &input)
 {
     // The parameter YOffset of surface state should be
     // a multiple of 4 when the input is accessed in field mode.For interlaced NV12
@@ -840,7 +836,7 @@ bool IsInterlacedInputSupported(VP_SURFACE &input)
     return MOS_IS_ALIGNED(MOS_MIN((uint32_t)input.osSurface->dwHeight, (uint32_t)input.rcMaxSrc.bottom), 4) || input.osSurface->Format != Format_NV12;
 }
 
-bool IsBobDiEnabled(SwFilterDeinterlace *di, VP_SURFACE &input)
+bool PolicyFcHandler::IsBobDiEnabled(SwFilterDeinterlace *di, VP_SURFACE &input)
 {
     if (nullptr == di || di->GetFilterEngineCaps().bEnabled == false)
     {
@@ -850,7 +846,7 @@ bool IsBobDiEnabled(SwFilterDeinterlace *di, VP_SURFACE &input)
     return IsInterlacedInputSupported(input);
 }
 
-static MOS_STATUS IsChromaSamplingNeeded(bool &isChromaUpSamplingNeeded, bool &isChromaDownSamplingNeeded,
+MOS_STATUS PolicyFcHandler::IsChromaSamplingNeeded(bool &isChromaUpSamplingNeeded, bool &isChromaDownSamplingNeeded,
                                 VPHAL_SURFACE_TYPE surfType, int layerIndex,
                                 MOS_FORMAT inputFormat, MOS_FORMAT outputFormat)
 {
@@ -878,7 +874,7 @@ static MOS_STATUS IsChromaSamplingNeeded(bool &isChromaUpSamplingNeeded, bool &i
     return MOS_STATUS_SUCCESS;
 }
 
-static MOS_STATUS Get3DSamplerScalingMode(VPHAL_SCALING_MODE &scalingMode, SwFilterSubPipe& pipe, int layerIndex, VP_SURFACE &input, VP_SURFACE &output)
+MOS_STATUS PolicyFcHandler::Get3DSamplerScalingMode(VPHAL_SCALING_MODE &scalingMode, SwFilterSubPipe &pipe, int layerIndex, VP_SURFACE &input, VP_SURFACE &output)
 {
     bool isChromaUpSamplingNeeded = false;
     bool isChromaDownSamplingNeeded = false;

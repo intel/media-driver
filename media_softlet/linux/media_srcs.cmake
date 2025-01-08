@@ -37,3 +37,8 @@ if(XE2_HPM_SUPPORT)
 media_include_subdirectory(xe2_hpm)
 media_include_subdirectory(xe2_hpm_r0)
 endif()
+
+if(XE3_LPM_SUPPORT)
+media_include_subdirectory(xe3_lpm)
+media_include_subdirectory(xe3_lpm_r0)
+endif()

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -197,6 +197,12 @@ namespace decode
 
     bool Av1TempBufferOpInf::IsAvailable(Av1RefAssociatedBufs* &buffer)
     {
+        auto osInterface = m_basicFeature->GetOsInterface();
+        if (osInterface != nullptr && osInterface->pfnIsMismatchOrderProgrammingSupported())
+        {
+            return true;
+        }
+
         if (buffer == nullptr)
         {
             return false;

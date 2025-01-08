@@ -205,7 +205,7 @@ namespace encode
         PMOS_RESOURCE osResource = nullptr;
         uint32_t      offset     = 0;
 
-        m_statusReport->GetAddress(statusReportLpla, osResource, offset);
+        ENCODE_CHK_STATUS_RETURN(m_statusReport->GetAddress(statusReportLpla, osResource, offset));
 
         RUN_FEATURE_INTERFACE_RETURN(VdencLplaAnalysis, HevcFeatureIDs::vdencLplaAnalysisFeature, ReadLPLAData, commandBuffer, osResource, offset);
 

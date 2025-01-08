@@ -119,6 +119,7 @@ protected:
         PMOS_COMMAND_BUFFER            pCmdBuffer,
         mhw::sfc::SFC_STATE_PAR        *pSfcState,
         PMHW_SFC_OUT_SURFACE_PARAMS    pOutSurface);
+    virtual MOS_STATUS SetMmcParams(PMOS_SURFACE renderTarget, bool isFormatMmcSupported, bool isMmcEnabled) override;
 
     VP_SURFACE *m_tempFieldSurface = nullptr;
 

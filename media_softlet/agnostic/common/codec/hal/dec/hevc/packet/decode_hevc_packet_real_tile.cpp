@@ -54,6 +54,7 @@ MOS_STATUS HevcDecodeRealTilePkt::Init()
 
 MOS_STATUS HevcDecodeRealTilePkt::Destroy()
 {
+    DECODE_CHK_STATUS(HevcDecodePkt::Destroy());
     m_statusReport->UnregistObserver(this);
     return MOS_STATUS_SUCCESS;
 }

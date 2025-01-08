@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2022, Intel Corporation
+* Copyright (c) 2019-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -44,6 +44,16 @@ MOS_STATUS Av1Pipeline::Initialize(void *settings)
 {
     DECODE_FUNC_CALL();
     DECODE_CHK_STATUS(DecodePipeline::Initialize(settings));
+
+    // Create basic GPU context
+    if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+    {
+        DecodeScalabilityPars scalPars;
+        MOS_ZeroMemory(&scalPars, sizeof(scalPars));
+        DECODE_CHK_STATUS(m_mediaContext->SwitchContext(VdboxDecodeFunc, &scalPars, &m_scalability));
+        m_decodeContext       = m_osInterface->pfnGetGpuContext(m_osInterface);
+        m_decodeContextHandle = m_osInterface->CurrentGpuContextHandle;
+    }
 
     HucPacketCreatorBase *hucPktCreator = dynamic_cast<HucPacketCreatorBase *>(this);
     DECODE_CHK_NULL(hucPktCreator);

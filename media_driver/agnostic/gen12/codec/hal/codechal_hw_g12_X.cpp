@@ -198,7 +198,13 @@ CodechalHwInterfaceG12::CodechalHwInterfaceG12(
     : CodechalHwInterface(osInterface, codecFunction, mhwInterfaces, disableScalability)
 {
     CODECHAL_HW_FUNCTION_ENTER;
-    m_avpInterface = static_cast<MhwInterfacesG12Tgllp*>(mhwInterfaces)->m_avpInterface;
+
+    MhwInterfacesG12Tgllp *mhwItfG12Tgllp = static_cast<MhwInterfacesG12Tgllp *>(mhwInterfaces);
+    CODECHAL_HW_ASSERT(mhwItfG12Tgllp);
+    m_avpInterface                        = mhwItfG12Tgllp->m_avpInterface;
+    //Set the original m_avpInterface to nullptr to avoid double free and wild pointer
+    mhwItfG12Tgllp->m_avpInterface        = nullptr;
+
     m_mediaSfcItf  = std::make_shared<MediaSfcInterfaceLegacy>(m_osInterface);
 
     InternalInit(codecFunction);

@@ -134,6 +134,7 @@ enum device_type {
 #define MEMZONE_PRIME_START   (MEMZONE_DEVICE_START + MEMZONE_DEVICE_SIZE)
 #define MEMZONE_PRIME_SIZE    (1ull << 40)
 #define MEMZONE_TOTAL         (1ull << 48)
+#define PAGE_SIZE_4K          (1ull << 12)
 #define PAGE_SIZE_64K         (1ull << 16)
 #define PAGE_SIZE_1M          (1ull << 20)
 #define PAGE_SIZE_2M          (1ull << 21)
@@ -211,6 +212,7 @@ struct mos_drm_bo_alloc_ext{
     int mem_type = 0;
     uint16_t pat_index = PAT_INDEX_INVALID;
     bool     cpu_cacheable = true;
+    bool     scanout_surf  = false;
 };
 
 struct mos_drm_bo_alloc {
@@ -238,6 +240,7 @@ struct mos_drm_bo_alloc_tiled {
     int y = 0;
     int cpp = 0;
     unsigned long pitch = 0;
+    unsigned int alignment = 0;
 
     struct mos_drm_bo_alloc_ext ext;
 };

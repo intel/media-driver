@@ -4609,7 +4609,6 @@ VAStatus DdiMedia_CreateImage(
     gmmParams.Type              = RESOURCE_2D;
     gmmParams.Flags.Gpu.Video   = true;
     gmmParams.Format            = mediaCtx->m_caps->ConvertFourccToGmmFmt(format->fourcc);
-    gmmParams.Flags.Info.Linear = 1;
 
     if (gmmParams.Format == GMM_FORMAT_INVALID)
     {

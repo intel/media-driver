@@ -67,6 +67,7 @@ protected:
 
     virtual bool IsOutputChannelSwapNeeded(MOS_FORMAT outputFormat) override;
     virtual bool IsCscNeeded(SFC_CSC_PARAMS &cscParams) override;
+    virtual MOS_STATUS SetMmcParams(PMOS_SURFACE renderTarget, bool isFormatMmcSupported, bool isMmcEnabled) override;
 
     VP_SURFACE *m_tempFieldSurface = nullptr;
 

@@ -52,13 +52,11 @@ MOS_STATUS Av1BasicFeatureXe2_Lpm_Base::Update(void *params)
         m_rawSurfaceToEnc          = superResFeature->GetRawSurfaceToEnc();
         m_postCdefReconSurfaceFlag = true;
     }
-    if (m_roundingMethod == RoundingMethod::fixedRounding
-        && m_av1SeqParams && m_av1SeqParams->ScenarioInfo == ESCENARIO_VIDEOCONFERENCE
-        && m_av1SeqParams->GopRefDist == 1)
+    if (m_roundingMethod == RoundingMethod::fixedRounding)
     {
         m_roundingMethod = RoundingMethod::lookUpTableRounding;
     }
-        
+
     return MOS_STATUS_SUCCESS;
 }
 

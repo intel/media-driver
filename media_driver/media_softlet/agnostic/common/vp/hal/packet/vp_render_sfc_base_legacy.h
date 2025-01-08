@@ -146,7 +146,7 @@ public:
     //! \details  Set mmc parameters
     //! \param    [in] renderTarget
     //!           render target surface
-    //! \param    [in] isFormalMmcSupported
+    //! \param    [in] isFormatMmcSupported
     //!           Is format supported by mmc
     //! \param    [in] isMmcEnabled
     //!           Is mmc enabled

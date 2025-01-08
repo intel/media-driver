@@ -327,43 +327,52 @@ static bool pvcRegisteredMcpy =
     Register<McpyDeviceXe_Xpm_Plus>((uint32_t)IGFX_PVC);
 
 MOS_STATUS McpyDeviceXe_Xpm_Plus::Initialize(
-    PMOS_INTERFACE osInterface,
-    MhwInterfaces *mhwInterfaces)
+    PMOS_INTERFACE osInterface)
 {
-#define MCPY_FAILURE()                                       \
-{                                                           \
-    if (device != nullptr)                                  \
-    {                                                       \
-        MOS_Delete(device);                                 \
-    }                                                       \
-    return MOS_STATUS_NO_SPACE;                             \
-}
-
     MHW_FUNCTION_ENTER;
 
     Mcpy *device = nullptr;
+    MhwInterfaces* mhwInterfaces = nullptr;
 
-    if (mhwInterfaces->m_miInterface == nullptr)
-    {
-        MCPY_FAILURE();
-    }
+    auto deleterOnFailure = [&](bool deleteOsInterface, bool deleteMhwInterface){
+        if (deleteOsInterface && osInterface != nullptr)
+        {
+            if (osInterface->pfnDestroy)
+            {
+                osInterface->pfnDestroy(osInterface, false);
+            }
+            MOS_FreeMemory(osInterface);
+        }
 
-    if (mhwInterfaces->m_renderInterface == nullptr)
-    {
-        MCPY_FAILURE();
-    }
+        if (deleteMhwInterface && mhwInterfaces != nullptr)
+        {
+            mhwInterfaces->Destroy();
+            MOS_Delete(mhwInterfaces);
+        }
+
+        MOS_Delete(device);
+    };
 
     device = MOS_New(Mcpy);
-
     if (device == nullptr)
     {
-        MCPY_FAILURE();
+        deleterOnFailure(true, false);
+        return MOS_STATUS_NO_SPACE;
+    }
+
+    mhwInterfaces = CreateMhwInterface(osInterface);
+    if (mhwInterfaces->m_miInterface == nullptr ||
+        mhwInterfaces->m_veboxInterface == nullptr ||
+        mhwInterfaces->m_bltInterface == nullptr)
+    {
+        deleterOnFailure(true, true);
+        return MOS_STATUS_NO_SPACE;
     }
 
     if (device->Initialize(
         osInterface, mhwInterfaces) != MOS_STATUS_SUCCESS)
     {
-        MOS_Delete(device);
+        deleterOnFailure(false, false);
         MOS_OS_CHK_STATUS_RETURN(MOS_STATUS_UNINITIALIZED);
     }
 

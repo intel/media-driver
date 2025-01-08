@@ -101,6 +101,14 @@ public:
     //!
     virtual MOS_STATUS SetSfcMode(MEDIA_SFC_INTERFACE_MODE &mode) = 0;
 
+    //!
+    //! \brief    Sfc Command Size
+    //! \details  Calculate Command size of SFC commands.
+    //! \return   uint32_t
+    //!           Return calculated size
+    //!
+    uint32_t GetSfcCmdSize() { return (m_sfcInterface ? (m_sfcInterface->GetSfcCommandSize()) : 0); };
+
 protected:
     virtual MOS_STATUS InitSfcParams(VDBOX_SFC_PARAMS &sfcParams);
 

@@ -215,14 +215,6 @@ public:
 MEDIA_CLASS_DEFINE_END(MediaInterfacesHwInfoDeviceXe2_Lpm)
 };
 
-class McpyDeviceXe2_Lpm : public McpyDeviceNext
-{
-public:
-using Mcpy = MediaCopyStateXe2_Lpm;
-MOS_STATUS Initialize(
-    PMOS_INTERFACE     osInterface,
-    MhwInterfacesNext *mhwInterfaces);
+using McpyDeviceXe2_Lpm = McpyDeviceNextImpl<MediaCopyStateXe2_Lpm>;
 
-MEDIA_CLASS_DEFINE_END(McpyDeviceXe2_Lpm)
-};
 #endif  // __MEDIA_INTERFACES_XE2_LPM_H__

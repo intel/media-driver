@@ -134,6 +134,12 @@ if(BMG)
     option(XE2_HPM_SUPPORT "Enable XE2_HPM support" ON)
 endif()
 
+option(PTL "Enable PTL support" ON)
+if(PTL)
+    option(XE3_LPM_SUPPORT "Enable XE3_LPM support" ON)
+    add_definitions(-DIGFX_PTL_SUPPORTED)
+endif()
+
 if(GEN8)
     add_definitions(-DIGFX_GEN8_SUPPORTED)
 endif()

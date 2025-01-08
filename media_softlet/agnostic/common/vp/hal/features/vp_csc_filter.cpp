@@ -321,6 +321,7 @@ MOS_STATUS VpCscFilter::CalculateVeboxEngineParams()
     bool isBeCscNeededForAlphaFill = IsBeCscNeededForAlphaFill(
         m_cscParams.formatInput, m_cscParams.formatOutput, m_cscParams.pAlphaParams);
 
+    m_veboxCSCParams->blockType = m_executeCaps.bFeCSC ? VEBOX_CSC_BLOCK_TYPE::FRONT_END : (m_executeCaps.bBeCSC ? VEBOX_CSC_BLOCK_TYPE::BACK_END : VEBOX_CSC_BLOCK_TYPE::DEFAULT);
     m_veboxCSCParams->inputColorSpace   = m_cscParams.input.colorSpace;
     m_veboxCSCParams->outputColorSpace  = m_cscParams.output.colorSpace;
     m_veboxCSCParams->inputFormat       = m_cscParams.formatInput;
@@ -1002,7 +1003,7 @@ bool VpVeboxCscParameter::SetPacketParam(VpCmdPacket* pPacket)
     VpVeboxCmdPacketBase *packet = dynamic_cast<VpVeboxCmdPacketBase *>(pPacket);
     if (packet)
     {
-        return MOS_SUCCEEDED(packet->SetVeboxBeCSCParams(params));
+        return MOS_SUCCEEDED(packet->SetVeboxCSCParams(params));
     }
 
     VP_PUBLIC_ASSERTMESSAGE("Invalid packet for vebox be csc");
@@ -1028,7 +1029,7 @@ bool PolicyVeboxCscHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
 {
     VP_FUNC_CALL();
 
-    return vpExecuteCaps.bBeCSC;
+    return vpExecuteCaps.bBeCSC || vpExecuteCaps.bFeCSC;
 }
 HwFilterParameter* PolicyVeboxCscHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe& swFilterPipe, PVP_MHWINTERFACE pHwInterface)
 {

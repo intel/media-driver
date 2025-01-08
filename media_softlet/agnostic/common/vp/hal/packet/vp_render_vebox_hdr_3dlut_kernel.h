@@ -155,7 +155,8 @@ typedef enum _TONE_MAPPING_SOURCE_TYPE
 typedef enum _TONE_MAPPING_MODE
 {
     TONE_MAPPING_MODE_H2H = 0,
-    TONE_MAPPING_MODE_H2S = 1
+    TONE_MAPPING_MODE_H2S = 1,
+    TONE_MAPPING_MODE_H2E = 2
 } TONE_MAPPING_MODE;
 
 //!
@@ -198,6 +199,7 @@ public:
     }
     virtual MOS_STATUS GetWalkerSetting(KERNEL_WALKER_PARAMS &walkerParam, KERNEL_PACKET_RENDER_DATA &renderData) override;
     virtual MOS_STATUS InitCoefSurface(const uint32_t maxDLL, const uint32_t maxCLL, const VPHAL_HDR_MODE hdrMode);
+    virtual MOS_STATUS SetPerfTag() override;
 
 protected:
     virtual MOS_STATUS SetupSurfaceState() override;
@@ -244,6 +246,8 @@ public:
     }
 
     virtual MOS_STATUS GetWalkerSetting(KERNEL_WALKER_PARAMS &walkerParam, KERNEL_PACKET_RENDER_DATA &renderData) override;
+
+    virtual MOS_STATUS SetPerfTag() override;
 
 protected:
     virtual MOS_STATUS SetupSurfaceState() override;

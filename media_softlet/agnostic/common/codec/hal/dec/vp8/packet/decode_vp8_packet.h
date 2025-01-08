@@ -80,6 +80,18 @@ public:
     virtual MOS_STATUS Completed(void *mfxStatus, void *rcsStatus, void *statusReport) override;
 
     //!
+    //! \brief  Calculate Command Size
+    //!
+    //! \param  [in, out] commandBufferSize
+    //!         requested size
+    //! \param  [in, out] requestedPatchListSize
+    //!         requested size
+    //! \return MOS_STATUS
+    //!         status
+    //!
+    MOS_STATUS CalculateCommandSize(uint32_t &commandBufferSize, uint32_t &requestedPatchListSize) override;
+
+    //!
     //! \brief Get Packet Name
     //! \return std::string
     //!
@@ -89,6 +101,22 @@ public:
     }
 
 protected:
+    //!
+    //! \brief  Calculate Command Buffer Size
+    //!
+    //! \return uint32_t
+    //!         Command buffer size calculated
+    //!
+    virtual uint32_t CalculateCommandBufferSize();
+
+    //!
+    //! \brief  Calculate Patch List Size
+    //!
+    //! \return uint32_t
+    //!         Patchlist size calculated
+    //!
+    virtual uint32_t CalculatePatchListSize();
+
     void SetPerfTag(CODECHAL_MODE mode, uint16_t picCodingType);
 
     MOS_STATUS SendPrologWithFrameTracking(MOS_COMMAND_BUFFER &cmdBuffer, bool frameTrackingRequested);

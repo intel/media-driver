@@ -732,10 +732,22 @@ MOS_STATUS Policy::GetCSCExecutionCapsHdr(SwFilter *HDR, SwFilter *CSC)
     }
     VP_PUBLIC_CHK_STATUS_RETURN(Update3DLutoutputColorAndFormat(cscParams, hdrParams, hdrFormat, hdrCSpace));
 
+    // for HDR case, vebox input format support is checking by GetHdrExecutionCaps
+    if (m_hwCaps.m_veboxHwEntry[cscParams->formatOutput].outputSupported &&
+        m_hwCaps.m_veboxHwEntry[hdrFormat].frontCscSupported &&
+        (hdrFormat != cscParams->formatOutput || hdrCSpace != cscParams->output.colorSpace))
+    {
+        // front end csc can be used to do the left csc feature when no sfc is needed
+        cscEngine->bEnabled           = 1;
+        cscEngine->frontEndCscNeeded  = 1;
+        cscEngine->VeboxNeeded        = 1;
+        cscEngine->hdrKernelSupported = 1;
+    }
     if (m_hwCaps.m_sfcHwEntry[hdrFormat].inputSupported &&
         m_hwCaps.m_sfcHwEntry[cscParams->formatOutput].outputSupported &&
         m_hwCaps.m_sfcHwEntry[hdrFormat].cscSupported)
     {
+        //sfc or render can be used to do the left csc feature
         if (hdrFormat == cscParams->formatOutput && hdrCSpace == cscParams->output.colorSpace)
         {
             VP_PUBLIC_NORMALMESSAGE("Skip CSC for HDR case.");
@@ -749,11 +761,12 @@ MOS_STATUS Policy::GetCSCExecutionCapsHdr(SwFilter *HDR, SwFilter *CSC)
             cscEngine->RenderNeeded = 1;
             cscEngine->fcSupported  = 1;
             cscEngine->hdrKernelSupported = 1;
+            
         }
     }
-    else
+    if (!cscEngine->bEnabled && !cscEngine->forceEnableForSfc)
     {
-        VP_PUBLIC_ASSERTMESSAGE("Post CSC for HDR not supported by SFC");
+        VP_PUBLIC_ASSERTMESSAGE("Post CSC for HDR not supported by SFC or FECSC(VEBOX)");
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
@@ -1181,9 +1194,12 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
     VP_PUBLIC_CHK_NULL_RETURN(feature);
     VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface());
     VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface()->m_userFeatureControl);
+    VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface()->m_reporting);
 
     auto userFeatureControl = m_vpInterface.GetHwInterface()->m_userFeatureControl;
     bool disableSfc = userFeatureControl->IsSfcDisabled();
+    bool fallbackScalingToRender8K = userFeatureControl->IsFallbackScalingToRender8K();
+    auto reporting = m_vpInterface.GetHwInterface()->m_reporting;
     SwFilterScaling* scaling = (SwFilterScaling*)feature;
     FeatureParamScaling *scalingParams = &scaling->GetSwFilterParams();
     VP_EngineEntry *scalingEngine      = &scaling->GetFilterEngineCaps();
@@ -1255,11 +1271,12 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
         (uint32_t)(scalingParams->input.rcDst.right - scalingParams->input.rcDst.left),
         m_hwCaps.m_sfcHwEntry[scalingParams->formatOutput].horizontalAlignUnit);
 
+    bool isScalingNeeded = (dwOutputRegionHeight != dwSourceRegionHeight || dwOutputRegionWidth != dwSourceRegionWidth);
+
     if (!m_hwCaps.m_veboxHwEntry[scalingParams->formatInput].inputSupported)
     {
         // For non-scaling cases with vebox unsupported format, will force to use fc.
-        scalingEngine->bEnabled          = (dwOutputRegionHeight != dwSourceRegionHeight ||
-                                            dwOutputRegionWidth != dwSourceRegionWidth);
+        scalingEngine->bEnabled          = isScalingNeeded;
         scalingEngine->SfcNeeded         = 0;
         scalingEngine->VeboxNeeded       = 0;
         scalingEngine->RenderNeeded      = 1;
@@ -1304,8 +1321,7 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
         OUT_OF_BOUNDS(dwSurfaceHeight, veboxMinHeight, veboxMaxHeight))
     {
         // For non-scaling cases with vebox unsupported format, will force to use fc.
-        scalingEngine->bEnabled          = (dwOutputRegionHeight != dwSourceRegionHeight ||
-                                            dwOutputRegionWidth != dwSourceRegionWidth);
+        scalingEngine->bEnabled          = isScalingNeeded;
         scalingEngine->SfcNeeded         = 0;
         scalingEngine->VeboxNeeded       = 0;
         scalingEngine->forceEnableForSfc = 0;
@@ -1317,6 +1333,31 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
 
         VP_PUBLIC_NORMALMESSAGE("The surface resolution (%d x %d) is not supported by vebox (%d x %d) ~ (%d x %d).",
             dwSurfaceWidth, dwSurfaceHeight, veboxMinWidth, veboxMinHeight, veboxMaxWidth, veboxMaxHeight);
+
+        PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (MEDIA_IS_WA(m_vpInterface.GetHwInterface()->m_waTable, Wa_16025683853) &&
+        fallbackScalingToRender8K == true                     &&
+        scalingParams->input.dwHeight > 3072                  &&
+        isScalingNeeded)
+    {
+        // For sfc input height > 3072 case, will force to use fc.
+        scalingEngine->bEnabled           = 1;
+        scalingEngine->SfcNeeded          = 0;
+        scalingEngine->VeboxNeeded        = 0;
+        scalingEngine->RenderNeeded       = 1;
+        scalingEngine->hdrKernelSupported = 1;
+        scalingEngine->fcSupported        = 1;
+        scalingEngine->forceEnableForSfc  = 0;
+        scalingEngine->forceEnableForFc   = 1;
+        scalingEngine->sfcNotSupported    = 1;
+#if (_DEBUG || _RELEASE_INTERNAL)
+        reporting->GetFeatures().fallbackScalingToRender8K = fallbackScalingToRender8K;
+#endif
+
+        VP_PUBLIC_NORMALMESSAGE("The input height %d is greater than 3072.", scalingParams->input.dwHeight);
 
         PrintFeatureExecutionCaps(__FUNCTION__, *scalingEngine);
         return MOS_STATUS_SUCCESS;
@@ -2699,7 +2740,7 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
                     // not all features in input pipe can be processed by vebox/sfc and
                     // features in output pipe cannot be combined to vebox/sfc workload.
                     engineCapsForVeboxSfc.fcOnlyFeatureExists = true;
-                    engineCapsForFc.fcOnlyFeatureExists = true;
+                    engineCapsForFc.fcOnlyFeatureExists       = true;
                 }
                 if (engineCaps.sfcNotSupported)
                 {
@@ -3178,9 +3219,10 @@ MOS_STATUS Policy::UpdateFeatureTypeWithEngineSingleLayer(SwFilterSubPipe *featu
             else if (caps.bVebox &&
                 (engineCaps->bEnabled && engineCaps->VeboxNeeded || caps.bIECP && filterID == FeatureTypeCsc))
             {
-                // If HDR filter exist, handle CSC previous to HDR in AddFiltersBasedOnCaps
-                if (filterID == FeatureTypeCsc && IsHDRfilterExist(featureSubPipe))
+                if (filterID == FeatureTypeCsc && IsHDRfilterExist(featureSubPipe) && !engineCaps->frontEndCscNeeded)
                 {
+                    // When front end csc is enabled and set to needed, CSC is handled in vebox FECSC. So in such case, no need to leave the CSC filter to be added in AddFiltersBasedOnCaps
+                    // When front end csc is not enabled and HDR filter exist, handle CSC previous to HDR in AddFiltersBasedOnCaps
                     VP_PUBLIC_NORMALMESSAGE("HDR exist, handle CSC previous to HDR in AddFiltersBasedOnCaps");
                     continue;
                 }
@@ -3707,7 +3749,14 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Procamp, Vebox)));
             break;
         case FeatureTypeCsc:
-            caps.bBeCSC = 1;
+            if (feature->GetFilterEngineCaps().frontEndCscNeeded)
+            {
+                caps.bFeCSC = 1;
+            }
+            else
+            {
+                caps.bBeCSC = 1;
+            }
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Csc, Vebox)));
             break;
         case FeatureTypeHdr:
@@ -3896,7 +3945,8 @@ MOS_STATUS Policy::AddFiltersBasedOnCaps(
 
     // Create and Add CSC filter for VEBOX IECP chromasiting config
     // HDR State holder: To keep same as Legacy path -- for VE 3DLut HDR, enable VE chroma up sampling when ONLY VE output.
-    if (!caps.bBeCSC && ((caps.bSFC && (caps.bIECP || caps.bDI)) || (!caps.bSFC && (caps.bIECP || caps.b3DlutOutput || caps.bBt2020ToRGB))))
+    // When FeCSC is enabled, it means the csc is done in vebox front end csc. This only happens when ONLY VE output and the platform supports 4bpp FeCSC. Then there is no need to add a new backend csc 
+    if (!caps.bBeCSC && ((caps.bSFC && (caps.bIECP || caps.bDI)) || (!caps.bSFC && (caps.bIECP || caps.b3DlutOutput || caps.bBt2020ToRGB) && !caps.bFeCSC)))
     {
         VP_PUBLIC_CHK_STATUS_RETURN(AddNewFilterOnVebox(featurePipe, pipeIndex, caps, executedFilters, executedPipeIndex, FeatureTypeCsc));
     }

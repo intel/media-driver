@@ -928,7 +928,7 @@ MOS_STATUS SfcRenderBase::SetRotMirParams(PSFC_ROT_MIR_PARAMS rotMirParams)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS SfcRenderBase::SetMmcParams(PMOS_SURFACE renderTarget, bool isFormalMmcSupported, bool isMmcEnabled)
+MOS_STATUS SfcRenderBase::SetMmcParams(PMOS_SURFACE renderTarget, bool isFormatMmcSupported, bool isMmcEnabled)
 {
     VP_FUNC_CALL();
 
@@ -936,7 +936,7 @@ MOS_STATUS SfcRenderBase::SetMmcParams(PMOS_SURFACE renderTarget, bool isFormalM
     VP_PUBLIC_CHK_NULL_RETURN(m_renderData.sfcStateParams);
 
     if (renderTarget->CompressionMode               &&
-        isFormalMmcSupported                        &&
+        isFormatMmcSupported                        &&
         renderTarget->TileType == MOS_TILE_Y        &&
         isMmcEnabled)
     {

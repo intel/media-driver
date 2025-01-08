@@ -360,12 +360,12 @@ namespace encode
 #if _MEDIA_RESERVED
                 RUN_FEATURE_INTERFACE_RETURN(Av1Scc, Av1FeatureIDs::av1Scc, UpdateIBCStatusForCurrentTile);
 #endif
-                if (firstTileInGroup)
+                if (tileRow == 0 && tileCol == 0)
                 {
                     SETPAR_AND_ADDCMD(AVP_PIC_STATE, m_avpItf, &cmdBuffer);
                     ENCODE_CHK_STATUS_RETURN(AddBBEnd(m_miItf, cmdBuffer));
                 }
-                else
+                if (!firstTileInGroup)
                 {
                     slbData.avpPicStateCmdNum = 2;
                     slbData.secondAvpPicStateOffset = (uint16_t)cmdBuffer.iOffset;

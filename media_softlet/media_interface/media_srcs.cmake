@@ -33,3 +33,7 @@ endif()
 if(BMG)
     media_include_subdirectory(media_interfaces_bmg)
 endif()
+
+if(PTL)
+    media_include_subdirectory(media_interfaces_ptl)
+endif()

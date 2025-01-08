@@ -418,12 +418,12 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
         MediaUserSetting::Group::Sequence);
     if (MOS_SUCCEEDED(eRegKeyReadStatus))
     {
-        m_ctrlValDefault.bEnableOcl3DLut = bEnableOCL3DLut;
+        m_ctrlValDefault.enableOcl3DLut = bEnableOCL3DLut ? VP_CTRL_ENABLE : VP_CTRL_DISABLE;
     }
     else
     {
         // Default value
-        m_ctrlValDefault.bEnableOcl3DLut = false;
+        m_ctrlValDefault.enableOcl3DLut = VP_CTRL_DEFAULT;
     }
 
     bool bForceOclFC   = false;
@@ -434,12 +434,12 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
         MediaUserSetting::Group::Sequence);
     if (MOS_SUCCEEDED(eRegKeyReadStatus))
     {
-        m_ctrlValDefault.bForceOclFC = bForceOclFC;
+        m_ctrlValDefault.forceOclFC = bForceOclFC ? VP_CTRL_ENABLE : VP_CTRL_DISABLE;
     }
     else
     {
         // Default value
-        m_ctrlValDefault.bForceOclFC = false;
+        m_ctrlValDefault.forceOclFC = VP_CTRL_DEFAULT;
     }
 
     bool bDisableOclFcFp = false;
@@ -478,6 +478,27 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
     }
     VP_PUBLIC_NORMALMESSAGE("enableSFCLinearOutputByTileConvert value is set as %d.", m_ctrlValDefault.enableSFCLinearOutputByTileConvert);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    uint32_t fallbackScalingToRender8K = 0;
+    eRegKeyReadStatus                  = ReadUserSettingForDebug(
+        m_userSettingPtr,
+        fallbackScalingToRender8K,
+        __MEDIA_USER_FEATURE_VALUE_FALLBACK_SCALING_TO_RENDER_8K,
+        MediaUserSetting::Group::Sequence,
+        true,
+        true);
+    if (MOS_SUCCEEDED(eRegKeyReadStatus))
+    {
+        m_ctrlValDefault.fallbackScalingToRender8K = fallbackScalingToRender8K;
+    }
+    else
+#endif
+    {
+        // WA ID need be added before code merge.
+        m_ctrlValDefault.fallbackScalingToRender8K = 1;
+    }
+    VP_PUBLIC_NORMALMESSAGE("fallbackScalingToRender8K %d", m_ctrlValDefault.fallbackScalingToRender8K);
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -509,18 +530,38 @@ PMOS_OCA_LOG_USER_FEATURE_CONTROL_INFO VpUserFeatureControl::GetOcaFeautreContro
 
 bool VpUserFeatureControl::EnableOclFC()
 {
-    bool bEnableOclFC = (m_vpPlatformInterface && m_vpPlatformInterface->SupportOclKernel());
-#if (_DEBUG || _RELEASE_INTERNAL)
-    bEnableOclFC |= m_ctrlVal.bForceOclFC;
-#endif
+    bool bEnableOclFC = false;
+    if (m_ctrlVal.forceOclFC == VP_CTRL_ENABLE)
+    {
+        bEnableOclFC = true;
+    }
+    else if (m_ctrlVal.forceOclFC == VP_CTRL_DISABLE)
+    {
+        bEnableOclFC = false;
+    }
+    else // if (m_ctrlVal.forceOclFC == VP_CTRL_DEFAULT)
+    {
+        bEnableOclFC = (m_vpPlatformInterface && m_vpPlatformInterface->IsOclKernelEnabled());
+    }
+    VP_PUBLIC_NORMALMESSAGE("EnableOclFC set as %d", bEnableOclFC);
     return bEnableOclFC;
 }
 
 bool VpUserFeatureControl::EnableOcl3DLut()
 {
-    bool bEnableOcl3DLut = (m_vpPlatformInterface && m_vpPlatformInterface->SupportOclKernel());
-#if (_DEBUG || _RELEASE_INTERNAL)
-    bEnableOcl3DLut |= m_ctrlVal.bEnableOcl3DLut;
-#endif
+    bool bEnableOcl3DLut = false;
+    if (m_ctrlVal.enableOcl3DLut == VP_CTRL_ENABLE)
+    {
+        bEnableOcl3DLut = true;
+    }
+    else if (m_ctrlVal.enableOcl3DLut == VP_CTRL_DISABLE)
+    {
+        bEnableOcl3DLut = false;
+    }
+    else // if (m_ctrlVal.enableOcl3DLut == VP_CTRL_DEFAULT)
+    {
+        bEnableOcl3DLut = (m_vpPlatformInterface && m_vpPlatformInterface->IsOclKernelEnabled());
+    }
+    VP_PUBLIC_NORMALMESSAGE("EnableOcl3DLut set as %d", bEnableOcl3DLut);
     return bEnableOcl3DLut;
 }

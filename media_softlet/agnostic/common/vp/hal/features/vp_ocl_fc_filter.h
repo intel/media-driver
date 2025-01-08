@@ -223,7 +223,7 @@ protected:
     MOS_STATUS InitKrnParams(OCL_FC_KERNEL_PARAMS &krnParam, SwFilterPipe &executingPipe);
     MOS_STATUS InitLayer(SwFilterPipe &executingPipe, bool isInputPipe, int index, VPHAL_SCALING_MODE defaultScalingMode, OCL_FC_LAYER_PARAM &layer);
     MOS_STATUS InitCompParam(SwFilterPipe &executingPipe, OCL_FC_COMP_PARAM &compParam);
-    MOS_STATUS SetPerfTag(OCL_FC_COMP_PARAM &compParam, VPHAL_PERFTAG &perfTag);
+    MOS_STATUS SetPerfTag(OCL_FC_COMP_PARAM &compParam, bool isFastExpress, VPHAL_PERFTAG &perfTag);
 
     //OCL FC common kernel
     MOS_STATUS GenerateFcCommonKrnParam(OCL_FC_COMP_PARAM &compParam, OCL_FC_KERNEL_PARAM &param);
@@ -397,7 +397,11 @@ public:
         return VpRenderOclFcParameter::Create(*fcParam);
     }
 
+    virtual MOS_STATUS LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilterPipe &featurePipe, VP_EXECUTE_CAPS &caps) override;
+
 private:
+    MOS_STATUS AddInputLayerForProcess(bool &bSkip, std::vector<int> &layerIndexes, VPHAL_SCALING_MODE &scalingMode, int index, VP_SURFACE &input, SwFilterSubPipe &pipe, VP_SURFACE &output, VP_EXECUTE_CAPS &caps, int32_t &resLayers);
+
     PacketParamFactory<VpRenderOclFcParameter> m_PacketOclParamFactory;
 
     MEDIA_CLASS_DEFINE_END(vp__PolicyOclFcHandler)

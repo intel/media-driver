@@ -60,10 +60,11 @@ public:
         uint32_t enabledSFCNv12P010LinearOutput = 0;
         uint32_t enabledSFCRGBPRGB24Output  = 0;
         bool     enableIFNCC                    = false;
-        bool     bEnableOcl3DLut                = false;
-        bool     bForceOclFC                    = false;
-        bool     bDisableOclFcFp                = false;
 #endif
+        VP_CTRL enableOcl3DLut              = VP_CTRL_DEFAULT;
+        VP_CTRL forceOclFC                  = VP_CTRL_DEFAULT;
+        bool    bDisableOclFcFp             = false;
+
         bool disablePacketReuse             = false;
         bool enablePacketReuseTeamsAlways   = false;
 
@@ -75,6 +76,7 @@ public:
         uint32_t           splitFramePortions = 1;
         bool               decompForInterlacedSurfWaEnabled = false;
         bool               enableSFCLinearOutputByTileConvert = false;
+        bool               fallbackScalingToRender8K          = false;
     };
 
     uint32_t Is3DLutKernelOnly()
@@ -205,6 +207,11 @@ public:
     bool IsVeboxTypeHMode()
     {
         return m_ctrlVal.veboxTypeH;
+    }
+
+    bool IsFallbackScalingToRender8K()
+    {
+        return m_ctrlVal.fallbackScalingToRender8K;
     }
 
     MOS_STATUS SetClearVideoViewMode(bool mode)

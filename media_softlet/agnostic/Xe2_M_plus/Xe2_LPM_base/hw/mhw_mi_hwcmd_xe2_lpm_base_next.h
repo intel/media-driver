@@ -3149,6 +3149,53 @@ namespace xe2_lpm_base_next
             static const size_t byteSize = 8;
         };
 
+    //!
+    //! \brief MI_USER_INTERRUPT
+    //! \details
+    //!     This command is used to communicate Force Wakeup request to PM unit. No
+    //!     The MI_USER_INTERRUPT command is used to generate a User Interrupt
+    //!     condition. The parser will continue parsing after processing this
+    //!     command. See User Interrupt.
+    //!
+    struct MI_USER_INTERRUPT_CMD
+    {
+        union
+        {
+            struct
+            {
+                uint32_t                 Reserved0                                        : __CODEGEN_BITFIELD( 0, 22)    ; //!< Reserved
+                uint32_t                 MiCommandOpcode                                  : __CODEGEN_BITFIELD(23, 28)    ; //!< MI_COMMAND_OPCODE
+                uint32_t                 CommandType                                      : __CODEGEN_BITFIELD(29, 31)    ; //!< COMMAND_TYPE
+            };
+            uint32_t                     Value;
+        } DW0;
+
+        //! \name Local enumerations
+
+        enum MI_COMMAND_OPCODE
+        {
+            MI_COMMAND_OPCODE_MIUSERINTERRUPT                                  = 2, //!< No additional details
+        };
+
+        enum COMMAND_TYPE
+        {
+            COMMAND_TYPE_MICOMMAND                                            = 0, //!< No additional details
+        };
+
+        //! \name Initializations
+
+        //! \brief Explicit member initialization function
+        MI_USER_INTERRUPT_CMD()
+        {
+            DW0.Value = 0x1000000;
+            //DW0.MiCommandOpcode                              = MI_COMMAND_OPCODE_MIUSERINTERRUPT;
+            //DW0.CommandType                                  = COMMAND_TYPE_MICOMMAND;
+        }
+
+        static const size_t dwSize = 1;
+        static const size_t byteSize = 4;
+    };
+
     };
 }  // namesapce xe2_lpm_base_next
 }  // namespace mi

@@ -86,6 +86,8 @@ public:
     //!
     virtual MOS_STATUS Completed(void *mfxStatus, void *rcsStatus, void *statusReport) override;
 
+    virtual MOS_STATUS Destroy() override;
+
 protected:
     void SetPerfTag(CODECHAL_MODE mode, uint16_t picCodingType);
 

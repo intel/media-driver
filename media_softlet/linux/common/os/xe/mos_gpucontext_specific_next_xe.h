@@ -50,8 +50,6 @@ public:
     //!
     ~GpuContextSpecificNextXe();
 
-    virtual void Clear(void) override;
-
     virtual MOS_STATUS SubmitCommandBuffer(
         MOS_STREAM_HANDLE   streamState,
         PMOS_COMMAND_BUFFER cmdBuffer,

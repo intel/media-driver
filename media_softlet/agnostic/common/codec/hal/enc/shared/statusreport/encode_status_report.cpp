@@ -197,6 +197,8 @@ namespace encode {
             m_statusReportData[submitIndex].frameWidth                   = inputParameters->frameWidth;
             m_statusReportData[submitIndex].frameHeight                  = inputParameters->frameHeight;
 
+            m_statusReportData[submitIndex].pBlkQualityInfo = (encode::EncodeStatusReportData::BLOCK_QUALITY_INFO *)(inputParameters->pBlkQualityInfo);
+
             uint64_t pairIndex = GetIdForCodecFuncToFuncIdPairs(inputParameters->codecFunction);
             if (pairIndex >= m_maxCodecFuncNum)
             {
@@ -354,7 +356,6 @@ namespace encode {
 
         statusReportData->pFrmStatsInfo = ((EncodeStatusReportData *)report)->pFrmStatsInfo;
         statusReportData->pBlkStatsInfo = ((EncodeStatusReportData *)report)->pBlkStatsInfo;
-        statusReportData->pBlkQualityInfo = ((EncodeStatusReportData*)report)->pBlkQualityInfo;
 
         if (m_enableRcs)
         {

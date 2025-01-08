@@ -124,6 +124,12 @@ MOS_STATUS GraphicsResourceSpecificNext::Allocate(OsContextNext* osContextPtr, C
     gmmParams.BaseHeight = alignedHeight;
     gmmParams.ArraySize = 1;
 
+     if (MEDIA_IS_SKU(pOsContextSpecific->GetSkuTable(), FtrXe2Compression))
+     {
+        // Init NotCompressed flag as true to default Create as uncompressed surface on Xe2 Compression.
+        gmmParams.Flags.Info.NotCompressed = 1;
+     }
+
     MOS_TILE_TYPE tileformat = params.m_tileType;
     MOS_OS_NORMALMESSAGE("tilemode: tileformat = %d for %s, tileModeByForce = %d", tileformat, params.m_name.c_str(), params.m_tileModeByForce);
     switch (tileformat)
@@ -154,6 +160,11 @@ MOS_STATUS GraphicsResourceSpecificNext::Allocate(OsContextNext* osContextPtr, C
                 if(MEDIA_IS_SKU(pOsContextSpecific->GetSkuTable(), FtrFlatPhysCCS))
                 {
                     gmmParams.Flags.Gpu.UnifiedAuxSurface = 0;
+                }
+
+                if(MEDIA_IS_SKU(pOsContextSpecific->GetSkuTable(), FtrXe2Compression))
+                {
+                    gmmParams.Flags.Info.NotCompressed = 0;
                 }
             }
             SetTileModebyForce(gmmParams, params.m_tileModeByForce);

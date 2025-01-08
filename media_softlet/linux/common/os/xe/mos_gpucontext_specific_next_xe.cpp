@@ -42,8 +42,6 @@ static pthread_mutex_t command_dump_mutex = PTHREAD_MUTEX_INITIALIZER;
 GpuContextSpecificNextXe::~GpuContextSpecificNextXe()
 {
     MOS_OS_FUNCTION_ENTER;
-
-    Clear();
 }
 
 MOS_STATUS GpuContextSpecificNextXe::Init3DCtx(PMOS_CONTEXT osParameters,
@@ -248,11 +246,6 @@ MOS_STATUS GpuContextSpecificNextXe::InitBltCtx(PMOS_CONTEXT osParameters,
     m_i915Context[0]->pOsContext = osParameters;
 
     return eStatus;
-}
-
-void GpuContextSpecificNextXe::Clear()
-{
-    MOS_OS_FUNCTION_ENTER;
 }
 
 MOS_STATUS GpuContextSpecificNextXe::PatchCommandBuffer(

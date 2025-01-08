@@ -285,8 +285,8 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::SetupStatelessBuffer()
 {
     VP_FUNC_CALL();
     m_statelessArray.clear();
-    VP_RENDER_CHK_STATUS_RETURN(SetupStatelessBufferResource(SurfaceType3DLutCoef));
-    VP_RENDER_CHK_STATUS_RETURN(SetupStatelessBufferResource(SurfaceType3DLut));
+    VP_RENDER_CHK_STATUS_RETURN(SetupStatelessBufferResource(SurfaceType3DLutCoef, false));
+    VP_RENDER_CHK_STATUS_RETURN(SetupStatelessBufferResource(SurfaceType3DLut, true));
     return MOS_STATUS_SUCCESS;
 }
 
@@ -413,10 +413,7 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::SetWalkerSetting(KERNEL_THREAD_SPACE &thre
     m_walkerParam.inlineDataLength = sizeof(m_inlineData);
     m_walkerParam.inlineData       = m_inlineData;
 
-    if (m_kernelEnv.uSimdSize != 1 &&
-        (m_kernelEnv.uiWorkGroupWalkOrderDimensions[0] != 0 ||
-            m_kernelEnv.uiWorkGroupWalkOrderDimensions[1] != 0 ||
-            m_kernelEnv.uiWorkGroupWalkOrderDimensions[2] != 0))
+    if (m_kernelEnv.uSimdSize != 1)
     {
         m_walkerParam.isEmitInlineParameter = true;
         m_walkerParam.isGenerateLocalID     = true;
@@ -458,12 +455,13 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::InitCoefSurface(const uint32_t maxDLL, con
 
         if (maxDLL > 800)
         {
-            tmMode = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2H;
+            tmMode = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2E;
         }
         else
         {
             tmMode = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2S;
         }
+
         oetfCurve = (OETF_CURVE_TYPE)OETF_SRGB;
         tmSrcType = (TONE_MAPPING_SOURCE_TYPE)TONE_MAPPING_SOURCE_PSEUDO_Y_BT709;
     }
@@ -534,7 +532,17 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::SetKernelConfigs(KERNEL_CONFIGS &kernelCon
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpRenderHdr3DLutOclKernel::SetPerfTag()
+{
+    VP_FUNC_CALL();
+    VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
+    auto osInterface = m_hwInterface->m_osInterface;
+    VP_RENDER_CHK_NULL_RETURN(osInterface);
+    VP_RENDER_CHK_NULL_RETURN(osInterface->pfnSetPerfTag);
 
+    osInterface->pfnSetPerfTag(osInterface, VPHAL_OCL_3DLUT);
+    return MOS_STATUS_SUCCESS;
+}
 
 MOS_STATUS VpRenderHdr3DLutOclKernel::SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET_SHARED_CONTEXT *sharedContext)
 {

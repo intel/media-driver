@@ -636,6 +636,7 @@ typedef struct tagKdll_CacheEntry
     // Kernel binary
     uint8_t *pBinary;  // kernel binary
     int      iSize;    // kernel size
+    int      iPaddingSize; //kernel padding size
 
     // Component kernel information
     int            iKUID;   // kernel unique id (static kernel)
