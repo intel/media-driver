@@ -1537,10 +1537,6 @@ VAStatus MediaLibvaUtilNext::CreateShadowResource(DDI_MEDIA_SURFACE *surface)
     DDI_FUNC_ENTER;
     DDI_CHK_NULL(surface, "nullptr surface", VA_STATUS_ERROR_INVALID_SURFACE);
     DDI_CHK_NULL(surface->pGmmResourceInfo, "nullptr surface->pGmmResourceInfo", VA_STATUS_ERROR_INVALID_SURFACE);
-    if (surface->pGmmResourceInfo->GetSetCpSurfTag(0, 0) != 0)
-    {
-        return VA_STATUS_ERROR_INVALID_SURFACE;
-    }
 
     if (surface->iWidth < 64 || surface->iRealHeight < 64 || (surface->iPitch % 64 != 0) || surface->format == Media_Format_P016)
     {
@@ -2260,7 +2256,7 @@ VAStatus MediaLibvaUtilNext::GetSurfaceModifier(
         switch(gmmTileType)
         {
             case GMM_TILED_4:
-                modifier = gmmFlags.Info.MediaCompressed ? compressedModifier : I915_FORMAT_MOD_4_TILED;
+                modifier = gmmFlags.Info.NotCompressed ? I915_FORMAT_MOD_4_TILED : compressedModifier;
                 break;
             case GMM_TILED_Y:
                 modifier = I915_FORMAT_MOD_Y_TILED;
@@ -2275,7 +2271,7 @@ VAStatus MediaLibvaUtilNext::GetSurfaceModifier(
                 //handle other possible tile format
                 if(TILING_Y == mediaSurface->TileType)
                 {
-                    modifier = gmmFlags.Info.MediaCompressed ? compressedModifier : I915_FORMAT_MOD_4_TILED;
+                    modifier = gmmFlags.Info.NotCompressed ? I915_FORMAT_MOD_4_TILED : compressedModifier;
                 }
                 else
                 {
