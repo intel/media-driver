@@ -918,6 +918,8 @@ static bool InitDg2MediaWa(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_WA(waTable, Wa_15013355402, 1);
 
+    MEDIA_WR_WA(waTable, Wa_AvcUnalignedHeight, 0);
+
     return true;
 }
 
