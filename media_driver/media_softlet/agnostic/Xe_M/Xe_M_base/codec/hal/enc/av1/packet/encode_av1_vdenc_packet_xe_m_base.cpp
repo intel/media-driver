@@ -251,7 +251,7 @@ namespace encode
         auto brcFeature = dynamic_cast<Av1Brc *>(m_featureManager->GetFeature(Av1FeatureIDs::av1BrcFeature));
         ENCODE_CHK_NULL_RETURN(brcFeature);
         auto vdenc2ndLevelBatchBuffer = brcFeature->GetVdenc2ndLevelBatchBuffer(m_pipeline->m_currRecycledBufIdx);
-        auto slbbData                 = brcFeature->GetSLBData();
+        const auto &slbbData                 = brcFeature->GetSLBData();
 
         //AV1 Tile Commands
         //set up VD_CONTROL_STATE command
