@@ -901,6 +901,7 @@ public:
         {
             MHW_CHK_NULL_RETURN(m_veboxHeap);
             MHW_CHK_NULL_RETURN(m_veboxHeap->pStates);
+            uint32_t reportedUsedID = 0;
             for (uint32_t index = 0; index < m_veboxSettings.uiNumInstances; index++)
             {
                 const MHW_VEBOX_HEAP_STATE &curInstance = m_veboxHeap->pStates[index];
@@ -909,10 +910,21 @@ public:
                     m_usedVeboxID |= 1 << (*curInstance.engineData).instanceId;
                 }
             }
+            // It is only used in debugging scenarios for multi-Vebox platforms.
+            // No need to add any locks here.
+            // This approach can handle all current debugging scenarios with multiple threads/processes.
+            ReadUserSettingForDebug(
+                m_userSettingPtr,
+                reportedUsedID,
+                __MEDIA_USER_FEATURE_VALUE_USED_VEBOX_ID,
+                MediaUserSetting::Group::Sequence,
+                0,
+                false,
+                MEDIA_USER_SETTING_INTERNAL_REPORT);
             ReportUserSettingForDebug(
                 m_userSettingPtr,
                 __MEDIA_USER_FEATURE_VALUE_USED_VEBOX_ID,
-                m_usedVeboxID,
+                reportedUsedID | m_usedVeboxID,
                 MediaUserSetting::Group::Sequence);
         }
         return MOS_STATUS_SUCCESS;
