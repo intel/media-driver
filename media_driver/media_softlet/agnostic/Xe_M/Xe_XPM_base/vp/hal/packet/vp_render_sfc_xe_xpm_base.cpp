@@ -311,13 +311,17 @@ bool SfcRenderXe_Xpm_Base::IsCscNeeded(SFC_CSC_PARAMS &cscParams)
 
 MOS_STATUS SfcRenderXe_Xpm_Base::SetMmcParams(PMOS_SURFACE renderTarget, bool isFormatMmcSupported, bool isMmcEnabled)
 {
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_NULL_RETURN(renderTarget);
+    VP_PUBLIC_CHK_NULL_RETURN(m_renderDataLegacy.sfcStateParams);
+
     if (((renderTarget->Format == Format_A16R16G16B16) ||
         (renderTarget->Format == Format_A16B16G16R16)) &&
         renderTarget->CompressionMode == MOS_MMC_RC)
     {
         m_renderDataLegacy.sfcStateParams->bMMCEnable = true;
         m_renderDataLegacy.sfcStateParams->MMCMode    = MOS_MMC_RC;
-        VP_RENDER_NORMALMESSAGE("renderTarget->Format % d, m_renderData.sfcStateParams->MMCMode % d", renderTarget->Format, m_renderData.sfcStateParams->MMCMode);
+        VP_RENDER_NORMALMESSAGE("renderTarget->Format % d, m_renderDataLegacy.sfcStateParams->MMCMode % d", renderTarget->Format, m_renderDataLegacy.sfcStateParams->MMCMode);
         return MOS_STATUS_SUCCESS;
     }
 

@@ -110,6 +110,16 @@ protected:
 
         return MOS_STATUS_SUCCESS;
     }
+    _MHW_SETCMD_OVERRIDE_DECL(VDENC_AVC_IMG_STATE)
+    {
+        _MHW_SETCMD_CALLBASE(VDENC_AVC_IMG_STATE);
+
+#define DO_FIELDS_EXT() \
+        __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_AVC_IMG_STATE_IMPL_XE_LPM_BASE_EXT)
+
+#include "mhw_hwcmd_process_cmdfields.h"
+    }
+
 MEDIA_CLASS_DEFINE_END(mhw__vdbox__vdenc__xe_lpm_plus_base__BaseImplGeneric)
 };
 }  // namespace xe_lpm_plus_base

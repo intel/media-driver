@@ -687,6 +687,10 @@ MOS_STATUS SfcRenderXe_Lpm_Plus_Base::AddSfcState(
 
 MOS_STATUS SfcRenderXe_Lpm_Plus_Base::SetMmcParams(PMOS_SURFACE renderTarget, bool isFormatMmcSupported, bool isMmcEnabled)
 {
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_NULL_RETURN(renderTarget);
+    VP_PUBLIC_CHK_NULL_RETURN(m_renderData.sfcStateParams);
+
     if (((renderTarget->Format == Format_A16R16G16B16) ||
         (renderTarget->Format == Format_A16B16G16R16)) &&
         renderTarget->CompressionMode == MOS_MMC_RC)
