@@ -167,19 +167,19 @@ struct _SFC_SCALING_PARAMS
 
 struct _SFC_CSC_PARAMS
 {
+    PVPHAL_IEF_PARAMS               iefParams;                                   // Vphal Params
+    VPHAL_CSPACE                    inputColorSpace;                             // Input Color Space
+    MOS_FORMAT                      inputFormat;                                 // SFC Input Format
+    MOS_FORMAT                      outputFormat;                                // SFC Output Format
+    uint32_t                        sfcSrcChromaSiting;                          // SFC Source Chroma Siting location
+    uint32_t                        chromaDownSamplingVerticalCoef;              // Chroma DownSampling Vertical Coeff
+    uint32_t                        chromaDownSamplingHorizontalCoef;            // Chroma DownSampling Horizontal Coeff
     bool                            bCSCEnabled;                                 // CSC Enabled
     bool                            isInputColorSpaceRGB;                        // 0: YUV color space, 1:RGB color space
     bool                            bIEFEnable;                                  // IEF Enabled
     bool                            bChromaUpSamplingEnable;                     // ChromaUpSampling
     bool                            b8tapChromafiltering;                        // Enables 8 tap filtering for Chroma Channels
     bool                            isDitheringNeeded;                           // 0: dithering is not needed; 1: dithering is needed
-    VPHAL_CSPACE                    inputColorSpace;                             // Input Color Space
-    MOS_FORMAT                      inputFormat;                                 // SFC Input Format
-    MOS_FORMAT                      outputFormat;                                // SFC Output Format
-    PVPHAL_IEF_PARAMS               iefParams;                                   // Vphal Params
-    uint32_t                        sfcSrcChromaSiting;                          // SFC Source Chroma Siting location
-    uint32_t                        chromaDownSamplingVerticalCoef;              // Chroma DownSampling Vertical Coeff
-    uint32_t                        chromaDownSamplingHorizontalCoef;            // Chroma DownSampling Horizontal Coeff
     bool                            isFullRgbG10P709;                            // Whether output colorspace is DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709
     bool                            isDemosaicNeeded;                            // 0: demosaic is not needed; 1: demosaic is needed       
 };
@@ -193,13 +193,13 @@ struct _SFC_ROT_MIR_PARAMS
 
 struct _VEBOX_DN_PARAMS
 {
+    VPHAL_HVSDENOISE_PARAMS         HVSDenoise;
     bool                            bDnEnabled;
     bool                            bChromaDenoise;                             // bEnableChroma && bEnableLuma
     bool                            bAutoDetect;
     float                           fDenoiseFactor;
     VPHAL_NOISELEVEL                NoiseLevel;
     bool                            bEnableHVSDenoise;
-    VPHAL_HVSDENOISE_PARAMS         HVSDenoise;
     bool                            bProgressive;
 };
 
@@ -247,12 +247,12 @@ struct _VEBOX_TCC_PARAMS
 
 struct _VEBOX_CGC_PARAMS
 {
-    bool                                bEnableCGC;                                 // CGC Enabled
-    bool                                bBt2020ToRGB;                               // Bt2020 convert to sRGB
     VPHAL_CSPACE                        inputColorSpace;
     VPHAL_CSPACE                        outputColorSpace;
     MOS_FORMAT                          inputFormat;
     MOS_FORMAT                          outputFormat;
+    bool                                bEnableCGC;                                 // CGC Enabled
+    bool                                bBt2020ToRGB;                               // Bt2020 convert to sRGB
     bool                                bExtendedSrcGamut;
     bool                                bExtendedDstGamut;
     VPHAL_GAMUT_MODE                    GCompMode;

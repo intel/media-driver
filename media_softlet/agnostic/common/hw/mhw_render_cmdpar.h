@@ -178,25 +178,25 @@ struct MHW_VFE_PARAMS
 
 struct _MHW_PAR_T(MEDIA_OBJECT)
 {
+    void*                               pInlineData                  = nullptr;
     uint32_t                            dwInterfaceDescriptorOffset  = 0;
     uint32_t                            dwHalfSliceDestinationSelect = 0;
     uint32_t                            dwSliceDestinationSelect     = 0;
     uint32_t                            dwIndirectLoadLength         = 0;
     uint32_t                            dwIndirectDataStartAddress   = 0;
-    void*                               pInlineData                  = nullptr;
     uint32_t                            dwInlineDataSize             = 0;
-    bool                                bForceDestination            = false;
     MHW_VFE_SCOREBOARD                  VfeScoreboard                = {};
+    bool                                bForceDestination            = false;
 };
 
 struct _MHW_PAR_T(PIPE_MODE_SELECT)
 {
+    void*              pInlineData                  = nullptr;
     uint32_t           dwInterfaceDescriptorOffset  = 0;
     uint32_t           dwHalfSliceDestinationSelect = 0;
     uint32_t           dwSliceDestinationSelect     = 0;
     uint32_t           dwIndirectLoadLength         = 0;
     uint32_t           dwIndirectDataStartAddress   = 0;
-    void*              pInlineData                  = nullptr;
     uint32_t           dwInlineDataSize             = 0;
     bool               bForceDestination            = false;
     MHW_VFE_SCOREBOARD VfeScoreboard                = {};
