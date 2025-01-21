@@ -1237,7 +1237,7 @@ MOS_STATUS RenderCmdPacket::PrepareComputeWalkerParams(KERNEL_WALKER_PARAMS para
         gpgpuWalker.GroupHeight += gpgpuWalker.GroupStartingY;
     }
 
-    if (params.threadDepth && params.threadWidth && params.threadHeight)
+    if (params.threadDepth && params.threadWidth && params.threadHeight && params.isGenerateLocalID && params.emitLocal != MHW_EMIT_LOCAL_NONE)
     {
         gpgpuWalker.ThreadWidth  = params.threadWidth;
         gpgpuWalker.ThreadHeight = params.threadHeight;
@@ -1249,6 +1249,7 @@ MOS_STATUS RenderCmdPacket::PrepareComputeWalkerParams(KERNEL_WALKER_PARAMS para
         gpgpuWalker.ThreadHeight = COMPUTE_WALKER_THREAD_SPACE_HEIGHT;
         gpgpuWalker.ThreadDepth  = COMPUTE_WALKER_THREAD_SPACE_DEPTH;
     }
+    gpgpuWalker.simdSize                 = params.simdSize;
     gpgpuWalker.IndirectDataStartAddress = params.iCurbeOffset;
     // Indirect Data Length is a multiple of 64 bytes (size of L3 cacheline). Bits [5:0] are zero.
     gpgpuWalker.IndirectDataLength = MOS_ALIGN_CEIL(params.iCurbeLength, 1 << MHW_COMPUTE_INDIRECT_SHIFT);

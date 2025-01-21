@@ -78,6 +78,7 @@ extern "C" {
 //! Structure VPHAL_SURFACE
 //! \brief DDI-VPHAL surface definition
 //!
+struct VP_SURFACE;
 struct VPHAL_SURFACE
 {
     // Color Information
@@ -123,6 +124,10 @@ struct VPHAL_SURFACE
 
     // VPHAL_SURFACE Linked list
     PVPHAL_SURFACE pNext = nullptr;
+    
+    // For Multiple SwPipe Usage in SwFilterPipeFactory::Create
+    // This is an intermediate surface for multiple pipe in/out
+    VP_SURFACE *pPipeIntermediateSurface = nullptr;
 
     //--------------------------------------
     // FIELDS TO BE SETUP BY VPHAL int32_tERNALLY

@@ -32,6 +32,7 @@
 #include "vp_render_vebox_hvs_kernel.h"
 #include "vp_render_hdr_kernel.h"
 #include "vp_render_vebox_hdr_3dlut_ocl_kernel.h"
+#include "vp_render_ai_kernel.h"
 
 using namespace vp;
 
@@ -116,8 +117,9 @@ MOS_STATUS VpKernelSet::FindAndInitKernelObj(VpRenderKernelObj* kernelObj)
 
 MOS_STATUS VpKernelSet::CreateSingleKernelObject(
     VpRenderKernelObj *&kernel,
-    VpKernelID kernelId,
-    KernelIndex kernelIndex)
+    VpKernelID          kernelId,
+    KernelIndex         kernelIndex,
+    std::string         kernelName)
 {
     VP_FUNC_CALL();
     kernel = nullptr;
@@ -161,6 +163,10 @@ MOS_STATUS VpKernelSet::CreateSingleKernelObject(
         break;
     case kernelHdrMandatory:
         kernel = (VpRenderKernelObj *)MOS_New(VpRenderHdrKernel, m_hwInterface, m_allocator);
+        VP_RENDER_CHK_NULL_RETURN(kernel);
+        break;
+    case kernelAiCommon:
+        kernel = (VpRenderKernelObj *)MOS_New(VpRenderAiKernel, m_hwInterface, kernelName, kernelIndex, m_allocator);
         VP_RENDER_CHK_NULL_RETURN(kernel);
         break;
     default:
@@ -211,7 +217,8 @@ MOS_STATUS VpKernelSet::CreateKernelObjects(
             VP_RENDER_CHK_STATUS_RETURN(CreateSingleKernelObject(
                 kernel,
                 kernelParams[kernelIndex].kernelId,
-                kernelIndex));
+                kernelIndex,
+                kernelParams[kernelIndex].kernelName));
             if (kernel->IsKernelCached())
             {
                 m_cachedKernels.insert(std::make_pair(kernelParams[kernelIndex].kernelId, kernel));

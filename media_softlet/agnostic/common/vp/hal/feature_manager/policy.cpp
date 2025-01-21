@@ -33,6 +33,7 @@
 #include "sw_filter_handle.h"
 #include "vp_cgc_filter.h"
 #include "vp_user_feature_control.h"
+#include "vp_ai_filter.h"
 
 
 namespace vp
@@ -194,6 +195,10 @@ MOS_STATUS Policy::RegisterFeatures()
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeCgcOnVebox, p));
 
+    p = MOS_New(PolicyAiHandler, m_hwCaps);
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeAiOnRender, p));
+
     // Next step to add a table to trace all SW features based on platforms
     m_featurePool.push_back(FeatureTypeCsc);
     m_featurePool.push_back(FeatureTypeScaling);
@@ -210,6 +215,7 @@ MOS_STATUS Policy::RegisterFeatures()
     m_featurePool.push_back(FeatureTypeColorFill);
     m_featurePool.push_back(FeatureTypeAlpha);
     m_featurePool.push_back(FeatureTypeCgc);
+    m_featurePool.push_back(FeatureTypeAi);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -393,18 +399,21 @@ MOS_STATUS Policy::GetExecuteCaps(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAM
 
     VP_PUBLIC_NORMALMESSAGE("Only Support primary layer for advanced processing");
 
+    bool isAiPipe = false;
+    VP_PUBLIC_CHK_STATUS_RETURN(subSwFilterPipe.QuerySwAiFilter(isAiPipe));
+
     engineCapsCombinedAllPipes.value = 0;
 
     for (index = 0; index < inputSurfCount; ++index)
     {
-        VP_PUBLIC_CHK_STATUS_RETURN(BuildExecutionEngines(subSwFilterPipe, true, index, engineCapsCombinedAllPipes));
+        VP_PUBLIC_CHK_STATUS_RETURN(BuildExecutionEngines(subSwFilterPipe, true, index, isAiPipe, engineCapsCombinedAllPipes));
     }
 
     VP_PUBLIC_CHK_STATUS_RETURN(UpdateExecuteEngineCapsForCrossPipeFeatures(subSwFilterPipe, engineCapsCombinedAllPipes));
 
     for (index = 0; index < outputSurfCount; ++index)
     {
-        VP_PUBLIC_CHK_STATUS_RETURN(BuildExecutionEngines(subSwFilterPipe, false, index, engineCapsCombinedAllPipes));
+        VP_PUBLIC_CHK_STATUS_RETURN(BuildExecutionEngines(subSwFilterPipe, false, index, isAiPipe, engineCapsCombinedAllPipes));
     }
 
     VP_PUBLIC_CHK_STATUS_RETURN(BuildFilters(subSwFilterPipe, params));
@@ -646,7 +655,7 @@ MOS_STATUS Policy::UpdateExecuteEngineCapsForCrossPipeFeatures(SwFilterPipe &swF
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Policy::BuildExecutionEngines(SwFilterPipe &swFilterPipe, bool isInputPipe, uint32_t index, VP_EngineEntry &engineCapsCombinedAllPipes)
+MOS_STATUS Policy::BuildExecutionEngines(SwFilterPipe &swFilterPipe, bool isInputPipe, uint32_t index, bool isAiPipe, VP_EngineEntry &engineCapsCombinedAllPipes)
 {
     VP_FUNC_CALL();
 
@@ -661,9 +670,24 @@ MOS_STATUS Policy::BuildExecutionEngines(SwFilterPipe &swFilterPipe, bool isInpu
 
     if (pipe)
     {
-        for (auto filterID : m_featurePool)
+        if (isAiPipe)
         {
-            VP_PUBLIC_CHK_STATUS_RETURN(GetExecutionCapsForSingleFeature(filterID, *pipe, engineCapsCombined));
+            SwFilterAiBase *swAiFilter = nullptr;
+            VP_PUBLIC_CHK_STATUS_RETURN(pipe->GetAiSwFilter(swAiFilter));
+            // If the sw filter pipe contains SwFilterAiBase, then it is an AI sw filter sub pipe
+            // For AI sw filter sub pipe, only AI feature will be executed, other features will be bypass
+            // If it is not an AI sw filter sub pipe, then go into the normal GetExecutionCapsForSingleFeature
+            if (swAiFilter)
+            {
+                VP_PUBLIC_CHK_STATUS_RETURN(GetExecutionCapsForAiSwFilterSubPipe(swAiFilter, engineCapsCombined));
+            }
+        }
+        else
+        {
+            for (auto filterID : m_featurePool)
+            {
+                VP_PUBLIC_CHK_STATUS_RETURN(GetExecutionCapsForSingleFeature(filterID, *pipe, engineCapsCombined));
+            }
         }
         engineCapsCombinedAllPipes.value |= engineCapsCombined.value;
         VP_PUBLIC_CHK_STATUS_RETURN(FilterFeatureCombination(swFilterPipe, isInputPipe, index, engineCapsCombined, engineCapsCombinedAllPipes));
@@ -2328,6 +2352,51 @@ MOS_STATUS Policy::GetCgcExecutionCaps(SwFilter* feature)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS Policy::GetExecutionCapsForAiSwFilterSubPipe(SwFilterAiBase *swAiFilter, VP_EngineEntry &engineCapsCombined)
+{
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_NULL_RETURN(swAiFilter);
+    FeatureParamAi &aiParams = swAiFilter->GetSwFilterParams();
+    VP_EngineEntry &aiEngine = swAiFilter->GetFilterEngineCaps();
+
+    if (aiEngine.value != 0)
+    {
+        VP_PUBLIC_NORMALMESSAGE("AI Feature %d Already been processed, Skip further process", swAiFilter->GetFeatureType());
+        PrintFeatureExecutionCaps(__FUNCTION__, aiEngine);
+    }
+    else
+    {
+        if (!aiParams.kernelSettings.empty())
+        {
+            aiEngine.bEnabled        = true;
+            aiEngine.isolated        = true;
+            aiEngine.RenderNeeded    = true;
+            aiEngine.multiPassNeeded = aiParams.stageIndex < aiParams.kernelSplitGroupIndex.size();
+            if (aiParams.kernelSplitGroupIndex.empty())
+            {
+                aiEngine.isOutputPipeNeeded = true;
+            }
+        }
+        else
+        {
+            VP_PUBLIC_ASSERTMESSAGE(
+                "This SwFilterSubPipe contains a SwFilterAiFilter, but the Ai Kernel Pipe Setting inside this SwFilterAiFilter is empty. \
+                This will result in not only bypassing all other features, but also the AI feature itself will not execute anything. Feature Type %d",
+                swAiFilter->GetFeatureType());
+        }
+        PrintFeatureExecutionCaps(__FUNCTION__, aiEngine);
+    }
+
+    engineCapsCombined.value |= aiEngine.value;
+
+     MT_LOG7(MT_VP_HAL_POLICY_GET_EXTCAPS4FTR, MT_NORMAL, MT_VP_HAL_FEATUERTYPE, swAiFilter->GetFeatureType(), MT_VP_HAL_ENGINECAPS, int64_t(aiEngine.value),
+        MT_VP_HAL_ENGINECAPS_EN, int64_t(aiEngine.bEnabled), MT_VP_HAL_ENGINECAPS_VE_NEEDED, int64_t(aiEngine.VeboxNeeded),
+        MT_VP_HAL_ENGINECAPS_SFC_NEEDED, int64_t(aiEngine.SfcNeeded), MT_VP_HAL_ENGINECAPS_RENDER_NEEDED, int64_t(aiEngine.RenderNeeded),
+        MT_VP_HAL_ENGINECAPS_FC_SUPPORT, int64_t(aiEngine.fcSupported));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS Policy::GetExecutionCaps(SwFilter* feature)
 {
     VP_FUNC_CALL();
@@ -2754,6 +2823,18 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
                 engineCapsForFc.value |= engineCaps.value;
                 engineCapsForFc.nonVeboxFeatureExists |= !engineCaps.VeboxNeeded;
             }
+        }
+
+        SwFilterAiBase *swAiFilter = nullptr;
+        VP_PUBLIC_CHK_STATUS_RETURN(featureSubPipe->GetAiSwFilter(swAiFilter));
+        if (swAiFilter)
+        {
+            VP_EngineEntry &engineCaps            = swAiFilter->GetFilterEngineCaps();
+            isSingleSubPipe                       = true;
+            selectedPipeIndex                     = pipeIndex;
+            singlePipeSelected                    = featureSubPipe;
+            engineCapsIsolated                    = engineCaps;
+            engineCapsIsolated.isOutputPipeNeeded = engineCaps.isOutputPipeNeeded;
         }
 
         if (isSingleSubPipe)
@@ -3268,6 +3349,24 @@ MOS_STATUS Policy::UpdateFeatureTypeWithEngineSingleLayer(SwFilterSubPipe *featu
         }
     }
 
+    SwFilterAiBase *swAiFilter = nullptr;
+    VP_PUBLIC_CHK_STATUS_RETURN(featureSubPipe->GetAiSwFilter(swAiFilter));
+    if (swAiFilter)
+    {
+        VP_EngineEntry &engineCaps            = swAiFilter->GetFilterEngineCaps();
+        if (isolatedFeatureSelected == engineCaps.isolated)
+        {
+            if (caps.bRender && engineCaps.bEnabled && engineCaps.RenderNeeded)
+            {
+                VP_PUBLIC_CHK_STATUS_RETURN(UpdateExeCaps(swAiFilter, caps, EngineTypeRender));
+                if (engineCaps.isolated)
+                {
+                    isolatedFeatureFound = true;
+                }
+            }
+        }
+    }
+
     if (isolatedFeatureSelected && !isolatedFeatureFound)
     {
         VP_PUBLIC_ASSERTMESSAGE("Isolated feature is not found!");
@@ -3467,6 +3566,25 @@ MOS_STATUS Policy::UpdateFeaturePipe(SwFilterPipe &featurePipe, uint32_t pipeInd
                 handler->Destory(feature);
                 VP_PUBLIC_NORMALMESSAGE("filter is disable during UpdateFeaturePipe");
             }
+        }
+    }
+
+    SwFilterAiBase *swAiFilter = nullptr;
+    VP_PUBLIC_CHK_STATUS_RETURN(featureSubPipe->GetAiSwFilter(swAiFilter));
+    if (swAiFilter)
+    {
+        VP_EngineEntry &engineCaps            = swAiFilter->GetFilterEngineCaps();
+        if (caps.bRender && engineCaps.bEnabled && IS_FEATURE_TYPE_ON_RENDER(swAiFilter->GetFeatureType()) &&
+            m_RenderFeatureHandlers.end() != m_RenderFeatureHandlers.find(FeatureTypeAi))
+        {
+            auto it = m_RenderFeatureHandlers.find(FeatureTypeAi);
+            PolicyFeatureHandler *handler = it->second;
+            VP_PUBLIC_CHK_STATUS_RETURN(handler->UpdateFeaturePipe(caps, *swAiFilter, featurePipe, executedFilters, isInputPipe, executePipeIndex));
+            if (!engineCaps.bEnabled)
+            {
+                VP_PUBLIC_NORMALMESSAGE("filter is disable during UpdateFeaturePipe");
+            }
+            ++featureSelected;
         }
     }
 
@@ -3846,12 +3964,25 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
             }
             break;
         default:
+            if (dynamic_cast<SwFilterAiBase*>(feature) != nullptr)
+            {
+                // For AI features, they have different kinds of feature types, but they all go through VpAiFilter through caps.bAiPath
+                if (feature->GetFilterEngineCaps().isolated)
+                {
+                    caps.bAiPath = 1;
+                    feature->SetFeatureType(FeatureType(featureType | FEATURE_TYPE_ENGINE_BITS_RENDER));
+                }
+                else
+                {
+                    VP_PUBLIC_ASSERTMESSAGE("AI Kernel must be isolated");
+                }
+            }
             break;
         }
 
-        if (caps.bComposite && caps.bRenderHdr)
+        if (caps.bComposite + caps.bRenderHdr + caps.bAiPath > 1)
         {
-            VP_PUBLIC_ASSERTMESSAGE("FC and Render HDR should not be selected at same time.");
+            VP_PUBLIC_ASSERTMESSAGE("FC and Render HDR and Render AI should not be selected at same time.");
             VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
         }
     }

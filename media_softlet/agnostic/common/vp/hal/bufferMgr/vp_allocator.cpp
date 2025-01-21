@@ -231,9 +231,24 @@ VP_SURFACE *VpAllocator::AllocateVpSurface(VPHAL_SURFACE &vphalSurf)
     VP_FUNC_CALL();
     if (Mos_ResourceIsNull(&vphalSurf.OsResource))
     {
+        if (vphalSurf.pPipeIntermediateSurface)
+        {
+            VP_SURFACE *surf = MOS_New(VP_SURFACE);
+            if (surf == nullptr)
+            {
+                return nullptr;
+            }
+            surf->osSurface = MOS_New(MOS_SURFACE);
+            if (MOS_FAILED(CopyVpSurface(*surf, *vphalSurf.pPipeIntermediateSurface)))
+            {
+                MOS_Delete(surf->osSurface);
+                MOS_Delete(surf);
+                return nullptr;
+            }
+            return surf;
+        }
         return nullptr;
     }
-
     VP_SURFACE *surf = MOS_New(VP_SURFACE);
 
     if (nullptr == surf)
@@ -1041,6 +1056,69 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
     return eStatus;
 }
 #endif
+
+MOS_STATUS VpAllocator::ReAllocateVpSurfaceWithSameConfigOfVphalSurface(
+    VP_SURFACE          *&surface,
+    const PVPHAL_SURFACE &vphalSurface,
+    PCCHAR                surfaceName,
+    bool                 &allocated)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(vphalSurface);
+
+    MOS_GFXRES_TYPE     defaultResType  = MOS_GFXRES_INVALID;
+    MOS_TILE_TYPE       defaultTileType = MOS_TILE_LINEAR;
+    MOS_HW_RESOURCE_DEF resUsageType    = MOS_HW_RESOURCE_DEF_MAX;
+    MOS_TILE_MODE_GMM   tileModeByForce = MOS_TILE_UNSET_GMM;
+    if (Mos_ResourceIsNull(&vphalSurface->OsResource))
+    {
+        bool isBuffer   = (vphalSurface->Format == Format_Buffer || vphalSurface->Format == Format_RAW);
+        defaultResType  = isBuffer ? MOS_GFXRES_BUFFER : MOS_GFXRES_2D;
+        defaultTileType = isBuffer ? MOS_TILE_LINEAR : MOS_TILE_Y;
+        resUsageType    = vphalSurface->OsResource.mocsMosResUsageType;
+        tileModeByForce = vphalSurface->OsResource.TileModeGMM;
+    }
+    else
+    {
+        defaultResType = m_osInterface->pfnGetResType(&vphalSurface->OsResource);
+        defaultTileType = vphalSurface->OsResource.TileType;
+        resUsageType    = MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER;
+        tileModeByForce = MOS_TILE_UNSET_GMM;
+    }
+    VP_PUBLIC_CHK_STATUS_RETURN(ReAllocateSurface(
+        surface,
+        surfaceName,
+        vphalSurface->Format,
+        defaultResType,
+        defaultTileType,
+        vphalSurface->dwWidth,
+        vphalSurface->dwHeight,
+        vphalSurface->bCompressible,
+        vphalSurface->CompressionMode,
+        allocated,
+        false,
+        false,
+        resUsageType,
+        tileModeByForce));
+
+    // Initialize other parameters in vp surface according to vphal surface.
+    surface->ColorSpace     = vphalSurface->ColorSpace;
+    surface->ExtendedGamut  = vphalSurface->ExtendedGamut;
+    surface->Palette        = vphalSurface->Palette;
+    surface->bQueryVariance = vphalSurface->bQueryVariance;
+    surface->FrameID        = vphalSurface->FrameID;
+    surface->uFwdRefCount   = vphalSurface->uFwdRefCount;
+    surface->uBwdRefCount   = vphalSurface->uBwdRefCount;
+    surface->pFwdRef        = vphalSurface->pFwdRef;
+    surface->pBwdRef        = vphalSurface->pBwdRef;
+    surface->SurfType       = vphalSurface->SurfType;
+    surface->SampleType     = vphalSurface->SampleType;
+    surface->ChromaSiting   = vphalSurface->ChromaSiting;
+    surface->rcSrc          = vphalSurface->rcSrc;
+    surface->rcDst          = vphalSurface->rcDst;
+    surface->rcMaxSrc       = vphalSurface->rcMaxSrc;
+
+    return MOS_STATUS_SUCCESS;
+}
 
 MOS_STATUS VpAllocator::OsFillResource(
     PMOS_RESOURCE     osResource,

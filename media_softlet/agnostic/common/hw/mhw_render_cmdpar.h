@@ -399,6 +399,7 @@ struct _MHW_PAR_T(COMPUTE_WALKER)
     bool                      isGenerateLocalId             = false;
     MHW_EMIT_LOCAL_MODE       emitLocal                     = MHW_EMIT_LOCAL_NONE;
     uint32_t                  preferredSlmAllocationSize    = 0;
+    uint32_t                  simdSize                      = 0;
     _MHW_PAR_T(CFE_STATE)     cfeState                      = {};
     MHW_HEAPS_RESOURCE        heapsResource                 = {};
 

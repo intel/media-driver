@@ -173,9 +173,18 @@ public:
         cmd.DW2.IndirectDataLength       = params.IndirectDataLength;
         cmd.DW3.IndirectDataStartAddress = params.IndirectDataStartAddress >> MHW_COMPUTE_INDIRECT_SHIFT;
 
-        cmd.DW4.SIMDSize = 2;
-        cmd.DW4.MessageSIMD   = Cmd::COMPUTE_WALKER_CMD::MESSAGE_SIMD_SIMT32;
-        cmd.DW5.ExecutionMask = 0xffffffff;
+        if (params.simdSize == 16)
+        {
+            cmd.DW4.SIMDSize      = 1;
+            cmd.DW4.MessageSIMD   = Cmd::COMPUTE_WALKER_CMD::MESSAGE_SIMD_SIMT16;
+            cmd.DW5.ExecutionMask = 0xffff;
+        }
+        else
+        {
+            cmd.DW4.SIMDSize      = 2;
+            cmd.DW4.MessageSIMD   = Cmd::COMPUTE_WALKER_CMD::MESSAGE_SIMD_SIMT32;
+            cmd.DW5.ExecutionMask = 0xffffffff;
+        }
         cmd.DW6.LocalXMaximum = params.ThreadWidth - 1;
         cmd.DW6.LocalYMaximum = params.ThreadHeight - 1;
         cmd.DW6.LocalZMaximum = params.ThreadDepth - 1;

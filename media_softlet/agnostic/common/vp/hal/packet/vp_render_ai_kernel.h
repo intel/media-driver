@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2024, Intel Corporation
+* Copyright (c) 2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -19,20 +19,19 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-#ifndef __VP_RENDER_OCL_FC_KERNEL_H__
-#define __VP_RENDER_OCL_FC_KERNEL_H__
+#ifndef __VP_RENDER_AI_KERNEL_H__
+#define __VP_RENDER_AI_KERNEL_H__
 
-#include "vp_platform_interface.h"
 #include "vp_render_kernel_obj.h"
 
 namespace vp
 {
 
-class VpRenderOclFcKernel : public VpRenderKernelObj
+class VpRenderAiKernel : public VpRenderKernelObj
 {
 public:
-    VpRenderOclFcKernel(PVP_MHWINTERFACE hwInterface, VpKernelID kernelID, uint32_t kernelIndex, PVpAllocator allocator);
-    virtual ~VpRenderOclFcKernel();
+    VpRenderAiKernel(PVP_MHWINTERFACE hwInterface, std::string kernemName, uint32_t kernelIndex, PVpAllocator allocator);
+    virtual ~VpRenderAiKernel();
 
     virtual MOS_STATUS Init(VpRenderKernel &kernel);
     virtual MOS_STATUS GetCurbeState(void *&curbe, uint32_t &curbeLength);
@@ -55,8 +54,9 @@ protected:
     virtual MOS_STATUS SetupSurfaceState() override;
     virtual MOS_STATUS SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, bool bSyncFlag, bool flushL1 = false);
     virtual MOS_STATUS SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET_SHARED_CONTEXT *sharedContext);
+    virtual MOS_STATUS SetupStatelessBuffer() override;
 
-    PRENDERHAL_INTERFACE m_renderHal      = nullptr;
+    PRENDERHAL_INTERFACE m_renderHal = nullptr;
 
     //kernel Arguments
     KERNEL_INDEX_ARG_MAP         m_kernelArgs          = {};
@@ -69,9 +69,9 @@ protected:
     int32_t                      m_linearSamplerIndex  = -1;
     int32_t                      m_nearestSamplerIndex = -1;
     std ::vector<uint8_t>        m_inlineData          = {};
-    OCL_FC_KERNEL_CONFIG         m_kernelConfig        = {};
+    AI_KERNEL_CONFIG             m_kernelConfig        = {};
 
-MEDIA_CLASS_DEFINE_END(vp__VpRenderOclFcKernel)
+MEDIA_CLASS_DEFINE_END(vp__VpRenderAiKernel)
 };
 }  // namespace vp
-#endif  //__VP_RENDER_OCL_FC_KERNEL_H__
+#endif  //__VP_RENDER_AI_KERNEL_H__

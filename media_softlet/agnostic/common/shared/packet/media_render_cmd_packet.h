@@ -123,6 +123,8 @@ typedef struct _KERNEL_WALKER_PARAMS
     uint32_t                            slmSize;
     PMHW_INLINE_DATA_PARAMS             inlineDataParamBase;
     uint32_t                            inlineDataParamSize;
+
+    uint32_t                            simdSize;
 }KERNEL_WALKER_PARAMS, * PKERNEL_WALKER_PARAMS;
 
 typedef struct _KERNEL_PACKET_RENDER_DATA

@@ -212,6 +212,7 @@ struct _VP_EXECUTE_CAPS
             uint64_t bHdr           : 1;
             uint64_t bFallbackLegacyFC : 1;     // only valid when vpUserFeatureControl->EnableOclFC() is true
             uint64_t forceBypassWorkload : 1;  // If true, force to bypass workload.
+            uint64_t bAiPath        : 1;        // if ture, it will walk into ai common filter to execute a series of ai sub kernels
         };
         uint64_t value;
     };

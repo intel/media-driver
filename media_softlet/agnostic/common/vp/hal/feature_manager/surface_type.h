@@ -122,7 +122,14 @@ enum SurfaceType
     SurfaceTypeHdrAutoModeCoeff          = SurfaceTypeHVSEnd + 0x600,
     SurfaceTypeHdrAutoModeIirTempSurface = SurfaceTypeHVSEnd + 0x700,
     SurfaceTypeInnerTileConvertInput     = SurfaceTypeHVSEnd + 0x800,  // Intermedia surface between VESFC states and tile convert states inside single batchbuffer.
-    NumberOfSurfaceTypeBase              = SurfaceTypeHVSEnd + 0x900,
+    SurfaceTpyeHdrEnd                    = SurfaceTypeHVSEnd + 0x900,
+
+    // AI Kernel Common
+    SurfaceTypeAiInput0                  = SurfaceTpyeHdrEnd + 0x100,
+    SurfaceTypeAiTarget0                 = SurfaceTpyeHdrEnd + 0x200,
+    SurfaceTypeAiEnd                     = SurfaceTpyeHdrEnd + 0x200,
+
+    NumberOfSurfaceTypeBase              = SurfaceTypeAiEnd + 0x900,
 
 #ifdef _MEDIA_RESERVED
     #include "surface_type_ext.h"

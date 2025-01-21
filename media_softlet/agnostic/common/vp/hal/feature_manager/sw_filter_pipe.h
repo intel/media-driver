@@ -105,6 +105,8 @@ public:
         return IsEmpty() || RenderTargetTypeParameter == GetRenderTargetType();
     }
 
+    MOS_STATUS GetAiSwFilter(SwFilterAiBase *&swAiFilter);
+
 private:
     std::vector<SwFilterSet *> m_OrderedFilters;    // For features in featureRule
     SwFilterSet m_UnorderedFilters;                 // For features not in featureRule
@@ -175,6 +177,7 @@ public:
     bool IsAllInputPipeEmpty();
     bool IsAllInputPipeSurfaceFeatureEmpty();
     bool IsAllInputPipeSurfaceFeatureEmpty(std::vector<int> &layerIndexes);
+    MOS_STATUS  QuerySwAiFilter(bool &containsSwAiFilter);
 
     VP_SURFACE_SETTING &GetSurfacesSetting()
     {
