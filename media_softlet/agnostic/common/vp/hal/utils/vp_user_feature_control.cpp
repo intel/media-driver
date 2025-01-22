@@ -495,7 +495,11 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
 #endif
     {
         // WA ID need be added before code merge.
-        m_ctrlValDefault.fallbackScalingToRender8K = 1;
+        // Do not set fallbackScalingToRender8K if render is disabled. This is for internal vesfc usage (e.g., 8k preenc) that should not fallback to render.
+        if (m_vpPlatformInterface && !m_vpPlatformInterface->IsRenderDisabled())
+        {
+            m_ctrlValDefault.fallbackScalingToRender8K = true;
+        }
     }
     VP_PUBLIC_NORMALMESSAGE("fallbackScalingToRender8K %d", m_ctrlValDefault.fallbackScalingToRender8K);
 
