@@ -144,7 +144,8 @@ MOS_STATUS VpScalabilityMultiPipeNext::Initialize(const MediaScalabilityOption &
     veInitParms.ucNumOfSdryCmdBufSets          = m_maxCmdBufferSetsNum;
     veInitParms.ucMaxNumPipesInUse             = vpScalabilityOption->GetMaxMultiPipeNum();
     veInitParms.ucMaxNumOfSdryCmdBufInOneFrame = veInitParms.ucMaxNumPipesInUse;
-    if (m_osInterface->apoMosEnabled)
+
+    if (m_osInterface->apoMosEnabled || m_osInterface->apoMosForLegacyRuntime)
     {
         SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState);
         m_osInterface->osStreamState->component = COMPONENT_VPCommon;
@@ -177,7 +178,7 @@ MOS_STATUS VpScalabilityMultiPipeNext::Initialize(const MediaScalabilityOption &
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_osInterface->bEnableDbgOvrdInVE)
     {   
-        if (m_osInterface->apoMosEnabled)
+        if (m_osInterface->apoMosEnabled || m_osInterface->apoMosForLegacyRuntime)
         {
             for (uint32_t i = 0; i < m_osInterface->pfnGetVeEngineCount(m_osInterface->osStreamState); i++)
             {
@@ -244,7 +245,7 @@ MOS_STATUS VpScalabilityMultiPipeNext::Destroy()
     }
     else
     {
-        if (!m_osInterface->apoMosEnabled)
+        if (!m_osInterface->apoMosEnabled && !m_osInterface->apoMosForLegacyRuntime)
         {
             if (MOS_VE_SUPPORTED(m_osInterface))
             {
@@ -384,7 +385,7 @@ MOS_STATUS VpScalabilityMultiPipeNext::GetCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffe
         m_osInterface->pfnGetCommandBuffer(m_osInterface, &m_secondaryCmdBuffers[bufIdx], bufIdxPlus1);
     }
     
-    if (m_osInterface->apoMosEnabled)
+    if (m_osInterface->apoMosEnabled || m_osInterface->apoMosForLegacyRuntime)
     {
         int32_t submissionType = IsFirstPipe() ? SUBMISSION_TYPE_MULTI_PIPE_MASTER : SUBMISSION_TYPE_MULTI_PIPE_SLAVE;
         if (IsLastPipe())
@@ -499,7 +500,7 @@ MOS_STATUS VpScalabilityMultiPipeNext::SubmitCmdBuffer(PMOS_COMMAND_BUFFER cmdBu
 
     m_attrReady = false;
     
-    if (m_osInterface->apoMosEnabled || (m_veInterface && m_veInterface->pfnVESetHintParams != nullptr))
+    if (m_osInterface->apoMosEnabled || m_osInterface->apoMosForLegacyRuntime|| (m_veInterface && m_veInterface->pfnVESetHintParams != nullptr))
     {
         SCALABILITY_CHK_STATUS_RETURN(SetHintParams());
         SCALABILITY_CHK_STATUS_RETURN(PopulateHintParams(&m_primaryCmdBuffer));

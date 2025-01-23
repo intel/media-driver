@@ -340,7 +340,7 @@ MOS_STATUS DecodeScalabilityMultiPipeNext::GetCmdBuffer(PMOS_COMMAND_BUFFER cmdB
     auto &scdryCmdBuffer = m_secondaryCmdBuffers[secondaryIdx];
     SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &scdryCmdBuffer, bufIdx));
 
-    if (m_osInterface->apoMosEnabled)
+    if (m_osInterface->apoMosEnabled || m_osInterface->apoMosForLegacyRuntime)
     {
         SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState);
         SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState->virtualEngineInterface);

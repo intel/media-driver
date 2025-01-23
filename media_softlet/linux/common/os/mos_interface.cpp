@@ -3102,18 +3102,6 @@ MOS_STATUS MosInterface::GetVeHintParams(
     return streamState->virtualEngineInterface->GetHintParams(scalableMode, hintParams);
 }
 
-MOS_STATUS MosInterface::SetVeSubmissionType(
-    MOS_STREAM_HANDLE     streamState,
-    COMMAND_BUFFER_HANDLE cmdBuf,
-    MOS_SUBMISSION_TYPE   type)
-{
-    MOS_OS_CHK_NULL_RETURN(cmdBuf);
-    MOS_OS_CHK_NULL_RETURN(streamState);
-    MOS_OS_CHK_NULL_RETURN(streamState->virtualEngineInterface);
-
-    return streamState->virtualEngineInterface->SetSubmissionType(cmdBuf, type);
-}
-
 #if _DEBUG || _RELEASE_INTERNAL
 
 uint8_t MosInterface::GetVeEngineCount(

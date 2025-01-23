@@ -253,7 +253,7 @@ MOS_STATUS MediaContext::SearchContext(MediaFunction func, T params, uint32_t& i
                 MOS_OS_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContextHandle(m_osInterface, curAttribute.gpuContext, curAttribute.ctxForLegacyMos));
                 // set legacy MOS ve interface to current reused scalability state's ve interface
                 m_osInterface->pVEInterf = curAttribute.scalabilityState->m_veInterface;
-                if (m_osInterface->apoMosEnabled)
+                if (m_osInterface->apoMosEnabled || m_osInterface->apoMosForLegacyRuntime)
                 {
                     if (curAttribute.scalabilityState->m_veState)
                     {

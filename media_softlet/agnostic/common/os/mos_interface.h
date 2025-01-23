@@ -1953,29 +1953,6 @@ public:
         PMOS_VIRTUALENGINE_HINT_PARAMS *hintParams);
 
     //!
-    //! \brief    Set Virtual Engine Submission Type
-    //!
-    //! \details  [Virtual Engine Interface] Set submission type for the provided cmd buffer
-    //! \details  Caller: Hal (Scalability) only
-    //! \details  Set submission type as per cmd buffer hint parameter. Must be set before submission.
-    //!           Submission type is to set cmd buffer (primary or secondary) property to indicate 
-    //!           which pipe it belongs. See MOS_SUBMISSION_TYPE.
-    //!
-    //! \param    [in] streamState
-    //!           Handle of Os Stream State
-    //! \param    [out] cmdBuf
-    //!           Handle of cmd buffer to set submission type
-    //! \param    [in] type
-    //!           Submission type to set
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    static MOS_STATUS SetVeSubmissionType(
-        MOS_STREAM_HANDLE     streamState,
-        COMMAND_BUFFER_HANDLE cmdBuf,
-        MOS_SUBMISSION_TYPE   type);
-
-    //!
     //! \brief    Get Adapter BDF
     //! \details  [System info Interface] Get Adapter BDF
     //! \details  Caller: DDI & HAL
