@@ -256,6 +256,15 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
 
     DeclareUserSettingKey(
         userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_PARALLEL_EXEC,
+        MediaUserSetting::Group::Device,
+        false,
+        true,
+        true,
+        USER_SETTING_CONFIG_PERF_PATH); //"Perf Profiler Parallel Execution Support."
+
+    DeclareUserSettingKey(
+        userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_OUTPUT_FILE_NAME,
         MediaUserSetting::Group::Device,
         "Perf_DATA_00_00.bin",
