@@ -68,10 +68,9 @@ public:
         Iterator creator = creators.find(key);
         if (creator == creators.end())
         {
-            std::pair<Iterator, bool> result =
-                creators.insert(std::make_pair(key, Create<C>));
-            sizes.insert(std::make_pair(key, (uint32_t)sizeof(C)));
-            placecreators.insert(std::make_pair(key, PlaceCreate<C>));
+            std::pair<Iterator, bool> result = creators.emplace(key, Create<C>);
+            sizes.emplace(key, (uint32_t)sizeof(C));
+            placecreators.emplace(key, PlaceCreate<C>);
             return result.second;
         }
         else
@@ -79,8 +78,7 @@ public:
             if (forceReplace)
             {
                 creators.erase(creator);
-                std::pair<Iterator, bool> result =
-                    creators.insert(std::make_pair(key, Create<C>));
+                std::pair<Iterator, bool> result = creators.emplace(key, Create<C>);
                 return result.second;
             }
             return true; //If it is registered, do nothing then return true.

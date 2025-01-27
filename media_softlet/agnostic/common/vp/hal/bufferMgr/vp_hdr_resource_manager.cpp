@@ -88,7 +88,7 @@ MOS_STATUS VphdrResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std
         MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_RENDER));
 
     surfSetting.coeffAllocated = allocated;
-    surfSetting.surfGroup.insert(std::make_pair(SurfaceTypeHdrCoeff, m_hdrCoeff));
+    surfSetting.surfGroup.emplace(SurfaceTypeHdrCoeff, m_hdrCoeff);
 
     // Allocate auto mode CSC CCM Coeff Surface
     VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
@@ -106,7 +106,7 @@ MOS_STATUS VphdrResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std
         deferredDestroyed,
         MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_RENDER));
 
-    surfSetting.surfGroup.insert(std::make_pair(SurfaceTypeHdrAutoModeCoeff, m_hdrAutoModeCoeffSurface));
+    surfSetting.surfGroup.emplace(SurfaceTypeHdrAutoModeCoeff, m_hdrAutoModeCoeffSurface);
 
     // Allocate auto mode iir temp Surface
     dwWidth  = VPHAL_HDR_AUTO_MODE_IIR_TEMP_SIZE;
@@ -127,7 +127,7 @@ MOS_STATUS VphdrResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std
         deferredDestroyed,
         MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_RENDER));
 
-    surfSetting.surfGroup.insert(std::make_pair(SurfaceTypeHdrAutoModeIirTempSurface, m_hdrAutoModeIirTempSurface));
+    surfSetting.surfGroup.emplace(SurfaceTypeHdrAutoModeIirTempSurface, m_hdrAutoModeIirTempSurface);
 
     // Allocate OETF 1D LUT Surface
     dwWidth  = VPHAL_HDR_OETF_1DLUT_WIDTH;
@@ -136,7 +136,7 @@ MOS_STATUS VphdrResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std
     size_t cnt = MOS_MIN(inputSurfaces.size(), VPHAL_MAX_HDR_INPUT_LAYER);
     for (size_t i = 0; i < cnt; ++i)
     {
-        surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeHdrInputLayer0 + i), inputSurfaces[i]));
+        surfSetting.surfGroup.emplace((SurfaceType)(SurfaceTypeHdrInputLayer0 + i), inputSurfaces[i]);
 
         SwFilterHdr    *hdr    = dynamic_cast<SwFilterHdr *>(executedFilters.GetSwFilter(true, i, FeatureType::FeatureTypeHdrOnRender));
         FeatureParamHdr params = {};
@@ -170,7 +170,7 @@ MOS_STATUS VphdrResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std
                 MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_RENDER));
 
         surfSetting.OETF1DLUTAllocated = allocated;
-        surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeHdrOETF1DLUTSurface0 + i), m_hdrOETF1DLUTSurface[i]));
+        surfSetting.surfGroup.emplace((SurfaceType)(SurfaceTypeHdrOETF1DLUTSurface0 + i), m_hdrOETF1DLUTSurface[i]);
     }
 
     dwWidth = dwHeight = dwDepth = VPHAL_HDR_CRI_3DLUT_SIZE;
@@ -208,10 +208,10 @@ MOS_STATUS VphdrResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std
              dwDepth));
 
          surfSetting.Cri3DLUTAllocated = allocated;
-         surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeHdrCRI3DLUTSurface0 + i), m_hdrCri3DLUTSurface[i]));
+         surfSetting.surfGroup.emplace((SurfaceType)(SurfaceTypeHdrCRI3DLUTSurface0 + i), m_hdrCri3DLUTSurface[i]);
     }
 
-    surfSetting.surfGroup.insert(std::make_pair(SurfaceTypeHdrTarget0, outputSurface));
+    surfSetting.surfGroup.emplace(SurfaceTypeHdrTarget0, outputSurface);
     surfSetting.dumpPostSurface = false;
     reporting.GetFeatures().hdrMode = params.hdrMode;
 
