@@ -159,6 +159,7 @@ typedef enum _TRINITY_PATH
 #define    MOS_FORCE_VDBOX_NONE     0
 #define    MOS_FORCE_VDBOX_1        0x0001
 #define    MOS_FORCE_VDBOX_2        0x0002
+#define    MOS_FORCE_VDBOX_3        0x0003
 //below is for scalability case,
 //format is FE vdbox is specified as lowest 4 bits; BE0 is 2nd low 4 bits; BE1 is 3rd low 4bits.
 #define    MOS_FORCE_VDBOX_1_1_2    0x0211
