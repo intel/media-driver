@@ -102,7 +102,7 @@ MOS_STATUS CmScratchSpace::Allocate(CmKernelEx **kernels, uint32_t count)
     return MOS_STATUS_SUCCESS;
 }
 
-void CmScratchSpace::Submit(uint32_t trackerIndex, uint32_t tracker)
+void CmScratchSpace::Submit(uint32_t trackerIndex, uint32_t tracker) const
 {
     if (m_buffer == nullptr || m_scratchSize == 0)
     {
