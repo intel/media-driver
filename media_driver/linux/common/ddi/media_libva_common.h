@@ -273,4 +273,14 @@ int32_t DdiMedia_GetGpuPriority (VADriverContextP ctx, VABufferID *buffers, int3
 //!
 void MovePriorityBufferIdToEnd (VABufferID *buffers, int32_t priorityIndexInBuf, int32_t numBuffers);
 
+//!
+//! \brief  Add fence fds into bufmgr for execution sync
+//!
+VAStatus DdiMedia_SetSyncFences(VADriverContextP ctx, VAContextID context, int32_t *fences, int32_t count);
+
+//!
+//! \brief  Get fence out from current execution submission
+//!
+VAStatus DdiMedia_GetSyncFenceOut(VADriverContextP ctx, VAContextID context, int32_t *fence_out);
+
 #endif
