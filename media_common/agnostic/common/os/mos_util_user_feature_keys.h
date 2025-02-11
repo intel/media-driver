@@ -134,6 +134,7 @@
 #define __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE                             "Simulation Enable"
 #define __MEDIA_USER_FEATURE_VALUE_SIM_IN_USE                             "Simulation In Use"
 
+#define __MEDIA_USER_FEATURE_VALUE_ENABLE_VDBOX_ID_REPORT                 "Enable VDBOX ID Report"
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_VE_DEBUG_OVERRIDE               "Enable VE Debug Override"
 #define __MEDIA_USER_FEATURE_VALUE_FORCE_VDBOX                            "Force VDBOX"
 #define __MEDIA_USER_FEATURE_VALUE_FORCE_VEBOX                            "Force VEBOX"

@@ -566,8 +566,18 @@ MOS_STATUS DecodePipeline::ReportVdboxIds(const DecodeStatusMfx& status)
 {
     DECODE_FUNC_CALL();
 
-    // report the VDBOX IDs to user feature
-    uint32_t vdboxIds = ReadUserFeature(m_userSettingPtr, "Used VDBOX ID", MediaUserSetting::Group::Sequence).Get<uint32_t>();
+    uint32_t vdboxIds = 0;
+    uint32_t reportedVdboxIds = 0;
+    // Must add MEDIA_USER_SETTING_INTERNAL_REPORT for different reading path.
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        reportedVdboxIds,
+        "Used VDBOX ID",
+        MediaUserSetting::Group::Sequence,
+        0,
+        false,
+        MEDIA_USER_SETTING_INTERNAL_REPORT);
+    vdboxIds = reportedVdboxIds;
     for (auto i = 0; i < csInstanceIdMax; i++)
     {
         CsEngineId csEngineId;
@@ -580,7 +590,7 @@ MOS_STATUS DecodePipeline::ReportVdboxIds(const DecodeStatusMfx& status)
         }
     }
 
-    if (vdboxIds != 0)
+    if (vdboxIds != reportedVdboxIds)
     {
         WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_VDBOX_ID_USED, vdboxIds, m_osInterface->pOsContext);
     }

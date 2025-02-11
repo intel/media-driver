@@ -1149,6 +1149,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
 
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VDBOX_ID_REPORT,
+        MediaUserSetting::Group::Device,
+        0,
+        true); //"Enable Vdbox physical engine id report"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_FORCE_VDBOX,
         MediaUserSetting::Group::Device,
         0,

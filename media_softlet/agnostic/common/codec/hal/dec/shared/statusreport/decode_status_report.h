@@ -93,7 +93,7 @@ namespace decode {
     class DecodeStatusReport : public MediaStatusReport
     {
     public:
-        DecodeStatusReport(DecodeAllocator *alloc, bool enableRcs, PMOS_INTERFACE osInterface = nullptr);
+        DecodeStatusReport(DecodeAllocator *alloc, bool enableRcs, PMOS_INTERFACE osInterface);
         virtual ~DecodeStatusReport();
 
         //!

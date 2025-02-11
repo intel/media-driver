@@ -114,6 +114,16 @@ public:
     //!
     uint32_t GetSubmittedCount() const { return m_submittedCount; }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //!
+    //! \brief  Is Vdbox physical id reporting enabled
+    //! \return m_enableVdboxIdReport
+    //!
+    uint32_t IsVdboxIdReportEnabled()
+    { 
+        return m_enableVdboxIdReport;
+    }
+#endif
     //!
     //! \brief  Get completed count of status report.
     //! \return The content of m_completedCount
@@ -201,6 +211,9 @@ protected:
 
     StatusBufAddr    *m_statusBufAddr        = nullptr;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    bool             m_enableVdboxIdReport   = false;
+#endif
     std::recursive_mutex                      m_lock;
     std::vector<MediaStatusReportObserver *>  m_completeObservers;
 MEDIA_CLASS_DEFINE_END(MediaStatusReport)

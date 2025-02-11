@@ -37,6 +37,17 @@ namespace decode {
         m_osInterface(osInterface)
     {
         m_sizeOfReport = sizeof(DecodeStatusReportData);
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (osInterface && osInterface->pfnGetUserSettingInstance)
+        {
+            auto userSetting = osInterface->pfnGetUserSettingInstance(osInterface);
+            ReadUserSettingForDebug(
+                userSetting,
+                m_enableVdboxIdReport,
+                __MEDIA_USER_FEATURE_VALUE_ENABLE_VDBOX_ID_REPORT,
+                MediaUserSetting::Group::Device);
+        }
+#endif
     }
 
     DecodeStatusReport::~DecodeStatusReport()

@@ -46,6 +46,7 @@ static constexpr uint32_t  CS_GENERAL_PURPOSE_REGISTER11_HI_OFFSET              
 static constexpr uint32_t  CS_GENERAL_PURPOSE_REGISTER12_LO_OFFSET                                     = 0x2660;
 static constexpr uint32_t  CS_GENERAL_PURPOSE_REGISTER12_HI_OFFSET                                     = 0x2664;
 static constexpr uint32_t  CS_PREDICATE_RESULT2                                                        = 0x23BC;
+static constexpr uint32_t  CS_ENGINE_ID_OFFSET                                                         = 0x1C008C;
 
 // Vebox register offsets
 // Used in Commen MI

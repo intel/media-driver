@@ -247,7 +247,12 @@ MOS_STATUS JpegDecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER*
     DECODE_CHK_NULL(perfProfiler);
     DECODE_CHK_STATUS(perfProfiler->AddPerfCollectStartCmd(
         (void*)m_jpegPipeline, m_osInterface, m_miItf, cmdBuffer));
-
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_statusReport && m_statusReport->IsVdboxIdReportEnabled())
+    {
+        StoreEngineId(cmdBuffer, decode::DecodeStatusReportType::CsEngineIdOffset_0);
+    }
+#endif
     return MOS_STATUS_SUCCESS;
 }
 

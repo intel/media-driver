@@ -267,6 +267,11 @@ MOS_STATUS HevcDecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER*
     DECODE_CHK_STATUS(perfProfiler->AddPerfCollectStartCmd((void *)m_hevcPipeline, m_osInterface, m_miItf, cmdBuffer));
 
 #if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_statusReport && m_statusReport->IsVdboxIdReportEnabled())
+    {
+        DECODE_CHK_NULL(m_phase);
+        StoreEngineId(cmdBuffer, decode::DecodeStatusReportType::CsEngineIdOffset_0, m_phase->GetPipe());
+    }
     if (m_osInterface->bNullHwIsEnabled)
     {
         DecodeNullHWProxyTestPkt *nullhwProxy = DecodeNullHWProxyTestPkt::Instance();
