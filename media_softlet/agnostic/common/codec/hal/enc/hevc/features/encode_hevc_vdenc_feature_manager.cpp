@@ -68,6 +68,12 @@ MOS_STATUS EncodeHevcVdencFeatureManager::CheckFeatures(void *params)
     {
         m_ddiTargetUsage = hevcSeqParams->TargetUsage;
         ENCODE_CHK_STATUS_RETURN(MapTargetUsage(hevcSeqParams->TargetUsage));
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_forceTargetUsage != 0)
+        {
+            hevcSeqParams->TargetUsage = m_forceTargetUsage;
+        }
+#endif
         m_targetUsage = hevcSeqParams->TargetUsage;
     }
 

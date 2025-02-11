@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2023, Intel Corporation
+* Copyright (c) 2020-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -184,6 +184,7 @@ struct _MHW_PAR_T(VDENC_PIPE_MODE_SELECT)
     uint8_t DownScaleType            = 0;
     uint8_t VdencPipeModeSelectPar12 = 0;
     uint8_t VdencPipeModeSelectPar13 = 0;
+    bool    chromaPrefetchDisable    = false;
 };
 
 struct _MHW_PAR_T(VDENC_SRC_SURFACE_STATE)

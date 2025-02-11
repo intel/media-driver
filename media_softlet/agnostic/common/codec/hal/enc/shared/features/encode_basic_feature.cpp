@@ -94,6 +94,13 @@ MOS_STATUS EncodeBasicFeature::Init(void *setting)
         MediaUserSetting::Group::Sequence);
     m_enableTileStitchByHW = outValue.Get<bool>();
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        m_chromaPrefetchDisable,
+        "ChromaPrefetchDisable",
+        MediaUserSetting::Group::Sequence);
+#endif
     return MOS_STATUS_SUCCESS;
 }
 

@@ -204,6 +204,8 @@ public:
     uint8_t m_SubPelMode        = 3;
     bool    m_dualEncEnable     = false;
 
+    bool m_chromaPrefetchDisable = true;
+
 protected:
     //!
     //! \brief  Update the parameters of tracked buffers
