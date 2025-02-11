@@ -188,18 +188,24 @@ MOS_STATUS MhwInterfacesLnl_Next::Initialize(
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    if ((params.m_isCp == false) && (params.Flags.m_value == 0))
+    if ((params.m_isCp == false) && (params.Flags.m_value == 0) && (params.m_isMos == 0))
     {
         MHW_ASSERTMESSAGE("No MHW interfaces were requested for creation.");
         return MOS_STATUS_INVALID_PARAMETER;
     }
+    //MHW_MI must always be created
+    auto ptr = std::make_shared<mhw::mi::xe2_lpm_base_next::Impl>(osInterface);
+    m_miItf = std::static_pointer_cast<mhw::mi::Itf>(ptr);
+    //For mos, need miInterface only
+    if (params.m_isMos)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 
-    // MHW_CP and MHW_MI must always be created
+    // MHW_CP must always be created
     MOS_STATUS status;
     m_cpInterface = osInterface->pfnCreateMhwCpInterface(osInterface);
     MHW_MI_CHK_NULL(m_cpInterface);
-    auto ptr      = std::make_shared<mhw::mi::xe2_lpm_base_next::Impl>(osInterface);
-    m_miItf       = std::static_pointer_cast<mhw::mi::Itf>(ptr);
     ptr->SetCpInterface(m_cpInterface, m_miItf);
 
     if (params.Flags.m_render)
