@@ -200,3 +200,9 @@ static bool bmgDevicee20D = DeviceInfoFactory<GfxDeviceInfo>::
 
 static bool bmgDevicee212 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0xe212, &bmgInfo);
+
+static bool bmgDevicee215 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0xe215, &bmgInfo);
+
+static bool bmgDevicee216 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0xe216, &bmgInfo);
