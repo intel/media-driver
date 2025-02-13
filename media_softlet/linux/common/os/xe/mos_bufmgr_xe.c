@@ -899,7 +899,6 @@ mos_context_create_shared_xe(
 {
     MOS_UNUSED(ctx);
     MOS_UNUSED(ctx_type);
-    MOS_UNUSED(bContextProtected);
 
     MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr, nullptr)
     MOS_DRM_CHK_NULL_RETURN_VALUE(engine_map, nullptr)
@@ -925,6 +924,10 @@ mos_context_create_shared_xe(
     context = MOS_New(mos_xe_context);
     MOS_DRM_CHK_NULL_RETURN_VALUE(context, nullptr)
 
+    struct drm_xe_ext_set_property* ext = nullptr;
+    struct drm_xe_ext_set_property timeslice;
+    struct drm_xe_ext_set_property protect;
+
     /**
      * Set exec_queue timeslice for render/ compute only as WA to ensure exec sequence.
      * Note, this is caused by a potential issue in kmd since exec_queue preemption by plenty of WL w/ same priority.
@@ -934,7 +937,6 @@ mos_context_create_shared_xe(
                 && (ctx_width * num_placements == 1)
                 && bufmgr_gem->exec_queue_timeslice != EXEC_QUEUE_TIMESLICE_DEFAULT)
     {
-        struct drm_xe_ext_set_property timeslice;
         memclear(timeslice);
         timeslice.property = DRM_XE_EXEC_QUEUE_SET_PROPERTY_TIMESLICE;
         /**
@@ -942,10 +944,26 @@ mos_context_create_shared_xe(
          */
         timeslice.value = bufmgr_gem->exec_queue_timeslice;
         timeslice.base.name = DRM_XE_EXEC_QUEUE_EXTENSION_SET_PROPERTY;
-        create.extensions = (uintptr_t)(&timeslice);
+        ext = &timeslice;
         MOS_DRM_NORMALMESSAGE("WA: exec_queue timeslice set by engine class(%d), value(%d)",
                     engine_class, bufmgr_gem->exec_queue_timeslice);
     }
+
+    /**
+     * Set exec_queue protect for PXP usage.
+     */
+    if (bContextProtected)
+    {
+        memclear(protect);
+        protect.base.name = DRM_XE_EXEC_QUEUE_EXTENSION_SET_PROPERTY,
+        protect.property = DRM_XE_EXEC_QUEUE_SET_PROPERTY_PXP_TYPE,
+        protect.value = DRM_XE_PXP_TYPE_HWDRM;
+
+        protect.base.next_extension = (uintptr_t)ext;
+        ext = &protect;
+    }
+    
+    create.extensions = (uintptr_t)ext;
 
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_XE_EXEC_QUEUE_CREATE, &create);
 
