@@ -41,21 +41,6 @@ MOS_STATUS EncodeFeatureManager::Init(void *settings)
 {
     ENCODE_FUNC_CALL();
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    ReadUserSettingForDebug(
-        m_userSettingPtr,
-        m_forceTargetUsage,
-        "ForceTargetUsage",
-        MediaUserSetting::Group::Sequence);
-    if (m_forceTargetUsage != 0)
-    {
-        if (m_forceTargetUsage > 7)
-        {
-            ENCODE_NORMALMESSAGE("Invalid forced TU, ignore it!");
-            m_forceTargetUsage = 0;
-        }
-    }
-#endif
     ENCODE_CHK_STATUS_RETURN(CreateConstSettings());
     ENCODE_CHK_NULL_RETURN(m_featureConstSettings);
     ENCODE_CHK_STATUS_RETURN(m_featureConstSettings->PrepareConstSettings());

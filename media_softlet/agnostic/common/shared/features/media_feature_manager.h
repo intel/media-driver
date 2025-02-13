@@ -267,7 +267,6 @@ public:
     //!         return the DDI target usage.
     //!
     uint8_t GetDDITargetUsage(){return m_ddiTargetUsage;}
-    void SetUserSettingPtr(MediaUserSettingSharedPtr userSettingPtr);
 
 protected:
 
@@ -301,8 +300,6 @@ protected:
     uint8_t m_ddiTargetUsage = 0; // for user input setting report
     uint8_t m_targetUsage = 0;
     uint8_t m_passNum = 1;
-    uint8_t m_forceTargetUsage = 0;
-
     // Media user setting instance
     MediaUserSettingSharedPtr m_userSettingPtr = nullptr;
 MEDIA_CLASS_DEFINE_END(MediaFeatureManager)

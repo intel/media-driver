@@ -127,8 +127,3 @@ MOS_STATUS MediaFeatureManager::Destroy()
     }
     return MOS_STATUS_SUCCESS;
 }
-
-void MediaFeatureManager::SetUserSettingPtr(MediaUserSettingSharedPtr userSettingPtr)
-{
-    m_userSettingPtr = userSettingPtr;  //!< usersettingInstance
-}
