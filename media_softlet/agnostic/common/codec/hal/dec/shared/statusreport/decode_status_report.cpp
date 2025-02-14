@@ -32,22 +32,12 @@ namespace decode {
 
     DecodeStatusReport::DecodeStatusReport(
         DecodeAllocator* allocator, bool enableRcs, PMOS_INTERFACE osInterface):
+        MediaStatusReport(osInterface),
         m_enableRcs(enableRcs),
         m_allocator(allocator),
         m_osInterface(osInterface)
     {
         m_sizeOfReport = sizeof(DecodeStatusReportData);
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (osInterface && osInterface->pfnGetUserSettingInstance)
-        {
-            auto userSetting = osInterface->pfnGetUserSettingInstance(osInterface);
-            ReadUserSettingForDebug(
-                userSetting,
-                m_enableVdboxIdReport,
-                __MEDIA_USER_FEATURE_VALUE_ENABLE_VDBOX_ID_REPORT,
-                MediaUserSetting::Group::Device);
-        }
-#endif
     }
 
     DecodeStatusReport::~DecodeStatusReport()
@@ -213,6 +203,13 @@ namespace decode {
         // The frame is completed, notify the observers
         if (statusReportData->codecStatus == CODECHAL_STATUS_SUCCESSFUL)
         {
+#if (_DEBUG || _RELEASE_INTERNAL)
+            if (m_enableVdboxIdReport)
+            {
+                DECODE_CHK_NULL(decodeStatusMfx);
+                ParseVdboxIdsFromBuf(decodeStatusMfx->m_mmioCsEngineIdReg);
+            }
+#endif
             NotifyObservers(decodeStatusMfx, decodeStatusRcs, statusReportData);
         }
 
@@ -303,10 +300,31 @@ namespace decode {
         return m_statusReportData[index];
     }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_STATUS DecodeStatusReport::ReportUsedVdboxIds()
+    {
+        if (m_enableVdboxIdReport)
+        {
+            DECODE_CHK_NULL(m_dataStatusMfx);
+            DECODE_CHK_NULL(m_completedCount);
+            uint32_t completedCount = *m_completedCount;
+            for (uint32_t num = m_reportedCount; num < completedCount; num++)
+            {
+                const DecodeStatusMfx& status = GetMfxStatus(num);
+                ParseVdboxIdsFromBuf(status.m_mmioCsEngineIdReg);
+            }
+            MediaStatusReport::ReportUsedVdboxIds();
+        }
+        return MOS_STATUS_SUCCESS;
+    }
+#endif
+
     MOS_STATUS DecodeStatusReport::Destroy()
     {
         DECODE_FUNC_CALL();
-
+#if (_DEBUG || _RELEASE_INTERNAL)
+        ReportUsedVdboxIds();
+#endif
         if (m_allocator != nullptr && m_statusBufMfx != nullptr)
         {
             m_allocator->UnLock(m_statusBufMfx);

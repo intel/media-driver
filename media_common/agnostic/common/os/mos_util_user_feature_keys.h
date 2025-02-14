@@ -139,6 +139,7 @@
 #define __MEDIA_USER_FEATURE_VALUE_FORCE_VDBOX                            "Force VDBOX"
 #define __MEDIA_USER_FEATURE_VALUE_FORCE_VEBOX                            "Force VEBOX"
 #define __MEDIA_USER_FEATURE_VALUE_FORCE_YFYS                             "Force to allocate YfYs"
+#define __MEDIA_USER_FEATURE_VALUE_USED_VDBOX_ID                          "Used VDBOX ID"
 
 #define __MEDIA_USER_FEATURE_VALUE_NULL_HW_ACCELERATION_ENABLE            "NullHWAccelerationEnable"
 

@@ -1170,6 +1170,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
 
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_USED_VDBOX_ID,
+        MediaUserSetting::Group::Device,
+        0,
+        true); //"Used Vdbox physical id. (Default 0: Not used, Each Hex symbol represents one VDBOX, e.g. bits[3:0] means VD0, bits[7:4] means VD1)"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_FORCE_YFYS,
         MediaUserSetting::Group::Device,
         0,

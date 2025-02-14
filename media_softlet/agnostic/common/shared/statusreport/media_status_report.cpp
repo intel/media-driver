@@ -27,6 +27,22 @@
 //!
 #include <algorithm>
 #include "media_status_report.h"
+#include "mos_os.h"
+
+MediaStatusReport::MediaStatusReport(PMOS_INTERFACE osInterface)
+{
+    if (osInterface && osInterface->pfnGetUserSettingInstance)
+    {
+        m_userSettingPtr = osInterface->pfnGetUserSettingInstance(osInterface);
+    }
+#if (_DEBUG || _RELEASE_INTERNAL)
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        m_enableVdboxIdReport,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VDBOX_ID_REPORT,
+        MediaUserSetting::Group::Device);
+#endif
+}
 
 MOS_STATUS MediaStatusReport::GetAddress(uint32_t statusReportType, PMOS_RESOURCE &osResource, uint32_t &offset)
 {
@@ -146,5 +162,39 @@ MOS_STATUS MediaStatusReport::NotifyObservers(void *mfxStatus, void *rcsStatus, 
     return eStatus;
 }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+void MediaStatusReport::ParseVdboxIdsFromBuf(const uint32_t *csEngineIdRegBuf)
+{
+    for (auto i = 0; i < csInstanceIdMax; i++)
+    {
+        CsEngineId csEngineId;
+        csEngineId.value = csEngineIdRegBuf[i];
+        if (csEngineId.fields.classId == classIdVideoEngine)
+        {
+            m_usedVdboxIds |= 1 << ((csEngineId.fields.instanceId) << 2);
+        }
+    }
+}
 
-
+MOS_STATUS MediaStatusReport::ReportUsedVdboxIds()
+{
+    if (m_enableVdboxIdReport)
+    {
+        uint32_t reportedUsedID = 0;
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            reportedUsedID,
+            __MEDIA_USER_FEATURE_VALUE_USED_VDBOX_ID,
+            MediaUserSetting::Group::Device,
+            0,
+            false,
+            MEDIA_USER_SETTING_INTERNAL_REPORT);
+        ReportUserSettingForDebug(
+            m_userSettingPtr,
+            __MEDIA_USER_FEATURE_VALUE_USED_VDBOX_ID,
+            reportedUsedID | m_usedVdboxIds,
+            MediaUserSetting::Group::Device);
+    }
+    return MOS_STATUS_SUCCESS;
+}
+#endif

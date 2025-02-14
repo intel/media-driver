@@ -149,6 +149,14 @@ namespace decode {
         //!
         const DecodeStatusReportData& GetReportData(uint32_t counter);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+        //!
+        //! \brief  Report Used Vdbox Ids
+        //! \return MOS_STATUS
+        //!         MOS_STATUS_SUCCESS if success, else fail reason
+        //!
+        virtual MOS_STATUS ReportUsedVdboxIds() override;
+#endif
     protected:
         //!
         //! \brief  Collect the status report information into report buffer.
