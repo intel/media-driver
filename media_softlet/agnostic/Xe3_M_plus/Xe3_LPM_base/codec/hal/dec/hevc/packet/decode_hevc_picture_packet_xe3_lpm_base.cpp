@@ -73,7 +73,7 @@ MOS_STATUS HevcDecodePicPktXe3_Lpm_Base::Execute(MOS_COMMAND_BUFFER &cmdBuffer)
 
     auto &params = m_hcpItf->MHW_GETPAR_F(HCP_PIPE_BUF_ADDR_STATE)();
     params       = {};
-    HevcDecodePicPktXe3_Lpm_Base::MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params);
+    DECODE_CHK_STATUS(HevcDecodePicPktXe3_Lpm_Base::MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params));
     DECODE_CHK_STATUS(AddAllCmds_HCP_SURFACE_STATE(cmdBuffer));
     DECODE_CHK_STATUS(m_hcpItf->MHW_ADDCMD_F(HCP_PIPE_BUF_ADDR_STATE)(&cmdBuffer));
     SETPAR_AND_ADDCMD(HCP_IND_OBJ_BASE_ADDR_STATE, m_hcpItf, &cmdBuffer);
@@ -178,7 +178,7 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, HevcDecodePicPktXe3_Lpm_Base)
     DECODE_FUNC_CALL();
 
     params = {};
-    HevcDecodePicPkt::MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params);
+    DECODE_CHK_STATUS(HevcDecodePicPkt::MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params));
 
 #ifdef _MMC_SUPPORTED
     HevcDecodeMemCompXe3_Lpm_Base *hevcDecodeMemComp = dynamic_cast<HevcDecodeMemCompXe3_Lpm_Base *>(m_mmcState);
