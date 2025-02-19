@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2023, Intel Corporation
+* Copyright (c) 2018-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -203,6 +203,8 @@ public:
     bool    m_bEnableSubPelMode = false;
     uint8_t m_SubPelMode        = 3;
     bool    m_dualEncEnable     = false;
+
+    bool m_chromaPrefetchDisable = true;
 
 protected:
     //!

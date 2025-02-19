@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019, Intel Corporation
+* Copyright (c) 2019-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -58,6 +58,13 @@ MOS_STATUS EncodeAv1VdencFeatureManager::CheckFeatures(void *params)
     {
         m_ddiTargetUsage = av1SeqParams->TargetUsage;
         ENCODE_CHK_STATUS_RETURN(MapTargetUsage(av1SeqParams->TargetUsage));
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_forceTargetUsage != 0)
+        {
+            av1SeqParams->TargetUsage = m_forceTargetUsage;
+        }
+#endif
         m_targetUsage = av1SeqParams->TargetUsage;
     }
 
