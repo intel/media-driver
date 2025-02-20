@@ -218,7 +218,7 @@ MOS_STATUS EncodeBasicFeature::Update(void *params)
     }
 
     // check output Chroma format
-    UpdateFormat(params);
+    ENCODE_CHK_STATUS_RETURN(UpdateFormat(params));
 
     m_predicationNotEqualZero              = encodeParams->m_predicationNotEqualZero;
     m_predicationEnabled                   = encodeParams->m_predicationEnabled;
