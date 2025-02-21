@@ -74,6 +74,7 @@ int mos_sync_syncobj_timeline_wait(int fd, uint32_t *handles, uint64_t *points,
             uint32_t *first_signaled);
 
 int mos_sync_syncobj_handle_to_syncfile_fd(int fd, int syncobj_handle);
+int mos_sync_syncfile_fd_to_syncobj_handle(int fd, int syncfile_fd);
 int mos_sync_import_syncfile_to_external_bo(int fd, int prime_fd, int syncfile_fd);
 int mos_sync_syncobj_timeline_to_binary(int fd, uint32_t binary_handle,
         uint32_t timeline_handle,
