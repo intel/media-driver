@@ -199,6 +199,9 @@ namespace encode {
             m_statusReportData[submitIndex].frameWidth                   = inputParameters->frameWidth;
             m_statusReportData[submitIndex].frameHeight                  = inputParameters->frameHeight;
 
+            m_statusReportData[submitIndex].targetFrameSize = inputParameters->targetFrameSize;
+            m_statusReportData[submitIndex].brcMode         = inputParameters->brcMode;
+
             m_statusReportData[submitIndex].pBlkQualityInfo = (encode::EncodeStatusReportData::BLOCK_QUALITY_INFO *)(inputParameters->pBlkQualityInfo);
 
             uint64_t pairIndex = GetIdForCodecFuncToFuncIdPairs(inputParameters->codecFunction);

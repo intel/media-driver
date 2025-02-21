@@ -151,6 +151,8 @@ struct EncoderStatusParameters
     uint32_t           frameWidth;
     uint32_t           frameHeight;
     void               *pBlkQualityInfo;
+    uint32_t            targetFrameSize;
+    uint32_t            brcMode;
 };
 
 struct ImageStatusControl

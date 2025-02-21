@@ -297,6 +297,9 @@ namespace encode {
         uint32_t                        frameWidth;
         uint32_t                        frameHeight;
 
+        uint32_t                        targetFrameSize;
+        uint32_t                        brcMode;
+
         uint32_t                        MSE[3];
 
         BLOCK_QUALITY_INFO* pBlkQualityInfo;
