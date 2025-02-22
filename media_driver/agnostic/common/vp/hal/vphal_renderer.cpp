@@ -1732,6 +1732,7 @@ MOS_STATUS VpHal_RndrSetYUVComponents(
             break;
 
         case Format_Y210:
+        case Format_Y216:
             *pOffsetY = 0;
             *pOffsetU = 2;
             *pOffsetV = 6;
