@@ -6784,6 +6784,13 @@ bool CompositeState::BuildFilter(
 
     for (i = 0; (i < (int)pCompParams->uSourceCount) && (iMaxFilterSize > 0); i++)
     {
+        if (i > 0)
+        {
+            if (!RECT1_CONTAINS_RECT2(pCompParams->pSource[0]->rcDst, pCompParams->pSource[i]->rcDst))
+            {
+                pFilter->forceToTargetColorSpace = true;
+            }
+        }
         pSrc = pCompParams->pSource[i];
 
         //--------------------------------
