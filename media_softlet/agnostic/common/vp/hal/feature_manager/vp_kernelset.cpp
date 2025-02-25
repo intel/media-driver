@@ -242,7 +242,7 @@ MOS_STATUS VpKernelSet::CreateKernelObjects(
 
             VP_RENDER_CHK_STATUS_RETURN(VpStatusHandler(kernel->InitKernel(binary, kernelSize, kernelConfigs, surfacesGroup, surfMemCacheCtl)));
 
-            kernelObjs.insert(std::make_pair(kernelIndex, kernel));
+            kernelObjs.emplace(kernelIndex, kernel);
         }
         else
         {
@@ -250,7 +250,7 @@ MOS_STATUS VpKernelSet::CreateKernelObjects(
 
             VP_RENDER_CHK_STATUS_RETURN(VpStatusHandler(kernel->SetKernelConfigs(kernelParams[kernelIndex], surfacesGroup, samplerStateGroup, kernelConfigs, sharedContext)));
 
-            kernelObjs.insert(std::make_pair(kernelIndex, kernel));
+            kernelObjs.emplace(kernelIndex, kernel);
         }
     }
 

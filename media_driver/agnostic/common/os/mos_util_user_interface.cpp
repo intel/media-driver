@@ -36,13 +36,13 @@ MOS_STATUS MosUtilUserInterface::AddEntry(const uint32_t keyId, PMOS_USER_FEATUR
 
     if (result == m_userFeatureKeyMap.end())
     {
-        m_userFeatureKeyMap.insert(std::make_pair(keyId, userFeatureKey));
+        m_userFeatureKeyMap.emplace(keyId, userFeatureKey);
     }
     else
     {
         MOS_OS_NORMALMESSAGE("User feature key already exist, replacing the old one.");
         m_userFeatureKeyMap.erase(keyId);
-        m_userFeatureKeyMap.insert(std::make_pair(keyId, userFeatureKey));
+        m_userFeatureKeyMap.emplace(keyId, userFeatureKey);
         m_mosMutex.Unlock();
         return MOS_STATUS_SUCCESS;
     }
