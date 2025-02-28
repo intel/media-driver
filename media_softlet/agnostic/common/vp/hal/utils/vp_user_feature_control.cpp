@@ -473,6 +473,7 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
 #endif
     {
         auto *waTable = m_osInterface->pfnGetWaTable(m_osInterface);
+        VP_PUBLIC_CHK_NULL_RETURN(waTable);
         // Default value
         m_ctrlValDefault.enableSFCLinearOutputByTileConvert = MEDIA_IS_WA(waTable, Wa_15016458807);
     }
@@ -494,11 +495,12 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
     else
 #endif
     {
-        // WA ID need be added before code merge.
         // Do not set fallbackScalingToRender8K if render is disabled. This is for internal vesfc usage (e.g., 8k preenc) that should not fallback to render.
         if (m_vpPlatformInterface && !m_vpPlatformInterface->IsRenderDisabled())
         {
-            m_ctrlValDefault.fallbackScalingToRender8K = true;
+            auto *waTable = m_osInterface->pfnGetWaTable(m_osInterface);
+            VP_PUBLIC_CHK_NULL_RETURN(waTable);
+            m_ctrlValDefault.fallbackScalingToRender8K = MEDIA_IS_WA(waTable, Wa_16025683853);
         }
     }
     VP_PUBLIC_NORMALMESSAGE("fallbackScalingToRender8K %d", m_ctrlValDefault.fallbackScalingToRender8K);

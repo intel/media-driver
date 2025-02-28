@@ -1362,8 +1362,7 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
         return MOS_STATUS_SUCCESS;
     }
 
-    if (MEDIA_IS_WA(m_vpInterface.GetHwInterface()->m_waTable, Wa_16025683853) &&
-        fallbackScalingToRender8K == true                     &&
+    if (fallbackScalingToRender8K == true                     &&
         scalingParams->input.dwHeight > 3072                  &&
         isScalingNeeded)
     {
