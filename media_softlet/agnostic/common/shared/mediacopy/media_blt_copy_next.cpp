@@ -745,13 +745,16 @@ MOS_STATUS BltStateNext::SetupBltCopyParam(
     uint32_t inputBitsPerPixel  = inputSurface->pGmmResInfo->GetBitsPerPixel();
     uint32_t outputBitsPerPixel = outputSurface->pGmmResInfo->GetBitsPerPixel();
     uint32_t BitsPerPixel = 8;
+    uint32_t blockWidth         = 1;
     if (inputSurface->TileType != MOS_TILE_LINEAR)
     {
         BitsPerPixel = inputBitsPerPixel;
+        blockWidth   = inputSurface->pGmmResInfo->GetCompressionBlockWidth();
     }
     else if (outputSurface->TileType != MOS_TILE_LINEAR)
     {
         BitsPerPixel = outputBitsPerPixel;
+        blockWidth   = outputSurface->pGmmResInfo->GetCompressionBlockWidth();
     }
     else
     {
@@ -766,22 +769,30 @@ MOS_STATUS BltStateNext::SetupBltCopyParam(
     pMhwBltParams->dwColorDepth = GetBlkCopyColorDepth(outputSurface->pGmmResInfo->GetResourceFormat(), BitsPerPixel);
     pMhwBltParams->dwDstRight   = std::min(inputWidth, outputWidth);
     pMhwBltParams->dwDstBottom  = std::min(inputHeight, outputHeight);
-
+    if (ResDetails.Format == Format_YUY2 || ResDetails.Format == Format_Y210 || ResDetails.Format == Format_Y216)
+    {
+        // packed YUV, dst right should be devided by blockwidth
+        // YUY2_2x1, 32 bit per element, 2 element width
+        // YUY2,     16 bit per element, 1 element width
+        pMhwBltParams->dwDstRight /= blockWidth;
+    }
     // The 2nd and 3nd layer.
     if (planeNum == TWO_PLANES || planeNum == THREE_PLANES)
     {
-        int bytePerTexelScaling    = GetBytesPerTexelScaling(ResDetails.Format);
-
+        int bytePerTexelScaling = GetBytesPerTexelScaling(ResDetails.Format);
         if (MCPY_PLANE_U == planeIndex || MCPY_PLANE_V == planeIndex)
         {
-           pMhwBltParams->dwDstBottom = pMhwBltParams->dwDstBottom / bytePerTexelScaling;
-           if (ResDetails.Format == Format_I420 || ResDetails.Format == Format_YV12)
-           {
-               pMhwBltParams->dwDstPitch  = pMhwBltParams->dwDstPitch / 2;
-               pMhwBltParams->dwSrcPitch  = pMhwBltParams->dwSrcPitch / 2;
-               pMhwBltParams->dwDstRight  = pMhwBltParams->dwDstRight / 2;
-               pMhwBltParams->dwDstBottom = pMhwBltParams->dwDstBottom / 2;
-           }
+            // bpp of interleved chroma plane is double of luma plane bpp
+            pMhwBltParams->dwColorDepth = GetBlkCopyColorDepth(outputSurface->pGmmResInfo->GetResourceFormat(), BitsPerPixel * bytePerTexelScaling);
+            pMhwBltParams->dwDstRight   = pMhwBltParams->dwDstRight / bytePerTexelScaling;
+            pMhwBltParams->dwDstBottom  = pMhwBltParams->dwDstBottom / bytePerTexelScaling;
+            if (ResDetails.Format == Format_I420 || ResDetails.Format == Format_YV12)
+            {
+                pMhwBltParams->dwDstPitch  = pMhwBltParams->dwDstPitch / 2;
+                pMhwBltParams->dwSrcPitch  = pMhwBltParams->dwSrcPitch / 2;
+                pMhwBltParams->dwDstRight  = pMhwBltParams->dwDstRight / 2;
+                pMhwBltParams->dwDstBottom = pMhwBltParams->dwDstBottom / 2;
+            }
         }
     }
     pMhwBltParams->pSrcOsResource = inputSurface;
@@ -935,37 +946,32 @@ uint32_t BltStateNext::GetBlkCopyColorDepth(
     GMM_RESOURCE_FORMAT dstFormat,
     uint32_t            BitsPerPixel)
 {
-    if (dstFormat == GMM_FORMAT_YUY2_2x1 || dstFormat == GMM_FORMAT_Y216_TYPE || dstFormat == GMM_FORMAT_Y210)
-    {// GMM_FORMAT_YUY2_2x1 32bpe 2x1 pixel blocks instead of 16bpp 1x1 block
-     // GMM_FORMAT_Y216_TYPE/Y210 64bpe pixel blocks instead of 32bpp block.
-         BitsPerPixel = BitsPerPixel / 2;
-    }
     switch (BitsPerPixel)
     {
-     case 16:
-         switch (dstFormat)
-         {
-           case GMM_FORMAT_B5G5R5A1_UNORM:
-               return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_32BITCOLOR;
-           default:
-               return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_16BITCOLOR;
-         }
-     case 32:
-         return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_32BITCOLOR;
-     case 64:
-         return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_64BITCOLOR;
-     case 96:
-         MCPY_ASSERTMESSAGE("96 BitPerPixel support limimated as Linear format %d", dstFormat);
-         return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_96BITCOLOR_ONLYLINEARCASEISSUPPORTED;
-     case 128:
-         return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_128BITCOLOR;
-     case 8:
-     default:
-         return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_8BITCOLOR;
+    case 16:
+        switch (dstFormat)
+        {
+        case GMM_FORMAT_B5G5R5A1_UNORM:
+            return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_32BITCOLOR;
+        default:
+            return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_16BITCOLOR;
+        }
+    case 32:
+        return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_32BITCOLOR;
+    case 64:
+        return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_64BITCOLOR;
+    case 96:
+        MCPY_ASSERTMESSAGE("96 BitPerPixel support limimated as Linear format %d", dstFormat);
+        return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_96BITCOLOR_ONLYLINEARCASEISSUPPORTED;
+    case 128:
+        return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_128BITCOLOR;
+    case 8:
+    default:
+        return mhw_blt_state::XY_BLOCK_COPY_BLT_CMD::COLOR_DEPTH_8BITCOLOR;
     }
  }
 
- int BltStateNext::GetBytesPerTexelScaling(MOS_FORMAT format)
+int BltStateNext::GetBytesPerTexelScaling(MOS_FORMAT format)
 {
    int dstBytesPerTexel = 1;
    switch (format)
