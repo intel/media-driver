@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Intel Corporation
+# Copyright (c) 2022-2023, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@ set(SOFTLET_DECODE_AV1_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_picture_packet_xe3_lpm_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_tile_packet_xe3_lpm_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_downsampling_packet_xe3_lpm_base.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_aqm_packet_xe3_lpm_base.cpp
 )
 
 set(SOFTLET_DECODE_AV1_HEADERS_
@@ -33,6 +34,7 @@ set(SOFTLET_DECODE_AV1_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_picture_packet_xe3_lpm_base.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_tile_packet_xe3_lpm_base.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_downsampling_packet_xe3_lpm_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_aqm_packet_xe3_lpm_base.h
 )
 
 

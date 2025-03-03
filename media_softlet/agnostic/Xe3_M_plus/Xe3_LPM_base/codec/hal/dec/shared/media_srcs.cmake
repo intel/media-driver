@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Intel Corporation
+# Copyright (c) 2022-2023, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -21,11 +21,17 @@
 set(SOFTLET_DECODE_COMMON_SOURCES_
     ${SOFTLET_DECODE_COMMON_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_mem_compression_xe3_lpm_base.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_downsampling_feature_xe3_lpm_base.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_sfc_histogram_postsubpipeline_xe3_lpm_base.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_pipeline_xe3_lpm_base.cpp
 )
 
 set(SOFTLET_DECODE_COMMON_HEADERS_
     ${SOFTLET_DECODE_COMMON_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_mem_compression_xe3_lpm_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_downsampling_feature_xe3_lpm_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_sfc_histogram_postsubpipeline_xe3_lpm_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_pipeline_xe3_lpm_base.h
 )
 source_group( CodecHalNext\\Xe3_M_plus\\Decode FILES ${SOFTLET_DECODE_COMMON_SOURCES_} ${SOFTLET_DECODE_COMMON_HEADERS_})
 

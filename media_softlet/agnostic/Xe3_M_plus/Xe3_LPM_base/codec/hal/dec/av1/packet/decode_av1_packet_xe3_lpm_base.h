@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 
 #include "decode_av1_packet.h"
 #include "codec_hw_xe3_lpm_base.h"
+#include "decode_av1_aqm_packet_xe3_lpm_base.h"
 
 namespace decode
 {
@@ -45,6 +46,13 @@ public:
     virtual ~Av1DecodePktXe3_Lpm_Base() {}
 
     //!
+    //! \brief  Initialize the media packet, allocate required resources
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS Init() override;
+
+    //!
     //! \brief  Add the command sequence into the commandBuffer and
     //!         and return to the caller task
     //! \param  [in] commandBuffer
@@ -53,7 +61,9 @@ public:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket) override;
-
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    Av1DecodeAqmPktXe3LpmBase *m_aqmPkt = nullptr;
+#endif
 protected:
     MOS_STATUS PackPictureLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer);
     MOS_STATUS PackTileLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer);

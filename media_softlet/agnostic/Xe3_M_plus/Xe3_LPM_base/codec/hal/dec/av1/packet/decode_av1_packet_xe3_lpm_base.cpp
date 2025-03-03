@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2024, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,18 @@
 
 namespace decode
 {
+    MOS_STATUS Av1DecodePktXe3_Lpm_Base::Init()
+    {
+        Av1DecodePkt::Init();
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+        DecodeSubPacket *subPacket = m_av1Pipeline->GetSubPacket(DecodePacketId(m_av1Pipeline, av1DecodeAqmId));
+        m_aqmPkt                   = dynamic_cast<Av1DecodeAqmPktXe3LpmBase *>(subPacket);
+#endif
+
+        return MOS_STATUS_SUCCESS;
+    }
+
     MOS_STATUS Av1DecodePktXe3_Lpm_Base::Submit(
         MOS_COMMAND_BUFFER* cmdBuffer,
         uint8_t packetPhase)
@@ -176,6 +188,13 @@ namespace decode
         {
             DECODE_CHK_STATUS(VdMemoryFlush(cmdBuffer));
             DECODE_CHK_STATUS(VdPipelineFlush(cmdBuffer));
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+            if (m_aqmPkt && m_aqmPkt->m_downSampling->m_aqmHistogramEnable && m_isLastTileInPartialFrm)
+            {
+                m_aqmPkt->Flush(cmdBuffer);
+            }
+#endif
             DECODE_CHK_STATUS(EnsureAllCommandsExecuted(cmdBuffer));
             DECODE_CHK_STATUS(EndStatusReport(statusReportMfx, &cmdBuffer));
         }

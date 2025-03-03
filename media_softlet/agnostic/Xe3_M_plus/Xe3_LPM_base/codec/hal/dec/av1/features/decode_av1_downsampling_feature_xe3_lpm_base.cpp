@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 #include "decode_av1_basic_feature.h"
 #include "decode_av1_reference_frames.h"
 #include "decode_utils.h"
+#include "codechal_debug.h"
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
 
@@ -42,6 +43,16 @@ Av1DownSamplingFeatureXe3_Lpm_Base::Av1DownSamplingFeatureXe3_Lpm_Base(
 
 Av1DownSamplingFeatureXe3_Lpm_Base::~Av1DownSamplingFeatureXe3_Lpm_Base()
 {
+    MOS_STATUS eStatus = m_allocator->Destroy(m_histogramBufferU);
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        DECODE_ASSERTMESSAGE("Failed to free histogram internal buffer U!");
+    }
+    eStatus = m_allocator->Destroy(m_histogramBufferV);
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        DECODE_ASSERTMESSAGE("Failed to free histogram internal buffer V!");
+    }
 }
 
 MOS_STATUS Av1DownSamplingFeatureXe3_Lpm_Base::GetRefFrameList(std::vector<uint32_t> &refFrameList)
@@ -124,6 +135,192 @@ MOS_STATUS Av1DownSamplingFeatureXe3_Lpm_Base::UpdateDecodeTarget(MOS_SURFACE &s
     DECODE_CHK_STATUS(refFrame.UpdateCurResource(pRefList));
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS Av1DownSamplingFeatureXe3_Lpm_Base::Update(void *params)
+{
+    DECODE_FUNC_CALL();
+    DECODE_CHK_NULL(params);
+
+    DecodeDownSamplingFeature::Update(params);
+
+    if (m_enabled && m_histogramBuffer)
+    {
+        m_aqmHistogramEnable         = true;
+    }
+    else
+    {
+        m_histogramDestSurfU         = nullptr;
+        m_histogramBufferU           = nullptr;
+        m_histogramDestSurfV         = nullptr;
+        m_histogramBufferV           = nullptr;
+        m_histogramStatisticsSummary = nullptr;
+        m_histogramMataDataStreamOut = nullptr;
+        m_histogramMataDataStreamIn  = nullptr;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    CodechalDecodeParams *decodeParams = (CodechalDecodeParams *)params;
+
+    // Histogram U plane
+    if (m_allocator->ResourceIsNull(&decodeParams->m_histogramSurfaceU.OsResource) && !m_histogramDebug)
+    {
+        m_histogramDestSurfU = nullptr;
+        m_histogramBufferU   = nullptr;
+    }
+    else
+    {
+        m_histogramDestSurfU = &decodeParams->m_histogramSurfaceU;
+        if (m_histogramBufferU == nullptr)
+        {
+            //m_histogramBufferU = AllocateHistogramBuffer(m_basicFeature->m_curRenderPic.FrameIdx);
+            m_histogramBufferU = m_allocator->AllocateBuffer(HISTOGRAM_BINCOUNT * m_histogramBinWidth,
+                "Histogram internal buffer",
+                resourceInternalReadWriteCache,
+                lockableVideoMem,
+                true,
+                0,
+                false);
+
+            if (m_histogramBufferU == nullptr ||
+                m_allocator->ResourceIsNull(&m_histogramBufferU->OsResource))
+            {
+                DECODE_ASSERTMESSAGE("Failed to allocate hsitogram internal buffer!");
+            }
+        }
+        DECODE_CHK_NULL(m_histogramBufferU);
+    }
+
+    // Histogram V plane
+    if (m_allocator->ResourceIsNull(&decodeParams->m_histogramSurfaceV.OsResource) && !m_histogramDebug)
+    {
+        m_histogramDestSurfV = nullptr;
+        m_histogramBufferV   = nullptr;
+    }
+    else
+    {
+        m_histogramDestSurfV = &decodeParams->m_histogramSurfaceV;
+        if (m_histogramBufferV == nullptr)
+        {
+            //m_histogramBufferV = AllocateHistogramBuffer(m_basicFeature->m_curRenderPic.FrameIdx);
+            m_histogramBufferV = m_allocator->AllocateBuffer(HISTOGRAM_BINCOUNT * m_histogramBinWidth,
+                "Histogram internal buffer",
+                resourceInternalReadWriteCache,
+                lockableVideoMem,
+                true,
+                0,
+                false);
+
+            if (m_histogramBufferV == nullptr ||
+                m_allocator->ResourceIsNull(&m_histogramBufferV->OsResource))
+            {
+                DECODE_ASSERTMESSAGE("Failed to allocate hsitogram internal buffer!");
+            }
+        }
+        DECODE_CHK_NULL(m_histogramBufferV);
+    }
+
+    if ((m_histogramStatisticsSummary == nullptr) &&
+        (!m_allocator->ResourceIsNull(&decodeParams->m_histogramSurface.OsResource) || m_histogramDebug))
+    {
+        m_histogramStatisticsSummary = m_allocator->AllocateBuffer(HISTOGRAM_BINCOUNT * m_histogramBinWidth,
+            "Histogram internal buffer",
+            resourceInternalReadWriteCache,
+            lockableVideoMem,
+            true,
+            0,
+            false);
+
+        if (m_histogramStatisticsSummary == nullptr ||
+            m_allocator->ResourceIsNull(&m_histogramStatisticsSummary->OsResource))
+        {
+            DECODE_ASSERTMESSAGE("Failed to allocate hsitogram internal m_histogramStatisticsSummary buffer!");
+        }
+
+        DECODE_CHK_NULL(m_histogramStatisticsSummary);
+    }
+
+    if ((m_histogramMataDataStreamOut == nullptr) &&
+        (!m_allocator->ResourceIsNull(&decodeParams->m_histogramSurface.OsResource) || m_histogramDebug))
+    {
+        m_histogramMataDataStreamOut = m_allocator->AllocateBuffer(HISTOGRAM_BINCOUNT * m_histogramBinWidth,
+            "Histogram internal buffer",
+            resourceInternalReadWriteCache,
+            lockableVideoMem,
+            true,
+            0,
+            false);
+
+        if (m_histogramMataDataStreamOut == nullptr ||
+            m_allocator->ResourceIsNull(&m_histogramMataDataStreamOut->OsResource))
+        {
+            DECODE_ASSERTMESSAGE("Failed to allocate hsitogram internal m_histogramMataDataStreamOut buffer!");
+        }
+
+        DECODE_CHK_NULL(m_histogramMataDataStreamOut);
+    }
+
+    if ((m_histogramMataDataStreamIn == nullptr) &&
+        (!m_allocator->ResourceIsNull(&decodeParams->m_histogramSurface.OsResource) || m_histogramDebug))
+    {
+        m_histogramMataDataStreamIn = m_allocator->AllocateBuffer(HISTOGRAM_BINCOUNT * m_histogramBinWidth,
+            "Histogram internal buffer",
+            resourceInternalReadWriteCache,
+            lockableVideoMem,
+            true,
+            0,
+            false);
+
+        if (m_histogramMataDataStreamIn == nullptr ||
+            m_allocator->ResourceIsNull(&m_histogramMataDataStreamIn->OsResource))
+        {
+            DECODE_ASSERTMESSAGE("Failed to allocate hsitogram internal m_histogramMataDataStreamIn buffer!");
+        }
+
+        DECODE_CHK_NULL(m_histogramMataDataStreamIn);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Av1DownSamplingFeatureXe3_Lpm_Base::DumpSfcOutputs(CodechalDebugInterface *debugInterface)
+{
+    DECODE_FUNC_CALL();
+    DECODE_CHK_NULL(debugInterface);
+    DECODE_CHK_NULL(m_basicFeature);
+
+    DecodeDownSamplingFeature::DumpSfcOutputs(debugInterface);
+
+    // Dump histogram U & V
+    if ((m_histogramDestSurfU != nullptr || m_histogramDebug) &&
+        m_histogramBufferU != nullptr &&
+        !m_allocator->ResourceIsNull(&m_histogramBufferU->OsResource))
+    {
+        CODECHAL_DEBUG_TOOL(
+            debugInterface->m_bufferDumpFrameNum = m_basicFeature->m_frameNum;
+            DECODE_CHK_STATUS(debugInterface->DumpBuffer(
+                &m_histogramBufferU->OsResource,
+                CodechalDbgAttr::attrSfcHistogram,
+                "_DEC_U",
+                HISTOGRAM_BINCOUNT * m_histogramBinWidth));)
+    }
+
+    if ((m_histogramDestSurfV != nullptr || m_histogramDebug) &&
+        m_histogramBufferV != nullptr &&
+        !m_allocator->ResourceIsNull(&m_histogramBufferV->OsResource))
+    {
+        CODECHAL_DEBUG_TOOL(
+            debugInterface->m_bufferDumpFrameNum = m_basicFeature->m_frameNum;
+            DECODE_CHK_STATUS(debugInterface->DumpBuffer(
+                &m_histogramBufferV->OsResource,
+                CodechalDbgAttr::attrSfcHistogram,
+                "_DEC_V",
+                HISTOGRAM_BINCOUNT * m_histogramBinWidth));)
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 
 }  // namespace decode
 

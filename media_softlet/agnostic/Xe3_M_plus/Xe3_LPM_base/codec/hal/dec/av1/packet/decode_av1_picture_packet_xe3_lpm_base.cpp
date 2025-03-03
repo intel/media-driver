@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2023, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -232,6 +232,13 @@ namespace decode
 
         params = {};
         Av1DecodePicPkt::MHW_SETPAR_F(AVP_PIC_STATE)(params);
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+        if (m_downSamplingFeature && m_downSamplingFeature->m_aqmHistogramEnable)
+        {
+            params.VdaqmEnable = true;
+        }
+#endif
 
         if (m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingX == 0 && m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingY == 0)
         {

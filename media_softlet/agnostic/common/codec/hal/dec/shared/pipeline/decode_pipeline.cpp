@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2023, Intel Corporation
+* Copyright (c) 2018-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -545,16 +545,17 @@ MOS_STATUS DecodePipeline::DumpOutput(const DecodeStatusReportData& reportData)
             }
         }
 
-        if (reportData.currHistogramOutBuf != nullptr &&
-            !Mos_ResourceIsNull(reportData.currHistogramOutBuf))
-        {
-            DECODE_CHK_STATUS(m_debugInterface->DumpBuffer(
-                reportData.currHistogramOutBuf,
-                CodechalDbgAttr::attrSfcHistogram,
-                "_DEC",
-                HISTOGRAM_BINCOUNT * downSamplingFeature->m_histogramBinWidth));
-        }
     }
+    if (reportData.currHistogramOutBuf != nullptr &&
+        !Mos_ResourceIsNull(reportData.currHistogramOutBuf))
+    {
+        DECODE_CHK_STATUS(m_debugInterface->DumpBuffer(
+            reportData.currHistogramOutBuf,
+            CodechalDbgAttr::attrSfcHistogram,
+            "_DEC",
+            HISTOGRAM_BINCOUNT * downSamplingFeature->m_histogramBinWidth));
+    }
+
 #endif
 
     return MOS_STATUS_SUCCESS;

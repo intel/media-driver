@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -41,6 +41,16 @@ MOS_STATUS Av1DecodeTilePktXe3_Lpm_Base::Execute(MOS_COMMAND_BUFFER& cmdBuffer, 
     }
 
     DECODE_CHK_STATUS(AddCmd_AVP_TILE_CODING(cmdBuffer, tileIdx));
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    m_aqmPkt = dynamic_cast<Av1DecodeAqmPktXe3LpmBase *>(m_av1Pipeline->GetSubPacket(DecodePacketId(m_av1Pipeline, av1DecodeAqmId)));
+    // Add histogram logic using VDAQM
+    if (m_aqmPkt && m_aqmPkt->m_downSampling->m_aqmHistogramEnable &&
+        (m_av1BasicFeature->m_tileCoding.m_curTile == int16_t(m_av1BasicFeature->m_tileCoding.m_lastTileId - m_av1BasicFeature->m_tileCoding.m_numTiles + 1)))
+    {
+        m_aqmPkt->Execute(cmdBuffer);
+    }
+#endif
+
     DECODE_CHK_STATUS(AddCmd_AVP_BSD_OBJECT(cmdBuffer, tileIdx));
 
     return MOS_STATUS_SUCCESS;

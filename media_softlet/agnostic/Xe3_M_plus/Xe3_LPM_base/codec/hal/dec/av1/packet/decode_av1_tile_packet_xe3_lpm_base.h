@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,7 @@
 #include "decode_utils.h"
 #include "decode_av1_basic_feature.h"
 #include "decode_av1_tile_packet.h"
+#include "decode_av1_aqm_packet_xe3_lpm_base.h"
 
 namespace decode
 {
@@ -58,6 +59,9 @@ public:
     virtual MOS_STATUS GetAvpPrimitiveCmdSize(uint32_t *commandsSize, 
         uint32_t *patchListSize, 
         PMHW_VDBOX_STATE_CMDSIZE_PARAMS params);
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    Av1DecodeAqmPktXe3LpmBase *m_aqmPkt = nullptr;
+#endif
 
 MEDIA_CLASS_DEFINE_END(decode__Av1DecodeTilePktXe3_Lpm_Base)
 };

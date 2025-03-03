@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2023, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,7 @@
 #include "decode_av1_status_report_xe3_lpm_base.h"
 #include "decode_av1_downsampling_packet_xe3_lpm_base.h"
 #include "decode_av1_downsampling_feature_xe3_lpm_base.h"
+#include "decode_av1_aqm_packet_xe3_lpm_base.h"
 
 namespace decode
 {
@@ -218,6 +219,12 @@ namespace decode
                     })
 
 #if (_DEBUG || _RELEASE_INTERNAL)
+#ifdef _DECODE_PROCESSING_SUPPORTED
+                if (m_av1DecodePkt->m_aqmPkt && m_av1DecodePkt->m_aqmPkt->m_downSampling->m_aqmHistogramEnable)
+                {
+                    m_av1DecodePkt->m_aqmPkt->m_downSampling->DumpSfcOutputs(m_debugInterface);
+                }
+#endif
                 DECODE_CHK_STATUS(StatusCheck());
 #endif
                 // Only update user features for the first frame.
@@ -327,6 +334,11 @@ namespace decode
         DECODE_CHK_NULL(downSamplingPkt);
         DECODE_CHK_STATUS(subPacketManager.Register(
             DecodePacketId(this, downSamplingSubPacketId), *downSamplingPkt));
+
+        Av1DecodeAqmPktXe3LpmBase *aqmDecodePkt = MOS_New(Av1DecodeAqmPktXe3LpmBase, this, m_hwInterface);
+        DECODE_CHK_NULL(aqmDecodePkt);
+        DECODE_CHK_STATUS(subPacketManager.Register(
+            DecodePacketId(this, av1DecodeAqmId), *aqmDecodePkt));
 #endif
         return MOS_STATUS_SUCCESS;
     }
