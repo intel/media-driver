@@ -439,7 +439,7 @@ MOS_STATUS CodechalInterfacesXe3_Lpm::Initialize(
         }
         else
 #endif
-#if defined(_VP9_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_VP9_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_VP9)
         {
             m_codechalDevice = MOS_New(EncodeVp9VdencPipelineAdapterXe2_Lpm, hwInterface, debugInterface);

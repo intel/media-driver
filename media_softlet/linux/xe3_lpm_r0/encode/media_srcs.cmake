@@ -18,7 +18,4 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(ddi)
-media_include_subdirectory(vp)
-media_include_subdirectory(decode)
-media_include_subdirectory(encode)
+media_include_subdirectory(vp9)

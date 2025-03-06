@@ -41,10 +41,10 @@
 #if defined(_AV1_ENCODE_VDENC_SUPPORTED)
 #include "capstable_data_av1_encode_xe3_lpm_r0_specific.h"
 #endif
+#endif
 #if defined(_VP9_ENCODE_VDENC_SUPPORTED)
 #include "capstable_data_vp9_encode_xe3_lpm_r0_specific.h"
 #endif 
-#endif
 
 #if defined(_HEVC_DECODE_SUPPORTED)
 #include "capstable_data_hevc_decode_xe3_lpm_r0_specific.h"
@@ -287,7 +287,7 @@ static const EntrypointMap entrypointMap_VAProfileAV1Profile1_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileVP9Profile0_Xe3_Lpm_r0
 {
-#if defined(_VP9_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_VP9_ENCODE_VDENC_SUPPORTED)
     {VAEntrypointEncSlice, &entrypointMap_VAProfileVP9Profile0_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_VP9_DECODE_SUPPORTED)
@@ -297,7 +297,7 @@ static const EntrypointMap entrypointMap_VAProfileVP9Profile0_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileVP9Profile1_Xe3_Lpm_r0
 {
-#if defined(_VP9_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_VP9_ENCODE_VDENC_SUPPORTED)
     {VAEntrypointEncSlice, &entrypointMap_VAProfileVP9Profile1_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_VP9_DECODE_SUPPORTED)
@@ -307,7 +307,7 @@ static const EntrypointMap entrypointMap_VAProfileVP9Profile1_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileVP9Profile2_Xe3_Lpm_r0
 {
-#if defined(_VP9_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_VP9_ENCODE_VDENC_SUPPORTED)
     {VAEntrypointEncSlice, &entrypointMap_VAProfileVP9Profile2_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_VP9_DECODE_SUPPORTED)
@@ -317,7 +317,7 @@ static const EntrypointMap entrypointMap_VAProfileVP9Profile2_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileVP9Profile3_Xe3_Lpm_r0
 {
-#if defined(_VP9_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_VP9_ENCODE_VDENC_SUPPORTED)
     {VAEntrypointEncSlice, &entrypointMap_VAProfileVP9Profile3_Data_Xe3_Lpm_r0},
 #endif
 
