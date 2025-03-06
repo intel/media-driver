@@ -52,6 +52,7 @@ enum class OclFcDiffReportShift
     FormatRGB565Write        = 8,   //legacy FC will drop (16 - 5/6/5) of LSB
     BT2020ColorFill          = 9,   //legacy didn't support color fill w/ BT2020 as target color space. It will use black or green as background in legacy
     ChromaSitingOnPL3        = 10,  //legacy didn't support 3 plane chromasiting CDS. So legacy FC will only do left top for PL3 output
+    FallBackTile64           = 11,  //Fall back to common path as fast express not support tile64 output
     FastExpress              = 16,  //walked into fastexpress path
     OclFcEnabled             = 31   //actually walked into Ocl FC. Always set to 1 when Ocl FC Filter take effect. "OCL FC Enabled" may be 1 but not walked into OCL FC, cause it may fall back in wrapper class
 };
@@ -191,13 +192,13 @@ MOS_STATUS VpOclFcFilter::InitKrnParams(OCL_FC_KERNEL_PARAMS &krnParams, SwFilte
     VP_FUNC_CALL();
 
     krnParams.clear();
-
+    bool  isFallbackForTile64 = false;
     OCL_FC_COMP_PARAM compParam = {};
     VP_RENDER_CHK_STATUS_RETURN(InitCompParam(executingPipe, compParam));
-    bool isFastExpressSupported = FastExpressConditionMeet(compParam);
+    bool isFastExpressSupported = FastExpressConditionMeet(compParam, isFallbackForTile64);
     PrintCompParam(compParam);
     ReportFeatureLog(compParam);
-    ReportDiffLog(compParam, isFastExpressSupported);
+    ReportDiffLog(compParam, isFastExpressSupported, isFallbackForTile64);
 
     OCL_FC_KERNEL_PARAM param = {};
     // convert from PL3 input surface to intermedia surface
@@ -2760,7 +2761,7 @@ MOS_STATUS VpOclFcFilter::ConvertColorFillToKrnParam(bool enableColorFill, VPHAL
 
     return MOS_STATUS_SUCCESS;
 }
-bool VpOclFcFilter::FastExpressConditionMeet(const OCL_FC_COMP_PARAM &compParam)
+bool VpOclFcFilter::FastExpressConditionMeet(const OCL_FC_COMP_PARAM &compParam, bool &isFallbackForTile64)
 {
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_pvpMhwInterface &&
@@ -2830,6 +2831,13 @@ bool VpOclFcFilter::FastExpressConditionMeet(const OCL_FC_COMP_PARAM &compParam)
         inputLayer.diParams.enabled ||
         inputLayer.lumaKey.enabled))
     {
+        return false;
+    }
+
+    if (outputSurf->osSurface->TileModeGMM == MOS_TILE_64_GMM)
+    {
+        isFallbackForTile64 = true;
+        VP_PUBLIC_NORMALMESSAGE("Ouput Tile64, fallback common pass");
         return false;
     }
 
@@ -3375,7 +3383,7 @@ void VpOclFcFilter::PrintKrnTargetParam(OCL_FC_KRN_TARGET_PARAM &targetParam)
 #endif
 }
 
-void VpOclFcFilter::ReportDiffLog(const OCL_FC_COMP_PARAM &compParam, bool isFastExpressSupported)
+void VpOclFcFilter::ReportDiffLog(const OCL_FC_COMP_PARAM &compParam, bool isFastExpressSupported, bool isFallbackForTile64)
 {
     VP_FUNC_CALL();
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -3490,6 +3498,11 @@ void VpOclFcFilter::ReportDiffLog(const OCL_FC_COMP_PARAM &compParam, bool isFas
     if (isFastExpressSupported)
     {
         reportLog |= (1llu << int(OclFcDiffReportShift::FastExpress));
+    }
+
+    if (isFallbackForTile64)
+    {
+        reportLog |= (1llu << int(OclFcDiffReportShift::FallBackTile64));
     }
 
     //actually walked into OCL FC. Always set to 1 when OCL FC Filter take effect. "OCL FC Enabled" may be 1 but not walked into OCL FC, cause it may fall back in wrapper class

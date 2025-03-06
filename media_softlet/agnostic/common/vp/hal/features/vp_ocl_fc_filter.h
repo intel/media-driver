@@ -284,11 +284,11 @@ protected:
     void PrintKrnParam(std::vector<OCL_FC_KRN_IMAGE_PARAM> &imageParams, OCL_FC_KRN_TARGET_PARAM &targetParam);
     void PrintKrnImageParam(uint32_t index, OCL_FC_KRN_IMAGE_PARAM &imageParam);
     void PrintKrnTargetParam(OCL_FC_KRN_TARGET_PARAM &targetParam);
-    void ReportDiffLog(const OCL_FC_COMP_PARAM &compParam, bool isFastExpressSupported);
+    void ReportDiffLog(const OCL_FC_COMP_PARAM &compParam, bool isFastExpressSupported, bool isFallbackForTile64);
     void ReportFeatureLog(const OCL_FC_COMP_PARAM &compParam);
 
     //OCL FC FastExpress
-    bool       FastExpressConditionMeet(const OCL_FC_COMP_PARAM &compParam);
+    bool       FastExpressConditionMeet(const OCL_FC_COMP_PARAM &compParam, bool &isFallbackForTile64);
     MOS_STATUS GenerateFcFastExpressKrnParam(OCL_FC_COMP_PARAM &compParam, OCL_FC_KERNEL_PARAM &param);
     MOS_STATUS GenerateFastExpressInputOutputParam(OCL_FC_COMP_PARAM &compParam, OCL_FC_FP_KRN_IMAGE_PARAM &imageParam, OCL_FC_FP_KRN_TARGET_PARAM &targetParam);
     MOS_STATUS SetupSingleFcFastExpressKrnArg(uint32_t layerNum, OCL_FC_FP_KRN_IMAGE_PARAM &imageParams, OCL_FC_FP_KRN_TARGET_PARAM &targetParam, uint32_t localSize[3], uint32_t globalSize[3], KRN_ARG &krnArg, bool &bInit);
