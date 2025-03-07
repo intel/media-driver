@@ -167,7 +167,7 @@ MOS_STATUS VpHdrFilter::CalculateEngineParams(
                 if (argHandle == m_renderHdr3DLutOclParams.end())
                 {
                     KRN_ARG krnArg = {};
-                    argHandle      = m_renderHdr3DLutOclParams.insert(std::make_pair(uIndex, krnArg)).first;
+                    argHandle      = m_renderHdr3DLutOclParams.emplace(uIndex, krnArg).first;
                     VP_PUBLIC_CHK_NOT_FOUND_RETURN(argHandle, &m_renderHdr3DLutOclParams);
                 }
                 KRN_ARG &krnArg = argHandle->second;
