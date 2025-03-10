@@ -1600,6 +1600,11 @@ MOS_STATUS VpOclFcFilter::InitLayer(SwFilterPipe &executingPipe, bool isInputPip
     {
         layer.diParams.enabled = true;
         layer.diParams.params  = *di->GetSwFilterParams().diParams;
+        if (layer.diParams.params.DIMode == DI_MODE_ADI)
+        {
+            VP_PUBLIC_NORMALMESSAGE("Fall back ADI to BOB DI for render only support BOB DI");
+            layer.diParams.params.DIMode = DI_MODE_BOB;
+        }
     }
     else
     {
