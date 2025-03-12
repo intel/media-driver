@@ -138,7 +138,7 @@ MOS_STATUS MediaPipeline::RegisterPacket(uint32_t packetId, MediaPacket *packet)
     {
         m_packetList.erase(iter);
     }
-    m_packetList.insert(std::make_pair(packetId, packet));
+    m_packetList.emplace(packetId, packet);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -257,7 +257,7 @@ MediaTask *MediaPipeline::CreateTask(MediaTask::TaskType type)
     }
     if (nullptr != task)
     {
-        m_taskList.insert(std::make_pair(type, task));
+        m_taskList.emplace(type, task);
     }
     return task;
 }

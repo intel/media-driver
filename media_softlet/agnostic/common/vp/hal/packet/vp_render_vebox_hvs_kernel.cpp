@@ -349,7 +349,7 @@ MOS_STATUS VpRenderHVSKernel::SetupSurfaceState()
             //            MOS_MP_RESOURCE_USAGE_DEFAULT,
             //            osInterface->pfnGetGmmClientContext(osInterface))).DwordValue;
 
-            m_surfaceState.insert(std::make_pair(*(SurfaceType *)arg.pData, kernelSurfaceParam));
+            m_surfaceState.emplace(*(SurfaceType *)arg.pData, kernelSurfaceParam);
         }
     }
 
