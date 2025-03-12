@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -62,6 +62,7 @@ public:
     DeclareDecodePacketId(av1DecodePacketId);
     DeclareDecodePacketId(av1PictureSubPacketId);
     DeclareDecodePacketId(av1TileSubPacketId);
+    DeclareDecodePacketId(av1DecodeAqmId);
 
 protected:
     //!

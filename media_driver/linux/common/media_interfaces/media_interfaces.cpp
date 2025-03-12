@@ -409,35 +409,29 @@ MhwInterfaces* MmdDevice::CreateMhwInterface(PMOS_INTERFACE osInterface)
 void* McpyDevice::CreateFactory(
     PMOS_CONTEXT    osDriverContext)
 {
-#define MCPY_FAILURE()                                       \
-{                                                           \
-    if (mhwInterfaces != nullptr)                           \
-    {                                                       \
-        mhwInterfaces->Destroy();                           \
-    }                                                       \
-    MOS_Delete(mhwInterfaces);                              \
-    if (osInterface != nullptr)                             \
-    {                                                       \
-        if (osInterface->pfnDestroy)                        \
-        {                                                   \
-            osInterface->pfnDestroy(osInterface, false);    \
-        }                                                   \
-        MOS_FreeMemory(osInterface);                        \
-    }                                                       \
-    MOS_Delete(device);                                     \
-    return nullptr;                                         \
-}
     MHW_FUNCTION_ENTER;
+    
+    PMOS_INTERFACE osInterface   = nullptr;
+    MhwInterfaces *mhwInterfaces = nullptr;
+    McpyDevice     *device       = nullptr;
+
+    auto deleterOnFailure = [&](bool deleteOsInterface){
+        if (deleteOsInterface && osInterface != nullptr)
+        {
+            if (osInterface->pfnDestroy)
+            {
+                osInterface->pfnDestroy(osInterface, false);
+            }
+            MOS_FreeMemory(osInterface);
+        }
+        MOS_Delete(device);
+    };
 
     if (osDriverContext == nullptr)
     {
         MHW_ASSERTMESSAGE("Invalid(null) pOsDriverContext!");
         return nullptr;
     }
-
-    PMOS_INTERFACE osInterface   = nullptr;
-    MhwInterfaces *mhwInterfaces = nullptr;
-    McpyDevice     *device       = nullptr;
 
     osInterface = (PMOS_INTERFACE)MOS_AllocAndZeroMemory(sizeof(MOS_INTERFACE));
     if (osInterface == nullptr)
@@ -449,7 +443,8 @@ void* McpyDevice::CreateFactory(
         osDriverContext,
         COMPONENT_MCPY) != MOS_STATUS_SUCCESS)
     {
-        MCPY_FAILURE();
+        deleterOnFailure(true);
+        return nullptr;
     }
 
     PLATFORM platform = {};
@@ -457,18 +452,16 @@ void* McpyDevice::CreateFactory(
     device = McpyFactory::Create(platform.eProductFamily);
     if (device == nullptr)
     {
-        MCPY_FAILURE();
+        deleterOnFailure(true);
+        return nullptr;
     }
 
-    mhwInterfaces = device->CreateMhwInterface(osInterface);
-    if (mhwInterfaces == nullptr)
-    {
-        MCPY_FAILURE();
-    }
-    device->Initialize(osInterface, mhwInterfaces);
+    // transfer ownership of osInterface. No need to delete it if init fails
+    device->Initialize(osInterface);
     if (device->m_mcpyDevice == nullptr)
     {
-        MCPY_FAILURE();
+        deleterOnFailure(false);
+        return nullptr;
     }
 
     void *mcpyDevice = device->m_mcpyDevice;

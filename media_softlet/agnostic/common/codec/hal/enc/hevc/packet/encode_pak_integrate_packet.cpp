@@ -251,7 +251,7 @@ namespace encode {
                 EncodeReadBrcPakStatsParams readBrcPakStatsParams;
                 MOS_RESOURCE *osResource = nullptr;
                 uint32_t      offset = 0;
-                m_statusReport->GetAddress(statusReportNumberPasses, osResource, offset);
+                ENCODE_CHK_STATUS_RETURN(m_statusReport->GetAddress(statusReportNumberPasses, osResource, offset));
                 RUN_FEATURE_INTERFACE_RETURN(HEVCEncodeBRC, HevcFeatureIDs::hevcBrcFeature, SetReadBrcPakStatsParams, ucPass, offset, osResource, readBrcPakStatsParams);
                 ReadBrcPakStatistics(cmdBuffer, &readBrcPakStatsParams);
             }
@@ -585,7 +585,7 @@ namespace encode {
         PMOS_RESOURCE osResource = nullptr;
         uint32_t      offset     = 0;
 
-        m_statusReport->GetAddress(statusReportSumSquareError, osResource, offset);
+        ENCODE_CHK_STATUS_RETURN(m_statusReport->GetAddress(statusReportSumSquareError, osResource, offset));
 
         for (auto i = 0; i < 3; i++)  // 64 bit SSE values for luma/ chroma channels need to be copied
         {
@@ -1088,7 +1088,7 @@ namespace encode {
         auto          mmioRegisters = m_hcpItf->GetMmioRegisters(m_vdboxIndex);
         MOS_RESOURCE *osResource    = nullptr;
         uint32_t      offset        = 0;
-        m_statusReport->GetAddress(statusReportImageStatusCtrl, osResource, offset);
+        ENCODE_CHK_STATUS_RETURN(m_statusReport->GetAddress(statusReportImageStatusCtrl, osResource, offset));
         //uint32_t baseOffset = (m_encodeStatusBuf.wCurrIndex * m_encodeStatusBuf.dwReportSize) + sizeof(uint32_t) * 2;  // encodeStatus is offset by 2 DWs in the resource
 
         // Write back the HCP image control register for RC6 may clean it out
@@ -1112,7 +1112,7 @@ namespace encode {
         miStoreRegMemParams.dwRegister      = mmioRegisters->hcpEncImageStatusCtrlRegOffset;
         ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
 
-        m_statusReport->GetAddress(statusReportImageStatusCtrlOfLastBRCPass, osResource, offset);
+        ENCODE_CHK_STATUS_RETURN(m_statusReport->GetAddress(statusReportImageStatusCtrlOfLastBRCPass, osResource, offset));
         miStoreRegMemParams                 = {};
         miStoreRegMemParams.presStoreBuffer = osResource;
         miStoreRegMemParams.dwOffset        = offset;

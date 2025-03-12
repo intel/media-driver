@@ -64,8 +64,9 @@ public:
 
     virtual MOS_STATUS CreateSingleKernelObject(
         VpRenderKernelObj *&kernel,
-        VpKernelID kernelId,
-        KernelIndex kernelIndex);
+        VpKernelID          kernelId,
+        KernelIndex         kernelIndex,
+        std::string         kernelName);
 
     virtual MOS_STATUS CreateKernelObjects(
         KERNEL_PARAMS_LIST& kernelParams,

@@ -316,6 +316,7 @@ MOS_STATUS Av1VdencPipeline::FillStatusReportParameters(EncoderStatusParameters*
         numTileRows, numTileColumns);
 
     pPar->statusReportFeedbackNumber = picParams->StatusReportFeedbackNumber;
+    pPar->pBlkQualityInfo            = picParams->pBlkQualityInfo;
     pPar->codecFunction              = encodeParams->ExecCodecFunction;
     pPar->currRefList                = feature->m_ref.GetCurrRefList();
     pPar->picWidthInMb               = feature->m_picWidthInMb;

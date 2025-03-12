@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2023, Intel Corporation
+* Copyright (c) 2020-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -65,6 +65,7 @@ namespace decode
             DECODE_CHK_NULL(m_hwInterface->GetVdencInterfaceNext());
             auto mmioRegisters = m_hwInterface->GetVdencInterfaceNext()->GetMmioRegisters(MHW_VDBOX_NODE_1);
             HalOcaInterfaceNext::On1stLevelBBStart(*cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, m_miItf, *mmioRegisters);
+            HalOcaInterfaceNext::OnDispatch(*cmdBuffer, *m_osInterface, m_miItf, *m_miItf->GetMmioRegisters());
         }
 
         DECODE_CHK_STATUS(PackPictureLevelCmds(*cmdBuffer));
@@ -127,7 +128,8 @@ namespace decode
 
         // For multiple tiles per frame case, picture level command is same between different tiles, so put them into 2nd
         // level BB to exectue picture level cmd only once for 1st tile of the frame and reduce SW latency eventually.
-        if (!(m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile) && !m_av1Pipeline->TileBasedDecodingInuse())
+        if (!(m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile) && !m_av1Pipeline->TileBasedDecodingInuse() &&
+            !m_osInterface->pfnIsMismatchOrderProgrammingSupported())
         {
             if (m_isFirstTileInPartialFrm)
             {
@@ -198,7 +200,8 @@ namespace decode
             })
 #endif
 
-        if (isLastTileInFullFrm || !m_av1Pipeline->FrameBasedDecodingInUse())
+        if ((isLastTileInFullFrm || !m_av1Pipeline->FrameBasedDecodingInUse()) &&
+            !m_osInterface->pfnIsMismatchOrderProgrammingSupported())
         {
             DECODE_CHK_STATUS(m_miItf->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
         }

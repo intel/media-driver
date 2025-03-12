@@ -4319,11 +4319,6 @@ MOS_STATUS CodechalVdencAvcState::SetSliceStructs()
         const uint8_t hwInvalidFrameId              = CODEC_AVC_MAX_NUM_REF_FRAME - 1;
         bool          isActiveRef[hwInvalidFrameId] = {};
         uint8_t       swapIndex                     = CODEC_AVC_NUM_UNCOMPRESSED_SURFACE;
-        if (slcParams->num_ref_idx_l0_active_minus1 >= CODEC_MAX_NUM_REF_FIELD || slcParams->num_ref_idx_l1_active_minus1 >= CODEC_MAX_NUM_REF_FIELD)
-        {
-            CODECHAL_ENCODE_ASSERTMESSAGE("Invalid slice parameters.");
-            return MOS_STATUS_INVALID_PARAMETER;
-        }
 
         for (uint32_t sliceCount = 0; sliceCount < m_numSlices; sliceCount++)
         {
@@ -5648,6 +5643,12 @@ MOS_STATUS CodechalVdencAvcState::InitializePicture(const EncoderParams &params)
 
     // Picture and slice header packing flag from DDI caps
     m_acceleratorHeaderPackingCaps = params.bAcceleratorHeaderPackingCaps;
+
+    if (m_avcSliceParams->num_ref_idx_l0_active_minus1 >= CODEC_MAX_NUM_REF_FIELD || m_avcSliceParams->num_ref_idx_l1_active_minus1 >= CODEC_MAX_NUM_REF_FIELD)
+    {
+        CODECHAL_ENCODE_ASSERTMESSAGE("Invalid slice parameters.");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
 
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_avcIQMatrixParams);
 
@@ -8046,6 +8047,80 @@ bool CodechalVdencAvcState::IsMBBRCControlEnabled()
 {
     return m_mbBrcEnabled || m_avcPicParam->bNativeROI;
 }
+
+MOS_STATUS CodechalVdencAvcState::GetVulkanQueryPoolResults(
+    uint32_t queryFrameIndex,
+    void    *pData,
+    uint64_t dataOffset,
+    bool     is64bit,
+    uint8_t  reportStatus,
+    bool     reportOffset,
+    bool     reportBitstreamSize)
+{
+    CODECHAL_ENCODE_FUNCTION_ENTER;
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    EncodeStatusBuffer *encodeStatusBuf = &m_encodeStatusBuf;
+
+    uint32_t baseOffset =
+        queryFrameIndex * m_encodeStatusBuf.dwReportSize +
+        sizeof(uint32_t) * 2;  
+
+    uint8_t *bytePtr      = reinterpret_cast<uint8_t *>(pData);
+    uint64_t vkDataoffset = dataOffset;
+    uint8_t *statusData   = reinterpret_cast<uint8_t *>(m_encodeStatusBuf.pData);
+
+    size_t   dataSize      = is64bit ? sizeof(uint64_t) : sizeof(uint32_t);
+    uint64_t offsetResult  = 0;
+    uint64_t statusResult  = 1;
+    void    *pOffsetResult = &offsetResult;
+    void    *pStatusResult = &statusResult;
+
+    if (!is64bit)
+    {
+        offsetResult  = static_cast<uint32_t>(offsetResult);
+        statusResult  = static_cast<uint32_t>(statusResult);
+        pOffsetResult = reinterpret_cast<uint32_t *>(&offsetResult);
+        pStatusResult = reinterpret_cast<uint32_t *>(&statusResult);
+    }
+
+    if (reportOffset)
+    {
+        eStatus = MOS_SecureMemcpy(bytePtr + vkDataoffset, dataSize, pOffsetResult, dataSize);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to get bitstream offset.");
+            return eStatus;
+        }
+        vkDataoffset += dataSize;
+    }
+    if (reportBitstreamSize)
+    {
+        eStatus = MOS_SecureMemcpy(
+            bytePtr + vkDataoffset,
+            dataSize,
+            statusData + baseOffset + encodeStatusBuf->dwBSByteCountOffset,
+            dataSize);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to get bitstream size from status buffer.");
+            return eStatus;
+        }
+        vkDataoffset += dataSize;
+    }
+    if (reportStatus)
+    {
+        eStatus = MOS_SecureMemcpy(bytePtr + vkDataoffset, dataSize, pStatusResult, dataSize);
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            CODECHAL_ENCODE_ASSERTMESSAGE("Failed to get encode status");
+            return eStatus;
+        }
+    }
+
+    return eStatus;
+}
+
 
 MOS_STATUS CodechalVdencAvcState::PrepareHWMetaData(
     PMOS_RESOURCE       presMetadataBuffer,

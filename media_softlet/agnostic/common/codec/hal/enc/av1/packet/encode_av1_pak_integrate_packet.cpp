@@ -388,7 +388,7 @@ namespace encode {
         PMOS_RESOURCE osResource = nullptr;
         uint32_t      offset     = 0;
 
-        m_statusReport->GetAddress(statusReportSumSquareError, osResource, offset);
+        ENCODE_CHK_STATUS_RETURN(m_statusReport->GetAddress(statusReportSumSquareError, osResource, offset));
 
         for (auto i = 0; i < 3; i++)  // 64 bit SSE values for luma/ chroma channels need to be copied
         {

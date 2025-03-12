@@ -190,6 +190,11 @@ enum VpKernelID
     kernelOclFc444PL3Output,
     kernelOclFc420PL3Input,
     kernelOclFc420PL3Output,
+    kernelOclFc422HVInput,
+
+    // AI Common
+    kernelAiCommon,
+
     baseKernelMaxNumID
 };
 
@@ -197,7 +202,7 @@ enum VpKernelIDNext
 {
     vpKernelIDNextBase = 0x200,
     kernelHdr3DLutCalc = vpKernelIDNextBase,
-    kernelHdr3DLutCalcL0,
+    kernelHdr3DLutCalcOcl,
     kernelHVSCalc,
     vpKernelIDNextMax
 };
@@ -1074,6 +1079,8 @@ struct VPHAL_RENDER_PARAMS
 
     bool bForceToRender = false;  // Force to render to perform scaling.
 
+    HANDLE gpuAppTaskEvent;  //!< GPU App task event
+
     VPHAL_RENDER_PARAMS() : uSrcCount(0),
                             pSrc(),
                             uDstCount(0),
@@ -1096,7 +1103,8 @@ struct VPHAL_RENDER_PARAMS
                             pExtensionData(nullptr),
                             bPathKernel(false),
                             bUseVEHdrSfc(false),
-                            bNonFirstFrame(false)
+                            bNonFirstFrame(false),
+                            gpuAppTaskEvent(nullptr)
     {
     }
 };

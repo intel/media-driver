@@ -233,13 +233,11 @@ namespace encode
         else
             dmem->UPD_MaxBRCLevel = 0;
 
-        bool bAllowedPyramid = seqParams->GopRefDist != 3;
-
         if (m_basicFeature->m_pictureCodingType == I_TYPE)
         {
             dmem->UPD_CurrFrameType = AV1_BRC_FRAME_TYPE_I;
         }
-        else if (seqParams->SeqFlags.fields.HierarchicalFlag && bAllowedPyramid)
+        else if (seqParams->SeqFlags.fields.HierarchicalFlag)
         {
             if (picParams->HierarchLevelPlus1 > 0)
             {
@@ -252,9 +250,10 @@ namespace encode
                 dmem->UPD_CurrFrameType = hierchLevelPlus1_to_brclevel.count(picParams->HierarchLevelPlus1) ? hierchLevelPlus1_to_brclevel[picParams->HierarchLevelPlus1] : AV1_BRC_FRAME_TYPE_INVALID;
                 //Invalid HierarchLevelPlus1 or LBD frames at level 3 eror check.
                 if ((dmem->UPD_CurrFrameType == AV1_BRC_FRAME_TYPE_INVALID) ||
-                    (m_basicFeature->m_ref.IsLowDelay() && dmem->UPD_CurrFrameType == AV1_BRC_FRAME_TYPE_B2))
+                    (m_basicFeature->m_ref.IsLowDelay() && dmem->UPD_CurrFrameType == AV1_BRC_FRAME_TYPE_B2) ||
+                    (m_rcMode != RATECONTROL_CQL && dmem->UPD_CurrFrameType == AV1_BRC_FRAME_TYPE_B3))
                 {
-                    ENCODE_VERBOSEMESSAGE("AV1_BRC_FRAME_TYPE_INVALID or LBD picture doesn't support Level 4\n");
+                    ENCODE_VERBOSEMESSAGE("AV1_BRC_FRAME_TYPE_INVALID or LBD picture doesn't support Level 4, or AV1_BRC_FRAME_TYPE_B3 only supported in RATECONTROL_CQL mode\n");
                     dmem->UPD_CurrFrameType = AV1_BRC_FRAME_TYPE_B2;
                 }
             }

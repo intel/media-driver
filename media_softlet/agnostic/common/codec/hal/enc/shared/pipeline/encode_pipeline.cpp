@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -104,6 +104,8 @@ MOS_STATUS EncodePipeline::Initialize(void *settings)
 
     ENCODE_CHK_STATUS_RETURN(CreateFeatureManager());
     ENCODE_CHK_NULL_RETURN(m_featureManager);
+
+    m_featureManager->SetUserSettingPtr(m_userSettingPtr);
 
     m_encodecp = MOS_New(EncodeCp, m_hwInterface);
     m_encodecp->RegisterParams(codecSettings);

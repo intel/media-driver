@@ -168,18 +168,24 @@ MOS_STATUS MhwInterfacesBmg_Next::Initialize(
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    if ((params.m_isCp == false) && (params.Flags.m_value == 0))
+    if ((params.m_isCp == false) && (params.Flags.m_value == 0) && (params.m_isMos == 0))
     {
         MHW_ASSERTMESSAGE("No MHW interfaces were requested for creation.");
         return MOS_STATUS_INVALID_PARAMETER;
     }
+    //MHW_MI must always be created
+    auto ptr = std::make_shared<mhw::mi::xe_lpm_plus_base_next::Impl>(osInterface);
+    m_miItf  = std::static_pointer_cast<mhw::mi::Itf>(ptr);
+    //For mos, need miInterface only
+    if (params.m_isMos)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 
-    // MHW_CP and MHW_MI must always be created
+    // MHW_CP must always be created
     MOS_STATUS status;
     m_cpInterface = osInterface->pfnCreateMhwCpInterface(osInterface);
     MHW_MI_CHK_NULL(m_cpInterface);
-    auto ptr      = std::make_shared<mhw::mi::xe_lpm_plus_base_next::Impl>(osInterface);
-    m_miItf       = std::static_pointer_cast<mhw::mi::Itf>(ptr);
     ptr->SetCpInterface(m_cpInterface, m_miItf);
 
     if (params.Flags.m_render)
@@ -531,54 +537,3 @@ MOS_STATUS MediaInterfacesHwInfoDeviceXe2_Hpm::Initialize(PLATFORM platform)
 static bool bmgRegisteredMcpy =
 MediaFactory<uint32_t, McpyDeviceNext>::
 Register<McpyDeviceXe2_Hpm>((uint32_t)IGFX_BMG);
-
-MOS_STATUS McpyDeviceXe2_Hpm::Initialize(
-    PMOS_INTERFACE osInterface,
-    MhwInterfacesNext* mhwInterfaces)
-{
-#define MCPY_FAILURE()                                      \
-{                                                           \
-    if (device != nullptr)                                  \
-    {                                                       \
-        MOS_Delete(device);                                 \
-    }                                                       \
-    return MOS_STATUS_NO_SPACE;                             \
-}
-
-    MHW_FUNCTION_ENTER;
-
-    Mcpy* device = nullptr;
-
-    if (nullptr == mhwInterfaces->m_miItf)
-    {
-        MCPY_FAILURE();
-    }
-
-    if (nullptr == mhwInterfaces->m_veboxItf)
-    {
-        MCPY_FAILURE();
-    }
-
-    if (nullptr == mhwInterfaces->m_bltItf)
-    {
-        MCPY_FAILURE();
-    }
-
-    device = MOS_New(Mcpy);
-
-    if (device == nullptr)
-    {
-        MCPY_FAILURE();
-    }
-
-    if (device->Initialize(
-        osInterface, mhwInterfaces) != MOS_STATUS_SUCCESS)
-    {
-        MOS_Delete(device);
-        MOS_OS_CHK_STATUS_RETURN(MOS_STATUS_UNINITIALIZED);
-    }
-
-    m_mcpyDevice = device;
-
-    return MOS_STATUS_SUCCESS;
-}

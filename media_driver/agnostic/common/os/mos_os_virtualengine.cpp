@@ -95,7 +95,7 @@ MOS_STATUS Mos_VirtualEngineInterface_Initialize(
         MOS_OS_CHK_STATUS(Mos_Specific_VirtualEngine_SinglePipe_Initialize(pVEInterf, pVEInitParms));
     }
 
-    if (pOsInterface->apoMosEnabled)
+    if (pOsInterface->apoMosEnabled || pOsInterface->apoMosForLegacyRuntime)
     {
         MOS_OS_CHK_NULL(pOsInterface->osStreamState);
         if (pVEInitParms->bScalabilitySupported)

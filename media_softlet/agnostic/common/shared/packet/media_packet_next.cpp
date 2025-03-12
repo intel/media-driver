@@ -144,3 +144,26 @@ MOS_STATUS MediaPacket::SetEndTagNext(
 
     return MOS_STATUS_SUCCESS;
 }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+MOS_STATUS MediaPacket::StoreEngineId(MOS_COMMAND_BUFFER *cmdBuffer, uint32_t statusReportType, uint8_t curPipe, uint32_t csEngineIdReg)
+{
+    MEDIA_CHK_NULL_RETURN(m_miItf);
+    MEDIA_CHK_NULL_RETURN(m_statusReport);
+
+    MOS_RESOURCE* osResource = nullptr;
+    uint32_t      offset     = 0;
+
+    auto &par = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
+    par       = {};
+
+    MEDIA_CHK_STATUS_RETURN(m_statusReport->GetAddress(statusReportType, osResource, offset));
+    par.presStoreBuffer      = osResource;
+    par.dwOffset             = offset + curPipe * sizeof(uint32_t);
+    par.dwRegister           = csEngineIdReg;
+
+    MEDIA_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(cmdBuffer));
+
+    return MOS_STATUS_SUCCESS;
+}
+#endif

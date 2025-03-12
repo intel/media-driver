@@ -303,57 +303,6 @@ static bool mtlRegisteredMcpy =
     MediaFactory<uint32_t, McpyDeviceNext>::
     Register<McpyDeviceXe_Lpm_Plus>((uint32_t)IGFX_METEORLAKE);
 
-MOS_STATUS McpyDeviceXe_Lpm_Plus::Initialize(
-    PMOS_INTERFACE osInterface,
-    MhwInterfacesNext *mhwInterfaces)
-{
-#define MCPY_FAILURE()                                       \
-{                                                           \
-    if (device != nullptr)                                  \
-    {                                                       \
-        MOS_Delete(device);                                 \
-    }                                                       \
-    return MOS_STATUS_NO_SPACE;                             \
-}
-
-    MHW_FUNCTION_ENTER;
-
-    Mcpy *device = nullptr;
-
-    if (nullptr == mhwInterfaces->m_miItf)
-    {
-        MCPY_FAILURE();
-    }
-
-    if (nullptr == mhwInterfaces->m_veboxItf)
-    {
-        MCPY_FAILURE();
-    }
-
-    if (nullptr == mhwInterfaces->m_bltItf)
-    {
-        MCPY_FAILURE();
-    }
-
-    device = MOS_New(Mcpy);
-
-    if (device == nullptr)
-    {
-        MCPY_FAILURE();
-    }
-
-    if (device->Initialize(
-        osInterface, mhwInterfaces) != MOS_STATUS_SUCCESS)
-    {
-        MOS_Delete(device);
-        MOS_OS_CHK_STATUS_RETURN(MOS_STATUS_UNINITIALIZED);
-    }
-
-    m_mcpyDevice = device;
-
-    return MOS_STATUS_SUCCESS;
-}
-
 static bool mtlRegisteredCodecHal =
     MediaFactory<uint32_t, CodechalDeviceNext>::
         Register<CodechalInterfacesXe_Lpm_Plus>((uint32_t)IGFX_METEORLAKE);

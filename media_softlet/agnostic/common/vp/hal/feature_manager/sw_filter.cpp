@@ -1318,9 +1318,9 @@ MOS_STATUS SwFilterHdr::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
     auto userFeatureControl = m_vpInterface.GetHwInterface()->m_userFeatureControl;
     auto vpPlatformInterface = m_vpInterface.GetHwInterface()->m_vpPlatformInterface;
     VpFeatureReport *vpFeatureReport  = dynamic_cast<VpFeatureReport *>(m_vpInterface.GetHwInterface()->m_reporting);
+    m_Params.isOclKernelEnabled          = userFeatureControl->EnableOcl3DLut();
 #if (_DEBUG || _RELEASE_INTERNAL)
-    m_Params.isL0KernelEnabled               = (vpPlatformInterface->IsAdvanceNativeKernelSupported() && userFeatureControl->EnableL03DLut());
-    vpFeatureReport->GetFeatures().isL03DLut = m_Params.isL0KernelEnabled;
+    vpFeatureReport->GetFeatures().isOcl3DLut = m_Params.isOclKernelEnabled;
 #endif
 
     VP_PUBLIC_CHK_NULL_RETURN(surfInput);
@@ -2144,6 +2144,84 @@ bool SwFilterCgc::IsBt2020ToRGB(VP_PIPELINE_PARAMS& params, bool isInputSurf, in
 }
 
 /****************************************************************************************************/
+/*                                      SwFilterAiBase                                              */
+/****************************************************************************************************/
+
+SwFilterAiBase::SwFilterAiBase(VpInterface &vpInterface, FeatureType featureType) : SwFilter(vpInterface, featureType)
+{
+    m_Params.type = m_type;
+}
+
+SwFilterAiBase::~SwFilterAiBase()
+{
+    Clean();
+}
+
+MOS_STATUS SwFilterAiBase::Clean()
+{
+    VP_FUNC_CALL();
+
+    m_Params.kernelSettings.clear();
+    VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterAiBase::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, int surfIndex)
+{
+    VP_FUNC_CALL();
+
+    m_Params.kernelSettings.clear();
+    VP_PUBLIC_CHK_STATUS_RETURN(RegisterAiSettingPipe(m_Params.kernelSettings, m_Params.kernelSplitGroupIndex));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+FeatureParamAi &SwFilterAiBase::GetSwFilterParams()
+{
+    VP_FUNC_CALL();
+
+    return m_Params;
+}
+
+SwFilter *SwFilterAiBase::Clone()
+{
+    VP_FUNC_CALL();
+
+    SwFilter *p = CreateSwFilter(m_type);
+
+    SwFilterAiBase *swFilter = dynamic_cast<SwFilterAiBase *>(p);
+    if (nullptr == swFilter)
+    {
+        DestroySwFilter(p);
+        return nullptr;
+    }
+
+    swFilter->m_Params = m_Params;
+    return p;
+}
+
+bool SwFilterAiBase::operator==(SwFilter &swFilter)
+{
+    VP_FUNC_CALL();
+
+    SwFilterAiBase *p = dynamic_cast<SwFilterAiBase *>(&swFilter);
+    return nullptr != p && 0 == memcmp(&this->m_Params, &p->m_Params, sizeof(FeatureParamAi));
+}
+
+MOS_STATUS SwFilterAiBase::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe)
+{
+    VP_FUNC_CALL();
+
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(inputSurf->osSurface);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
+    m_Params.formatInput  = inputSurf->osSurface->Format;
+    m_Params.formatOutput = outputSurf->osSurface->Format;
+    return MOS_STATUS_SUCCESS;
+}
+
+/****************************************************************************************************/
 /*                                      SwFilterSet                                                 */
 /****************************************************************************************************/
 
@@ -2281,4 +2359,23 @@ RenderTargetType SwFilterSet::GetRenderTargetType()
         }
     }
     return RenderTargetTypeParameter;
+}
+
+MOS_STATUS SwFilterSet::GetAiSwFilter(SwFilterAiBase*& swAiFilter)
+{
+    swAiFilter = nullptr;
+    for (auto& handle : m_swFilters)
+    {
+        SwFilterAiBase *filter = dynamic_cast<SwFilterAiBase *>(handle.second);
+        if (filter)
+        {
+            if (swAiFilter)
+            {
+                VP_PUBLIC_ASSERTMESSAGE("Only one AI Sw Filter is allowed in one SwFilterSet. More than one is found. Feature Types: %d and %d", swAiFilter->GetFeatureType(), filter->GetFeatureType());
+                VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+            }
+            swAiFilter = filter;
+        }
+    }
+    return MOS_STATUS_SUCCESS;
 }

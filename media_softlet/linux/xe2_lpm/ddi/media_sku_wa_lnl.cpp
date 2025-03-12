@@ -199,6 +199,7 @@ static bool InitLnlMediaSkuExt(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrWithSlimVdbox, 0);
 
     MEDIA_WR_SKU(skuTable, FtrE2ECompression, 1);
+    MEDIA_WR_SKU(skuTable, FtrXe2Compression , 1);
     MEDIA_WR_SKU(skuTable, FtrHDR, 1);
     MEDIA_WR_SKU(skuTable, FtrDisableRenderTargetWidthAdjust, 1);
 
@@ -213,6 +214,7 @@ static bool InitLnlMediaSkuExt(struct GfxDeviceInfo *devInfo,
     if (userFeatureData.bData)
     {
         MEDIA_WR_SKU(skuTable, FtrE2ECompression, 0);
+        MEDIA_WR_SKU(skuTable, FtrXe2Compression , 0);
     }
 
     // Create uncompressible surface by default
@@ -239,14 +241,8 @@ static bool InitLnlMediaSkuExt(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrUseSwSwizzling, 0);
     MEDIA_WR_SKU(skuTable, FtrMemoryRemapSupport, 1);
 
-
     MEDIA_WR_SKU(skuTable, FtrAV1VLDLSTDecoding, 1);
     MEDIA_WR_SKU(skuTable, FtrMediaIPSeparation , 1);
-    MEDIA_WR_SKU(skuTable, FtrXe2Compression , 1);
-    if (!compressibleSurfaceEnable)
-    {
-        MEDIA_WR_SKU(skuTable, FtrXe2Compression , 0);
-    }
 
     return true;
 }

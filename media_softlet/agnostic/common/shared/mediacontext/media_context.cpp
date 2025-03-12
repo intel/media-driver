@@ -62,6 +62,38 @@ MediaContext::MediaContext(uint8_t componentType, void *hwInterface, PMOS_INTERF
 
     m_streamId = m_osInterface->streamIndex;
     m_gpuContextAttributeTable.clear();
+
+    MEDIA_SYSTEM_INFO *gtSystemInfo = nullptr;
+    MEDIA_ENGINE_INFO  mediaEngineInfo = {};
+
+    auto skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
+    if (!skuTable)
+    {
+        MOS_OS_ASSERTMESSAGE("Failed to get skuTable");
+        return;
+    }
+    if (MEDIA_IS_SKU(skuTable,FtrMediaIPSeparation))
+    {
+        if (m_osInterface->pfnGetMediaEngineInfo(m_osInterface, mediaEngineInfo) == MOS_STATUS_SUCCESS)
+        {
+            m_numVdbox = (uint8_t)mediaEngineInfo.VDBoxInfo.NumberOfVDBoxEnabled;
+        }
+    }
+    else
+    {
+        gtSystemInfo    = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
+        if(gtSystemInfo)
+        {
+            m_numVdbox = (uint8_t)(gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled);
+        }
+    }
+
+    if (m_numVdbox > 1
+        && m_osInterface != nullptr
+        && m_osInterface->bHcpDecScalabilityMode)
+    {
+        m_scalabilitySupported = true;
+    }
 }
 
 MediaContext::~MediaContext()
@@ -253,7 +285,7 @@ MOS_STATUS MediaContext::SearchContext(MediaFunction func, T params, uint32_t& i
                 MOS_OS_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContextHandle(m_osInterface, curAttribute.gpuContext, curAttribute.ctxForLegacyMos));
                 // set legacy MOS ve interface to current reused scalability state's ve interface
                 m_osInterface->pVEInterf = curAttribute.scalabilityState->m_veInterface;
-                if (m_osInterface->apoMosEnabled)
+                if (m_osInterface->apoMosEnabled || m_osInterface->apoMosForLegacyRuntime)
                 {
                     if (curAttribute.scalabilityState->m_veState)
                     {
@@ -488,20 +520,32 @@ MOS_STATUS MediaContext::CheckScalabilityOverrideValidity()
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     MEDIA_SYSTEM_INFO *gtSystemInfo = nullptr;
+    MEDIA_ENGINE_INFO  mediaEngineInfo = {};
     uint32_t           forceVdbox   = 0;
     bool               scalableDecMode = false;
     bool               useVD1          = false;
     bool               useVD2          = false;
+    bool               useVD3          = false;
 
     MHW_MI_CHK_NULL(m_osInterface);
     scalableDecMode = m_osInterface->bHcpDecScalabilityMode ? true : false;
     forceVdbox      = m_osInterface->eForceVdbox;
-    gtSystemInfo    = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
-    MHW_MI_CHK_NULL(gtSystemInfo);
+    auto skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
+    MHW_MI_CHK_NULL(skuTable);
+    if (MEDIA_IS_SKU(skuTable,FtrMediaIPSeparation))
+    {
+        MOS_OS_CHK_STATUS_RETURN(m_osInterface->pfnGetMediaEngineInfo(m_osInterface, mediaEngineInfo));
+    }
+    else
+    {
+        gtSystemInfo    = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
+        MHW_MI_CHK_NULL(gtSystemInfo);
+    }
 
     if (forceVdbox != MOS_FORCE_VDBOX_NONE &&
         forceVdbox != MOS_FORCE_VDBOX_1 &&
         forceVdbox != MOS_FORCE_VDBOX_2 &&
+        forceVdbox != MOS_FORCE_VDBOX_3 &&
         // 2 pipes, VDBOX1-BE1, VDBOX2-BE2
         forceVdbox != MOS_FORCE_VDBOX_1_1_2 &&
         forceVdbox != MOS_FORCE_VDBOX_2_1_2)
@@ -534,14 +578,33 @@ MOS_STATUS MediaContext::CheckScalabilityOverrideValidity()
     {
         MHW_VDBOX_IS_VDBOX_SPECIFIED(forceVdbox, MOS_FORCE_VDBOX_1, MOS_FORCEVDBOX_VDBOXID_BITSNUM, MOS_FORCEVDBOX_MASK, useVD1);
         MHW_VDBOX_IS_VDBOX_SPECIFIED(forceVdbox, MOS_FORCE_VDBOX_2, MOS_FORCEVDBOX_VDBOXID_BITSNUM, MOS_FORCEVDBOX_MASK, useVD2);
+        MHW_VDBOX_IS_VDBOX_SPECIFIED(forceVdbox, MOS_FORCE_VDBOX_3, MOS_FORCEVDBOX_VDBOXID_BITSNUM, MOS_FORCEVDBOX_MASK, useVD3);
     }
-    if (!gtSystemInfo->VDBoxInfo.IsValid ||
-        (useVD1 && !gtSystemInfo->VDBoxInfo.Instances.Bits.VDBox0Enabled) ||
-        (useVD2 && !gtSystemInfo->VDBoxInfo.Instances.Bits.VDBox1Enabled))
+    if (MEDIA_IS_SKU(skuTable,FtrMediaIPSeparation))
     {
-        eStatus = MOS_STATUS_INVALID_PARAMETER;
-        MHW_ASSERTMESSAGE("the forced VDBOX is not enabled in current platform.");
-        return eStatus;
+        if (!mediaEngineInfo.VDBoxInfo.IsValid ||
+            (useVD1 && !mediaEngineInfo.VDBoxInfo.Instances.Bits.VDBox0Enabled) ||
+            (useVD2 && !mediaEngineInfo.VDBoxInfo.Instances.Bits.VDBox2Enabled) ||
+            (useVD3 && !mediaEngineInfo.VDBoxInfo.Instances.Bits.VDBox1Enabled))
+        {
+            //1:VD0 2:VD2 3:VD1
+            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            MHW_ASSERTMESSAGE("the forced VDBOX is not enabled in current platform.");
+            return eStatus;
+        }
+    }
+    else
+    {
+        if (!gtSystemInfo->VDBoxInfo.IsValid ||
+            (useVD1 && !gtSystemInfo->VDBoxInfo.Instances.Bits.VDBox0Enabled) ||
+            (useVD2 && !gtSystemInfo->VDBoxInfo.Instances.Bits.VDBox2Enabled) ||
+            (useVD3 && !gtSystemInfo->VDBoxInfo.Instances.Bits.VDBox1Enabled))
+        {
+            eStatus = MOS_STATUS_INVALID_PARAMETER;
+            MHW_ASSERTMESSAGE("the forced VDBOX is not enabled in current platform.");
+            return eStatus;
+        }
+
     }
 
     return eStatus;
@@ -607,7 +670,7 @@ MOS_STATUS MediaContext::FindGpuNodeToUse(MediaFunction func, PMHW_VDBOX_GPUNODE
     }
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_osInterface != nullptr && m_osInterface->bEnableDbgOvrdInVE &&
-        (!m_osInterface->bSupportVirtualEngine || !m_scalabilitySupported))
+        (!m_osInterface->bSupportVirtualEngine))
     {
         eStatus = MOS_STATUS_INVALID_PARAMETER;
         MHW_ASSERTMESSAGE("not support DebugOverrid on current OS or Platform.");

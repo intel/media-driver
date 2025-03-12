@@ -40,6 +40,7 @@
         (MhwKernelParam).iSize    = (_pKernelEntry)->iSize;                         \
         (MhwKernelParam).iKUID    = (_pKernelEntry)->iKUID;                         \
         (MhwKernelParam).iKCID    = (_pKernelEntry)->iKCID;                         \
+        (MhwKernelParam).iPaddingSize = (_pKernelEntry)->iPaddingSize;              \
     } while(0)
 
 

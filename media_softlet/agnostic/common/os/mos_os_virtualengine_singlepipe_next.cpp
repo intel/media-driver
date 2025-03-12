@@ -50,12 +50,12 @@ MOS_STATUS MosOsVeSinglePipe::PopulateDbgOvrdParams(MOS_STREAM_HANDLE stream)
     switch (stream->component)
     {
         case COMPONENT_Decode:
+        case COMPONENT_Encode:
             iForceEngine = stream->eForceVdbox;
             break;
         case COMPONENT_VPCommon:
             iForceEngine = stream->eForceVebox;
             break;
-        case COMPONENT_Encode:
         default:
             eStatus = MOS_STATUS_INVALID_PARAMETER;
             MOS_OS_ASSERTMESSAGE("Not supported MOS Component.")

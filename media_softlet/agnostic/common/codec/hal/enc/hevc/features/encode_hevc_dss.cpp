@@ -159,7 +159,7 @@ namespace encode
         MediaStatusReport *statusReport = pipeline->GetStatusReportInstance();
         MOS_RESOURCE *osResource = nullptr;
         uint32_t      offset = 0;
-        statusReport->GetAddress(statusReportSliceReport, osResource, offset);
+        ENCODE_CHK_STATUS_RETURN(statusReport->GetAddress(statusReportSliceReport, osResource, offset));
         
         uint32_t sizeOfSliceSizesBuffer = MOS_ALIGN_CEIL(CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
 
@@ -239,7 +239,7 @@ namespace encode
         MOS_RESOURCE *osResource = nullptr;
         uint32_t      offset = 0;
         
-        statusReport->GetAddress(statusReportSliceReport, osResource, offset);
+        ENCODE_CHK_STATUS_RETURN(statusReport->GetAddress(statusReportSliceReport, osResource, offset));
 
         uint32_t sizeOfSliceSizesBuffer = MOS_ALIGN_CEIL(CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6 * CODECHAL_CACHELINE_SIZE, CODECHAL_PAGE_SIZE);
 

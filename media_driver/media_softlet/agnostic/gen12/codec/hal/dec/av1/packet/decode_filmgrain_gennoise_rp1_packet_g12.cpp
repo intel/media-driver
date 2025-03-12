@@ -167,6 +167,7 @@ MOS_STATUS FilmGrainRp1Packet::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t
     HalOcaInterface::On1stLevelBBStart(*commandBuffer, *m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle,
         *m_hwInterface->GetMiInterface(), *m_hwInterface->GetMiInterface()->GetMmioRegisters());
     HalOcaInterface::TraceMessage(*commandBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, __FUNCTION__, sizeof(__FUNCTION__));
+    HalOcaInterface::OnDispatch(*commandBuffer, *m_osInterface,  *m_hwInterface->GetMiInterface(),  *m_hwInterface->GetMiInterface()->GetMmioRegisters());
 
     if (pOsInterface && !m_av1BasicFeature->m_singleKernelPerfFlag)
     {

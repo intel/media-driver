@@ -320,6 +320,18 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
         __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE_MER_HEADER,
         MediaUserSetting::Group::Device);
 
+    // Read parallel execution support
+    bool addPid = false;
+    ReadUserSetting(
+        userSettingPtr,
+        addPid,
+        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_PARALLEL_EXEC,
+        MediaUserSetting::Group::Device);
+
+    if (addPid)
+    {
+        m_outputFileName += "-" + std::to_string(MosUtilities::MosGetPid());
+    }
     // Read memory information register address
     int8_t regIndex = 0;
     for (regIndex = 0; regIndex < 8; regIndex++)

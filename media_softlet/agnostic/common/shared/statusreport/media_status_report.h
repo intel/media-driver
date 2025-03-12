@@ -32,6 +32,34 @@
 
 #define STATUS_REPORT_GLOBAL_COUNT 0
 
+enum CsEngineIdDef
+{
+    // Instance ID
+    csInstanceIdVdbox0 = 0,
+    csInstanceIdVdbox1 = 1,
+    csInstanceIdVdbox2 = 2,
+    csInstanceIdVdbox3 = 3,
+    csInstanceIdVdbox4 = 4,
+    csInstanceIdVdbox5 = 5,
+    csInstanceIdVdbox6 = 6,
+    csInstanceIdVdbox7 = 7,
+    csInstanceIdMax,
+    // Class ID
+    classIdVideoEngine = 1,
+};
+
+union CsEngineId
+{
+    struct
+    {
+        uint32_t       classId            : 3;    //[0...4]
+        uint32_t       reservedFiled1     : 1;    //[0]
+        uint32_t       instanceId         : 6;    //[0...7]
+        uint32_t       reservedField2     : 22;   //[0]
+    } fields;
+    uint32_t            value;
+};
+
 class MediaStatusReport
 {
 public:
@@ -53,7 +81,7 @@ public:
     //!
     //! \brief  Constructor
     //!
-    MediaStatusReport() {};
+    MediaStatusReport(PMOS_INTERFACE osInterface);
     virtual ~MediaStatusReport() {};
 
     //!
@@ -114,6 +142,29 @@ public:
     //!
     uint32_t GetSubmittedCount() const { return m_submittedCount; }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //!
+    //! \brief  Is Vdbox physical id reporting enabled
+    //! \return m_enableVdboxIdReport
+    //!
+    uint32_t IsVdboxIdReportEnabled()
+    { 
+        return m_enableVdboxIdReport;
+    }
+
+    //!
+    //! \brief  Parse Vdbox Ids from CsEngineId status buffer
+    //! \return void
+    //!
+    void ParseVdboxIdsFromBuf(const uint32_t *csEngineIdRegBuf);
+
+    //!
+    //! \brief  Report Used Vdbox Ids
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS ReportUsedVdboxIds();
+#endif
     //!
     //! \brief  Get completed count of status report.
     //! \return The content of m_completedCount
@@ -201,6 +252,11 @@ protected:
 
     StatusBufAddr    *m_statusBufAddr        = nullptr;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    bool             m_enableVdboxIdReport   = false;
+    uint32_t         m_usedVdboxIds          = 0;      //!< Used Vdbox physical engine id. Default 0 is not used. Each Hex symbol represents one VDBOX, e.g. bits[3:0] means VD0, bits[7:4] means VD1.
+#endif
+    MediaUserSettingSharedPtr                 m_userSettingPtr  = nullptr;  //!< user setting instance
     std::recursive_mutex                      m_lock;
     std::vector<MediaStatusReportObserver *>  m_completeObservers;
 MEDIA_CLASS_DEFINE_END(MediaStatusReport)

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -96,6 +96,9 @@ MOS_STATUS DecodeDownSamplingFeature::Update(void *params)
     {
         m_inputSurface  = nullptr;
         m_enabled       = false;
+        m_histogramDestSurf = nullptr;
+        m_histogramBuffer   = nullptr;
+
         return MOS_STATUS_SUCCESS;
     }
     else
@@ -232,6 +235,8 @@ PMOS_BUFFER DecodeDownSamplingFeature::AllocateHistogramBuffer(uint8_t frameInde
         }
 
         m_histogramBufferList[frameIndex] = histogramBuffer;
+
+        m_aqmHistogramEnable = true;
     }
 
     return m_histogramBufferList[frameIndex];

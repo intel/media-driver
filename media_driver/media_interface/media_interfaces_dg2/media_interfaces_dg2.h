@@ -227,9 +227,8 @@ public:
     using Mcpy  = MediaCopyState_Xe_Hpm;
 
     MOS_STATUS Initialize(
-        PMOS_INTERFACE osInterface,
-        MhwInterfaces *mhwInterfaces);
-
+        PMOS_INTERFACE osInterface);
+protected:
     MhwInterfaces* CreateMhwInterface(
         PMOS_INTERFACE osInterface);
 };

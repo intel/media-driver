@@ -47,6 +47,7 @@ namespace encode {
 
     EncoderStatusReport::EncoderStatusReport(
         EncodeAllocator *allocator, PMOS_INTERFACE pOsInterface, bool enableMfx, bool enableRcs, bool enablecp):
+        MediaStatusReport(pOsInterface),
         m_osInterface(pOsInterface),
         m_enableMfx(enableMfx),
         m_enableRcs(enableRcs),
@@ -175,6 +176,7 @@ namespace encode {
         m_statusBufAddr[statusReportNumSkip8x8Block].offset                       = CODECHAL_OFFSETOF(EncodeStatusMfx, numSkip8x8Block);
         m_statusBufAddr[statusReportSliceReport].offset                           = CODECHAL_OFFSETOF(EncodeStatusMfx, sliceReport);
         m_statusBufAddr[statusReportLpla].offset                                  = CODECHAL_OFFSETOF(EncodeStatusMfx, lookaheadStatus);
+        m_statusBufAddr[statusReportCsEngineIdRegs].offset                        = CODECHAL_OFFSETOF(EncodeStatusMfx, csEngineIdRegs[0]);
     }
 
     MOS_STATUS EncoderStatusReport::Init(void *inputPar)
@@ -196,6 +198,11 @@ namespace encode {
             m_statusReportData[submitIndex].av1FrameHdrOBUSizeByteOffset = inputParameters->av1FrameHdrOBUSizeByteOffset;
             m_statusReportData[submitIndex].frameWidth                   = inputParameters->frameWidth;
             m_statusReportData[submitIndex].frameHeight                  = inputParameters->frameHeight;
+
+            m_statusReportData[submitIndex].targetFrameSize = inputParameters->targetFrameSize;
+            m_statusReportData[submitIndex].brcMode         = inputParameters->brcMode;
+
+            m_statusReportData[submitIndex].pBlkQualityInfo = (encode::EncodeStatusReportData::BLOCK_QUALITY_INFO *)(inputParameters->pBlkQualityInfo);
 
             uint64_t pairIndex = GetIdForCodecFuncToFuncIdPairs(inputParameters->codecFunction);
             if (pairIndex >= m_maxCodecFuncNum)
@@ -354,7 +361,6 @@ namespace encode {
 
         statusReportData->pFrmStatsInfo = ((EncodeStatusReportData *)report)->pFrmStatsInfo;
         statusReportData->pBlkStatsInfo = ((EncodeStatusReportData *)report)->pBlkStatsInfo;
-        statusReportData->pBlkQualityInfo = ((EncodeStatusReportData*)report)->pBlkQualityInfo;
 
         if (m_enableRcs)
         {
@@ -388,6 +394,12 @@ namespace encode {
         // The frame is completed, notify the observers
         if (statusReportData->codecStatus == CODECHAL_STATUS_SUCCESSFUL)
         {
+#if (_DEBUG || _RELEASE_INTERNAL)
+            if (m_enableVdboxIdReport && encodeStatusMfx)
+            {
+                ParseVdboxIdsFromBuf(encodeStatusMfx->csEngineIdRegs);
+            }
+#endif
             eStatus = NotifyObservers(encodeStatusMfx, encodeStatusRcs, statusReportData);
         }
 
@@ -410,10 +422,32 @@ namespace encode {
         return MOS_STATUS_SUCCESS;
     }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MOS_STATUS EncoderStatusReport::ReportUsedVdboxIds()
+    {
+        if (m_enableVdboxIdReport && m_dataStatusMfx)
+        {
+            ENCODE_CHK_NULL_RETURN(m_completedCount);
+            uint32_t completedCount = *m_completedCount;
+            for (uint32_t num = m_reportedCount; num < completedCount; num++)
+            {
+                uint32_t index = CounterToIndex(num);
+                EncodeStatusMfx* encodeStatusMfx = (EncodeStatusMfx*)(m_dataStatusMfx + index * m_statusBufSizeMfx);
+                ParseVdboxIdsFromBuf(encodeStatusMfx->csEngineIdRegs);
+            }
+            MediaStatusReport::ReportUsedVdboxIds();
+        }
+        return MOS_STATUS_SUCCESS;
+    }
+#endif
+
     MOS_STATUS EncoderStatusReport::Destroy()
     {
         ENCODE_FUNC_CALL();
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+        ReportUsedVdboxIds();
+#endif
         if (m_completedCountBuf != nullptr)
         {
             m_allocator->UnLock(m_completedCountBuf);

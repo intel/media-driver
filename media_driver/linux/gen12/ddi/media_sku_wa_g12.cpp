@@ -59,8 +59,8 @@ static struct LinuxCodecInfo tglCodecInfo =
     .vp8Encoding    = 0,
     .hevcVdenc      = 1,
     .vp9Vdenc       = 1,
-    .adv0Decoding   = 1,
-    .adv1Decoding   = 1,
+    .adv0Decoding   = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
+    .adv1Decoding   = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
 };
 
 static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,

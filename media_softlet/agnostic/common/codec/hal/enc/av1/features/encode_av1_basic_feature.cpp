@@ -253,10 +253,20 @@ MOS_STATUS Av1BasicFeature::UpdateTrackedBufferParameters()
 
     m_trackedBuf->OnSizeChange();
 
-    // The MB code size here, it is from Arch's suggestion
-    const uint32_t numOfCU  = MOS_ROUNDUP_DIVIDE(m_frameWidth, 8) * MOS_ROUNDUP_DIVIDE(m_frameHeight, 8);
-
-    m_mbCodeSize = MOS_ALIGN_CEIL((numOfCU * CODECHAL_PAK_OBJ_EACH_CU), CODECHAL_PAGE_SIZE);
+    // Here to calculate the max coded data size needed for one frame according to LCU and CU partitions
+    //
+    // 1.LCU and CU num:
+    // LCU size is 64x64 so we can get the LCU num according to frame width and hight
+    // The restrict min CU size is 8x8 so we can get totally max 64 CUs per LCU
+    //
+    // 2.LCU and CU data size:
+    // LCU header size 5DW, CU size 8DW. And a DW size is 64bits(2 * sizeof(uint32_t))
+    // 
+    // 3.Calculate the max coded data size needed
+    //
+    // 4.Finally need to do page align for CL alignment at the end of the frame
+    uint32_t numOfLCU = MOS_ROUNDUP_DIVIDE(m_frameWidth, av1SuperBlockWidth) * MOS_ROUNDUP_DIVIDE(m_frameHeight, av1SuperBlockHeight);
+    m_mbCodeSize = MOS_ALIGN_CEIL(2 * sizeof(uint32_t) * (numOfLCU * 5 + numOfLCU * 64 * 8), CODECHAL_PAGE_SIZE);
     m_mvDataSize = 0;
 
     uint32_t downscaledWidthInMb4x =
@@ -335,8 +345,6 @@ MOS_STATUS Av1BasicFeature::UpdateFormat(void *params)
     ENCODE_CHK_NULL_RETURN(params);
     EncoderParams* encodeParams = (EncoderParams*)params;
 
-    PCODEC_VP9_ENCODE_SEQUENCE_PARAMS vp9SeqParams = nullptr;
-    PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS hevcSeqParams = nullptr;
     PCODEC_AV1_ENCODE_SEQUENCE_PARAMS av1SeqParams = nullptr;
 
     av1SeqParams = static_cast<PCODEC_AV1_ENCODE_SEQUENCE_PARAMS>(encodeParams->pSeqParams);
@@ -354,6 +362,7 @@ MOS_STATUS Av1BasicFeature::UpdateFormat(void *params)
     {
     case Format_P010:
     case Format_R10G10B10A2:
+    case Format_B10G10R10A2:
         m_is10Bit  = true;
         m_bitDepth = 10;
         break;

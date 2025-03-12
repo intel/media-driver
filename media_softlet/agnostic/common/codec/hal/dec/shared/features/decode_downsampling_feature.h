@@ -92,6 +92,8 @@ public:
     bool           m_histogramDebug    = false;
     const uint32_t m_histogramBinWidth = 4;
 
+    bool           m_aqmHistogramEnable = false;    // VDAQM histogram enabled
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_SURFACE    m_outputSurfaceList[DecodeBasicFeature::m_maxFrameIndex] = {}; //! \brief Downsampled surfaces
 #endif

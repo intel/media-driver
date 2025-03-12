@@ -230,6 +230,8 @@ public:
     {
         return MOS_STATUS_SUCCESS;
     }
+    
+    virtual MOS_GPU_COMPONENT_ID GetGpuComponentId() = 0;
 
 protected:
     //! \brief    Hardware node for current gpu context

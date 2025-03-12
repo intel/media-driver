@@ -135,7 +135,7 @@ CodechalHwInterfaceXe_Hpm::CodechalHwInterfaceXe_Hpm(
     : CodechalHwInterfaceG12(osInterface, codecFunction, mhwInterfaces, disableScalability)
 {
     CODECHAL_HW_FUNCTION_ENTER;
-    m_avpInterface = static_cast<MhwInterfacesXehp_Sdv*>(mhwInterfaces)->m_avpInterface;
+
     PrepareCmdSize(codecFunction);
 }
 

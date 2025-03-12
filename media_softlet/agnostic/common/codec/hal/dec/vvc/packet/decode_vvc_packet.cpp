@@ -279,7 +279,12 @@ MOS_STATUS VvcDecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* 
     DECODE_CHK_NULL(perfProfiler);
     DECODE_CHK_STATUS(perfProfiler->AddPerfCollectStartCmd(
         (void *)m_vvcPipeline, m_osInterface, m_miItf, cmdBuffer));
-
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_statusReport && m_statusReport->IsVdboxIdReportEnabled())
+    {
+        StoreEngineId(cmdBuffer, decode::DecodeStatusReportType::CsEngineIdOffset_0);
+    }
+#endif
     return MOS_STATUS_SUCCESS;
 }
 
@@ -350,6 +355,7 @@ MOS_STATUS VvcDecodePkt::Submit(
         auto mmioRegisters = m_hwInterface->GetVdencInterfaceNext()->GetMmioRegisters(MHW_VDBOX_NODE_1);
 
         HalOcaInterfaceNext::On1stLevelBBStart(*cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, m_osInterface->CurrentGpuContextHandle, m_miItf, *mmioRegisters);
+        HalOcaInterfaceNext::OnDispatch(*cmdBuffer, *m_osInterface, m_miItf, *m_miItf->GetMmioRegisters());
         if (m_vvcBasicFeature->m_shortFormatInUse)
         {
             m_tileLevelBB = m_vvcPipeline->GetTileLvlCmdBuffer();

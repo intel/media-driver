@@ -157,6 +157,8 @@ struct _MHW_PAR_T(MFX_SURFACE_STATE)
     PMOS_SURFACE psSurface         = nullptr;
     uint32_t     uvPlaneAlignment  = 0;
     MOS_MEMCOMP_STATE mmcState     = MOS_MEMCOMP_DISABLED;
+
+    __MHW_VDBOX_MFX_WRAPPER_EXT(MFX_SURFACE_STATE_EXT);
 };
 
 struct _MHW_PAR_T(MFX_PIPE_BUF_ADDR_STATE)
@@ -288,8 +290,10 @@ struct _MHW_PAR_T(MFX_AVC_IMG_STATE)
     uint32_t                  imgStructImageStructureImgStructure10        = 0;
     uint32_t                  interViewOrderDisable                        = 0;
     bool                      vdaqmEnable                                  = false;
-    
-    __MHW_VDBOX_MFX_WRAPPER_EXT(MFX_AVC_IMG_STATE_CMDPAR_EXT);
+    uint8_t                   bitDepthLumaMinus8                           = 0;
+    uint8_t                   bitDepthChromaMinus8                         = 0;
+
+    __MHW_VDBOX_MFX_WRAPPER_EXT(MFX_AVC_IMG_STATE_EXT);
 };
 
 struct _MHW_PAR_T(MFX_AVC_REF_IDX_STATE)
@@ -361,6 +365,8 @@ struct _MHW_PAR_T(MFX_AVC_SLICE_STATE)
     bool                      fullFrameData                                   = 0;
     uint32_t                  totalBytesConsumed                              = 0;
     bool                      decodeInUse                                     = false;
+
+    __MHW_VDBOX_MFX_WRAPPER_EXT(MFX_AVC_SLICE_STATE_EXT);
 };
 
 struct _MHW_PAR_T(MFX_AVC_DIRECTMODE_STATE)

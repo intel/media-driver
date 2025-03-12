@@ -20,11 +20,11 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     vp_render_vebox_hdr_3dlut_l0_kernel.cpp
+//! \file     vp_render_vebox_hdr_3dlut_ocl_kernel.cpp
 //! \brief    render packet which used in by mediapipline.
 //! \details  render packet provide the structures and generate the cmd buffer which mediapipline will used.
 //!
-#include "vp_render_vebox_hdr_3dlut_l0_kernel.h"
+#include "vp_render_vebox_hdr_3dlut_ocl_kernel.h"
 #include "vp_dumper.h"
 #include "vp_kernelset.h"
 
@@ -203,22 +203,22 @@ static void CalcCCMMatrix()
     color_matrix_calculation[2][3] = 0.0f;
 }
 
-// Used by L0 kernel
-VpRenderHdr3DLutL0Kernel::VpRenderHdr3DLutL0Kernel(PVP_MHWINTERFACE hwInterface, PVpAllocator allocator) :
-    VpRenderKernelObj(hwInterface, (VpKernelID)kernelHdr3DLutCalcL0, 0, VP_HDR_KERNEL_NAME_L0_3DLUT, allocator)
+// Used by OCL kernel
+VpRenderHdr3DLutOclKernel::VpRenderHdr3DLutOclKernel(PVP_MHWINTERFACE hwInterface, PVpAllocator allocator) :
+    VpRenderKernelObj(hwInterface, (VpKernelID)kernelHdr3DLutCalcOcl, 0, VP_HDR_KERNEL_NAME_OCL_3DLUT, allocator)
 {
     VP_FUNC_CALL();
-    m_kernelBinaryID = VP_ADV_KERNEL_BINARY_ID(kernelHdr3DLutCalcL0);
+    m_kernelBinaryID = VP_ADV_KERNEL_BINARY_ID(kernelHdr3DLutCalcOcl);
     m_isAdvKernel    = true;
 }
 
-VpRenderHdr3DLutL0Kernel::~VpRenderHdr3DLutL0Kernel()
+VpRenderHdr3DLutOclKernel::~VpRenderHdr3DLutOclKernel()
 {
     MOS_SafeFreeMemory(m_curbe);
     m_curbe = nullptr;
 }
 
-MOS_STATUS VpRenderHdr3DLutL0Kernel::Init(VpRenderKernel &kernel)
+MOS_STATUS VpRenderHdr3DLutOclKernel::Init(VpRenderKernel &kernel)
 {
     VP_FUNC_CALL();
 
@@ -248,7 +248,7 @@ MOS_STATUS VpRenderHdr3DLutL0Kernel::Init(VpRenderKernel &kernel)
 }
 
 
-MOS_STATUS VpRenderHdr3DLutL0Kernel::SetupSurfaceState()
+MOS_STATUS VpRenderHdr3DLutOclKernel::SetupSurfaceState()
 {
     VP_FUNC_CALL();
     VP_RENDER_CHK_STATUS_RETURN(InitCoefSurface(m_maxDisplayLum, m_maxContentLevelLum, m_hdrMode));
@@ -256,7 +256,7 @@ MOS_STATUS VpRenderHdr3DLutL0Kernel::SetupSurfaceState()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderHdr3DLutL0Kernel::CpPrepareResources()
+MOS_STATUS VpRenderHdr3DLutOclKernel::CpPrepareResources()
 {
     VP_FUNC_CALL();
 
@@ -281,16 +281,16 @@ MOS_STATUS VpRenderHdr3DLutL0Kernel::CpPrepareResources()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderHdr3DLutL0Kernel::SetupStatelessBuffer()
+MOS_STATUS VpRenderHdr3DLutOclKernel::SetupStatelessBuffer()
 {
     VP_FUNC_CALL();
     m_statelessArray.clear();
-    VP_RENDER_CHK_STATUS_RETURN(SetupStatelessBufferResource(SurfaceType3DLutCoef));
-    VP_RENDER_CHK_STATUS_RETURN(SetupStatelessBufferResource(SurfaceType3DLut));
+    VP_RENDER_CHK_STATUS_RETURN(SetupStatelessBufferResource(SurfaceType3DLutCoef, false));
+    VP_RENDER_CHK_STATUS_RETURN(SetupStatelessBufferResource(SurfaceType3DLut, true));
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderHdr3DLutL0Kernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
+MOS_STATUS VpRenderHdr3DLutOclKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
 {
     VP_FUNC_CALL();
     curbeLength = m_curbeSize;
@@ -359,7 +359,7 @@ MOS_STATUS VpRenderHdr3DLutL0Kernel::GetCurbeState(void *&curbe, uint32_t &curbe
 }
 
 
-MOS_STATUS VpRenderHdr3DLutL0Kernel::GetWalkerSetting(KERNEL_WALKER_PARAMS &walkerParam, KERNEL_PACKET_RENDER_DATA &renderData)
+MOS_STATUS VpRenderHdr3DLutOclKernel::GetWalkerSetting(KERNEL_WALKER_PARAMS &walkerParam, KERNEL_PACKET_RENDER_DATA &renderData)
 {
 
     VP_FUNC_CALL();
@@ -376,7 +376,7 @@ MOS_STATUS VpRenderHdr3DLutL0Kernel::GetWalkerSetting(KERNEL_WALKER_PARAMS &walk
 }
 
 // Only for Adv kernels.
-MOS_STATUS VpRenderHdr3DLutL0Kernel::SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, bool bSyncFlag, bool flushL1)
+MOS_STATUS VpRenderHdr3DLutOclKernel::SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, bool bSyncFlag, bool flushL1)
 {
     VP_FUNC_CALL();
     MOS_ZeroMemory(&m_walkerParam, sizeof(KERNEL_WALKER_PARAMS));
@@ -413,10 +413,7 @@ MOS_STATUS VpRenderHdr3DLutL0Kernel::SetWalkerSetting(KERNEL_THREAD_SPACE &threa
     m_walkerParam.inlineDataLength = sizeof(m_inlineData);
     m_walkerParam.inlineData       = m_inlineData;
 
-    if (m_kernelEnv.uSimdSize != 1 &&
-        (m_kernelEnv.uiWorkGroupWalkOrderDimensions[0] != 0 ||
-            m_kernelEnv.uiWorkGroupWalkOrderDimensions[1] != 0 ||
-            m_kernelEnv.uiWorkGroupWalkOrderDimensions[2] != 0))
+    if (m_kernelEnv.uSimdSize != 1)
     {
         m_walkerParam.isEmitInlineParameter = true;
         m_walkerParam.isGenerateLocalID     = true;
@@ -426,7 +423,7 @@ MOS_STATUS VpRenderHdr3DLutL0Kernel::SetWalkerSetting(KERNEL_THREAD_SPACE &threa
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderHdr3DLutL0Kernel::InitCoefSurface(const uint32_t maxDLL, const uint32_t maxCLL, const VPHAL_HDR_MODE hdrMode)
+MOS_STATUS VpRenderHdr3DLutOclKernel::InitCoefSurface(const uint32_t maxDLL, const uint32_t maxCLL, const VPHAL_HDR_MODE hdrMode)
 {
     VP_FUNC_CALL();
     float  *hdrcoefBuffer = nullptr;
@@ -458,12 +455,13 @@ MOS_STATUS VpRenderHdr3DLutL0Kernel::InitCoefSurface(const uint32_t maxDLL, cons
 
         if (maxDLL > 800)
         {
-            tmMode = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2H;
+            tmMode = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2E;
         }
         else
         {
             tmMode = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2S;
         }
+
         oetfCurve = (OETF_CURVE_TYPE)OETF_SRGB;
         tmSrcType = (TONE_MAPPING_SOURCE_TYPE)TONE_MAPPING_SOURCE_PSEUDO_Y_BT709;
     }
@@ -500,10 +498,10 @@ MOS_STATUS VpRenderHdr3DLutL0Kernel::InitCoefSurface(const uint32_t maxDLL, cons
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderHdr3DLutL0Kernel::SetKernelConfigs(KERNEL_CONFIGS &kernelConfigs)
+MOS_STATUS VpRenderHdr3DLutOclKernel::SetKernelConfigs(KERNEL_CONFIGS &kernelConfigs)
 {
     VP_FUNC_CALL();
-    auto it = kernelConfigs.find((VpKernelID)kernelHdr3DLutCalcL0);
+    auto it = kernelConfigs.find((VpKernelID)kernelHdr3DLutCalcOcl);
 
     if (kernelConfigs.end() == it || nullptr == it->second)
     {
@@ -534,9 +532,19 @@ MOS_STATUS VpRenderHdr3DLutL0Kernel::SetKernelConfigs(KERNEL_CONFIGS &kernelConf
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpRenderHdr3DLutOclKernel::SetPerfTag()
+{
+    VP_FUNC_CALL();
+    VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
+    auto osInterface = m_hwInterface->m_osInterface;
+    VP_RENDER_CHK_NULL_RETURN(osInterface);
+    VP_RENDER_CHK_NULL_RETURN(osInterface->pfnSetPerfTag);
 
+    osInterface->pfnSetPerfTag(osInterface, VPHAL_OCL_3DLUT);
+    return MOS_STATUS_SUCCESS;
+}
 
-MOS_STATUS VpRenderHdr3DLutL0Kernel::SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET_SHARED_CONTEXT *sharedContext)
+MOS_STATUS VpRenderHdr3DLutOclKernel::SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET_SHARED_CONTEXT *sharedContext)
 {
     VP_FUNC_CALL();
 
@@ -574,7 +582,7 @@ MOS_STATUS VpRenderHdr3DLutL0Kernel::SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_P
     return MOS_STATUS_SUCCESS;
 }
 
-void VpRenderHdr3DLutL0Kernel::DumpSurfaces()
+void VpRenderHdr3DLutOclKernel::DumpSurfaces()
 {
     VP_FUNC_CALL();
     for (auto &arg : m_kernelArgs)

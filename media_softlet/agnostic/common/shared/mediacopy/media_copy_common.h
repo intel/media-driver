@@ -46,9 +46,9 @@
 #define BLT_ASSERTMESSAGE(_message, ...)    MOS_ASSERTMESSAGE(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_BLT, _message, ##__VA_ARGS__)
 #define BLT_BITS_PER_BYTE                   8
 
-#define VEBOX_COPY                          0x700
-#define RENDER_COPY                         0x701
-#define BLT_COPY                            0x702
+#define VEBOX_COPY                          ((uint32_t)(VPHAL_MCP_VEBOX_COPY))
+#define RENDER_COPY                         ((uint32_t)(VPHAL_MCP_RENDER_COPY))
+#define BLT_COPY                            ((uint32_t)(VPHAL_MCP_BLT_COPY))
 
 #define SINGLE_PLANE                        0x1
 #define TWO_PLANES                          0x2

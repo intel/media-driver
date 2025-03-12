@@ -141,16 +141,7 @@ public:
 MEDIA_CLASS_DEFINE_END(MmdDeviceXe_Lpm_Plus_Next)
 };
 
-class McpyDeviceXe_Lpm_Plus : public McpyDeviceNext
-{
-public:
-    using Mcpy = MediaCopyStateXe_Lpm_Plus_Base;
-    MOS_STATUS Initialize(
-        PMOS_INTERFACE osInterface,
-        MhwInterfacesNext *mhwInterfaces);
-
-MEDIA_CLASS_DEFINE_END(McpyDeviceXe_Lpm_Plus)
-};
+using McpyDeviceXe_Lpm_Plus = McpyDeviceNextImpl<MediaCopyStateXe_Lpm_Plus_Base>;
 
 class CodechalInterfacesXe_Lpm_Plus : public CodechalDeviceNext
 {

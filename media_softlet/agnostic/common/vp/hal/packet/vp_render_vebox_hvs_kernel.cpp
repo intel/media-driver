@@ -49,7 +49,7 @@ MOS_STATUS VpRenderHVSKernel::Init(VpRenderKernel &kernel)
 {
     VP_FUNC_CALL();
     m_kernelSize = kernel.GetKernelSize() + KERNEL_BINARY_PADDING_SIZE;
-
+    m_kernelPaddingSize = KERNEL_BINARY_PADDING_SIZE;
     uint8_t *pKernelBin = (uint8_t *)kernel.GetKernelBinPointer();
     VP_RENDER_CHK_NULL_RETURN(pKernelBin);
 

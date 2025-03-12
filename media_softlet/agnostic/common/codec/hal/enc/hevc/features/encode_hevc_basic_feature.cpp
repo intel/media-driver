@@ -1471,7 +1471,7 @@ MHW_SETPAR_DECL_SRC(HCP_SURFACE_STATE, HevcBasicFeature)
     else if (params.surfaceFormat == hcp::SURFACE_FORMAT::SURFACE_FORMAT_Y216VARIANT ||
              params.surfaceFormat == hcp::SURFACE_FORMAT::SURFACE_FORMAT_YUY2VARIANT)
     {
-        params.yOffsetForUCbInPixel = params.yOffsetForVCr = (uint16_t)reconSurfHeight;
+        params.yOffsetForUCbInPixel = params.yOffsetForVCr = MOS_ALIGN_CEIL((uint16_t)reconSurfHeight, 8);
     }
 
     return MOS_STATUS_SUCCESS;
