@@ -30,6 +30,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/igvpfc_420PL3_output_args.h
     ${CMAKE_CURRENT_LIST_DIR}/igvpfc_444PL3_input_args.h
     ${CMAKE_CURRENT_LIST_DIR}/igvpfc_444PL3_output_args.h
+    ${CMAKE_CURRENT_LIST_DIR}/igvpfc_422HV_input_args.h
 )
 
 set(SOFTLET_VP_SOURCES_

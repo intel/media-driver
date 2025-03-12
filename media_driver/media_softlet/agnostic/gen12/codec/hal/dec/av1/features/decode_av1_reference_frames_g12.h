@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -203,6 +203,7 @@ protected:
     Av1BasicFeatureG12 *m_basicFeature = nullptr;  //!< AV1 basic feature
     DecodeAllocator *m_allocator = nullptr;        //!< Decode allocator
     std::vector<uint8_t> m_activeReferenceList;    //!< Active reference list of current picture
+    PMOS_INTERFACE       m_osInterface = nullptr;  //!< Os interface
 MEDIA_CLASS_DEFINE_END(decode__Av1ReferenceFramesG12)
 };
 

@@ -455,6 +455,7 @@ protected:
     virtual MOS_STATUS AssignFcResources(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface,
         std::vector<VP_SURFACE *> &pastSurfaces, std::vector<VP_SURFACE *> &futureSurfaces,
         RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
+    virtual MOS_STATUS  AssignAiKernelResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, SwFilterPipe &executedFilters, VP_SURFACE_SETTING &surfSetting);
     virtual MOS_STATUS AssignVeboxResourceForRender(VP_EXECUTE_CAPS &caps, VP_SURFACE *inputSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
     virtual MOS_STATUS AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURFACE* inputSurface, VP_SURFACE* outputSurface, VP_SURFACE* pastSurface, VP_SURFACE* futureSurface,
         RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING& surfSetting, SwFilterPipe& executedFilters);
@@ -551,14 +552,18 @@ protected:
     VP_SURFACE *m_temperalInput                               = nullptr;
 
     // Fc Resource
-    VP_SURFACE *m_cmfcCoeff                                   = nullptr;
-    VP_SURFACE *m_fcIntermediaSurfaceOutput                         = nullptr;
-    VP_SURFACE *m_fcIntermediaSurfaceInput[VP_COMP_MAX_LAYERS]      = {};
+    VP_SURFACE *m_cmfcCoeff                                                    = nullptr;
+    VP_SURFACE *m_fcIntermediaSurfaceOutput                                    = nullptr;
+    VP_SURFACE *m_fcIntermediaSurfaceInput[VP_COMP_MAX_LAYERS]                 = {};
+    VP_SURFACE *m_fcSeparateIntermediaSurfaceSecPlaneInput[VP_COMP_MAX_LAYERS] = {};
     //for decompreesion sync on interlace input of FC
     VP_SURFACE *m_decompressionSyncSurface                                  = nullptr;
     // Hdr Resource
     VphdrResourceManager *m_hdrResourceManager                = nullptr;
     MediaUserSettingSharedPtr m_userSettingPtr                = nullptr;   //!< usersettingInstance
+
+    // AI Resource
+    std::map<SurfaceType, VP_SURFACE *> m_aiIntermediateSurface = {};
 
     MediaCopyWrapper *m_mediaCopyWrapper                      = nullptr;
 

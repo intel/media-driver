@@ -3388,6 +3388,12 @@ bool Mos_Specific_IsAsyncDevice(PMOS_INTERFACE osInterface)
     return false;
 }
 
+bool Mos_Specific_IsGpuSyncByCmd(
+    PMOS_INTERFACE osInterface)
+{
+    return false;
+}
+
 MOS_STATUS Mos_Specific_LoadFunction(
     PMOS_INTERFACE osInterface)
 {

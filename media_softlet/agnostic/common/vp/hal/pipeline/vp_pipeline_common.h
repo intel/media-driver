@@ -89,6 +89,16 @@ typedef enum _VPHAL_COMP_BYPASS_MODE
     VPHAL_COMP_BYPASS_DEFAULT  = 0x2
 } VPHAL_COMP_BYPASS_MODE, *PVPHAL_COMP_BYPASS_MODE;
 
+//!
+//! \brief VP CTRL enum
+//!
+typedef enum _VP_CTRL
+{
+    VP_CTRL_DISABLE = 0,
+    VP_CTRL_ENABLE,
+    VP_CTRL_DEFAULT
+} VP_CTRL;
+
 struct VP_SURFACE
 {
     MOS_SURFACE                 *osSurface      = nullptr;         //!< mos surface
@@ -165,6 +175,7 @@ struct _VP_EXECUTE_CAPS
             uint64_t bBt2020ToRGB   : 1;   // Vebox Bt2020 gamut compression to RGB format
             uint64_t bProcamp       : 1;   // Vebox Procamp needed
             uint64_t bBeCSC         : 1;   // Vebox back end CSC needed
+            uint64_t bFeCSC         : 1;   // Vebox front end CSC needed
             uint64_t bLACE          : 1;   // Vebox LACE Needed
             uint64_t bQueryVariance : 1;
             uint64_t bRefValid      : 1;   // Vebox Ref is Valid
@@ -201,6 +212,7 @@ struct _VP_EXECUTE_CAPS
             uint64_t bHdr           : 1;
             uint64_t bFallbackLegacyFC : 1;     // only valid when vpUserFeatureControl->EnableOclFC() is true
             uint64_t forceBypassWorkload : 1;  // If true, force to bypass workload.
+            uint64_t bAiPath        : 1;        // if ture, it will walk into ai common filter to execute a series of ai sub kernels
         };
         uint64_t value;
     };
@@ -227,6 +239,7 @@ typedef struct _VP_EngineEntry
             uint64_t is1K1DLutSurfaceInUse : 1;  // 1K1DLut surface in use
             uint64_t isHdr33LutSizeEnabled : 1;
             uint64_t isBayerInputInUse : 1;
+            uint64_t frontEndCscNeeded : 1;  // true if use vebox front end csc to do output csc feature instead of using backendcsc + sfc. Only using it when no scaling needed
             uint64_t forceLegacyFC : 1;          // true if OCL FC not support the format, fall back to legacy FC
 
             // set by GetXxxPipeEnginCaps

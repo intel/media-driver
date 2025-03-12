@@ -86,6 +86,7 @@ public:
         CodechalHwInterfaceNext *hwInterface) override;
     
     DECALRE_HUC_KERNEL(VvcS2L, Xe2Lpm)
+    DECALRE_HUC_KERNEL(VvcS2L, Xe3Lpm);
 
 MEDIA_CLASS_DEFINE_END(decode__HucPacketCreator)
 };

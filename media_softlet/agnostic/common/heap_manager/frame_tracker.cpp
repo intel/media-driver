@@ -114,7 +114,7 @@ MOS_STATUS FrameTrackerProducer::Initialize(MOS_INTERFACE *osInterface)
         &m_resource));
 
     // RegisterResource will be called in AddResourceToHWCmd. It is not allowed to be called by hal explicitly
-    if (!m_osInterface->apoMosEnabled)
+    if (!m_osInterface->apoMosEnabled && !m_osInterface->apoMosForLegacyRuntime)
     {
         MHW_CHK_STATUS_RETURN(
             m_osInterface->pfnRegisterResource(m_osInterface, &m_resource, true, true));

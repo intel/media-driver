@@ -199,6 +199,8 @@ public:
 
     MHW_SETPAR_DECL_HDR(AVP_SURFACE_STATE);
 
+    bool m_lowDelay = true;//!< Low delay flag
+
 protected:
     static const uint32_t      m_av1ScalingFactor       = (1 << 14);    //!< AV1 Scaling factor
     //!
@@ -265,7 +267,6 @@ protected:
     MOS_MEMCOMP_STATE       m_refMmcState[av1TotalRefsPerFrame] = { MOS_MEMCOMP_DISABLED };
     uint32_t                m_refCompressionFormat = 0;
     CODEC_PIC_ID            m_picIdx[CODEC_AV1_NUM_REF_FRAMES] = {}; //!< keep a map of frame index
-    bool                    m_lowDelay = true;                       //!< Low delay flag
     bool                    m_PFrame   = true;                       //!< P frame flag
     bool                    m_enable_order_hint = false;
     uint8_t                 m_orderHintBitsMinus1 = 0;

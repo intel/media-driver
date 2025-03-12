@@ -2354,6 +2354,9 @@ int32_t RenderHal_LoadKernel(
             // To reload the kernel forcibly if needed
             if (pKernel->bForceReload)
             {
+                // The ForceReload function is only utilized in legacy code.
+                // Since APO does not follow this execution path,
+                // there is no need to include padding size code here.
                 dwOffset = pKernelAllocation->dwOffset;
                 MOS_SecureMemcpy(pStateHeap->pIshBuffer + dwOffset, iKernelSize, pKernelPtr, iKernelSize);
 
@@ -2398,6 +2401,9 @@ int32_t RenderHal_LoadKernel(
             // To reload the kernel forcibly if needed
             if (pKernel->bForceReload)
             {
+                // The ForceReload function is only utilized in legacy code.
+                // Since APO does not follow this execution path,
+                // there is no need to include padding size code here.
                 dwOffset = pKernelAllocation->dwOffset;
                 MOS_SecureMemcpy(pStateHeap->pIshBuffer + dwOffset, iKernelSize, pKernelPtr, iKernelSize);
 
@@ -2533,10 +2539,11 @@ int32_t RenderHal_LoadKernel(
         pKernelAllocation->iAllocIndex  = iKernelAllocationID;
 
         // Copy kernel data
-        MOS_SecureMemcpy(pStateHeap->pIshBuffer + dwOffset, iKernelSize, pKernelPtr, iKernelSize);
-        if (iKernelSize < iSize)
+        int32_t iCopyKernelSize = iKernelSize - pKernel->iPaddingSize;
+        MOS_SecureMemcpy(pStateHeap->pIshBuffer + dwOffset, iCopyKernelSize, pKernelPtr, iCopyKernelSize);
+        if (iCopyKernelSize < iSize)
         {
-            MOS_ZeroMemory(pStateHeap->pIshBuffer + dwOffset + iKernelSize, iSize - iKernelSize);
+            MOS_ZeroMemory(pStateHeap->pIshBuffer + dwOffset + iCopyKernelSize, iSize - iCopyKernelSize);
         }
     } while (false);
 
@@ -4286,12 +4293,18 @@ MOS_STATUS RenderHal_GetPlaneDefinitionForCommonMessage(
     case Format_P210:
     case Format_P216:
     case Format_I420:
+    case Format_IMC3:
     case Format_IYUV:
     case Format_R5G6B5:
     case Format_R8G8B8:
     case Format_RGBP:
     case Format_BGRP:
     case Format_444P:
+    case Format_422H:
+    case Format_422V:
+    case Format_411P:
+    case Format_R8UN:
+    case Format_R8G8UN:
         //already handled rightly in normal non-adv GetPlaneDefinition
         break;
     case Format_YV12:

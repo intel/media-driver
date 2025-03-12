@@ -80,7 +80,13 @@ namespace encode{
         ENCODE_CHK_NULL_RETURN(perfProfiler);
         ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd(
             (void *)m_pipeline, m_osInterface, m_miItf, cmdBuffer));
-
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_statusReport && m_statusReport->IsVdboxIdReportEnabled())
+        {
+            ENCODE_CHK_NULL_RETURN(m_pipeline);
+            StoreEngineId(cmdBuffer, encode::EncodeStatusReportType::statusReportCsEngineIdRegs, m_pipeline->GetCurrentPipe());
+        }
+#endif
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1558,7 +1564,7 @@ namespace encode{
         //initialize following
         MOS_RESOURCE *osResourceInline = nullptr;
         uint32_t      offsetInline     = 0;
-        m_statusReport->GetAddress(statusReportGlobalCount, osResourceInline, offsetInline);
+        ENCODE_CHK_STATUS_RETURN(m_statusReport->GetAddress(statusReportGlobalCount, osResourceInline, offsetInline));
         offsetInline             = m_atomicScratchBuf.operandSetSize * m_atomicScratchBuf.encodeUpdateIndex;
         uint32_t zeroValueOffset = offsetInline;
         uint32_t operand1Offset  = offsetInline + m_atomicScratchBuf.operand1Offset;

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2023, Intel Corporation
+* Copyright (c) 2021-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -49,6 +49,8 @@ public:
             if (m_hwInterface != nullptr)
             {
                 m_vvcpItf     = std::static_pointer_cast<mhw::vdbox::vvcp::Itf>(m_hwInterface->GetVvcpInterfaceNext());
+                m_vdencItf    = std::static_pointer_cast<mhw::vdbox::vdenc::Itf>(m_hwInterface->GetVdencInterfaceNext());
+                m_miItf       = std::static_pointer_cast<mhw::mi::Itf>(m_hwInterface->GetMiInterfaceNext());
             }
         }
     }
@@ -135,12 +137,14 @@ protected:
     MHW_SETPAR_DECL_HDR(VVCP_BSD_OBJECT);
     MHW_SETPAR_DECL_HDR(VVCP_TILE_CODING);
 
-    VvcPipeline *            m_vvcPipeline     = nullptr;
-    std::shared_ptr<Itf>     m_vvcpItf         = nullptr;
-    VvcBasicFeature *        m_vvcBasicFeature = nullptr;
-    DecodeAllocator *        m_allocator       = nullptr;
-    DecodeSubPacket *        m_vvcCpSubPkt     = nullptr;       //!< Pointer to VVC CP packet
-    CodechalHwInterfaceNext  *m_hwInterface     = nullptr;
+    VvcPipeline *                           m_vvcPipeline     = nullptr;
+    std::shared_ptr<Itf>                    m_vvcpItf         = nullptr;
+    std::shared_ptr<mhw::mi::Itf>           m_miItf           = nullptr;
+    std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf        = nullptr;
+    VvcBasicFeature *                       m_vvcBasicFeature = nullptr;
+    DecodeAllocator *                       m_allocator       = nullptr;
+    DecodeSubPacket *                       m_vvcCpSubPkt     = nullptr;       //!< Pointer to VVC CP packet
+    CodechalHwInterfaceNext *               m_hwInterface     = nullptr;
 
     // Parameters passed from application
     CodecVvcPicParams               *m_vvcPicParams   = nullptr;      //!< Pointer to VVC picture parameter

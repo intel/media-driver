@@ -335,6 +335,26 @@ private:
     //!
     CODECHAL_MODE GetEncodeCodecMode(VAProfile profile, VAEntrypoint entrypoint) override;
 
+    //!
+    //! \brief    Check whether swizzle needed
+    //!
+    //! \param    [in] rawSurface
+    //!           Pointer of Raw Surface
+    //!
+    //! \return   bool, true if need, otherwise false
+    //!
+    inline bool NeedDisplayFormatSwizzle(DDI_MEDIA_SURFACE *rawSurface)
+    {
+        if (Media_Format_A8R8G8B8 == rawSurface->format ||
+            Media_Format_X8R8G8B8 == rawSurface->format ||
+            Media_Format_B10G10R10A2 == rawSurface->format)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     uint32_t savedTargetBit[ENCODE_AV1_MAX_NUM_TEMPORAL_LAYERS]  = { 0 };
     uint32_t savedFrameRate[ENCODE_AV1_MAX_NUM_TEMPORAL_LAYERS]  = { 0 };
     uint32_t savedMaxBitRate[ENCODE_AV1_MAX_NUM_TEMPORAL_LAYERS] = { 0 };

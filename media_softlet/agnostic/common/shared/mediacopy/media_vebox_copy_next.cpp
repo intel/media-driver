@@ -574,8 +574,7 @@ void VeboxCopyStateNext::AdjustSurfaceFormat(MOS_SURFACE &surface)
 {
     if (surface.Format == Format_R10G10B10A2 ||
         surface.Format == Format_B10G10R10A2 ||
-        surface.Format == Format_Y410        ||
-        surface.Format == Format_Y210)
+        surface.Format == Format_Y410)
     {
         // RGB10 not supported without IECP. Re-map RGB10/RGB10 as AYUV
         // Y410/Y210 has HW issue. Remap to AYUV.
@@ -584,6 +583,12 @@ void VeboxCopyStateNext::AdjustSurfaceFormat(MOS_SURFACE &surface)
     else if (surface.Format == Format_A8)
     {
         surface.Format = Format_P8;
+    }
+    if (surface.Format == Format_Y216 || surface.Format == Format_Y210)
+    {
+        surface.Format = Format_Y416;
+        surface.dwWidth = MOS_ALIGN_CEIL(surface.dwWidth, 2);
+        surface.dwWidth /= 2;
     }
 }
 

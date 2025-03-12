@@ -240,7 +240,6 @@ VAStatus DdiMediaProtected::DdiMedia_ProtectedSessionCreateBuffer(
     DDI_FUNCTION_ENTER();
 
     DDI_CHK_NULL(ctx, "nullptr ctx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CHK_NULL(data, "nullptr data", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(bufId, "nullptr bufId", VA_STATUS_ERROR_INVALID_PARAMETER);
 
     VAStatus vaStatus = VA_STATUS_SUCCESS;

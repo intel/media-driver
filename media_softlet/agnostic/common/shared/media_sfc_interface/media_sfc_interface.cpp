@@ -99,3 +99,8 @@ bool MediaSfcInterface::IsRenderInitialized()
     }
     return false;
 }
+
+uint32_t MediaSfcInterface::GetSfcCommandSize()
+{
+    return m_sfcRender->GetSfcCommandSize();
+}

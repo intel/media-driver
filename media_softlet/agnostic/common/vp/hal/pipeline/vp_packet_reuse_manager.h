@@ -49,7 +49,7 @@ public:
     virtual ~VpFeatureReuseBase();
     virtual MOS_STATUS UpdateFeatureParams(bool reusable, bool &reused, SwFilter *filter);
     virtual MOS_STATUS UpdatePacket(SwFilter *filter, VpCmdPacket *packet);
-    virtual MOS_STATUS CheckTeamsParams(bool reusable, bool &reused, SwFilter *filter, uint32_t index);
+    virtual MOS_STATUS CheckTeamsParams(bool &reused, SwFilter *filter, uint32_t index);
     virtual MOS_STATUS StoreTeamsParams(SwFilter *filter, uint32_t index);
 
     MOS_STATUS HandleNullSwFilter(bool reusableOfLastPipe, bool &isPacketPipeReused, SwFilter *filter, bool &ignoreUpdateFeatureParams)
@@ -91,7 +91,7 @@ public:
 
     MOS_STATUS UpdatePacket(SwFilter *filter, VpCmdPacket *packet);
 
-    MOS_STATUS CheckTeamsParams(bool reusable, bool &reused, SwFilter *filter, uint32_t index);
+    MOS_STATUS CheckTeamsParams(bool &reused, SwFilter *filter, uint32_t index);
 
     MOS_STATUS StoreTeamsParams(SwFilter *filter, uint32_t index);
 
@@ -116,7 +116,7 @@ public:
 
     MOS_STATUS UpdatePacket(SwFilter *filter, VpCmdPacket *packet);
 
-    MOS_STATUS CheckTeamsParams(bool reusable, bool &reused, SwFilter *filter, uint32_t index);
+    MOS_STATUS CheckTeamsParams(bool &reused, SwFilter *filter, uint32_t index);
 
     MOS_STATUS StoreTeamsParams(SwFilter *filter, uint32_t index);
 
@@ -140,7 +140,7 @@ public:
 
     MOS_STATUS UpdatePacket(SwFilter *filter, VpCmdPacket *packet);
 
-    MOS_STATUS CheckTeamsParams(bool reusable, bool &reused, SwFilter *filter, uint32_t index);
+    MOS_STATUS CheckTeamsParams(bool &reused, SwFilter *filter, uint32_t index);
 
     MOS_STATUS StoreTeamsParams(SwFilter *filter, uint32_t index);
 

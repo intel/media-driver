@@ -208,6 +208,7 @@ MOS_STATUS Mhw_AddResourceToCmd_GfxAddress(
     PatchEntryParams.forceDwordOffset = pParams->dwSharedMocsOffset;
     PatchEntryParams.cmdBufBase       = pbCmdBufBase;
     PatchEntryParams.presResource     = pParams->presResource;
+    PatchEntryParams.cmdBuffer        = pCmdBuffer;
 
     // Add patch entry
     MHW_CHK_STATUS_RETURN(pOsInterface->pfnSetPatchEntry(
@@ -474,10 +475,15 @@ MOS_STATUS Mhw_SendGenericPrologCmdNext(
     MHW_CHK_NULL_RETURN(pSkuTable);
     pWaTable = pOsInterface->pfnGetWaTable(pOsInterface);
     MHW_CHK_NULL_RETURN(pWaTable);
-    
 
     GpuContext = pOsInterface->pfnGetGpuContext(pOsInterface);
-
+    if (pOsInterface->pfnIsGpuSyncByCmd(pOsInterface) && pCmdBuffer->syncMhwBatchBuffer != nullptr) // Some gpu context may not support sync with batch buffer
+    {
+        //Reset params
+        auto &miBatchBufferStartParams = miItf->MHW_GETPAR_F(MI_BATCH_BUFFER_START)();
+        miBatchBufferStartParams       = {};
+        MHW_CHK_STATUS_RETURN(miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(pCmdBuffer, pCmdBuffer->syncMhwBatchBuffer));
+    }
     if ( pOsInterface->Component != COMPONENT_CM )
     {
         if (    GpuContext == MOS_GPU_CONTEXT_RENDER        ||

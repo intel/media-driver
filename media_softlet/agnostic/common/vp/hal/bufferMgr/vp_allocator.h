@@ -435,6 +435,30 @@ public:
         MOS_HW_RESOURCE_DEF   resUsageType    = MOS_HW_RESOURCE_DEF_MAX, // [in]    resource usage type
         MOS_TILE_MODE_GMM     tileModeByForce = MOS_TILE_UNSET_GMM);     // [in]    Flag to indicate if GMM flag tile64 need set
 #endif
+
+    //!
+    //! \brief    Reallocates the VP Surface w/ the same config of a Vphal Surface
+    //! \details  Reallocates the VP Surface w/ the same config of a Vphal Surface
+    //!           - if the surface is not already allocated OR
+    //!           - resource dimenisions OR format changed
+    //! \param    [in,out] surface
+    //!           Pointer to VP_SURFACE
+    //! \param    [in] surfaceName
+    //!           Pointer to surface name
+    //! \param    [in] vphalSurface
+    //!           Pointer to vphal surface which is the source config of allocated vp surface
+    //! \param    [out] allocated
+    //!           true if allocated, false for not
+
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success. Error code otherwise
+    //!
+    MOS_STATUS ReAllocateVpSurfaceWithSameConfigOfVphalSurface(
+        VP_SURFACE          *&surface,
+        const PVPHAL_SURFACE &vphalSurface,
+        PCCHAR                surfaceName,
+        bool                 &allocated);
+
     //!
     //! \brief    Unified OS fill Resource
     //! \details  Locks the surface and fills the resource with data

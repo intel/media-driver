@@ -422,7 +422,13 @@ namespace encode
         ENCODE_CHK_NULL_RETURN(perfProfiler);
         ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd(
             (void *)m_pipeline, m_osInterface, m_miItf, &cmdBuffer));
-
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_statusReport && m_statusReport->IsVdboxIdReportEnabled())
+        {
+            ENCODE_CHK_NULL_RETURN(m_pipeline);
+            StoreEngineId(&cmdBuffer, encode::EncodeStatusReportType::statusReportCsEngineIdRegs, m_pipeline->GetCurrentPipe());
+        }
+#endif
         ENCODE_CHK_STATUS_RETURN(AddPictureHcpCommands(cmdBuffer));
 
         ENCODE_CHK_STATUS_RETURN(AddPictureVdencCommands(cmdBuffer));
@@ -504,7 +510,7 @@ namespace encode
             EncodeReadBrcPakStatsParams readBrcPakStatsParams;
             MOS_RESOURCE *              osResource = nullptr;
             uint32_t                    offset = 0;
-            m_statusReport->GetAddress(statusReportNumberPasses, osResource, offset);
+            ENCODE_CHK_STATUS_RETURN(m_statusReport->GetAddress(statusReportNumberPasses, osResource, offset));
             RUN_FEATURE_INTERFACE_RETURN(HEVCEncodeBRC, HevcFeatureIDs::hevcBrcFeature, SetReadBrcPakStatsParams, ucPass, offset, osResource, readBrcPakStatsParams);
             ReadBrcPakStatistics(&cmdBuffer, &readBrcPakStatsParams);
         }
@@ -832,7 +838,7 @@ namespace encode
                 EncodeReadBrcPakStatsParams readBrcPakStatsParams;
                 MOS_RESOURCE               *osResource = nullptr;
                 uint32_t                    offset     = 0;
-                m_statusReport->GetAddress(statusReportNumberPasses, osResource, offset);
+                ENCODE_CHK_STATUS_RETURN(m_statusReport->GetAddress(statusReportNumberPasses, osResource, offset));
                 RUN_FEATURE_INTERFACE_RETURN(HEVCEncodeBRC, HevcFeatureIDs::hevcBrcFeature, SetReadBrcPakStatsParams, ucPass, offset, osResource, readBrcPakStatsParams);
                 ReadBrcPakStatistics(&cmdBuffer, &readBrcPakStatsParams);
             }
@@ -970,7 +976,7 @@ namespace encode
         //initialize following
         MOS_RESOURCE *osResourceInline = nullptr;
         uint32_t      offsetInline     = 0;
-        m_statusReport->GetAddress(statusReportGlobalCount, osResourceInline, offsetInline);
+        ENCODE_CHK_STATUS_RETURN(m_statusReport->GetAddress(statusReportGlobalCount, osResourceInline, offsetInline));
         offsetInline             = m_atomicScratchBuf.operandSetSize * m_atomicScratchBuf.encodeUpdateIndex;
         uint32_t zeroValueOffset = offsetInline;
         uint32_t operand1Offset  = offsetInline + m_atomicScratchBuf.operand1Offset;
@@ -1522,7 +1528,7 @@ MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFE
         auto mmioRegisters = m_hcpItf->GetMmioRegisters(m_vdboxIndex);
         MOS_RESOURCE *osResource = nullptr;
         uint32_t      offset = 0;
-        m_statusReport->GetAddress(statusReportImageStatusCtrl, osResource, offset);
+        ENCODE_CHK_STATUS_RETURN(m_statusReport->GetAddress(statusReportImageStatusCtrl, osResource, offset));
         //uint32_t baseOffset = (m_encodeStatusBuf.wCurrIndex * m_encodeStatusBuf.dwReportSize) + sizeof(uint32_t) * 2;  // encodeStatus is offset by 2 DWs in the resource
 
         // Write back the HCP image control register for RC6 may clean it out
@@ -1546,7 +1552,7 @@ MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFE
         miStoreRegMemParams.dwRegister      = mmioRegisters->hcpEncImageStatusCtrlRegOffset;
         ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
         
-        m_statusReport->GetAddress(statusReportImageStatusCtrlOfLastBRCPass, osResource, offset);
+        ENCODE_CHK_STATUS_RETURN(m_statusReport->GetAddress(statusReportImageStatusCtrlOfLastBRCPass, osResource, offset));
         miStoreRegMemParams                 = {};
         miStoreRegMemParams.presStoreBuffer = osResource;
         miStoreRegMemParams.dwOffset        = offset;
@@ -1835,7 +1841,7 @@ MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFE
         PMOS_RESOURCE osResource = nullptr;
         uint32_t      offset     = 0;
 
-        m_statusReport->GetAddress(statusReportSumSquareError, osResource, offset);
+        ENCODE_CHK_STATUS_RETURN(m_statusReport->GetAddress(statusReportSumSquareError, osResource, offset));
 
         for (auto i = 0; i < 3; i++)  // 64 bit SSE values for luma/ chroma channels need to be copied
         {

@@ -136,7 +136,8 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         }
 
         if (m_platformInfo.eProductFamily == IGFX_METEORLAKE ||
-            m_platformInfo.eProductFamily == IGFX_ARROWLAKE)
+            m_platformInfo.eProductFamily == IGFX_ARROWLAKE ||
+            m_platformInfo.eProductFamily == IGFX_LUNARLAKE)
         {
             ReadUserSetting(
                 userSettingPtr,

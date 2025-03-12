@@ -47,6 +47,16 @@ namespace mi
         MHW_MI_SAD_NOT_EQUAL_SDD             = 5,
     };
 
+    enum MI_CONDITIONAL_BATCH_BUFFER_END_COMPARE_OPERATION
+    {
+        COMPARE_OPERATION_MADGREATERTHANIDD        = 0,  //!< If Indirect fetched data is greater than inline data then continue.
+        COMPARE_OPERATION_MADGREATERTHANOREQUALIDD = 1,  //!< If Indirect fetched data is greater than or equal to inline data then continue.
+        COMPARE_OPERATION_MADLESSTHANIDD           = 2,  //!< If Indirect fetched data is less than inline data then continue.
+        COMPARE_OPERATION_MADLESSTHANOREQUALIDD    = 3,  //!< If Indirect fetched data is less than or equal to inline data then continue.
+        COMPARE_OPERATION_MADEQUALIDD              = 4,  //!< If Indirect fetched data is equal to inline data then continue.
+        COMPARE_OPERATION_MADNOTEQUALIDD           = 5,  //!< If Indirect fetched data is not equal to inline data then continue.
+    };
+
     enum MHW_COMMON_MI_ATOMIC_OPCODE
     {
         MHW_MI_ATOMIC_NONE = 0,
@@ -153,8 +163,8 @@ namespace mi
 
     struct MHW_MI_ENHANCED_CONDITIONAL_BATCH_BUFFER_END_PARAMS : public MHW_MI_CONDITIONAL_BATCH_BUFFER_END_PARAMS
     {
-        bool                        enableEndCurrentBatchBuffLevel = false;
-        uint32_t                    compareOperation               = 0;
+        bool                                              enableEndCurrentBatchBuffLevel = false;
+        MI_CONDITIONAL_BATCH_BUFFER_END_COMPARE_OPERATION compareOperation               = COMPARE_OPERATION_MADGREATERTHANIDD;
         enum PARAMS_TYPE
         {
             ENHANCED_PARAMS = 1
@@ -164,12 +174,19 @@ namespace mi
     struct _MHW_PAR_T(MI_SEMAPHORE_WAIT)
     {
         PMOS_RESOURCE               presSemaphoreMem   = nullptr;        // Semaphore memory Resource
+        uint64_t                    gpuVirtualAddress  = 0;
         uint32_t                    dwResourceOffset   = 0;
         bool                        bRegisterPollMode  = false;
         bool                        bPollingWaitMode   = false;
         uint32_t                    dwCompareOperation = 0;
         uint32_t                    dwSemaphoreData    = 0;
+        bool                        b64bCompareEnableWithGPR = 0;
         MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION CompareOperation = {};
+    };
+
+    struct _MHW_PAR_T(MI_SEMAPHORE_SIGNAL)
+    {
+        bool                        b64bSignalingEnable = 0;            //Semaphore Wait/Signal with 64 bit Token value
     };
 
     struct _MHW_PAR_T(PIPE_CONTROL)
@@ -230,20 +247,24 @@ namespace mi
     {
         PMOS_RESOURCE               presStoreBuffer = nullptr;
         uint32_t                    dwOffset        = 0;
+        uint64_t                    gpuVirtualAddress = 0;
         uint32_t                    dwRegister      = 0;
         uint32_t                    dwOption        = 0;
+        bool                        bMMIORemap      = 0;
     };
 
     struct _MHW_PAR_T(MI_LOAD_REGISTER_IMM)
     {
         uint32_t                    dwRegister = 0;
         uint32_t                    dwData     = 0;
+        bool                        bMMIORemap = 0;
     };
 
     struct _MHW_PAR_T(MI_LOAD_REGISTER_REG)
     {
         uint32_t                    dwSrcRegister = 0;
         uint32_t                    dwDstRegister = 0;
+        bool                        bMMIORemap    = 0;
     };
 
     struct _MHW_PAR_T(MI_FORCE_WAKEUP)
@@ -332,6 +353,7 @@ namespace mi
     {
         PMOS_RESOURCE               pOsResource       = nullptr;     // Target OS Resource
         uint32_t                    dwResourceOffset  = 0;
+        uint64_t                    gpuVirtualAddress = 0;
         bool                        bReturnData       = false;
         bool                        bInlineData       = false;
         uint32_t                    dwOperand1Data[4] = {};          // Values to Write
@@ -366,7 +388,9 @@ namespace mi
         bool                        iStallVdboxPipeline = false;
     };
     
-
+    struct _MHW_PAR_T(MI_USER_INTERRUPT)
+    {
+    };
 }  // namespace mi
 }  // namespace mhw
 

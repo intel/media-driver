@@ -306,6 +306,7 @@ protected:
     char                 m_dumpLocation_in[MAX_PATH]  = {};
     char                 m_dumpLocation_out[MAX_PATH] = {};
 #endif
+    bool                 m_bRenderFallbackToBlt  = false;
 MEDIA_CLASS_DEFINE_END(MediaCopyBaseState)
 };
 #endif

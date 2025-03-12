@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1131,6 +1131,11 @@ namespace decode{
             DECODE_CHK_STATUS(SetAvpRefSurfaceParams(refSurfaceParams));
             for (uint8_t i = 0; i < av1TotalRefsPerFrame; i++)
             {
+                if (m_av1BasicFeature->m_bitDepth == 10 &&
+                    m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+                {
+                    refSurfaceParams[i].psSurface->Format = Format_P010;
+                }
                 DECODE_CHK_STATUS(m_avpInterface->AddAvpSurfaceCmd(&cmdBuffer, &refSurfaceParams[i]));
             }
         }
@@ -1497,6 +1502,8 @@ namespace decode{
                 }
             }
         }
+
+        DECODE_CHK_STATUS(m_av1BasicFeature->m_refFrames.GetValidReferenceIndex(&picStateParams.m_validRefPicIdx));
 
         return MOS_STATUS_SUCCESS;
     }

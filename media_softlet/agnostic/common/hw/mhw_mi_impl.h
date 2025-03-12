@@ -52,7 +52,6 @@ template <typename cmd_t>
 class Impl : public Itf, public mhw::Impl
     {
         _MI_CMD_DEF(_MHW_CMD_ALL_DEF_FOR_IMPL);
-
 public:
 
     //! \brief Indicates the global GTT setting on each engine.
@@ -292,37 +291,73 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+     virtual MOS_STATUS AddWaitInSyncBatchBuffer(
+         uint64_t fenceTokenValue,
+         uint64_t gpuVirtualAddress,
+         uint64_t waitValue,
+         MHW_BATCH_BUFFER *batchBuffer,
+         MHW_SEMAPHORE_WATI_REGISTERS &tokenRegister,
+         PMOS_COMMAND_BUFFER cmdbuffer) override
+     {
+         return MOS_STATUS_SUCCESS;
+     }
+
+     virtual MOS_STATUS AddSignalInSyncBatchBuffer(
+         uint64_t fenceTokenValue,
+         uint64_t currentValueGpuVA,
+         uint64_t monitoredValueGpuVA,
+         uint64_t signalValue,
+         MHW_SEMAPHORE_WATI_REGISTERS &tokenRegister,
+         PMOS_COMMAND_BUFFER cmdbuffer) override
+     {
+         return MOS_STATUS_SUCCESS;
+     }
 protected:
     using base_t = Itf;
 
     MHW_MI_MMIOREGISTERS    m_mmioRegisters = {};
     MhwCpInterface          *m_cpInterface  = nullptr;
-
 public:
     Impl(PMOS_INTERFACE osItf) : mhw::Impl(osItf)
     {
         MHW_FUNCTION_ENTER;
+    }
+    _MHW_SETCMD_OVERRIDE_DECL(MI_SEMAPHORE_SIGNAL)
+    {
+        _MHW_SETCMD_CALLBASE(MI_SEMAPHORE_SIGNAL);
+
+        return MOS_STATUS_SUCCESS;
     }
 
     _MHW_SETCMD_OVERRIDE_DECL(MI_SEMAPHORE_WAIT)
     {
         _MHW_SETCMD_CALLBASE(MI_SEMAPHORE_WAIT);
 
-        MHW_MI_CHK_NULL(this->m_currentCmdBuf);
-        MHW_MI_CHK_NULL(params.presSemaphoreMem);
+        if (params.presSemaphoreMem)
+        {
+            MHW_MI_CHK_NULL(this->m_currentCmdBuf);
+            MHW_RESOURCE_PARAMS  resourceParams ={};
+            resourceParams.presResource    = params.presSemaphoreMem;
+            resourceParams.dwOffset        = params.dwResourceOffset;
+            resourceParams.pdwCmd          = cmd.DW2_3.Value;
+            resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(DW2_3.Value);;
+            resourceParams.dwLsbNum        = MHW_COMMON_MI_GENERAL_SHIFT;
+            resourceParams.HwCommandType   = MOS_MI_SEMAPHORE_WAIT;
 
-        MHW_RESOURCE_PARAMS  resourceParams ={};
-        resourceParams.presResource    = params.presSemaphoreMem;
-        resourceParams.dwOffset        = params.dwResourceOffset;
-        resourceParams.pdwCmd          = cmd.DW2_3.Value;
-        resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(DW2_3.Value);;
-        resourceParams.dwLsbNum        = MHW_COMMON_MI_GENERAL_SHIFT;
-        resourceParams.HwCommandType   = MOS_MI_SEMAPHORE_WAIT;
-
-        MHW_MI_CHK_STATUS(AddResourceToCmd(
-            this->m_osItf,
-            this->m_currentCmdBuf,
-            &resourceParams));
+            MHW_MI_CHK_STATUS(AddResourceToCmd(
+                this->m_osItf,
+                this->m_currentCmdBuf,
+                &resourceParams));
+        }
+        else if (params.gpuVirtualAddress != 0)
+        {
+            cmd.DW2_3.SemaphoreAddress = (params.gpuVirtualAddress) >> MHW_COMMON_MI_GENERAL_SHIFT;
+        }
+        else
+        {
+            MHW_ASSERTMESSAGE("Invalid parameter, both resource and gpuva zero.");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
 
         cmd.DW0.MemoryType         = IsGlobalGttInUse();
         cmd.DW0.WaitMode           = params.bPollingWaitMode;
@@ -392,22 +427,34 @@ public:
     {
         _MHW_SETCMD_CALLBASE(MI_LOAD_REGISTER_MEM);
 
-        MHW_MI_CHK_NULL(this->m_currentCmdBuf);
-        MHW_MI_CHK_NULL(params.presStoreBuffer);
+        if (params.presStoreBuffer)
+        {
+            MHW_MI_CHK_NULL(this->m_currentCmdBuf);
+            MHW_MI_CHK_NULL(params.presStoreBuffer);
 
-        MHW_RESOURCE_PARAMS  resourceParams = {};
-        resourceParams.presResource    = params.presStoreBuffer;
-        resourceParams.dwOffset        = params.dwOffset;
-        resourceParams.pdwCmd          = cmd.DW2_3.Value;
-        resourceParams.dwLocationInCmd =  _MHW_CMD_DW_LOCATION(DW2_3.Value);;
-        resourceParams.dwLsbNum        = MHW_COMMON_MI_GENERAL_SHIFT;
-        resourceParams.HwCommandType   = MOS_MI_LOAD_REGISTER_MEM;
-        resourceParams.bIsWritable     = true;
+            MHW_RESOURCE_PARAMS  resourceParams = {};
+            resourceParams.presResource    = params.presStoreBuffer;
+            resourceParams.dwOffset        = params.dwOffset;
+            resourceParams.pdwCmd          = cmd.DW2_3.Value;
+            resourceParams.dwLocationInCmd =  _MHW_CMD_DW_LOCATION(DW2_3.Value);;
+            resourceParams.dwLsbNum        = MHW_COMMON_MI_GENERAL_SHIFT;
+            resourceParams.HwCommandType   = MOS_MI_LOAD_REGISTER_MEM;
+            resourceParams.bIsWritable     = true;
 
-        MHW_MI_CHK_STATUS(AddResourceToCmd(
-            this->m_osItf,
-            this->m_currentCmdBuf,
-            &resourceParams));
+            MHW_MI_CHK_STATUS(AddResourceToCmd(
+                this->m_osItf,
+                this->m_currentCmdBuf,
+                &resourceParams));
+        }
+        else if (params.gpuVirtualAddress)
+        {
+            cmd.DW2_3.MemoryAddress = (params.gpuVirtualAddress) >> MHW_COMMON_MI_GENERAL_SHIFT;
+        }
+        else
+        {
+            MHW_ASSERTMESSAGE("Invalid parameter, both resource and gpuva zero.");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
 
         cmd.DW0.UseGlobalGtt    = IsGlobalGttInUse();
         cmd.DW1.RegisterAddress = params.dwRegister >> 2;
@@ -480,19 +527,27 @@ public:
     _MHW_SETCMD_OVERRIDE_DECL(MI_ATOMIC)
     {
         _MHW_SETCMD_CALLBASE(MI_ATOMIC);
-        MHW_RESOURCE_PARAMS     resourceParams = {};
-        resourceParams.presResource    = params.pOsResource;
-        resourceParams.dwOffset        = params.dwResourceOffset;
-        resourceParams.pdwCmd          = &(cmd.DW1.Value);
-        resourceParams.dwLocationInCmd =  _MHW_CMD_DW_LOCATION(DW1.Value);;
-        resourceParams.dwLsbNum        = MHW_COMMON_MI_GENERAL_SHIFT;
-        resourceParams.HwCommandType   = MOS_MI_ATOMIC;
-        resourceParams.bIsWritable     = true;
+        if (params.pOsResource)
+        {
+            MHW_RESOURCE_PARAMS     resourceParams = {};
+            resourceParams.presResource    = params.pOsResource;
+            resourceParams.dwOffset        = params.dwResourceOffset;
+            resourceParams.pdwCmd          = &(cmd.DW1.Value);
+            resourceParams.dwLocationInCmd =  _MHW_CMD_DW_LOCATION(DW1.Value);;
+            resourceParams.dwLsbNum        = MHW_COMMON_MI_GENERAL_SHIFT;
+            resourceParams.HwCommandType   = MOS_MI_ATOMIC;
+            resourceParams.bIsWritable     = true;
 
-        MHW_MI_CHK_STATUS(AddResourceToCmd(
-            this->m_osItf,
-            this->m_currentCmdBuf,
-            &resourceParams));
+            MHW_MI_CHK_STATUS(AddResourceToCmd(
+                this->m_osItf,
+                this->m_currentCmdBuf,
+                &resourceParams));
+        }
+        else if (params.gpuVirtualAddress != 0)
+        {
+            cmd.DW1.MemoryAddress = (params.gpuVirtualAddress) >> MHW_COMMON_MI_GENERAL_SHIFT;
+            cmd.DW2.MemoryAddressHigh = ((params.gpuVirtualAddress & 0xFFFFFFFF00000000) >> 32);
+        }
 
         cmd.DW0.DwordLength       = params.bInlineData ? 1 : 9;
         cmd.DW0.MemoryType        = IsGlobalGttInUse();

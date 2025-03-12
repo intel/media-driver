@@ -95,6 +95,7 @@ public:
         uint8_t m_heapMode = 0; //!< To be deprecated when heap management unified
         bool m_isDecode = false; //!< Whether or not decode is in use, only valid for VDBOX creation
         bool m_isCp     = false; //!< Whether or not CP is in use, CP only need mi and cp interface.
+        bool m_isMos    = false; //!< Create it for mos, for example hws .
     };
 
     /* Below legacy interfaces are kept temporarily for backward compatibility */

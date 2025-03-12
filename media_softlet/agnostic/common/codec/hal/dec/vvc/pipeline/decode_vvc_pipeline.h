@@ -272,7 +272,7 @@ namespace decode
         //!
         MOS_STATUS CreateFeatureManager() override;
 
-        MOS_STATUS AllocateResources(VvcBasicFeature &basicFeature);
+        virtual MOS_STATUS AllocateResources(VvcBasicFeature &basicFeature);
 
 
 

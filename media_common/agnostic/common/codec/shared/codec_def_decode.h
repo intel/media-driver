@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -76,6 +76,8 @@ struct DecodeProcessingParams
     uint32_t       m_outputColorStandard;
 
     PMOS_SURFACE   m_histogramSurface;
+    PMOS_SURFACE   m_histogramSurfaceU;
+    PMOS_SURFACE   m_histogramSurfaceV;
 
     // Processing state
     uint32_t       m_rotationState;
@@ -235,6 +237,8 @@ struct CodechalDecodeParams
     uint32_t                m_executeCallIndex = 0;
     //! \brief [Decode Histogram] Input buffer to hold decode histogram
     MOS_SURFACE             m_histogramSurface = {};
+    MOS_SURFACE             m_histogramSurfaceU = {};
+    MOS_SURFACE             m_histogramSurfaceV = {};
 };
 
 typedef enum _CODECHAL_DUMMY_REFERENCE_STATUS

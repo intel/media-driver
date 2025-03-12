@@ -124,13 +124,6 @@ public:
 
     uint8_t GetNumVdbox()
     {
-        m_numVdbox                      = 1;
-        MEDIA_SYSTEM_INFO *gtSystemInfo = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
-        if (gtSystemInfo != nullptr)
-        {
-            // Both VE mode and media solo mode should be able to get the VDBOX number via the same interface
-            m_numVdbox = (uint8_t)(gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled);
-        }
         return m_numVdbox;
     }
 

@@ -32,9 +32,11 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_vebox_hdr_3dlut_kernel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_vebox_hvs_kernel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_hdr_kernel.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/vp_render_vebox_hdr_3dlut_l0_kernel.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_render_vebox_hdr_3dlut_ocl_kernel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_frametracker.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_ocl_fc_kernel.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_render_ai_kernel.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_ai_kernel_pipe.cpp
 )
 
 set(TMP_HEADERS_
@@ -56,9 +58,11 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_vebox_hdr_3dlut_kernel.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_vebox_hvs_kernel.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_hdr_kernel.h
-    ${CMAKE_CURRENT_LIST_DIR}/vp_render_vebox_hdr_3dlut_l0_kernel.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_render_vebox_hdr_3dlut_ocl_kernel.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_frametracker.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_render_ocl_fc_kernel.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_render_ai_kernel.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_ai_kernel_pipe.h
 )
 
 set(SOFTLET_VP_SOURCES_

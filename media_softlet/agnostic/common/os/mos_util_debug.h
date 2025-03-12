@@ -1058,6 +1058,21 @@ MEDIA_CLASS_DEFINE_END(MosUtilDebug)
     }                                                                                       \
 }
 
+
+//!
+//! \def MOS_CHK_NULL_RETURN_NULL(_compID, _subCompID, _ptr)
+//!  Assert and print a message if \a _ptr == nullptr, but not set an error
+//!
+#define MOS_CHK_NULL_RETURN_NULL(_compID, _subCompID, _ptr)                                \
+{                                                                                        \
+    if ((_ptr) == nullptr)                                                               \
+    {                                                                                    \
+        MOS_ASSERTMESSAGE(_compID, _subCompID, "Invalid (nullptr) Pointer.");            \
+        MT_ERR2(MT_ERR_NULL_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID); \
+        return nullptr;                                                                     \
+    }                                                                                    \
+}
+
 //!
 //! \def MOS_CHK_NULL_NO_STATUS_RETURN(_compID, _subCompID, _ptr)
 //!  Assert and print a message if \a _ptr == nullptr, but not set an error
@@ -1218,6 +1233,13 @@ MEDIA_CLASS_DEFINE_END(MosUtilDebug)
 //!
 #define MOS_OS_CHK_NULL_NO_STATUS(_ptr)                                                               \
     MOS_CHK_NULL_NO_STATUS(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _ptr)
+
+//!
+//! \def MOS_OS_CHK_NULL_RETURN_NULL(_ptr)
+//!  MOS_CHK_NULL \a _ptr with MOS utility comp/subcomp info with returning nullptr
+//!
+#define MOS_OS_CHK_NULL_RETURN_NULL(_ptr) \
+MOS_CHK_NULL_RETURN_NULL(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _ptr)
 
 //!
 //! \def MOS_OS_CHK_NULL_NO_STATUS_RETURN(_ptr)

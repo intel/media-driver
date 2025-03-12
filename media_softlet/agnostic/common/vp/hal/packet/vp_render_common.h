@@ -75,7 +75,7 @@ enum KRN_ARG_KIND
 
 enum KRN_ARG_ADDRESSMODE
 {
-    AddressingModeStateful = 0,
+    AddressingModeStateful = 0,   //this stateful specifically means bindful stateful surfaces. Not bindless statefull surfaces.
     AddressingModeStateless,
     AddressingModeBindless,
     AddressIngModeMax
@@ -128,6 +128,8 @@ struct KRN_EXECUTE_ENV
     uint8_t  uiWorkGroupWalkOrderDimensions[3];
     uint64_t uiPrivateSize;
     uint32_t uiSlmSize;
+    bool     bRequireDisableEufusion;
+    bool     bHasDPAS;
 };
 
 using SurfaceIndex = uint32_t;

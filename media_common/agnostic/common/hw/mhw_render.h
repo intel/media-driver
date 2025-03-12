@@ -42,7 +42,6 @@
 #define MHW_RENDER_ENGINE_EU_INDEX_MAX                      12
 #define MHW_RENDER_ENGINE_SIZE_REGISTERS_PER_THREAD         0x1800
 #define MHW_RENDER_ENGINE_NUMBER_OF_THREAD_UNIT             32
-#define MHW_RENDER_ENGINE_MAX_NUMBER_OF_THREAD              (1024 / MHW_RENDER_ENGINE_NUMBER_OF_THREAD_UNIT)
 
 #define MHW_MAX_DEPENDENCY_COUNT                    8
 
@@ -313,6 +312,8 @@ typedef struct _MHW_GPGPU_WALKER_PARAMS
     bool                       hasBarrier;
     PMHW_INLINE_DATA_PARAMS    inlineDataParamBase;
     uint32_t                   inlineDataParamSize;
+
+    uint32_t                   simdSize;
 
 } MHW_GPGPU_WALKER_PARAMS, *PMHW_GPGPU_WALKER_PARAMS;
 

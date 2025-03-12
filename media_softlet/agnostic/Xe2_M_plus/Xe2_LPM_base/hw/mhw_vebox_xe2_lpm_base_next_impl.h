@@ -1539,7 +1539,7 @@ public:
         pVeboxDndiState->DW3.HotPixelCountLuma                             = pVeboxDndiParams->dwHotPixelCount;
         pVeboxDndiState->DW4.DenoiseThresholdForSumOfComplexityMeasureLuma = pVeboxDndiParams->dwDenoiseSCMThreshold;
         pVeboxDndiState->DW4.HotPixelThresholdLuma                         = pVeboxDndiParams->dwHotPixelThreshold;
-        pVeboxDndiState->DW5.ChromaDenoiseStadThreshold                    = pVeboxDndiParams->dwChromaSTADThreshold;
+        pVeboxDndiState->DW5.ChromaDenoiseStadThreshold                    = pVeboxDndiParams->dwChromaSTADThreshold > 4095 ? 4095 : pVeboxDndiParams->dwChromaSTADThreshold;
         pVeboxDndiState->DW5.HotPixelCountChromaU                          = m_chromaParams.dwHotPixelCountChromaU;
         pVeboxDndiState->DW5.HotPixelThresholdChromaU                      = m_chromaParams.dwHotPixelThresholdChromaU;
         pVeboxDndiState->DW6.ChromaDenoiseEnable                           = pVeboxDndiParams->bChromaDNEnable;
@@ -2060,6 +2060,12 @@ public:
                     &pVeboxIecpParams->CapPipeParams,
                     65536);
             }
+        }
+
+        // Set Front End CSC for HDR Vebox direct output
+        if (pVeboxIecpParams->bFeCSCEnable)
+        {
+            SetVeboxIecpStateFecsc(&pVeboxIecpState->FrontEndCsc, pVeboxIecpParams);
         }
 
         // Enable Back End CSC for capture pipeline or Vebox output pipe

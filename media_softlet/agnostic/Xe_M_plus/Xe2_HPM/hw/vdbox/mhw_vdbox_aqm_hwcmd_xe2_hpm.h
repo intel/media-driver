@@ -1,7 +1,7 @@
 
 /*===================== begin_copyright_notice ==================================
 
-# Copyright (c) 2021-2024, Intel Corporation
+# Copyright (c) 2021-2025, Intel Corporation
 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -1030,6 +1030,302 @@ public:
 
         static const size_t dwSize = 3;
         static const size_t byteSize = 12;
+    };
+
+    //!
+    //! \brief AQM_HIST_STATE_CMD
+    //! \details
+    //! This command is used only for VDAQM. It is issued for every tile of a frame.
+    //! If a frame is composed of only 1 tile, it is still being issued.
+    //! Tiling and Tile Group organization in AV1 cannot be disabled, a frame minimum must have 1 tile.
+    //! Currently, each batch buffer can contain only 1 tile to be processed, it cannot contain more than 1 tile or the entire tile group of tiles.
+    //! When the tile width exceeds 4096 pixels or the tile area exceeds 4096x2304 pixels, tiling must be performed and number of tiles in such frame must be >1.
+    //! There is no mandatory tiling driven by tile height. The frame height in pixels will limit the allowed tile height in extreme situation.
+    //! Hence, the AVP_TILE_CODING can be issued multiple times for decoding a frame.
+    //!
+    struct AQM_HIST_STATE_CMD
+    {
+        union
+        {
+            struct
+            {
+                uint32_t DwordLength : __CODEGEN_BITFIELD(0, 11);               //!< DWORD_LENGTH
+                uint32_t Reserved12 : __CODEGEN_BITFIELD(12, 15);               //!< Reserved
+                uint32_t MediaInstructionCommand : __CODEGEN_BITFIELD(16, 22);  //!< MEDIA_INSTRUCTION_COMMAND
+                uint32_t MediaInstructionOpcode : __CODEGEN_BITFIELD(23, 26);   //!< MEDIA_INSTRUCTION_OPCODE
+                uint32_t PipelineType : __CODEGEN_BITFIELD(27, 28);             //!< PIPELINE_TYPE
+                uint32_t CommandType : __CODEGEN_BITFIELD(29, 31);              //!< COMMAND_TYPE
+            };
+            uint32_t Value;
+        } DW0;
+        union
+        {
+            struct
+            {
+                uint32_t CodecType : __CODEGEN_BITFIELD(0, 2);                                  //!< Indicates codec type
+                uint32_t InputChromaSubsamplingFormat : __CODEGEN_BITFIELD(3, 4);               //!< Indicates the input chroma subsampling format
+                uint32_t LumaPixelBitDepth : __CODEGEN_BITFIELD(5, 7);                          //!< Indicates Pixel bitdepth (same for both Source and Recon)
+                uint32_t OperatingMode : __CODEGEN_BITFIELD(8, 8);                              //!< Operating mode
+                uint32_t InitializationMode : __CODEGEN_BITFIELD(9, 9);                         //!< Initialization mode
+                uint32_t YHistogramEnable : __CODEGEN_BITFIELD(10, 10);                         //!< Y histogram enable
+                uint32_t UHistogramEnable : __CODEGEN_BITFIELD(11, 11);                         //!< U histogram enable
+                uint32_t VHistogramEnable : __CODEGEN_BITFIELD(12, 12);                         //!< V histogram enable
+                uint32_t DisableForStatisticalSummaryOfHistogram : __CODEGEN_BITFIELD(13, 13);  //!< Disable for statistical summary of histogram
+                uint32_t ChromaPixelBitDepth : __CODEGEN_BITFIELD(14, 16);                      //!< Indicates Pixel bitdepth (same for both Source and Recon)
+                uint32_t Reserved : __CODEGEN_BITFIELD(17, 31);                                 //!< Reserved
+            };
+            uint32_t Value;
+        } DW1;
+        union
+        {
+            struct
+            {
+                uint32_t FrameOrTileSizeInPixels : __CODEGEN_BITFIELD(0, 31);  //!< This field has the frame/tile size in pixels.
+            };
+            uint32_t Value;
+        } DW2;
+
+        //! \name Local enumerations
+
+        enum MEDIA_INSTRUCTION_COMMAND
+        {
+            MEDIA_INSTRUCTION_COMMAND_AQMHISTSTATE = 9,  //!< No additional details
+        };
+
+        //! \brief MEDIA_INSTRUCTION_OPCODE
+        //! \details
+        //!     Codec/Engine Name = AQM = 5h
+        enum MEDIA_INSTRUCTION_OPCODE
+        {
+            MEDIA_INSTRUCTION_OPCODE_CODECENGINENAMEAQM = 5,  //!< No additional details
+        };
+
+        enum PIPELINE_TYPE
+        {
+            PIPELINE_TYPE_UNNAMED2 = 2,  //!< No additional details
+        };
+
+        enum COMMAND_TYPE
+        {
+            COMMAND_TYPE_PARALLELVIDEOPIPE = 3,  //!< No additional details
+        };
+
+        //! \brief CODEC_TYPE
+        //! \details
+        //!      Codec type selection for histogram
+        enum HIST_STATE_CODEC_SELECT
+        {
+            HIST_STATE_CODEC_SELECT_AVC   = 0,  //!< No additional details
+            HIST_STATE_CODEC_SELECT_HEVC  = 1,  //!< No additional details
+            HIST_STATE_CODEC_SELECT_AV1   = 2,  //!< No additional details
+            HIST_STATE_CODEC_SELECT_VP9   = 3,  //!< No additional details
+            HIST_STATE_CODEC_SELECT_MPEG2 = 4,  //!< No additional details
+            HIST_STATE_CODEC_SELECT_VVC   = 5,  //!< No additional details
+        };
+
+        //! \brief INPUT_CHROMA_SAMPLING_FORMAT
+        //! \details
+        //!     Specifies the input chroma sampling format
+        enum INPUT_CHROMA_SUBSAMPLING_FORMAT
+        {
+            INPUT_CHROMA_SUBSAMPLING_FORMAT_420 = 0,  //!< No additional details
+            INPUT_CHROMA_SUBSAMPLING_FORMAT_422 = 1,  //!< No additional details
+            INPUT_CHROMA_SUBSAMPLING_FORMAT_444 = 2,  //!< No additional details
+            INPUT_CHROMA_SUBSAMPLING_FORMAT_400 = 3,  //!< No additional details
+        };
+
+        //! \brief PIXEL_BIT_DEPTH
+        //! \details
+        //!      Indicates Pixel bitdepth (same for both Source and Recon)
+        enum PIXEL_BIT_DEPTH
+        {
+            PIXEL_BIT_DEPTH_8BIT  = 0,  //!< No additional details
+            PIXEL_BIT_DEPTH_9BIT  = 1,  //!< No additional details
+            PIXEL_BIT_DEPTH_10BIT = 2,  //!< No additional details
+            PIXEL_BIT_DEPTH_11BIT = 3,  //!< No additional details
+            PIXEL_BIT_DEPTH_12BIT = 4,  //!< No additional details
+        };
+
+        //! \name Initializations
+
+        //! \brief Explicit member initialization function
+        AQM_HIST_STATE_CMD()
+        {
+            DW0.Value = 0x72890001;
+            //DW0.DwordLength                                  = GetOpLength(dwSize);
+            //DW0.MediaInstructionCommand                      = MEDIA_INSTRUCTION_COMMAND_AQMPIPEBUFADDRSTATE;
+            //DW0.MediaInstructionOpcode                       = MEDIA_INSTRUCTION_OPCODE_CODECENGINENAMEAQM;
+            //DW0.PipelineType                                 = PIPELINE_TYPE_UNNAMED2;
+            //DW0.CommandType                                  = COMMAND_TYPE_PARALLELVIDEOPIPE;
+            DW1.Value = 0x00000000;
+            //DW1.CodecType = AV1;
+            DW2.Value = 0x00000000;
+        }
+
+        static const size_t dwSize   = 3;
+        static const size_t byteSize = 12;
+    };
+
+    //!
+    //! \brief AQM_HIST_BUFF_ADDR_STATE
+    //! \details
+    //! This state command provides the physical memory base addresses for all row store buffers
+    //! reconstructed output and reference frame buffers, and auxiliary data buffers (MV, segment map, etc.)
+    //! that are required by the AV1 decoding and encoding process.
+    //! This is a frame level state command and is shared by both encoding and decoding processes.
+    //! AVP is a tile based pipeline and is a stateless pipeline, hence all sequence level, frame level,
+    //! and segment level state commands must be resent to process each tile.
+    //! Memory compression may be applicable to some of these buffers for BW saving.
+    //! Note : there is no buffer to store the 16 QM table sets, they are implemented directly inside the HW pipeline.
+    //!
+    struct AQM_HIST_BUFF_ADDR_STATE_CMD
+    {
+        union
+        {
+            struct
+            {
+                uint32_t DwordLength : __CODEGEN_BITFIELD(0, 11);               //!< DWORD_LENGTH
+                uint32_t Reserved12 : __CODEGEN_BITFIELD(12, 15);               //!< Reserved
+                uint32_t MediaInstructionCommand : __CODEGEN_BITFIELD(16, 22);  //!< MEDIA_INSTRUCTION_COMMAND
+                uint32_t MediaInstructionOpcode : __CODEGEN_BITFIELD(23, 26);   //!< MEDIA_INSTRUCTION_OPCODE
+                uint32_t PipelineType : __CODEGEN_BITFIELD(27, 28);             //!< PIPELINE_TYPE
+                uint32_t CommandType : __CODEGEN_BITFIELD(29, 31);              //!< COMMAND_TYPE
+            };
+            uint32_t Value;
+        } DW0;
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD AQMYChannelHistogramOutputAddress;            //!< DW1..2, AQM Y channel histogram output address
+        MEMORYADDRESSATTRIBUTES_CMD       AQMYChannelHistogramOutputAddressAttributes;  //!< DW3, AQM Y channel histogram output address Attributes
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD AQMUChannelHistogramOutputAddress;            //!< DW4..5, AQM U channel histogram output address
+        MEMORYADDRESSATTRIBUTES_CMD       AQMUChannelHistogramOutputAddressAttributes;  //!< DW6, AQM U channel histogram output address Attributes
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD AQMVChannelHistogramOutputAddress;            //!< DW7..8, AQM V channel histogram output address
+        MEMORYADDRESSATTRIBUTES_CMD       AQMVChannelHistogramOutputAddressAttributes;  //!< DW9, AQM V channel histogram output address Attributes
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD AQMStatisticsSummaryOutputAddress;            //!< DW10..11, AQM Statistics summary output address
+        MEMORYADDRESSATTRIBUTES_CMD       AQMStatisticsSummaryOutputAddressAttributes;  //!< DW12, AQM Statistics summary output address Attributes
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD MetadataStreamoutOutputAddress;               //!< DW13..14, Metadata streamout output address
+        MEMORYADDRESSATTRIBUTES_CMD       MetadataStreamoutOutputAddressAttributes;     //!< DW15, Metadata streamout output address Attributes
+        SPLITBASEADDRESS4KBYTEALIGNED_CMD MetadataStreaminInputAddress;                 //!< DW16..17, Metadata streamin input address
+        MEMORYADDRESSATTRIBUTES_CMD       MetadataStreaminInputAddressAttributes;       //!< DW18, Metadata streamin input address Attributes
+
+        //! \name Local enumerations
+
+        enum MEDIA_INSTRUCTION_COMMAND
+        {
+            MEDIA_INSTRUCTION_COMMAND_AQMPIPEBUFADDRSTATE = 0x10,  //!< No additional details
+        };
+
+        //! \brief MEDIA_INSTRUCTION_OPCODE
+        //! \details
+        //!     Codec/Engine Name = AQM = 5h
+        enum MEDIA_INSTRUCTION_OPCODE
+        {
+            MEDIA_INSTRUCTION_OPCODE_CODECENGINENAMEAQM = 5,  //!< No additional details
+        };
+
+        enum PIPELINE_TYPE
+        {
+            PIPELINE_TYPE_UNNAMED2 = 2,  //!< No additional details
+        };
+
+        enum COMMAND_TYPE
+        {
+            COMMAND_TYPE_PARALLELVIDEOPIPE = 3,  //!< No additional details
+        };
+
+        //! \name Initializations
+
+        //! \brief Explicit member initialization function
+        AQM_HIST_BUFF_ADDR_STATE_CMD()
+        {
+            DW0.Value = 0x72900011;
+            //DW0.DwordLength                                 = GetOpLength(dwSize);
+            //DW0.MediaInstructionCommand                     = MEDIA_INSTRUCTION_COMMAND_AQMPIPEBUFADDRSTATE;
+            //DW0.MediaInstructionOpcode                      = MEDIA_INSTRUCTION_OPCODE_CODECENGINENAMEAQM;
+            //DW0.PipelineType                                = PIPELINE_TYPE_UNNAMED2;
+            //DW0.CommandType                                 = COMMAND_TYPE_PARALLELVIDEOPIPE;
+        }
+
+        static const size_t dwSize   = 19;
+        static const size_t byteSize = 76;
+    };
+
+    //!
+    //! \brief AQM_HIST_FLUSH
+    //! \details
+    //! This command is used only for VDAQM. It is issued for every tile of a frame.
+    //! If a frame is composed of only 1 tile, it is still being issued.
+    //! Tiling and Tile Group organization in AV1 cannot be disabled, a frame minimum must have 1 tile.
+    //! Currently, each batch buffer can contain only 1 tile to be processed,
+    //! it cannot contain more than 1 tile or the entire tile group of tiles.
+    //! When the tile width exceeds 4096 pixels or the tile area exceeds 4096x2304 pixels,
+    //! tiling must be performed and number of tiles in such frame must be >1.
+    //! There is no mandatory tiling driven by tile height. The frame height in pixels will
+    //! limit the allowed tile height in extreme situation. Hence, the AVP_TILE_CODING can be
+    //! issued multiple times for decoding a frame.
+    //!
+    struct AQM_HIST_FLUSH_CMD
+    {
+        union
+        {
+            struct
+            {
+                uint32_t DwordLength : __CODEGEN_BITFIELD(0, 11);               //!< DWORD_LENGTH
+                uint32_t Reserved12 : __CODEGEN_BITFIELD(12, 15);               //!< Reserved
+                uint32_t MediaInstructionCommand : __CODEGEN_BITFIELD(16, 22);  //!< MEDIA_INSTRUCTION_COMMAND
+                uint32_t MediaInstructionOpcode : __CODEGEN_BITFIELD(23, 26);   //!< MEDIA_INSTRUCTION_OPCODE
+                uint32_t PipelineType : __CODEGEN_BITFIELD(27, 28);             //!< PIPELINE_TYPE
+                uint32_t CommandType : __CODEGEN_BITFIELD(29, 31);              //!< COMMAND_TYPE
+            };
+            uint32_t Value;
+        } DW0;
+        union
+        {
+            struct
+            {
+                uint32_t AqmHistFlush : __CODEGEN_BITFIELD(0, 31);  //!< This command is sent as the last command to be dispatched to VDAQM pipe for flushing out histogram to memory
+            };
+            uint32_t Value;
+        } DW1;
+
+        //! \name Local enumerations
+
+        enum MEDIA_INSTRUCTION_COMMAND
+        {
+            MEDIA_INSTRUCTION_COMMAND_AQMPIPEBUFADDRSTATE = 0x11,  //!< No additional details
+        };
+
+        //! \brief MEDIA_INSTRUCTION_OPCODE
+        //! \details
+        //!     Codec/Engine Name = AQM = 5h
+        enum MEDIA_INSTRUCTION_OPCODE
+        {
+            MEDIA_INSTRUCTION_OPCODE_CODECENGINENAMEAQM = 5,  //!< No additional details
+        };
+
+        enum PIPELINE_TYPE
+        {
+            PIPELINE_TYPE_UNNAMED2 = 2,  //!< No additional details
+        };
+
+        enum COMMAND_TYPE
+        {
+            COMMAND_TYPE_PARALLELVIDEOPIPE = 3,  //!< No additional details
+        };
+
+        //! \name Initializations
+
+        //! \brief Explicit member initialization function
+        AQM_HIST_FLUSH_CMD()
+        {
+            DW0.Value = 0x72910000;
+            //DW0.DwordLength                                 = GetOpLength(dwSize);
+            //DW0.MediaInstructionCommand                     = MEDIA_INSTRUCTION_COMMAND_AQMPIPEBUFADDRSTATE;
+            //DW0.MediaInstructionOpcode                      = MEDIA_INSTRUCTION_OPCODE_CODECENGINENAMEAQM;
+            //DW0.PipelineType                                = PIPELINE_TYPE_UNNAMED2;
+            //DW0.CommandType                                 = COMMAND_TYPE_PARALLELVIDEOPIPE;
+        }
+
+        static const size_t dwSize   = 2;
+        static const size_t byteSize = 8;
     };
 
 MEDIA_CLASS_DEFINE_END(mhw__vdbox__aqm__xe2_hpm__Cmd)

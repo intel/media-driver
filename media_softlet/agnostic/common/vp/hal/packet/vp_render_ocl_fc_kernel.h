@@ -55,7 +55,6 @@ protected:
     virtual MOS_STATUS SetupSurfaceState() override;
     virtual MOS_STATUS SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, bool bSyncFlag, bool flushL1 = false);
     virtual MOS_STATUS SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET_SHARED_CONTEXT *sharedContext);
-    virtual MOS_STATUS SetKernelStatefulSurfaces(KERNEL_ARG_INDEX_SURFACE_MAP &statefulSurfaces) override;
 
     PRENDERHAL_INTERFACE m_renderHal      = nullptr;
 
@@ -71,7 +70,6 @@ protected:
     int32_t                      m_nearestSamplerIndex = -1;
     std ::vector<uint8_t>        m_inlineData          = {};
     OCL_FC_KERNEL_CONFIG         m_kernelConfig        = {};
-    KERNEL_ARG_INDEX_SURFACE_MAP m_argIndexSurfMap     = {};
 
 MEDIA_CLASS_DEFINE_END(vp__VpRenderOclFcKernel)
 };

@@ -32,7 +32,6 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <signal.h>
-#include <pciaccess.h>
 #include <getopt.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -85,8 +84,8 @@ typedef struct MOS_OCA_EXEC_LIST_INFO mos_oca_exec_list_info;
 
 #include "mos_bufmgr_priv.h"
 
-#define PAGE_SIZE_4K                   (1ull << 12)
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
 //mos_xe_mem_class currently used as index of default_alignment
 enum mos_xe_mem_class
@@ -160,6 +159,36 @@ typedef struct mos_xe_device {
     struct drm_xe_query_uc_fw_version uc_versions[UC_TYPE_MAX];
 } mos_xe_device;
 
+struct mos_xe_gem_bo_bucket {
+    drmMMListHead sys_head;
+    drmMMListHead vram_head;
+    unsigned long size;
+};
+
+struct mos_xe_bucket_lab {
+/**
+ * 4K aligned for all
+ */
+#define    CACHE_BUCKET_MODE_DEFAULT      0
+/**
+ * 64K aligned for size < 1M and 4K aligned for size >=1M
+ */
+#define    CACHE_BUCKET_MODE_64K          1
+/**
+ * 2M aligned for size > 1M and 4K aligned for size >= 1M
+ */
+#define    CACHE_BUCKET_MODE_2M           2
+/**
+ * 64K aligned for size <=1M and 2M aligned for size > 1M
+ */
+#define    CACHE_BUCKET_MODE_64K_2M       3
+    struct mos_xe_gem_bo_bucket cache_buckets[64];
+    int                         num_buckets;
+    uint64_t                    max_cache_size;
+    uint8_t                     cache_mode;
+    bool                        enable_bo_reuse;
+};
+
 typedef struct mos_xe_bufmgr_gem {
     struct mos_bufmgr bufmgr;
 
@@ -210,6 +239,8 @@ typedef struct mos_xe_bufmgr_gem {
     /** @default_alignment: safe alignment regardless region location */
     uint32_t default_alignment[MOS_XE_MEM_CLASS_MAX] = {PAGE_SIZE_4K, PAGE_SIZE_4K};
     //End of Note
+
+    struct mos_xe_bucket_lab bucket_lab;
 
     /**
      * Indicates whether gpu-gpu and cpu-gpu synchronization is disabled.
@@ -421,6 +452,11 @@ int mos_query_engines_xe(struct mos_bufmgr *bufmgr,
                       unsigned int *nengine,
                       void *engine_map);
 static void mos_gem_bo_wait_rendering_xe(struct mos_linux_bo *bo);
+
+static struct mos_xe_gem_bo_bucket*
+__mos_gem_find_bucket_xe(
+            struct mos_xe_gem_bo_bucket *buckets,
+            int num_buckets, uint64_t alloc_size);
 
 static struct mos_xe_bufmgr_gem *
 mos_bufmgr_gem_find(int fd)
@@ -863,7 +899,6 @@ mos_context_create_shared_xe(
 {
     MOS_UNUSED(ctx);
     MOS_UNUSED(ctx_type);
-    MOS_UNUSED(bContextProtected);
 
     MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr, nullptr)
     MOS_DRM_CHK_NULL_RETURN_VALUE(engine_map, nullptr)
@@ -889,6 +924,10 @@ mos_context_create_shared_xe(
     context = MOS_New(mos_xe_context);
     MOS_DRM_CHK_NULL_RETURN_VALUE(context, nullptr)
 
+    struct drm_xe_ext_set_property* ext = nullptr;
+    struct drm_xe_ext_set_property timeslice;
+    struct drm_xe_ext_set_property protect;
+
     /**
      * Set exec_queue timeslice for render/ compute only as WA to ensure exec sequence.
      * Note, this is caused by a potential issue in kmd since exec_queue preemption by plenty of WL w/ same priority.
@@ -898,7 +937,6 @@ mos_context_create_shared_xe(
                 && (ctx_width * num_placements == 1)
                 && bufmgr_gem->exec_queue_timeslice != EXEC_QUEUE_TIMESLICE_DEFAULT)
     {
-        struct drm_xe_ext_set_property timeslice;
         memclear(timeslice);
         timeslice.property = DRM_XE_EXEC_QUEUE_SET_PROPERTY_TIMESLICE;
         /**
@@ -906,10 +944,26 @@ mos_context_create_shared_xe(
          */
         timeslice.value = bufmgr_gem->exec_queue_timeslice;
         timeslice.base.name = DRM_XE_EXEC_QUEUE_EXTENSION_SET_PROPERTY;
-        create.extensions = (uintptr_t)(&timeslice);
+        ext = &timeslice;
         MOS_DRM_NORMALMESSAGE("WA: exec_queue timeslice set by engine class(%d), value(%d)",
                     engine_class, bufmgr_gem->exec_queue_timeslice);
     }
+
+    /**
+     * Set exec_queue protect for PXP usage.
+     */
+    if (bContextProtected)
+    {
+        memclear(protect);
+        protect.base.name = DRM_XE_EXEC_QUEUE_EXTENSION_SET_PROPERTY,
+        protect.property = DRM_XE_EXEC_QUEUE_SET_PROPERTY_PXP_TYPE,
+        protect.value = DRM_XE_PXP_TYPE_HWDRM;
+
+        protect.base.next_extension = (uintptr_t)ext;
+        ext = &protect;
+    }
+    
+    create.extensions = (uintptr_t)ext;
 
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_XE_EXEC_QUEUE_CREATE, &create);
 
@@ -1149,12 +1203,12 @@ __mos_bo_set_offset_xe(MOS_LINUX_BO *bo)
         else if (MEMZONE_DEVICE == bo_gem->mem_region)
         {
             alignment = MAX(bufmgr_gem->default_alignment[MOS_XE_MEM_CLASS_VRAM], PAGE_SIZE_64K);
-            offset = __mos_bo_vma_alloc_xe(bo->bufmgr, (enum mos_memory_zone)bo_gem->mem_region, bo->size, PAGE_SIZE_64K);
+            offset = __mos_bo_vma_alloc_xe(bo->bufmgr, (enum mos_memory_zone)bo_gem->mem_region, bo->size, alignment);
         }
         else if (MEMZONE_SYS == bo_gem->mem_region)
         {
             alignment = MAX(bufmgr_gem->default_alignment[MOS_XE_MEM_CLASS_SYSMEM], PAGE_SIZE_64K);
-            offset = __mos_bo_vma_alloc_xe(bo->bufmgr, (enum mos_memory_zone)bo_gem->mem_region, bo->size, PAGE_SIZE_64K);
+            offset = __mos_bo_vma_alloc_xe(bo->bufmgr, (enum mos_memory_zone)bo_gem->mem_region, bo->size, alignment);
         }
         else
         {
@@ -1248,6 +1302,8 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
     struct mos_xe_bo_gem *bo_gem;
     struct drm_xe_gem_create create;
     uint32_t bo_align = alloc->alignment;
+    struct mos_xe_bucket_lab *lab = &bufmgr_gem->bucket_lab;
+    struct mos_xe_gem_bo_bucket *bucket = nullptr;
     int ret;
 
     /**
@@ -1291,13 +1347,30 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
     create.size = ALIGN(alloc->size, bo_align);
 
     /**
+     * Find a bucket
+     * 1, 4K cache bucket:
+     *    1) 4K aligned size -> all buckets workable
+     *    2) 64K aligned size -> only bucket whose bucket.size % 64k == 0 workable
+     * 2, 64K cache bucket:
+     *    1) 4K/64K aligned size -> all buckets workable
+     * 3, 2M cache bucket:
+     *    1) 4K/64K aligned size -> all bucket workable
+     */
+    bucket = __mos_gem_find_bucket_xe(lab->cache_buckets, lab->num_buckets, create.size);
+    if (bucket)
+    {
+        create.size = bucket->size;
+    }
+
+    /**
      * Note: current, it only supports WB/ WC while UC and other cache are not allowed.
      */
     create.cpu_caching = alloc->ext.cpu_cacheable ? DRM_XE_GEM_CPU_CACHING_WB : DRM_XE_GEM_CPU_CACHING_WC;
 
-    if ((strcmp(alloc->name, "MEDIA") == 0 || strcmp(alloc->name, "Media") == 0)
-        && create.cpu_caching == DRM_XE_GEM_CPU_CACHING_WC)
-            create.flags |= DRM_XE_GEM_CREATE_FLAG_SCANOUT;
+    if (alloc->ext.scanout_surf)
+    {
+        create.flags |= DRM_XE_GEM_CREATE_FLAG_SCANOUT;
+    }
 
     ret = drmIoctl(bufmgr_gem->fd,
         DRM_IOCTL_XE_GEM_CREATE,
@@ -1415,12 +1488,12 @@ mos_bo_alloc_tiled_xe(struct mos_bufmgr *bufmgr,
     unsigned long size, stride;
     uint32_t tiling;
 
-    uint32_t alignment = bufmgr_gem->default_alignment[MOS_XE_MEM_CLASS_SYSMEM];
+    uint32_t alignment = MAX(alloc_tiled->alignment, bufmgr_gem->default_alignment[MOS_XE_MEM_CLASS_SYSMEM]);
 
     if (bufmgr_gem->has_vram &&
        (MOS_MEMPOOL_VIDEOMEMORY == alloc_tiled->ext.mem_type   || MOS_MEMPOOL_DEVICEMEMORY == alloc_tiled->ext.mem_type))
     {
-        alignment = bufmgr_gem->default_alignment[MOS_XE_MEM_CLASS_VRAM];
+        alignment = MAX(alloc_tiled->alignment, bufmgr_gem->default_alignment[MOS_XE_MEM_CLASS_VRAM]);
     }
 
     do {
@@ -3297,6 +3370,186 @@ mos_get_driver_info_xe(struct mos_bufmgr *bufmgr, struct LinuxDriverInfo *drvInf
     return MOS_XE_SUCCESS;
 }
 
+static void
+__mos_gem_add_bucket_xe(struct mos_xe_bufmgr_gem *bufmgr_gem, int size)
+{
+    mos_xe_bucket_lab *lab = &bufmgr_gem->bucket_lab;
+    unsigned int i = lab->num_buckets;
+
+    if (i < ARRAY_SIZE(lab->cache_buckets))
+    {
+        DRMINITLISTHEAD(&lab->cache_buckets[i].sys_head);
+        DRMINITLISTHEAD(&lab->cache_buckets[i].vram_head);
+        lab->cache_buckets[i].size = size;
+        lab->num_buckets++;
+    }
+    else
+    {
+        MOS_DRM_ASSERTMESSAGE("Unable to add more bucket because of cache bucket full");
+    }
+}
+
+static struct mos_xe_gem_bo_bucket*
+__mos_gem_find_bucket_xe(
+            struct mos_xe_gem_bo_bucket *buckets,
+            int num_buckets, uint64_t alloc_size)
+{
+   int l = 0, r = num_buckets;
+    while (l < r)
+    {
+        int mid = l + (r - l) / 2;
+        if (buckets[mid].size < alloc_size)
+        {
+            l = mid + 1;
+        }
+        else
+        {
+            r = mid;
+        }
+    }
+    if (buckets[l].size >= alloc_size)
+    {
+        return &buckets[l];
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
+static void
+__mos_gem_init_cache_buckets(struct mos_xe_bufmgr_gem *bufmgr_gem)
+{
+    unsigned long size, max_cache_size = 64 * 1024 * 1024;
+    struct mos_xe_bucket_lab *lab = &bufmgr_gem->bucket_lab;
+    lab->cache_mode = CACHE_BUCKET_MODE_DEFAULT;
+    lab->max_cache_size = max_cache_size;
+
+    /* OK, so power of two buckets was too wasteful of memory.
+     * Give 3 other sizes between each power of two, to hopefully
+     * cover things accurately enough.  (The alternative is
+     * probably to just go for exact matching of sizes, and assume
+     * that for things like composited window resize the tiled
+     * width/height alignment and rounding of sizes to pages will
+     * get us useful cache hit rates anyway)
+     */
+    __mos_gem_add_bucket_xe(bufmgr_gem, 4096);
+    __mos_gem_add_bucket_xe(bufmgr_gem, 4096 * 2);
+    __mos_gem_add_bucket_xe(bufmgr_gem, 4096 * 3);
+
+    /* Initialize the linked lists for BO reuse cache. */
+    for (size = 4 * 4096; size <= max_cache_size; size *= 2)
+    {
+        __mos_gem_add_bucket_xe(bufmgr_gem, size);
+
+        __mos_gem_add_bucket_xe(bufmgr_gem, size + size * 1 / 4);
+        __mos_gem_add_bucket_xe(bufmgr_gem, size + size * 2 / 4);
+        __mos_gem_add_bucket_xe(bufmgr_gem, size + size * 3 / 4);
+    }
+}
+
+static void
+__mos_gem_cleanup_cache_bucket_xe(struct mos_xe_bufmgr_gem *bufmgr_gem)
+{
+    struct mos_xe_bucket_lab *lab = &bufmgr_gem->bucket_lab;
+    for (int i = 0; i < lab->num_buckets; i++) {
+        struct mos_xe_gem_bo_bucket *bucket =
+            &lab->cache_buckets[i];
+
+        lab->cache_buckets[i].size = 0;
+    }
+    lab->num_buckets = 0;
+    lab->cache_mode = CACHE_BUCKET_MODE_DEFAULT;
+    lab->max_cache_size = 0;
+}
+
+static void
+mos_gem_realloc_cache_bucket_xe(struct mos_bufmgr *bufmgr, uint8_t alloc_mode)
+{
+    unsigned long size, max_cache_size = 64 * 1024 * 1024, unit_size;
+    struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bufmgr;
+    struct mos_xe_bucket_lab *lab = &bufmgr_gem->bucket_lab;
+
+    __mos_gem_cleanup_cache_bucket_xe(bufmgr_gem);
+
+    lab->cache_mode = alloc_mode;
+    lab->max_cache_size = max_cache_size;
+
+
+    /* OK, so power of two buckets was too wasteful of memory.
+     * Give 3 other sizes between each power of two, to hopefully
+     * cover things accurately enough.  (The alternative is
+     * probably to just go for exact matching of sizes, and assume
+     * that for things like composited window resize the tiled
+     * width/height alignment and rounding of sizes to pages will
+     * get us useful cache hit rates anyway)
+     */
+    /* alloc_mode 0 is default alloc_mode
+     * alloc_mode 1 rounding up to 64K for all < 1M
+     * alloc_mode 2 rounding up to 2M for size> 1M
+     * alloc_mode 3 rounding up to 2M for size > 1M and 64K for size <= 1M */
+    if ( alloc_mode > 3 )
+        alloc_mode = 0;
+
+    if ( CACHE_BUCKET_MODE_DEFAULT == alloc_mode
+                || CACHE_BUCKET_MODE_2M == alloc_mode)
+    {
+        // < 1M normal alloc_mode
+        __mos_gem_add_bucket_xe(bufmgr_gem, 4096);
+        __mos_gem_add_bucket_xe(bufmgr_gem, 4096 * 2);
+        __mos_gem_add_bucket_xe(bufmgr_gem, 4096 * 3);
+        /* Initialize the linked lists for BO reuse cache. */
+        for (size = 4 * 4096; size < 1024 * 1024; size *= 2)
+        {
+            __mos_gem_add_bucket_xe(bufmgr_gem, size);
+            __mos_gem_add_bucket_xe(bufmgr_gem, size + size * 1 / 4);
+            __mos_gem_add_bucket_xe(bufmgr_gem, size + size * 2 / 4);
+            __mos_gem_add_bucket_xe(bufmgr_gem, size + size * 3 / 4);
+        }
+
+        __mos_gem_add_bucket_xe(bufmgr_gem, 1024 * 1024);
+    }
+    if (CACHE_BUCKET_MODE_64K == alloc_mode
+                || CACHE_BUCKET_MODE_64K_2M == alloc_mode)
+    {
+        // < 1M 64k alignment
+        unit_size = 64 * 1024;
+        for (size = unit_size; size <= 1024 * 1024; size += unit_size)
+        {
+            __mos_gem_add_bucket_xe(bufmgr_gem, size);
+        }
+    }
+    if ( CACHE_BUCKET_MODE_DEFAULT == alloc_mode
+                || CACHE_BUCKET_MODE_64K == alloc_mode)
+    {
+       //> 1M is normal alloc_mode
+        __mos_gem_add_bucket_xe(bufmgr_gem, 1280 * 1024);
+        __mos_gem_add_bucket_xe(bufmgr_gem, 1536 * 1024);
+        __mos_gem_add_bucket_xe(bufmgr_gem, 1792 * 1024);
+
+        for (size = 2 * 1024 * 1024; size < max_cache_size; size *= 2)
+        {
+            __mos_gem_add_bucket_xe(bufmgr_gem, size);
+            __mos_gem_add_bucket_xe(bufmgr_gem, size + size * 1 / 4);
+            __mos_gem_add_bucket_xe(bufmgr_gem, size + size * 2 / 4);
+            __mos_gem_add_bucket_xe(bufmgr_gem, size + size * 3 / 4);
+        }
+    }
+    if ( CACHE_BUCKET_MODE_2M == alloc_mode
+                || CACHE_BUCKET_MODE_64K_2M == alloc_mode)
+    {
+       //> 1M rolling to 2M
+       unit_size = 2 * 1024 * 1024;
+       __mos_gem_add_bucket_xe(bufmgr_gem, unit_size);
+       __mos_gem_add_bucket_xe(bufmgr_gem, 3 * 1024 * 1024);
+
+        for (size = 4 * 1024 * 1024; size <= max_cache_size; size += unit_size)
+        {
+           __mos_gem_add_bucket_xe(bufmgr_gem, size);
+        }
+    }
+}
+
 /**
  * Initializes the GEM buffer manager, which uses the kernel to allocate, map,
  * and manage map buffer objections.
@@ -3357,6 +3610,7 @@ mos_bufmgr_gem_init_xe(int fd, int batch_size)
     bufmgr_gem->bufmgr.bo_unmap_wc = mos_bo_unmap_wc_xe;
     bufmgr_gem->bufmgr.bo_create_from_prime = mos_bo_create_from_prime_xe;
     bufmgr_gem->bufmgr.bo_export_to_prime = mos_bo_export_to_prime_xe;
+    bufmgr_gem->bufmgr.realloc_cache = mos_gem_realloc_cache_bucket_xe;
     bufmgr_gem->bufmgr.get_devid = mos_get_devid_xe;
     bufmgr_gem->bufmgr.query_engines_count = mos_query_engines_count_xe;
     bufmgr_gem->bufmgr.query_engines = mos_query_engines_xe;
@@ -3419,6 +3673,8 @@ mos_bufmgr_gem_init_xe(int fd, int batch_size)
 
     DRMLISTADD(&bufmgr_gem->managers, &bufmgr_list);
     DRMINITLISTHEAD(&bufmgr_gem->named);
+
+    __mos_gem_init_cache_buckets(bufmgr_gem);
 
     mos_vma_heap_init(&bufmgr_gem->vma_heap[MEMZONE_SYS], MEMZONE_SYS_START, MEMZONE_SYS_SIZE);
     mos_vma_heap_init(&bufmgr_gem->vma_heap[MEMZONE_DEVICE], MEMZONE_DEVICE_START, MEMZONE_DEVICE_SIZE);

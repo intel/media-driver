@@ -72,6 +72,7 @@ MOS_STATUS VpRenderKernelObj::GetKernelEntry(Kdll_CacheEntry &entry)
     entry.iFilterSize   = 2;
     entry.pFilter       = nullptr;
     entry.iSize         = m_kernelSize;
+    entry.iPaddingSize  = m_kernelPaddingSize; 
     entry.pBinary       = (uint8_t *)m_kernelBinary;
     return MOS_STATUS_SUCCESS;
 }
@@ -158,9 +159,9 @@ MOS_STATUS VpRenderKernelObj::SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET_S
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderKernelObj::SetKernelStatefulSurfaces(KERNEL_ARG_INDEX_SURFACE_MAP& statefulSurfaces)
+MOS_STATUS VpRenderKernelObj::SetKernelStatefulSurfaces(KERNEL_ARG_INDEX_SURFACE_MAP &statefulSurfaces)
 {
-    VP_FUNC_CALL();
+    m_argIndexSurfMap = statefulSurfaces;
     return MOS_STATUS_SUCCESS;
 }
 
@@ -237,7 +238,7 @@ MOS_STATUS VpRenderKernelObj::SetupStatelessBuffer()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderKernelObj::SetupStatelessBufferResource(SurfaceType surf)
+MOS_STATUS VpRenderKernelObj::SetupStatelessBufferResource(SurfaceType surf, bool isWrite)
 {
     VP_RENDER_CHK_NULL_RETURN(m_surfaceGroup);
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
@@ -253,7 +254,7 @@ MOS_STATUS VpRenderKernelObj::SetupStatelessBufferResource(SurfaceType surf)
         VP_RENDER_CHK_STATUS_RETURN(osInterface->pfnRegisterResource(
             osInterface,
             &curSurf->osSurface->OsResource,
-            false,
+            isWrite,
             true));
         m_statelessArray.insert(std::make_pair(surf, ui64GfxAddress));
     }

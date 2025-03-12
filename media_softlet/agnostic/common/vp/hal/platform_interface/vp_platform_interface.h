@@ -437,9 +437,15 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    virtual bool SupportOclFC()
+    MOS_STATUS SetOclKernelEnable()
     {
-        return false;
+        m_isOclKernelEnabled = true;
+        return MOS_STATUS_SUCCESS;
+    }
+
+    bool IsOclKernelEnabled()
+    {
+        return m_isOclKernelEnabled;
     }
 
     virtual MOS_STATUS InitVpFeatureSupportBits()
@@ -475,6 +481,7 @@ protected:
     std::map<DelayLoadedKernelType, DelayLoadedFunc> m_vpDelayLoadedNativeFunctionSet;
 
     bool m_isRenderDisabled = false;
+    bool m_isOclKernelEnabled = false;
     VpFrameTracker *m_frameTracker     = nullptr;
     VP_FEATURE_SUPPORT_BITS m_vpFeatureSupportBits = {};
     MEDIA_CLASS_DEFINE_END(vp__VpPlatformInterface)

@@ -78,6 +78,7 @@ class MhwCpInterface;
         (MhwKernelParam).iSize    = (_pKernelEntry)->iSize;                         \
         (MhwKernelParam).iKUID    = (_pKernelEntry)->iKUID;                         \
         (MhwKernelParam).iKCID    = (_pKernelEntry)->iKCID;                         \
+        (MhwKernelParam).iPaddingSize = (_pKernelEntry)->iPaddingSize;              \
     } while(0)
 
 typedef struct _PIPECONTRL_PARAMS
@@ -121,6 +122,13 @@ typedef struct _KERNEL_WALKER_PARAMS
 
     bool                                isGenerateLocalID;
     MHW_EMIT_LOCAL_MODE                 emitLocal;
+
+    bool                                hasBarrier;
+    uint32_t                            slmSize;
+    PMHW_INLINE_DATA_PARAMS             inlineDataParamBase;
+    uint32_t                            inlineDataParamSize;
+
+    uint32_t                            simdSize;
 }KERNEL_WALKER_PARAMS, * PKERNEL_WALKER_PARAMS;
 
 typedef struct _KERNEL_PACKET_RENDER_DATA

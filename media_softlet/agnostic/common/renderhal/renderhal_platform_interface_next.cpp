@@ -1227,10 +1227,11 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendComputeWalker(
     if (pGpGpuWalkerParams->isGenerateLocalID && pGpGpuWalkerParams->emitLocal != MHW_EMIT_LOCAL_NONE)
     {
         //When COMPUTE_WALKER Emit Local ID is enabled, thread group number need to divide MHW_RENDER_ENGINE_NUMBER_OF_THREAD_UNIT
-        mhwIdEntryParams.dwNumberofThreadsInGPGPUGroup = pGpGpuWalkerParams->ThreadWidth * pGpGpuWalkerParams->ThreadHeight / MHW_RENDER_ENGINE_NUMBER_OF_THREAD_UNIT;
-        if (mhwIdEntryParams.dwNumberofThreadsInGPGPUGroup > MHW_RENDER_ENGINE_MAX_NUMBER_OF_THREAD)
+        uint32_t engineNumberOfThreadUnit              = (pGpGpuWalkerParams->simdSize == 16) ? 16 : MHW_RENDER_ENGINE_NUMBER_OF_THREAD_UNIT;
+        mhwIdEntryParams.dwNumberofThreadsInGPGPUGroup = MOS_MAX(1, pGpGpuWalkerParams->ThreadWidth * pGpGpuWalkerParams->ThreadHeight / engineNumberOfThreadUnit);
+        if (mhwIdEntryParams.dwNumberofThreadsInGPGPUGroup > 1024 / engineNumberOfThreadUnit)
         {
-            MHW_RENDERHAL_ASSERTMESSAGE("Number of Threads In GpGpuGroup %d Exceeds the Max Number %d", mhwIdEntryParams.dwNumberofThreadsInGPGPUGroup, MHW_RENDER_ENGINE_MAX_NUMBER_OF_THREAD);
+            MHW_RENDERHAL_ASSERTMESSAGE("Number of Threads In GpGpuGroup %d Exceeds the Max Number %d", mhwIdEntryParams.dwNumberofThreadsInGPGPUGroup, 1024 / engineNumberOfThreadUnit);
             MHW_RENDERHAL_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
         }
     }
@@ -1544,6 +1545,7 @@ MHW_SETPAR_DECL_SRC(COMPUTE_WALKER, XRenderHal_Platform_Interface_Next)
     MHW_RENDERHAL_CHK_NULL_RETURN(m_gpgpuWalkerParams);
     MHW_RENDERHAL_CHK_NULL_RETURN(m_interfaceDescriptorParams);
 
+    params.simdSize                 = m_gpgpuWalkerParams->simdSize;
     params.IndirectDataLength       = m_gpgpuWalkerParams->IndirectDataLength;
     params.IndirectDataStartAddress = m_gpgpuWalkerParams->IndirectDataStartAddress;
     params.ThreadWidth              = m_gpgpuWalkerParams->ThreadWidth;
@@ -1575,6 +1577,10 @@ MHW_SETPAR_DECL_SRC(COMPUTE_WALKER, XRenderHal_Platform_Interface_Next)
     if (m_gpgpuWalkerParams->GroupDepth == 0)
     {
         params.GroupDepth = 1;
+    }
+    if (m_gpgpuWalkerParams->simdSize == 0)
+    {
+        params.simdSize = 32;
     }
 
     params.isEmitInlineParameter = m_gpgpuWalkerParams->isEmitInlineParameter;
