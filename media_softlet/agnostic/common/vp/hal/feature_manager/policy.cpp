@@ -52,7 +52,33 @@ Policy::~Policy()
 }
 
 MOS_STATUS Policy::UpdateVpHwCapsBasedOnSku(VP_HW_CAPS &vpHwCaps)
-{
+{   
+    VP_FUNC_CALL();
+
+    VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface());
+    VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface()->m_userFeatureControl);
+
+    auto   userFeatureControl = m_vpInterface.GetHwInterface()->m_userFeatureControl;
+    bool   veboxTypeH         = userFeatureControl->IsVeboxTypeHMode(); 
+    if (veboxTypeH)
+    {
+        VP_PUBLIC_NORMALMESSAGE("Disable vebox features for veboxTypeH.");
+        for (int i = 0; i < Format_Count; i++)
+        {
+            //update caps per sku
+            m_hwCaps.m_veboxHwEntry[i].capturePipeSupported = false;
+            m_hwCaps.m_veboxHwEntry[i].denoiseSupported     = false;
+            m_hwCaps.m_veboxHwEntry[i].deinterlaceSupported = false;
+            m_hwCaps.m_veboxHwEntry[i].laceSupported        = false;
+            m_hwCaps.m_veboxHwEntry[i].frontCscSupported    = false;
+            m_hwCaps.m_veboxHwEntry[i].backEndCscSupported  = false;
+            m_hwCaps.m_veboxHwEntry[i].iecp                 = false;
+            m_hwCaps.m_veboxHwEntry[i].tccSupported         = false;
+            m_hwCaps.m_veboxHwEntry[i].aceSupported         = false;
+            m_hwCaps.m_veboxHwEntry[i].steSupported         = false;
+            m_hwCaps.m_veboxHwEntry[i].cgcSupported         = false;
+        }
+    }
     return MOS_STATUS_SUCCESS;
 }
 
