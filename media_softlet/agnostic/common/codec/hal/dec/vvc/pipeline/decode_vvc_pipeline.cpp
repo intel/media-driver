@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2024, Intel Corporation
+* Copyright (c) 2021-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -379,7 +379,7 @@ namespace decode
                 PMHW_BATCH_BUFFER &batchBuf = m_sliceLevelBBArray->Fetch();
                 DECODE_CHK_NULL(batchBuf);
                 DECODE_CHK_STATUS(m_allocator->Resize(
-                    batchBuf, size, basicFeature.m_numSlices, notLockableVideoMem));
+                    batchBuf, size, 1, notLockableVideoMem));
             }
 
             //Tile Level BB Array Allocation
