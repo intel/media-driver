@@ -761,6 +761,7 @@ MOS_STATUS BltStateNext::SetupBltCopyParam(
         // both input and output are linear surfaces.
         // upper layer overwrite the format from buffer to 2D surfaces. Then the BitsPerPixel may different.
         BitsPerPixel = inputBitsPerPixel >= outputBitsPerPixel ? inputBitsPerPixel : outputBitsPerPixel;
+        blockWidth   = inputSurface->pGmmResInfo->GetCompressionBlockWidth();
     }
     MCPY_NORMALMESSAGE("input BitsPerBlock %d, output BitsPerBlock %d, the vid mem BitsPerBlock %d",
         inputBitsPerPixel,
