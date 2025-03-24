@@ -58,6 +58,8 @@ public:
 
     virtual MOS_STATUS VeboxAdjustBoundary(PMHW_VEBOX_SURFACE_PARAMS pCurrSurf, uint32_t* pdwSurfaceWidth, uint32_t* pdwSurfaceHeight, bool bDIEnable) = 0;
 
+    virtual void SetForceInputHeight8AlignedFlag(bool forceInputHeight8Aligned) = 0;
+
     virtual MOS_STATUS SetVeboxIndex(uint32_t dwVeboxIndex, uint32_t dwVeboxCount, uint32_t dwUsingSFC) = 0;
 
     virtual MOS_STATUS DestroyHeap() = 0;

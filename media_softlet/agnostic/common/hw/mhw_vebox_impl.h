@@ -666,7 +666,9 @@ public:
             *pdwSurfaceWidth = MOS_ALIGN_CEIL(
                 MOS_MIN(pCurrSurf->dwWidth, MOS_MAX((uint32_t)pCurrSurf->rcSrc.right, MHW_VEBOX_MIN_WIDTH)),
                 wWidthAlignUnit);
-            MHW_NORMALMESSAGE("bVEBOXCroppingUsed = true, SurfInput.rcSrc.bottom: %d, par.SurfInput.rcSrc.right: %d; pdwSurfaceHeight: %d, pdwSurfaceWidth: %d;",
+            MHW_NORMALMESSAGE("bVEBOXCroppingUsed = true, SurfInput.dwWidth: %d, SurfInput.dwHeight: %d, SurfInput.rcSrc.bottom: %d, par.SurfInput.rcSrc.right: %d; pdwSurfaceHeight: %d, pdwSurfaceWidth: %d;",
+                pCurrSurf->dwWidth,
+                pCurrSurf->dwHeight,
                 (uint32_t)pCurrSurf->rcSrc.bottom,
                 (uint32_t)pCurrSurf->rcSrc.right,
                 *pdwSurfaceHeight,
@@ -687,13 +689,29 @@ public:
             *pdwSurfaceWidth = MOS_ALIGN_CEIL(
                 MOS_MIN(pCurrSurf->dwWidth, MOS_MAX((uint32_t)pCurrSurf->rcMaxSrc.right, MHW_VEBOX_MIN_WIDTH)),
                 wWidthAlignUnit);
-            MHW_NORMALMESSAGE("bVEBOXCroppingUsed = false, SurfInput.rcMaxSrc.bottom: %d, SurfInput.rcMaxSrc.right: %d; pdwSurfaceHeight: %d, pdwSurfaceWidth: %d;",
+            MHW_NORMALMESSAGE("bVEBOXCroppingUsed = false, SurfInput.dwWidth: %d, SurfInput.dwHeight: %d, SurfInput.rcMaxSrc.bottom: %d, SurfInput.rcMaxSrc.right: %d; pdwSurfaceHeight: %d, pdwSurfaceWidth: %d;",
+                pCurrSurf->dwWidth,
+                pCurrSurf->dwHeight,
                 (uint32_t)pCurrSurf->rcMaxSrc.bottom,
                 (uint32_t)pCurrSurf->rcMaxSrc.right,
                 *pdwSurfaceHeight,
                 *pdwSurfaceWidth);
         }
 
+        if (m_forceInputHeight8Aligned)
+        {
+            if (wHeightAlignUnit <= 8 && MOS_ALIGN_CEIL(*pdwSurfaceHeight, 8) <= pCurrSurf->dwHeight)
+            {
+                MHW_NORMALMESSAGE("Vebox input height updated from %d to %d by force 8 aligned, pCurrSurf->dwHeight %d, wHeightAlignUnit %d",
+                    *pdwSurfaceHeight, MOS_ALIGN_CEIL(*pdwSurfaceHeight, 8), pCurrSurf->dwHeight, wHeightAlignUnit);
+                *pdwSurfaceHeight = MOS_ALIGN_CEIL(*pdwSurfaceHeight, 8);
+            }
+            else
+            {
+                MHW_ASSERTMESSAGE("Invalid parameter for forceInputHeight8Aligned, pdwSurfaceHeight %d, pdwSurfaceHeight w/ 8 aligned %d, pCurrSurf->dwHeight %d, wHeightAlignUnit %d",
+                    *pdwSurfaceHeight, MOS_ALIGN_CEIL(*pdwSurfaceHeight, 8), pCurrSurf->dwHeight, wHeightAlignUnit);
+            }
+        }
         return eStatus;
     }
 
@@ -953,6 +971,12 @@ public:
         return eStatus;
     }
 
+    void SetForceInputHeight8AlignedFlag(bool forceInputHeight8Aligned) override
+    {
+        MHW_NORMALMESSAGE("SetForceInputHeight8AlignedFlag %d->%d", forceInputHeight8Aligned, m_forceInputHeight8Aligned);
+        m_forceInputHeight8Aligned = forceInputHeight8Aligned;
+    }
+
     MOS_STATUS FindVeboxGpuNodeToUse(
         PMHW_VEBOX_GPUNODE_LIMIT pGpuNodeLimit) override
     {
@@ -1096,6 +1120,7 @@ protected:
     bool                      bHVSAutoBdrateEnable        = false;
     bool                      bHVSAutoSubjectiveEnable    = false;
     bool                      bHVSfallback                = false;
+    bool                      m_forceInputHeight8Aligned  = false;
 
     MHW_VEBOX_HEAP            *m_veboxHeap                = nullptr;
     MHW_VEBOX_SETTINGS        m_veboxSettings             = {};

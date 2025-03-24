@@ -2896,6 +2896,16 @@ MOS_STATUS VpVeboxCmdPacket::PacketInit(
         }
     }
 
+    if (!m_PacketCaps.bSFC)
+    {
+        // Reset ForceInputHeight8AlignedFlag for bSFC == false.
+        // For bSFC == true, it's configured in VpScalingFilter::CalculateEngineParams.
+        if (m_veboxItf)
+        {
+            m_veboxItf->SetForceInputHeight8AlignedFlag(false);
+        }  
+    }
+
     // Adjust boundary for statistics surface block
     VP_RENDER_CHK_STATUS_RETURN(AdjustBlockStatistics());
 

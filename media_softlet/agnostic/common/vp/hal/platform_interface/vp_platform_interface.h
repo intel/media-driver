@@ -287,6 +287,8 @@ public:
         CODECHAL_STANDARD         codecStandard,
         CodecDecodeJpegChromaType jpegChromaType);
 
+    virtual void SetForceVeboxInputHeight8AlignedFlag(bool enable) final;
+
     virtual bool IsVeboxScalabilityWith4KNotSupported(
         VP_MHWINTERFACE           vpMhwInterface);
 

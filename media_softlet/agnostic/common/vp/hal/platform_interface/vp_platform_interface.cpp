@@ -645,6 +645,14 @@ MOS_STATUS VpPlatformInterface::GetInputFrameWidthHeightAlignUnit(
     return eStatus;
 }
 
+void VpPlatformInterface::SetForceVeboxInputHeight8AlignedFlag(bool enable)
+{
+    if (m_veboxItf)
+    {
+        m_veboxItf->SetForceInputHeight8AlignedFlag(enable);
+    }   
+}
+
 MOS_STATUS VpPlatformInterface::GetVeboxHeapInfo(
     PVP_MHWINTERFACE          pvpMhwInterface,
     const MHW_VEBOX_HEAP    **ppVeboxHeap)
