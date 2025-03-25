@@ -58,6 +58,9 @@ public:
     {
         return MOS_STATUS_SUCCESS;
     }
+
+    bool IsVeboxTypeHMode();
+
 protected:
     VpInterface& m_vpInterface;
     FeatureType     m_type;
