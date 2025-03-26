@@ -58,6 +58,9 @@ protected:
 
     PRENDERHAL_INTERFACE m_renderHal = nullptr;
 
+    static std::map<std::string, VpKernelID> m_kernelBiniaryIdMap;
+    static VpKernelID                        m_currentBiniaryID;
+
     //kernel Arguments
     KERNEL_INDEX_ARG_MAP         m_kernelArgs          = {};
     KERNEL_BTIS                  m_kernelBtis          = {};

@@ -751,6 +751,7 @@ MOS_STATUS SwFilterPipe::AddSwFilterOrdered(SwFilter *swFilter, bool isInputPipe
 
     VP_PUBLIC_CHK_STATUS_RETURN(pSubPipe->AddSwFilterOrdered(swFilter, useNewSwFilterSet));
     swFilter->SetExePipeFlag(m_isExePipe);
+    m_gpuCtxOnHybridCmd |= swFilter->GetGpuCtxOnHybridCmd();
 
     return MOS_STATUS_SUCCESS;
 }
@@ -783,6 +784,7 @@ MOS_STATUS SwFilterPipe::AddSwFilterUnordered(SwFilter *swFilter, bool isInputPi
 
     VP_PUBLIC_CHK_STATUS_RETURN(pSubPipe->AddSwFilterUnordered(swFilter));
     swFilter->SetExePipeFlag(m_isExePipe);
+    m_gpuCtxOnHybridCmd |= swFilter->GetGpuCtxOnHybridCmd();
 
     return MOS_STATUS_SUCCESS;
 }

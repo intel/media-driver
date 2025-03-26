@@ -198,6 +198,7 @@ protected:
 
     std::map<FeatureType, PolicyFeatureHandler*> m_VeboxSfcFeatureHandlers;
     std::map<FeatureType, PolicyFeatureHandler*> m_RenderFeatureHandlers;
+    std::map<FeatureType, PolicyFeatureHandler *> m_NpuFeatureHandlers;
     std::vector<FeatureType> m_featurePool;
 
     VpInterface         &m_vpInterface;

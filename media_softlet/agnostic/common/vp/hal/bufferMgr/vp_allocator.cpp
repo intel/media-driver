@@ -29,6 +29,7 @@
 #include "vp_allocator.h"
 #include "vp_utils.h"
 #include "mos_solo_generic.h"
+#include "levelzero_npu_interface.h"
 
 using namespace vp;
 
@@ -800,6 +801,96 @@ MOS_STATUS VpAllocator::AllocParamsInitType(
         allocParams.TileType = defaultTileType;
     }
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpAllocator::DestroyNpuBuffer(
+    VP_SURFACE*& surface)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(m_osInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_osInterface->npuInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_osInterface->npuInterface->pfnFreeHostMem);
+
+    MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
+    //if free the compressed surface, need set the sync dealloc flag as 1 for sync dealloc for aux table update
+    if (surface && IsSyncFreeNeededForMMCSurface(surface->osSurface))
+    {
+        resFreeFlags.SynchronousDestroy = 1;
+        VP_PUBLIC_NORMALMESSAGE("Set SynchronousDestroy flag for compressed resource");
+    }
+    void *npuHostMem = surface ? surface->zeNpuHostMem : nullptr;
+    MOS_STATUS eStatus    = MOS_STATUS_SUCCESS;
+    eStatus = DestroyVpSurface(surface, false, resFreeFlags);
+    VP_PUBLIC_CHK_STATUS_RETURN(m_osInterface->npuInterface->pfnFreeHostMem(m_osInterface->npuInterface, npuHostMem));
+
+    return eStatus;
+}
+
+MOS_STATUS VpAllocator::ReAllocateNpuBuffer(
+    VP_SURFACE *&surface,
+    PCCHAR       surfaceName,
+    uint32_t     size,
+    bool        &allocated)
+{
+    allocated = false;
+    VP_PUBLIC_CHK_NULL_RETURN(m_osInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_osInterface->npuInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_osInterface->npuInterface->pfnAllocateHostMem);
+    VP_PUBLIC_CHK_NULL_RETURN(m_osInterface->npuInterface->pfnFreeHostMem);
+
+    auto surfInfoCheck = [=](VP_SURFACE *&surface) -> bool {
+        return (surface->bufferWidth == size) && (Format_Buffer == surface->osSurface->Format);
+    };
+
+    if (surface &&
+        surface->osSurface &&
+        !Mos_ResourceIsNull(&surface->osSurface->OsResource) &&
+        surface->zeNpuHostMem != nullptr &&
+        surfInfoCheck(surface))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (surface && nullptr == surface->osSurface)
+    {
+        // VP_SURFACE should always be allocated by interface in VpAllocator,
+        // which will ensure nullptr != surface->osSurface.
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
+    VP_PUBLIC_CHK_STATUS_RETURN(DestroyNpuBuffer(surface));
+    
+    surface = AllocateVpSurface();
+    VP_PUBLIC_CHK_NULL_RETURN(surface);
+    if (surface->osSurface == nullptr)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(DestroyVpSurface(surface));
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_NO_SPACE);
+    }
+
+    void *npuHostMem = nullptr;
+    VP_PUBLIC_CHK_STATUS_RETURN(m_osInterface->npuInterface->pfnAllocateHostMem(m_osInterface->npuInterface, size, npuHostMem));
+    VP_PUBLIC_CHK_NULL_RETURN(npuHostMem);
+
+    GMM_RESOURCE_FORMAT gmmFormat = {};
+#if !EMUL
+    gmmFormat = GMM_FORMAT_GENERIC_8BIT;
+#endif
+    if (MOS_STATUS_SUCCESS != AllocateCPUResource(&surface->osSurface->OsResource, (size_t)npuHostMem, size, 1, size, size, 0, gmmFormat))
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(m_osInterface->npuInterface->pfnFreeHostMem(m_osInterface->npuInterface, npuHostMem));
+        VP_PUBLIC_CHK_STATUS_RETURN(DestroyVpSurface(surface));
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_NO_SPACE);
+    }
+    surface->zeNpuHostMem    = npuHostMem;
+    surface->isResourceOwner = true;
+    surface->osSurface->dwWidth  = size;
+    surface->osSurface->dwHeight = 1;
+    surface->osSurface->dwSize   = size;
+    surface->osSurface->TileType = MOS_TILE_LINEAR;
+    surface->osSurface->Format   = Format_Buffer;
+
+    allocated = true;
     return MOS_STATUS_SUCCESS;
 }
 

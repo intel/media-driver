@@ -150,8 +150,8 @@ extern const VEBOX_SPATIAL_ATTRIBUTES_CONFIGURATION g_cInit_VEBOX_SPATIAL_ATTRIB
     }
 };
 
-VpResourceManager::VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting, vp::VpPlatformInterface &vpPlatformInterface, MediaCopyWrapper *mediaCopyWrapper, vp::VpUserFeatureControl *vpUserFeatureControl)
-    : m_osInterface(osInterface), m_allocator(allocator), m_reporting(reporting), m_vpPlatformInterface(vpPlatformInterface), m_mediaCopyWrapper(mediaCopyWrapper)
+VpResourceManager::VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting, vp::VpPlatformInterface &vpPlatformInterface, MediaCopyWrapper *mediaCopyWrapper, vp::VpUserFeatureControl *vpUserFeatureControl, VpGraphManager *graphManager)
+    : m_osInterface(osInterface), m_allocator(allocator), m_reporting(reporting), m_vpPlatformInterface(vpPlatformInterface), m_graphManager(graphManager), m_mediaCopyWrapper(mediaCopyWrapper)
 {
     InitSurfaceConfigMap();
     m_userSettingPtr = m_osInterface.pfnGetUserSettingInstance(&m_osInterface);
@@ -267,9 +267,17 @@ VpResourceManager::~VpResourceManager()
         m_allocator.DestroyVpSurface(m_fcIntermediaSurfaceOutput);
     }
 
-    for (auto& handle : m_aiIntermediateSurface)
+    while (!m_aiIntermediateSurface.empty())
     {
-        m_allocator.DestroyVpSurface(handle.second);
+        auto it = m_aiIntermediateSurface.begin();
+        m_allocator.DestroyVpSurface(it->second);
+        m_aiIntermediateSurface.erase(it);
+    }
+    while (!m_aiNpuCopiedSurface.empty())
+    {
+        auto it = m_aiNpuCopiedSurface.begin();
+        m_allocator.DestroyVpSurface(it->second);
+        m_aiNpuCopiedSurface.erase(it);
     }
 
     m_allocator.CleanRecycler();
@@ -284,6 +292,12 @@ void VpResourceManager::CleanTempSurfaces()
         auto it = m_tempSurface.begin();
         m_allocator.DestroyVpSurface(it->second);
         m_tempSurface.erase(it);
+    }
+    while (!m_aiNpuCopiedSurface.empty())
+    {
+        auto it = m_aiNpuCopiedSurface.begin();
+        m_allocator.DestroyVpSurface(it->second);
+        m_aiNpuCopiedSurface.erase(it);
     }
 }
 
@@ -1243,65 +1257,110 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpResourceManager::AssignAiNpuResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, SwFilterPipe &executedFilters, VP_SURFACE_SETTING &surfSetting)
+{
+    SwFilterSubPipe *subPipe = executedFilters.GetSwFilterSubPipe(true, 0);
+    VP_PUBLIC_CHK_NULL_RETURN(subPipe);
+    VP_PUBLIC_CHK_VALUE_RETURN(inputSurfaces.empty(), false);
+    surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeAiInput0), inputSurfaces[0]));
+    surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeAiTarget0), outputSurface));
+    SwFilterAiBase *ai = nullptr;
+    VP_PUBLIC_CHK_STATUS_RETURN(subPipe->GetAiSwFilter(ai));
+    VP_PUBLIC_CHK_NULL_RETURN(ai);
+    FeatureParamAi &aiParam = ai->GetSwFilterParams();
+    for (uint32_t stageIndex = 0; stageIndex < (aiParam.splitGroupIndex.size() + 1); ++stageIndex)
+    {
+        std::vector<AI_SINGLE_NPU_GRAPH_SETTING>    graphGroup = {};
+        std::vector<AI_SINGLE_LAYER_BASE_SETTING *> settings   = {};
+        VP_PUBLIC_CHK_STATUS_RETURN(ai->GetStagePipeSettings(stageIndex, settings));
+        if (settings.empty() || settings.at(0) == nullptr || settings.at(0)->engine == FEATURE_AI_ENGINE::GPU)
+        {
+            continue;
+        }
+        for (auto &setting : settings)
+        {
+            AI_SINGLE_NPU_GRAPH_SETTING *npuSetting = dynamic_cast<AI_SINGLE_NPU_GRAPH_SETTING *>(setting);
+            VP_PUBLIC_CHK_NULL_RETURN(npuSetting);  //Put a gpu setting into npu stage is not allowed
+            graphGroup.push_back(*npuSetting);
+        }
+        VP_PUBLIC_CHK_VALUE_RETURN(graphGroup.empty(), false);
+        VP_PUBLIC_CHK_NULL_RETURN(m_graphManager);
+        GraphPackage *package = nullptr;
+        VP_PUBLIC_CHK_STATUS_RETURN(m_graphManager->GetGraphPackage(graphGroup, executedFilters, package));
+        for (auto& intermediateSurfaceHandle : package->IntermiedateSurfaces())
+        {
+            VP_PUBLIC_CHK_NULL_RETURN(intermediateSurfaceHandle.second);
+            auto handle = m_aiNpuCopiedSurface.find(intermediateSurfaceHandle.first);
+            if (handle == m_aiNpuCopiedSurface.end())
+            {
+                PVP_SURFACE surface = m_allocator.AllocateVpSurface();
+                VP_PUBLIC_CHK_NULL_RETURN(surface);
+                handle = m_aiNpuCopiedSurface.insert(std::make_pair(intermediateSurfaceHandle.first, surface)).first;
+                VP_PUBLIC_CHK_NOT_FOUND_RETURN(handle, &m_aiIntermediateSurface);
+                VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.CopyVpSurface(*handle->second, *intermediateSurfaceHandle.second));
+            }
+            VP_PUBLIC_CHK_NULL_RETURN(handle->second);
+            surfSetting.surfGroup.insert(std::make_pair(handle->first, handle->second));
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpResourceManager::AssignAiKernelResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, SwFilterPipe &executedFilters, VP_SURFACE_SETTING &surfSetting)
 {
     VP_FUNC_CALL();
     bool allocated = false;
 
-    for (uint32_t i = 0; i < executedFilters.GetSurfaceCount(true); ++i)
+    SwFilterSubPipe *subPipe = executedFilters.GetSwFilterSubPipe(true, 0);
+    VP_PUBLIC_CHK_NULL_RETURN(subPipe);
+    VP_PUBLIC_CHK_VALUE_RETURN(inputSurfaces.empty(), false);
+    surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeAiInput0), inputSurfaces[0]));
+    surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeAiTarget0), outputSurface));
+    SwFilterAiBase *ai = nullptr;
+    VP_PUBLIC_CHK_STATUS_RETURN(subPipe->GetAiSwFilter(ai));
+    VP_PUBLIC_CHK_NULL_RETURN(ai)
+    FeatureParamAi &aiParam = ai->GetSwFilterParams();
+    // Only Allocate Render Only Resource, for NPU/Render Shared Resource will allocated in AssignAiNpuResource
+    for (auto &singleLayerSettingHandle : aiParam.settings)
     {
-        SwFilterSubPipe *subPipe = executedFilters.GetSwFilterSubPipe(true, i);
-        if (subPipe == nullptr)
+        AI_SINGLE_GPU_LAYER_SETTING *singleLayerSettingPtr = dynamic_cast<AI_SINGLE_GPU_LAYER_SETTING *>(singleLayerSettingHandle.get());
+        if (singleLayerSettingPtr == nullptr)
         {
             continue;
         }
-        surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeAiInput0 + i), inputSurfaces[i]));
-        SwFilterAiBase *ai = nullptr;
-        VP_PUBLIC_CHK_STATUS_RETURN(subPipe->GetAiSwFilter(ai));
-        if (ai == nullptr)
+        AI_SINGLE_GPU_LAYER_SETTING &singleLayerSetting = *singleLayerSettingPtr;
+        AI_SURFACE_ALLOCATION_MAP    aiSurfaceMap       = {};
+        VP_PUBLIC_CHK_NULL_RETURN(singleLayerSetting.pfnGetIntermediateSurfaceSetting);
+        VP_PUBLIC_CHK_STATUS_RETURN(singleLayerSetting.pfnGetIntermediateSurfaceSetting(executedFilters, aiSurfaceMap));
+        for (auto const &aiSurfaceSetting : aiSurfaceMap)
         {
-            continue;
-        }
-        FeatureParamAi &aiParam = ai->GetSwFilterParams();
-        if (aiParam.stageIndex != 0)
-        {
-            continue;
-        }
-        for (AI_SINGLE_LAYER_SETTING &singleLayerSetting : aiParam.kernelSettings)
-        {
-            AI_SURFACE_ALLOCATION_MAP aiSurfaceMap = {};
-            VP_PUBLIC_CHK_NULL_RETURN(singleLayerSetting.pfnGetIntermediateSurfaceSetting);
-            VP_PUBLIC_CHK_STATUS_RETURN(singleLayerSetting.pfnGetIntermediateSurfaceSetting(i, executedFilters, aiSurfaceMap));
-            for (auto const &aiSurfaceSetting : aiSurfaceMap)
+            auto handle = m_aiIntermediateSurface.find(aiSurfaceSetting.first);
+            if (handle == m_aiIntermediateSurface.end())
             {
-                auto handle = m_aiIntermediateSurface.find(aiSurfaceSetting.first);
-                if (handle == m_aiIntermediateSurface.end())
-                {
-                    handle = m_aiIntermediateSurface.insert(std::make_pair(aiSurfaceSetting.first, nullptr)).first;
-                    VP_PUBLIC_CHK_NOT_FOUND_RETURN(handle, &m_aiIntermediateSurface);
-                }
-                VP_SURFACE *&intermediateSurface = handle->second;
-                VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
-                    intermediateSurface,
-                    aiSurfaceSetting.second.surfaceName.c_str(),
-                    aiSurfaceSetting.second.format,
-                    aiSurfaceSetting.second.resourceType,
-                    aiSurfaceSetting.second.tileType,
-                    aiSurfaceSetting.second.width,
-                    aiSurfaceSetting.second.height,
-                    false,
-                    MOS_MMC_DISABLED,
-                    allocated,
-                    false,
-                    IsDeferredResourceDestroyNeeded(),
-                    MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER));
-
-                surfSetting.surfGroup.insert(std::make_pair(aiSurfaceSetting.first, intermediateSurface));
+                handle = m_aiIntermediateSurface.insert(std::make_pair(aiSurfaceSetting.first, nullptr)).first;
+                VP_PUBLIC_CHK_NOT_FOUND_RETURN(handle, &m_aiIntermediateSurface);
             }
+            VP_SURFACE *&intermediateSurface = handle->second;
+            VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
+                intermediateSurface,
+                aiSurfaceSetting.second.surfaceName.c_str(),
+                aiSurfaceSetting.second.format,
+                aiSurfaceSetting.second.resourceType,
+                aiSurfaceSetting.second.tileType,
+                aiSurfaceSetting.second.width,
+                aiSurfaceSetting.second.height,
+                false,
+                MOS_MMC_DISABLED,
+                allocated,
+                false,
+                IsDeferredResourceDestroyNeeded(),
+                MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER));
+
+            surfSetting.surfGroup.insert(std::make_pair(aiSurfaceSetting.first, intermediateSurface));
         }
     }
-    surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeAiTarget0), outputSurface));
-
+    
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1328,6 +1387,8 @@ MOS_STATUS VpResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std::v
     }
     else if (caps.bAiPath)
     {
+        //Npu Resource need to be used as render input/out intermediate surface, so also need to be allocated in render path
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignAiNpuResource(caps, inputSurfaces, outputSurface, executedFilters, surfSetting));
         VP_PUBLIC_CHK_STATUS_RETURN(AssignAiKernelResource(caps, inputSurfaces, outputSurface, executedFilters, surfSetting));
     }
     else
@@ -1339,6 +1400,18 @@ MOS_STATUS VpResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std::v
         surfSetting.surfGroup.insert(std::make_pair(SurfaceTypeRenderInput, inputSurfaces[0]));
         VP_PUBLIC_CHK_STATUS_RETURN(AssignVeboxResourceForRender(caps, inputSurfaces[0], resHint, surfSetting));
     }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpResourceManager::AssignNpuResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, std::vector<VP_SURFACE *> &pastSurfaces, std::vector<VP_SURFACE *> &futureSurfaces, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting, SwFilterPipe &executedFilters)
+{
+    VP_FUNC_CALL();
+
+    if (caps.bAiPath)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignAiNpuResource(caps, inputSurfaces, outputSurface, executedFilters, surfSetting));
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1445,6 +1518,11 @@ MOS_STATUS VpResourceManager::AssignExecuteResource(VP_EXECUTE_CAPS& caps, std::
     if (caps.bRender)
     {
         VP_PUBLIC_CHK_STATUS_RETURN(AssignRenderResource(caps, inputSurfaces, outputSurface, pastSurfaces, futureSurfaces, resHint, surfSetting, executedFilters));
+    }
+
+    if (caps.bNpu)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignNpuResource(caps, inputSurfaces, outputSurface, pastSurfaces, futureSurfaces, resHint, surfSetting, executedFilters));
     }
 
     return MOS_STATUS_SUCCESS;

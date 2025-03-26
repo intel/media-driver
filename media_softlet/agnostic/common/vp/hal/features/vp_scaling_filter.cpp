@@ -112,7 +112,7 @@ MOS_STATUS VpScalingFilter::SfcAdjustBoundary(
 }
 
 template <typename T>
-inline void swap(T &a, T &b)
+inline void _swap(T &a, T &b)
 {
     T tmp = b;
     b     = a;
@@ -151,7 +151,7 @@ void VpScalingFilter::GetFormatWidthHeightAlignUnit(
     if (bRotateNeeded && bOutput)
     {
         // Output rect has been rotated in SwFilterScaling::Configure. Need to swap the alignUnit accordingly.
-        swap(widthAlignUnit, heightAlignUnit);
+        _swap(widthAlignUnit, heightAlignUnit);
     }
 }
 

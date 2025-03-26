@@ -36,7 +36,7 @@
 using namespace vp;
 
 template <typename T>
-inline void swap(T &a, T &b)
+inline void _swap(T &a, T &b)
 {
     T tmp = b;
     b     = a;
@@ -665,7 +665,7 @@ MOS_STATUS SwFilterScaling::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf
             // For VE-SFC + FC case, scaling is done by sfc, but scaling filter is still needed
             // by render workload for composition position.
             VP_PUBLIC_NORMALMESSAGE("Rotation has been done in execute pipe. Update scaling parameters.");
-            swap(m_Params.input.dwWidth, m_Params.input.dwHeight);
+            _swap(m_Params.input.dwWidth, m_Params.input.dwHeight);
             RECT tmp = m_Params.input.rcSrc;
             RECT_ROTATE(m_Params.input.rcSrc, tmp);
             tmp = m_Params.input.rcDst;
@@ -673,7 +673,7 @@ MOS_STATUS SwFilterScaling::Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf
             tmp = m_Params.input.rcMaxSrc;
             RECT_ROTATE(m_Params.input.rcMaxSrc, tmp);
 
-            swap(m_Params.output.dwWidth, m_Params.output.dwHeight);
+            _swap(m_Params.output.dwWidth, m_Params.output.dwHeight);
             tmp = m_Params.output.rcSrc;
             RECT_ROTATE(m_Params.output.rcSrc, tmp);
             tmp = m_Params.output.rcDst;
@@ -2161,7 +2161,8 @@ MOS_STATUS SwFilterAiBase::Clean()
 {
     VP_FUNC_CALL();
 
-    m_Params.kernelSettings.clear();
+    m_Params.settings.clear();
+    m_Params.splitGroupIndex.clear();
     VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
     return MOS_STATUS_SUCCESS;
 }
@@ -2170,8 +2171,91 @@ MOS_STATUS SwFilterAiBase::Configure(VP_PIPELINE_PARAMS &params, bool isInputSur
 {
     VP_FUNC_CALL();
 
-    m_Params.kernelSettings.clear();
-    VP_PUBLIC_CHK_STATUS_RETURN(RegisterAiSettingPipe(m_Params.kernelSettings, m_Params.kernelSplitGroupIndex));
+    m_Params.settings.clear();
+    m_Params.splitGroupIndex.clear();
+    VP_PUBLIC_CHK_STATUS_RETURN(RegisterAiSettingPipe(params, m_Params.settings));
+    VP_PUBLIC_CHK_STATUS_RETURN(InitializeStageGroupIndex(m_Params.settings, m_Params.splitGroupIndex));
+    VP_PUBLIC_CHK_STATUS_RETURN(InitializeNpu(m_Params.settings));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterAiBase::InitializeStageGroupIndex(AI_SETTING_PIPE &settingPipe, AI_SPLIT_GROUP_INDEX &splitGroupIndex)
+{
+    splitGroupIndex.clear();
+    bool              customizedGroupIndex = false;
+    FEATURE_AI_ENGINE lastEngine           = FEATURE_AI_ENGINE::GPU;
+    for (uint32_t i = 0; i < settingPipe.size(); ++i)
+    {
+        auto &setting = settingPipe.at(i);
+        VP_PUBLIC_CHK_NULL_RETURN(setting);
+        if (setting->stageGroupIndex != 0)
+        {
+            customizedGroupIndex = true;
+            break;
+        }
+        if (i != 0 && setting->engine != lastEngine)
+        {
+            splitGroupIndex.push_back(i);
+        }
+        lastEngine = setting->engine;
+    }
+
+    if (customizedGroupIndex)
+    {
+        splitGroupIndex.clear();
+        uint32_t stageIndex = 0;
+        for (uint32_t i = 0; i < settingPipe.size(); ++i)
+        {
+            auto &setting = settingPipe.at(i);
+            VP_PUBLIC_CHK_NULL_RETURN(setting);
+            if (i == 0)
+            {
+                VP_PUBLIC_CHK_VALUE_RETURN(setting->stageGroupIndex, 0);
+            }
+            else
+            {
+                if (setting->stageGroupIndex == stageIndex)
+                {
+                    VP_PUBLIC_CHK_VALUE_RETURN(setting->engine, lastEngine);
+                }
+                else if (setting->stageGroupIndex == (stageIndex + 1))
+                {
+                    ++stageIndex;
+                    splitGroupIndex.push_back(i);
+                }
+                else
+                {
+                    VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+                }
+            }
+            lastEngine = setting->engine;
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterAiBase::InitializeNpu(AI_SETTING_PIPE &settingPipe)
+{
+    bool hasNpu = false;
+    for (const auto& setting : settingPipe)
+    {
+        if (setting->engine == FEATURE_AI_ENGINE::NPU)
+        {
+            hasNpu = true;
+            break;
+        }
+    }
+    if (hasNpu)
+    {
+        VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface());
+        VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface()->m_osInterface);
+        VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface()->m_osInterface->npuInterface);
+        VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface()->m_osInterface->npuInterface->pfnInit);
+        VP_PUBLIC_CHK_STATUS_RETURN(m_vpInterface.GetHwInterface()->m_osInterface->npuInterface->pfnInit(m_vpInterface.GetHwInterface()->m_osInterface->npuInterface));
+        m_gpuContxtOnHybridCmd = (1llu << static_cast<uint64_t>(MOS_GPU_CONTEXT_COMPUTE));
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -2181,6 +2265,36 @@ FeatureParamAi &SwFilterAiBase::GetSwFilterParams()
     VP_FUNC_CALL();
 
     return m_Params;
+}
+
+MOS_STATUS SwFilterAiBase::GetStagePipeSettings(uint32_t stageIndex, std::vector<AI_SINGLE_LAYER_BASE_SETTING *> &currentStagePipeSettings)
+{
+    currentStagePipeSettings.clear();
+    uint32_t startIndex = 0;
+    if (stageIndex != 0)
+    {
+        if ((stageIndex - 1) >= m_Params.splitGroupIndex.size())
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
+        startIndex = m_Params.splitGroupIndex.at(stageIndex - 1);
+    }
+    uint32_t endIndex = stageIndex < m_Params.splitGroupIndex.size() ? m_Params.splitGroupIndex.at(stageIndex) : m_Params.settings.size();
+    if (startIndex >= endIndex)
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Start Index of Kernel Pipe is Greater or Equal to End Index. The Execute Kernel Group will be Empty. Caused by Wrong Value in splitGroupIndex");
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+    for (uint32_t layerIndex = startIndex; layerIndex < endIndex; ++layerIndex)
+    {
+        if (layerIndex >= m_Params.settings.size())
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
+        currentStagePipeSettings.push_back(m_Params.settings.at(layerIndex).get());
+    }
+
+    return MOS_STATUS_SUCCESS;
 }
 
 SwFilter *SwFilterAiBase::Clone()
@@ -2196,7 +2310,20 @@ SwFilter *SwFilterAiBase::Clone()
         return nullptr;
     }
 
-    swFilter->m_Params = m_Params;
+    swFilter->m_Params.type            = m_Params.type;
+    swFilter->m_Params.splitGroupIndex = m_Params.splitGroupIndex;
+    swFilter->m_Params.stageIndex      = m_Params.stageIndex;
+    for (const auto& setting : m_Params.settings)
+    {
+        if (setting)
+        {
+            swFilter->m_Params.settings.push_back(setting->Clone());
+        }
+        else
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Emptry setting pointer in settings pipe, will skip it");
+        }
+    }
     return p;
 }
 

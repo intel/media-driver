@@ -179,7 +179,7 @@ MediaContext::~MediaContext()
     m_gpuContextAttributeTable.clear();
 }
 
-MOS_STATUS MediaContext::SwitchContext(MediaFunction func, ContextRequirement *requirement, MediaScalability **scalabilityState)
+MOS_STATUS MediaContext::SwitchContext(MediaFunction func, ContextRequirement *requirement, MediaScalability **scalabilityState, uint64_t gpuCtxOnHybridCmd)
 {
     MOS_OS_FUNCTION_ENTER;
     MOS_STATUS status = MOS_STATUS_SUCCESS;
@@ -240,6 +240,7 @@ MOS_STATUS MediaContext::SwitchContext(MediaFunction func, ContextRequirement *r
     MOS_OS_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(m_osInterface, m_gpuContextAttributeTable[index].ctxForLegacyMos));
     veStateProvided = m_gpuContextAttributeTable[index].scalabilityState;
     MOS_OS_NORMALMESSAGE("Switched to GpuContext %d, index %d", m_gpuContextAttributeTable[index].ctxForLegacyMos, index);
+    MOS_OS_CHK_STATUS_RETURN(m_osInterface->pfnSetHybridCmdMgrToGpuContext(m_osInterface, gpuCtxOnHybridCmd));
 
     if (requirement->IsEnc)
     {

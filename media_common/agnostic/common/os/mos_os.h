@@ -41,6 +41,7 @@
 
 #include "media_user_setting_specific.h"
 #include "null_hardware.h"
+#include "mos_hybrid_cmd_manager.h"
 //!
 //! \brief OS specific includes and definitions
 //!
@@ -609,6 +610,7 @@ class CodechalSecureDecodeInterface;
 class CodechalSetting;
 class CodechalHwInterface;
 class CodechalHwInterfaceNext;
+class L0NpuInterface;
 
 struct MOS_SURF_DUMP_SURFACE_DEF
 {
@@ -700,6 +702,10 @@ typedef struct _MOS_INTERFACE
     int32_t                         modulizedMosEnabled;
     int32_t                         modularizedGpuCtxEnabled;
     OsContext*                      osContextPtr;
+
+    HybridCmdMgr                   *hybridCmdMgr = nullptr;
+    //for npu levelzero
+    L0NpuInterface*                 npuInterface = nullptr;
 
     // used for media reset enabling/disabling in UMD
     // pls remove it after hw scheduling
@@ -1607,6 +1613,56 @@ typedef struct _MOS_INTERFACE
     void (*pfnResetResource)(
         PMOS_RESOURCE               resource);
 
+    //!
+    //! \brief    Set Hybrid Cmd To GpuContext
+    //! \details  Set Hybrid Cmd To GpuContext
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] ptr to pOsInterface
+    //! \param    uint64_t gpuCtxOnHybridCmd
+    //!           gpuCtxOnHybridCmd
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS
+    //!
+    MOS_STATUS (*pfnSetHybridCmdMgrToGpuContext)
+    (
+        PMOS_INTERFACE pOsInterface,
+        uint64_t       gpuCtxOnHybridCmd);
+
+    //!
+    //! \brief    Start the Cmd Consumer
+    //! \details  Start the Cmd Consumer
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] ptr to pOsInterface
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS
+    //!
+    MOS_STATUS (*pfnStartHybridCmdMgr)(
+        PMOS_INTERFACE pOsInterface);
+
+    //!
+    //! \brief    Stop the Cmd Consumer
+    //! \details  Stop the Cmd Consumer
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] ptr to pOsInterface
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS
+    //!
+    MOS_STATUS (*pfnStopHybridCmdMgr)(
+        PMOS_INTERFACE pOsInterface);
+
+    //!
+    //! \brief    Submit Cmd Package to Cmd Consumer
+    //! \details  Submit Cmd Package to Cmd Consumer
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] ptr to pOsInterface
+    //! \param    CmdPackage& cmdPackage
+    //!           [in] reference to cmdPackage
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS
+    //!
+    MOS_STATUS (*pfnSubmitPackage)(
+        PMOS_INTERFACE pOsInterface,
+        CmdPackage    &cmdPackage);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //!
@@ -2529,6 +2585,56 @@ void Mos_ResetMosResource(
 bool Mos_InsertCacheSetting(CACHE_COMPONENTS id, std::map<uint64_t, MOS_CACHE_ELEMENT> *cacheTablesPtr);
 
 bool Mos_GetCacheSetting(MOS_COMPONENT id, uint32_t feature, bool bOut, ENGINE_TYPE engineType, MOS_CACHE_ELEMENT &element, bool isHeapSurf);
+
+//!
+//! \brief    Set Hybrid Cmd To GpuContext
+//! \details  Set Hybird Cmd To GpuContext
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] ptr to pOsInterface
+//! \param    uint64_t gpuCtxOnHybridCmd
+//!           gpuCtxOnHybridCmd
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS
+//!
+MOS_STATUS MOS_SetHybridCmdMgrToGpuContext(
+    PMOS_INTERFACE pOsInterface,
+    uint64_t       gpuCtxOnHybridCmd);
+
+//!
+//! \brief    Start the Cmd Buffer Consumer
+//! \details  Start the Cmd Buffer Consumer
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] Pointer to OS interface structure
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS
+//!
+MOS_STATUS MOS_StartHybridCmdMgr(
+    PMOS_INTERFACE pOsInterface);
+
+//!
+//! \brief    Stop the Cmd Buffer Consumer
+//! \details  Stop the Cmd Buffer Consumer
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] Pointer to OS interface structure
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS
+//!
+MOS_STATUS MOS_StopHybridCmdMgr(
+    PMOS_INTERFACE pOsInterface);
+
+//!
+//! \brief    Submit Cmd Package to Cmd Consumer
+//! \details  Submit Cmd Package to Cmd Consumer
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] ptr to pOsInterface
+//! \param    CmdPackage& cmdPackage
+//!           [in] reference to cmdPackage
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS
+//!
+MOS_STATUS MOS_SubmitPackage(
+    PMOS_INTERFACE pOsInterface,
+    CmdPackage    &cmdPackage);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
 //!

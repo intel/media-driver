@@ -34,6 +34,7 @@
 #include "vp_utils.h"
 #include "vp_hdr_resource_manager.h"
 #include "media_copy_wrapper.h"
+#include "vp_graph_manager.h"
 
 #define VP_MAX_NUM_VEBOX_SURFACES     4                                       //!< Vebox output surface creation, also can be reuse for DI usage:
                                                                               //!< for DI: 2 for ADI plus additional 2 for parallel execution
@@ -353,7 +354,7 @@ struct VP_SURFACE_PARAMS
 class VpResourceManager
 {
 public:
-    VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting, vp::VpPlatformInterface &vpPlatformInterface, MediaCopyWrapper *mediaCopyWrapper, vp::VpUserFeatureControl *vpUserFeatureControl);
+    VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting, vp::VpPlatformInterface &vpPlatformInterface, MediaCopyWrapper *mediaCopyWrapper, vp::VpUserFeatureControl *vpUserFeatureControl, vp::VpGraphManager* graphManager);
     virtual ~VpResourceManager();
     virtual MOS_STATUS OnNewFrameProcessStart(SwFilterPipe &pipe);
     virtual void OnNewFrameProcessEnd();
@@ -455,6 +456,8 @@ protected:
     virtual MOS_STATUS AssignFcResources(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface,
         std::vector<VP_SURFACE *> &pastSurfaces, std::vector<VP_SURFACE *> &futureSurfaces,
         RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
+    virtual MOS_STATUS  AssignNpuResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, std::vector<VP_SURFACE *> &pastSurfaces, std::vector<VP_SURFACE *> &futureSurfaces, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting, SwFilterPipe &executedFilters);
+    virtual MOS_STATUS  AssignAiNpuResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, SwFilterPipe &executedFilters, VP_SURFACE_SETTING &surfSetting);
     virtual MOS_STATUS  AssignAiKernelResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, SwFilterPipe &executedFilters, VP_SURFACE_SETTING &surfSetting);
     virtual MOS_STATUS AssignVeboxResourceForRender(VP_EXECUTE_CAPS &caps, VP_SURFACE *inputSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
     virtual MOS_STATUS AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURFACE* inputSurface, VP_SURFACE* outputSurface, VP_SURFACE* pastSurface, VP_SURFACE* futureSurface,
@@ -497,6 +500,7 @@ protected:
     VphalFeatureReport           &m_reporting;
     vp::VpPlatformInterface      &m_vpPlatformInterface;
     vp::VpUserFeatureControl     *m_vpUserFeatureControl = nullptr;
+    vp::VpGraphManager           *m_graphManager         = nullptr;
 
     // Vebox Resource
     VP_SURFACE* m_veboxDenoiseOutput[VP_NUM_DN_SURFACES]     = {};            //!< Vebox Denoise output surface
@@ -564,6 +568,7 @@ protected:
 
     // AI Resource
     std::map<SurfaceType, VP_SURFACE *> m_aiIntermediateSurface = {};
+    std::map<SurfaceType, VP_SURFACE *> m_aiNpuCopiedSurface    = {};
 
     MediaCopyWrapper *m_mediaCopyWrapper                      = nullptr;
 

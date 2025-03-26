@@ -233,6 +233,12 @@ public:
     
     virtual MOS_GPU_COMPONENT_ID GetGpuComponentId() = 0;
 
+    virtual MOS_STATUS SetHybridCmdMgr(HybridCmdMgr *hybridCmdMgr)
+    {
+        m_hybridCmdMgr = hybridCmdMgr;
+        return MOS_STATUS_SUCCESS;
+    }
+
 protected:
     //! \brief    Hardware node for current gpu context
     MOS_GPU_NODE m_nodeOrdinal = {};
@@ -257,6 +263,9 @@ protected:
 
     //! \brief    VE attribute buffer
     MOS_CMD_BUF_ATTRI_VE m_bufAttriVe = {};
-MEDIA_CLASS_DEFINE_END(GpuContextNext)
+
+    HybridCmdMgr *m_hybridCmdMgr = nullptr;
+
+    MEDIA_CLASS_DEFINE_END(GpuContextNext)
 };
 #endif  // #ifndef __MOS_GPU_CONTEXT_NEXT_H__

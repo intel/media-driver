@@ -63,6 +63,7 @@ enum EngineType
     EngineTypeVebox,
     EngineTypeVeboxSfc,
     EngineTypeRender,
+    EngineTypeNpu,
     // ...
     NumOfEngineType
 };
@@ -161,6 +162,23 @@ public:
     virtual MOS_STATUS SetPacketParams(VpCmdPacket &package);
 
 MEDIA_CLASS_DEFINE_END(vp__HwFilterRender)
+};
+
+class HwFilterNpu : public HwFilter
+{
+public:
+    HwFilterNpu(VpInterface &vpInterface);
+    virtual ~HwFilterNpu();
+
+    virtual MOS_STATUS Clean()
+    {
+        HwFilter::Clean();
+        return MOS_STATUS_SUCCESS;
+    }
+
+    virtual MOS_STATUS SetPacketParams(VpCmdPacket &package);
+
+MEDIA_CLASS_DEFINE_END(vp__HwFilterNpu)
 };
 
 }

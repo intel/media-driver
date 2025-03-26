@@ -65,6 +65,7 @@
 #include "memory_policy_manager.h"
 #include "mos_oca_interface_specific.h"
 #include "mos_os_next.h"
+#include "levelzero_npu_interface.h"
 
 extern int32_t CreateCmDevice(MOS_CONTEXT *mosContext,
                               CMRT_UMD::CmDevice* &device,
@@ -1853,6 +1854,16 @@ MOS_STATUS Mos_DestroyInterface(PMOS_INTERFACE pOsInterface)
         pOsInterface->osContextPtr = nullptr;
     }
 
+    if (pOsInterface->npuInterface)
+    {
+        MOS_Delete(pOsInterface->npuInterface);
+    }
+
+    if (pOsInterface->hybridCmdMgr)
+    {
+        MOS_Delete(pOsInterface->hybridCmdMgr);
+    }
+
     if (pOsInterface->osCpInterface)
     {
         Delete_MosCpInterface(pOsInterface->osCpInterface);
@@ -1991,6 +2002,16 @@ void Mos_Specific_Destroy(
 
         MOS_Delete(pOsContext);
         pOsInterface->osContextPtr = nullptr;
+    }
+
+    if (pOsInterface->npuInterface)
+    {
+        MOS_Delete(pOsInterface->npuInterface);
+    }
+
+    if (pOsInterface->hybridCmdMgr)
+    {
+        MOS_Delete(pOsInterface->hybridCmdMgr);
     }
 
     if (pOsInterface->osCpInterface)
@@ -7448,6 +7469,20 @@ MOS_STATUS Mos_Specific_InitInterface(
         pOsInterface->umdMediaResetEnable = false;
     }
 
+    pOsInterface->hybridCmdMgr = MOS_New(HybridCmdMgr);
+    if (pOsInterface->hybridCmdMgr == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("fail to create HybridCmdMgr.");
+        return MOS_STATUS_UNKNOWN;
+    }
+
+    pOsInterface->npuInterface = MOS_New(L0NpuInterface, pOsInterface);
+    if (pOsInterface->npuInterface == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("fail to create level zerp npu interface.");
+        return MOS_STATUS_UNKNOWN;
+    }
+
     // initialize MOS_CP interface
     pOsInterface->osCpInterface = Create_MosCpInterface(pOsInterface);
     if (pOsInterface->osCpInterface == nullptr)
@@ -7523,7 +7558,18 @@ finish:
     {
         MOS_Delete(pOsContext);
     }
-    return eStatus;
+    if (MOS_STATUS_SUCCESS != eStatus)
+    {
+        if (nullptr != pOsInterface->npuInterface)
+        {
+            MOS_Delete(pOsInterface->npuInterface);
+        }
+        if (nullptr != pOsInterface->hybridCmdMgr)
+        {
+            MOS_Delete(pOsInterface->hybridCmdMgr);
+        }
+    }
+        return eStatus;
 }
 
 //!

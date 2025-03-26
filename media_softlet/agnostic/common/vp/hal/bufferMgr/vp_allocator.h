@@ -390,6 +390,41 @@ public:
         uint32_t                depth = 0);
 
     //!
+    //! \brief    Reallocates the VP Surface
+    //! \details  Reallocates the VP Surface
+    //!           - if the surface is not already allocated OR
+    //!           - resource dimenisions OR format changed
+    //! \param    [in,out] surface
+    //!           Pointer to VP_SURFACE
+    //! \param    [in] surfaceName
+    //!           Pointer to surface name
+    //! \param    [in] size
+    //!           Expected Buffer Size
+    //! \param    [out] allocated
+    //!           true if allocated, false for not
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success. Error code otherwise
+    //!
+    MOS_STATUS ReAllocateNpuBuffer(
+        VP_SURFACE          *&surface,
+        PCCHAR                surfaceName,
+        uint32_t              size,
+        bool                 &allocated);
+
+    //!
+    //! \brief    Destroy the VP Surface
+    //! \details  Destroy the VP Surface
+    //!           - if the surface is not already allocated OR
+    //!           - resource dimenisions OR format changed
+    //! \param    [in,out] surface
+    //!           Pointer to VP_SURFACE
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success. Error code otherwise
+    //!
+    MOS_STATUS DestroyNpuBuffer(
+        VP_SURFACE *&surface);
+
+    //!
     //! \brief    Allocates the Surface
     //! \details  Allocates the Surface
     //!           - if the surface is not already allocated OR

@@ -37,7 +37,8 @@ enum _PacketType
     VP_PIPELINE_PACKET_UNINITIALIZED  = 0,
     VP_PIPELINE_PACKET_VEBOX,
     VP_PIPELINE_PACKET_RENDER,
-    VP_PIPELINE_PACKET_COMPUTE
+    VP_PIPELINE_PACKET_COMPUTE,
+    VP_PIPELINE_PACKET_NPU
 };
 using PacketType           = _PacketType;
 
@@ -137,6 +138,11 @@ public:
         return m_PacketCaps;
     }
 
+    bool IsLevelzeroRuntimeInUse()
+    {
+        return m_levelzeroRuntimeInUse;
+    }
+
 protected:
     virtual MOS_STATUS VpCmdPacketInit();
     bool IsOutputPipeVebox()
@@ -161,6 +167,7 @@ protected:
     VP_SURFACE_SETTING          m_surfSetting;
     bool                        m_packetResourcesPrepared = false;
     VpFeatureReport             *m_report                 = nullptr;
+    bool                         m_levelzeroRuntimeInUse  = false;
 
 private:
     MediaScalability *          m_scalability = nullptr;

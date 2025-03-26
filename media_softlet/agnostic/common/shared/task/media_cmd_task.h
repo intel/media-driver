@@ -48,6 +48,8 @@ public:
     virtual ~CmdTask() { }
 
     virtual MOS_STATUS Submit(bool immediateSubmit, MediaScalability *scalability, CodechalDebugInterface *debugInterface) override;
+    virtual MOS_STATUS Submit(bool immediateSubmit, MediaScalability *scalability, CodechalDebugInterface *debugInterface, bool levelzeroRuntimeInUse) override;
+    virtual MOS_STATUS SubmitToLevelzeroRuntime() override;
 
 protected:
 #if (_DEBUG || _RELEASE_INTERNAL) && !EMUL

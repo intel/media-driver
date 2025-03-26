@@ -192,8 +192,6 @@ MOS_STATUS VpFeatureManagerNext::RegisterFeatures()
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_featureHandler.insert(std::make_pair(FeatureTypeCgc, p));
 
-    //TODO for AI Feature Developer: Register sw filter handler derived from SwFilterAiBaseHanlder for new AI Feature
-
     m_isFeatureRegistered = true;
     return MOS_STATUS_SUCCESS;
 }

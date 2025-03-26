@@ -221,9 +221,13 @@ MOS_STATUS Policy::RegisterFeatures()
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_VeboxSfcFeatureHandlers.insert(std::make_pair(FeatureTypeCgcOnVebox, p));
 
-    p = MOS_New(PolicyAiHandler, m_hwCaps);
+    p = MOS_New(PolicyAiHandler, m_hwCaps, m_vpInterface.GetGraphManager());
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeAiOnRender, p));
+
+    p = MOS_New(PolicyAiHandler, m_hwCaps, m_vpInterface.GetGraphManager());
+    VP_PUBLIC_CHK_NULL_RETURN(p);
+    m_NpuFeatureHandlers.insert(std::make_pair(FeatureTypeAiOnNpu, p));
 
     // Next step to add a table to trace all SW features based on platforms
     m_featurePool.push_back(FeatureTypeCsc);
@@ -260,6 +264,13 @@ void Policy::UnregisterFeatures()
         std::map<FeatureType, PolicyFeatureHandler*>::iterator it = m_RenderFeatureHandlers.begin();
         MOS_Delete(it->second);
         m_RenderFeatureHandlers.erase(it);
+    }
+
+    while (!m_NpuFeatureHandlers.empty())
+    {
+        std::map<FeatureType, PolicyFeatureHandler *>::iterator it = m_NpuFeatureHandlers.begin();
+        MOS_Delete(it->second);
+        m_NpuFeatureHandlers.erase(it);
     }
 
     m_featurePool.clear();
@@ -2391,15 +2402,37 @@ MOS_STATUS Policy::GetExecutionCapsForAiSwFilterSubPipe(SwFilterAiBase *swAiFilt
     }
     else
     {
-        if (!aiParams.kernelSettings.empty())
+        uint32_t index = 0;
+        if (aiParams.stageIndex == 0)
         {
-            aiEngine.bEnabled        = true;
-            aiEngine.isolated        = true;
-            aiEngine.RenderNeeded    = true;
-            aiEngine.multiPassNeeded = aiParams.stageIndex < aiParams.kernelSplitGroupIndex.size();
-            if (aiParams.kernelSplitGroupIndex.empty())
+            index = 0;
+        }
+        else if (aiParams.splitGroupIndex.size() > (aiParams.stageIndex - 1))
+        {
+            VP_PUBLIC_ASSERTMESSAGE("The stage index > 0 should be processed in PolicyAiHandler::UpdateFeaturePipe");
+            index = aiParams.splitGroupIndex.at(aiParams.stageIndex - 1);
+        }
+        else
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
+
+        if (aiParams.settings.size() > index)
+        {
+            aiEngine.bEnabled = true;
+            aiEngine.isolated = true;
+            aiEngine.multiPassNeeded = aiParams.stageIndex < aiParams.splitGroupIndex.size();
+            if (aiParams.splitGroupIndex.empty())
             {
                 aiEngine.isOutputPipeNeeded = true;
+            }
+            if (aiParams.settings.at(index)->engine == FEATURE_AI_ENGINE::NPU)
+            {
+                aiEngine.npuNeeded = true;
+            }
+            else
+            {
+                aiEngine.RenderNeeded = true;
             }
         }
         else
@@ -2468,6 +2501,14 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
         {
             caps.bRender = 1;
 
+            if (engineCapsInputPipe.isOutputPipeNeeded)
+            {
+                caps.bOutputPipeFeatureInuse = true;
+            }
+        }
+        else if (engineCapsInputPipe.npuNeeded)
+        {
+            caps.bNpu = 1;
             if (engineCapsInputPipe.isOutputPipeNeeded)
             {
                 caps.bOutputPipeFeatureInuse = true;
@@ -2571,8 +2612,8 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
     {
         caps.enableSFCLinearOutputByTileConvert = engineCapsInputPipe.enableSFCLinearOutputByTileConvert;
     }
-    VP_PUBLIC_NORMALMESSAGE("Execute Caps, value 0x%llx (bVebox %d, bSFC %d, bRender %d, bComposite %d, bOutputPipeFeatureInuse %d, bIECP %d, bForceCscToRender %d, bDiProcess2ndField %d)",
-        caps.value, caps.bVebox, caps.bSFC, caps.bRender, caps.bComposite, caps.bOutputPipeFeatureInuse, caps.bIECP,
+    VP_PUBLIC_NORMALMESSAGE("Execute Caps, value 0x%llx (bVebox %d, bSFC %d, bRender %d, bComposite %d, bNpu %d, bOutputPipeFeatureInuse %d, bIECP %d, bForceCscToRender %d, bDiProcess2ndField %d)",
+        caps.value, caps.bVebox, caps.bSFC, caps.bRender, caps.bComposite, caps.bNpu, caps.bOutputPipeFeatureInuse, caps.bIECP,
         caps.bForceCscToRender, caps.bDiProcess2ndField);
     PrintFeatureExecutionCaps("engineCapsInputPipe", engineCapsInputPipe);
     PrintFeatureExecutionCaps("engineCapsOutputPipe", engineCapsOutputPipe);
@@ -3255,6 +3296,30 @@ MOS_STATUS Policy::BuildExecuteHwFilter(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS&
             }
         }
     }
+    else if (caps.bNpu)
+    {
+        params.Type          = EngineTypeNpu;
+        params.vpExecuteCaps = caps;
+        auto it = m_NpuFeatureHandlers.begin();
+        for (; it != m_NpuFeatureHandlers.end(); ++it)
+        {
+            if ((*(it->second)).IsFeatureEnabled(caps))
+            {
+                HwFilterParameter *pHwFilterParam = (*(it->second)).CreateHwFilterParam(caps, *params.executedFilters, m_vpInterface.GetHwInterface());
+
+                if (pHwFilterParam)
+                {
+                    params.Params.push_back(pHwFilterParam);
+                }
+                else
+                {
+                    VP_PUBLIC_ASSERTMESSAGE("Create HW Filter Failed, Return Error");
+                    MT_ERR2(MT_VP_HAL_POLICY, MT_ERROR_CODE, MOS_STATUS_NO_SPACE, MT_CODE_LINE, __LINE__);
+                    return MOS_STATUS_NO_SPACE;
+                }
+            }
+        }
+    }
     else if (caps.forceBypassWorkload)
     {
         VP_PUBLIC_NORMALMESSAGE("No engine is assigned. Skip this process for test usage.");
@@ -3384,6 +3449,14 @@ MOS_STATUS Policy::UpdateFeatureTypeWithEngineSingleLayer(SwFilterSubPipe *featu
             if (caps.bRender && engineCaps.bEnabled && engineCaps.RenderNeeded)
             {
                 VP_PUBLIC_CHK_STATUS_RETURN(UpdateExeCaps(swAiFilter, caps, EngineTypeRender));
+                if (engineCaps.isolated)
+                {
+                    isolatedFeatureFound = true;
+                }
+            }
+            else if (caps.bNpu && engineCaps.bEnabled && engineCaps.npuNeeded)
+            {
+                VP_PUBLIC_CHK_STATUS_RETURN(UpdateExeCaps(swAiFilter, caps, EngineTypeNpu));
                 if (engineCaps.isolated)
                 {
                     isolatedFeatureFound = true;
@@ -3599,17 +3672,31 @@ MOS_STATUS Policy::UpdateFeaturePipe(SwFilterPipe &featurePipe, uint32_t pipeInd
     if (swAiFilter)
     {
         VP_EngineEntry &engineCaps            = swAiFilter->GetFilterEngineCaps();
-        if (caps.bRender && engineCaps.bEnabled && IS_FEATURE_TYPE_ON_RENDER(swAiFilter->GetFeatureType()) &&
+        if (engineCaps.bEnabled && isInputPipe &&
+            caps.bRender && IS_FEATURE_TYPE_ON_RENDER(swAiFilter->GetFeatureType()) && 
             m_RenderFeatureHandlers.end() != m_RenderFeatureHandlers.find(FeatureTypeAi))
         {
-            auto it = m_RenderFeatureHandlers.find(FeatureTypeAi);
+            auto                  it      = m_RenderFeatureHandlers.find(FeatureTypeAi);
             PolicyFeatureHandler *handler = it->second;
             VP_PUBLIC_CHK_STATUS_RETURN(handler->UpdateFeaturePipe(caps, *swAiFilter, featurePipe, executedFilters, isInputPipe, executePipeIndex));
-            if (!engineCaps.bEnabled)
-            {
-                VP_PUBLIC_NORMALMESSAGE("filter is disable during UpdateFeaturePipe");
-            }
             ++featureSelected;
+        }
+        else if (engineCaps.bEnabled && isInputPipe &&
+                 caps.bNpu && IS_FEATURE_TYPE_ON_NPU(swAiFilter->GetFeatureType()) &&
+                 m_NpuFeatureHandlers.end() != m_NpuFeatureHandlers.find(FeatureTypeAi))
+        {
+            auto                  it      = m_NpuFeatureHandlers.find(FeatureTypeAi);
+            PolicyFeatureHandler *handler = it->second;
+            VP_PUBLIC_CHK_STATUS_RETURN(handler->UpdateFeaturePipe(caps, *swAiFilter, featurePipe, executedFilters, isInputPipe, executePipeIndex));
+            ++featureSelected;
+        }
+        else
+        {
+            SwFilterFeatureHandler *handler = m_vpInterface.GetSwFilterHandler(swAiFilter->GetFeatureType());
+            VP_PUBLIC_CHK_NULL_RETURN(handler);
+            SwFilter *swFilter = swAiFilter;
+            featurePipe.RemoveSwFilter(swFilter);
+            handler->Destory(swFilter);
         }
     }
 
@@ -3689,7 +3776,6 @@ MOS_STATUS Policy::SetupFilterResource(SwFilterPipe& featurePipe, std::vector<in
     {
         // If not assign output surface, intermedia surface will be assigned in AssignExecuteResource.
     }
-
     VP_PUBLIC_CHK_STATUS_RETURN(AssignExecuteResource(caps, params));
 
     SwFilterSubPipe *subPipe = nullptr;
@@ -4012,6 +4098,23 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
         }
     }
 
+    if (Type == EngineTypeNpu)
+    {
+        if (dynamic_cast<SwFilterAiBase *>(feature) != nullptr)
+        {
+            // For AI features, they have different kinds of feature types, but they all go through VpAiFilter through caps.bAiPath
+            if (feature->GetFilterEngineCaps().isolated)
+            {
+                caps.bAiPath = 1;
+                feature->SetFeatureType(FeatureType(featureType | FEATURE_TYPE_ENGINE_BITS_NPU));
+            }
+            else
+            {
+                VP_PUBLIC_ASSERTMESSAGE("AI Kernel must be isolated");
+            }
+        }
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -4297,9 +4400,18 @@ MOS_STATUS Policy::GetDnParamsOnCaps(PVP_SURFACE surfInput, PVP_SURFACE surfOutp
 
 void Policy::PrintFeatureExecutionCaps(const char *name, VP_EngineEntry &engineCaps)
 {
-    VP_PUBLIC_NORMALMESSAGE("%s, value 0x%x (bEnabled %d, VeboxNeeded %d, SfcNeeded %d, RenderNeeded %d, fcSupported %d, isolated %d, veboxNotSupported %d, sfcNotSupported %d)",
-        name, engineCaps.value, engineCaps.bEnabled, engineCaps.VeboxNeeded, engineCaps.SfcNeeded,
-        engineCaps.RenderNeeded, engineCaps.fcSupported, engineCaps.isolated, engineCaps.veboxNotSupported, engineCaps.sfcNotSupported);
+    VP_PUBLIC_NORMALMESSAGE("%s, value 0x%x (bEnabled %d, VeboxNeeded %d, SfcNeeded %d, RenderNeeded %d, fcSupported %d, isolated %d, veboxNotSupported %d, sfcNotSupported %d, NpuNeeded %d)",
+        name,
+        engineCaps.value,
+        engineCaps.bEnabled,
+        engineCaps.VeboxNeeded,
+        engineCaps.SfcNeeded,
+        engineCaps.RenderNeeded,
+        engineCaps.fcSupported,
+        engineCaps.isolated,
+        engineCaps.veboxNotSupported,
+        engineCaps.sfcNotSupported,
+        engineCaps.npuNeeded);
 }
 
 };

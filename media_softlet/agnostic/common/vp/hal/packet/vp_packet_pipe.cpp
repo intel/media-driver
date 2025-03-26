@@ -37,6 +37,7 @@ PacketFactory::~PacketFactory()
 {
     ClearPacketPool(m_VeboxPacketPool);
     ClearPacketPool(m_RenderPacketPool);
+    MOS_Delete(m_NpuPacket);
 }
 
 void PacketFactory::ClearPacketPool(std::vector<VpCmdPacket *> &pool)
@@ -51,8 +52,15 @@ void PacketFactory::ClearPacketPool(std::vector<VpCmdPacket *> &pool)
     }
 }
 
-MOS_STATUS PacketFactory::Initialize(MediaTask *pTask, PVP_MHWINTERFACE pHwInterface, PVpAllocator pAllocator, VPMediaMemComp *pMmc, VP_PACKET_SHARED_CONTEXT *packetSharedContext, VpKernelSet* vpKernels, 
-void *debugInterface)
+MOS_STATUS PacketFactory::Initialize(
+    MediaTask *pTask, 
+    PVP_MHWINTERFACE pHwInterface, 
+    PVpAllocator pAllocator, 
+    VPMediaMemComp *pMmc, 
+    VP_PACKET_SHARED_CONTEXT *packetSharedContext, 
+    VpKernelSet* vpKernels, 
+    void *debugInterface, 
+    VpGraphSet *vpGraphSets)
 {
     VP_FUNC_CALL();
 
@@ -62,6 +70,7 @@ void *debugInterface)
     m_pMmc = pMmc;
     m_packetSharedContext = packetSharedContext;
     m_kernelSet = vpKernels;
+    m_graphSet = vpGraphSets;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     m_debugInterface = static_cast<VpDebugInterface*>(debugInterface);
@@ -93,6 +102,12 @@ VpCmdPacket *PacketFactory::CreatePacket(EngineType type)
             return p;
         }
         return CreateRenderPacket();
+    case EngineTypeNpu:
+        if (m_NpuPacket == nullptr)
+        {
+            m_NpuPacket = CreateNpuPacket();
+        }
+        return m_NpuPacket;
     default:
         return nullptr;
     }
@@ -115,6 +130,9 @@ void PacketFactory::ReturnPacket(VpCmdPacket *&pPacket)
     case VP_PIPELINE_PACKET_RENDER:
     case VP_PIPELINE_PACKET_COMPUTE:
         m_RenderPacketPool.push_back(pPacket);
+        break;
+    case VP_PIPELINE_PACKET_NPU:
+        //npu packet doesn't have pool. Only one packet is being used and created
         break;
     default:
         break;
@@ -148,6 +166,27 @@ VpCmdPacket *PacketFactory::CreateRenderPacket()
         if (MOS_STATUS_SUCCESS != status)
         {
             VP_PUBLIC_ASSERTMESSAGE("Render CMD Packet Init Fail");
+        }
+
+        p->SetPacketSharedContext(m_packetSharedContext);
+    }
+    return p;
+}
+
+VpCmdPacket* PacketFactory::CreateNpuPacket()
+{
+    VP_FUNC_CALL();
+
+    VpCmdPacket *p = m_vpPlatformInterface ? m_vpPlatformInterface->CreateNpuPacket(m_pTask, m_pHwInterface, m_pAllocator, m_pMmc, m_graphSet) : nullptr;
+    if (p)
+    {
+        MOS_STATUS status = MOS_STATUS_SUCCESS;
+
+        status = p->Init();
+
+        if (MOS_STATUS_SUCCESS != status)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("NPU CMD Packet Init Fail");
         }
 
         p->SetPacketSharedContext(m_packetSharedContext);
@@ -217,6 +256,9 @@ MOS_STATUS PacketPipe::SetOutputPipeMode(EngineType engineType)
     case EngineTypeRender:
         m_outputPipeMode = VPHAL_OUTPUT_PIPE_MODE_COMP;
         break;
+    case EngineTypeNpu:
+        m_outputPipeMode = VPHAL_OUTPUT_PIPE_MODE_NPU;
+        break;
     default:
         m_outputPipeMode = VPHAL_OUTPUT_PIPE_MODE_INVALID;
         VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
@@ -225,7 +267,7 @@ MOS_STATUS PacketPipe::SetOutputPipeMode(EngineType engineType)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS PacketPipe::SwitchContext(PacketType type, MediaScalability *&scalability, MediaContext *mediaContext, bool bEnableVirtualEngine, uint8_t numVebox)
+MOS_STATUS PacketPipe::SwitchContext(PacketType type, MediaScalability *&scalability, MediaContext *mediaContext, bool bEnableVirtualEngine, uint8_t numVebox, uint64_t gpuCtxOnHybridCmd)
 {
     VP_FUNC_CALL();
 
@@ -253,8 +295,13 @@ MOS_STATUS PacketPipe::SwitchContext(PacketType type, MediaScalability *&scalabi
     case VP_PIPELINE_PACKET_COMPUTE:
         {
             VP_PUBLIC_NORMALMESSAGE("Switch to Compute Context");
-            VP_PUBLIC_CHK_STATUS_RETURN(mediaContext->SwitchContext(ComputeVppFunc, &scalPars, &scalability));
+            VP_PUBLIC_CHK_STATUS_RETURN(mediaContext->SwitchContext(ComputeVppFunc, &scalPars, &scalability, gpuCtxOnHybridCmd));
             VP_PUBLIC_CHK_NULL_RETURN(scalability);
+            break;
+        }
+    case VP_PIPELINE_PACKET_NPU: 
+        {
+            VP_PUBLIC_NORMALMESSAGE("Switch to NPU Context");
             break;
         }
     default:
@@ -263,7 +310,7 @@ MOS_STATUS PacketPipe::SwitchContext(PacketType type, MediaScalability *&scalabi
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS PacketPipe::Execute(MediaStatusReport *statusReport, MediaScalability *&scalability, MediaContext *mediaContext, bool bEnableVirtualEngine, uint8_t numVebox)
+MOS_STATUS PacketPipe::Execute(MediaStatusReport *statusReport, MediaScalability *&scalability, MediaContext *mediaContext, bool bEnableVirtualEngine, uint8_t numVebox, uint64_t gpuCtxOnHybridCmd)
 {
     VP_FUNC_CALL();
 
@@ -298,7 +345,7 @@ MOS_STATUS PacketPipe::Execute(MediaStatusReport *statusReport, MediaScalability
         MediaTask *pTask = pPacket->GetActiveTask();
         VP_PUBLIC_CHK_NULL_RETURN(pTask);
 
-        VP_PUBLIC_CHK_STATUS_RETURN(SwitchContext(pPacket->GetPacketId(), scalability, mediaContext, bEnableVirtualEngine, numVebox));
+        VP_PUBLIC_CHK_STATUS_RETURN(SwitchContext(pPacket->GetPacketId(), scalability, mediaContext, bEnableVirtualEngine, numVebox, gpuCtxOnHybridCmd));
         VP_PUBLIC_CHK_NULL_RETURN(scalability);
         pPacket->SetMediaScalability(scalability);
 
@@ -306,7 +353,8 @@ MOS_STATUS PacketPipe::Execute(MediaStatusReport *statusReport, MediaScalability
         if (prop.immediateSubmit)
         {
             VP_PUBLIC_NORMALMESSAGE("Execute Packet %p.", pPacket);
-            VP_PUBLIC_CHK_STATUS_RETURN(pTask->Submit(true, scalability, nullptr));
+
+            VP_PUBLIC_CHK_STATUS_RETURN(pTask->Submit(true, scalability, nullptr, pPacket->IsLevelzeroRuntimeInUse()));
         }
 
 #if USE_MEDIA_DEBUG_TOOL

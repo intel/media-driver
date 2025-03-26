@@ -27,6 +27,8 @@
 #ifndef __VP_AI_FILTER_H__
 #define __VP_AI_FILTER_H__
 #include "vp_filter.h"
+#include "vp_graph_manager.h"
+#include "vp_npu_cmd_packet.h"
 
 namespace vp
 {
@@ -51,29 +53,35 @@ public:
         SwFilterPipe   *executingPipe,
         VP_EXECUTE_CAPS vpExecuteCaps);
 
-    MOS_STATUS        CalculateEngineParams();
+    MOS_STATUS        CalculateEngineParams(VpGraphManager *graphManager = nullptr);
     PRENDER_AI_PARAMS GetAiParams()
     {
         return m_renderAiParams;
     };
+    NPU_PACKET_PARAM &GetNpuParams()
+    {
+        return m_npuAiParams;
+    }
 
 private:
     using FEATURE_AI_KERNEL_ARG_MAP = std::map<FeatureType, MULTI_LAYERS_KERNEL_INDEX_ARG_MAP>;
-    using SW_PIPE_AI_KRN_ARG = std::vector<FEATURE_AI_KERNEL_ARG_MAP>;
 
     MOS_STATUS InitKrnParams(AI_KERNEL_PARAMS &krnParams, SwFilterPipe &executingPipe);
+    MOS_STATUS InitNpuParams(NPU_PACKET_PARAM &npuParams, SwFilterPipe &executingPipe, VpGraphManager *graphManager);
 
 protected:
-    SwFilterPipe      *m_executingPipe    = nullptr;
-    PRENDER_AI_PARAMS  m_renderAiParams   = nullptr;
-    SW_PIPE_AI_KRN_ARG m_swFiltersKrnArgs = {};
+    SwFilterPipe             *m_executingPipe      = nullptr;
+    PRENDER_AI_PARAMS         m_renderAiParams     = nullptr;
+    NPU_PACKET_PARAM          m_npuAiParams        = {};
+    FEATURE_AI_KERNEL_ARG_MAP m_featureAiKrnArgMap = {};
 
 MEDIA_CLASS_DEFINE_END(vp__VpAiFilter)
 };
 
 struct HW_FILTER_AI_PARAM : public HW_FILTER_PARAM
 {
-    SwFilterPipe *executingPipe;
+    SwFilterPipe   *executingPipe = nullptr;
+    VpGraphManager *graphManager  = nullptr;
 };
 
 class HwFilterAiParameter : public HwFilterParameter
@@ -109,28 +117,53 @@ private:
 MEDIA_CLASS_DEFINE_END(vp__VpRenderAiParameter)
 };
 
+class VpNpuAiParameter : public VpPacketParameter
+{
+public:
+    static VpPacketParameter *Create(HW_FILTER_AI_PARAM &param);
+    VpNpuAiParameter(PVP_MHWINTERFACE pHwInterface, PacketParamFactoryBase *packetParamFactory);
+    virtual ~VpNpuAiParameter();
+
+    virtual bool SetPacketParam(VpCmdPacket *pPacket);
+
+private:
+    MOS_STATUS Initialize(HW_FILTER_AI_PARAM &params);
+
+    VpAiFilter m_filter;
+
+MEDIA_CLASS_DEFINE_END(vp__VpNpuAiParameter)
+};
+
 class PolicyAiHandler : public PolicyFeatureHandler
 {
 public:
-    PolicyAiHandler(VP_HW_CAPS &hwCaps);
+    PolicyAiHandler(VP_HW_CAPS &hwCaps, VpGraphManager *graphManager);
     virtual ~PolicyAiHandler();
     virtual HwFilterParameter *CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface) override;
     virtual bool               IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps) override;
     virtual MOS_STATUS         UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index) override;
     static VpPacketParameter  *CreatePacketParam(HW_FILTER_PARAM &param)
     {
-        if (param.type != FeatureTypeAiOnRender)
+        if (param.type != FeatureTypeAi)
         {
             return nullptr;
         }
 
         HW_FILTER_AI_PARAM *aiParam = (HW_FILTER_AI_PARAM *)(&param);
-        return VpRenderAiParameter::Create(*aiParam);
+        if (param.vpExecuteCaps.bNpu)
+        {
+            return VpNpuAiParameter::Create(*aiParam);
+        }
+        else
+        {
+            return VpRenderAiParameter::Create(*aiParam);
+        }
     }
 
 private:
-
-    PacketParamFactory<VpRenderAiParameter> m_PacketParamFactory;
+    VpGraphManager                         *m_graphManager = nullptr;
+    PacketParamFactory<VpRenderAiParameter> m_renderPacketParamFactory;
+    PacketParamFactory<VpNpuAiParameter>    m_npuPacketParamFactory;
 
 MEDIA_CLASS_DEFINE_END(vp__PolicyAiHandler)
 };

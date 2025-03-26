@@ -33,6 +33,7 @@
 #include "vp_kernel_config.h"
 #include "media_copy.h"
 #include "vp_frametracker.h"
+#include "vp_npu_cmd_packet.h"
 
 namespace vp
 {
@@ -239,6 +240,10 @@ public:
     {
         return nullptr;
     }
+    virtual VpCmdPacket* CreateNpuPacket(MediaTask* task, _VP_MHWINTERFACE* hwInterface, VpAllocator*& allocator, VPMediaMemComp* mmc, VpGraphSet* graph)
+    {
+        return nullptr;
+    }
 
     virtual MediaCopyBaseState* CreateMediaCopy()
     {
@@ -253,6 +258,11 @@ public:
     KERNEL_POOL& GetKernelPool()
     {
         return m_kernelPool;
+    }
+
+    GRAPH_POOL& GetGraphPool()
+    {
+        return m_graphPool;
     }
 
     PMOS_INTERFACE &GetOsInterface()
@@ -465,6 +475,7 @@ protected:
     VP_KERNEL_BINARY m_vpKernelBinary = {};                 //!< vp kernels
     VpKernelConfig  *m_vpKernelConfig = nullptr;
     KERNEL_POOL    m_kernelPool;
+    GRAPH_POOL       m_graphPool;
     void (*m_modifyKdllFunctionPointers)(PKdll_State) = nullptr;
     bool m_sfc2PassScalingEnabled = false;
     bool m_sfc2PassScalingPerfMode = false;

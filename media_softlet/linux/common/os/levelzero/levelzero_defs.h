@@ -19,32 +19,24 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
-//!
-//! \file     vp_ai_kernel_pipe.cpp
-//! \brief    Defines the common interface for ai
-//!           this file is for the base interface which is shared by all ai filter in driver.
-//!
+#ifndef __LEVELZERO_DEFS_H__
+#define __LEVELZERO_DEFS_H__
 
-#include "vp_ai_kernel_pipe.h"
+using ze_command_list_handle_t = void*;
+using ze_fence_handle_t = void*;
+using ze_result_t = int;
+using ze_driver_handle_t = void*;
+using ze_device_handle_t = void*;
+using ze_context_handle_t = void*;
+using ze_command_queue_handle_t = void*;
 
-using namespace vp;
-
-void AI_SINGLE_GPU_LAYER_SETTING::Init()
+using ze_graph_handle_t = void *;
+struct ze_graph_dditable_ext_t
 {
-    engine                           = FEATURE_AI_ENGINE::GPU;
-    kernelName                       = "";
-    groupWidth                       = 0;
-    groupHeight                      = 0;
-    localWidth                       = 0;
-    localHeight                      = 0;
-    pfnSetStatefulSurface            = nullptr;
-    pfnSetKernelArg                  = nullptr;
-    pfnGetIntermediateSurfaceSetting = nullptr;
-}
+};
 
-void AI_SINGLE_NPU_GRAPH_SETTING::Init()
+struct ZE_LOADER_FUNCTIONS
 {
-    engine                           = FEATURE_AI_ENGINE::NPU;
-    id                               = VP_GRAPH_ID_INVALID;
-    pfnGetIntermediateSurfaceSetting = nullptr;
-}
+};
+
+#endif

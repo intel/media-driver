@@ -148,6 +148,13 @@ VpCmdPacket *VpPlatformInterfacsXe2_Lpm::CreateRenderPacket(MediaTask *task, _VP
     return MOS_New(VpRenderCmdPacket, task, hwInterface, allocator, mmc, kernel);
 }
 
+VpCmdPacket *VpPlatformInterfacsXe2_Lpm::CreateNpuPacket(MediaTask *task, _VP_MHWINTERFACE *hwInterface, VpAllocator *&allocator, VPMediaMemComp *mmc, VpGraphSet *graph)
+{
+    VP_FUNC_CALL();
+
+    return MOS_New(VpNpuCmdPacket, task, hwInterface, allocator, mmc);
+}
+
 MOS_STATUS VpPlatformInterfacsXe2_Lpm::CreateSfcRender(SfcRenderBase *&sfcRender, VP_MHWINTERFACE &vpMhwinterface, PVpAllocator allocator)
 {
     VP_FUNC_CALL();

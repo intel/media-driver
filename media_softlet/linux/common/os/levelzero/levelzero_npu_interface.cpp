@@ -20,31 +20,36 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     vp_ai_kernel_pipe.cpp
-//! \brief    Defines the common interface for ai
-//!           this file is for the base interface which is shared by all ai filter in driver.
+//! \file     levelzero_interface.cpp
+//! \brief    MOS interface implementation
 //!
 
-#include "vp_ai_kernel_pipe.h"
+#include "levelzero_npu_interface.h"
 
-using namespace vp;
-
-void AI_SINGLE_GPU_LAYER_SETTING::Init()
+L0NpuInterface::L0NpuInterface(PMOS_INTERFACE osInterface) : L0Interface(osInterface)
 {
-    engine                           = FEATURE_AI_ENGINE::GPU;
-    kernelName                       = "";
-    groupWidth                       = 0;
-    groupHeight                      = 0;
-    localWidth                       = 0;
-    localHeight                      = 0;
-    pfnSetStatefulSurface            = nullptr;
-    pfnSetKernelArg                  = nullptr;
-    pfnGetIntermediateSurfaceSetting = nullptr;
 }
 
-void AI_SINGLE_NPU_GRAPH_SETTING::Init()
+L0NpuInterface ::~L0NpuInterface()
 {
-    engine                           = FEATURE_AI_ENGINE::NPU;
-    id                               = VP_GRAPH_ID_INVALID;
-    pfnGetIntermediateSurfaceSetting = nullptr;
+}
+
+MOS_STATUS L0NpuInterface::GetDriver()
+{
+    return MOS_STATUS_UNIMPLEMENTED;
+}
+
+MOS_STATUS L0NpuInterface::BuildGraph(L0NpuInterface *npuInterface, uint8_t *blob, uint32_t size, ze_graph_handle_t &graph)
+{
+    return MOS_STATUS_UNIMPLEMENTED;
+}
+
+MOS_STATUS L0NpuInterface::DestroyGraph(L0NpuInterface *npuInterface, ze_graph_handle_t &graph)
+{
+    return MOS_STATUS_UNIMPLEMENTED;
+}
+
+MOS_STATUS L0NpuInterface::AppendGraph(L0NpuInterface *npuInterface, ze_command_list_handle_t &cmdList, ze_graph_handle_t &graph, std::vector<void *> &args)
+{
+    return MOS_STATUS_UNIMPLEMENTED;
 }

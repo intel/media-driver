@@ -29,13 +29,32 @@
 
 using namespace vp;
 
-VpRenderAiKernel::VpRenderAiKernel(PVP_MHWINTERFACE hwInterface, std::string kernelName, uint32_t kernelIndex, PVpAllocator allocator) : VpRenderKernelObj(hwInterface, kernelAiCommon, kernelIndex, kernelName, allocator)
+std::map<std::string, VpKernelID> VpRenderAiKernel::m_kernelBiniaryIdMap;
+VpKernelID                        VpRenderAiKernel::m_currentBiniaryID = VpKernelID(kernelAiCommon);
+
+VpRenderAiKernel::VpRenderAiKernel(PVP_MHWINTERFACE hwInterface, std::string kernelName, uint32_t kernelIndex, PVpAllocator allocator) : VpRenderKernelObj(hwInterface, VpKernelID(kernelAiCommon), kernelIndex, kernelName, allocator)
 {
     m_renderHal                  = hwInterface ? hwInterface->m_renderHal : nullptr;
     m_kernelIndex                = kernelIndex;
     m_isAdvKernel                = true;
     m_useIndependentSamplerGroup = true;
-    m_kernelBinaryID             = VP_ADV_KERNEL_BINARY_ID(kernelAiCommon);
+
+    VpKernelID kernelBinaryID = VpKernelID(kernelAiCommon);
+    auto handle = m_kernelBiniaryIdMap.find(kernelName);
+    if (m_kernelBiniaryIdMap.find(kernelName) == m_kernelBiniaryIdMap.end())
+    {
+        handle = m_kernelBiniaryIdMap.insert(std::make_pair(kernelName, m_currentBiniaryID)).first;
+        m_currentBiniaryID = VpKernelID(m_currentBiniaryID + 1);
+    }
+    if (handle == m_kernelBiniaryIdMap.end())
+    {
+        VP_PUBLIC_ASSERTMESSAGE("m_kernelBiniaryIdMap insert failure, this may cause kernel instruction wrong");
+    }
+    else
+    {
+        kernelBinaryID = handle->second;
+    }
+    m_kernelBinaryID = VP_ADV_KERNEL_BINARY_ID(kernelBinaryID);
 }
 
 VpRenderAiKernel::~VpRenderAiKernel()

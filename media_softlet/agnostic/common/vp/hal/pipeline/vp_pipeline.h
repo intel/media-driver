@@ -41,6 +41,8 @@
 #include "vp_packet_shared_context.h"
 #include "vp_kernelset.h"
 #include "vp_packet_reuse_manager.h"
+#include "vp_graphset.h"
+#include "vp_graph_manager.h"
 
 namespace vp
 {
@@ -328,12 +330,26 @@ protected:
 
     virtual MOS_STATUS CreateSinglePipeContext();
 
-//!
-//! \brief  create media kernel sets
-//! \return MOS_STATUS
-//!         MOS_STATUS_SUCCESS if success, else fail reason
-//!
+    //!
+    //! \brief  create media kernel sets
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
     virtual MOS_STATUS CreateVpKernelSets();
+
+    //!
+    //! \brief  create media graph sets
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS CreateVpGraphSets();
+
+    //!
+    //! \brief  create media graph manager
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS CreateVpGraphManager();
 
     virtual MOS_STATUS CheckFeatures(void *params, bool &bapgFuncSupported);
 
@@ -468,6 +484,8 @@ protected:
     VPFeatureManager      *m_paramChecker           = nullptr;
     VP_PACKET_SHARED_CONTEXT *m_packetSharedContext = nullptr;
     VpInterface           *m_vpInterface            = nullptr;
+    VpGraphSet            *m_graphSet               = nullptr;
+    VpGraphManager        *m_graphManager           = nullptr;
 #if (_DEBUG || _RELEASE_INTERNAL)
     VPHAL_SURFACE         *m_tempTargetSurface      = nullptr;
 #endif
@@ -493,14 +511,14 @@ public:
     VpSinglePipeContext();
     virtual ~VpSinglePipeContext();
 
-    virtual MOS_STATUS Init(PMOS_INTERFACE osInterface, VpAllocator *allocator, VphalFeatureReport *reporting, vp::VpPlatformInterface *vpPlatformInterface, PacketPipeFactory *packetPipeFactory, VpUserFeatureControl *userFeatureControl, MediaCopyWrapper *mediaCopyWrapper);
+    virtual MOS_STATUS Init(PMOS_INTERFACE osInterface, VpAllocator *allocator, VphalFeatureReport *reporting, vp::VpPlatformInterface *vpPlatformInterface, PacketPipeFactory *packetPipeFactory, VpUserFeatureControl *userFeatureControl, MediaCopyWrapper *mediaCopyWrapper, VpGraphManager *graphManager);
 
     //!
     //! \brief  create reource manager
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS CreateResourceManager(PMOS_INTERFACE osInterface, VpAllocator *allocator, VphalFeatureReport *reporting, vp::VpPlatformInterface *vpPlatformInterface, vp::VpUserFeatureControl *userFeatureControl, MediaCopyWrapper *mediaCopyWrapper);
+    virtual MOS_STATUS CreateResourceManager(PMOS_INTERFACE osInterface, VpAllocator *allocator, VphalFeatureReport *reporting, vp::VpPlatformInterface *vpPlatformInterface, vp::VpUserFeatureControl *userFeatureControl, MediaCopyWrapper *mediaCopyWrapper, VpGraphManager *graphManager);
 
     virtual MOS_STATUS CreatePacketReuseManager(PacketPipeFactory *pPacketPipeFactory, VpUserFeatureControl *userFeatureControl);
 
@@ -579,14 +597,15 @@ protected:
 class VpInterface
 {
 public:
-    VpInterface(PVP_MHWINTERFACE pHwInterface, VpAllocator& allocator, VpResourceManager* resourceManager) :
+    VpInterface(PVP_MHWINTERFACE pHwInterface, VpAllocator &allocator, VpResourceManager *resourceManager, VpGraphManager *graphManager) :
         m_swFilterPipeFactory(*this),
         m_hwFilterPipeFactory(*this),
         m_hwFilterFactory(*this),
         m_hwInterface(pHwInterface),
         m_allocator(allocator),
         m_resourceManager(resourceManager),
-        m_swFilterHandler(nullptr) // setting when create feature manager
+        m_swFilterHandler(nullptr), // setting when create feature manager
+        m_graphManager(graphManager)
     {
     }
 
@@ -655,6 +674,11 @@ public:
         return m_hwInterface;
     }
 
+    VpGraphManager* GetGraphManager()
+    {
+        return m_graphManager;
+    }
+
     MOS_STATUS SwitchResourceManager(VpResourceManager *resManager)
     {
         m_resourceManager = resManager;
@@ -670,6 +694,7 @@ private:
     VpAllocator& m_allocator;
     VpResourceManager* m_resourceManager;
     std::map<FeatureType, SwFilterFeatureHandler*>* m_swFilterHandler = nullptr;
+    VpGraphManager                                  *m_graphManager    = nullptr;
 
 MEDIA_CLASS_DEFINE_END(vp__VpInterface)
 };

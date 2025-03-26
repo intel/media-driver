@@ -1967,6 +1967,56 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     static MOS_STATUS GetAdapterBDF(PMOS_CONTEXT mosCtx, ADAPTER_BDF *adapterBDF);
+    
+    //!
+    //! \brief    Set Hybrid Cmd To GpuContext
+    //! \details  Set Hybrid Cmd To GpuContext
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] ptr to pOsInterface
+    //! \param    uint64_t gpuCtxOnHybridCmd
+    //!           gpuCtxOnHybridCmd
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS
+    //!
+    static MOS_STATUS SetHybridCmdMgrToGpuContext(
+        PMOS_INTERFACE pOsInterface,
+        uint64_t       gpuCtxOnHybridCmd);
+
+    //!
+    //! \brief    Start the Cmd Consumer
+    //! \details  Start the Cmd Consumer
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] ptr to pOsInterface
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS
+    //!
+    static MOS_STATUS StartHybridCmdMgr(
+        PMOS_INTERFACE pOsInterface);
+
+    //!
+    //! \brief    Stop the Cmd Consumer
+    //! \details  Stop the Cmd Consumer
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] ptr to pOsInterface
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS
+    //!
+    static MOS_STATUS StopHybridCmdMgr(
+        PMOS_INTERFACE pOsInterface);
+
+    //!
+    //! \brief    Submit Cmd Package to Cmd Consumer
+    //! \details  Submit Cmd Package to Cmd Consumer
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] ptr to pOsInterface
+    //! \param    CmdPackage& cmdPackage
+    //!           [in] reference to cmdPackage
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS
+    //!
+    static MOS_STATUS SubmitPackage(
+        PMOS_INTERFACE pOsInterface,
+        CmdPackage    &cmdPackage);
 
 #if _DEBUG || _RELEASE_INTERNAL
     //!

@@ -2118,7 +2118,7 @@ MOS_STATUS VpRenderCmdPacket::SetAiParams(PRENDER_AI_PARAMS params)
     KERNEL_PARAMS kernelParam = {};
     for (auto &krnParams : params->ai_kernelParams)
     {
-        kernelParam.kernelId                       = kernelAiCommon;
+        kernelParam.kernelId                       = VpKernelID(kernelAiCommon);
         kernelParam.kernelArgs                     = krnParams.kernelArgs;
         kernelParam.kernelThreadSpace.uWidth       = krnParams.threadWidth;
         kernelParam.kernelThreadSpace.uHeight      = krnParams.threadHeight;
@@ -2131,7 +2131,7 @@ MOS_STATUS VpRenderCmdPacket::SetAiParams(PRENDER_AI_PARAMS params)
         m_renderKernelParams.push_back(kernelParam);
     }
 
-    m_kernelConfigs.insert(std::make_pair(kernelAiCommon, (void *)(&params->ai_kernelConfig)));
+    m_kernelConfigs.insert(std::make_pair(VpKernelID(kernelAiCommon), (void *)(&params->ai_kernelConfig)));
     m_submissionMode            = MULTI_KERNELS_SINGLE_MEDIA_STATE;
     m_isMultiBindingTables      = true;
     m_isLargeSurfaceStateNeeded = true;

@@ -89,7 +89,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SwitchContext(MediaFunction func, ContextRequirement *requirement, MediaScalability **scalabilityState);
+    MOS_STATUS SwitchContext(MediaFunction func, ContextRequirement *requirement, MediaScalability **scalabilityState, uint64_t gpuCtxOnHybridCmd = 0);
 
     //!
     //! \brief  Interface to pipeline to switch media context and get corresponding scalabilityState for programming
@@ -107,8 +107,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SwitchContext(MediaFunction func, MediaScalabilityOption &scalabilityOption, MediaScalability **scalabilityState,
-                             bool isEnc = false, bool isPak = false);
+    MOS_STATUS SwitchContext(MediaFunction func, MediaScalabilityOption &scalabilityOption, MediaScalability **scalabilityState, bool isEnc = false, bool isPak = false);
 
     //!
     //! \brief  Check if in current media context render engine is used

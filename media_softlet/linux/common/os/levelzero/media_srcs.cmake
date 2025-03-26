@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2020, Intel Corporation
+# Copyright (c) 2025, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -19,21 +19,27 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 set(TMP_SOURCES_
-    ${TMP_SOURCES_}
-    ${CMAKE_CURRENT_LIST_DIR}/media_cmd_packet.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_render_cmd_packet.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/media_packet_next.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/npu_cmd_packet.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/levelzero_interface.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/levelzero_npu_interface.cpp
 )
 
 set(TMP_HEADERS_
-    ${TMP_HEADERS_}
-    ${CMAKE_CURRENT_LIST_DIR}/media_cmd_packet.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_render_cmd_packet.h
-    ${CMAKE_CURRENT_LIST_DIR}/media_packet.h
-    ${CMAKE_CURRENT_LIST_DIR}/npu_cmd_packet.h
+    ${CMAKE_CURRENT_LIST_DIR}/levelzero_defs.h
 )
-set(SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_
-    ${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_}
+
+set(SOFTLET_MOS_COMMON_SOURCES_
+    ${SOFTLET_MOS_COMMON_SOURCES_}
+    ${TMP_SOURCES_}
+ )
+
+set(SOFTLET_MOS_COMMON_HEADERS_
+    ${SOFTLET_MOS_COMMON_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(SOFTLET_MOS_PUBLIC_INCLUDE_DIRS_
+    ${SOFTLET_MOS_PUBLIC_INCLUDE_DIRS_}
     ${CMAKE_CURRENT_LIST_DIR}
 )
+
+source_group( "mos_softlet" FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )

@@ -247,6 +247,11 @@ public:
         m_isExePipe = isExePipe;
     }
 
+    uint64_t GetGpuCtxOnHybridCmd()
+    {
+        return m_gpuCtxOnHybridCmd;
+    }
+
 protected:
     MOS_STATUS CleanFeaturesFromPipe(bool isInputPipe, uint32_t index);
     MOS_STATUS CleanFeaturesFromPipe(bool isInputPipe);
@@ -271,6 +276,7 @@ protected:
     SwFilterPipeType                    m_swFilterPipeType = SwFilterPipeTypeInvalid;
     bool                                m_processedSecurePrepared = false;
     bool                                m_isExePipe = false;
+    uint64_t                            m_gpuCtxOnHybridCmd = 0;
 
 MEDIA_CLASS_DEFINE_END(vp__SwFilterPipe)
 };

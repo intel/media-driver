@@ -23,6 +23,7 @@ media_include_subdirectory(user_setting)
 if(NOT CMAKE_WDDM_LINUX)
 
 media_include_subdirectory(i915)
+media_include_subdirectory(levelzero)
 
 if(ENABLE_XE_KMD)
     media_include_subdirectory(xe)
