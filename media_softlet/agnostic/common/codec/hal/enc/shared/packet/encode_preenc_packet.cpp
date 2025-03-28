@@ -711,7 +711,7 @@ namespace encode
     {
         ENCODE_FUNC_CALL();
 
-        ENCODE_CHK_STATUS_RETURN(m_miItf->SetWatchdogTimerThreshold(m_basicFeature->m_frameWidth, m_basicFeature->m_frameHeight, true));
+        ENCODE_CHK_STATUS_RETURN(m_miItf->SetWatchdogTimerThreshold((uint32_t)m_basicFeature->m_rawSurfaceToEnc->dwWidth, (uint32_t)m_basicFeature->m_rawSurfaceToEnc->dwHeight, true));
 
         SetPerfTag(CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE, (uint16_t)m_basicFeature->m_mode, m_basicFeature->GetPictureCodingType());
 
