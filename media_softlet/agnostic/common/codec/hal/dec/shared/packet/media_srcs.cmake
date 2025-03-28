@@ -27,6 +27,7 @@ set(SOFTLET_DECODE_COMMON_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decode_huc.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_huc_copy_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_aqm_packet.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_aqm_packet.cpp
 )
 
 set(SOFTLET_DECODE_COMMON_HEADERS_
@@ -40,6 +41,7 @@ set(SOFTLET_DECODE_COMMON_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_huc.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_huc_copy_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_aqm_packet.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_aqm_packet.h
 )
 
 

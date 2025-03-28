@@ -190,7 +190,7 @@ namespace decode
             DECODE_CHK_STATUS(VdPipelineFlush(cmdBuffer));
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-            if (m_aqmPkt && m_aqmPkt->m_downSampling->m_aqmHistogramEnable && m_isLastTileInPartialFrm)
+            if (m_aqmPkt && m_isLastTileInPartialFrm)
             {
                 m_aqmPkt->Flush(cmdBuffer);
             }

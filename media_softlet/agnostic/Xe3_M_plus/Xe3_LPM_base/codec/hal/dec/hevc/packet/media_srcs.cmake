@@ -29,6 +29,7 @@ set(SOFTLET_DECODE_HEVC_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_front_end_xe3_lpm_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_long_xe3_lpm_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_real_tile_xe3_lpm_base.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_aqm_packet_xe3_lpm_base.cpp
 )
 
 set(SOFTLET_DECODE_HEVC_HEADERS_
@@ -41,6 +42,7 @@ set(SOFTLET_DECODE_HEVC_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_front_end_xe3_lpm_base.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_long_xe3_lpm_base.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_packet_real_tile_xe3_lpm_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_aqm_packet_xe3_lpm_base.h
 )
 
 source_group( CodecHalNext\\Xe2_LPM_base\\Decode FILES ${SOFTLET_DECODE_HEVC_SOURCES_} ${SOFTLET_DECODE_HEVC_HEADERS_})

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -209,6 +209,13 @@ MHW_SETPAR_DECL_SRC(HCP_PIC_STATE, HevcDecodePicPktXe3_Lpm_Base)
     params.pHevcExtPicParams                       = m_hevcRextPicParams;
     params.pHevcSccPicParams                       = m_hevcSccPicParams;
     params.ibcMotionCompensationBufferReferenceIdc = m_hevcBasicFeature->m_refFrames.m_IBCRefIdx;
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    if (m_downSamplingFeature && m_downSamplingFeature->IsVDAQMHistogramEnabled())
+    {
+        params.vdaqmEnable = true;
+    }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }

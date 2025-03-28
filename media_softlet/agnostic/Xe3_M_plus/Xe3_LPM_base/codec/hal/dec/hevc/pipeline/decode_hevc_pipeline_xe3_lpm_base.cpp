@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2023, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,7 @@
 #include "decode_utils.h"
 #include "decode_common_feature_defs.h"
 #include "decode_hevc_mem_compression_xe3_lpm_base.h"
+#include "decode_hevc_aqm_packet_xe3_lpm_base.h"
 
 namespace decode {
 
@@ -98,7 +99,7 @@ MOS_STATUS HevcPipelineXe3_Lpm_Base::InitScalabOption(HevcBasicFeature &basicFea
 #ifdef _DECODE_PROCESSING_SUPPORTED
     DecodeDownSamplingFeature* downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature*>(
         m_featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
-    if (downSamplingFeature != nullptr && downSamplingFeature->IsEnabled())
+    if (downSamplingFeature != nullptr && downSamplingFeature->IsEnabled() && !downSamplingFeature->IsVDAQMHistogramEnabled())
     {
         scalPars.usingSfc = true;
         if (!MEDIA_IS_SKU(m_skuTable, FtrSfcScalability))
@@ -441,6 +442,13 @@ MOS_STATUS HevcPipelineXe3_Lpm_Base::CreateSubPackets(DecodeSubPacketManager& su
     DECODE_CHK_NULL(tileDecodePkt);
     DECODE_CHK_STATUS(subPacketManager.Register(
                         DecodePacketId(this, hevcTileSubPacketId), *tileDecodePkt));
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    HevcDecodeAqmPktXe3LpmBase *aqmDecodePkt = MOS_New(HevcDecodeAqmPktXe3LpmBase, this, m_hwInterface);
+    DECODE_CHK_NULL(aqmDecodePkt);
+    DECODE_CHK_STATUS(subPacketManager.Register(
+        DecodePacketId(this, hevcDecodeAqmId), *aqmDecodePkt));
+#endif
 
     return MOS_STATUS_SUCCESS;
 }

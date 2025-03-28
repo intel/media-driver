@@ -545,15 +545,20 @@ MOS_STATUS DecodePipeline::DumpOutput(const DecodeStatusReportData& reportData)
             }
         }
 
-    }
-    if (reportData.currHistogramOutBuf != nullptr &&
-        !Mos_ResourceIsNull(reportData.currHistogramOutBuf))
-    {
-        DECODE_CHK_STATUS(m_debugInterface->DumpBuffer(
-            reportData.currHistogramOutBuf,
-            CodechalDbgAttr::attrSfcHistogram,
-            "_DEC",
-            HISTOGRAM_BINCOUNT * downSamplingFeature->m_histogramBinWidth));
+        if (reportData.currHistogramOutBuf != nullptr &&
+            !Mos_ResourceIsNull(reportData.currHistogramOutBuf))
+        {
+            DECODE_CHK_STATUS(m_debugInterface->DumpBuffer(
+                reportData.currHistogramOutBuf,
+                downSamplingFeature->IsVDAQMHistogramEnabled() ? CodechalDbgAttr::attrAqmHistogram : CodechalDbgAttr::attrSfcHistogram,
+                "_DEC",
+                HISTOGRAM_BINCOUNT * downSamplingFeature->m_histogramBinWidth));
+        }
+
+        if (downSamplingFeature->IsVDAQMHistogramEnabled())
+        {
+            downSamplingFeature->DumpSfcOutputs(m_debugInterface);
+        }
     }
 
 #endif

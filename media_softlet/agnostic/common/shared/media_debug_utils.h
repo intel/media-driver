@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -113,6 +113,7 @@ static const char *attrInitSWScoreboard       = "InitSWScoreboard";
 static const char *attrSfcHistogram           = "SfcHistogram";
 static const char *attrFilmGrain              = "FilmGrain";
 static const char *attrQualityReport          = "QualityReport";
+static const char *attrAqmHistogram           = "AqmHistogram";
 
 static const char *attrAlfData                = "AlfData";
 static const char *attrLmcsData               = "LmcsData";

@@ -20,10 +20,10 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_av1_aqm_packet.cpp
-//! \brief    Defines the interface for av1 decode picture packet
+//! \file     decode_hevc_aqm_packet.cpp
+//! \brief    Defines the interface for hevc decode picture packet
 //!
-#include "decode_av1_aqm_packet.h"
+#include "decode_hevc_aqm_packet.h"
 #include "codechal_debug.h"
 #include "decode_common_feature_defs.h"
 
@@ -31,45 +31,45 @@
 
 namespace decode
 {
-    Av1DecodeAqmPkt::~Av1DecodeAqmPkt()
+    HevcDecodeAqmPkt::~HevcDecodeAqmPkt()
     {
     }
-    MOS_STATUS Av1DecodeAqmPkt::Init()
+    MOS_STATUS HevcDecodeAqmPkt::Init()
     {
         DECODE_FUNC_CALL();
 
         DECODE_CHK_NULL(m_featureManager);
         DECODE_CHK_NULL(m_hwInterface);
         DECODE_CHK_NULL(m_osInterface);
-        DECODE_CHK_NULL(m_av1Pipeline);
+        DECODE_CHK_NULL(m_hevcPipeline);
 
-        m_av1BasicFeature = dynamic_cast<Av1BasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
-        DECODE_CHK_NULL(m_av1BasicFeature);
+        m_hevcBasicFeature = dynamic_cast<HevcBasicFeature*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+        DECODE_CHK_NULL(m_hevcBasicFeature);
 
         m_allocator = m_pipeline->GetDecodeAllocator();
         DECODE_CHK_NULL(m_allocator);
 
-        MediaFeatureManager *featureManager = m_pipeline->GetFeatureManager();
+        MediaFeatureManager* featureManager = m_pipeline->GetFeatureManager();
         DECODE_CHK_NULL(featureManager);
 
-        m_downSampling = dynamic_cast<DecodeDownSamplingFeature *>(
+        m_downSampling = dynamic_cast<DecodeDownSamplingFeature*>(
             featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
         DECODE_CHK_NULL(m_downSampling);
 
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodeAqmPkt::Prepare()
+    MOS_STATUS HevcDecodeAqmPkt::Prepare()
     {
         DECODE_FUNC_CALL();
 
-        m_av1PicParams = m_av1BasicFeature->m_av1PicParams;
-        DECODE_CHK_NULL(m_av1PicParams);
+        m_hevcPicParams = m_hevcBasicFeature->m_hevcPicParams;
+        DECODE_CHK_NULL(m_hevcPicParams);
 
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodeAqmPkt::CalculateCommandSize(
+    MOS_STATUS HevcDecodeAqmPkt::CalculateCommandSize(
         uint32_t& commandBufferSize,
         uint32_t& requestedPatchListSize)
     {
@@ -78,24 +78,17 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MHW_SETPAR_DECL_SRC(AQM_HIST_STATE, Av1DecodeAqmPkt)
+    MHW_SETPAR_DECL_SRC(AQM_HIST_STATE, HevcDecodeAqmPkt)
     {
-        params.chromaPixelBitDepth                = m_av1PicParams->m_bitDepthIdx == 0 ? 8: m_av1PicParams->m_bitDepthIdx == 1? 10: 12;  // TBD: need to override in each generation
-        params.CodecType                          = 2; // AV1
+        params.chromaPixelBitDepth                = m_hevcPicParams->bit_depth_chroma_minus8 + 8;
+        params.CodecType                          = 1; // hevc
         params.disableStatisticalSummaryHistogram = 0; // Enable
-        params.frameOrTileSizeInPixels            = (m_av1PicParams->m_superResUpscaledWidthMinus1 + 1) * (m_av1PicParams->m_superResUpscaledHeightMinus1 + 1);
+        params.frameOrTileSizeInPixels            = ((1 << (m_hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3)) * (m_hevcPicParams->PicWidthInMinCbsY)) * 
+            ((1 << (m_hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3)) * (m_hevcPicParams->PicHeightInMinCbsY));
         params.initializationMode                 = 0; // Initialize all the bins with 0
-        if (m_av1PicParams->m_profile == 0)
-        {
-            params.inputChromaSubsamplingFormat = 0; // 4:2:0
-        }
-        else if (m_av1PicParams->m_profile == 2) // TBD: move to xe3 file
-        {
-            params.inputChromaSubsamplingFormat = 2; // 4:4:4
-        }
-        params.lumaPixelBitDepth = params.chromaPixelBitDepth;  // TBD: need to override in each generation
-        params.operatingMode     = 0; // Decoder mode
-
+        params.inputChromaSubsamplingFormat       = (m_hevcPicParams->chroma_format_idc != HCP_CHROMA_FORMAT_MONOCHROME) ? m_hevcPicParams->chroma_format_idc - 1 : 3;  // 4:2:0 - 0, 4:2:2 - 1, 4:4:4 - 2, 4:0:0 - 3
+        params.lumaPixelBitDepth                  = m_hevcPicParams->bit_depth_luma_minus8 + 8;  // TBD: need to override in each generation
+        params.operatingMode                      = 0; // Decoder mode
         if (m_downSampling->m_histogramBuffer)
         {
             params.yHistogramEnable = 1;  // Enable Y channel histogram
@@ -114,7 +107,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MHW_SETPAR_DECL_SRC(AQM_HIST_BUFF_ADDR_STATE, Av1DecodeAqmPkt)
+    MHW_SETPAR_DECL_SRC(AQM_HIST_BUFF_ADDR_STATE, HevcDecodeAqmPkt)
     {
         if (m_downSampling->m_histogramBuffer)
         {
@@ -124,29 +117,28 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MHW_SETPAR_DECL_SRC(AQM_HIST_FLUSH, Av1DecodeAqmPkt)
+    MHW_SETPAR_DECL_SRC(AQM_HIST_FLUSH, HevcDecodeAqmPkt)
     {
         params.aqmHistFlush = 0;
 
         return MOS_STATUS_SUCCESS;
     }
 
-    MHW_SETPAR_DECL_SRC(AQM_FRAME_START, Av1DecodeAqmPkt)
+    MHW_SETPAR_DECL_SRC(AQM_FRAME_START, HevcDecodeAqmPkt)
     {
         params.aqmFrameStart = 1;
 
         return MOS_STATUS_SUCCESS;
     }
 
-    MHW_SETPAR_DECL_SRC(AQM_VD_CONTROL_STATE, Av1DecodeAqmPkt)
+    MHW_SETPAR_DECL_SRC(AQM_VD_CONTROL_STATE, HevcDecodeAqmPkt)
     {
-        params.pipelineInitialization                    = 1;
+        params.pipelineInitialization = 1;
         params.VDboxPipelineArchitectureClockgateDisable = 0;
-        params.memoryImplicitFlush                       = 1;
+        params.memoryImplicitFlush = 1;
 
         return MOS_STATUS_SUCCESS;
     }
+}  // namespace decode
 
-    }  // namespace decode
-
-#endif  //_DECODE_PROCESSING_SUPPORTED
+#endif //_DECODE_PROCESSING_SUPPORTED

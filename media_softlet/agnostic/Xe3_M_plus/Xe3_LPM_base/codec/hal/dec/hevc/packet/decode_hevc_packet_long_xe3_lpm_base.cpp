@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -51,6 +51,11 @@ MOS_STATUS HevcDecodeLongPktXe3_Lpm_Base::Init()
     DecodeSubPacket* subPacket = m_hevcPipeline->GetSubPacket(DecodePacketId(m_hevcPipeline, hevcTileSubPacketId));
     m_tilePkt = dynamic_cast<HevcDecodeTilePktXe3_Lpm_Base*>(subPacket);
     DECODE_CHK_NULL(m_tilePkt);
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    subPacket = m_hevcPipeline->GetSubPacket(DecodePacketId(m_hevcPipeline, hevcDecodeAqmId));
+    m_aqmPkt  = dynamic_cast<HevcDecodeAqmPktXe3LpmBase *>(subPacket);
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -138,6 +143,20 @@ MOS_STATUS HevcDecodeLongPktXe3_Lpm_Base::VdPipelineFlush(MOS_COMMAND_BUFFER & c
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS HevcDecodeLongPktXe3_Lpm_Base::VdPipelineFlushAqm(MOS_COMMAND_BUFFER& cmdBuffer)
+{
+    DECODE_FUNC_CALL();
+
+    auto &par                  = m_vdencItf->GETPAR_VD_PIPELINE_FLUSH();
+    par                        = {};
+    par.waitDoneVDAQM          = 1;
+    par.flushVDAQM             = 1;
+    par.waitDoneVDCmdMsgParser = 1;
+    m_vdencItf->ADDCMD_VD_PIPELINE_FLUSH(&cmdBuffer);
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS HevcDecodeLongPktXe3_Lpm_Base::PackPictureLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer)
 {
     PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
@@ -146,6 +165,13 @@ MOS_STATUS HevcDecodeLongPktXe3_Lpm_Base::PackPictureLevelCmds(MOS_COMMAND_BUFFE
 
     DECODE_CHK_STATUS(m_picturePkt->Execute(cmdBuffer));
 
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    if (m_aqmPkt)
+    {
+        m_aqmPkt->Execute(cmdBuffer);
+    }
+#endif
+
     PMHW_BATCH_BUFFER batchBuffer = m_hevcPipeline->GetSliceLvlCmdBuffer();
     DECODE_CHK_NULL(batchBuffer);
     batchBuffer->dwOffset = 0;
@@ -153,6 +179,15 @@ MOS_STATUS HevcDecodeLongPktXe3_Lpm_Base::PackPictureLevelCmds(MOS_COMMAND_BUFFE
 
     DECODE_CHK_STATUS(VdMemoryFlush(cmdBuffer));
     DECODE_CHK_STATUS(VdPipelineFlush(cmdBuffer));
+    DECODE_CHK_STATUS(VdPipelineFlushAqm(cmdBuffer));
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    if (m_aqmPkt)
+    {
+        m_aqmPkt->Flush(cmdBuffer);
+    }
+#endif
+
     DECODE_CHK_STATUS(MiFlush(cmdBuffer));
 
     DECODE_CHK_STATUS(EndStatusReport(statusReportMfx, &cmdBuffer));

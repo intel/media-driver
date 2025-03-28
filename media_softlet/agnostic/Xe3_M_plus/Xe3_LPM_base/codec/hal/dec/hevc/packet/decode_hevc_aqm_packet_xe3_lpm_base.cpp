@@ -20,10 +20,10 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_av1_aqm_packet_xe3_lpm_base.cpp
-//! \brief    Defines the interface for av1 decode picture packet
+//! \file     decode_hevc_aqm_packet_xe3_lpm_base.cpp
+//! \brief    Defines the interface for avc decode picture packet
 //!
-#include "decode_av1_aqm_packet_xe3_lpm_base.h"
+#include "decode_hevc_aqm_packet_xe3_lpm_base.h"
 #include "codechal_debug.h"
 #include "decode_common_feature_defs.h"
 
@@ -31,31 +31,31 @@
 
 namespace decode
 {
-    Av1DecodeAqmPktXe3LpmBase::~Av1DecodeAqmPktXe3LpmBase()
+    HevcDecodeAqmPktXe3LpmBase::~HevcDecodeAqmPktXe3LpmBase()
     {
     }
 
-    MOS_STATUS Av1DecodeAqmPktXe3LpmBase::Init()
+    MOS_STATUS HevcDecodeAqmPktXe3LpmBase::Init()
     {
         DECODE_FUNC_CALL();
 
-        DECODE_CHK_STATUS(Av1DecodeAqmPkt::Init());
+        DECODE_CHK_STATUS(HevcDecodeAqmPkt::Init());
 
-        MediaFeatureManager *featureManager = m_pipeline->GetFeatureManager();
+        MediaFeatureManager* featureManager = m_pipeline->GetFeatureManager();
         DECODE_CHK_NULL(featureManager);
 
-        m_downSampling = dynamic_cast<Av1DownSamplingFeatureXe3_Lpm_Base *>(
+        m_downSampling = dynamic_cast<HevcDownSamplingFeature *>(
             featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
         DECODE_CHK_NULL(m_downSampling);
 
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodeAqmPktXe3LpmBase::Execute(MOS_COMMAND_BUFFER &cmdBuffer)
+    MOS_STATUS HevcDecodeAqmPktXe3LpmBase::Execute(MOS_COMMAND_BUFFER& cmdBuffer)
     {
         DECODE_FUNC_CALL();
 
-#ifdef _MEDIA_RESERVED
+    #ifdef _MEDIA_RESERVED
         if (m_aqmItf && m_downSampling->IsVDAQMHistogramEnabled())
         {
             SETPAR_AND_ADDCMD(AQM_VD_CONTROL_STATE, m_aqmItf, &cmdBuffer);
@@ -63,30 +63,30 @@ namespace decode
             SETPAR_AND_ADDCMD(AQM_HIST_BUFF_ADDR_STATE, m_aqmItf, &cmdBuffer);
             SETPAR_AND_ADDCMD(AQM_FRAME_START, m_aqmItf, &cmdBuffer);
         }
-#endif
+    #endif
 
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1DecodeAqmPktXe3LpmBase::Flush(MOS_COMMAND_BUFFER &cmdBuffer)
+    MOS_STATUS HevcDecodeAqmPktXe3LpmBase::Flush(MOS_COMMAND_BUFFER& cmdBuffer)
     {
         DECODE_FUNC_CALL();
 
-#ifdef _MEDIA_RESERVED
+    #ifdef _MEDIA_RESERVED
         if (m_aqmItf && m_downSampling->IsVDAQMHistogramEnabled())
         {
             SETPAR_AND_ADDCMD(AQM_HIST_FLUSH, m_aqmItf, &cmdBuffer);
         }
-#endif
+    #endif
 
         return MOS_STATUS_SUCCESS;
     }
 
-    MHW_SETPAR_DECL_SRC(AQM_HIST_BUFF_ADDR_STATE, Av1DecodeAqmPktXe3LpmBase)
+    MHW_SETPAR_DECL_SRC(AQM_HIST_BUFF_ADDR_STATE, HevcDecodeAqmPktXe3LpmBase)
     {
         if (m_downSampling->IsVDAQMHistogramEnabled())
         {
-            Av1DecodeAqmPkt::MHW_SETPAR_F(AQM_HIST_BUFF_ADDR_STATE)(params);
+            HevcDecodeAqmPkt::MHW_SETPAR_F(AQM_HIST_BUFF_ADDR_STATE)(params);
 
             if (m_downSampling->m_histogramBufferU)
             {
@@ -103,7 +103,6 @@ namespace decode
 
         return MOS_STATUS_SUCCESS;
     }
-
-    }  // namespace decode
+}  // namespace decode
 
 #endif  //_DECODE_PROCESSING_SUPPORTED

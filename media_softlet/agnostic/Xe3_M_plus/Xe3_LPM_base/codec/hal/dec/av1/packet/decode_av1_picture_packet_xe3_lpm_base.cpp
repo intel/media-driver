@@ -234,7 +234,7 @@ namespace decode
         Av1DecodePicPkt::MHW_SETPAR_F(AVP_PIC_STATE)(params);
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-        if (m_downSamplingFeature && m_downSamplingFeature->m_aqmHistogramEnable)
+        if (m_downSamplingFeature && m_downSamplingFeature->IsVDAQMHistogramEnabled())
         {
             params.VdaqmEnable = true;
         }

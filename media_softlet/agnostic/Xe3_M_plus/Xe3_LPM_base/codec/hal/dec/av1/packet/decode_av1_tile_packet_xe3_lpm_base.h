@@ -45,6 +45,9 @@ public:
         {
             m_avpItf   = std::static_pointer_cast<mhw::vdbox::avp::Itf>(m_hwInterface->GetAvpInterfaceNext());
             m_miItf    = std::static_pointer_cast<mhw::mi::Itf>(m_hwInterface->GetMiInterfaceNext());
+#ifdef _DECODE_PROCESSING_SUPPORTED
+            m_aqmPkt = dynamic_cast<Av1DecodeAqmPktXe3LpmBase *>(m_av1Pipeline->GetSubPacket(DecodePacketId(m_av1Pipeline, av1DecodeAqmId)));
+#endif
         }
     }
     virtual ~Av1DecodeTilePktXe3_Lpm_Base() {}

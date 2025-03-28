@@ -219,12 +219,6 @@ namespace decode
                     })
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-#ifdef _DECODE_PROCESSING_SUPPORTED
-                if (m_av1DecodePkt->m_aqmPkt && m_av1DecodePkt->m_aqmPkt->m_downSampling->m_aqmHistogramEnable)
-                {
-                    m_av1DecodePkt->m_aqmPkt->m_downSampling->DumpSfcOutputs(m_debugInterface);
-                }
-#endif
                 DECODE_CHK_STATUS(StatusCheck());
 #endif
                 // Only update user features for the first frame.

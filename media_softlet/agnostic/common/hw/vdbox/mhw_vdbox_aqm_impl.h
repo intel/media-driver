@@ -343,7 +343,7 @@ protected:
         {
             cmd.AQMYChannelHistogramOutputAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 1;  //TODO: change to below line when enabling GMM Cacheability for HW resources; this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_AVP_CDF_INIT_CODEC].Value;
 
-            resourceParams.presResource                                                                      = params.AqmYChannelHistogramOutputBuffer;
+            resourceParams.presResource    = params.AqmYChannelHistogramOutputBuffer;
             resourceParams.dwOffset        = 0;
             resourceParams.pdwCmd          = (cmd.AQMYChannelHistogramOutputAddress.DW0_1.Value);
             resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(AQMYChannelHistogramOutputAddress);
