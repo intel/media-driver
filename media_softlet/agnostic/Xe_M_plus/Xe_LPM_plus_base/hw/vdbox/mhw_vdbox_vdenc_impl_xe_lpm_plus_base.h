@@ -44,6 +44,17 @@ namespace xe_lpm_plus_base
 template <typename cmd_t>
 class BaseImplGeneric : public vdenc::Impl<cmd_t>
 {
+public:
+    virtual uint32_t GetCmd1CommandSize() override
+    {
+        return cmd_t::VDENC_CMD1_CMD::byteSize;
+    }
+
+    virtual uint32_t GetCmd2CommandSize() override
+    {
+        return cmd_t::VDENC_CMD2_CMD::byteSize;
+    }
+
 protected:
     using base_t = vdenc::Impl<cmd_t>;
 

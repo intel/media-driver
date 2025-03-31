@@ -347,7 +347,7 @@ MOS_STATUS CodechalHwInterfaceNext::GetVdencPictureSecondLevelCommandsSize(
 {
     CODEC_HW_FUNCTION_ENTER;
 
-    uint32_t commands = 0;
+    uint32_t commandSz = 0;
 
     MHW_MI_CHK_NULL(m_hcpItf);
 
@@ -355,12 +355,12 @@ MOS_STATUS CodechalHwInterfaceNext::GetVdencPictureSecondLevelCommandsSize(
 
     if (standard == CODECHAL_VP9)
     {
-        commands += m_hcpItf->GetHcpVp9PicStateCommandSize();
-        commands += m_hcpItf->GetHcpVp9SegmentStateCommandSize() * 8;
-        commands += 132;
-        commands += 248;
-        commands += m_sizeOfCmdBatchBufferEnd;
-        commands += 24; // padding for alignment on 64 
+        commandSz += m_hcpItf->GetHcpVp9PicStateCommandSize();
+        commandSz += m_hcpItf->GetHcpVp9SegmentStateCommandSize() * 8;
+        commandSz += m_vdencItf->GetCmd1CommandSize();
+        commandSz += m_vdencItf->GetCmd2CommandSize();
+        commandSz += m_sizeOfCmdBatchBufferEnd;
+        commandSz += (MOS_ALIGN_CEIL(commandSz, 64) - commandSz); // padding for alignment on 64 
     }
     else
     {
@@ -368,7 +368,7 @@ MOS_STATUS CodechalHwInterfaceNext::GetVdencPictureSecondLevelCommandsSize(
         return MOS_STATUS_UNKNOWN;
     }
 
-    *commandsSize = commands;
+    *commandsSize = commandSz;
 
     return MOS_STATUS_SUCCESS;
 }

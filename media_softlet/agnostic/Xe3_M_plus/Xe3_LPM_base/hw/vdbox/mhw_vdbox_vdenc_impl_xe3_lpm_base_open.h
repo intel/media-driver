@@ -48,6 +48,16 @@ class Impl : public Itf, public mhw::Impl
     MmioRegistersVdbox m_mmioRegisters[MHW_VDBOX_NODE_MAX] = {};  //!< Mfx mmio registers
 
 public:
+    virtual uint32_t GetCmd1CommandSize() override
+    {
+        return 0;
+    }
+
+    virtual uint32_t GetCmd2CommandSize() override
+    {
+        return 0;
+    }
+
 
     MOS_STATUS SetRowstoreCachingOffsets(const RowStorePar &par) override
     {

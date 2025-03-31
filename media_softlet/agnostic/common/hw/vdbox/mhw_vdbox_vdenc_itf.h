@@ -74,6 +74,10 @@ public:
 
     virtual ~Itf() = default;
 
+    virtual uint32_t GetCmd1CommandSize() = 0;
+
+    virtual uint32_t GetCmd2CommandSize() = 0;
+
     virtual MOS_STATUS SetRowstoreCachingOffsets(const RowStorePar &par) = 0;
 
     virtual MOS_STATUS SetCacheabilitySettings(MHW_MEMORY_OBJECT_CONTROL_PARAMS settings[MOS_CODEC_RESOURCE_USAGE_END_CODEC]) = 0;
