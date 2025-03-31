@@ -832,6 +832,8 @@ MOS_STATUS VpAllocator::ReAllocateNpuBuffer(
     uint32_t     size,
     bool        &allocated)
 {
+    VP_FUNC_CALL();
+
     allocated = false;
     VP_PUBLIC_CHK_NULL_RETURN(m_osInterface);
     VP_PUBLIC_CHK_NULL_RETURN(m_osInterface->npuInterface);

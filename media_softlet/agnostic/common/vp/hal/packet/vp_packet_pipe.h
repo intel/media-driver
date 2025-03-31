@@ -105,7 +105,7 @@ public:
         return idx < m_Pipe.size() ? m_Pipe[idx] : nullptr;
     }
 
-    static MOS_STATUS SwitchContext(PacketType type, MediaScalability *&scalability, MediaContext *mediaContext, bool bEnableVirtualEngine, uint8_t numVebox, uint64_t gpuCtxOnThread = 0);
+    static MOS_STATUS SwitchContext(PacketType type, MediaScalability *&scalability, MediaContext *mediaContext, bool bEnableVirtualEngine, uint8_t numVebox, uint64_t gpuCtxOnHybridCmd = 0);
 
 private:
     VpCmdPacket *CreatePacket(EngineType type);

@@ -1157,7 +1157,7 @@ public:
 
     virtual MOS_STATUS AddFeatureGraphRTLog()
     {
-        //This will be added in the future
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterAi%d: stageIndex %d, setting size %d, split group size %d", m_type, m_Params.stageIndex, m_Params.settings.size(), m_Params.splitGroupIndex.size());
         return MOS_STATUS_SUCCESS;
     }
 

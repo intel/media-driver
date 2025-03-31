@@ -100,7 +100,7 @@ MOS_STATUS VpGraphManager::GetGraphPackage(std::vector<AI_SINGLE_NPU_GRAPH_SETTI
             cmdPackage.AddSingleLayerGraphArgs(graphArgs);
             cmdPackage.AddGraphHandle(graphHandle);
         }
-        // InitGraphListCmdPackage Submit() is doing GraphPackage initilization, the real graph execution submit is in SpecificNpuCmdPackage
+        // InitGraphListCmdPackage Submit() is doing GraphPackage initilization, the real graph execution submit is in NpuCmdPackageSpecific
         VP_PUBLIC_CHK_STATUS_RETURN(m_osInterface->pfnSubmitPackage(m_osInterface, cmdPackage))
     }
     graphPackage = &handle->second;

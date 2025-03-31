@@ -239,6 +239,16 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    virtual HybridCmdMgr* GetHybridCmdMgr()
+    {
+        return m_hybridCmdMgr;
+    }
+
+    bool IsSubmitToHybridMgr()
+    {
+        return (m_hybridCmdMgr != nullptr);
+    }
+
 protected:
     //! \brief    Hardware node for current gpu context
     MOS_GPU_NODE m_nodeOrdinal = {};

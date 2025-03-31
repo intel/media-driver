@@ -29,6 +29,12 @@
 #include "levelzero_npu_interface.h"
 #include "media_utils.h"
 
+#define NPU_CHK_NULL_RETURN(_ptr) \
+    MOS_CHK_NULL_RETURN(MOS_COMPONENT_HW, MOS_CODEC_SUBCOMP_PUBLIC, _ptr)
+
+#define NPU_CHK_STATUS_RETURN(_stmt) \
+    MOS_CHK_STATUS_RETURN(MOS_COMPONENT_HW, MOS_CODEC_SUBCOMP_PUBLIC, _stmt)
+
 NpuCmdPacket::NpuCmdPacket(MediaTask *task, PMOS_INTERFACE osInterface) : CmdPacket(task)
 {
     m_osInterface = osInterface;
@@ -46,21 +52,21 @@ NpuCmdPacket::~NpuCmdPacket()
 MOS_STATUS NpuCmdPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t packetPhase)
 {
     //commandBuffer is no need for npu packet, so it could be nullptr
-    MEDIA_CHK_NULL_RETURN(m_npuInterface);
-    MEDIA_CHK_NULL_RETURN(m_npuParam.context);
-    MEDIA_CHK_NULL_RETURN(m_osInterface);
-    MEDIA_CHK_NULL_RETURN(m_osInterface->pfnSubmitPackage);
+    NPU_CHK_NULL_RETURN(m_npuInterface);
+    NPU_CHK_NULL_RETURN(m_npuParam.context);
+    NPU_CHK_NULL_RETURN(m_osInterface);
+    NPU_CHK_NULL_RETURN(m_osInterface->pfnSubmitPackage);
 
-    SpecificNpuCmdPackage cmdPackage(m_npuInterface, m_npuParam.context);
+    NpuCmdPackageSpecific cmdPackage(m_npuInterface, m_npuParam.context);
 
-    MEDIA_CHK_STATUS_RETURN(m_osInterface->pfnSubmitPackage(m_osInterface, cmdPackage));
+    NPU_CHK_STATUS_RETURN(m_osInterface->pfnSubmitPackage(m_osInterface, cmdPackage));
 
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS NpuCmdPacket::Init()
 {
-    MEDIA_CHK_NULL_RETURN(m_npuInterface);
+    NPU_CHK_NULL_RETURN(m_npuInterface);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -79,28 +85,28 @@ MOS_STATUS NpuCmdPacket::SetGraphParam(NPU_PACKET_PARAM &npuParam)
 
 MOS_STATUS NpuCmdPacket::Destroy()
 {
-    MEDIA_CHK_STATUS_RETURN(CmdPacket::Destroy());
+    NPU_CHK_STATUS_RETURN(CmdPacket::Destroy());
 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS SpecificNpuCmdPackage::Wait()
+MOS_STATUS NpuCmdPackageSpecific::Wait()
 {
-    MEDIA_CHK_NULL_RETURN(m_npuWLContext);
-    MEDIA_CHK_NULL_RETURN(m_npuWLContext->Fence());
-    MEDIA_CHK_NULL_RETURN(m_npuInterface);
-    MEDIA_CHK_NULL_RETURN(m_npuInterface->pfnWaitFence)
+    NPU_CHK_NULL_RETURN(m_npuWLContext);
+    NPU_CHK_NULL_RETURN(m_npuWLContext->Fence());
+    NPU_CHK_NULL_RETURN(m_npuInterface);
+    NPU_CHK_NULL_RETURN(m_npuInterface->pfnWaitFence)
 
-    MEDIA_CHK_STATUS_RETURN(m_npuInterface->pfnWaitFence(m_npuInterface, m_npuWLContext->Fence()));
+    NPU_CHK_STATUS_RETURN(m_npuInterface->pfnWaitFence(m_npuInterface, m_npuWLContext->Fence()));
 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS SpecificNpuCmdPackage::Submit() 
+MOS_STATUS NpuCmdPackageSpecific::Submit()
 {
-    MEDIA_CHK_NULL_RETURN(m_npuInterface);
-    MEDIA_CHK_NULL_RETURN(m_npuWLContext);
-    MEDIA_CHK_NULL_RETURN(m_npuInterface->pfnExecute);
+    NPU_CHK_NULL_RETURN(m_npuInterface);
+    NPU_CHK_NULL_RETURN(m_npuWLContext);
+    NPU_CHK_NULL_RETURN(m_npuInterface->pfnExecute);
 
     std::unique_lock<std::mutex> lock(m_npuWLContext->Mutex());
     if (m_npuWLContext->Condition().wait_for(lock, std::chrono::milliseconds(m_npuWLContext->GetTimeoutMs()), [=] { return m_npuWLContext->Initialized() || m_npuWLContext->Failed(); }))
@@ -116,12 +122,12 @@ MOS_STATUS SpecificNpuCmdPackage::Submit()
         MEDIA_ASSERTMESSAGE("Timeout %d ms reached, Graph Package still not finish Initialization", m_npuWLContext->GetTimeoutMs());
         return MOS_STATUS_UNINITIALIZED;
     }
-    MEDIA_CHK_STATUS_RETURN(m_npuInterface->pfnExecute(m_npuInterface, m_npuWLContext->CmdList(), m_npuWLContext->Fence()));
+    NPU_CHK_STATUS_RETURN(m_npuInterface->pfnExecute(m_npuInterface, m_npuWLContext->CmdList(), m_npuWLContext->Fence()));
 
     return MOS_STATUS_SUCCESS;
 }
 
-std::unique_ptr<CmdPackage> SpecificNpuCmdPackage::Clone() const
+std::unique_ptr<CmdPackage> NpuCmdPackageSpecific::Clone() const
 {
-    return std::make_unique<SpecificNpuCmdPackage>(*this);
+    return std::make_unique<NpuCmdPackageSpecific>(*this);
 }

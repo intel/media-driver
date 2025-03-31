@@ -714,7 +714,7 @@ MOS_STATUS Policy::BuildExecutionEngines(SwFilterPipe &swFilterPipe, bool isInpu
             // If the sw filter pipe contains SwFilterAiBase, then it is an AI sw filter sub pipe
             // For AI sw filter sub pipe, only AI feature will be executed, other features will be bypass
             // If it is not an AI sw filter sub pipe, then go into the normal GetExecutionCapsForSingleFeature
-            if (swAiFilter)
+            if (swAiFilter && isInputPipe)
             {
                 VP_PUBLIC_CHK_STATUS_RETURN(GetExecutionCapsForAiSwFilterSubPipe(swAiFilter, engineCapsCombined));
             }
@@ -3753,7 +3753,8 @@ MOS_STATUS Policy::SetupFilterResource(SwFilterPipe& featurePipe, std::vector<in
         VP_PUBLIC_NORMALMESSAGE("Output surface in use, since no filters left in featurePipe.");
     }
     else if (RenderTargetTypeParameter == featurePipe.GetRenderTargetType() ||
-             RenderTargetTypeParameter == params.executedFilters->GetRenderTargetType())
+             RenderTargetTypeParameter == params.executedFilters->GetRenderTargetType() ||
+             caps.bAiPath)
     {
         surfOutput = featurePipe.GetSurface(false, 0);
         VP_PUBLIC_CHK_NULL_RETURN(surfOutput);
@@ -3794,7 +3795,8 @@ MOS_STATUS Policy::SetupFilterResource(SwFilterPipe& featurePipe, std::vector<in
         }
     }
     else if (subPipe && RenderTargetTypeParameter == subPipe->GetRenderTargetType() ||
-             RenderTargetTypeParameter == params.executedFilters->GetRenderTargetType())
+             RenderTargetTypeParameter == params.executedFilters->GetRenderTargetType() ||
+             caps.bAiPath)
     {
         surfInput = featurePipe.GetSurface(true, layerIndexes[0]);
         VP_PUBLIC_CHK_NULL_RETURN(surfInput);
@@ -3802,6 +3804,11 @@ MOS_STATUS Policy::SetupFilterResource(SwFilterPipe& featurePipe, std::vector<in
         VP_PUBLIC_CHK_NULL_RETURN(input);
         input->SurfType = SURF_IN_PRIMARY;
         featurePipe.ReplaceSurface(input, true, layerIndexes[0]);
+        if (caps.bAiPath && subPipe)
+        {
+            VP_SURFACE *output = featurePipe.GetSurface(false, 0);
+            VP_PUBLIC_CHK_STATUS_RETURN(AddCommonFilters(*subPipe, surfInput, output));
+        }
     }
     else if (IsSecureResourceNeeded(caps))
     {

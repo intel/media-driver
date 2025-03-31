@@ -89,6 +89,10 @@ void HybridCmdMgr::Consumer()
         //Or the monitor fence of context will never update and destroy will stuck
         if (m_queue.empty() && m_stopFlag)
         {
+            if (m_lastCmdPackage && !m_lastCmdPackage->Releaseable())
+            {
+                MOS_OS_NORMALMESSAGE("Thread Exit with Last Cmd Package in Execution");
+            }
             break;
         }
 
@@ -108,7 +112,7 @@ void HybridCmdMgr::Consumer()
             }
             else
             {
-                MOS_OS_ASSERTMESSAGE("Last Cmd Package is nullptr, so skip wait");
+                MOS_OS_NORMALMESSAGE("Last Cmd Package is nullptr, so skip wait");
             }
             if (m_lastCmdPackage != nullptr)
             {

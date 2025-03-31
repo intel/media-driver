@@ -78,10 +78,10 @@ struct NPU_PACKET_PARAM
     NpuWLContext *context = nullptr;
 };
 
-class SpecificNpuCmdPackage : public CmdPackage
+class NpuCmdPackageSpecific : public CmdPackage
 {
 public:
-    SpecificNpuCmdPackage(L0NpuInterface *npuInterface, NpuWLContext *npuWLContext) : m_npuInterface(npuInterface), m_npuWLContext(npuWLContext) {};
+    NpuCmdPackageSpecific(L0NpuInterface *npuInterface, NpuWLContext *npuWLContext) : m_npuInterface(npuInterface), m_npuWLContext(npuWLContext) {};
     virtual MOS_STATUS                  Wait() override;
     virtual MOS_STATUS                  Submit() override;
     virtual std::unique_ptr<CmdPackage> Clone() const override;

@@ -214,7 +214,9 @@ enum VpKernelIDNext
 //!
 enum VP_GRAPH_ID
 {
-    VP_GRAPH_ID_INVALID = 0
+    VP_GRAPH_ID_INVALID = 0,
+
+    VP_GRAPH_ID_BASE_MAX
 };
 
 typedef struct _VPHAL_COMPOSITE_CACHE_CNTL

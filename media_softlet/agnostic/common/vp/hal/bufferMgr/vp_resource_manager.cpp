@@ -1259,6 +1259,8 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
 
 MOS_STATUS VpResourceManager::AssignAiNpuResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, SwFilterPipe &executedFilters, VP_SURFACE_SETTING &surfSetting)
 {
+    VP_FUNC_CALL();
+
     SwFilterSubPipe *subPipe = executedFilters.GetSwFilterSubPipe(true, 0);
     VP_PUBLIC_CHK_NULL_RETURN(subPipe);
     VP_PUBLIC_CHK_VALUE_RETURN(inputSurfaces.empty(), false);
