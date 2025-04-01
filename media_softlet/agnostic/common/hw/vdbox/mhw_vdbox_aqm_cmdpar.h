@@ -158,7 +158,7 @@ struct _MHW_PAR_T(AQM_HIST_BUFF_ADDR_STATE)
     bool          memoryCompressionEnable          = 0;
     uint8_t       arbitrationPriorityControl       = 0;
     uint8_t       indexToMOCSTable                 = 0;
-    bool          encryptData                    = 0;
+    bool          reserved                         = 0;
     PMOS_RESOURCE AqmYChannelHistogramOutputBuffer = nullptr;
     PMOS_RESOURCE AqmUChannelHistogramOutputBuffer = nullptr;
     PMOS_RESOURCE AqmVChannelHistogramOutputBuffer = nullptr;

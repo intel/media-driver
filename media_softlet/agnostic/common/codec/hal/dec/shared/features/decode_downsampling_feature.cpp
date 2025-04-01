@@ -201,6 +201,10 @@ MOS_STATUS DecodeDownSamplingFeature::Update(void *params)
     {
         m_aqmHistogramEnable = true;
     }
+    else
+    {
+        m_aqmHistogramEnable = false;
+    }
 
     if (m_aqmHistogramEnable)
     {

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2023, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,7 @@
 //! \brief    Defines the interface for avc decode picture packet
 //!
 #include "decode_avc_picture_packet_xe3_lpm_base.h"
+#include "decode_common_feature_defs.h"
 
 namespace decode
 {
@@ -49,7 +50,7 @@ namespace decode
         DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-        if (m_downSamplingFeature != nullptr && m_downSamplingPkt != nullptr)
+        if (m_downSamplingFeature != nullptr && m_downSamplingPkt != nullptr && !m_downSamplingFeature->IsVDAQMHistogramEnabled())
         {
             DECODE_CHK_STATUS(m_downSamplingPkt->Execute(cmdBuffer));
         }
@@ -229,6 +230,12 @@ namespace decode
 #ifdef IGFX_MFX_INTERFACE_EXT_SUPPORT
         params.bitDepthLumaMinus8   = m_avcPicParams->bit_depth_luma_minus8;
         params.bitDepthChromaMinus8 = m_avcPicParams->bit_depth_chroma_minus8;
+#endif
+#ifdef _DECODE_PROCESSING_SUPPORTED
+        if (m_downSamplingFeature->IsVDAQMHistogramEnabled())
+        {
+            params.vdaqmEnable = true;
+        }
 #endif
 
         return MOS_STATUS_SUCCESS;

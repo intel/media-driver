@@ -62,7 +62,7 @@ MOS_STATUS HevcDecodePicPktXe3_Lpm_Base::Execute(MOS_COMMAND_BUFFER &cmdBuffer)
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     if (m_downSamplingFeature != nullptr && m_downSamplingPkt != nullptr &&
-        m_downSamplingFeature->IsEnabled())
+        m_downSamplingFeature->IsEnabled() && !m_downSamplingFeature->IsVDAQMHistogramEnabled())
     {
         if (!IsFrontEndPhase())
         {

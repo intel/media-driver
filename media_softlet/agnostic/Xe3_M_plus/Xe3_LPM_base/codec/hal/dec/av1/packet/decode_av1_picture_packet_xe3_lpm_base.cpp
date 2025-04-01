@@ -82,7 +82,7 @@ namespace decode
 #ifdef _DECODE_PROCESSING_SUPPORTED
         if (m_downSamplingFeature != nullptr && m_downSamplingPkt != nullptr)
         {
-            if (m_downSamplingFeature->IsEnabled() && !(m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile))  //LST can't support SFC
+            if (m_downSamplingFeature->IsEnabled() && !m_downSamplingFeature->IsVDAQMHistogramEnabled() && !(m_av1PicParams->m_picInfoFlags.m_fields.m_largeScaleTile))  //LST can't support SFC
             {
                 DECODE_CHK_STATUS(m_downSamplingPkt->Execute(cmdBuffer));
             }

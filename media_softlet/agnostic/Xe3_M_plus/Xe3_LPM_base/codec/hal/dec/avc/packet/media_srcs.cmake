@@ -24,6 +24,7 @@ set(SOFTLET_DECODE_AVC_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_packet_xe3_lpm_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_picture_packet_xe3_lpm_base.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_slice_packet_xe3_lpm_base.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_avc_aqm_packet_xe3_lpm_base.cpp
 )
 
 set(SOFTLET_DECODE_AVC_HEADERS_
@@ -31,6 +32,7 @@ set(SOFTLET_DECODE_AVC_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_packet_xe3_lpm_base.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_picture_packet_xe3_lpm_base.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_slice_packet_xe3_lpm_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_avc_aqm_packet_xe3_lpm_base.h
 )
 
 

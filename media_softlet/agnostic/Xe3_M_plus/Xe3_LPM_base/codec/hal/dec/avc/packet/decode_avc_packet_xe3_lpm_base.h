@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,7 @@
 #include "mhw_vdbox_xe_lpm_plus_base.h"
 #include "codec_hw_xe3_lpm_base.h"
 #include "decode_avc_packet.h"
+#include "decode_avc_aqm_packet_xe3_lpm_base.h"
 
 namespace decode
 {
@@ -41,10 +42,12 @@ public:
         AvcDecodePkt(pipeline, task, hwInterface)
     {
         m_hwInterface = dynamic_cast<CodechalHwInterfaceXe3_Lpm_Base*>(hwInterface);
+        m_vdencItf    = std::static_pointer_cast<mhw::vdbox::vdenc::Itf>(hwInterface->GetVdencInterfaceNext());
     }
 
     virtual ~AvcDecodePktXe3_Lpm_Base(){};
 
+    virtual MOS_STATUS Init() override;
     //!
     //! \brief  Add the command sequence into the commandBuffer and
     //!         and return to the caller task
@@ -55,12 +58,18 @@ public:
     //!
     virtual MOS_STATUS Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket) override;
 
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    AvcDecodeAqmPktXe3LpmBase *m_aqmPkt = nullptr;
+#endif
+
 protected:
     MOS_STATUS PackPictureLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer);
     MOS_STATUS PackSliceLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer);
     MOS_STATUS EnsureAllCommandsExecuted(MOS_COMMAND_BUFFER &cmdBuffer);
+    MOS_STATUS VdPipelineFlushVdaqm(MOS_COMMAND_BUFFER &cmdBuffer);
 
     CodechalHwInterfaceXe3_Lpm_Base* m_hwInterface = nullptr;
+    std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf = nullptr;
 
 MEDIA_CLASS_DEFINE_END(decode__AvcDecodePktXe3_Lpm_Base)
 };

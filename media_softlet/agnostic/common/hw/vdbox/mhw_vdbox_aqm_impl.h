@@ -311,6 +311,7 @@ protected:
 #include "mhw_hwcmd_process_cmdfields.h"
     }
 
+#ifdef _MEDIA_RESERVED
     _MHW_SETCMD_OVERRIDE_DECL(AQM_HIST_STATE)
     {
         _MHW_SETCMD_CALLBASE(AQM_HIST_STATE);
@@ -458,6 +459,7 @@ protected:
 
         #include "mhw_hwcmd_process_cmdfields.h"
     }
+#endif //_MEDIA_RESERVED
 
     _MHW_SETCMD_OVERRIDE_DECL(AQM_VD_CONTROL_STATE)
     {
