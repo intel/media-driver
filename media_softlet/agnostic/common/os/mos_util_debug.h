@@ -950,7 +950,7 @@ MEDIA_CLASS_DEFINE_END(MosUtilDebug)
 {                                                                           \
     if ((_ptr) == nullptr)                                                  \
     {                                                                       \
-        MOS_ASSERTMESSAGE(_compID, _subCompID, "Invalid (nullptr) Pointer.");  \
+        MOS_ASSERTMESSAGE(_compID, _subCompID, "Invalid (nullptr) Pointer: " #_ptr);  \
         MT_ERR2(MT_ERR_NULL_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID); \
         return MOS_STATUS_NULL_POINTER;                                     \
     }                                                                       \
