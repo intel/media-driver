@@ -96,23 +96,6 @@ MOS_STATUS HevcPipelineXe3_Lpm_Base::InitScalabOption(HevcBasicFeature &basicFea
     MOS_ZeroMemory(&scalPars, sizeof(scalPars));
     DECODE_CHK_STATUS(InitContexOption(scalPars));
     scalPars.isSCC         = (basicFeature.m_hevcSccPicParams != nullptr);
-#ifdef _DECODE_PROCESSING_SUPPORTED
-    DecodeDownSamplingFeature* downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature*>(
-        m_featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
-    if (downSamplingFeature != nullptr && downSamplingFeature->IsEnabled() && !downSamplingFeature->IsVDAQMHistogramEnabled())
-    {
-        scalPars.usingSfc = true;
-        if (!MEDIA_IS_SKU(m_skuTable, FtrSfcScalability))
-        {
-            scalPars.disableScalability = true;
-        }
-    }
-    //Disable Scalability when histogram is enabled
-    if (downSamplingFeature != nullptr && (downSamplingFeature->m_histogramDestSurf || downSamplingFeature->m_histogramDebug))
-    {
-        scalPars.disableScalability = true;
-    }
-#endif
     scalPars.maxTileColumn = HEVC_NUM_MAX_TILE_COLUMN;
     scalPars.maxTileRow    = HEVC_NUM_MAX_TILE_ROW;
 #if (_DEBUG || _RELEASE_INTERNAL)

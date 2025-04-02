@@ -165,14 +165,6 @@ MOS_STATUS AvcPipelineXe3_Lpm_Base::InitContext()
     scalPars.disableRealTile = true;
     scalPars.enableVE = MOS_VE_SUPPORTED(m_osInterface);
     scalPars.numVdbox = m_numVdbox;
-#ifdef _DECODE_PROCESSING_SUPPORTED
-    DecodeDownSamplingFeature* downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature*>(
-        m_featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
-    if (downSamplingFeature != nullptr && downSamplingFeature->IsEnabled() && !downSamplingFeature->IsVDAQMHistogramEnabled())
-    {
-        scalPars.usingSfc = true;
-    }
-#endif
 
     if (m_allowVirtualNodeReassign)
     {

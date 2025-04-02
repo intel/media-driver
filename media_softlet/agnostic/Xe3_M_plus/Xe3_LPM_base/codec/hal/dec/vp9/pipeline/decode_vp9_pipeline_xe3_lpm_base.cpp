@@ -332,24 +332,6 @@ MOS_STATUS Vp9PipelineXe3_Lpm_Base::InitContexOption(Vp9BasicFeature &basicFeatu
         ReadUserFeature(m_userSettingPtr, "HCP Decode User Pipe Num", MediaUserSetting::Group::Sequence).Get<uint8_t>();
 #endif
 
-#ifdef _DECODE_PROCESSING_SUPPORTED
-    DecodeDownSamplingFeature *downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature *>(
-        m_featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
-    if (downSamplingFeature != nullptr && downSamplingFeature->IsEnabled())
-    {
-        scalPars.usingSfc = true;
-        if (!MEDIA_IS_SKU(m_skuTable, FtrSfcScalability))
-        {
-            scalPars.disableScalability = true;
-        }
-    }
-    //Disable Scalability when histogram is enabled
-    if (downSamplingFeature != nullptr && (downSamplingFeature->m_histogramDestSurf || downSamplingFeature->m_histogramDebug))
-    {
-        scalPars.disableScalability = true;
-    }
-#endif
-
     DECODE_CHK_STATUS(m_scalabOption.SetScalabilityOption(&scalPars));
     return MOS_STATUS_SUCCESS;
 }
