@@ -84,7 +84,7 @@ public:
     virtual ~PacketPipe();
     MOS_STATUS Clean();
     MOS_STATUS AddPacket(HwFilter &hwFilter);
-    MOS_STATUS             Execute(MediaStatusReport *statusReport, MediaScalability *&scalability, MediaContext *mediaContext, bool bEnableVirtualEngine, uint8_t numVebox, uint64_t gpuCtxOnHybridCmd);
+    MOS_STATUS Execute(MediaStatusReport *statusReport, MediaScalability *&scalability, MediaContext *mediaContext, bool bEnableVirtualEngine, uint8_t numVebox, uint64_t gpuCtxOnHybridCmd, uint32_t frameCnt);
     VPHAL_OUTPUT_PIPE_MODE GetOutputPipeMode()
     {
         return m_outputPipeMode;

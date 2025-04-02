@@ -310,7 +310,7 @@ MOS_STATUS PacketPipe::SwitchContext(PacketType type, MediaScalability *&scalabi
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS PacketPipe::Execute(MediaStatusReport *statusReport, MediaScalability *&scalability, MediaContext *mediaContext, bool bEnableVirtualEngine, uint8_t numVebox, uint64_t gpuCtxOnHybridCmd)
+MOS_STATUS PacketPipe::Execute(MediaStatusReport *statusReport, MediaScalability *&scalability, MediaContext *mediaContext, bool bEnableVirtualEngine, uint8_t numVebox, uint64_t gpuCtxOnHybridCmd, uint32_t frameCnt)
 {
     VP_FUNC_CALL();
 
@@ -364,7 +364,7 @@ MOS_STATUS PacketPipe::Execute(MediaStatusReport *statusReport, MediaScalability
             {
                 VP_SURFACE_DUMP(m_PacketFactory.m_debugInterface,
                     handle.second,
-                    0,
+                    frameCnt,
                     handle.first,
                     VPHAL_DUMP_TYPE_POST_COMP,
                     VPHAL_SURF_DUMP_DDI_VP_BLT);
