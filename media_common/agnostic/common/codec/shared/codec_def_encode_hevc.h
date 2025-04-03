@@ -394,12 +394,12 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             */
             uint32_t        HierarchicalFlag         : 1;
 
-            /*! \brief Indicates if TCBRC is enabled.
+            /*! \brief Indicates if FastPass is enabled.
             *
-            *        \n - 0 : no TCBRC.
-            *        \n - 1 : enable TCBRC if TCBRCSupport in CAP is 1.
+            *        \n - 0 : no FastPass.
+            *        \n - 1 : enable FastPass if FastPassSupport in CAP is 1.
             */
-            uint32_t        TCBRCEnable              : 1;
+            uint32_t        EnableFastPass              : 1;
 
             /*! \brief Indicates if current encodin gis lookahead pass.
             *
@@ -596,6 +596,8 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
     uint8_t     palette_max_size;
     uint8_t     delta_palette_max_predictor_size;
     uint8_t     FullPassCodecType;  // [0..4]
+    uint8_t     FastPassRatio;
+    uint8_t     FastPassDsType;  // [0..1]
 } CODEC_HEVC_ENCODE_SEQUENCE_PARAMS, *PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS;
 
 /*! \brief Provides the picture-level parameters of a compressed picture for HEVC decoding.

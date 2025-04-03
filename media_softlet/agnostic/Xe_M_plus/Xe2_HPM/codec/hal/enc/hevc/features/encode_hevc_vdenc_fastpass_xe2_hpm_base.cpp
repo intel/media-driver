@@ -43,32 +43,32 @@ HevcVdencFastPass_Xe2_Hpm_Base::HevcVdencFastPass_Xe2_Hpm_Base(
     m_hevcFeature = dynamic_cast<HevcBasicFeature *>(encFeatureManager->GetFeature(FeatureIDs::basicFeature));
     ENCODE_CHK_NULL_NO_STATUS_RETURN(m_hevcFeature);
 
-    //regkey to control fast pass encode settings
-    MediaUserSetting::Value outValue;
-    ReadUserSetting(m_userSettingPtr,
-        outValue,
-        "Enable Fast Pass Encode",
-        MediaUserSetting::Group::Sequence);
-
-    m_enableFastPass = outValue.Get<bool>();
-    if (m_enableFastPass)
+    if (m_enableFastpassFromRegKey && m_enableFastPass)
     {
-        MediaUserSetting::Value outValue_ratio;
-        MediaUserSetting::Value outValue_type;
-#if (_DEBUG || _RELEASE_INTERNAL)
-        ReadUserSetting(m_userSettingPtr,
-            outValue_type,
-            "Fast Pass Encode Downscale Type",
-            MediaUserSetting::Group::Sequence);
-#endif
         m_fastPassShiftIndex = 2; //Xe2_Hpm HW restrictions.
-        m_fastPassDownScaleType = (uint8_t)outValue_type.Get<int32_t>();
     }
-
 }
 
 MOS_STATUS HevcVdencFastPass_Xe2_Hpm_Base::Update(void *params)
 {
+    ENCODE_FUNC_CALL();
+    ENCODE_CHK_NULL_RETURN(params);
+    EncoderParams *encodeParams = static_cast<EncoderParams *>(params);
+    m_hevcSeqParams = static_cast<PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS>(encodeParams->pSeqParams);
+    ENCODE_CHK_NULL_RETURN(m_hevcSeqParams);
+
+    if (!m_enableFastpassFromRegKey)
+    {
+        m_enableFastPass        = m_hevcFeature->m_hevcSeqParams->EnableFastPass;
+        m_fastPassDownScaleType = m_hevcFeature->m_hevcSeqParams->FastPassDsType;
+        if (m_hevcSeqParams->FastPassRatio == 1)
+        {
+            m_hevcSeqParams->FastPassRatio = 2;  //Xe2_Hpm HW restrictions: only support 4x ds.
+            ENCODE_NORMALMESSAGE("Xe2_Hpm HW doesn't support 2x downscale, switched to 4x downscale\n");
+        }
+        m_fastPassShiftIndex = m_hevcSeqParams->FastPassRatio;
+    }
+
     if (!m_enableFastPass)
     {
         return MOS_STATUS_SUCCESS;
