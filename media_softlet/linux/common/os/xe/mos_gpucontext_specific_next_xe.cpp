@@ -467,7 +467,15 @@ MOS_STATUS GpuContextSpecificNextXe::SubmitCommandBuffer(
                 m_secondaryCmdBufs[0] = cmdBuffer;
                 cmdBufMapIsReused = true;
             }
-
+#if (_DEBUG || _RELEASE_INTERNAL)
+            // Dump CmdBuffer in trace before submit
+            auto  it = m_secondaryCmdBufs.begin();
+            while(it != m_secondaryCmdBufs.end())
+            {
+                MOS_TraceDumpExt("CmdBuffer", m_gpuContext, it->second->pCmdBase, it->second->iOffset);
+                it++;
+            }
+#endif
             ret = ParallelSubmitCommands(m_secondaryCmdBufs,
                                  perStreamParameters,
                                  execFlag,
