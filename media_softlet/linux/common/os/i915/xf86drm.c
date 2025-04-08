@@ -47,14 +47,16 @@
 #include <signal.h>
 #include <time.h>
 #include <sys/types.h>
-#include <sys/sysmacros.h>
 #include <sys/stat.h>
 #define stat_t struct stat
 #include <sys/ioctl.h>
 #include <sys/time.h>
 #include <stdarg.h>
-#ifdef HAVE_SYS_MKDEV_H
+#ifdef __sun //#ifdef MAJOR_IN_MKDEV
 # include <sys/mkdev.h> /* defines major(), minor(), and makedev() on Solaris */
+#endif
+#if defined(__GLIBC__) || defined(__linux__) //#ifdef MAJOR_IN_SYSMACROS
+# include <sys/sysmacros.h>
 #endif
 
 /* Not all systems have MAP_FAILED defined */
