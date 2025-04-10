@@ -23,7 +23,6 @@
 ======================= end_copyright_notice ==================================*/
 //!
 //! \file       renderhal_xe2_hpg_next.cpp
-//! \brief      implementation of Gen12_9 hardware functions
 //! \details    Render functions
 //!
 
