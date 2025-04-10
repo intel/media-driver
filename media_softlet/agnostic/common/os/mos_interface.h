@@ -1983,6 +1983,20 @@ public:
         uint64_t       gpuCtxOnHybridCmd);
 
     //!
+    //! \brief    Set Hybrid Cmd Submit Mode
+    //! \details  Set Hybrid Cmd Submit Mode
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] ptr to pOsInterface
+    //! \param    uint64_t hybridMgrSubmitMode
+    //!           hybridMgrSubmitMode
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS
+    //!
+    static MOS_STATUS SetHybridCmdMgrSubmitMode(
+        PMOS_INTERFACE pOsInterface,
+        uint64_t       hybridMgrSubmitMode);
+
+    //!
     //! \brief    Start the Cmd Consumer
     //! \details  Start the Cmd Consumer
     //! \param    PMOS_INTERFACE pOsInterface

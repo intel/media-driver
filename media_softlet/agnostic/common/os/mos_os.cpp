@@ -887,6 +887,7 @@ MOS_STATUS Mos_InitOsInterface(
     pOsInterface->pfnInsertCacheSetting                 = Mos_InsertCacheSetting;
     pOsInterface->pfnGetCacheSetting                    = Mos_GetCacheSetting;
     pOsInterface->pfnSetHybridCmdMgrToGpuContext        = MOS_SetHybridCmdMgrToGpuContext;
+    pOsInterface->pfnSetHybridMgrSubmitMode             = MOS_SetHybridCmdMgrSubmitMode;
     pOsInterface->pfnStartHybridCmdMgr                  = MOS_StartHybridCmdMgr;
     pOsInterface->pfnStopHybridCmdMgr                   = MOS_StopHybridCmdMgr;
     pOsInterface->pfnSubmitPackage                      = MOS_SubmitPackage;
@@ -1226,6 +1227,13 @@ MOS_STATUS MOS_SetHybridCmdMgrToGpuContext(
     uint64_t       gpuCtxOnHybridCmd)
 {
     return MosInterface::SetHybridCmdMgrToGpuContext(pOsInterface, gpuCtxOnHybridCmd);
+}
+
+MOS_STATUS MOS_SetHybridCmdMgrSubmitMode(
+    PMOS_INTERFACE pOsInterface,
+    uint64_t       hybridMgrSubmitMode)
+{
+    return MosInterface::SetHybridCmdMgrSubmitMode(pOsInterface, hybridMgrSubmitMode);
 }
 
 MOS_STATUS MOS_StartHybridCmdMgr(

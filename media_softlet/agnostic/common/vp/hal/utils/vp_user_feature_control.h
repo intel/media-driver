@@ -77,6 +77,7 @@ public:
         bool               decompForInterlacedSurfWaEnabled = false;
         bool               enableSFCLinearOutputByTileConvert = false;
         bool               fallbackScalingToRender8K          = false;
+        uint64_t           hybridMgrSubmitMode                = 0;
     };
 
     uint32_t Is3DLutKernelOnly()
@@ -223,6 +224,11 @@ public:
     uint32_t GetSplitFramePortions()
     {
         return m_ctrlVal.splitFramePortions;
+    }
+
+    uint64_t GetHybridMgrSubmitMode()
+    {
+        return m_ctrlVal.hybridMgrSubmitMode;
     }
 
     MOS_STATUS ForceRenderPath(bool status)

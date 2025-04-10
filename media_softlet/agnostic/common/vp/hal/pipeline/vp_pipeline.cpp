@@ -396,6 +396,10 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
     VP_PUBLIC_CHK_STATUS_RETURN(CreateVpKernelSets());
     VP_PUBLIC_CHK_STATUS_RETURN(CreateVpGraphSets());
     VP_PUBLIC_CHK_STATUS_RETURN(CreateVpGraphManager());
+    if (m_osInterface && m_osInterface->pfnSetHybridMgrSubmitMode && m_userFeatureControl)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(m_osInterface->pfnSetHybridMgrSubmitMode(m_osInterface, m_userFeatureControl->GetHybridMgrSubmitMode()));
+    }
     // Create active tasks
     MediaTask *pTask = GetTask(MediaTask::TaskType::cmdTask);
     VP_PUBLIC_CHK_NULL_RETURN(pTask);

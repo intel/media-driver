@@ -3109,6 +3109,13 @@ MOS_STATUS MosInterface::SetHybridCmdMgrToGpuContext(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MosInterface::SetHybridCmdMgrSubmitMode(
+    PMOS_INTERFACE pOsInterface,
+    uint64_t       hybridMgrSubmitMode)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MosInterface::StartHybridCmdMgr(
     PMOS_INTERFACE pOsInterface)
 {

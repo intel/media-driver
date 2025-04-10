@@ -1623,10 +1623,23 @@ typedef struct _MOS_INTERFACE
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS
     //!
-    MOS_STATUS (*pfnSetHybridCmdMgrToGpuContext)
-    (
+    MOS_STATUS (*pfnSetHybridCmdMgrToGpuContext)(
         PMOS_INTERFACE pOsInterface,
         uint64_t       gpuCtxOnHybridCmd);
+
+    //!
+    //! \brief    Set Hybrid Cmd Submit Mode
+    //! \details  Set Hybrid Cmd Submit Mode
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] ptr to pOsInterface
+    //! \param    uint64_t hybridMgrSubmitMode
+    //!           hybridMgrSubmitMode
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS
+    //!
+    MOS_STATUS (*pfnSetHybridMgrSubmitMode)(
+        PMOS_INTERFACE pOsInterface,
+        uint64_t       hybridMgrSubmitMode);
 
     //!
     //! \brief    Start the Cmd Consumer
@@ -2599,6 +2612,20 @@ bool Mos_GetCacheSetting(MOS_COMPONENT id, uint32_t feature, bool bOut, ENGINE_T
 MOS_STATUS MOS_SetHybridCmdMgrToGpuContext(
     PMOS_INTERFACE pOsInterface,
     uint64_t       gpuCtxOnHybridCmd);
+
+//!
+//! \brief    Set Hybrid Cmd Submit Mode
+//! \details  Set Hybrid Cmd Submit Mode
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] ptr to pOsInterface
+//! \param    uint64_t hybridMgrSubmitMode
+//!           hybridMgrSubmitMode
+//! \return   MOS_STATUS
+//!           Return MOS_STATUS
+//!
+MOS_STATUS MOS_SetHybridCmdMgrSubmitMode(
+    PMOS_INTERFACE pOsInterface,
+    uint64_t       hybridMgrSubmitMode);
 
 //!
 //! \brief    Start the Cmd Buffer Consumer

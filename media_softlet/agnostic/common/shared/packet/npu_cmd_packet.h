@@ -85,6 +85,7 @@ public:
     virtual MOS_STATUS                  Wait() override;
     virtual MOS_STATUS                  Submit() override;
     virtual std::unique_ptr<CmdPackage> Clone() const override;
+    virtual bool                        IsAsyncExecute() override { return true; };
 
 private:
     L0NpuInterface *m_npuInterface = nullptr;
