@@ -354,7 +354,7 @@ MOS_STATUS VpOclFcFilter::GenerateFc420PL3InputParam(OCL_FC_LAYER_PARAM &inputLa
         VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc420PL3InputBti(uIndex, index, surfaceParam, bInit));
         if (bInit)
         {
-            krnStatefulSurfaces.insert(std::make_pair(uIndex, surfaceParam));
+            krnStatefulSurfaces.emplace(uIndex, surfaceParam);
         }
     }
     param.kernelArgs             = krnArgs;
@@ -656,7 +656,7 @@ MOS_STATUS VpOclFcFilter::GenerateFc444PL3OutputParam(OCL_FC_LAYER_PARAM &output
         if (argHandle == m_fc444PL3OutputKrnArgs.end())
         {
             KRN_ARG krnArg = {};
-            argHandle      = m_fc444PL3OutputKrnArgs.insert(std::make_pair(uIndex, krnArg)).first;
+            argHandle      = m_fc444PL3OutputKrnArgs.emplace(uIndex, krnArg).first;
             VP_PUBLIC_CHK_NOT_FOUND_RETURN(argHandle, &m_fc444PL3OutputKrnArgs);
         }
         KRN_ARG &krnArg = argHandle->second;
@@ -691,7 +691,7 @@ MOS_STATUS VpOclFcFilter::GenerateFc444PL3OutputParam(OCL_FC_LAYER_PARAM &output
         VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc444PL3OutputBti(uIndex, surfaceParam, bInit));
         if (bInit)
         {
-            krnStatefulSurfaces.insert(std::make_pair(uIndex, surfaceParam));
+            krnStatefulSurfaces.emplace(uIndex, surfaceParam);
         }
     }
     param.kernelArgs             = krnArgs;
@@ -786,7 +786,7 @@ MOS_STATUS VpOclFcFilter::GenerateFc444PL3InputParam(OCL_FC_LAYER_PARAM &layer, 
     if (argLayerHandle == m_fc444PL3InputMultiLayersKrnArgs.end())
     {
         KERNEL_INDEX_ARG_MAP fc444PL3InputSingleLayerKrnArgs = {};
-        argLayerHandle                                       = m_fc444PL3InputMultiLayersKrnArgs.insert(std::make_pair(layerIndex, fc444PL3InputSingleLayerKrnArgs)).first;
+        argLayerHandle                                       = m_fc444PL3InputMultiLayersKrnArgs.emplace(layerIndex, fc444PL3InputSingleLayerKrnArgs).first;
         VP_PUBLIC_CHK_NOT_FOUND_RETURN(argLayerHandle, &m_fc444PL3InputMultiLayersKrnArgs);
     }
     KERNEL_INDEX_ARG_MAP &fc444PL3InputKrnArgs = argLayerHandle->second;
@@ -798,7 +798,7 @@ MOS_STATUS VpOclFcFilter::GenerateFc444PL3InputParam(OCL_FC_LAYER_PARAM &layer, 
         if (argHandle == fc444PL3InputKrnArgs.end())
         {
             KRN_ARG krnArg = {};
-            argHandle      = fc444PL3InputKrnArgs.insert(std::make_pair(uIndex, krnArg)).first;
+            argHandle      = fc444PL3InputKrnArgs.emplace(uIndex, krnArg).first;
             VP_PUBLIC_CHK_NOT_FOUND_RETURN(argHandle, &fc444PL3InputKrnArgs);
         }
         KRN_ARG &krnArg = argHandle->second;
@@ -837,7 +837,7 @@ MOS_STATUS VpOclFcFilter::GenerateFc444PL3InputParam(OCL_FC_LAYER_PARAM &layer, 
 
         if (bInit)
         {
-            krnStatefulSurfaces.insert(std::make_pair(uIndex, surfaceParam));
+            krnStatefulSurfaces.emplace(uIndex, surfaceParam);
         }
     }
 
@@ -986,7 +986,7 @@ MOS_STATUS VpOclFcFilter::GenerateFcCommonKrnParam(OCL_FC_COMP_PARAM &compParam,
 
         if (bInit)
         {
-            krnStatefulSurfaces.insert(std::make_pair(uIndex, surfaceParam));
+            krnStatefulSurfaces.emplace(uIndex, surfaceParam);
         }
     }
 
@@ -2922,7 +2922,7 @@ MOS_STATUS VpOclFcFilter::GenerateFcFastExpressKrnParam(OCL_FC_COMP_PARAM &compP
 
         if (bInit)
         {
-            krnStatefulSurfaces.insert(std::make_pair(uIndex, surfaceParam));
+            krnStatefulSurfaces.emplace(uIndex, surfaceParam);
         }
     }
 

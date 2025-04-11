@@ -1062,7 +1062,7 @@ MOS_STATUS RemoveUnusedLayers(std::vector<uint32_t> &indexForRemove, std::vector
             {
                 VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
             }
-            objForRemove.insert(std::make_pair(layers[index], layers[index]));
+            objForRemove.emplace(layers[index], layers[index]);
             layers[index] = nullptr;
         }
         for (auto it : objForRemove)

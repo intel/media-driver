@@ -84,7 +84,7 @@ MOS_STATUS RecycleResource::RegisterResource(
         return MOS_STATUS_CLIENT_AR_NO_SPACE;
     }
 
-    m_resourceQueues.insert(std::make_pair(id, que));
+    m_resourceQueues.emplace(id, que);
 
     return MOS_STATUS_SUCCESS;
 }
