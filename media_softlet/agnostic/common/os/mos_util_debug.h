@@ -269,6 +269,8 @@ typedef struct _MOS_MESSAGE_PARAMS
 #else
 #define MOS_FUNCTION __FUNCTION__
 #endif // USE_PRETTY_FUNCTION
+#else
+#define MOS_FUNCTION __FUNCTION__
 #endif
 
 class MosUtilDebug
