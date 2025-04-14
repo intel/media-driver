@@ -605,7 +605,8 @@ public:
         m_allocator(allocator),
         m_resourceManager(resourceManager),
         m_swFilterHandler(nullptr), // setting when create feature manager
-        m_graphManager(graphManager)
+        m_graphManager(graphManager),
+        m_primaryResourceManager(resourceManager)
     {
     }
 
@@ -669,6 +670,12 @@ public:
         return m_resourceManager;
     }
 
+    VpResourceManager *GetPrimaryResourceManager()
+    {
+        //This is the resource manager in the m_vpPipeContexts[0]. The resources across different pipe contexts will be stored in the primary resource manager
+        return m_primaryResourceManager;
+    }
+
     PVP_MHWINTERFACE GetHwInterface()
     {
         return m_hwInterface;
@@ -695,6 +702,9 @@ private:
     VpResourceManager* m_resourceManager;
     std::map<FeatureType, SwFilterFeatureHandler*>* m_swFilterHandler = nullptr;
     VpGraphManager                                  *m_graphManager    = nullptr;
+
+    //This is the resource manager in the m_vpPipeContexts[0]. The resources across different pipe contexts will be stored in the primary resource manager
+    VpResourceManager *m_primaryResourceManager = nullptr;
 
 MEDIA_CLASS_DEFINE_END(vp__VpInterface)
 };

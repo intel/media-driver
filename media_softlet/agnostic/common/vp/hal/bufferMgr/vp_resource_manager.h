@@ -365,6 +365,7 @@ public:
         std::vector<VP_SURFACE *> &pastSurfaces, std::vector<VP_SURFACE *> &futureSurfaces,
         RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting, SwFilterPipe& executedFilters);
     MOS_STATUS GetUpdatedExecuteResource(std::vector<FeatureType> &featurePool, VP_EXECUTE_CAPS &caps, SwFilterPipe &swfilterPipe, VP_SURFACE_SETTING &surfSetting);
+    MOS_STATUS EmplaceCrossPipeContextResource(PVP_SURFACE surface, PVP_SURFACE originSurface);
 
     virtual MOS_STATUS FillLinearBufferWithEncZero(VP_SURFACE *surface, uint32_t width, uint32_t height);
 
@@ -569,6 +570,9 @@ protected:
     // AI Resource
     std::map<SurfaceType, VP_SURFACE *> m_aiIntermediateSurface = {};
     std::map<SurfaceType, VP_SURFACE *> m_aiNpuCopiedSurface    = {};
+
+    //Cross Pipe Context Resource
+    std::set<VP_SURFACE *> m_crossPipeContextSurfaces;
 
     MediaCopyWrapper *m_mediaCopyWrapper                      = nullptr;
 

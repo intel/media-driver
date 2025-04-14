@@ -279,6 +279,22 @@ VpResourceManager::~VpResourceManager()
         m_allocator.DestroyVpSurface(it->second);
         m_aiNpuCopiedSurface.erase(it);
     }
+    while (!m_crossPipeContextSurfaces.empty())
+    {
+        auto it     = m_crossPipeContextSurfaces.begin();
+        auto vpSurf = *it;
+
+        if (vpSurf->zeNpuHostMem)
+        {
+            m_allocator.DestroyNpuBuffer(vpSurf);
+        }
+        else
+        {
+            m_allocator.DestroyVpSurface(vpSurf);
+        }
+
+        m_crossPipeContextSurfaces.erase(it);
+    }
 
     m_allocator.CleanRecycler();
 }
@@ -2789,6 +2805,16 @@ MOS_STATUS VpResourceManager::AssignHdrResource(VP_EXECUTE_CAPS &caps, std::vect
 
     VP_PUBLIC_CHK_STATUS_RETURN(m_hdrResourceManager->AssignRenderResource(caps, inputSurfaces, outputSurface, resHint, surfSetting, executedFilters, m_osInterface, m_reporting, IsDeferredResourceDestroyNeeded()));
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpResourceManager::EmplaceCrossPipeContextResource(PVP_SURFACE surface, PVP_SURFACE originSurface)
+{
+    if (originSurface)
+    {
+        m_crossPipeContextSurfaces.erase(originSurface);
+    }
+    m_crossPipeContextSurfaces.insert(surface);
     return MOS_STATUS_SUCCESS;
 }
 };
