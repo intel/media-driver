@@ -67,12 +67,10 @@
 #include "media_libva_apo_decision.h"
 #include "mos_oca_interface_specific.h"
 
-#ifdef _MANUAL_SOFTLET_
 #include "media_libva_interface.h"
 #include "media_libva_interface_next.h"
 #include "media_interfaces_hwinfo_device.h"
 #include "media_libva_caps_next.h"
-#endif
 
 #define BO_BUSY_TIMEOUT_LIMIT 100
 
@@ -1589,8 +1587,6 @@ VAStatus DdiMedia_GetDeviceFD (
     return VA_STATUS_SUCCESS;
 }
 
-#ifdef _MANUAL_SOFTLET_
-
 VAStatus DdiMedia_CleanUpSoftlet(PDDI_MEDIA_CONTEXT mediaCtx)
 {
     DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
@@ -1669,8 +1665,6 @@ VAStatus DdiMedia__InitializeSoftlet(
     return status;
 }
 
-#endif
-
 VAStatus DdiMedia__Initialize (
     VADriverContextP ctx,
     int32_t         *major_version,
@@ -1715,7 +1709,6 @@ VAStatus DdiMedia__Initialize (
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
     }
-#ifdef _MANUAL_SOFTLET_
     else
     {
         if(MediaLibvaInterface::LoadFunction(ctx) != VA_STATUS_SUCCESS)
@@ -1724,7 +1717,6 @@ VAStatus DdiMedia__Initialize (
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
     }
-#endif
 
     return status;
 }
@@ -2032,7 +2024,6 @@ VAStatus DdiMedia_InitMediaContext (
     }
 
     //Caps need platform and sku table, especially in MediaLibvaCapsCp::IsDecEncryptionSupported
-#ifdef _MANUAL_SOFTLET_
     apoDdiEnabled = MediaLibvaApoDecision::InitDdiApoState(devicefd, mediaCtx->m_userSettingPtr);
     mediaCtx->m_apoDdiEnabled = apoDdiEnabled;
     if(mediaCtx->m_apoDdiEnabled)
@@ -2045,7 +2036,6 @@ VAStatus DdiMedia_InitMediaContext (
         ctx->max_image_formats = mediaCtx->m_capsNext->GetImageFormatsMaxNum();
     }
     else
-#endif
     {
         mediaCtx->m_caps = MediaLibvaCaps::CreateMediaLibvaCaps(mediaCtx);
         if (!mediaCtx->m_caps)
@@ -2212,9 +2202,7 @@ VAStatus DdiMedia_CleanUp (PDDI_MEDIA_CONTEXT mediaCtx)
         mediaCtx->m_caps = nullptr;
     }
 
-#ifdef _MANUAL_SOFTLET_
     DdiMedia_CleanUpSoftlet(mediaCtx);
-#endif
     return VA_STATUS_SUCCESS;
 }
 
@@ -2241,9 +2229,7 @@ VAStatus DdiMedia_Terminate (
     DdiMediaUtil_DestroyMutex(&mediaCtx->PutSurfaceSwapBufferMutex);
 
     if (mediaCtx->m_caps 
-#ifdef _MANUAL_SOFTLET_
     || mediaCtx->m_capsNext
-#endif
     )
     {
         if (mediaCtx->dri_output != nullptr) {

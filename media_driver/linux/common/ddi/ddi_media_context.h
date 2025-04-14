@@ -181,12 +181,10 @@ struct DDI_MEDIA_CONTEXT
     MEDIA_MUTEX_T   PutSurfaceSwapBufferMutex = {};
 #endif
     bool                  m_apoMosEnabled     = false;
-#ifdef _MANUAL_SOFTLET_
     DdiMediaFunctions     *m_compList[CompCount]    = {};
     MediaInterfacesHwInfo *m_hwInfo                 = nullptr;
     MediaLibvaCapsNext    *m_capsNext               = nullptr;
     bool                  m_apoDdiEnabled           = false;
-#endif
     MediaUserSettingSharedPtr m_userSettingPtr      = nullptr;  // used to save user setting instance
 };
 

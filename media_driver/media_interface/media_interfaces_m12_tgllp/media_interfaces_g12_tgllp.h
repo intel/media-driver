@@ -61,7 +61,7 @@
 #include "codechal_hw_g12_X.h"
 #ifdef _AVC_DECODE_SUPPORTED
 #include "codechal_decode_avc_g12.h"
-#ifdef _APOGEIOS_SUPPORTED
+#ifdef _MEDIA_RESERVED
 #include "decode_avc_pipeline_adapter_m12.h"
 #endif
 #endif
@@ -77,7 +77,7 @@
 
 #ifdef _MPEG2_DECODE_SUPPORTED
 #include "codechal_decode_mpeg2_g12.h"
-#ifdef _APOGEIOS_SUPPORTED
+#ifdef _MEDIA_RESERVED
 #include "decode_mpeg2_pipeline_adapter_m12.h"
 #endif
 #endif
@@ -96,7 +96,7 @@
 
 #ifdef _JPEG_ENCODE_SUPPORTED
 #include "codechal_encode_jpeg_g12.h"
-#ifdef _APOGEIOS_SUPPORTED
+#ifdef _MEDIA_RESERVED
 #include "decode_jpeg_pipeline_adapter_m12.h"
 #endif
 #endif
@@ -110,7 +110,7 @@
 
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
 #include "codechal_vdenc_vp9_g12.h"
-#ifdef _APOGEIOS_SUPPORTED
+#ifdef _MEDIA_RESERVED
 #include "encode_vp9_vdenc_pipeline_adapter_m12.h"
 #endif
 #endif
@@ -125,7 +125,7 @@
 #endif
 #ifdef _HEVC_ENCODE_VDENC_SUPPORTED
 #include "codechal_vdenc_hevc_g12.h"
-#ifdef _APOGEIOS_SUPPORTED
+#ifdef _MEDIA_RESERVED
 #include "decode_hevc_pipeline_adapter_m12.h"
 #include "decode_vp9_pipeline_adapter_m12.h"
 #endif

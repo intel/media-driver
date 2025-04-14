@@ -500,7 +500,7 @@ MOS_STATUS CodechalInterfacesXe_Xpm::Initialize(
     #ifdef _HEVC_DECODE_SUPPORTED
         if (info->Mode == CODECHAL_DECODE_MODE_HEVCVLD)
         {
-        #ifdef _APOGEIOS_SUPPORTED
+        #ifdef _MEDIA_RESERVED
             bool apogeiosEnable = true;
             MOS_USER_FEATURE_VALUE_DATA         userFeatureData;
             MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));

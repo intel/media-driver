@@ -194,6 +194,4 @@ if(ENABLE_XE_KMD)
     add_definitions(-DENABLE_XE_KMD)
 endif()
 
-add_definitions(-D_MANUAL_SOFTLET_)
-
 include(${MEDIA_EXT_CMAKE}/ext/linux/media_feature_flags_linux_ext.cmake OPTIONAL)

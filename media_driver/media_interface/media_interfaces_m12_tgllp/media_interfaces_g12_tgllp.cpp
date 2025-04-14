@@ -571,7 +571,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
         if (info->Mode == CODECHAL_DECODE_MODE_MPEG2IDCT ||
             info->Mode == CODECHAL_DECODE_MODE_MPEG2VLD)
         {
-        #ifdef _APOGEIOS_SUPPORTED
+        #ifdef _MEDIA_RESERVED
             bool apogeiosEnable = false;
             MOS_USER_FEATURE_VALUE_DATA         userFeatureData;
             MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -609,7 +609,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
         if (info->Mode == CODECHAL_DECODE_MODE_AVCVLD)
         {
             bool apogeiosEnable = false;
-        #ifdef _APOGEIOS_SUPPORTED
+        #ifdef _MEDIA_RESERVED
             MOS_USER_FEATURE_VALUE_DATA         userFeatureData;
             MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
 
@@ -668,7 +668,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
         if (info->Mode == CODECHAL_DECODE_MODE_JPEG)
         {
             bool apogeiosEnable = false;
-#ifdef _APOGEIOS_SUPPORTED
+#ifdef _MEDIA_RESERVED
             MOS_USER_FEATURE_VALUE_DATA userFeatureData;
             MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
 
@@ -703,7 +703,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
     #ifdef _HEVC_DECODE_SUPPORTED
         if (info->Mode == CODECHAL_DECODE_MODE_HEVCVLD)
         {
-            #ifdef _APOGEIOS_SUPPORTED
+            #ifdef _MEDIA_RESERVED
             bool apogeiosEnable = false;
             MOS_USER_FEATURE_VALUE_DATA         userFeatureData;
             MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -732,7 +732,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
     #ifdef _VP9_DECODE_SUPPORTED
         if (info->Mode == CODECHAL_DECODE_MODE_VP9VLD)
         {
-#ifdef _APOGEIOS_SUPPORTED
+#ifdef _MEDIA_RESERVED
             bool                        apogeiosEnable = false;
             MOS_USER_FEATURE_VALUE_DATA userFeatureData;
             MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));

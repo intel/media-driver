@@ -126,7 +126,7 @@
 #endif
 
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
-#ifdef _APOGEIOS_SUPPORTED
+#ifdef _MEDIA_RESERVED
 #include "encode_vp9_vdenc_pipeline_adapter_xe_hpm.h"
 #endif
 #endif
