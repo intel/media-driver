@@ -101,7 +101,7 @@ set(CMRT_VERSION ${CMRT_VERSION_MAJOR}.${CMRT_VERSION_MINOR}.${CMRT_VERSION_PATC
 
 set_target_properties(igfxcmrt PROPERTIES VERSION ${CMRT_VERSION})
 set_target_properties(igfxcmrt PROPERTIES SOVERSION ${CMRT_VERSION_MAJOR})
-target_link_libraries( igfxcmrt dl va rt ${GCC_SECURE_LINK_FLAGS})
+target_link_libraries( igfxcmrt ${CMAKE_DL_LIBS} va rt ${GCC_SECURE_LINK_FLAGS})
 
 include(GNUInstallDirs)
 

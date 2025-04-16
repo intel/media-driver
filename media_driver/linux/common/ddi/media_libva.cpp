@@ -36,8 +36,6 @@
 #include <X11/Xutil.h>
 #endif
 
-#include <linux/fb.h>
-
 #include "media_libva.h"
 
 #include "media_libva_util.h"
