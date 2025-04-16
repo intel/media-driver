@@ -100,7 +100,11 @@ Copyright (c) 2024, Intel Corporation
 #endif
 
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
+#if defined(_MEDIA_RESERVED)
+#include "encode_vp9_vdenc_pipeline_adapter_xe3_lpm.h"
+#else
 #include "encode_vp9_vdenc_pipeline_adapter_xe2_lpm.h"
+#endif
 #endif
 
 #include "renderhal_xe2_hpg_next.h"
