@@ -934,6 +934,7 @@ typedef struct _VPHAL_3DLUT_PARAMS
     uint32_t       ChannelMapping     = 0;        // Channel Mapping for the 3DLUT input to 3DLUT output.
     uint16_t       BitDepthPerChannel = 0;        // Bit Depth Per Channel(4 channels for 3DLUT).
     uint16_t       ByteCountPerEntry  = 0;        // Byte Count Per Entry including reserved bytes.
+    uint16_t       MappingMode        = 0;        // Mapping Mode
 
     VPHAL_3DLUT_INTERPOLATION InterpolationMethod = VPHAL_3DLUT_INTERPOLATION_DEFAULT;  // VEBox 3DLut interpolation mode
 } VPHAL_3DLUT_PARAMS, *PVPHAL_3DLUT_PARAMS;
