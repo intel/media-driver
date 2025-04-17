@@ -99,6 +99,7 @@ protected:
 
     PMOS_INTERFACE m_osInterface = nullptr;
 
+    bool m_dllLoaded   = false;
     bool m_supported   = false;
     bool m_initialized = false;
 
