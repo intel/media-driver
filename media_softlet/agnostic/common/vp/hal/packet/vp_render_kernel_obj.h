@@ -460,7 +460,7 @@ public:
         {
             std::set<uint32_t> bindingMap;
             bindingMap.insert(index);
-            m_surfaceBindingIndex.insert(std::make_pair(surface, bindingMap));
+            m_surfaceBindingIndex.emplace(surface, bindingMap);
         }
 
         return MOS_STATUS_SUCCESS;
@@ -474,7 +474,7 @@ public:
         {
             VP_RENDER_ASSERTMESSAGE("No surface index created for current surface");
             std::set<uint32_t> bindingMap;
-            it = m_surfaceBindingIndex.insert(std::make_pair(surface, bindingMap)).first;
+            it = m_surfaceBindingIndex.emplace(surface, bindingMap).first;
         }
         return it->second;
     }
@@ -533,7 +533,7 @@ public:
     {
         if (surf != SurfaceTypeInvalid)
         {
-            m_bindlessSurfaceArray.insert(std::make_pair(surf, surfStateOffset));
+            m_bindlessSurfaceArray.emplace(surf, surfStateOffset);
         }
 
         return MOS_STATUS_SUCCESS;

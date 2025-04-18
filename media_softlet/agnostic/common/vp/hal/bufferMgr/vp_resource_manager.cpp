@@ -1035,7 +1035,7 @@ VP_SURFACE * VpResourceManager::GetCopyInstOfExtSurface(VP_SURFACE* surf)
     VP_SURFACE *surface = m_allocator.AllocateVpSurface(*surf);
     if (surface)
     {
-        m_tempSurface.insert(make_pair((uint64_t)surf, surface));
+        m_tempSurface.emplace((uint64_t)surf, surface);
     }
     else
     {
@@ -1067,13 +1067,13 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
             VP_PUBLIC_ASSERTMESSAGE("Temperal input only has 1 layer, do not support multi-layer case!");
             return MOS_STATUS_INVALID_PARAMETER;
         }
-        surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcInputLayer0), m_temperalInput));
+        surfSetting.surfGroup.emplace((SurfaceType)(SurfaceTypeFcInputLayer0), m_temperalInput);
     }
     else
     {
         for (size_t i = 0; i < inputSurfaces.size(); ++i)
         {
-            surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcInputLayer0 + i), inputSurfaces[i]));
+            surfSetting.surfGroup.emplace((SurfaceType)(SurfaceTypeFcInputLayer0 + i), inputSurfaces[i]);
 
             if (!resHint.isIScalingTypeNone)
             {
@@ -1091,11 +1091,11 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
                     VP_PUBLIC_NORMALMESSAGE("Interlaced scaling. 2nd field is part of the same frame.");
                 }
                 VP_PUBLIC_CHK_NULL_RETURN(surfField1Dual);
-                surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcInputLayer0Field1Dual + i), surfField1Dual));
+                surfSetting.surfGroup.emplace((SurfaceType)(SurfaceTypeFcInputLayer0Field1Dual + i), surfField1Dual);
             }
         }
     }
-    surfSetting.surfGroup.insert(std::make_pair(SurfaceTypeFcTarget0, outputSurface));
+    surfSetting.surfGroup.emplace(SurfaceTypeFcTarget0, outputSurface);
 
     // Allocate auto CSC Coeff Surface
     VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
@@ -1116,7 +1116,7 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
         memTypeSurfVideoMem,
         VPP_INTER_RESOURCE_NOTLOCKABLE));
 
-    surfSetting.surfGroup.insert(std::make_pair(SurfaceTypeFcCscCoeff, m_cmfcCoeff));
+    surfSetting.surfGroup.emplace(SurfaceTypeFcCscCoeff, m_cmfcCoeff);
 
     //for decompreesion sync on interlace input of FC
     VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
@@ -1130,9 +1130,98 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
         false,
         MOS_MMC_DISABLED,
         allocated));
-    surfSetting.surfGroup.insert(std::make_pair(SurfaceTypeDecompressionSync, m_decompressionSyncSurface));
+    surfSetting.surfGroup.emplace(SurfaceTypeDecompressionSync, m_decompressionSyncSurface);
 
-    if (m_vpUserFeatureControl && m_vpUserFeatureControl->EnableOclFC())
+    // Allocate OCL FC intermedia inputSurface
+    for (uint32_t i = 0; i < inputSurfaces.size(); ++i)
+    {
+        VP_PUBLIC_CHK_NULL_RETURN(inputSurfaces[i]);
+        VP_PUBLIC_CHK_NULL_RETURN(inputSurfaces[i]->osSurface);
+        MOS_FORMAT fcIntermediaInputFormat                 = Format_Any;
+        MOS_FORMAT fcSeparateIntermediaSecPlaneInputFormat = Format_Any;
+        uint32_t   widthPL1Factor                          = 1;
+        uint32_t   heightPL1Factor                         = 1;
+        switch (inputSurfaces[i]->osSurface->Format)
+        {
+        case Format_RGBP:
+        case Format_BGRP:
+            fcIntermediaInputFormat = Format_A8R8G8B8;
+            break;
+        case Format_444P:
+            fcIntermediaInputFormat = Format_AYUV;
+            break;
+        case Format_I420:
+        case Format_YV12:
+        case Format_IYUV:
+            fcIntermediaInputFormat = Format_NV12;
+            break;
+        case Format_422H:
+            fcIntermediaInputFormat                 = Format_R8UN;
+            fcSeparateIntermediaSecPlaneInputFormat = Format_R8G8UN;
+            widthPL1Factor                          = 2;
+            break;
+        case Format_422V:
+            fcIntermediaInputFormat                 = Format_R8UN;
+            fcSeparateIntermediaSecPlaneInputFormat = Format_R8G8UN;
+            heightPL1Factor                         = 2;
+            break;
+        case Format_411P:
+            fcIntermediaInputFormat                 = Format_R8UN;
+            fcSeparateIntermediaSecPlaneInputFormat = Format_R8G8UN;
+            widthPL1Factor                          = 4;
+            break;
+        default:
+            break;
+        }
+        if (fcIntermediaInputFormat != Format_Any)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
+                m_fcIntermediaSurfaceInput[i],
+                "fcIntermediaSurfaceInput",
+                fcIntermediaInputFormat,
+                MOS_GFXRES_2D,
+                MOS_TILE_Y,
+                inputSurfaces[i]->osSurface->dwWidth,
+                inputSurfaces[i]->osSurface->dwHeight,
+                false,
+                MOS_MMC_DISABLED,
+                allocated,
+                false,
+                IsDeferredResourceDestroyNeeded(),
+                MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER));
+
+            m_fcIntermediaSurfaceInput[i]->rcSrc         = inputSurfaces[i]->rcSrc;
+            m_fcIntermediaSurfaceInput[i]->rcDst         = inputSurfaces[i]->rcDst;
+            m_fcIntermediaSurfaceInput[i]->SampleType    = inputSurfaces[i]->SampleType;
+            surfSetting.surfGroup.emplace((SurfaceType)(SurfaceTypeFcIntermediaInput + i), m_fcIntermediaSurfaceInput[i]);
+        }
+        if (fcSeparateIntermediaSecPlaneInputFormat != Format_Any)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
+                m_fcSeparateIntermediaSurfaceSecPlaneInput[i],
+                "fcSeparateIntermediaSurfaceSecPlaneInput",
+                fcSeparateIntermediaSecPlaneInputFormat,
+                MOS_GFXRES_2D,
+                MOS_TILE_Y,
+                inputSurfaces[i]->osSurface->dwWidth / widthPL1Factor,
+                inputSurfaces[i]->osSurface->dwHeight / heightPL1Factor,
+                false,
+                MOS_MMC_DISABLED,
+                allocated,
+                false,
+                IsDeferredResourceDestroyNeeded(),
+                MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER));
+
+            m_fcSeparateIntermediaSurfaceSecPlaneInput[i]->rcSrc.top    = inputSurfaces[i]->rcSrc.top / heightPL1Factor;
+            m_fcSeparateIntermediaSurfaceSecPlaneInput[i]->rcSrc.bottom = inputSurfaces[i]->rcSrc.bottom / heightPL1Factor;
+            m_fcSeparateIntermediaSurfaceSecPlaneInput[i]->rcSrc.left   = inputSurfaces[i]->rcSrc.left / widthPL1Factor;
+            m_fcSeparateIntermediaSurfaceSecPlaneInput[i]->rcSrc.right  = inputSurfaces[i]->rcSrc.right / widthPL1Factor;
+            m_fcSeparateIntermediaSurfaceSecPlaneInput[i]->rcDst        = inputSurfaces[i]->rcDst;
+            m_fcSeparateIntermediaSurfaceSecPlaneInput[i]->SampleType   = inputSurfaces[i]->SampleType;
+            surfSetting.surfGroup.emplace((SurfaceType)(SurfaceTypeFcSeparateIntermediaInputSecPlane + i), m_fcSeparateIntermediaSurfaceSecPlaneInput[i]);
+        }
+    }
+    // Allocate OCL FC intermedia outputSurface
     {
         // Allocate OCL FC intermedia inputSurface
         for (uint32_t i = 0; i < inputSurfaces.size(); ++i)
@@ -1266,7 +1355,7 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
                 m_fcIntermediaSurfaceOutput->rcSrc      = outputSurface->rcSrc;
                 m_fcIntermediaSurfaceOutput->rcDst      = outputSurface->rcDst;
                 m_fcIntermediaSurfaceOutput->SampleType = outputSurface->SampleType;
-                surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeFcIntermediaOutput), m_fcIntermediaSurfaceOutput));
+                surfSetting.surfGroup.emplace((SurfaceType)(SurfaceTypeFcIntermediaOutput), m_fcIntermediaSurfaceOutput);
             }
         }
     }
@@ -1415,7 +1504,7 @@ MOS_STATUS VpResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std::v
         {
             VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
         }
-        surfSetting.surfGroup.insert(std::make_pair(SurfaceTypeRenderInput, inputSurfaces[0]));
+        surfSetting.surfGroup.emplace(SurfaceTypeRenderInput, inputSurfaces[0]);
         VP_PUBLIC_CHK_STATUS_RETURN(AssignVeboxResourceForRender(caps, inputSurfaces[0], resHint, surfSetting));
     }
     return MOS_STATUS_SUCCESS;
@@ -2335,8 +2424,8 @@ MOS_STATUS VpResourceManager::Assign3DLutKernelResource(VP_EXECUTE_CAPS &caps, R
 
     VP_PUBLIC_CHK_STATUS_RETURN(AllocateResourceFor3DLutKernel(caps));
 
-    surfSetting.surfGroup.insert(std::make_pair(SurfaceType3DLut, m_vebox3DLookUpTables));
-    surfSetting.surfGroup.insert(std::make_pair(SurfaceType3DLutCoef, m_3DLutKernelCoefSurface));
+    surfSetting.surfGroup.emplace(SurfaceType3DLut, m_vebox3DLookUpTables);
+    surfSetting.surfGroup.emplace(SurfaceType3DLutCoef, m_3DLutKernelCoefSurface);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -2372,7 +2461,7 @@ MOS_STATUS VpResourceManager::AssignHVSKernelResource(VP_EXECUTE_CAPS &caps, RES
 
     VP_PUBLIC_CHK_STATUS_RETURN(AllocateResourceForHVSKernel(caps));
 
-    surfSetting.surfGroup.insert(std::make_pair(SurfaceTypeHVSTable, m_veboxDnHVSTables));
+    surfSetting.surfGroup.emplace(SurfaceTypeHVSTable, m_veboxDnHVSTables);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -2389,7 +2478,7 @@ MOS_STATUS VpResourceManager::AssignSurface(VP_EXECUTE_CAPS caps, VEBOX_SURFACE_
             VP_PUBLIC_ASSERTMESSAGE("inputSurface should not be nullptr when surfaceId being VEBOX_SURFACE_INPUT.");
             break;
         }
-        surfGroup.insert(std::make_pair(surfaceType, inputSurface));
+        surfGroup.emplace(surfaceType, inputSurface);
         break;
     case VEBOX_SURFACE_OUTPUT:
         if (nullptr == outputSurface)
@@ -2397,12 +2486,12 @@ MOS_STATUS VpResourceManager::AssignSurface(VP_EXECUTE_CAPS caps, VEBOX_SURFACE_
             VP_PUBLIC_ASSERTMESSAGE("outputSurface should not be nullptr when surfaceId being VEBOX_SURFACE_OUTPUT.");
             break;
         }
-        surfGroup.insert(std::make_pair(surfaceType, outputSurface));
+        surfGroup.emplace(surfaceType, outputSurface);
         break;
     case VEBOX_SURFACE_PAST_REF:
         if (caps.bDN && m_pastDnOutputValid)
         {
-            surfGroup.insert(std::make_pair(surfaceType, m_veboxDenoiseOutput[(m_currentDnOutput + 1) & 1]));
+            surfGroup.emplace(surfaceType, m_veboxDenoiseOutput[(m_currentDnOutput + 1) & 1]);
         }
         else
         {
@@ -2423,7 +2512,7 @@ MOS_STATUS VpResourceManager::AssignSurface(VP_EXECUTE_CAPS caps, VEBOX_SURFACE_
                 // state is for both of them. Check pitch to handle it.
                 pastSurface->osSurface->dwPitch == curDnOutputSurface->osSurface->dwPitch)
             {
-                surfGroup.insert(std::make_pair(surfaceType, pastSurface));
+                surfGroup.emplace(surfaceType, pastSurface);
             }
             else
             {
@@ -2443,19 +2532,19 @@ MOS_STATUS VpResourceManager::AssignSurface(VP_EXECUTE_CAPS caps, VEBOX_SURFACE_
             VP_PUBLIC_ASSERTMESSAGE("futureSurface should not be nullptr when surfaceId being VEBOX_SURFACE_FUTURE_REF.");
             break;
         }
-        surfGroup.insert(std::make_pair(surfaceType, futureSurface));
+        surfGroup.emplace(surfaceType, futureSurface);
         break;
     case VEBOX_SURFACE_FRAME0:
-        surfGroup.insert(std::make_pair(surfaceType, m_veboxOutput[(m_currentDnOutput + 0) % m_veboxOutputCount]));
+        surfGroup.emplace(surfaceType, m_veboxOutput[(m_currentDnOutput + 0) % m_veboxOutputCount]);
         break;
     case VEBOX_SURFACE_FRAME1:
-        surfGroup.insert(std::make_pair(surfaceType, m_veboxOutput[(m_currentDnOutput + 1) % m_veboxOutputCount]));
+        surfGroup.emplace(surfaceType, m_veboxOutput[(m_currentDnOutput + 1) % m_veboxOutputCount]);
         break;
     case VEBOX_SURFACE_FRAME2:
-        surfGroup.insert(std::make_pair(surfaceType, m_veboxOutput[(m_currentDnOutput + 2) % m_veboxOutputCount]));
+        surfGroup.emplace(surfaceType, m_veboxOutput[(m_currentDnOutput + 2) % m_veboxOutputCount]);
         break;
     case VEBOX_SURFACE_FRAME3:
-        surfGroup.insert(std::make_pair(surfaceType, m_veboxOutput[(m_currentDnOutput + 3) % m_veboxOutputCount]));
+        surfGroup.emplace(surfaceType, m_veboxOutput[(m_currentDnOutput + 3) % m_veboxOutputCount]);
         break;
     default:
         break;
@@ -2515,24 +2604,24 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
         if (caps.bDN)
         {
             // Insert DN output surface
-            surfGroup.insert(std::make_pair(SurfaceTypeDNOutput, m_veboxDenoiseOutput[m_currentDnOutput]));
+            surfGroup.emplace(SurfaceTypeDNOutput, m_veboxDenoiseOutput[m_currentDnOutput]);
         }
 
         caps.bRefValid = surfGroup.find(SurfaceTypeVeboxPreviousInput) != surfGroup.end();
     }
     else
     {
-        surfGroup.insert(std::make_pair(SurfaceTypeVeboxInput, inputSurface));
-        surfGroup.insert(std::make_pair(SurfaceTypeVeboxCurrentOutput, GetVeboxOutputSurface(caps, outputSurface)));
+        surfGroup.emplace(SurfaceTypeVeboxInput, inputSurface);
+        surfGroup.emplace(SurfaceTypeVeboxCurrentOutput, GetVeboxOutputSurface(caps, outputSurface));
 
         if (caps.bDN)
         {
             // Insert DN output surface
-            surfGroup.insert(std::make_pair(SurfaceTypeDNOutput, m_veboxDenoiseOutput[m_currentDnOutput]));
+            surfGroup.emplace(SurfaceTypeDNOutput, m_veboxDenoiseOutput[m_currentDnOutput]);
             // Insert DN Reference surface
             if (caps.bRefValid)
             {
-                surfGroup.insert(std::make_pair(SurfaceTypeVeboxPreviousInput, m_veboxDenoiseOutput[(m_currentDnOutput + 1) & 1]));
+                surfGroup.emplace(SurfaceTypeVeboxPreviousInput, m_veboxDenoiseOutput[(m_currentDnOutput + 1) & 1]);
             }
         }
     }
@@ -2540,32 +2629,32 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
     if (VeboxSTMMNeeded(caps, true))
     {
         // Insert STMM input surface
-        surfGroup.insert(std::make_pair(SurfaceTypeSTMMIn, m_veboxSTMMSurface[m_currentStmmIndex]));
+        surfGroup.emplace(SurfaceTypeSTMMIn, m_veboxSTMMSurface[m_currentStmmIndex]);
         // Insert STMM output surface
-        surfGroup.insert(std::make_pair(SurfaceTypeSTMMOut, m_veboxSTMMSurface[(m_currentStmmIndex + 1) & 1]));
+        surfGroup.emplace(SurfaceTypeSTMMOut, m_veboxSTMMSurface[(m_currentStmmIndex + 1) & 1]);
     }
 
 #if VEBOX_AUTO_DENOISE_SUPPORTED
     if (caps.bDnKernelUpdate)
     {
         // Insert Vebox auto DN noise level surface
-        surfGroup.insert(std::make_pair(SurfaceTypeAutoDNNoiseLevel, m_veboxDNTempSurface));
+        surfGroup.emplace(SurfaceTypeAutoDNNoiseLevel, m_veboxDNTempSurface);
         // Insert Vebox auto DN spatial config surface/buffer
-        surfGroup.insert(std::make_pair(SurfaceTypeAutoDNSpatialConfig, m_veboxDNSpatialConfigSurface));
+        surfGroup.emplace(SurfaceTypeAutoDNSpatialConfig, m_veboxDNSpatialConfigSurface);
     }
 #endif
 
     // Insert Vebox histogram surface
-    surfGroup.insert(std::make_pair(SurfaceTypeLaceAceRGBHistogram, m_veboxRgbHistogram));
+    surfGroup.emplace(SurfaceTypeLaceAceRGBHistogram, m_veboxRgbHistogram);
 
     // Insert Vebox statistics surface
     if (caps.b1stPassOfSfc2PassScaling)
     {
-        surfGroup.insert(std::make_pair(SurfaceTypeStatistics, m_veboxStatisticsSurfacefor1stPassofSfc2Pass));
+        surfGroup.emplace(SurfaceTypeStatistics, m_veboxStatisticsSurfacefor1stPassofSfc2Pass);
     }
     else
     {
-        surfGroup.insert(std::make_pair(SurfaceTypeStatistics, m_veboxStatisticsSurface));
+        surfGroup.emplace(SurfaceTypeStatistics, m_veboxStatisticsSurface);
     }
     surfSetting.dwVeboxPerBlockStatisticsHeight = m_dwVeboxPerBlockStatisticsHeight;
     surfSetting.dwVeboxPerBlockStatisticsWidth  = m_dwVeboxPerBlockStatisticsWidth;
@@ -2573,25 +2662,25 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
     if (VeboxHdr3DlutNeeded(caps))
     {
         // Insert Vebox 3Dlut surface
-        surfGroup.insert(std::make_pair(SurfaceType3DLut, m_vebox3DLookUpTables));
+        surfGroup.emplace(SurfaceType3DLut, m_vebox3DLookUpTables);
     }
 
     if (resHint.isHVSTableNeeded)
     {
         VP_PUBLIC_CHK_NULL_RETURN(m_veboxDnHVSTables);
         // Insert Vebox HVS DN surface
-        surfGroup.insert(std::make_pair(SurfaceTypeHVSTable, m_veboxDnHVSTables));
+        surfGroup.emplace(SurfaceTypeHVSTable, m_veboxDnHVSTables);
     }
 
     if (caps.b1K1DLutInUse)
     {
         // Insert DV 1Dlut surface
-        surfGroup.insert(std::make_pair(SurfaceType1k1dLut, m_vebox1DLookUpTables));
+        surfGroup.emplace(SurfaceType1k1dLut, m_vebox1DLookUpTables);
     }
 
     if (caps.enableSFCLinearOutputByTileConvert)
     {
-        surfGroup.insert(std::make_pair(SurfaceTypeInnerTileConvertInput, m_innerTileConvertInput));
+        surfGroup.emplace(SurfaceTypeInnerTileConvertInput, m_innerTileConvertInput);
     }
 
     // Update previous Dn output flag for next frame to use.
