@@ -888,6 +888,11 @@ MOS_STATUS Policy::GetCSCExecutionCapsBT2020ToRGB(SwFilter *cgc, SwFilter *csc)
         VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_UNIMPLEMENTED);
     }
 
+    if(userFeatureControl->IsVeboxTypeHMode())
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_PLATFORM_NOT_SUPPORTED);
+    }
+
     FeatureParamCsc *cscParams = &((SwFilterCsc *)csc)->GetSwFilterParams();
 
     VP_EngineEntry *cscEngine = &((SwFilterCsc *)csc)->GetFilterEngineCaps();
