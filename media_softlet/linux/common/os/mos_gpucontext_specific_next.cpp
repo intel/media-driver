@@ -34,9 +34,7 @@
 #include "mos_os_virtualengine_next.h"
 #include "mos_interface.h"
 #include "mos_os_cp_interface_specific.h"
-#ifdef ENABLE_XE_KMD
 #include "mos_gpucontext_specific_next_xe.h"
-#endif
 
 #define MI_BATCHBUFFER_END 0x05000000
 static pthread_mutex_t command_dump_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -119,12 +117,11 @@ GpuContextNext *GpuContextSpecificNext::Create(
     {
         return MOS_New(GpuContextSpecificNext, gpuNode, cmdBufMgr, reusedContext);
     }
-#ifdef ENABLE_XE_KMD
     else if (DEVICE_TYPE_XE == type)
     {
         return MOS_New(GpuContextSpecificNextXe, gpuNode, cmdBufMgr, reusedContext);
     }
-#endif
+
     return nullptr;
 }
 

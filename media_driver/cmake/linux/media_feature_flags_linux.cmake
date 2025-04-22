@@ -18,8 +18,6 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-option (ENABLE_XE_KMD "Enable Linux Xe KMD header files" ON)
-
 # global flag for encode AVC_VME/HEVC_VME/MPEG2/VP8
 bs_set_if_undefined(Encode_VME_Supported "yes")
 # global flag for encode AVC_VDENC/HEVC_VDENC/VP9_VDENC/JPEG
@@ -187,11 +185,6 @@ endif()
 
 if(NOT ENABLE_NONFREE_KERNELS)
     add_definitions(-D_FULL_OPEN_SOURCE)
-endif()
-
-if(ENABLE_XE_KMD)
-    message("New XE Kmd support has been enabled")
-    add_definitions(-DENABLE_XE_KMD)
 endif()
 
 include(${MEDIA_EXT_CMAKE}/ext/linux/media_feature_flags_linux_ext.cmake OPTIONAL)
