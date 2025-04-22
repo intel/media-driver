@@ -1054,7 +1054,7 @@ bool DdiMedia_DestroyImageFromVAImageID (PDDI_MEDIA_CONTEXT mediaCtx, VAImageID 
     DdiMediaUtil_UnLockMutex(&mediaCtx->ImageMutex);
     return true;
 }
-#ifdef _MMC_SUPPORTED
+
 //!
 //! \brief  Decompress internal media memory 
 //! 
@@ -1266,7 +1266,6 @@ VAStatus DdiMedia_MediaMemoryTileConvertInternal(
 
     return vaStatus;
 }
-#endif
 
 //!
 //! \brief  Decompress a compressed surface.
@@ -1296,7 +1295,6 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
           GmmFlags.Info.MediaCompressed)                                          ||
           mediaSurface->pGmmResourceInfo->IsMediaMemoryCompressed(0))
     {
-#ifdef _MMC_SUPPORTED
         MOS_CONTEXT  mosCtx = {};
         MOS_RESOURCE surface;
         DdiCpInterface *pCpDdiInterface;
@@ -1348,10 +1346,6 @@ VAStatus DdiMedia_MediaMemoryDecompress(PDDI_MEDIA_CONTEXT mediaCtx, DDI_MEDIA_S
                 pCpDdiInterface = NULL;
             }
         }
-#else
-        vaStatus = VA_STATUS_ERROR_INVALID_SURFACE;
-        DDI_ASSERTMESSAGE("MMC unsupported! [%d].", vaStatus);
-#endif
     }
 
     return vaStatus;
@@ -1768,12 +1762,11 @@ VAStatus DdiMedia_InitMediaContext (
     MosInterface::InitOsUtilities(&mosCtx);
     mediaCtx->m_apoMosEnabled = SetupApoMosSwitch(devicefd, mediaCtx->m_userSettingPtr);
 
-#ifdef _MMC_SUPPORTED
     mediaCtx->pfnMemoryDecompress  = DdiMedia_MediaMemoryDecompressInternal;
     mediaCtx->pfnMediaMemoryCopy   = DdiMedia_MediaMemoryCopyInternal;
     mediaCtx->pfnMediaMemoryCopy2D = DdiMedia_MediaMemoryCopy2DInternal;
     mediaCtx->pfnMediaMemoryTileConvert = DdiMedia_MediaMemoryTileConvertInternal;
-#endif
+
     mediaCtx->modularizedGpuCtxEnabled = true;
 
     if (mediaCtx->m_apoMosEnabled)
@@ -1809,7 +1802,6 @@ VAStatus DdiMedia_InitMediaContext (
         mediaCtx->bIsAtomSOC                = mosCtx.bIsAtomSOC;
         mediaCtx->perfData                  = mosCtx.pPerfData;
 
-#ifdef _MMC_SUPPORTED
         if (mosCtx.ppMediaMemDecompState == nullptr)
         {
             DDI_ASSERTMESSAGE("media decomp state is null.");
@@ -1817,7 +1809,7 @@ VAStatus DdiMedia_InitMediaContext (
             return VA_STATUS_ERROR_OPERATION_FAILED;
         }
         mediaCtx->pMediaMemDecompState      = *mosCtx.ppMediaMemDecompState;
-#endif
+
         mediaCtx->pMediaCopyState           = *mosCtx.ppMediaCopyState;
     }
     else if (mediaCtx->modularizedGpuCtxEnabled)
@@ -6434,10 +6426,8 @@ VAStatus DdiMedia_LockSurface (
 
     DDI_MEDIA_SURFACE *mediaSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, surface);
     
-#ifdef _MMC_SUPPORTED
     // Decompress surface is needed
     DdiMedia_MediaMemoryDecompress(mediaCtx, mediaSurface);
-#endif
 
     if (nullptr == mediaSurface)
     {

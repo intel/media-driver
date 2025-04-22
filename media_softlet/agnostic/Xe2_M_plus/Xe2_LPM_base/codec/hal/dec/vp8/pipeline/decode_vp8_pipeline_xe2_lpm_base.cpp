@@ -115,12 +115,10 @@ MOS_STATUS Vp8PipelineXe2_Lpm_Base::Execute()
 
 #if (_DEBUG || _RELEASE_INTERNAL)
             DECODE_CHK_STATUS(StatusCheck());
-#ifdef _MMC_SUPPORTED
             if (m_mmcState != nullptr)
             {
                 m_mmcState->ReportSurfaceMmcMode(&(m_basicFeature->m_destSurface));
             }
-#endif
 #endif
             // Only update user features for the first frame.
             if (m_basicFeature->m_frameNum == 0)
@@ -182,9 +180,8 @@ MOS_STATUS Vp8PipelineXe2_Lpm_Base::Initialize(void *settings)
     DECODE_FUNC_CALL();
 
     DECODE_CHK_STATUS(Vp8Pipeline::Initialize(settings));
-#ifdef _MMC_SUPPORTED
+
     DECODE_CHK_STATUS(InitMmcState());
-#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -232,7 +229,6 @@ MOS_STATUS Vp8PipelineXe2_Lpm_Base::CreateSubPackets(DecodeSubPacketManager &sub
     return MOS_STATUS_SUCCESS;
 }
 
-#ifdef _MMC_SUPPORTED
 MOS_STATUS Vp8PipelineXe2_Lpm_Base::InitMmcState()
 {
     DECODE_CHK_NULL(m_hwInterface);
@@ -241,7 +237,6 @@ MOS_STATUS Vp8PipelineXe2_Lpm_Base::InitMmcState()
     DECODE_CHK_STATUS(m_basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
     return MOS_STATUS_SUCCESS;
 }
-#endif
 
 #if USE_CODECHAL_DEBUG_TOOL
 MOS_STATUS Vp8PipelineXe2_Lpm_Base::DumpParams(Vp8BasicFeature &basicFeature)

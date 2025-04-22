@@ -255,7 +255,6 @@ void MhwInterfacesPvc_Next::Destroy()
     }
 }
 
-#ifdef _MMC_SUPPORTED
 static bool pvcRegisteredMmd =
     MediaFactory<uint32_t, MmdDevice>::
     Register<MmdDeviceXe_Xpm_Plus>((uint32_t)IGFX_PVC);
@@ -320,7 +319,6 @@ MhwInterfaces* MmdDeviceXe_Xpm_Plus::CreateMhwInterface(
 
     return mhw;
 }
-#endif
 
 static bool pvcRegisteredMcpy =
     MediaFactory<uint32_t, McpyDevice>::

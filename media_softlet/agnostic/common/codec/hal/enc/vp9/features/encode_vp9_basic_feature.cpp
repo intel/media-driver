@@ -975,7 +975,6 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, Vp9BasicFeature)
 
     params.streamInBuffer  = m_recycleBuf->GetBuffer(RecycleResId::StreamInBuffer, m_frameNum);
 
-#ifdef _MMC_SUPPORTED
     ENCODE_CHK_NULL_RETURN(m_mmcState);
 
     if (m_mmcState->IsMmcEnabled())
@@ -988,7 +987,6 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, Vp9BasicFeature)
         params.mmcEnabled = false;
         params.mmcStateRaw         = MOS_MEMCOMP_DISABLED;
     }
-#endif
 
     return MOS_STATUS_SUCCESS;
 }

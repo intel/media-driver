@@ -1593,12 +1593,11 @@ MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFE
         m_basicFeature = dynamic_cast<HevcBasicFeature *>(m_featureManager->GetFeature(HevcFeatureIDs::basicFeature));
         ENCODE_CHK_NULL_RETURN(m_basicFeature);
 
-#ifdef _MMC_SUPPORTED
         m_mmcState = m_pipeline->GetMmcState();
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         m_basicFeature->m_mmcState = m_mmcState;
         m_basicFeature->m_ref.m_mmcState = m_mmcState;
-#endif
+
         m_allocator = m_pipeline->GetEncodeAllocator();
         ENCODE_CHK_STATUS_RETURN(AllocateResources());
 
@@ -1774,10 +1773,8 @@ MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFE
             ENCODE_CHK_STATUS_RETURN(packetUtilities->SendMarkerCommand(&cmdBuffer, presSetMarker));
         }
 
-#ifdef _MMC_SUPPORTED
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(&cmdBuffer, false));
-#endif
 
         MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
         MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
@@ -3151,7 +3148,6 @@ MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFE
 
         params.bRawIs10Bit = m_basicFeature->m_is10Bit;
 
-#ifdef _MMC_SUPPORTED
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         if (m_mmcState->IsMmcEnabled())
         {
@@ -3166,7 +3162,6 @@ MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFE
 
         CODECHAL_DEBUG_TOOL(
             m_basicFeature->m_reconSurface.MmcState = params.PreDeblockSurfMmcState;)
-#endif
 
         m_basicFeature->m_ref.MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params);
 

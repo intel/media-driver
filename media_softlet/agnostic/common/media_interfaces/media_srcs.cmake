@@ -25,13 +25,10 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/skuwa_factory.h
 )
 
- if(${MMC_Supported} STREQUAL "yes")
-    set(TMP_HEADERS_
-        ${TMP_HEADERS_}
-        ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mmd_next.h
-    )
-endif()
-
+set(TMP_HEADERS_
+    ${TMP_HEADERS_}
+    ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mmd_next.h
+)
 
 set(SOFTLET_COMMON_SOURCES_
     ${SOFTLET_COMMON_SOURCES_}

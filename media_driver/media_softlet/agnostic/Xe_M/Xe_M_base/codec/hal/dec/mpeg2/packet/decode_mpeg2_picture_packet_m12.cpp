@@ -83,11 +83,9 @@ MOS_STATUS Mpeg2DecodePicPktM12::AddMfxPipeBufAddrCmd(MOS_COMMAND_BUFFER &cmdBuf
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams = {};
     DECODE_CHK_STATUS(SetMfxPipeBufAddrParams(pipeBufAddrParams));
 
-#ifdef _MMC_SUPPORTED
     Mpeg2DecodeMemCompM12 *mpeg2DecodeMemComp = dynamic_cast<Mpeg2DecodeMemCompM12 *>(m_mmcState);
     DECODE_CHK_NULL(mpeg2DecodeMemComp);
     DECODE_CHK_STATUS(mpeg2DecodeMemComp->CheckReferenceList(*m_mpeg2BasicFeature, pipeBufAddrParams.PreDeblockSurfMmcState, pipeBufAddrParams.PostDeblockSurfMmcState));
-#endif
 
     DECODE_CHK_STATUS(m_mfxInterface->AddMfxPipeBufAddrCmd(&cmdBuffer, &pipeBufAddrParams));
 

@@ -79,10 +79,8 @@ namespace decode
         DECODE_CHK_STATUS(SetRowStoreScratchBuffer());
         DECODE_CHK_STATUS(SetSegmentationIdStreamBuffer());
 
-    #ifdef _MMC_SUPPORTED
         m_mmcState = m_vp8Pipeline->GetMmcState();
         DECODE_CHK_NULL(m_mmcState);
-    #endif
 
         return MOS_STATUS_SUCCESS;
     }
@@ -235,11 +233,9 @@ namespace decode
         // set cmd function
         MOS_SURFACE *psSurface = &m_vp8BasicFeature->m_destSurface;
 
-    #ifdef _MMC_SUPPORTED
         DECODE_CHK_STATUS(m_mmcState->SetSurfaceMmcState(&(m_vp8BasicFeature->m_destSurface)));
         DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(psSurface, &params.mmcState));
         DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(psSurface, &params.compressionFormat));
-    #endif
 
         params.height           = psSurface->dwHeight - 1;
         params.width            = psSurface->dwWidth - 1;
@@ -285,13 +281,12 @@ namespace decode
         {
             params.psPreDeblockSurface = &(m_vp8BasicFeature->m_destSurface);
         }
-    #ifdef _MMC_SUPPORTED
+
             auto m_mmcEnabled = m_mmcState->IsMmcEnabled();
             Vp8DecodeMemComp *vp8DecodeMemComp = dynamic_cast<Vp8DecodeMemComp *>(m_mmcState);
             DECODE_CHK_NULL(vp8DecodeMemComp);
             vp8DecodeMemComp->m_mmcEnabled = m_mmcEnabled;
             DECODE_CHK_STATUS(vp8DecodeMemComp->SetPipeBufAddr(*m_vp8BasicFeature, params.PostDeblockSurfMmcState, params.PreDeblockSurfMmcState));
-    #endif
 
         params.presReferences[CodechalDecodeLastRef]      = m_vp8BasicFeature->m_LastRefSurface;
         params.presReferences[CodechalDecodeGoldenRef]    = m_vp8BasicFeature->m_GoldenRefSurface;
@@ -307,9 +302,7 @@ namespace decode
             params.presStreamOutBuffer = m_vp8BasicFeature->m_streamOutBuffer;
         }
 
-    #ifdef _MMC_SUPPORTED
         DECODE_CHK_STATUS(vp8DecodeMemComp->CheckReferenceList(*m_vp8BasicFeature, params.PostDeblockSurfMmcState, params.PreDeblockSurfMmcState));
-    #endif
 
         CODECHAL_DEBUG_TOOL(DumpResources(params));
 

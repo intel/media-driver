@@ -208,9 +208,8 @@ MOS_STATUS Vp9PipelineXe3_Lpm_Base::Initialize(void *settings)
     DECODE_FUNC_CALL();
 
     DECODE_CHK_STATUS(Vp9Pipeline::Initialize(settings));
-#ifdef _MMC_SUPPORTED
+
     DECODE_CHK_STATUS(InitMmcState());
-#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -271,12 +270,11 @@ MOS_STATUS Vp9PipelineXe3_Lpm_Base::CreateSubPackets(DecodeSubPacketManager &sub
 
 MOS_STATUS Vp9PipelineXe3_Lpm_Base::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
     DECODE_CHK_NULL(m_hwInterface);
     m_mmcState = MOS_New(Vp9DecodeMemCompXe3_Lpm_Base, m_hwInterface);
     DECODE_CHK_NULL(m_mmcState);
     DECODE_CHK_STATUS(m_basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

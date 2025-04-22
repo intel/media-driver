@@ -95,9 +95,8 @@ MOS_STATUS JpegPipelineXe3_Lpm_Base::Initialize(void *settings)
     DECODE_FUNC_CALL();
 
     DECODE_CHK_STATUS(JpegPipeline::Initialize(settings));
-#ifdef _MMC_SUPPORTED
+
     DECODE_CHK_STATUS(InitMmcState());
-#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -238,7 +237,6 @@ MOS_STATUS JpegPipelineXe3_Lpm_Base::Execute()
     return MOS_STATUS_SUCCESS;
 }
 
-#ifdef _MMC_SUPPORTED
 MOS_STATUS JpegPipelineXe3_Lpm_Base::InitMmcState()
 {
     DECODE_FUNC_CALL();
@@ -251,7 +249,6 @@ MOS_STATUS JpegPipelineXe3_Lpm_Base::InitMmcState()
 
     return MOS_STATUS_SUCCESS;
 }
-#endif
 
 MOS_STATUS JpegPipelineXe3_Lpm_Base::UserFeatureReport()
 {

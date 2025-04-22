@@ -145,11 +145,9 @@ MOS_STATUS Vp9DecodePicPktXe3_Lpm_Base::Init()
 
         DECODE_CHK_STATUS(Vp9DecodePicPkt::MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params));
 
-#ifdef _MMC_SUPPORTED
         Vp9DecodeMemCompXe3_Lpm_Base *vp9DecodeMemComp = dynamic_cast<Vp9DecodeMemCompXe3_Lpm_Base *>(m_mmcState);
         DECODE_CHK_NULL(vp9DecodeMemComp);
         DECODE_CHK_STATUS(vp9DecodeMemComp->CheckReferenceList(*m_vp9BasicFeature, params.PostDeblockSurfMmcState, params.PreDeblockSurfMmcState, params.presReferences));
-#endif
 
         if (m_vp9Pipeline->GetDecodeMode() == Vp9Pipeline::virtualTileDecodeMode)
         {

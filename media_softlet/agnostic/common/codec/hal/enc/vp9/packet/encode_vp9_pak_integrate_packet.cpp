@@ -46,10 +46,9 @@ MOS_STATUS Vp9PakIntegratePkt::Init()
     ENCODE_CHK_STATUS_RETURN(EncodeHucPkt::Init());
 
     ENCODE_CHK_NULL_RETURN(m_pipeline);
-#ifdef _MMC_SUPPORTED
+
     m_mmcState = m_pipeline->GetMmcState();
     ENCODE_CHK_NULL_RETURN(m_mmcState);
-#endif  // __MMC_SUPPORTED
 
     return MOS_STATUS_SUCCESS;
 }

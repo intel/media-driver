@@ -99,9 +99,8 @@ namespace decode
         DECODE_FUNC_CALL();
 
         DECODE_CHK_STATUS(Mpeg2Pipeline::Initialize(settings));
-#ifdef _MMC_SUPPORTED
+
         DECODE_CHK_STATUS(InitMmcState());
-#endif
 
         return MOS_STATUS_SUCCESS;
     }
@@ -266,7 +265,6 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-#ifdef _MMC_SUPPORTED
     MOS_STATUS Mpeg2PipelineXe3_Lpm_Base::InitMmcState()
     {
         DECODE_FUNC_CALL();
@@ -277,7 +275,6 @@ namespace decode
 
         return MOS_STATUS_SUCCESS;
     }
-#endif
 
     MOS_STATUS Mpeg2PipelineXe3_Lpm_Base::UserFeatureReport()
     {

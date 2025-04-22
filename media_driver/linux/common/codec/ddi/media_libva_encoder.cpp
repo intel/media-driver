@@ -389,7 +389,6 @@ VAStatus DdiEncode_CreateContext(
 
     MOS_STATUS eStatus = pCodecHal->Allocate(encCtx->m_encode->m_codechalSettings);
 
-#ifdef _MMC_SUPPORTED
     PMOS_INTERFACE osInterface = pCodecHal->GetOsInterface();
     if (osInterface != nullptr                                                       &&
         !osInterface->apoMosEnabled                                                  &&
@@ -399,7 +398,6 @@ VAStatus DdiEncode_CreateContext(
         mediaDrvCtx->pMediaMemDecompState =
             static_cast<MediaMemDecompState*>(MmdDevice::CreateFactory(&mosCtx));
     }
-#endif
 
     if (eStatus != MOS_STATUS_SUCCESS)
     {

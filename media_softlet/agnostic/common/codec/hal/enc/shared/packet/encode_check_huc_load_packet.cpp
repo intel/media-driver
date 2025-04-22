@@ -98,12 +98,11 @@ namespace encode
 
         ENCODE_FUNC_CALL();
         bool mmcEnabled = false;
-#ifdef _MMC_SUPPORTED
+
         EncodeMemComp *mmcState = m_pipeline->GetMmcState();
         ENCODE_CHK_NULL_RETURN(mmcState);
         mmcEnabled = mmcState->IsMmcEnabled();
         ENCODE_CHK_STATUS_RETURN(mmcState->SendPrologCmd(cmdBuffer, false));
-#endif
 
         MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
         MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));

@@ -437,7 +437,6 @@ MhwInterfacesNext* McpyDeviceNext::CreateMhwInterface(PMOS_INTERFACE osInterface
     return mhw;
 }
 
-#ifdef _MMC_SUPPORTED
 void* MmdDeviceNext::CreateFactory(PMOS_CONTEXT osDriverContext)
 {
 #define MMD_FAILURE()                                       \
@@ -533,4 +532,3 @@ MhwInterfacesNext* MmdDeviceNext::CreateMhwInterface(PMOS_INTERFACE osInterface)
 
     return mhw;
 }
-#endif

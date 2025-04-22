@@ -179,9 +179,7 @@ MOS_STATUS Mpeg2PipelineM12::Initialize(void *settings)
     DECODE_CHK_STATUS(RegisterPacket(DecodePacketId(this, mpeg2BsCopyPktId), packet));
     DECODE_CHK_STATUS(packet->Init());
 
-#ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(InitMmcState());
-#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -368,7 +366,6 @@ MOS_STATUS Mpeg2PipelineM12::Execute()
     return MOS_STATUS_SUCCESS;
 }
 
-#ifdef _MMC_SUPPORTED
 MOS_STATUS Mpeg2PipelineM12::InitMmcState()
 {
     DECODE_FUNC_CALL();
@@ -379,7 +376,6 @@ MOS_STATUS Mpeg2PipelineM12::InitMmcState()
 
     return MOS_STATUS_SUCCESS;
 }
-#endif
 
 MOS_STATUS Mpeg2PipelineM12::UserFeatureReport()
 {

@@ -230,7 +230,6 @@ MOS_STATUS MhwInterfacesXehp_Sdv::Initialize(
     return MOS_STATUS_SUCCESS;
 }
 
-#ifdef _MMC_SUPPORTED
 static bool xehpRegisteredMmd =
     MediaFactory<uint32_t, MmdDevice>::
     Register<MmdDeviceXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
@@ -298,7 +297,6 @@ MhwInterfaces* MmdDeviceXe_Xpm::CreateMhwInterface(
 
     return mhw;
 }
-#endif
 
 static bool xehpRegisteredMcpy =
     MediaFactory<uint32_t, McpyDevice>::

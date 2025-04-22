@@ -28,16 +28,14 @@ set(TMP_1_HEADERS_
 )
 
 #mmc
-if(${MMC_Supported} STREQUAL "yes")
-    set(TMP_1_SOURCES_
-        ${TMP_1_SOURCES_}
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_g12.cpp
-    )
-    set(TMP_1_HEADERS_
-        ${TMP_1_HEADERS_}
-        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_g12.h
-    )
-endif()
+set(TMP_1_SOURCES_
+    ${TMP_1_SOURCES_}
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_g12.cpp
+)
+set(TMP_1_HEADERS_
+    ${TMP_1_HEADERS_}
+    ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_g12.h
+)
 
 #decode
 set(TMP_2_SOURCES_ "")
@@ -84,16 +82,14 @@ if(${AVC_Decode_Supported} STREQUAL "yes")
         )
     endif()
 
-    if(${MMC_Supported} STREQUAL "yes")
-        set(TMP_2_SOURCES_
-            ${TMP_2_SOURCES_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_avc_g12.cpp
-        )
-        set(TMP_2_HEADERS_
-            ${TMP_2_HEADERS_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_avc_g12.h
-        )
-    endif()
+    set(TMP_2_SOURCES_
+        ${TMP_2_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_avc_g12.cpp
+    )
+    set(TMP_2_HEADERS_
+        ${TMP_2_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_avc_g12.h
+    )
 endif()
 
 if(${HEVC_Decode_Supported} STREQUAL "yes")
@@ -118,16 +114,14 @@ if(${HEVC_Decode_Supported} STREQUAL "yes")
         )
     endif()
 
-    if(${MMC_Supported} STREQUAL "yes")
-        set(TMP_2_SOURCES_
-            ${TMP_2_SOURCES_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_hevc_g12.cpp
-        )
-        set(TMP_2_HEADERS_
-            ${TMP_2_HEADERS_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_hevc_g12.h
-        )
-    endif()
+    set(TMP_2_SOURCES_
+        ${TMP_2_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_hevc_g12.cpp
+    )
+    set(TMP_2_HEADERS_
+        ${TMP_2_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_hevc_g12.h
+    )
 endif()
 
 if(${JPEG_Decode_Supported} STREQUAL "yes")
@@ -140,16 +134,15 @@ if(${JPEG_Decode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_jpeg_g12.h
     )
 
-    if(${MMC_Supported} STREQUAL "yes")
-        set(TMP_2_SOURCES_
-            ${TMP_2_SOURCES_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_jpeg_g12.cpp
-        )
-        set(TMP_2_HEADERS_
-            ${TMP_2_HEADERS_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_jpeg_g12.h
-        )
-    endif()
+    set(TMP_2_SOURCES_
+        ${TMP_2_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_jpeg_g12.cpp
+    )
+    set(TMP_2_HEADERS_
+        ${TMP_2_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_jpeg_g12.h
+    )
+
     if(${Decode_Processing_Supported} STREQUAL "yes")
         set(TMP_2_SOURCES_
             ${TMP_2_SOURCES_}
@@ -173,16 +166,14 @@ if(${MPEG2_Decode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_mpeg2_g12.h
     )
 
-    if(${MMC_Supported} STREQUAL "yes")
-        set(TMP_2_SOURCES_
-            ${TMP_2_SOURCES_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_mpeg2_g12.cpp
-        )
-        set(TMP_2_HEADERS_
-            ${TMP_2_HEADERS_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_mpeg2_g12.h
-        )
-    endif()
+    set(TMP_2_SOURCES_
+        ${TMP_2_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_mpeg2_g12.cpp
+    )
+    set(TMP_2_HEADERS_
+        ${TMP_2_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_mpeg2_g12.h
+    )
 endif()
 
 if(${VC1_Decode_Supported} STREQUAL "yes")
@@ -195,18 +186,16 @@ if(${VC1_Decode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_vc1_g12.h
     )
 
-    if(${MMC_Supported} STREQUAL "yes")
-        set(TMP_2_SOURCES_
-            ${TMP_2_SOURCES_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_vc1_g12.cpp
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_vc1_g12_ext.cpp
-        )
-        set(TMP_2_HEADERS_
-            ${TMP_2_HEADERS_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_vc1_g12.h
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_vc1_g12_ext.h
-        )
-    endif()
+    set(TMP_2_SOURCES_
+        ${TMP_2_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_vc1_g12.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_vc1_g12_ext.cpp
+    )
+    set(TMP_2_HEADERS_
+        ${TMP_2_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_vc1_g12.h
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_vc1_g12_ext.h
+    )
 endif()
 
 if(${VP8_Decode_Supported} STREQUAL "yes")
@@ -219,16 +208,14 @@ if(${VP8_Decode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_decode_vp8_g12.h
     )
 
-    if(${MMC_Supported} STREQUAL "yes")
-        set(TMP_2_SOURCES_
-            ${TMP_2_SOURCES_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_vp8_g12.cpp
-        )
-        set(TMP_2_HEADERS_
-            ${TMP_2_HEADERS_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_vp8_g12.h
-        )
-    endif()
+    set(TMP_2_SOURCES_
+        ${TMP_2_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_vp8_g12.cpp
+    )
+    set(TMP_2_HEADERS_
+        ${TMP_2_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_vp8_g12.h
+    )
 endif()
 
 if(${VP9_Decode_Supported} STREQUAL "yes")
@@ -251,16 +238,14 @@ if(${VP9_Decode_Supported} STREQUAL "yes")
         )
     endif()
 
-    if(${MMC_Supported} STREQUAL "yes")
-        set(TMP_2_SOURCES_
-            ${TMP_2_SOURCES_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_vp9_g12.cpp
-        )
-        set(TMP_2_HEADERS_
-            ${TMP_2_HEADERS_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_vp9_g12.h
-        )
-    endif()
+    set(TMP_2_SOURCES_
+        ${TMP_2_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_vp9_g12.cpp
+    )
+    set(TMP_2_HEADERS_
+        ${TMP_2_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_decode_vp9_g12.h
+    )
 endif()
 
 
@@ -332,16 +317,14 @@ if ("${AVC_Encode_VME_Supported}" STREQUAL "yes" OR "${AVC_Encode_VDEnc_Supporte
         )
     endif ()
 
-    if (${MMC_Supported} STREQUAL "yes")
-        set (TMP_3_SOURCES_
-            ${TMP_3_SOURCES_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_avc_g12.cpp
-        )
-        set (TMP_3_HEADERS_
-            ${TMP_3_HEADERS_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_avc_g12.h
-        )
-    endif ()
+    set (TMP_3_SOURCES_
+        ${TMP_3_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_avc_g12.cpp
+    )
+    set (TMP_3_HEADERS_
+        ${TMP_3_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_avc_g12.h
+    )
 endif ()
 
 if ("${HEVC_Encode_VME_Supported}" STREQUAL "yes" OR "${HEVC_Encode_VDEnc_Supported}" STREQUAL "yes")
@@ -372,16 +355,14 @@ if ("${HEVC_Encode_VME_Supported}" STREQUAL "yes" OR "${HEVC_Encode_VDEnc_Suppor
         )
     endif ()
 
-    if (${MMC_Supported} STREQUAL "yes")
-        set (TMP_3_SOURCES_
-            ${TMP_3_SOURCES_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_hevc_g12.cpp
-        )
-        set (TMP_3_HEADERS_
-            ${TMP_3_HEADERS_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_hevc_g12.h
-        )
-    endif ()
+    set (TMP_3_SOURCES_
+        ${TMP_3_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_hevc_g12.cpp
+    )
+    set (TMP_3_HEADERS_
+        ${TMP_3_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_hevc_g12.h
+    )
 endif ()
 
 if(${VP9_Encode_VDEnc_Supported} STREQUAL "yes")
@@ -393,16 +374,15 @@ if(${VP9_Encode_VDEnc_Supported} STREQUAL "yes")
         ${TMP_3_HEADERS_}
         ${CMAKE_CURRENT_LIST_DIR}/codechal_vdenc_vp9_g12.h
     )
-    if (${MMC_Supported} STREQUAL "yes")
-        set (TMP_3_SOURCES_
-            ${TMP_3_SOURCES_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_vp9_g12.cpp
-        )
-        set (TMP_3_HEADERS_
-            ${TMP_3_HEADERS_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_vp9_g12.h
-        )
-    endif ()
+
+    set (TMP_3_SOURCES_
+        ${TMP_3_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_vp9_g12.cpp
+    )
+    set (TMP_3_HEADERS_
+        ${TMP_3_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_vp9_g12.h
+    )
 endif()
 
 if(${MPEG2_Encode_VME_Supported} STREQUAL "yes")
@@ -415,16 +395,14 @@ if(${MPEG2_Encode_VME_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_mpeg2_g12.h
     )
 
-    if(${MMC_Supported} STREQUAL "yes")
-        set(TMP_3_SOURCES_
-            ${TMP_3_SOURCES_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_mpeg2_g12.cpp
-        )
-        set(TMP_3_HEADERS_
-            ${TMP_3_HEADERS_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_mpeg2_g12.h
-        )
-    endif()
+    set(TMP_3_SOURCES_
+        ${TMP_3_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_mpeg2_g12.cpp
+    )
+    set(TMP_3_HEADERS_
+        ${TMP_3_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_mpeg2_g12.h
+    )
 endif()
 
 if(${JPEG_Encode_Supported} STREQUAL "yes")
@@ -437,16 +415,14 @@ if(${JPEG_Encode_Supported} STREQUAL "yes")
         ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_jpeg_g12.h
     )
 
-    if(${MMC_Supported} STREQUAL "yes")
-        set(TMP_2_SOURCES_
-            ${TMP_2_SOURCES_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_jpeg_g12.cpp
-        )
-        set(TMP_2_HEADERS_
-            ${TMP_2_HEADERS_}
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_jpeg_g12.h
-        )
-    endif()
+    set(TMP_2_SOURCES_
+        ${TMP_2_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_jpeg_g12.cpp
+    )
+    set(TMP_2_HEADERS_
+        ${TMP_2_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_jpeg_g12.h
+    )
 endif()
 
 set(SOURCES_

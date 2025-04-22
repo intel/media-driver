@@ -325,12 +325,10 @@ static bool InitTglMediaSkuExt(struct GfxDeviceInfo *devInfo,
         "Enable Compressible Surface Creation",
         MediaUserSetting::Group::Device);
         
-#ifdef _MMC_SUPPORTED
     if (compressibleSurfaceEnable)
     {
         MEDIA_WR_SKU(skuTable, FtrCompressibleSurfaceDefault, 1);
     }
-#endif
 
     if (drvInfo->devId == 0xFF20)
     {

@@ -48,10 +48,9 @@ namespace encode {
         ENCODE_CHK_NULL_RETURN(m_miItf);
 
         ENCODE_CHK_NULL_RETURN(m_pipeline);
-#ifdef _MMC_SUPPORTED
+
         m_mmcState = m_pipeline->GetMmcState();
         ENCODE_CHK_NULL_RETURN(m_mmcState);
-#endif
 
         return MOS_STATUS_SUCCESS;
     }

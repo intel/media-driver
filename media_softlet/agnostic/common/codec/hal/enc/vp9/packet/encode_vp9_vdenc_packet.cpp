@@ -50,11 +50,9 @@ MOS_STATUS Vp9VdencPkt::Init()
     m_basicFeature = dynamic_cast<Vp9BasicFeature *>(m_featureManager->GetFeature(Vp9FeatureIDs::basicFeature));
     ENCODE_CHK_NULL_RETURN(m_basicFeature);
 
-#ifdef _MMC_SUPPORTED
     m_mmcState = m_pipeline->GetMmcState();
     ENCODE_CHK_NULL_RETURN(m_mmcState);
     m_basicFeature->m_mmcState = m_mmcState;
-#endif
 
     m_allocator = m_pipeline->GetEncodeAllocator();
     ENCODE_CHK_STATUS_RETURN(AllocateResources());
@@ -653,10 +651,8 @@ MOS_STATUS Vp9VdencPkt::SendPrologCmds(MOS_COMMAND_BUFFER &cmdBuffer)
 {
     ENCODE_FUNC_CALL();
 
-#ifdef _MMC_SUPPORTED
     ENCODE_CHK_NULL_RETURN(m_mmcState);
     ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(&cmdBuffer, false));
-#endif
 
     MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
@@ -745,7 +741,6 @@ MOS_STATUS Vp9VdencPkt::AddHcpPipeBufAddrCmd(MOS_COMMAND_BUFFER &cmdBuffer)
 
 MOS_STATUS Vp9VdencPkt::SetHcpSurfaceMMCState()
 {
-#ifdef _MMC_SUPPORTED
     for (uint8_t i = 0; i <= CODECHAL_HCP_ALTREF_SURFACE_ID; ++i)
     {
         SetSurfaceMmcState(&m_surfacesParams[i]);
@@ -771,7 +766,7 @@ MOS_STATUS Vp9VdencPkt::SetHcpSurfaceMMCState()
         m_surfacesParams[i].mmcState = MOS_MEMCOMP_MC;
         m_surfacesParams[i].mmcSkipMask = skipMask;
     }
-#endif  // _MMC_SUPPORTED
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1814,7 +1809,6 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, Vp9VdencPkt)
 
     m_basicFeature->m_ref.MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params);
 
-#ifdef _MMC_SUPPORTED
     ENCODE_CHK_NULL_RETURN(m_mmcState);
 
     if (m_mmcState->IsMmcEnabled())
@@ -1832,7 +1826,6 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, Vp9VdencPkt)
 
     CODECHAL_DEBUG_TOOL(
         m_basicFeature->m_reconSurface.MmcState = params.PreDeblockSurfMmcState;)
-#endif
 
     return MOS_STATUS_SUCCESS;
 }

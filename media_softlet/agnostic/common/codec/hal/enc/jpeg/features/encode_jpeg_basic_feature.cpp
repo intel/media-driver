@@ -232,12 +232,11 @@ MHW_SETPAR_DECL_SRC(MFX_SURFACE_STATE, JpegBasicFeature)
             MOS_ALIGN_CEIL((psSurface->VPlaneOffset.iSurfaceOffset - psSurface->dwOffset)/psSurface->dwPitch + psSurface->RenderOffset.YUV.V.YOffset, uvPlaneAlignment);
     }
 
-#ifdef _MMC_SUPPORTED
     if (m_mmcState && m_mmcState->IsMmcEnabled())
     {
         ENCODE_CHK_STATUS_RETURN(m_mmcState->GetSurfaceMmcFormat(psSurface, &params.compressionFormat));
     }
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -246,9 +245,8 @@ MHW_SETPAR_DECL_SRC(MFX_PIPE_BUF_ADDR_STATE, JpegBasicFeature)
     params.decodeInUse  = false;
     params.psRawSurface = m_rawSurfaceToPak;
 
-#ifdef _MMC_SUPPORTED
     ENCODE_CHK_STATUS_RETURN(m_mmcState->GetSurfaceMmcState(m_rawSurfaceToPak, &params.RawSurfMmcState));
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

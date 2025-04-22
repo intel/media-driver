@@ -117,10 +117,8 @@ MOS_STATUS Vp9DecodePicPkt::Prepare()
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-#ifdef _MMC_SUPPORTED
     m_mmcState = m_vp9Pipeline->GetMmcState();
     DECODE_CHK_NULL(m_mmcState);
-#endif
 
     DECODE_CHK_STATUS(SetRowstoreCachingOffsets());
 
@@ -324,7 +322,6 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_MODE_SELECT, Vp9DecodePicPkt)
     return MOS_STATUS_SUCCESS;
 }
 
-#ifdef _MMC_SUPPORTED
 MOS_STATUS Vp9DecodePicPkt::SetRefMmcStatus(uint8_t surfaceID, PMOS_SURFACE pSurface)
 {
     MOS_MEMCOMP_STATE mmcState = MOS_MEMCOMP_DISABLED;
@@ -338,7 +335,6 @@ MOS_STATUS Vp9DecodePicPkt::SetRefMmcStatus(uint8_t surfaceID, PMOS_SURFACE pSur
     }
     return MOS_STATUS_SUCCESS;
 }
-#endif
 
 MHW_SETPAR_DECL_SRC(HCP_SURFACE_STATE, Vp9DecodePicPkt)
 {
@@ -351,14 +347,12 @@ MHW_SETPAR_DECL_SRC(HCP_SURFACE_STATE, Vp9DecodePicPkt)
 
     DECODE_CHK_NULL(psSurface);
 
-#ifdef _MMC_SUPPORTED
     if (m_curHcpSurfStateId == CODECHAL_HCP_DECODED_SURFACE_ID)
     {
         DECODE_CHK_STATUS(m_mmcState->SetSurfaceMmcState(&(m_vp9BasicFeature->m_destSurface)));
         DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(psSurface, &params.mmcState));
         DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(psSurface, &params.dwCompressionFormat));
     }
-#endif
 
     uint32_t uvPlaneAlignment = m_uvPlaneAlignmentLegacy;
     params.surfaceStateId     = m_curHcpSurfStateId;
@@ -511,21 +505,21 @@ MOS_STATUS Vp9DecodePicPkt::AddAllCmds_HCP_SURFACE_STATE(MOS_COMMAND_BUFFER &cmd
                 m_curHcpSurfStateId = CODECHAL_HCP_ALTREF_SURFACE_ID;
                 break;
             }
-#ifdef _MMC_SUPPORTED            
+          
             DECODE_CHK_STATUS(m_mmcState->SetSurfaceMmcState(psSurface));
             DECODE_CHK_STATUS(SetRefMmcStatus(m_curHcpSurfStateId, psSurface));
-#endif
+
             MHW_SETPAR_F(HCP_SURFACE_STATE)(refSurfaceParams[i]);
         }
 
         for (uint8_t i = 0; i < 3; i++)
         {
             params = refSurfaceParams[i];
-#ifdef _MMC_SUPPORTED 
+
             params.refsMmcEnable = m_refsMmcEnable;
             params.refsMmcType   = m_refsMmcType;
             params.dwCompressionFormat = m_mmcFormat;
-#endif
+
             DECODE_CHK_STATUS(m_hcpItf->MHW_ADDCMD_F(HCP_SURFACE_STATE)(&cmdBuffer));
         }
     }
@@ -602,9 +596,7 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, Vp9DecodePicPkt)
     params.presHvdLineRowStoreBuffer = &(m_resHvcLineRowstoreBuffer->OsResource);
     params.presHvdTileRowStoreBuffer = &(m_resHvcTileRowstoreBuffer->OsResource);
 
-#ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(params.psPreDeblockSurface, &params.PreDeblockSurfMmcState));
-#endif
 
     params.presVp9SegmentIdBuffer = &(m_vp9BasicFeature->m_resVp9SegmentIdBuffer->OsResource);
     params.presVp9ProbBuffer      = &(m_vp9BasicFeature->m_resVp9ProbBuffer[m_vp9BasicFeature->m_frameCtxIdx]->OsResource);

@@ -32,7 +32,6 @@
 #include "decode_mem_compression.h"
 #include "decode_vp8_basic_feature.h"
 
-#ifdef _MMC_SUPPORTED
 
 namespace decode
 {
@@ -83,6 +82,5 @@ MEDIA_CLASS_DEFINE_END(decode__Vp8DecodeMemComp)
 };
 }  // namespace decode
 
-#endif  //_MMC_SUPPORTED
 
 #endif  //__VP8_DECODE_MEM_COMPRESSION_H__

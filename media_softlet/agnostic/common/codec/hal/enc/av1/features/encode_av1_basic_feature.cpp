@@ -475,7 +475,6 @@ MOS_STATUS Av1BasicFeature::GetSurfaceMmcInfo(PMOS_SURFACE surface, MOS_MEMCOMP_
 
     ENCODE_CHK_NULL_RETURN(surface);
 
-#ifdef _MMC_SUPPORTED
     ENCODE_CHK_NULL_RETURN(m_mmcState);
     if (m_mmcState->IsMmcEnabled())
     {
@@ -486,7 +485,6 @@ MOS_STATUS Av1BasicFeature::GetSurfaceMmcInfo(PMOS_SURFACE surface, MOS_MEMCOMP_
     {
         mmcState = MOS_MEMCOMP_DISABLED;
     }
-#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -784,8 +782,7 @@ MHW_SETPAR_DECL_SRC(VDENC_DS_REF_SURFACE_STATE, Av1BasicFeature)
 }
 
 MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, Av1BasicFeature)
-{
-#ifdef _MMC_SUPPORTED    
+{    
     ENCODE_CHK_NULL_RETURN(m_mmcState);
     if (m_mmcState->IsMmcEnabled())
     {
@@ -799,7 +796,6 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, Av1BasicFeature)
         params.mmcStateRaw          = MOS_MEMCOMP_DISABLED;
         params.compressionFormatRaw = GMM_FORMAT_INVALID;
     }
-#endif
 
     params.surfaceRaw                    = m_rawSurfaceToEnc;
     params.surfaceDsStage1               = m_8xDSSurface;
@@ -1073,8 +1069,7 @@ MHW_SETPAR_DECL_SRC(AVP_PIPE_BUF_ADDR_STATE, Av1BasicFeature)
         BufferType::postCdefReconSurface, currRefList.ucScalingIdx);
     params.postCDEFpixelsBuffer = postCdefSurface;
 
-    // code from SetAvpPipeBufAddr
- #ifdef _MMC_SUPPORTED    
+    // code from SetAvpPipeBufAddr   
     ENCODE_CHK_NULL_RETURN(m_mmcState);
     if (m_mmcState->IsMmcEnabled())
     {
@@ -1088,7 +1083,6 @@ MHW_SETPAR_DECL_SRC(AVP_PIPE_BUF_ADDR_STATE, Av1BasicFeature)
         params.mmcStateRawSurf       = MOS_MEMCOMP_DISABLED;
         params.postCdefSurfMmcState  = MOS_MEMCOMP_DISABLED;
     }
-#endif
 
     params.decodedPic              = const_cast<PMOS_SURFACE>(&m_reconSurface);
     params.decodedPic->MmcState    = params.mmcStatePreDeblock;  // This is for MMC report only

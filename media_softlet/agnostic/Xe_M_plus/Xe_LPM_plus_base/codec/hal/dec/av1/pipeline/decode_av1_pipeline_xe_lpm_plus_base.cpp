@@ -224,12 +224,11 @@ namespace decode
 
 #if (_DEBUG || _RELEASE_INTERNAL)
                 DECODE_CHK_STATUS(StatusCheck());
-#ifdef _MMC_SUPPORTED
+
                 if (m_mmcState != nullptr)
                 {
                     m_mmcState->ReportSurfaceMmcMode(&(basicFeature->m_destSurface));
                 }
-#endif
 #endif
                 // Only update user features for the first frame.
                 if (basicFeature->m_frameNum == 0)
@@ -303,12 +302,10 @@ namespace decode
             pair.second->Destroy();
         }
 
-#ifdef _MMC_SUPPORTED
         if (m_mmcState != nullptr)
         {
             MOS_Delete(m_mmcState);
         }
-#endif
 
         return Av1Pipeline::Uninitialize();
     }
@@ -339,7 +336,6 @@ namespace decode
 
     MOS_STATUS Av1PipelineXe_Lpm_Plus_Base::InitMmcState()
     {
-    #ifdef _MMC_SUPPORTED
         DECODE_CHK_NULL(m_hwInterface);
         m_mmcState = MOS_New(DecodeMemCompXe_Lpm_Plus_Base, m_hwInterface);
         DECODE_CHK_NULL(m_mmcState);
@@ -347,7 +343,7 @@ namespace decode
         Av1BasicFeature *basicFeature = dynamic_cast<Av1BasicFeature*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
         DECODE_CHK_NULL(basicFeature);
         DECODE_CHK_STATUS(basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
-    #endif
+
         return MOS_STATUS_SUCCESS;
     }
 

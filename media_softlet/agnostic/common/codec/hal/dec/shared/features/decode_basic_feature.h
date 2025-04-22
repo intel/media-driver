@@ -69,7 +69,6 @@ public:
     //!
     MOS_STATUS UpdateDestSurface(MOS_SURFACE &destSurface);
 
-#ifdef _MMC_SUPPORTED
     //!
     //! \brief  Set MMC state
     //! \param  [in] isMmcEnabled
@@ -82,7 +81,6 @@ public:
         m_isMmcEnabled = isMmcEnabled;
         return MOS_STATUS_SUCCESS;
     }
-#endif
 
     //!
     //! \brief  Get MMC state
@@ -91,11 +89,7 @@ public:
     //!
     bool IsMmcEnabled()
     {
-#ifdef _MMC_SUPPORTED
         return m_isMmcEnabled;
-#else
-        return false;
-#endif
     }
 
     uint32_t            m_width = 0;                                    //!< Frame width in luma samples
@@ -154,9 +148,7 @@ protected:
     DecodeAllocator *      m_allocator   = nullptr;
     PMOS_INTERFACE         m_osInterface = nullptr;
 
-#ifdef _MMC_SUPPORTED
     bool                   m_isMmcEnabled = false;   //!< Indicate MMC enabled for current picture
-#endif
 
 MEDIA_CLASS_DEFINE_END(decode__DecodeBasicFeature)
 };

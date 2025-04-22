@@ -247,7 +247,6 @@ void MhwInterfacesXe_Lpm_Plus_Next::Destroy()
     MhwInterfacesNext::Destroy();
 }
 
-#ifdef _MMC_SUPPORTED
 static bool mtlRegisteredMmd =
     MediaFactory<uint32_t, MmdDeviceNext>::
     Register<MmdDeviceXe_Lpm_Plus_Next>((uint32_t)IGFX_METEORLAKE);
@@ -297,7 +296,6 @@ MOS_STATUS MmdDeviceXe_Lpm_Plus_Next::Initialize(
 
     return MOS_STATUS_SUCCESS;
 }
-#endif
 
 static bool mtlRegisteredMcpy =
     MediaFactory<uint32_t, McpyDeviceNext>::

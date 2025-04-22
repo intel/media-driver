@@ -47,11 +47,9 @@ namespace encode
         ENCODE_CHK_NULL_RETURN(m_basicFeature);
         ENCODE_CHK_STATUS_RETURN(m_basicFeature->GetEncodeMode(m_encodeMode));
 
-#ifdef _MMC_SUPPORTED
         m_mmcState = m_pipeline->GetMmcState();
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         m_basicFeature->m_mmcState = m_mmcState;
-#endif
 
         m_allocator = m_pipeline->GetEncodeAllocator();
         ENCODE_CHK_STATUS_RETURN(AllocateResources());
@@ -185,10 +183,8 @@ namespace encode
 
         ENCODE_FUNC_CALL();
 
-#ifdef _MMC_SUPPORTED
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(&cmdBuffer, false));
-#endif
 
         MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
         MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
