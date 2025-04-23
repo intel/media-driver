@@ -1700,6 +1700,7 @@ private:
     //!
     static bool DestroyImageFromVAImageID (PDDI_MEDIA_CONTEXT mediaCtx, VAImageID imageID);
 
+#ifdef _MMC_SUPPORTED
     //!
     //! \brief  Decompress internal media memory 
     //! 
@@ -1794,6 +1795,7 @@ private:
         bool          isTileToLinear,
         bool          outputCompressed);
 
+#endif
 
 #if defined(X11_FOUND)
 #define X11_LIB_NAME "libX11.so.6"

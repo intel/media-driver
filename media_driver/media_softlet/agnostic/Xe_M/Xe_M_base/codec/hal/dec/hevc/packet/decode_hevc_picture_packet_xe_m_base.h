@@ -147,7 +147,9 @@ protected:
     HevcBasicFeature      *m_hevcBasicFeature = nullptr;
     DecodeAllocator       *m_allocator        = nullptr;
 
+#ifdef _MMC_SUPPORTED
     DecodeMemComp         *m_mmcState         = nullptr;
+#endif
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     DecodeDownSamplingFeature *m_downSamplingFeature = nullptr;

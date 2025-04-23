@@ -103,8 +103,10 @@ MOS_STATUS HevcDecodePicPktXe_M_Base::Prepare()
     m_hevcRextPicParams  = m_hevcBasicFeature->m_hevcRextPicParams;
     m_hevcSccPicParams   = m_hevcBasicFeature->m_hevcSccPicParams;
 
+#ifdef _MMC_SUPPORTED
     m_mmcState = m_hevcPipeline->GetMmcState();
     DECODE_CHK_NULL(m_mmcState);
+#endif
 
     DECODE_CHK_STATUS(SetRowstoreCachingOffsets());
 
@@ -358,9 +360,11 @@ MOS_STATUS HevcDecodePicPktXe_M_Base::SetHcpDstSurfaceParams(MHW_VDBOX_SURFACE_P
     dstSurfaceParams.ucBitDepthChromaMinus8     = m_hevcPicParams->bit_depth_chroma_minus8;
     dstSurfaceParams.dwUVPlaneAlignment         = 1 << (m_hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3);
 
+#ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(m_mmcState->SetSurfaceMmcState(dstSurfaceParams.psSurface));
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(dstSurfaceParams.psSurface, &dstSurfaceParams.mmcState));
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(dstSurfaceParams.psSurface, &dstSurfaceParams.dwCompressionFormat));
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -378,6 +382,7 @@ MOS_STATUS HevcDecodePicPktXe_M_Base::SetHcpRefSurfaceParams(
     refSurfaceParams.ucBitDepthChromaMinus8     = m_hevcPicParams->bit_depth_chroma_minus8;
     refSurfaceParams.dwUVPlaneAlignment         = 1 << (m_hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3);
 
+#ifdef _MMC_SUPPORTED
     HevcDecodeMemComp *hevcDecodeMemComp = dynamic_cast<HevcDecodeMemComp *>(m_mmcState);
     DECODE_CHK_NULL(hevcDecodeMemComp);
     // Set refSurfaceParams mmcState as MOS_MEMCOMP_MC to satisfy MmcEnable in AddHcpSurfaceCmd
@@ -393,6 +398,7 @@ MOS_STATUS HevcDecodePicPktXe_M_Base::SetHcpRefSurfaceParams(
         refSurfaceParams.mmcState            = MOS_MEMCOMP_DISABLED;
         refSurfaceParams.dwCompressionFormat = 0;
     }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -468,7 +474,9 @@ MOS_STATUS HevcDecodePicPktXe_M_Base::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF
     PMOS_SURFACE destSurface                = &(m_hevcBasicFeature->m_destSurface);
     pipeBufAddrParams.psPreDeblockSurface   = destSurface;
 
+#ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(destSurface, &pipeBufAddrParams.PreDeblockSurfMmcState));
+#endif
 
     pipeBufAddrParams.presMfdDeblockingFilterRowStoreScratchBuffer =
         &(m_resMfdDeblockingFilterRowStoreScratchBuffer->OsResource);

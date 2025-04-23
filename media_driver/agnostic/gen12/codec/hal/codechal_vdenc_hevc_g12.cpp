@@ -2887,13 +2887,14 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
     MHW_VDBOX_SURFACE_PARAMS reconSurfaceParams{};
     SetHcpReconSurfaceParams(reconSurfaceParams);
 
+#ifdef _MMC_SUPPORTED
     // Recon P010v MMC state set from RC for compression write
     MOS_MEMCOMP_STATE tempMmcState = reconSurfaceParams.mmcState;
     if (m_reconSurface.Format == Format_P010 && MmcEnable(tempMmcState))
     {
         reconSurfaceParams.mmcState = MOS_MEMCOMP_RC;
     }
-
+#endif
     CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &reconSurfaceParams), release_func); //this is for Recon surf cmd set
 
     MHW_VDBOX_SURFACE_PARAMS refSurfaceParams{};
@@ -2903,10 +2904,12 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
     *m_pipeBufAddrParams = {};
     SetHcpPipeBufAddrParams(*m_pipeBufAddrParams); 
 
+#ifdef _MMC_SUPPORTED
     if (m_enableSCC && m_hevcPicParams->pps_curr_pic_ref_enabled_flag)
     {
         refSurfaceParams.mmcSkipMask   = (1 << m_slotForRecNotFiltered); //add this for ref
     }
+#endif
 
     if (m_mmcState->IsMmcEnabled())
     {
@@ -2964,9 +2967,9 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
     SetVdencPipeBufAddrParams(*m_pipeBufAddrParams);
     m_pipeBufAddrParams->pRawSurfParam = &srcSurfaceParams;
     m_pipeBufAddrParams->pDecodedReconParam = &reconSurfaceParams;
-
+#ifdef _MMC_SUPPORTED
     m_mmcState->SetPipeBufAddr(m_pipeBufAddrParams);
-
+#endif
     CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_vdencInterface->AddVdencPipeBufAddrCmd(&cmdBuffer, m_pipeBufAddrParams), release_func);
 
     MHW_VDBOX_HEVC_PIC_STATE_G12 picStateParams;
@@ -7219,6 +7222,7 @@ MOS_STATUS CodechalVdencHevcStateG12::AddHcpPipeBufAddrCmd(
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
+#ifdef _MMC_SUPPORTED
     m_mmcState->SetPipeBufAddr(m_pipeBufAddrParams);
     // Recon P010v MMC state set from RC for compression write
     // Reference P010v MMC state set from MC for compression read
@@ -7231,7 +7235,7 @@ MOS_STATUS CodechalVdencHevcStateG12::AddHcpPipeBufAddrCmd(
 
         m_pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_RC;
     }
-
+#endif
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpPipeBufAddrCmd(cmdBuffer, m_pipeBufAddrParams));
 
     return eStatus;
@@ -7479,10 +7483,10 @@ MOS_STATUS CodechalVdencHevcStateG12::IsSliceInTile(
 MOS_STATUS CodechalVdencHevcStateG12::InitMmcState()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
-
+#ifdef _MMC_SUPPORTED
     m_mmcState = MOS_New(CodechalMmcEncodeHevcG12, m_hwInterface, this);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
-
+#endif
     return MOS_STATUS_SUCCESS;
 }
 
@@ -7827,8 +7831,10 @@ MOS_STATUS CodechalVdencHevcStateG12::SendPrologWithFrameTracking(
         return eStatus;
     }
 
+#ifdef _MMC_SUPPORTED
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(m_miInterface, cmdBuffer, gpuContext));
+#endif
 
     if (!IsLastPipe())
     {

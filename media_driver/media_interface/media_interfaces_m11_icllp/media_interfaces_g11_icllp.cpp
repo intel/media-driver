@@ -200,6 +200,7 @@ finish:
     return status;
 }
 
+#ifdef _MMC_SUPPORTED
 static bool icllpRegisteredMmd =
     MediaFactory<uint32_t, MmdDevice>::
     Register<MmdDeviceG11Icllp>((uint32_t)IGFX_ICELAKE_LP);
@@ -254,7 +255,7 @@ MOS_STATUS MmdDeviceG11Icllp::Initialize(
 
     return MOS_STATUS_SUCCESS;
 }
-
+#endif
 static bool icllpRegisteredNv12ToP010 =
     MediaFactory<uint32_t, Nv12ToP010Device>::
     Register<Nv12ToP010DeviceG11Icllp>((uint32_t)IGFX_ICELAKE_LP);

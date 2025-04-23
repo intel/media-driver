@@ -36,6 +36,7 @@ Mpeg2PipelineXe2_Hpm::Mpeg2PipelineXe2_Hpm(
 {
 }
 
+#ifdef _MMC_SUPPORTED
 MOS_STATUS Mpeg2PipelineXe2_Hpm::InitMmcState()
 {
     DECODE_FUNC_CALL();
@@ -46,5 +47,6 @@ MOS_STATUS Mpeg2PipelineXe2_Hpm::InitMmcState()
 
     return MOS_STATUS_SUCCESS;
 }
+#endif
 
 }

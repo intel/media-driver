@@ -5158,10 +5158,12 @@ MOS_STATUS RenderHal_InitCommandBuffer(
     }
 
     // Init Cmd Buffer
+#ifdef _MMC_SUPPORTED
     if (isRender)
     {
         MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pRenderHalPltInterface->SetCompositePrologCmd(pRenderHal, pCmdBuffer));
     }
+#endif // _MMC_SUPPORTED
 
     if (isRender)
     {

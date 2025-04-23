@@ -126,8 +126,10 @@ MOS_STATUS JpegDecodePicPkt::Prepare()
     m_jpegPicParams = m_jpegBasicFeature->m_jpegPicParams;
     DECODE_CHK_NULL(m_jpegPicParams);
 
+#ifdef _MMC_SUPPORTED
     m_mmcState = m_jpegPipeline->GetMmcState();
     DECODE_CHK_NULL(m_mmcState);
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -211,10 +213,11 @@ MHW_SETPAR_DECL_SRC(MFX_SURFACE_STATE, JpegDecodePicPkt)
             MOS_ALIGN_CEIL((params.psSurface->VPlaneOffset.iSurfaceOffset - params.psSurface->dwOffset) / params.psSurface->dwPitch + params.psSurface->RenderOffset.YUV.V.YOffset, uvPlaneAlignment);
     }
 
+#ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(m_mmcState->SetSurfaceMmcState(&(m_jpegBasicFeature->m_destSurface)));
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(params.psSurface, &params.mmcState));
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(&m_jpegBasicFeature->m_destSurface, &params.compressionFormat));
-
+#endif
     return MOS_STATUS_SUCCESS;
 }
 
@@ -225,9 +228,9 @@ MHW_SETPAR_DECL_SRC(MFX_PIPE_BUF_ADDR_STATE, JpegDecodePicPkt)
     params.psPreDeblockSurface = &m_jpegBasicFeature->m_destSurface;
 
     params.references = params.presReferences;
-
+#ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(params.psPreDeblockSurface, &params.PreDeblockSurfMmcState));
-
+#endif
     return MOS_STATUS_SUCCESS;
 }
 

@@ -120,19 +120,22 @@ MOS_STATUS Vp9DecodePkt::SendPrologWithFrameTracking(MOS_COMMAND_BUFFER& cmdBuff
     DECODE_CHK_NULL(makerPacket);
     DECODE_CHK_STATUS(makerPacket->Execute(cmdBuffer));
 
+#ifdef _MMC_SUPPORTED
     DecodeMemComp *mmcState = m_vp9Pipeline->GetMmcState();
     bool isMmcEnabled = (mmcState != nullptr && mmcState->IsMmcEnabled());
     if (isMmcEnabled)
     {
         DECODE_CHK_STATUS(mmcState->SendPrologCmd(&cmdBuffer, false));
     }
+#endif
 
     MHW_GENERIC_PROLOG_PARAMS  genericPrologParams;
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
     genericPrologParams.pOsInterface = m_osInterface;
     genericPrologParams.pvMiInterface = nullptr;
-
+#ifdef _MMC_SUPPORTED
     genericPrologParams.bMmcEnabled = isMmcEnabled;
+#endif
 
     DECODE_CHK_STATUS(Mhw_SendGenericPrologCmdNext(&cmdBuffer, &genericPrologParams, m_miItf));
 

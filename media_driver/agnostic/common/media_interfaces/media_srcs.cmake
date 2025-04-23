@@ -28,10 +28,13 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mcpy.h
 )
 
-set(TMP_HEADERS_
-    ${TMP_HEADERS_}
-    ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mmd.h
-)
+if(${MMC_Supported} STREQUAL "yes")
+    set(TMP_HEADERS_
+        ${TMP_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mmd.h
+    )
+endif()
+
 
 set(COMMON_HEADERS_
     ${COMMON_HEADERS_}

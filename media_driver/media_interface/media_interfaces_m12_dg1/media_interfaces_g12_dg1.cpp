@@ -44,9 +44,11 @@ static bool dg1RegisteredMhw =
     MediaFactory<uint32_t, MhwInterfaces>::
     Register<MhwInterfacesG12Tgllp>((uint32_t)IGFX_DG1);
 
+#ifdef _MMC_SUPPORTED
 static bool dg1RegisteredMmd =
     MediaFactory<uint32_t, MmdDevice>::
     Register<MmdDeviceG12Tgllp>((uint32_t)IGFX_DG1);
+#endif
 
 static bool dg1RegisteredMcpy =
     MediaFactory<uint32_t, McpyDevice>::

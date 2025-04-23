@@ -25,14 +25,16 @@ set(TMP_1_SOURCES_
 set(TMP_1_HEADERS_
 )
 
-set(TMP_1_SOURCES_
-    ${TMP_1_SOURCES_}
-    ${CMAKE_CURRENT_LIST_DIR}/codechal_memdecomp_g11_icllp.cpp
-)
-set(TMP_1_HEADERS_
-    ${TMP_1_HEADERS_}
-    ${CMAKE_CURRENT_LIST_DIR}/codechal_memdecomp_g11_icllp.h
-)
+if(${MMC_Supported} STREQUAL "yes")
+    set(TMP_1_SOURCES_
+        ${TMP_1_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_memdecomp_g11_icllp.cpp
+    )
+    set(TMP_1_HEADERS_
+        ${TMP_1_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_memdecomp_g11_icllp.h
+    )
+endif()
 
 #decode
 set(TMP_2_SOURCES_ "")

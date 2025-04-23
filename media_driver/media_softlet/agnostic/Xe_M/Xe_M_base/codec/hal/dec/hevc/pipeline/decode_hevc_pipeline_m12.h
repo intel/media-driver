@@ -138,6 +138,7 @@ protected:
     virtual MOS_STATUS HwStatusCheck(const DecodeStatusMfx &status) override;
 #endif
 
+#ifdef _MMC_SUPPORTED
     //!
     //! \brief    Initialize MMC state
     //!
@@ -145,6 +146,7 @@ protected:
     //!           MOS_STATUS_SUCCESS if success
     //!
     virtual MOS_STATUS InitMmcState();
+#endif
 
 #if USE_CODECHAL_DEBUG_TOOL
     //!

@@ -32,6 +32,8 @@
 #include "decode_vp8_mem_compression.h"
 #include "decode_mem_compression_xe2_hpm.h"
 
+#ifdef _MMC_SUPPORTED
+
 namespace decode
 {
 
@@ -78,4 +80,5 @@ MEDIA_CLASS_DEFINE_END(decode__Vp8DecodeMemCompXe2_Hpm)
 };
 
 }  // namespace decode
+#endif
 #endif  //__VP8_DECODE_MEM_COMPRESSION_XE2_HPM_H__

@@ -268,6 +268,7 @@ MOS_STATUS MhwInterfacesDg2::Initialize(
     return MOS_STATUS_SUCCESS;
 }
 
+#ifdef _MMC_SUPPORTED
 static bool dg2RegisteredMmd =
     MediaFactory<uint32_t, MmdDevice>::
     Register<MmdDeviceXe_Hpm>((uint32_t)IGFX_DG2);
@@ -339,6 +340,7 @@ MhwInterfaces* MmdDeviceXe_Hpm::CreateMhwInterface(
 
     return mhw;
 }
+#endif
 
 static bool dg2RegisteredMcpy =
     MediaFactory<uint32_t, McpyDevice>::

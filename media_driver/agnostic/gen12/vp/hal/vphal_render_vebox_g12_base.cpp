@@ -3134,7 +3134,9 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::VeboxRenderVeboxCmd(
 
     pVeboxInterface = (MhwVeboxInterfaceG12*)pVeboxState->m_pVeboxInterface;
 
+#ifdef _MMC_SUPPORTED
     VPHAL_RENDER_CHK_STATUS(pVeboxInterface->setVeboxPrologCmd(m_pRenderHal->pMhwMiInterface, &CmdBuffer));
+#endif
 
     return VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(CmdBuffer,
         VeboxDiIecpCmdParams,

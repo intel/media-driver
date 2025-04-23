@@ -63,6 +63,7 @@ bs_set_if_undefined(VP9_Decode_Supported "yes")
 bs_set_if_undefined(VP_SFC_Supported "yes")
 bs_set_if_undefined(Common_Encode_Supported "yes")
 bs_set_if_undefined(Media_Scalability_Supported "yes")
+bs_set_if_undefined(MMC_Supported "yes")
 
 # features controlled by global flag Encode_VDEnc_Supported
 bs_set_if_undefined(AVC_Encode_VDEnc_Supported "${Encode_VDEnc_Supported}")
@@ -153,6 +154,10 @@ endif()
 
 if(${Decode_Processing_Supported} STREQUAL "yes")
     add_definitions(-D_DECODE_PROCESSING_SUPPORTED)
+endif()
+
+if(${MMC_Supported} STREQUAL "yes")
+    add_definitions(-D_MMC_SUPPORTED)
 endif()
 
 if(${Kernel_Auto_Denoise_Supported} STREQUAL "yes")

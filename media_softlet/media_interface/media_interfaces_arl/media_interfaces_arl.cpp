@@ -70,9 +70,11 @@ static bool arlRegisteredMhwNext =
     MediaFactory<uint32_t, MhwInterfacesNext>::
         Register<MhwInterfacesXe_Lpm_Plus_Next>((uint32_t)IGFX_ARROWLAKE);
 
+#ifdef _MMC_SUPPORTED
 static bool arlRegisteredMmd =
     MediaFactory<uint32_t, MmdDeviceNext>::
     Register<MmdDeviceXe_Lpm_Plus_Next>((uint32_t)IGFX_ARROWLAKE);
+#endif
 
 static bool arlRegisteredMcpy =
     MediaFactory<uint32_t, McpyDeviceNext>::

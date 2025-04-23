@@ -310,11 +310,12 @@ MOS_STATUS HevcPipelineXe_Lpm_Plus_Base::Execute()
 
 #if (_DEBUG || _RELEASE_INTERNAL)
             DECODE_CHK_STATUS(StatusCheck());
-
+#ifdef _MMC_SUPPORTED
             if (m_mmcState != nullptr)
             {
                 m_mmcState->ReportSurfaceMmcMode(&(m_basicFeature->m_destSurface));
             }
+#endif
 #endif
 
             // Recover RefList for SCC IBC mode
@@ -365,8 +366,9 @@ MOS_STATUS HevcPipelineXe_Lpm_Plus_Base::Initialize(void *settings)
 {
     DECODE_FUNC_CALL();
     DECODE_CHK_STATUS(HevcPipeline::Initialize(settings));
-
+#ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(InitMmcState());
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -399,10 +401,12 @@ MOS_STATUS HevcPipelineXe_Lpm_Plus_Base::Uninitialize()
         pair.second->Destroy();
     }
 
+#ifdef _MMC_SUPPORTED
     if (m_mmcState != nullptr)
     {
         MOS_Delete(m_mmcState);
     }
+#endif
 
     return HevcPipeline::Uninitialize();
 }
@@ -455,6 +459,7 @@ MOS_STATUS HevcPipelineXe_Lpm_Plus_Base::CreateSubPackets(DecodeSubPacketManager
     return MOS_STATUS_SUCCESS;
 }
 
+#ifdef _MMC_SUPPORTED
 MOS_STATUS HevcPipelineXe_Lpm_Plus_Base::InitMmcState()
 {
     DECODE_FUNC_CALL();
@@ -465,6 +470,7 @@ MOS_STATUS HevcPipelineXe_Lpm_Plus_Base::InitMmcState()
     DECODE_CHK_STATUS(m_basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
     return MOS_STATUS_SUCCESS;
 }
+#endif
 
 #if USE_CODECHAL_DEBUG_TOOL
 MOS_STATUS HevcPipelineXe_Lpm_Plus_Base::DumpParams(HevcBasicFeature &basicFeature)

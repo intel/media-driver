@@ -333,6 +333,7 @@ void MhwInterfacesG12Tgllp::Destroy()
     }
 }
 
+#ifdef _MMC_SUPPORTED
 static bool tgllpRegisteredMmd =
     MediaFactory<uint32_t, MmdDevice>::
     Register<MmdDeviceG12Tgllp>((uint32_t)IGFX_TIGERLAKE_LP);
@@ -401,6 +402,7 @@ MhwInterfaces* MmdDeviceG12Tgllp::CreateMhwInterface(
 
     return mhw;
 }
+#endif
 
 static bool tgllpRegisteredMcpy =
     MediaFactory<uint32_t, McpyDevice>::

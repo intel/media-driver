@@ -673,6 +673,7 @@ void VpFeatureReport(
         pConfig->dwCurrentHdrMode,
         MediaUserSetting::Group::Sequence);
 
+#ifdef _MMC_SUPPORTED
     ReportUserSettingForDebug(
         userSettingPtr,
         __VPHAL_MMC_ENABLE,
@@ -714,6 +715,7 @@ void VpFeatureReport(
         __VPHAL_RT_Old_Cache_Setting,
         pConfig->dwRTOldCacheSetting,
         MediaUserSetting::Group::Sequence);
+#endif
 #endif //(_DEBUG || _RELEASE_INTERNAL)
 
     if (pConfig->dwCurrentVeboxScalability != pConfig->dwReportedVeboxScalability)

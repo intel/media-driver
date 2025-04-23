@@ -148,6 +148,7 @@ VAStatus MediaLibvaInterfaceNext::HeapInitialize(PDDI_MEDIA_CONTEXT mediaCtx)
     return VA_STATUS_SUCCESS;
 }
 
+#ifdef _MMC_SUPPORTED
 void MediaLibvaInterfaceNext::MediaMemoryDecompressInternal(
     PMOS_CONTEXT  mosCtx,
     PMOS_RESOURCE osResource)
@@ -255,6 +256,8 @@ VAStatus MediaLibvaInterfaceNext::MediaMemoryTileConvertInternal(
     return vaStatus;
 }
 
+#endif
+
 VAStatus MediaLibvaInterfaceNext::Initialize (
     VADriverContextP ctx,
     int32_t          devicefd,
@@ -303,11 +306,12 @@ VAStatus MediaLibvaInterfaceNext::Initialize (
     ctx->pDriverData = (void *)mediaCtx;
     mediaCtx->fd     = devicefd;
 
+#ifdef _MMC_SUPPORTED
     mediaCtx->pfnMemoryDecompress       = MediaMemoryDecompressInternal;
     mediaCtx->pfnMediaMemoryCopy        = MediaMemoryCopyInternal;
     mediaCtx->pfnMediaMemoryCopy2D      = MediaMemoryCopy2DInternal;
     mediaCtx->pfnMediaMemoryTileConvert = MediaMemoryTileConvertInternal;
-
+#endif
     mediaCtx->modularizedGpuCtxEnabled = true;
 
     mediaCtx->m_userSettingPtr  = std::make_shared<MediaUserSetting::MediaUserSetting>();
@@ -344,7 +348,7 @@ VAStatus MediaLibvaInterfaceNext::Initialize (
     mediaCtx->m_tileYFlag               = mosCtx.bTileYFlag;
     mediaCtx->bIsAtomSOC                = mosCtx.bIsAtomSOC;
     mediaCtx->perfData                  = mosCtx.pPerfData;
-
+#ifdef _MMC_SUPPORTED
     if (mosCtx.ppMediaMemDecompState == nullptr)
     {
         DDI_ASSERTMESSAGE("media decomp state is null.");
@@ -352,7 +356,7 @@ VAStatus MediaLibvaInterfaceNext::Initialize (
         return VA_STATUS_ERROR_OPERATION_FAILED;
     }
     mediaCtx->pMediaMemDecompState      = *mosCtx.ppMediaMemDecompState;
-
+#endif
     mediaCtx->pMediaCopyState           = *mosCtx.ppMediaCopyState;
 
     if (HeapInitialize(mediaCtx) != VA_STATUS_SUCCESS)
@@ -1981,8 +1985,10 @@ VAStatus MediaLibvaInterfaceNext::LockSurface(
 
     DDI_MEDIA_SURFACE *mediaSurface = MediaLibvaCommonNext::GetSurfaceFromVASurfaceID(mediaCtx, surface);
     
+#ifdef _MMC_SUPPORTED
     // Decompress surface is needed
     DDI_CHK_RET(MediaMemoryDecompress(mediaCtx, mediaSurface), "Decompress surface is failed");
+#endif
 
     if (nullptr == mediaSurface)
     {
@@ -5267,6 +5273,7 @@ VAStatus MediaLibvaInterfaceNext::MediaMemoryDecompress(
           GmmFlags.Info.MediaCompressed)                                          ||
           mediaSurface->pGmmResourceInfo->IsMediaMemoryCompressed(0))
     {
+#ifdef _MMC_SUPPORTED
         MOS_CONTEXT  mosCtx = {};
         MOS_RESOURCE surface;
 
@@ -5301,6 +5308,10 @@ VAStatus MediaLibvaInterfaceNext::MediaMemoryDecompress(
 
         MosUtilities::MosUnlockMutex(&mediaCtx->MemDecompMutex);
         MosUtilities::MosUnlockMutex(&mediaCtx->SurfaceMutex);
+#else
+        vaStatus = VA_STATUS_ERROR_INVALID_SURFACE;
+        DDI_ASSERTMESSAGE("MMC unsupported! [%d].", vaStatus);
+#endif
     }
 
     return vaStatus;

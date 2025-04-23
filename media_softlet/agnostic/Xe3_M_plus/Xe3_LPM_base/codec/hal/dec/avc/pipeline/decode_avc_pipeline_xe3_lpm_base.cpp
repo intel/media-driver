@@ -283,12 +283,13 @@ MOS_STATUS AvcPipelineXe3_Lpm_Base::Execute()
 
 MOS_STATUS AvcPipelineXe3_Lpm_Base::InitMmcState()
 {
+#ifdef _MMC_SUPPORTED
     DECODE_CHK_NULL(m_hwInterface);
     m_mmcState = MOS_New(DecodeMemCompXe3_Lpm_Base, m_hwInterface);
     DECODE_CHK_NULL(m_mmcState);
 
     DECODE_CHK_STATUS(m_basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
-
+#endif
     return MOS_STATUS_SUCCESS;
 }
 

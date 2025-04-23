@@ -50,14 +50,16 @@ endif ()
     )
 
 # mmc
-set(TMP_ENC_SOURCES_
-    ${TMP_ENC_SOURCES_}
-    ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_avc_xe_hpm.cpp
-)
-set(TMP_ENC_HEADERS_
-    ${TMP_ENC_HEADERS_}
-    ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_avc_xe_hpm.h
-)
+if("${MMC_Supported}" STREQUAL "yes")
+    set(TMP_ENC_SOURCES_
+        ${TMP_ENC_SOURCES_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_avc_xe_hpm.cpp
+    )
+    set(TMP_ENC_HEADERS_
+        ${TMP_ENC_HEADERS_}
+        ${CMAKE_CURRENT_LIST_DIR}/codechal_mmc_encode_avc_xe_hpm.h
+    )
+endif()
 
 if ("${VP9_Encode_VDEnc_Supported}" STREQUAL "yes")
     set (TMP_ENC_SOURCES_

@@ -69,6 +69,7 @@ MOS_STATUS HevcPipelineXe2_Hpm::CreateSubPackets(DecodeSubPacketManager &subPack
     return MOS_STATUS_SUCCESS;
 }
 
+#ifdef _MMC_SUPPORTED
 MOS_STATUS HevcPipelineXe2_Hpm::InitMmcState()
 {
     DECODE_FUNC_CALL();
@@ -79,5 +80,6 @@ MOS_STATUS HevcPipelineXe2_Hpm::InitMmcState()
     DECODE_CHK_STATUS(m_basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
     return MOS_STATUS_SUCCESS;
 }
+#endif
 
 }

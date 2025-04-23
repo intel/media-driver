@@ -78,8 +78,10 @@ namespace decode {
         m_mpeg2PicParams = m_mpeg2BasicFeature->m_mpeg2PicParams;
         DECODE_CHK_NULL(m_mpeg2PicParams);
 
+#ifdef _MMC_SUPPORTED
         m_mmcState = m_mpeg2Pipeline->GetMmcState();
         DECODE_CHK_NULL(m_mmcState);
+#endif
 
         return MOS_STATUS_SUCCESS;
     }
@@ -128,9 +130,11 @@ namespace decode {
         dstSurfaceParams.Mode = m_mpeg2BasicFeature->m_mode;
         dstSurfaceParams.psSurface = &m_mpeg2BasicFeature->m_destSurface;
 
+#ifdef _MMC_SUPPORTED
         DECODE_CHK_STATUS(m_mmcState->SetSurfaceMmcState(&(m_mpeg2BasicFeature->m_destSurface)));
         DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(dstSurfaceParams.psSurface, &dstSurfaceParams.mmcState));
         DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(dstSurfaceParams.psSurface, &dstSurfaceParams.dwCompressionFormat));
+#endif
 
         return MOS_STATUS_SUCCESS;
     }
@@ -205,11 +209,13 @@ namespace decode {
             }
         }
 
+#ifdef _MMC_SUPPORTED
         DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(pipeBufAddrParams.psPreDeblockSurface, &pipeBufAddrParams.PreDeblockSurfMmcState));
         if (m_mmcState->IsMmcEnabled())
         {
             pipeBufAddrParams.bMmcEnabled = true;
         }
+#endif
 
         DECODE_CHK_STATUS(FixMfxPipeBufAddrParams(pipeBufAddrParams));
 
