@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2024, Intel Corporation
+* Copyright (c) 2024-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -209,6 +209,10 @@ static const EntrypointMap entrypointMap_VAProfileHEVCMain12_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileHEVCMain422_10_Xe3_Lpm_r0
 {
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+    {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCMain422_10_Data_Xe3_Lpm_r0},
+#endif
+
 #if defined(_HEVC_DECODE_SUPPORTED)
     {VAEntrypointVLD, &entrypointMap_VAProfileHEVCMain422_10Dec_Data_Xe3_Lpm_r0},
 #endif
