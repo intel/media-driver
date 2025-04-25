@@ -23,44 +23,6 @@ set(TMP_3_SOURCES_ "")
 
 set(TMP_3_HEADERS_ "")
 
-if((${HEVC_Encode_VME_Supported} STREQUAL "yes") AND (${CMRT_HEVC_ENC_FEI_Supported} STREQUAL "yes"))
-    set(TMP_3_SOURCES_
-        ${TMP_3_SOURCES_}
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernelBase.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_DownScaling.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_I_32x32.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_PB_32x32.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_I_16x16Sad.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_I_16x16Mode.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_I_8x8.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_I_8x8Mode.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_PB_8x8MbEnc.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_PB_8x8Pak.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/Hme_Downscale_gen9.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/HevcEncFei_I_gen9.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/HevcEncFei_PB_gen9.cpp 
-    )
-    set(TMP_3_HEADERS_
-        ${TMP_3_HEADERS_}
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernelBase.h
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_DownScaling.h
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_I_32x32.h
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_PB_32x32.h
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_I_16x16Sad.h
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_I_16x16Mode.h
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_I_8x8.h
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_I_8x8Mode.h
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_PB_8x8MbEnc.h
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_PB_8x8Pak.h
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_DS_Kernel_def.h
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_I_Kernel_def.h
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_PB_Kernel_def.h
-        ${CMAKE_CURRENT_LIST_DIR}/CMRTKernel_header_file.h
-        ${CMAKE_CURRENT_LIST_DIR}/Hme_Downscale_gen9.h
-        ${CMAKE_CURRENT_LIST_DIR}/HevcEncFei_I_gen9.h
-        ${CMAKE_CURRENT_LIST_DIR}/HevcEncFei_PB_gen9.h
-    )
-endif()
 
 if ("${AVC_Encode_VME_Supported}" STREQUAL "yes")
     set (TMP_3_SOURCES_

@@ -1746,10 +1746,6 @@ public:
     short    m_cmEventIdx = 0;  // current  event idx
     short    m_cmEventCheckIdx = 0;
 
-#ifdef FEI_ENABLE_CMRT
-    CodechalEncodeMdfKernelResource resDSKernel;
-#endif
-
     bool m_colorbitSupported = false;
 
 #if USE_CODECHAL_DEBUG_TOOL
