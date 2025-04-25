@@ -198,9 +198,6 @@ endif()
 
 if(GEN12_TGLLP)
     add_definitions(-DIGFX_GEN12_TGLLP_SUPPORTED)
-    add_definitions(-DIGFX_GEN12_TGLLP_SWSB_SUPPORTED)
-    add_definitions(-DIGFX_GEN12_TGLLP_CMFC_SUPPORTED)
-    add_definitions(-DIGFX_GEN12_TGLLP_CMFCPATCH_SUPPORTED)
 endif()
 
 if(GEN12_DG1)
@@ -229,17 +226,14 @@ endif()
 
 if(PVC)
     add_definitions(-DIGFX_PVC_SUPPORTED)
-    add_definitions(-DIGFX_PVC_CMFCPATCH_SUPPORTED)
 endif()
 
 if(XEHP_SDV)
     add_definitions(-DIGFX_XEHP_SDV_SUPPORTED)
-    add_definitions(-DIGFX_XEHP_SDV_CMFCPATCH_SUPPORTED)
 endif()
 
 if(XE_HPG)
     add_definitions(-DIGFX_XE_HPG_SUPPORTED)
-    add_definitions(-DIGFX_XE_HPG_CMFCPATCH_SUPPORTED)
 endif()
 
 if(MTL)
@@ -252,7 +246,6 @@ endif()
 
 if(XE2_HPG)
     add_definitions(-DIGFX_XE2_HPG_SUPPORTED)
-    add_definitions(-DIGFX_XE2_HPG_CMFCPATCH_SUPPORTED)
 endif()
 
 if(LNL)

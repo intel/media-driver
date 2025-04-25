@@ -27,9 +27,6 @@
 
 #include "igvpkrn_isa_xe_hpg.h"
 #include "igvpkrn_xe_hpg.h"
-
-#ifdef IGFX_XE_HPG_CMFCPATCH_SUPPORTED
 #include "igvpkrn_xe_hpg_cmfcpatch.h"
-#endif
 
 #endif // __MEDIA_BIN_REGISTER_XE_HPG_H__
