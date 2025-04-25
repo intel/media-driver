@@ -381,7 +381,7 @@ MOS_STATUS VpRenderAiKernel::SetupSurfaceState()
             }
         }
 
-        if (surf->second->osSurface->Format == Format_Buffer)
+        if (surf->second->osSurface->Format == Format_Buffer || surf->second->osSurface->Format == Format_RAW)
         {
             kernelSurfaceParam.surfaceOverwriteParams.updatedSurfaceParams = true;
             kernelSurfaceParam.surfaceOverwriteParams.bufferResource       = true;
@@ -497,4 +497,16 @@ MOS_STATUS VpRenderAiKernel::SetPerfTag()
     pOsInterface->pfnSetPerfTag(pOsInterface, m_kernelConfig.perfTag);
 
     return MOS_STATUS_SUCCESS;
+}
+
+uint32_t VpRenderAiKernel::GetLargeGrfMode()
+{
+    if (m_kernelEnv.uGrfCount >= 256)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }

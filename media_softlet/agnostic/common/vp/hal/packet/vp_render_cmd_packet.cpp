@@ -152,6 +152,25 @@ MOS_STATUS VpRenderCmdPacket::LoadKernel()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpRenderCmdPacket::SetLargeGrfMode(uint32_t mode)
+{
+    VP_FUNC_CALL();
+    VP_RENDER_CHK_NULL_RETURN(m_renderHal);
+    uint32_t curMode = m_renderHal->largeGrfMode;
+    if (curMode != mode)
+    {
+        if (curMode != 0)
+        {
+            RENDER_PACKET_ASSERTMESSAGE("HW Not support different large grf modes in same BB!");
+        }
+        else
+        {
+            m_renderHal->largeGrfMode = mode;
+        }
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpRenderCmdPacket::SetEuThreadSchedulingMode(uint32_t mode)
 {
     VP_FUNC_CALL();
@@ -204,6 +223,7 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
     }
 
     m_renderHal->euThreadSchedulingMode = 0;
+    m_renderHal->largeGrfMode           = 0;
 
     VP_RENDER_CHK_STATUS_RETURN(m_kernelSet->CreateKernelObjects(
         m_renderKernelParams,
@@ -231,6 +251,7 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
             m_kernel->SetCacheCntl(m_surfMemCacheCtl);
             m_kernel->SetPerfTag();
             VP_RENDER_CHK_STATUS_RETURN(SetEuThreadSchedulingMode(m_kernel->GetEuThreadSchedulingMode()));
+            VP_RENDER_CHK_STATUS_RETURN(SetLargeGrfMode(m_kernel->GetLargeGrfMode()));
 
             // reset render Data for current kernel
             MOS_ZeroMemory(&m_renderData, sizeof(KERNEL_PACKET_RENDER_DATA));
@@ -310,6 +331,7 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
             VP_RENDER_CHK_NULL_RETURN(m_kernel);
             m_kernel->SetPerfTag();
             VP_RENDER_CHK_STATUS_RETURN(SetEuThreadSchedulingMode(m_kernel->GetEuThreadSchedulingMode()));
+            VP_RENDER_CHK_STATUS_RETURN(SetLargeGrfMode(m_kernel->GetLargeGrfMode()));
 
             if (it != m_kernelObjs.begin())
             {

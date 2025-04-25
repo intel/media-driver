@@ -1376,6 +1376,13 @@ MOS_STATUS VpResourceManager::AssignAiKernelResource(VP_EXECUTE_CAPS &caps, std:
                 MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER));
 
             surfSetting.surfGroup.insert(std::make_pair(aiSurfaceSetting.first, intermediateSurface));
+
+            if (allocated && aiSurfaceSetting.second.fillContentSize > 0)
+            {
+                VP_PUBLIC_CHK_NULL_RETURN(aiSurfaceSetting.second.fillContent);
+                VP_PUBLIC_CHK_VALUE_RETURN((aiSurfaceSetting.second.width * aiSurfaceSetting.second.height >= aiSurfaceSetting.second.fillContentSize), true);
+                VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.Write1DSurface(intermediateSurface, aiSurfaceSetting.second.fillContent, aiSurfaceSetting.second.fillContentSize));
+            }
         }
     }
     

@@ -525,6 +525,13 @@ public:
         return 0;
     }
 
+    virtual uint32_t GetLargeGrfMode()
+    {
+        //by default not enable
+        //control all the kernels in BB, cannot only enable for one kernel in BB
+        return 0;
+    }
+
     virtual MOS_STATUS InitRenderHalSurfaceCMF(MOS_SURFACE* src, PRENDERHAL_SURFACE renderHalSurface);
 
     virtual MOS_STATUS SetInlineDataParameter(KRN_ARG args, RENDERHAL_INTERFACE *renderhal);

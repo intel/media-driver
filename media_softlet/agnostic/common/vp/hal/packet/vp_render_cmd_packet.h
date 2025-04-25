@@ -49,6 +49,7 @@ public:
     }
 
     MOS_STATUS SetEuThreadSchedulingMode(uint32_t mode);
+    MOS_STATUS SetLargeGrfMode(uint32_t mode);
 
     virtual MOS_STATUS Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket) override;
 

@@ -149,8 +149,8 @@ public:
     _MHW_SETCMD_OVERRIDE_DECL(STATE_COMPUTE_MODE)
     {
         _MHW_SETCMD_CALLBASE(STATE_COMPUTE_MODE);
-        cmd.DW1.Mask1            = 0xFFFF;
-        cmd.DW1.LargeGrfMode     = 0;
+        cmd.DW1.Mask1                          = 0xFFFF;
+        cmd.DW1.LargeGrfMode                   = params.enableLargeGrf;
         cmd.DW1.EuThreadSchedulingModeOverride = params.forceEuThreadSchedulingMode;
 
         return MOS_STATUS_SUCCESS;

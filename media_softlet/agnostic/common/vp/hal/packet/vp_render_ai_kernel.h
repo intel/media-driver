@@ -44,6 +44,7 @@ public:
 
     virtual MOS_STATUS SetKernelConfigs(KERNEL_CONFIGS &kernelConfigs) override;
     virtual MOS_STATUS SetPerfTag() override;
+    virtual uint32_t   GetLargeGrfMode() override;
 
     MOS_STATUS FreeCurbe(void *&curbe)
     {

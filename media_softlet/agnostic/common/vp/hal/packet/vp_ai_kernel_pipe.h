@@ -28,6 +28,7 @@
 #include "mos_resource_defs.h"
 #include "vp_common_defs.h"
 #include "vp_render_common.h"
+#include "media_class_trace.h"
 
 namespace vp
 {
@@ -35,12 +36,14 @@ class SwFilterPipe;
 
 struct AI_SURFACE_PARAMS
 {
-    std::string     surfaceName  = "";
-    MOS_FORMAT      format       = Format_Any;
-    MOS_GFXRES_TYPE resourceType = MOS_GFXRES_2D;
-    MOS_TILE_TYPE   tileType     = MOS_TILE_Y;
-    uint32_t        width        = 0;
-    uint32_t        height       = 0;
+    std::string     surfaceName     = "";
+    MOS_FORMAT      format          = Format_Any;
+    MOS_GFXRES_TYPE resourceType    = MOS_GFXRES_2D;
+    MOS_TILE_TYPE   tileType        = MOS_TILE_Y;
+    uint32_t        width           = 0;
+    uint32_t        height          = 0;
+    uint8_t        *fillContent     = nullptr;
+    uint32_t        fillContentSize = 0;
 };
 using AI_SURFACE_ALLOCATION_MAP = std::map<SurfaceType, AI_SURFACE_PARAMS>;
 
@@ -104,6 +107,46 @@ struct AI_SINGLE_NPU_GRAPH_SETTING : public AI_SINGLE_LAYER_BASE_SETTING
 using AI_SPLIT_GROUP_INDEX = std::vector<uint32_t>;
 using AI_SETTING_PIPE = std::vector<std::unique_ptr<AI_SINGLE_LAYER_BASE_SETTING>>;
 
+
+class AiGpuSettingInterface
+{
+public:
+    AiGpuSettingInterface() {};
+    virtual ~AiGpuSettingInterface() {};
+    MOS_STATUS Init();
+    MOS_STATUS Register(AI_SETTING_PIPE &settingPipe);
+
+private:
+    virtual MOS_STATUS InitBaseSetting()                       = 0;
+    virtual MOS_STATUS InitFuncGetIntermediateSurfaceSetting() = 0;
+    virtual MOS_STATUS InitFuncSetStatefulSurface()            = 0;
+    virtual MOS_STATUS InitFuncSetStatelessSurface()           = 0;
+    virtual MOS_STATUS InitFuncSetKernelArg()                  = 0;
+
+protected:
+    std::unique_ptr<AI_SINGLE_GPU_LAYER_SETTING> setting = std::make_unique<AI_SINGLE_GPU_LAYER_SETTING>();
+
+MEDIA_CLASS_DEFINE_END(vp__AiGpuSettingInterface)
+};
+
+class AiNpuSettingInterface
+{
+public:
+    AiNpuSettingInterface() {};
+    virtual ~AiNpuSettingInterface() {};
+    MOS_STATUS Init();
+    MOS_STATUS Register(AI_SETTING_PIPE &settingPipe);
+   
+private:
+    virtual MOS_STATUS InitBaseSetting()                       = 0;
+    virtual MOS_STATUS InitFuncGetIntermediateSurfaceSetting() = 0;
+    virtual MOS_STATUS InitGraphArguments()                    = 0;
+
+protected:
+    std::unique_ptr<AI_SINGLE_NPU_GRAPH_SETTING> setting = std::make_unique<AI_SINGLE_NPU_GRAPH_SETTING>();
+
+MEDIA_CLASS_DEFINE_END(vp__AiNpuSettingInterface)
+};
 
 }  // namespace vp
 
