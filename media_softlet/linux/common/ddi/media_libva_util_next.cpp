@@ -220,11 +220,9 @@ void MediaLibvaUtilNext::InitSurfaceAllocateParams(
     params.format         = format;
     params.cpTag          = 0;
     params.memType        = memType;
-#ifdef _MMC_SUPPORTED
+
     params.bMemCompEnable = true;
-#else
-    params.bMemCompEnable = false;
-#endif
+
     params.bMemCompRC     = false;
     return;
 }

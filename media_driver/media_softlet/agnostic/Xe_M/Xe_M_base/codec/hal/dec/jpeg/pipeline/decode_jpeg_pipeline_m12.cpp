@@ -168,9 +168,7 @@ MOS_STATUS JpegPipelineM12::Initialize(void *settings)
     DECODE_CHK_STATUS(m_mediaContext->SwitchContext(VdboxDecodeFunc, &scalPars, &m_scalability));
     m_decodeContext = m_osInterface->pfnGetGpuContext(m_osInterface);
 
-#ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(InitMmcState());
-#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -338,7 +336,6 @@ MOS_STATUS JpegPipelineM12::Execute()
     return MOS_STATUS_SUCCESS;
 }
 
-#ifdef _MMC_SUPPORTED
 MOS_STATUS JpegPipelineM12::InitMmcState()
 {
     DECODE_FUNC_CALL();
@@ -351,7 +348,6 @@ MOS_STATUS JpegPipelineM12::InitMmcState()
 
     return MOS_STATUS_SUCCESS;
 }
-#endif
 
 MOS_STATUS JpegPipelineM12::UserFeatureReport()
 {

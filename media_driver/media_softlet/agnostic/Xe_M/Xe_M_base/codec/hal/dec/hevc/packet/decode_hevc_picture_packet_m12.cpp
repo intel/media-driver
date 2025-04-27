@@ -167,12 +167,10 @@ MOS_STATUS HevcDecodePicPktM12::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADDR_
     DECODE_FUNC_CALL();
     DECODE_CHK_STATUS(HevcDecodePicPktXe_M_Base::SetHcpPipeBufAddrParams(pipeBufAddrParamsBase));
 
-#ifdef _MMC_SUPPORTED
     HevcDecodeMemCompM12 *hevcDecodeMemComp = dynamic_cast<HevcDecodeMemCompM12 *>(m_mmcState);
     DECODE_CHK_NULL(hevcDecodeMemComp);
     DECODE_CHK_STATUS(hevcDecodeMemComp->CheckReferenceList(*m_hevcBasicFeature, pipeBufAddrParamsBase.PostDeblockSurfMmcState,
         pipeBufAddrParamsBase.PreDeblockSurfMmcState, pipeBufAddrParamsBase.presReferences));
-#endif
 
     MHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G12 &pipeBufAddrParams =
         static_cast<MHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G12&>(pipeBufAddrParamsBase);

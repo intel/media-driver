@@ -635,7 +635,6 @@ MHW_SETPAR_DECL_SRC(HCP_SURFACE_STATE, HevcReferenceFrames)
 {
     ENCODE_FUNC_CALL();
 
-#ifdef _MMC_SUPPORTED
     ENCODE_CHK_NULL_RETURN(m_mmcState);
     if (m_mmcState->IsMmcEnabled())
     {
@@ -670,7 +669,6 @@ MHW_SETPAR_DECL_SRC(HCP_SURFACE_STATE, HevcReferenceFrames)
             }
         }
     }
-#endif
 
     return MOS_STATUS_SUCCESS;
 }

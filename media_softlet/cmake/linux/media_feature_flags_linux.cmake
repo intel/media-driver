@@ -152,10 +152,6 @@ if(${Decode_Processing_Supported} STREQUAL "yes")
     add_definitions(-D_DECODE_PROCESSING_SUPPORTED)
 endif()
 
-if(${MMC_Supported} STREQUAL "yes")
-    add_definitions(-D_MMC_SUPPORTED)
-endif()
-
 if(${Kernel_Auto_Denoise_Supported} STREQUAL "yes")
     add_definitions(-DVEBOX_AUTO_DENOISE_SUPPORTED=1)
 else()

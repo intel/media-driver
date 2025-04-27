@@ -1208,7 +1208,6 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, AvcBasicFeature)
     params.streamOutBuffer = m_recycleBuf->GetBuffer(VdencStatsBuffer, 0);
     params.surfaceDsStage1 = m_4xDSSurface;
 
-#ifdef _MMC_SUPPORTED
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         if (m_mmcState->IsMmcEnabled())
         {
@@ -1240,7 +1239,6 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, AvcBasicFeature)
             params.mmcStatePreDeblock = MOS_MEMCOMP_DISABLED;
             params.mmcStateRaw = MOS_MEMCOMP_DISABLED;
         }
-#endif
 
     if (m_ref->GetRefList()[m_currReconstructedPic.FrameIdx]->bUsedAsRef)
     {
@@ -1552,12 +1550,11 @@ MHW_SETPAR_DECL_SRC(MFX_SURFACE_STATE, AvcBasicFeature)
             MOS_ALIGN_CEIL((psSurface->VPlaneOffset.iSurfaceOffset - psSurface->dwOffset)/psSurface->dwPitch + psSurface->RenderOffset.YUV.V.YOffset, uvPlaneAlignment);
     }
 
-#ifdef _MMC_SUPPORTED
     if (m_mmcState && m_mmcState->IsMmcEnabled())
     {
         ENCODE_CHK_STATUS_RETURN(m_mmcState->GetSurfaceMmcFormat(psSurface, &params.compressionFormat));
     }
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1572,7 +1569,6 @@ MHW_SETPAR_DECL_SRC(MFX_PIPE_BUF_ADDR_STATE, AvcBasicFeature)
 
     ENCODE_CHK_STATUS_RETURN(m_ref->MHW_SETPAR_F(MFX_PIPE_BUF_ADDR_STATE)(params));
 
-#ifdef _MMC_SUPPORTED
     MOS_MEMCOMP_STATE reconSurfMmcState = MOS_MEMCOMP_DISABLED;
     if (m_mmcState->IsMmcEnabled())
     {
@@ -1598,7 +1594,7 @@ MHW_SETPAR_DECL_SRC(MFX_PIPE_BUF_ADDR_STATE, AvcBasicFeature)
 
     CODECHAL_DEBUG_TOOL(
         params.psPreDeblockSurface->MmcState = reconSurfMmcState;)
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

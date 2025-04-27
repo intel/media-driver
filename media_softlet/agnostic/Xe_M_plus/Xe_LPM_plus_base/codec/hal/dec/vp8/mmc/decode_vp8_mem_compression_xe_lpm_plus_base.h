@@ -32,8 +32,6 @@
 #include "decode_vp8_mem_compression.h"
 #include "decode_mem_compression_xe_lpm_plus_base.h"
 
-#ifdef _MMC_SUPPORTED
-
 namespace decode
 {
     class Vp8DecodeMemCompXe_Lpm_Plus_Base : public DecodeMemCompXe_Lpm_Plus_Base, public Vp8DecodeMemComp
@@ -65,5 +63,4 @@ namespace decode
         MEDIA_CLASS_DEFINE_END(decode__Vp8DecodeMemCompXe_Lpm_Plus_Base)
     };
 }
-#endif
 #endif //__HEVC_DECODE_MEM_COMPRESSION_XE_LPM_PLUS_BASE_H__

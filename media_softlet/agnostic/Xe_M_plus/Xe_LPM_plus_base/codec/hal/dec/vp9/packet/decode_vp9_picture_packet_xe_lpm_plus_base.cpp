@@ -143,11 +143,9 @@ namespace decode
 
         DECODE_CHK_STATUS(Vp9DecodePicPkt::MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params));
 
-#ifdef _MMC_SUPPORTED
         Vp9DecodeMemComp *vp9DecodeMemComp = dynamic_cast<Vp9DecodeMemComp *>(m_mmcState);
         DECODE_CHK_NULL(vp9DecodeMemComp);
         DECODE_CHK_STATUS(vp9DecodeMemComp->CheckReferenceList(*m_vp9BasicFeature, params.PostDeblockSurfMmcState, params.PreDeblockSurfMmcState, params.presReferences));
-#endif
 
         if (m_vp9Pipeline->GetDecodeMode() == Vp9Pipeline::virtualTileDecodeMode)
         {

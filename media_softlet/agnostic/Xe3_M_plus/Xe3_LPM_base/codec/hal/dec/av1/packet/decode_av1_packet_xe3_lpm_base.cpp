@@ -206,7 +206,6 @@ namespace decode
             DECODE_CHK_STATUS(UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer));
         }
 
-#ifdef _MMC_SUPPORTED
         CODECHAL_DEBUG_TOOL(
             if (m_mmcState) {
                 if (m_av1BasicFeature->m_filmGrainEnabled)
@@ -218,7 +217,6 @@ namespace decode
                     m_mmcState->UpdateUserFeatureKey(&(m_av1BasicFeature->m_destSurface));
                 }
             })
-#endif
 
         if ((isLastTileInFullFrm || !m_av1Pipeline->FrameBasedDecodingInUse()) &&
             !m_osInterface->pfnIsMismatchOrderProgrammingSupported())

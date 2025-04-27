@@ -165,10 +165,9 @@ namespace decode{
         m_vvcPicParams      = m_vvcBasicFeature->m_vvcPicParams;
         DECODE_CHK_NULL(m_vvcPicParams);
 
-#ifdef _MMC_SUPPORTED
         m_mmcState = m_vvcPipeline->GetMmcState();
         DECODE_CHK_NULL(m_mmcState);
-#endif
+
         DECODE_CHK_STATUS(SetRowstoreCachingOffsets());
         DECODE_CHK_STATUS(AllocateVariableResources());
         
@@ -1144,13 +1143,11 @@ namespace decode{
             psSurface->dwPitch + psSurface->RenderOffset.YUV.U.YOffset,
             uvPlaneAlignment);
 
-#ifdef _MMC_SUPPORTED
         if (params.surfaceId == vvcReconPic)
         {
             DECODE_CHK_STATUS(m_mmcState->SetSurfaceMmcState(&(m_vvcBasicFeature->m_destSurface)));
         }
         DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(psSurface, &params.compressionFormat));
-#endif
 
         if (m_vvcPicParams->m_spsBitdepthMinus8 == 0)
         {

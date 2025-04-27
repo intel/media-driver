@@ -31,7 +31,6 @@
 #include "decode_utils.h"
 #include "decode_vp8_mem_compression.h"
 
-#ifdef _MMC_SUPPORTED
 
 namespace decode
 {
@@ -115,4 +114,4 @@ MOS_STATUS Vp8DecodeMemComp::SetPipeBufAddr(Vp8BasicFeature &vp8BasicFeature,
 }
 
 }  // namespace decode
-#endif
+

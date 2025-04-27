@@ -139,14 +139,12 @@ MOS_STATUS CodechalDecodeVc1Xe_Hpm::HandleSkipFrame()
     // HuC copy doesn't support CCS mapping. Using Vebox copy instead
     MOS_MEMCOMP_STATE mmcState = MOS_MEMCOMP_DISABLED;
 
-#ifdef _MMC_SUPPORTED
     if (m_mmc && m_mmc->IsMmcEnabled())
     {
         CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface,
             &srcSurface.OsResource,
             &mmcState));
     }
-#endif
 
     CODECHAL_HW_CHK_STATUS_RETURN(m_osInterface->pfnDoubleBufferCopyResource(m_osInterface,
         &srcSurface.OsResource,

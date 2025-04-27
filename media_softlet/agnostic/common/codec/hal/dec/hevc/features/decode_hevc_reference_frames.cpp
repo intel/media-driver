@@ -148,14 +148,14 @@ MOS_STATUS HevcReferenceFrames::UpdateCurResource(const CODEC_HEVC_PIC_PARAMS &p
         bool twoVersionsOfCurrDecPicFlag = (!picParams.pps_deblocking_filter_disabled_flag) ||
                                            picParams.sample_adaptive_offset_enabled_flag ||
                                            picParams.deblocking_filter_override_enabled_flag;
-#ifdef _MMC_SUPPORTED
+
         // Due to limitation, IBC reference has to be uncompressed, while recon surface is still compressed.
         // Always need internal surface for IBC reference while MMC is enabled.
         if (m_basicFeature->IsMmcEnabled())
         {
             twoVersionsOfCurrDecPicFlag = true;
         }
-#endif
+
         if (twoVersionsOfCurrDecPicFlag)
         {
             // In downsampling case, m_referenceBeforeLoopFilter will be allocated by downsampling feature later.

@@ -239,13 +239,11 @@ MOS_STATUS Vp9VdencPipelineXe2_Lpm_Base::InitMmcState()
 {
     ENCODE_FUNC_CALL();
 
-#ifdef _MMC_SUPPORTED
     ENCODE_CHK_NULL_RETURN(m_hwInterface);
     
     // Update MMC to Xe2_Lpm_base
     m_mmcState = MOS_New(EncodeMemCompXe_Lpm_Plus_Base, m_hwInterface);
     ENCODE_CHK_NULL_RETURN(m_mmcState);
-#endif
 
     return MOS_STATUS_SUCCESS;
 }

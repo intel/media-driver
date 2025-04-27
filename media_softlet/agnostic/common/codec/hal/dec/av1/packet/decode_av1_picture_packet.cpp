@@ -127,10 +127,8 @@ namespace decode{
 
         DECODE_CHK_STATUS(GetChromaFormat());
 
-#ifdef _MMC_SUPPORTED
         m_mmcState = m_av1Pipeline->GetMmcState();
         DECODE_CHK_NULL(m_mmcState);
-#endif
 
         DECODE_CHK_STATUS(SetRowstoreCachingOffsets());
 
@@ -896,12 +894,10 @@ namespace decode{
             }
         }
 
-#ifdef _MMC_SUPPORTED
         if (m_mmcState && m_mmcState->IsMmcEnabled())
         {
             DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(const_cast<PMOS_SURFACE>(&m_av1BasicFeature->m_destSurface), &params.mmcStatePreDeblock));
         };
-#endif
 
 #if USE_CODECHAL_DEBUG_TOOL
         DECODE_CHK_STATUS(DumpResources(refSize));
@@ -1113,7 +1109,6 @@ namespace decode{
         DECODE_FUNC_CALL();
 
         DECODE_CHK_NULL(surface);
-#ifdef _MMC_SUPPORTED
         DECODE_CHK_NULL(m_mmcState);
 
         if (m_mmcState->IsMmcEnabled())
@@ -1123,7 +1118,6 @@ namespace decode{
             DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(surface, &compressionFormat));
         }
         else
-#endif
         {
             mmcState = MOS_MEMCOMP_DISABLED;
         }

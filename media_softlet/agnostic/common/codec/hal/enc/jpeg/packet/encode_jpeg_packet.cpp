@@ -69,11 +69,9 @@ namespace encode {
         m_jpgPkrFeature = dynamic_cast<JpegPackerFeature *>(m_featureManager->GetFeature(JpegFeatureIDs::jpegPackerFeature));
         ENCODE_CHK_NULL_RETURN(m_jpgPkrFeature);
 
-#ifdef _MMC_SUPPORTED
         m_mmcState = m_pipeline->GetMmcState();
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         m_basicFeature->m_mmcState = m_mmcState;
-#endif
 
         ENCODE_CHK_STATUS_RETURN(m_statusReport->RegistObserver(this));
 
@@ -347,10 +345,8 @@ namespace encode {
         cmdBuffer.Attributes.dwNumRequestedEUs         = m_hwInterface->m_numRequestedEus;
         cmdBuffer.Attributes.bValidPowerGatingRequest  = true;
 
-#ifdef _MMC_SUPPORTED
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(&cmdBuffer, false));
-#endif
 
         MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
         MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));

@@ -2290,9 +2290,9 @@ MOS_STATUS CodechalVdencHevcStateG11::ExecutePictureLevel()
     SetHcpPipeBufAddrParams(*m_pipeBufAddrParams);
     m_pipeBufAddrParams->pRawSurfParam = &srcSurfaceParams;
     m_pipeBufAddrParams->pDecodedReconParam = &reconSurfaceParams;
-#ifdef _MMC_SUPPORTED
+
     SetPipeBufAddr(&cmdBuffer);
-#endif
+
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_pipeModeSelectParams);
     SetHcpPipeModeSelectParams(*m_pipeModeSelectParams);
 

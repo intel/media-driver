@@ -7135,9 +7135,9 @@ MOS_STATUS CodechalVdencVp9State::Initialize(CodechalSetting * settings)
     }
 #endif
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodechalEncoderState::Initialize(settings));
-#ifdef _MMC_SUPPORTED
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(InitMmcState());
-#endif
+
     m_bitDepth     = (settings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS) ? VP9_ENCODED_BIT_DEPTH_10 : VP9_ENCODED_BIT_DEPTH_8;
     m_chromaFormat = settings->chromaFormat;
 
@@ -7354,10 +7354,10 @@ CodechalVdencVp9State::CodechalVdencVp9State(
 MOS_STATUS CodechalVdencVp9State::InitMmcState()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
-#ifdef _MMC_SUPPORTED
+
     m_mmcState = MOS_New(CodechalMmcEncodeVp9, m_hwInterface, this);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

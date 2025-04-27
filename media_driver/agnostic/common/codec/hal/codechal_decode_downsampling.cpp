@@ -447,12 +447,10 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
     PMOS_INTERFACE osInterface = m_osInterface;
     CodecHalGetResourceInfo(osInterface,surfaceCodecParams.psSurface);
     
-#ifdef _MMC_SUPPORTED
     if (m_mmcState)
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
     }
-#endif
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
@@ -488,12 +486,10 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
         surfaceCodecParams.ChromaType               = MHW_GFX3DSTATE_SURFACEFORMAT_R8G8_UNORM;
     }
 
-#ifdef _MMC_SUPPORTED
     if (m_mmcState)
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
     }
-#endif
 
     CodecHalGetResourceInfo(osInterface,surfaceCodecParams.psSurface);
     CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
@@ -594,12 +590,11 @@ MOS_STATUS FieldScalingInterface::DoFieldScaling(
 
 MOS_STATUS FieldScalingInterface::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
     if (m_mmcState == nullptr)
     {
         m_mmcState = MOS_New(CodecHalMmcState, m_hwInterface);
         CODECHAL_DECODE_CHK_NULL_RETURN(m_mmcState);
     }
-#endif
+
     return MOS_STATUS_SUCCESS;
 }

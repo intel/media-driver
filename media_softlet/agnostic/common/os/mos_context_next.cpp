@@ -40,9 +40,8 @@ void OsContextNext::CleanUp()
 {
     MOS_OS_FUNCTION_ENTER;
 
-#ifdef _MMC_SUPPORTED
     MOS_Delete(m_mosDecompression);
-#endif
+
     MOS_Delete(m_mosMediaCopy);
 
     MosOcaRTLogMgr::UnRegisterContext(this);

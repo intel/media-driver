@@ -201,11 +201,10 @@ namespace encode{
         m_basicFeature = dynamic_cast<Av1BasicFeature *>(m_featureManager->GetFeature(Av1FeatureIDs::basicFeature));
         ENCODE_CHK_NULL_RETURN(m_basicFeature);
 
-#ifdef _MMC_SUPPORTED
         m_mmcState = m_pipeline->GetMmcState();
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         m_basicFeature->m_mmcState = m_mmcState;
-#endif
+
         m_allocator = m_pipeline->GetEncodeAllocator();
         ENCODE_CHK_STATUS_RETURN(AllocateResources());
 
@@ -544,10 +543,8 @@ namespace encode{
 
         ENCODE_FUNC_CALL();
 
-#ifdef _MMC_SUPPORTED
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(&cmdBuffer, false));
-#endif
 
         MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
         MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
@@ -584,7 +581,6 @@ namespace encode{
         ENCODE_CHK_NULL_RETURN(srcSurfaceParams.psSurface);
         ENCODE_CHK_NULL_RETURN(reconSurfaceParams.psSurface);
 
-#ifdef _MMC_SUPPORTED
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         if (m_mmcState->IsMmcEnabled())
         {
@@ -598,7 +594,6 @@ namespace encode{
             pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
             pipeBufAddrParams->RawSurfMmcState        = MOS_MEMCOMP_DISABLED;
         }
-#endif
 
         CODECHAL_DEBUG_TOOL(
             m_basicFeature->m_reconSurface.MmcState = pipeBufAddrParams->PreDeblockSurfMmcState;)
@@ -616,7 +611,6 @@ namespace encode{
 
         ENCODE_FUNC_CALL();
 
-#ifdef _MMC_SUPPORTED
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         if (m_mmcState->IsMmcEnabled())
         {
@@ -627,7 +621,7 @@ namespace encode{
         {
             surfaceStateParams->mmcState = MOS_MEMCOMP_DISABLED;
         }
-#endif
+
         return eStatus;
     }
 

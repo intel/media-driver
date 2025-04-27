@@ -142,9 +142,7 @@ protected:
     DecodeAllocator                      *m_allocator        = nullptr;
     std::shared_ptr<mhw::vdbox::hcp::Itf> m_hcpItf           = nullptr;
 
-#ifdef _MMC_SUPPORTED
     DecodeMemComp *m_mmcState = nullptr;
-#endif
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     DecodeDownSamplingFeature *m_downSamplingFeature = nullptr;

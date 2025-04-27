@@ -45,10 +45,9 @@ CodechalDecodeMpeg2G12::~CodechalDecodeMpeg2G12 ()
 
 MOS_STATUS  CodechalDecodeMpeg2G12::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
     m_mmc = MOS_New(CodechalMmcDecodeMpeg2G12, m_hwInterface, this);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_mmc);
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -105,7 +104,7 @@ MOS_STATUS CodechalDecodeMpeg2G12::DecodeStateLevel()
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_DECODE_FUNCTION_ENTER;
-#ifdef _MMC_SUPPORTED
+
     // To WA invalid aux data caused HW issue when MMC on
     // Add disable Clear CCS WA due to green corruption issue
     if (m_mmc->IsMmcEnabled() && !Mos_ResourceIsNull(&m_destSurface.OsResource) &&
@@ -118,7 +117,6 @@ MOS_STATUS CodechalDecodeMpeg2G12::DecodeStateLevel()
                 this, m_miInterface, &m_destSurface.OsResource, m_veState));
         }
     }
-#endif
 
     uint8_t fwdRefIdx = (uint8_t)m_picParams->m_forwardRefIdx;
     uint8_t bwdRefIdx = (uint8_t)m_picParams->m_backwardRefIdx;
@@ -171,9 +169,7 @@ MOS_STATUS CodechalDecodeMpeg2G12::DecodeStateLevel()
         pipeBufAddrParams.psPreDeblockSurface = &m_destSurface;
     }
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&pipeBufAddrParams));
-#endif
 
     // when there is not a forward or backward reference,
     // the index is set to the destination frame index
@@ -234,11 +230,9 @@ MOS_STATUS CodechalDecodeMpeg2G12::DecodeStateLevel()
             &(m_streamOutBuffer[m_streamOutCurrBufIdx]);
     }
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->CheckReferenceList(&pipeBufAddrParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetRefrenceSync(m_disableDecodeSyncLock, m_disableLockForTranscode));
-#endif
 
     CODECHAL_DEBUG_TOOL(
         for (uint32_t i = 0; i < CODEC_MAX_NUM_REF_FRAME_NON_AVC; i++)
@@ -312,9 +306,8 @@ MOS_STATUS CodechalDecodeMpeg2G12::DecodeStateLevel()
         &cmdBuffer,
         &pipeModeSelectParams));
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetSurfaceState(&surfaceParams));
-#endif
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxSurfaceCmd(
         &cmdBuffer,
         &surfaceParams));
@@ -643,7 +636,6 @@ MOS_STATUS CodechalDecodeMpeg2G12::AllocateStandard (
     CODECHAL_DECODE_CHK_STATUS_RETURN(CodechalDecodeMpeg2::AllocateStandard(
         settings));
 
-#ifdef _MMC_SUPPORTED
     // To WA invalid aux data caused HW issue when MMC on
     // Add disable Clear CCS WA due to green corruption issue
     if (m_mmc->IsMmcEnabled())
@@ -660,7 +652,6 @@ MOS_STATUS CodechalDecodeMpeg2G12::AllocateStandard (
                 &stateCmdSizeParams);
         }
     }
-#endif
 
     if ( MOS_VE_SUPPORTED(m_osInterface))
     {
