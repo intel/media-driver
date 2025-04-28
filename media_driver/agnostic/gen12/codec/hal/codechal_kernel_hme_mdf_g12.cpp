@@ -99,19 +99,19 @@ MOS_STATUS CodechalKernelHmeMdfG12::ReleaseResources()
 
     if (m_threadSpace4x)
     {
-        cmDev->DestroyThreadSpace(m_threadSpace4x);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->DestroyThreadSpace(m_threadSpace4x));
         m_threadSpace4x = nullptr;
     }
 
     if (m_threadSpace16x)
     {
-        cmDev->DestroyThreadSpace(m_threadSpace16x);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->DestroyThreadSpace(m_threadSpace16x));
         m_threadSpace16x = nullptr;
     }
 
     if (m_threadSpace32x)
     {
-        cmDev->DestroyThreadSpace(m_threadSpace32x);
+        CODECHAL_ENCODE_CHK_STATUS_RETURN(cmDev->DestroyThreadSpace(m_threadSpace32x));
         m_threadSpace32x = nullptr;
     }
 
