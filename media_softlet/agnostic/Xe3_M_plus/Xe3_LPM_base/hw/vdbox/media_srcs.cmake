@@ -48,7 +48,7 @@ set(TMP_SOFTLET_MHW_VDBOX_VVCP_HEADERS_
 )
 
 set(TMP_SOFTLET_MHW_VDBOX_VDENC_HEADERS_
-    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_impl_xe3_lpm_base_open.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_impl_xe3_lpm_base.h
 )
 
 set(SOFTLET_MHW_VDBOX_HCP_HEADERS_

@@ -20,6 +20,7 @@
 
 set(TMP_SOFTLET_MHW_VDBOX_VDENC_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_impl_xe3_lpm.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_vdenc_hwcmd_xe3_lpm.h
 )
 
 set(TMP_SOFTLET_MHW_VDBOX_VVCP_SOURCES_
