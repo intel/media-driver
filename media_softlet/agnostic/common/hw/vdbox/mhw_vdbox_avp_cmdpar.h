@@ -34,7 +34,7 @@
 #include "mhw_vdbox.h"
 #include "mhw_vdbox_cmdpar.h"
 
-#ifdef IGFX_AVP_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_avp_cmdpar_ext.h"
 #define __MHW_VDBOX_AVP_WRAPPER(STUFF)
 #define __MHW_VDBOX_AVP_WRAPPER_EXT(STUFF) STUFF

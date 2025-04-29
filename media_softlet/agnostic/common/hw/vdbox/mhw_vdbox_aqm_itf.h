@@ -31,7 +31,7 @@
 #include "mhw_impl.h"
 #include "mhw_vdbox_aqm_cmdpar.h"
 
-#ifdef IGFX_AQM_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_aqm_itf_ext.h"
 #endif
 

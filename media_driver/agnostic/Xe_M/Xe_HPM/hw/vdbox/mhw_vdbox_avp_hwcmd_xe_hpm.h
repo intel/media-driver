@@ -36,7 +36,7 @@
 
 #include "mhw_hwcmd.h"
 
-#ifdef IGFX_AVP_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_avp_cmdpar_ext.h"
 #endif
 

@@ -41,7 +41,7 @@
 #include <cstddef>
 #include "media_class_trace.h"
 
-#ifdef IGFX_AQM_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_aqm_hwcmd_ext.h"
 #endif
 
@@ -347,7 +347,7 @@ public:
         static const size_t byteSize = 8;
     };
 
-#ifdef IGFX_AQM_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_aqm_hwcmd_xe2_lpm_ext.h"
 #else
     //!

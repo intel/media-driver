@@ -40,7 +40,7 @@
 #include <cstddef>
 #include "media_class_trace.h"
 
-#ifdef IGFX_AVP_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_avp_hwcmd_ext.h"
 #endif
 

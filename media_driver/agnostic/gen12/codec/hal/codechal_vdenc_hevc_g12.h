@@ -32,7 +32,7 @@
 #include "codechal_debug_encode_par_g12.h"
 #include "codechal_encode_singlepipe_virtualengine.h"
 #include "codechal_encode_scalability.h"
-#ifdef _ENCODE_VDENC_RESERVED
+#ifdef _MEDIA_RESERVED
   #include "codechal_vdenc_hevc_g12_rsvd.h"
 #endif
 
@@ -2713,7 +2713,7 @@ public:
     MOS_STATUS SetRoundingValues();
 
 protected:
-#ifdef _ENCODE_VDENC_RESERVED
+#ifdef _MEDIA_RESERVED
     CodechalVdencHevcG12Rsvd *m_rsvdState = nullptr;
 #endif
 

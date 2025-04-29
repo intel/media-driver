@@ -256,7 +256,7 @@ namespace decode
         params = {};
         Av1DecodePicPkt::MHW_SETPAR_F(AVP_SURFACE_STATE)(params);
 
-#ifdef IGFX_AVP_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
         if (m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingX == 0 && m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingY == 0)  // 4:4:4
         {
             if (params.bitDepthLumaMinus8 == 0)

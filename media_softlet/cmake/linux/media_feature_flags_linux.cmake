@@ -31,24 +31,16 @@ bs_set_if_undefined(Encode_VDEnc_Supported "yes")
 # reuse the full list for enable kernels as well.
 if(NOT ENABLE_KERNELS OR NOT ENABLE_NONFREE_KERNELS)
     # full-open-source
-    bs_set_if_undefined(AVC_Encode_VME_Supported "no")
-    bs_set_if_undefined(HEVC_Encode_VME_Supported "no")
-    bs_set_if_undefined(MPEG2_Encode_VME_Supported "no")
     bs_set_if_undefined(MMC_Supported "no")
     bs_set_if_undefined(VC1_Decode_Supported "no")
     bs_set_if_undefined(Decode_Processing_Supported "no")
     bs_set_if_undefined(Kernel_Auto_Denoise_Supported "no")
-    bs_set_if_undefined(VP8_Encode_Supported "no")
 else()
     # full-feature
-    bs_set_if_undefined(AVC_Encode_VME_Supported "${Encode_VME_Supported}")
-    bs_set_if_undefined(HEVC_Encode_VME_Supported "${Encode_VME_Supported}")
-    bs_set_if_undefined(MPEG2_Encode_VME_Supported "${Encode_VME_Supported}")
     bs_set_if_undefined(MMC_Supported "yes")
     bs_set_if_undefined(VC1_Decode_Supported "yes")
     bs_set_if_undefined(Decode_Processing_Supported "yes")
     bs_set_if_undefined(Kernel_Auto_Denoise_Supported "yes")
-    bs_set_if_undefined(VP8_Encode_Supported "${Encode_VME_Supported}")
 endif()
 
 # features are always able to open
@@ -74,9 +66,6 @@ if(${Common_Encode_Supported} STREQUAL "yes")
     add_definitions(-D_COMMON_ENCODE_SUPPORTED)
 endif()
 
-if(${AVC_Encode_VME_Supported} STREQUAL "yes")
-    add_definitions(-D_AVC_ENCODE_VME_SUPPORTED)
-endif()
 
 if(${AVC_Encode_VDEnc_Supported} STREQUAL "yes")
     add_definitions(-D_AVC_ENCODE_VDENC_SUPPORTED)
@@ -86,9 +75,6 @@ if(${AVC_Decode_Supported} STREQUAL "yes")
     add_definitions(-D_AVC_DECODE_SUPPORTED)
 endif()
 
-if (${HEVC_Encode_VME_Supported} STREQUAL "yes")
-    add_definitions (-D_HEVC_ENCODE_VME_SUPPORTED)
-endif()
 
 if (${HEVC_Encode_VDEnc_Supported} STREQUAL "yes")
     add_definitions(-D_HEVC_ENCODE_VDENC_SUPPORTED)
@@ -106,10 +92,6 @@ if(${JPEG_Decode_Supported} STREQUAL "yes")
     add_definitions(-D_JPEG_DECODE_SUPPORTED)
 endif()
 
-if(${MPEG2_Encode_VME_Supported} STREQUAL "yes")
-    add_definitions(-D_MPEG2_ENCODE_VME_SUPPORTED)
-endif()
-
 if(${MPEG2_Decode_Supported} STREQUAL "yes")
     add_definitions(-D_MPEG2_DECODE_SUPPORTED)
 endif()
@@ -120,10 +102,6 @@ endif()
 
 if(${VP8_Decode_Supported} STREQUAL "yes")
     add_definitions(-D_VP8_DECODE_SUPPORTED)
-endif()
-
-if(${VP8_Encode_Supported} STREQUAL "yes")
-    add_definitions(-D_VP8_ENCODE_SUPPORTED)
 endif()
 
 if(${VP9_Encode_VDEnc_Supported} STREQUAL "yes")

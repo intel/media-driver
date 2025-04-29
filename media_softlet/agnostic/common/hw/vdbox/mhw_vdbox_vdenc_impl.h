@@ -32,7 +32,7 @@
 #include "mhw_impl.h"
 #include "mhw_mi_impl.h"
 
-#ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_vdenc_impl_ext.h"
 #include "mhw_vdbox_vdenc_hwcmd_ext.h"
 #endif

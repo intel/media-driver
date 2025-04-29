@@ -38,7 +38,7 @@
 #include "codechal_mmc_encode_hevc_g12.h"
 #include "mhw_mmio_g12.h"
 #include "hal_oca_interface.h"
-#ifdef _ENCODE_VDENC_RESERVED
+#ifdef _MEDIA_RESERVED
 #include "codechal_debug_encode_brc.h"
 #endif
 const uint32_t CodechalVdencHevcStateG12::m_VdboxVDENCRegBase[4] = M_VDBOX_VDENC_REG_BASE;
@@ -626,7 +626,7 @@ CodechalVdencHevcStateG12::~CodechalVdencHevcStateG12()
     CODECHAL_DEBUG_TOOL(
         MOS_Delete(m_encodeParState);
     )
-#ifdef _ENCODE_VDENC_RESERVED
+#ifdef _MEDIA_RESERVED
     if (m_rsvdState)
     {
         MOS_Delete(m_rsvdState);
@@ -5350,7 +5350,7 @@ void CodechalVdencHevcStateG12::SetVdencPipeModeSelectParams(MHW_VDBOX_PIPE_MODE
     // Set lookahead pass flag
     pipeModeSelectParams.bLookaheadPass         = m_lookaheadPass;
 
-#ifdef _ENCODE_VDENC_RESERVED
+#ifdef _MEDIA_RESERVED
     if (m_rsvdState)
     {
         m_rsvdState->SetVdencPipeModeSelectParams(pipeModeSelectParams);
@@ -6433,7 +6433,7 @@ MOS_STATUS CodechalVdencHevcStateG12::Initialize(CodechalSetting * settings)
 
     m_sizeOfHcpPakFrameStats = 9 * CODECHAL_CACHELINE_SIZE;
 
-#ifdef _ENCODE_VDENC_RESERVED
+#ifdef _MEDIA_RESERVED
     InitReserveState(settings);
 #endif
     m_enableSCC = settings->isSCCEnabled;
@@ -7486,7 +7486,7 @@ MOS_STATUS CodechalVdencHevcStateG12::InitMmcState()
     return MOS_STATUS_SUCCESS;
 }
 
-#ifdef _ENCODE_VDENC_RESERVED
+#ifdef _MEDIA_RESERVED
 MOS_STATUS CodechalVdencHevcStateG12::InitReserveState(CodechalSetting * settings)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
@@ -8209,7 +8209,7 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCLookaheadInit()
     virtualAddrParams.regionParams[0].presRegion = &m_vdencLaHistoryBuffer;
     virtualAddrParams.regionParams[0].isWritable = true;
 
-#if USE_CODECHAL_DEBUG_TOOL && _ENCODE_VDENC_RESERVED
+#if USE_CODECHAL_DEBUG_TOOL && _MEDIA_RESERVED
     if (m_swLaMode)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_DbgCallSwLookaheadImpl(
@@ -8324,7 +8324,7 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCLookaheadUpdate()
     virtualAddrParams.regionParams[2].presRegion = &m_vdencLaDataBuffer;
     virtualAddrParams.regionParams[2].isWritable = true;
 
-#if USE_CODECHAL_DEBUG_TOOL && _ENCODE_VDENC_RESERVED
+#if USE_CODECHAL_DEBUG_TOOL && _MEDIA_RESERVED
     if (m_swLaMode)
     {
         bool isLaAnalysisRequired = true;
@@ -8562,7 +8562,7 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCBrcInitReset()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-#if (_DEBUG || _RELEASE_INTERNAL) && _ENCODE_VDENC_RESERVED
+#if (_DEBUG || _RELEASE_INTERNAL) && _MEDIA_RESERVED
     if (m_swBrcMode != nullptr && !m_enableTileReplay && !m_hevcVdencWeightedPredEnabled)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetDmemHuCBrcInitReset());
@@ -8738,7 +8738,7 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCBrcUpdate()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(ConstructBatchBufferHuCBRC(&m_vdencReadBatchBuffer[m_currRecycledBufIdx][currentPass]));
 
-#if (_DEBUG || _RELEASE_INTERNAL) && _ENCODE_VDENC_RESERVED
+#if (_DEBUG || _RELEASE_INTERNAL) && _MEDIA_RESERVED
     if (m_swBrcMode != nullptr && !m_enableTileReplay && !m_hevcVdencWeightedPredEnabled)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetDmemHuCBrcUpdate());

@@ -30,7 +30,7 @@
 
 #include "mhw_vdbox_vdenc_impl.h"
 
-#ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_vdenc_impl_xe2_lpm_base_ext.h"
 #endif
 

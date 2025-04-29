@@ -31,7 +31,7 @@
 #include "mhw_vdbox_avp_impl_xe2_lpm_base.h"
 #include "mhw_vdbox_avp_hwcmd_xe2_lpm.h"
 
-#ifdef IGFX_AVP_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_avp_impl_xe2_lpm_ext.h"
 #endif
 

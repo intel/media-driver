@@ -31,7 +31,7 @@
 #include "codec_def_common_encode.h"
 #include "mhw_vdbox_cmdpar.h"
 
-#if IGFX_AQM_INTERFACE_EXT_SUPPORT
+#if _MEDIA_RESERVED
 #include "mhw_vdbox_aqm_cmdpar_ext.h"
 #define __MHW_VDBOX_AQM_WRAPPER(STUFF)
 #define __MHW_VDBOX_AQM_WRAPPER_EXT(STUFF) STUFF
