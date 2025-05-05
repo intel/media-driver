@@ -195,6 +195,20 @@ public:
     }
 };
 
+class DdiMediaUtil_LockGuard2 {
+private:
+    std::shared_timed_mutex *m_pLock;
+public:
+    DdiMediaUtil_LockGuard2(std::shared_timed_mutex *pLock):m_pLock(pLock)
+    {
+        m_pLock->lock();
+    }
+    ~DdiMediaUtil_LockGuard2()
+    {
+        m_pLock->unlock();
+    }
+};
+
 //!
 //! \brief  Destroy semaphore
 //! 
