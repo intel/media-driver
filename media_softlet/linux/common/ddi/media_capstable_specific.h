@@ -205,6 +205,34 @@ public:
     //!
     //! \return   True if the configID is a valid decode config, otherwise false
     //!
+    bool IsProfileSupported(
+        VAProfile      profile);
+
+    //!
+    //! \brief    Check if profile is supported
+    //!
+    //! \param    [in] profile
+    //!           VA profile
+    //!
+    //! \return   bool
+    //!           true if supported
+    //!
+    bool IsEntrypointSupported(
+        VAProfile      profile,
+        VAEntrypoint   entrypoint);
+
+    //!
+    //! \brief    Check if entrypoint is supported
+    //!
+    //! \param    [in] profile
+    //!           VA profile
+    //!
+    //! \param    [in] entrypoint
+    //!           VA entrypoint
+    //!
+    //! \return   bool
+    //!           true if supported
+    //!
     bool IsDecConfigId(VAConfigID configId);
 
     //!

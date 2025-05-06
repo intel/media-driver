@@ -355,6 +355,15 @@ VAStatus MediaLibvaCapsNext::GetConfigAttributes(
     DDI_CHK_NULL(m_capsTable,  "Caps table is null", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(attribList,   "Null pointer",       VA_STATUS_ERROR_INVALID_PARAMETER);
 
+    if (!(m_capsTable->IsProfileSupported(profile)))
+    {
+        return VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
+    }
+    else if (!(m_capsTable->IsEntrypointSupported(profile, entrypoint)))
+    {
+        return VA_STATUS_ERROR_UNSUPPORTED_ENTRYPOINT;
+    }
+
     AttribList  *supportedAttribList = nullptr;
     supportedAttribList = m_capsTable->QuerySupportedAttrib(profile, entrypoint);
     DDI_CHK_NULL(supportedAttribList, "AttribList in null, not supported attribute", VA_STATUS_ERROR_INVALID_PARAMETER);
