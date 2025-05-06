@@ -246,6 +246,19 @@ VAStatus MediaCapsTableSpecific::CreateConfig(
     return ret;
 }
 
+bool MediaCapsTableSpecific::IsProfileSupported(
+    VAProfile     profile)
+{
+    return !(m_profileMap->find(profile) == m_profileMap->end());
+}
+
+bool MediaCapsTableSpecific::IsEntrypointSupported(
+    VAProfile     profile,
+    VAEntrypoint  entrypoint)
+{
+    return !(m_profileMap->at(profile)->find(entrypoint) == m_profileMap->at(profile)->end());
+}
+
 bool MediaCapsTableSpecific::IsDecConfigId(VAConfigID configId)
 {
     VAConfigID curConfigId = REMOVE_CONFIG_ID_OFFSET(configId);
