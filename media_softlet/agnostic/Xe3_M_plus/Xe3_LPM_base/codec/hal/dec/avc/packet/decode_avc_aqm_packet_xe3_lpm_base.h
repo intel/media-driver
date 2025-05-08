@@ -52,7 +52,7 @@ namespace decode
                 m_mfxItf = std::static_pointer_cast<mhw::vdbox::mfx::Itf>(m_hwInterface->GetMfxInterfaceNext());
                 m_miItf = std::static_pointer_cast<mhw::mi::Itf>(m_hwInterface->GetMiInterfaceNext());
 #ifdef _MEDIA_RESERVED
-                m_aqmItf = std::make_shared<mhw::vdbox::aqm::xe3_lpm_base::xe3_lpm::Impl>(m_osInterface);
+                m_aqmItf = std::make_shared<mhw::vdbox::aqm::xe3_lpm::Impl>(m_osInterface);
 #endif
             }
         }

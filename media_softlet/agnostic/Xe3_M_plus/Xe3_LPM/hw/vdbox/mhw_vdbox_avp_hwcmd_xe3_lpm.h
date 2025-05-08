@@ -39,6 +39,10 @@
 #include <cstddef>
 #include "media_class_trace.h"
 
+#ifdef _MEDIA_RESERVED
+#include "mhw_vdbox_avp_hwcmd_ext.h"
+#endif
+
 namespace mhw
 {
 namespace vdbox
@@ -792,7 +796,7 @@ public:
                 uint32_t                 Reserved1650                                     : __CODEGEN_BITFIELD(18, 24)    ; //!< Reserved
                 uint32_t                 FrameszoverstatusenFramebitratemaxreportmask     : __CODEGEN_BITFIELD(25, 25)    ; //!< FRAMESZOVERSTATUSEN_FRAMEBITRATEMAXREPORTMASK
                 uint32_t                 FrameszunderstatusenFramebitrateminreportmask    : __CODEGEN_BITFIELD(26, 26)    ; //!< FRAMESZUNDERSTATUSEN_FRAMEBITRATEMINREPORTMASK
-                uint32_t                 RhoDomainStreamoutEnableFlag                     : __CODEGEN_BITFIELD(27, 27)    ; //!< Rho Domain Streamout Enable Flag
+                uint32_t                 AVP_PIC_STATE_DW51_BIT27                         : __CODEGEN_BITFIELD(27, 27)    ; //!< Rho Domain Streamout Enable Flag
                 uint32_t                 Reserved1660                                     : __CODEGEN_BITFIELD(28, 31)    ; //!< Reserved
             };
             uint32_t                     Value;
@@ -906,7 +910,7 @@ public:
         {
             struct
             {
-                uint32_t                 RhoDomainQp                                      : __CODEGEN_BITFIELD( 0,  7)    ; //!< Rho Domain QP
+                uint32_t                 AVP_PIC_STATE_DW75_BIT0                          : __CODEGEN_BITFIELD( 0,  7)    ; //!< 
                 uint32_t                 Reserved8                                        : __CODEGEN_BITFIELD( 8, 31)    ; //!< Reserved MBZ
             };
             uint32_t                     Value;
@@ -2200,8 +2204,8 @@ public:
         MEMORYADDRESSATTRIBUTES_CMD              SSETileLineReadWriteBufferAddressAttributes;                             //!< DW208, SSE Tile Line Read/Write Buffer Address Attributes
         SPLITBASEADDRESS64BYTEALIGNED_CMD        PostCDEFpixelsBufferAddress;                                             //!< DW209..210, PostCDEF pixels Buffer Address
         MEMORYADDRESSATTRIBUTES_CMD              PostCDEFpixelsBufferAddressAttributes;                                   //!< DW211, PostCDEF pixels Buffer Address Attributes
-        SPLITBASEADDRESS64BYTEALIGNED_CMD        RhoDomainThresholdsBufferAddress;                                        //!< DW212..213, Rho Domain Thresholds Buffer Address
-        MEMORYADDRESSATTRIBUTES_CMD              RhoDomainThresholdsBufferAddressAttributes;                              //!< DW214, Rho Domain Thresholds Buffer Address Attributes
+        SPLITBASEADDRESS64BYTEALIGNED_CMD        AVP_PIPE_BUF_ADDR_STATE_DW212;                                           //!< DW212..213
+        MEMORYADDRESSATTRIBUTES_CMD              AVP_PIPE_BUF_ADDR_STATE_DW214;                                           //!< DW214
 
         //! \name Local enumerations
 
