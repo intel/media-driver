@@ -298,11 +298,7 @@ MOS_STATUS CodechalInterfacesXe3_Lpm::Initialize(
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED  
     if (mhwInterfaces != nullptr && info->Mode == CODECHAL_ENCODE_MODE_VP9)
     {
-#if defined(_MEDIA_RESERVED)
         auto ptr                  = std::make_shared<mhw::vdbox::vdenc::xe3_lpm_base::xe3_lpm::Impl>(osInterface);
-#else
-        auto ptr                  = std::make_shared<mhw::vdbox::vdenc::xe_lpm_plus_base::v0::Impl>(osInterface);
-#endif
         mhwInterfaces->m_vdencItf = std::dynamic_pointer_cast<mhw::vdbox::vdenc::Itf>(ptr);
         CODECHAL_PUBLIC_CHK_NULL_RETURN(mhwInterfaces->m_vdencItf);
     }
@@ -446,11 +442,7 @@ MOS_STATUS CodechalInterfacesXe3_Lpm::Initialize(
 #if defined(_VP9_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_VP9)
         {
-#if defined(_MEDIA_RESERVED)
             m_codechalDevice = MOS_New(EncodeVp9VdencPipelineAdapterXe3_Lpm, hwInterface, debugInterface);
-#else
-            m_codechalDevice = MOS_New(EncodeVp9VdencPipelineAdapterXe2_Lpm, hwInterface, debugInterface);
-#endif
             if (m_codechalDevice == nullptr)
             {
                 CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
