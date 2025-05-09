@@ -222,7 +222,7 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::Init(VpRenderKernel &kernel)
 {
     VP_FUNC_CALL();
 
-    VP_RENDER_NORMALMESSAGE("Initializing SR krn %s", kernel.GetKernelName().c_str());
+    VP_RENDER_NORMALMESSAGE("Initializing OCL 3DLUT krn %s", kernel.GetKernelName().c_str());
 
     m_kernelSize = kernel.GetKernelSize();
 
@@ -298,7 +298,9 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::GetCurbeState(void *&curbe, uint32_t &curb
     VP_RENDER_NORMALMESSAGE("KernelID %d, Curbe Size %d\n", m_kernelId, curbeLength);
     if (curbeLength == 0)
     {
-        return MOS_STATUS_INVALID_PARAMETER;
+        VP_RENDER_NORMALMESSAGE("Skip Allocate Curbe for its Size is 0");
+        curbe = nullptr;
+        return MOS_STATUS_SUCCESS;
     }
 
     uint8_t *pCurbe = (uint8_t *)MOS_AllocAndZeroMemory(curbeLength);
@@ -324,23 +326,11 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::GetCurbeState(void *&curbe, uint32_t &curb
         {
             if (arg.addressMode == AddressingModeStateless && arg.pData != nullptr)
             {
-                for (uint32_t idx = 0; idx < arg.uSize / sizeof(SurfaceType); idx++)
-                {
-                    uint32_t   *pSurfaceindex  = (uint32_t *)(arg.pData) + idx;
-                    SurfaceType surf           = (SurfaceType)*pSurfaceindex;
-
-                    if (surf != SurfaceTypeInvalid)
-                    {
-                        auto it = m_statelessArray.find(surf);
-                        uint64_t ui64GfxAddress                              = (m_statelessArray.end() != it) ? it->second : 0xFFFF;
-                        *((uint64_t *)(pCurbe + arg.uOffsetInPayload) + idx) = ui64GfxAddress;
-                        break;
-                    }
-                    else
-                    {
-                        *((uint64_t *)(pCurbe + arg.uOffsetInPayload) + idx) = 0xFFFF;
-                    }
-                }
+                SurfaceType surfType = *((SurfaceType *)arg.pData);
+                auto        it       = m_statelessArray.find(surfType);
+                VP_PUBLIC_CHK_NOT_FOUND_RETURN(it, &m_statelessArray);
+                uint64_t ui64GfxAddress = it->second;
+                MOS_SecureMemcpy(pCurbe + arg.uOffsetInPayload, arg.uSize, &ui64GfxAddress, sizeof(ui64GfxAddress));
             }
         }
         else if (arg.eArgKind == ARG_KIND_INLINE)
@@ -376,6 +366,40 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::GetWalkerSetting(KERNEL_WALKER_PARAMS &wal
 }
 
 // Only for Adv kernels.
+MOS_STATUS VpRenderHdr3DLutOclKernel::GetInlineData(uint8_t *inlineData)
+{
+    for (auto &arg : m_kernelArgs)
+    {
+        if (arg.eArgKind == ARG_KIND_INLINE)
+        {
+            if (arg.pData != nullptr)
+            {
+                if (arg.addressMode == AddressingModeStateless)
+                {
+                    SurfaceType surfType = *((SurfaceType *)arg.pData);
+                    auto        it       = m_statelessArray.find(surfType);
+                    VP_PUBLIC_CHK_NOT_FOUND_RETURN(it, &m_statelessArray);
+                    uint64_t ui64GfxAddress = it->second;
+                    MOS_SecureMemcpy(inlineData + arg.uOffsetInPayload, arg.uSize, &ui64GfxAddress, sizeof(ui64GfxAddress));
+                    VP_RENDER_NORMALMESSAGE("Setting Inline Data Statelss Surface KernelID %d, index %d , value %d, address 0x%x argKind %d", m_kernelId, arg.uIndex, *(uint32_t *)arg.pData, ui64GfxAddress, arg.eArgKind);
+                }
+                else
+                {
+                    MOS_SecureMemcpy(inlineData + arg.uOffsetInPayload, arg.uSize, arg.pData, arg.uSize);
+                    VP_RENDER_NORMALMESSAGE("Setting Inline Data KernelID %d, index %d , value %d, argKind %d", m_kernelId, arg.uIndex, *(uint32_t *)arg.pData, arg.eArgKind);
+                }
+                
+            }
+            else
+            {
+                VP_RENDER_NORMALMESSAGE("KernelID %d, index %d, argKind %d is empty", m_kernelId, arg.uIndex, arg.eArgKind);
+            }
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpRenderHdr3DLutOclKernel::SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, bool bSyncFlag, bool flushL1)
 {
     VP_FUNC_CALL();
@@ -395,21 +419,8 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::SetWalkerSetting(KERNEL_THREAD_SPACE &thre
     m_walkerParam.pipeControlParams.bFlushRenderTargetCache    = false;
     m_walkerParam.pipeControlParams.bInvalidateTextureCache    = false;
 
-    for (auto &arg : m_kernelArgs)
-    {
-        if (arg.eArgKind == ARG_KIND_INLINE)
-        {
-            if (arg.pData != nullptr)
-            {
-                MOS_SecureMemcpy(m_inlineData + arg.uOffsetInPayload, arg.uSize, arg.pData, arg.uSize);
-                VP_RENDER_NORMALMESSAGE("Setting Inline Data KernelID %d, index %d , value %d, argKind %d", m_kernelId, arg.uIndex, *(uint32_t *)arg.pData, arg.eArgKind);
-            }
-            else
-            {
-                VP_RENDER_NORMALMESSAGE("KernelID %d, index %d, argKind %d is empty", m_kernelId, arg.uIndex, arg.eArgKind);
-            }
-        }
-    }
+    MOS_ZeroMemory(m_inlineData, sizeof(m_inlineData));
+    VP_PUBLIC_CHK_STATUS_RETURN(GetInlineData(m_inlineData));
     m_walkerParam.inlineDataLength = sizeof(m_inlineData);
     m_walkerParam.inlineData       = m_inlineData;
 

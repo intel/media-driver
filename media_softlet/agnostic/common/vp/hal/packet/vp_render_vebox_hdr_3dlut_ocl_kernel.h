@@ -40,6 +40,7 @@ public:
 
     virtual MOS_STATUS Init(VpRenderKernel& kernel);
     virtual MOS_STATUS GetCurbeState(void *&curbe, uint32_t &curbeLength) override;
+    virtual MOS_STATUS GetInlineData(uint8_t *inlineData);
 
     virtual MOS_STATUS FreeCurbe(void*& curbe) override
     {
