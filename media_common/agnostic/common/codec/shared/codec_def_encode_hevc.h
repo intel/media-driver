@@ -598,6 +598,7 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
     uint8_t     FullPassCodecType;  // [0..4]
     uint8_t     FastPassRatio;
     uint8_t     FastPassDsType;  // [0..1]
+    uint8_t     long_term_ref_pics_present_flag;
 } CODEC_HEVC_ENCODE_SEQUENCE_PARAMS, *PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS;
 
 /*! \brief Provides the picture-level parameters of a compressed picture for HEVC decoding.
