@@ -440,11 +440,15 @@ namespace encode
         return profileLevelMaxFrame;
     }
 
-    inline int32_t ComputeVDEncInitQPI(uint32_t width, uint32_t height, FRAMERATE frameRate, uint32_t targetBitRate, uint16_t gopPicSize, bool is10Bit, uint16_t n_p)
+    inline int32_t ComputeVDEncInitQPI(uint32_t width, uint32_t height, FRAMERATE frameRate, uint32_t targetBitRate, uint16_t gopPicSize, bool is10Bit, uint8_t chromaFormat, uint16_t n_p)
     {
         ENCODE_FUNC_CALL();
 
         uint32_t frameSize = ((width * height * 3) >> 1);
+        if (chromaFormat == AVP_CHROMA_FORMAT_YUV444)
+        {
+            frameSize *= 2;
+        }
         if (is10Bit)
         {
             frameSize = (frameSize * 10) >> 3;
@@ -580,6 +584,7 @@ namespace encode
                 m_basicFeature->m_av1SeqParams->TargetBitRate[0],
                 m_basicFeature->m_av1SeqParams->GopPicSize,
                 m_basicFeature->m_is10Bit,
+                m_basicFeature->m_chromaFormat,
                 dmem->INIT_GopP);
 
         qpP = qpI + 20;
