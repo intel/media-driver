@@ -56,4 +56,108 @@ MOS_STATUS EncodeVp9VdencConstSettingsXe3_Lpm::SetTUSettings()
     return eStatus;
 }
 
+MOS_STATUS EncodeVp9VdencConstSettingsXe3_Lpm::SetVdencCmd2Settings()
+{
+    ENCODE_FUNC_CALL();
+    ENCODE_CHK_NULL_RETURN(m_featureSetting);
+
+    auto setting = static_cast<Vp9VdencFeatureSettings *>(m_featureSetting);
+    ENCODE_CHK_NULL_RETURN(setting);
+
+#if _MEDIA_RESERVED
+#define VDENC_CMD2_SETTINGS_EXT
+#include "encode_vp9_vdenc_const_settings_xe3_lpm_ext.h"
+#undef VDENC_CMD2_SETTINGS_EXT
+#else
+    setting->vdencCmd2Settings.emplace_back(
+        VDENC_CMD2_LAMBDA() {
+            par.extSettings.emplace_back(
+                [this, &par](uint32_t *data) {
+                    auto waTable = m_osItf->pfnGetWaTable(m_osItf);
+                    ENCODE_CHK_NULL_RETURN(waTable);
+                    uint32_t TargetUsage       = m_vp9SeqParams->TargetUsage;
+                    uint32_t l0RefNum          = par.numRefL0;
+                    uint32_t frameType         = m_vp9PicParams->PicFlags.fields.frame_type;
+                    uint32_t temporalMvp       = par.temporalMvp;
+                    uint32_t isWa_15017562431  = MEDIA_IS_WA(waTable, Wa_15017562431);
+
+                    static const uint32_t dw2Lut = 0x3;
+                    data[2] |= dw2Lut;
+                    
+                    static const uint32_t dw5Lut[2] = { 0xc0ac00, 0xf0c0ac00,};
+                    data[5] |= dw5Lut[frameType];
+                    
+                    static const uint32_t dw6Lut = 0x20080200;
+                    data[6] |= dw6Lut;
+                    
+                    static const uint32_t dw7Lut[4][2] = { { 0x84003, 0x84003,}, { 0x84003, 0x84003,}, { 0x84003, 0x4003,}, { 0x84003, 0x4003,},};
+                    data[7] |= dw7Lut[l0RefNum][temporalMvp];
+                    
+                    static const uint32_t dw8Lut[8] = { 0xfffdccaa, 0xfffdccaa, 0xfffdccaa, 0xfffdccaa, 0xfffdccaa, 0xfffdccaa, 0x55550000, 0x55550000,};
+                    data[8] |= dw8Lut[TargetUsage];
+                    
+                    static const uint32_t dw9Lut[8] = { 0x84ffff, 0x84ffff, 0x84ffff, 0x63ffff, 0x63ffff, 0x63ffff, 0x420000, 0x420000,};
+                    data[9] |= dw9Lut[TargetUsage];
+                    
+                    static const uint32_t dw14Lut = 0x1f40000;
+                    data[14] |= dw14Lut;
+                    
+                    static const uint32_t dw15Lut = 0x138807d0;
+                    data[15] |= dw15Lut;
+                    
+                    static const uint32_t dw16Lut = 0xf00ff00;
+                    data[16] |= dw16Lut;
+                    
+                    static const uint32_t dw17Lut = 0x3e8;
+                    data[17] |= dw17Lut;
+                    
+                    static const uint32_t dw18Lut = 0x80000;
+                    data[18] |= dw18Lut;
+                    
+                    static const uint32_t dw19Lut = 0x18000040;
+                    data[19] |= dw19Lut;
+                    
+                    static const uint32_t dw28Lut = 0x7d00fa0;
+                    data[28] |= dw28Lut;
+                    
+                    static const uint32_t dw29Lut = 0x2bc0bb8;
+                    data[29] |= dw29Lut;
+                    
+                    static const uint32_t dw30Lut = 0x32003e8;
+                    data[30] |= dw30Lut;
+                    
+                    static const uint32_t dw31Lut = 0x1f4012c;
+                    data[31] |= dw31Lut;
+                    
+                    static const uint32_t dw32Lut = 0x55220190;
+                    data[32] |= dw32Lut;
+                    
+                    static const uint32_t dw33Lut = 0x22552222;
+                    data[33] |= dw33Lut;
+                    
+                    static const uint32_t dw34Lut = 0x225522;
+                    data[34] |= dw34Lut;
+                    
+                    static const uint32_t dw51Lut[8] = { 0x33331502, 0x33331502, 0x33331502, 0x22223502, 0x22223502, 0x22223502, 0x12227106, 0x12227106,};
+                    data[51] |= dw51Lut[TargetUsage];
+                    
+                    static const uint32_t dw52Lut[8][2] = { { 0x77f5bdb, 0x77f5bdb,}, { 0x77f5bdb, 0x77f5bdb,}, { 0x77f5bdb, 0x77f5bdb,}, { 0x72d595b, 0x72d595b,}, { 0x72d595b, 0x472d595b,}, { 0x72d595b, 0x72d595b,}, { 0x9295a59, 0x9295a59,}, { 0x9295a59, 0x9295a59,},};
+                    data[52] |= dw52Lut[TargetUsage][isWa_15017562431];
+                    
+                    static const uint32_t dw53Lut[8] = { 0xffffffff, 0xffffffff, 0xffffffff, 0xff000000, 0xff000000, 0xff000000, 0xffff0000, 0xffff0000,};
+                    data[53] |= dw53Lut[TargetUsage];
+                    
+                    static const uint32_t dw54Lut[8] = { 0, 0, 0, 0x44000000, 0x44000000, 0x44000000, 0x8c00000c, 0x8c00000c,};
+                    data[54] |= dw54Lut[TargetUsage];                    
+
+                    return MOS_STATUS_SUCCESS;
+                });
+
+            return MOS_STATUS_SUCCESS;
+        });
+#endif  // _MEDIA_RESERVED
+
+    return MOS_STATUS_SUCCESS;
+}
+
 }  // namespace encode
