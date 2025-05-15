@@ -696,11 +696,6 @@ MOS_STATUS MediaPerfProfiler::AddStoreBitstreamSizeCmd(
     uint32_t                       reg)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
-    
-    if (m_profilerEnabled == 0)
-    {
-        return status;
-    }
 
     CHK_NULL_RETURN(context);
     CHK_NULL_RETURN(osInterface);
@@ -709,6 +704,11 @@ MOS_STATUS MediaPerfProfiler::AddStoreBitstreamSizeCmd(
 
     PMOS_CONTEXT pOsContext = osInterface->pOsContext;
     CHK_NULL_RETURN(pOsContext);
+
+    if (m_profilerEnabled == 0 || m_initializedMap[pOsContext] == false)
+    {
+        return status;
+    }
 
     uint32_t perfDataIndex = m_contextIndexMap[context];
 
