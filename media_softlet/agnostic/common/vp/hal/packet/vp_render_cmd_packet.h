@@ -94,6 +94,8 @@ protected:
 
     virtual MOS_STATUS SetupCurbeState();
 
+    virtual MOS_STATUS SetupCurbeStateInBindlessMode();
+
     virtual VP_SURFACE* GetSurface(SurfaceType type);
 
     virtual MOS_STATUS SetupWalkerParams();

@@ -310,8 +310,6 @@ typedef struct _MHW_GPGPU_WALKER_PARAMS
     MHW_EMIT_LOCAL_MODE        emitLocal;
 
     bool                       hasBarrier;
-    PMHW_INLINE_DATA_PARAMS    inlineDataParamBase;
-    uint32_t                   inlineDataParamSize;
 
     uint32_t                   simdSize;
 

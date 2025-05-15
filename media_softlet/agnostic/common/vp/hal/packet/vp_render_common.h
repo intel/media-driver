@@ -85,9 +85,7 @@ enum IMPLICIT_ARG_TYPE
 {
     ValueType = 0,
     IndirectDataPtr,
-    ScratchPtr,
-    SamplerStateBasePtr,
-    SurfaceStateBasePtr
+    ScratchPtr
 };
 
 struct KRN_ARG
@@ -142,6 +140,7 @@ typedef struct MOS_ALIGNED(16) _SURFACE_PARAMS
     bool        isOutput;
     bool        needVerticalStirde;
     bool        combineChannelY;
+    uint32_t    planeIndex;
 } SURFACE_PARAMS, *PSURFACE_PARAMS;
 using KERNEL_ARG_INDEX_SURFACE_MAP = std::map<uint32_t, SURFACE_PARAMS>;
 

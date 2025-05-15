@@ -700,14 +700,6 @@ typedef enum _MHW_CHROMAKEY_MODE
     MHW_CHROMAKEY_MODE_REPLACE_BLACK = 1
 } MHW_CHROMAKEY_MODE;
 
-typedef struct _MHW_INLINE_DATA_PARAMS
-{
-    uint32_t          dwOffset;
-    uint32_t          dwSize;
-    PMOS_RESOURCE     resource;
-    bool              isPtrType;
-} MHW_INLINE_DATA_PARAMS, *PMHW_INLINE_DATA_PARAMS;
-
 typedef struct _MHW_SAMPLER_STATE_UNORM_PARAM
 {
     MHW_SAMPLER_FILTER_MODE      SamplerFilterMode;
