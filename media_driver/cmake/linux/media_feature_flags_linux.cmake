@@ -19,7 +19,11 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 # global flag for encode AVC_VME/HEVC_VME/MPEG2/VP8
-bs_set_if_undefined(Encode_VME_Supported "yes")
+if(GEN8 OR GEN9 OR GEN11 OR GEN12)
+    bs_set_if_undefined(Encode_VME_Supported "yes")
+else()
+    bs_set_if_undefined(Encode_VME_Supported "no")
+endif()
 # global flag for encode AVC_VDENC/HEVC_VDENC/VP9_VDENC/JPEG
 bs_set_if_undefined(Encode_VDEnc_Supported "yes")
 
