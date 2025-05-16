@@ -18,6 +18,4 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(hevc)
-media_include_subdirectory(vp9)
-media_include_subdirectory(av1)
+media_include_subdirectory(features)

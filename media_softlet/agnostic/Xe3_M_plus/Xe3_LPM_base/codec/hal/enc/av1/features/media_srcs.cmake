@@ -18,6 +18,34 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(hevc)
-media_include_subdirectory(vp9)
-media_include_subdirectory(av1)
+
+if("${AV1_Encode_VDEnc_Supported}" STREQUAL "yes")
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/encode_av1_scc_xe3_lpm_base.cpp
+)
+
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/encode_av1_scc_xe3_lpm_base.h
+)
+
+set(SOFTLET_ENCODE_AV1_HEADERS_
+    ${SOFTLET_ENCODE_AV1_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(SOFTLET_ENCODE_AV1_SOURCES_
+    ${SOFTLET_ENCODE_AV1_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+source_group( CodecHalNext\\Xe3_LPM_base\\Encode FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+
+set(TMP_SOURCES_ "")
+set(TMP_HEADERS_ "")
+
+endif()
+
+set(SOFTLET_ENCODE_AV1_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_ENCODE_AV1_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
