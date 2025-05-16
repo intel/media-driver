@@ -6804,7 +6804,7 @@ MOS_STATUS RenderHal_SetAndGetSamplerStates(
                 case MHW_SAMPLER_TYPE_3D:
                     MHW_RENDERHAL_CHK_VALUE_RETURN(Mos_ResourceIsNull(&pStateHeap->GshOsResource), false);
                     stateGfxAddress = pRenderHal->pOsInterface->pfnGetResourceGfxAddress(pRenderHal->pOsInterface, &pStateHeap->GshOsResource) + iOffsetSampler;
-                    stateGfxAddress += (pRenderHal->pHwSizes->dwSizeSamplerState * i);
+                    stateGfxAddress += (static_cast<uint64_t>(pRenderHal->pHwSizes->dwSizeSamplerState) * static_cast<uint64_t>(i));
                     eStatus      = pRenderHal->pMhwStateHeap->SetSamplerState(pPtrSampler, pSamplerStateParams);
                     break;
                 default:
