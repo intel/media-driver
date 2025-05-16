@@ -503,8 +503,8 @@ MOS_STATUS VpAllocator::DestroyVpSurface(VP_SURFACE* &surface, bool deferredDest
     {
 #if !EMUL
     MT_LOG5(MT_VP_HAL_DESTROY_SURF, MT_NORMAL,
-        MT_VP_HAL_SURF_ALLOC_PARAM_PTR, *(int64_t *)(&surface),
-        MT_VP_HAL_SURF_ALLOC_PARAM_MOS_SURF_PTR, *(int64_t *)(&surface->osSurface),
+        MT_VP_HAL_SURF_ALLOC_PARAM_PTR, (int64_t)surface,
+        MT_VP_HAL_SURF_ALLOC_PARAM_MOS_SURF_PTR, (int64_t)surface->osSurface,
         MT_VP_HAL_SURF_ALLOC_PARAM_IS_RES_OWNER, surface->isResourceOwner,
         MT_VP_HAL_SURF_ALLOC_PARAM_HANDLE, static_cast<int64_t>(surface->GetAllocationHandle(m_osInterface)),
         MT_VP_HAL_SURF_ALLOC_PARAM_SIZE, static_cast<int64_t>(surface->osSurface->OsResource.pGmmResInfo ? surface->osSurface->OsResource.pGmmResInfo->GetSizeAllocation() : 0));
@@ -1037,8 +1037,8 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
 
 #if !EMUL
     MT_LOG6(MT_VP_HAL_REALLOC_SURF, MT_NORMAL,
-        MT_VP_HAL_SURF_ALLOC_PARAM_PTR, *(int64_t *)(&surface),
-        MT_VP_HAL_SURF_ALLOC_PARAM_MOS_SURF_PTR, *(int64_t *)(&surface->osSurface),
+        MT_VP_HAL_SURF_ALLOC_PARAM_PTR, (int64_t)surface,
+        MT_VP_HAL_SURF_ALLOC_PARAM_MOS_SURF_PTR, (int64_t)surface->osSurface,
         MT_VP_HAL_SURF_ALLOC_PARAM_IS_RES_OWNER, surface->isResourceOwner,
         MT_VP_HAL_SURF_ALLOC_PARAM_HANDLE, static_cast<int64_t>(surface->GetAllocationHandle(m_osInterface)),
         MT_VP_HAL_SURF_ALLOC_PARAM_SIZE, static_cast<int64_t>(surface->osSurface->OsResource.pGmmResInfo ? surface->osSurface->OsResource.pGmmResInfo->GetSizeAllocation() : 0),
