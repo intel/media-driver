@@ -339,10 +339,22 @@ MOS_STATUS VpOclFcFilter::GenerateFc420PL3InputParam(OCL_FC_LAYER_PARAM &inputLa
             VP_PUBLIC_CHK_VALUE_RETURN(krnArg.uSize, kernelArg.uSize);
             MOS_ZeroMemory(krnArg.pData, krnArg.uSize);
         }
-        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc420PL3InputKrnArg(srcSurfaceWidth, srcSurfaceHeight, lumaChannelIndices, chromaChannelIndices, localSize, krnArg, bInit))
-        if (bInit)
+        if (kernelArg.addressMode == AddressingModeBindless && kernelArg.eArgKind == ARG_KIND_SURFACE)
         {
-            krnArgs.push_back(krnArg);
+            SURFACE_PARAMS surfaceParam = {};
+            VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc420PL3InputStatefulSurface(uIndex, false, index, surfaceParam, bInit));
+            if (bInit)
+            {
+                krnStatefulSurfaces.emplace(uIndex, surfaceParam);
+            }
+        }
+        else
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc420PL3InputKrnArg(srcSurfaceWidth, srcSurfaceHeight, lumaChannelIndices, chromaChannelIndices, localSize, krnArg, bInit))
+            if (bInit)
+            {
+                krnArgs.push_back(krnArg);
+            }
         }
     }
 
@@ -351,7 +363,7 @@ MOS_STATUS VpOclFcFilter::GenerateFc420PL3InputParam(OCL_FC_LAYER_PARAM &inputLa
         uint32_t       uIndex       = kernelBti.first;
         SURFACE_PARAMS surfaceParam = {};
         bool           bInit        = true;
-        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc420PL3InputBti(uIndex, index, surfaceParam, bInit));
+        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc420PL3InputStatefulSurface(uIndex, true, index, surfaceParam, bInit));
         if (bInit)
         {
             krnStatefulSurfaces.emplace(uIndex, surfaceParam);
@@ -423,10 +435,22 @@ MOS_STATUS VpOclFcFilter::GenerateFc420PL3OutputParam(OCL_FC_LAYER_PARAM &output
             VP_PUBLIC_CHK_VALUE_RETURN(krnArg.uSize, kernelArg.uSize);
             MOS_ZeroMemory(krnArg.pData, krnArg.uSize);
         }
-        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc420PL3OutputKrnArg(srcSurfaceWidth, srcSurfaceHeight, lumaChannelIndices, chromaChannelIndices, localSize, krnArg, bInit))
-        if (bInit)
+        if (kernelArg.addressMode == AddressingModeBindless && kernelArg.eArgKind == ARG_KIND_SURFACE)
         {
-            krnArgs.push_back(krnArg);
+            SURFACE_PARAMS surfaceParam = {};
+            VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc420PL3OutputStatefulSurface(uIndex, false, surfaceParam, bInit));
+            if (bInit)
+            {
+                krnStatefulSurfaces.insert(std::make_pair(uIndex, surfaceParam));
+            }
+        }
+        else
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc420PL3OutputKrnArg(srcSurfaceWidth, srcSurfaceHeight, lumaChannelIndices, chromaChannelIndices, localSize, krnArg, bInit))
+            if (bInit)
+            {
+                krnArgs.push_back(krnArg);
+            }
         }
     }
 
@@ -435,7 +459,7 @@ MOS_STATUS VpOclFcFilter::GenerateFc420PL3OutputParam(OCL_FC_LAYER_PARAM &output
         uint32_t       uIndex       = kernelBti.first;
         SURFACE_PARAMS surfaceParam = {};
         bool           bInit        = true;
-        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc420PL3OutputBti(uIndex, surfaceParam, bInit));
+        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc420PL3OutputStatefulSurface(uIndex, true, surfaceParam, bInit));
         if (bInit)
         {
             krnStatefulSurfaces.insert(std::make_pair(uIndex, surfaceParam));
@@ -529,10 +553,22 @@ MOS_STATUS VpOclFcFilter::GenerateFc422HVInputParam(OCL_FC_LAYER_PARAM &inputLay
             VP_PUBLIC_CHK_VALUE_RETURN(krnArg.uSize, kernelArg.uSize);
             MOS_ZeroMemory(krnArg.pData, krnArg.uSize);
         }
-        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc422HVInputKrnArg(surfaceWidthPL1, surfaceHeightPL1, channelIndex, chromaChannelIndices, localSize, krnArg, bInit));
-        if (bInit)
+        if (kernelArg.addressMode == AddressingModeBindless && kernelArg.eArgKind == ARG_KIND_SURFACE)
         {
-            krnArgs.push_back(krnArg);
+            SURFACE_PARAMS surfaceParam = {};
+            VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc422HVInputStatefulSurface(uIndex, false, index, surfaceParam, bInit));
+            if (bInit)
+            {
+                krnStatefulSurfaces.insert(std::make_pair(uIndex, surfaceParam));
+            }
+        }
+        else
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc422HVInputKrnArg(surfaceWidthPL1, surfaceHeightPL1, channelIndex, chromaChannelIndices, localSize, krnArg, bInit));
+            if (bInit)
+            {
+                krnArgs.push_back(krnArg);
+            }
         }
     }
 
@@ -541,7 +577,7 @@ MOS_STATUS VpOclFcFilter::GenerateFc422HVInputParam(OCL_FC_LAYER_PARAM &inputLay
         uint32_t       uIndex       = kernelBti.first;
         SURFACE_PARAMS surfaceParam = {};
         bool           bInit        = true;
-        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc422HVInputBti(uIndex, index, surfaceParam, bInit));
+        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc422HVInputStatefulSurface(uIndex, true, index, surfaceParam, bInit));
         if (bInit)
         {
             krnStatefulSurfaces.insert(std::make_pair(uIndex, surfaceParam));
@@ -557,24 +593,45 @@ MOS_STATUS VpOclFcFilter::GenerateFc422HVInputParam(OCL_FC_LAYER_PARAM &inputLay
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpOclFcFilter::SetupSingleFc422HVInputBti(uint32_t uIndex, uint32_t layIndex, SURFACE_PARAMS &surfaceParam, bool &bInit)
+MOS_STATUS VpOclFcFilter::SetupSingleFc422HVInputStatefulSurface(uint32_t uIndex, bool isBTI, uint32_t layIndex, SURFACE_PARAMS &surfaceParam, bool &bInit)
 {
     switch (uIndex)
     {
     case FC_422HV_INPUT_IMAGEREAD_INPUTPLANE0:
         surfaceParam.surfType = SurfaceType(SurfaceTypeFcInputLayer0 + layIndex);
+        surfaceParam.planeIndex = 0; //non BTI
         break;
     case FC_422HV_INPUT_IMAGEREAD_INPUTPLANE1:
+        if (isBTI)
+        {
+            surfaceParam.surfType = SurfaceTypeSubPlane;
+        }
+        else
+        {
+            surfaceParam.surfType   = SurfaceType(SurfaceTypeFcInputLayer0 + layIndex);
+            surfaceParam.planeIndex = 1;
+        }
+        break;
     case FC_422HV_INPUT_IMAGEREAD_INPUTPLANE2:
-        surfaceParam.surfType = SurfaceTypeSubPlane;
+        if (isBTI)
+        {
+            surfaceParam.surfType = SurfaceTypeSubPlane;
+        }
+        else
+        {
+            surfaceParam.surfType   = SurfaceType(SurfaceTypeFcInputLayer0 + layIndex);
+            surfaceParam.planeIndex = 2;
+        }
         break;
     case FC_422HV_INPUT_IMAGEREAD_OUTPUTPLANE0:
         surfaceParam.surfType = SurfaceType(SurfaceTypeFcIntermediaInput + layIndex);
         surfaceParam.isOutput = true;
+        surfaceParam.planeIndex = 0;  //non BTI
         break;
     case FC_422HV_INPUT_IMAGEREAD_OUTPUTPLANE1:
         surfaceParam.surfType = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + layIndex);
         surfaceParam.isOutput = true;
+        surfaceParam.planeIndex = 0;  //non BTI
         break;
     default:
         bInit = false;
@@ -676,10 +733,22 @@ MOS_STATUS VpOclFcFilter::GenerateFc444PL3OutputParam(OCL_FC_LAYER_PARAM &output
             VP_PUBLIC_CHK_VALUE_RETURN(krnArg.uSize, kernelArg.uSize);
             MOS_ZeroMemory(krnArg.pData, krnArg.uSize);
         }
-        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc444PL3OutputKrnArg(localSize, krnArg, bInit, inputChannelIndices, outputChannelIndices));
-        if (bInit)
+        if (kernelArg.addressMode == AddressingModeBindless && kernelArg.eArgKind == ARG_KIND_SURFACE)
         {
-            krnArgs.push_back(krnArg);
+            SURFACE_PARAMS surfaceParam = {};
+            VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc444PL3OutputStatefulSurface(uIndex, false, surfaceParam, bInit));
+            if (bInit)
+            {
+                krnStatefulSurfaces.emplace(uIndex, surfaceParam);
+            }
+        }
+        else
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc444PL3OutputKrnArg(localSize, krnArg, bInit, inputChannelIndices, outputChannelIndices));
+            if (bInit)
+            {
+                krnArgs.push_back(krnArg);
+            }
         }
     }
 
@@ -688,7 +757,7 @@ MOS_STATUS VpOclFcFilter::GenerateFc444PL3OutputParam(OCL_FC_LAYER_PARAM &output
         uint32_t       uIndex       = kernelBti.first;
         SURFACE_PARAMS surfaceParam = {};
         bool           bInit        = true;
-        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc444PL3OutputBti(uIndex, surfaceParam, bInit));
+        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc444PL3OutputStatefulSurface(uIndex, true, surfaceParam, bInit));
         if (bInit)
         {
             krnStatefulSurfaces.emplace(uIndex, surfaceParam);
@@ -704,21 +773,42 @@ MOS_STATUS VpOclFcFilter::GenerateFc444PL3OutputParam(OCL_FC_LAYER_PARAM &output
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpOclFcFilter::SetupSingleFc444PL3OutputBti(uint32_t uIndex, SURFACE_PARAMS &surfaceParam, bool &bInit)
+MOS_STATUS VpOclFcFilter::SetupSingleFc444PL3OutputStatefulSurface(uint32_t uIndex, bool isBTI, SURFACE_PARAMS &surfaceParam, bool &bInit)
 {
     VP_FUNC_CALL();
     switch (uIndex)
     {
     case FC_444PL3_OUTPUT_IMAGEWRITE_INPUTPLANE0:
         surfaceParam.surfType = SurfaceType(SurfaceTypeFcIntermediaOutput);
+        surfaceParam.planeIndex = 0; //non BTI
         break;
     case FC_444PL3_OUTPUT_IMAGEWRITE_OUTPUTPLANE0:
         surfaceParam.surfType = SurfaceType(SurfaceTypeFcTarget0);
+        surfaceParam.planeIndex = 0;  //non BTI
         surfaceParam.isOutput = true;
         break;
     case FC_444PL3_OUTPUT_IMAGEWRITE_OUTPUTPLANE1:
+        if (isBTI)
+        {
+            surfaceParam.surfType = SurfaceTypeSubPlane;
+        }
+        else
+        {
+            surfaceParam.surfType   = SurfaceType(SurfaceTypeFcTarget0);
+            surfaceParam.planeIndex = 1;
+        }
+        break;
     case FC_444PL3_OUTPUT_IMAGEWRITE_OUTPUTPLANE2:
-        surfaceParam.surfType = SurfaceTypeSubPlane;
+        if (isBTI)
+        {
+            surfaceParam.surfType = SurfaceTypeSubPlane;
+        }
+        else
+        {
+            surfaceParam.surfType   = SurfaceType(SurfaceTypeFcTarget0);
+            surfaceParam.planeIndex = 2;
+
+        }
         break;
     default:
         bInit = false;
@@ -818,12 +908,24 @@ MOS_STATUS VpOclFcFilter::GenerateFc444PL3InputParam(OCL_FC_LAYER_PARAM &layer, 
             VP_PUBLIC_CHK_VALUE_RETURN(krnArg.uSize, kernelArg.uSize);
             MOS_ZeroMemory(krnArg.pData, krnArg.uSize);
         }
-
-        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc444PL3InputKrnArg(localSize, krnArg, bInit, inputChannelIndices, outputChannelIndices, planeChannelIndics));
-
-        if (bInit)
+        if (kernelArg.addressMode == AddressingModeBindless && kernelArg.eArgKind == ARG_KIND_SURFACE)
         {
-            krnArgs.push_back(krnArg);
+            SURFACE_PARAMS surfaceParam = {};
+            VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc444PL3InputStatefulSurface(uIndex, false, surfaceParam, layerIndex, bInit));
+
+            if (bInit)
+            {
+                krnStatefulSurfaces.emplace(uIndex, surfaceParam);
+            }
+        }
+        else
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc444PL3InputKrnArg(localSize, krnArg, bInit, inputChannelIndices, outputChannelIndices, planeChannelIndics));
+
+            if (bInit)
+            {
+                krnArgs.push_back(krnArg);
+            }
         }
     }
 
@@ -833,7 +935,7 @@ MOS_STATUS VpOclFcFilter::GenerateFc444PL3InputParam(OCL_FC_LAYER_PARAM &layer, 
         SURFACE_PARAMS surfaceParam = {};
         bool           bInit        = true;
 
-        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc444PL3InputBti(uIndex, surfaceParam, layerIndex, bInit));
+        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFc444PL3InputStatefulSurface(uIndex, true, surfaceParam, layerIndex, bInit));
 
         if (bInit)
         {
@@ -890,20 +992,40 @@ MOS_STATUS VpOclFcFilter::SetupSingleFc444PL3InputKrnArg(uint32_t localSize[3], 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpOclFcFilter::SetupSingleFc444PL3InputBti(uint32_t uIndex, SURFACE_PARAMS &surfaceParam, uint32_t layerIndex, bool &bInit)
+MOS_STATUS VpOclFcFilter::SetupSingleFc444PL3InputStatefulSurface(uint32_t uIndex, bool isBTI, SURFACE_PARAMS &surfaceParam, uint32_t layerIndex, bool &bInit)
 {
     switch (uIndex)
     {
     case FC_444PL3_INPUT_IMAGEREAD_INPUTPLANE0:
         surfaceParam.surfType = SurfaceType(SurfaceTypeFcInputLayer0 + layerIndex);
+        surfaceParam.planeIndex = 0; //non BTI
         break;
     case FC_444PL3_INPUT_IMAGEREAD_INPUTPLANE1:
+        if (isBTI)
+        {
+            surfaceParam.surfType = SurfaceTypeSubPlane;
+        }
+        else
+        {
+            surfaceParam.surfType   = SurfaceType(SurfaceTypeFcInputLayer0 + layerIndex);
+            surfaceParam.planeIndex = 1;
+        }
+        break;
     case FC_444PL3_INPUT_IMAGEREAD_INPUTPLANE2:
-        surfaceParam.surfType = SurfaceTypeSubPlane;
+        if (isBTI)
+        {
+            surfaceParam.surfType = SurfaceTypeSubPlane;
+        }
+        else
+        {
+            surfaceParam.surfType   = SurfaceType(SurfaceTypeFcInputLayer0 + layerIndex);
+            surfaceParam.planeIndex = 2;
+        }
         break;
     case FC_444PL3_INPUT_IMAGEREAD_OUTPUTPLANE:
         surfaceParam.surfType = SurfaceType(SurfaceTypeFcIntermediaInput + layerIndex);
         surfaceParam.isOutput = true;
+        surfaceParam.planeIndex = 0;  //non BTI
         break;
     default:
         bInit = false;
@@ -968,11 +1090,24 @@ MOS_STATUS VpOclFcFilter::GenerateFcCommonKrnParam(OCL_FC_COMP_PARAM &compParam,
             MOS_ZeroMemory(krnArg.pData, krnArg.uSize);
         }
 
-        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFcCommonKrnArg(compParam.layerNumber, imageParams, targetParam, localSize, krnArg, bInit));
-
-        if (bInit)
+        if (kernelArg.addressMode == AddressingModeBindless && kernelArg.eArgKind == ARG_KIND_SURFACE)
         {
-            krnArgs.push_back(krnArg);
+            SURFACE_PARAMS surfaceParam = {};
+            VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFcCommonStatefulSurface(uIndex, false, compParam, surfaceParam, bInit));
+
+            if (bInit)
+            {
+                krnStatefulSurfaces.emplace(uIndex, surfaceParam);
+            }
+        }
+        else
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFcCommonKrnArg(compParam.layerNumber, imageParams, targetParam, localSize, krnArg, bInit));
+
+            if (bInit)
+            {
+                krnArgs.push_back(krnArg);
+            }
         }
     }
 
@@ -982,7 +1117,7 @@ MOS_STATUS VpOclFcFilter::GenerateFcCommonKrnParam(OCL_FC_COMP_PARAM &compParam,
         SURFACE_PARAMS surfaceParam = {};
         bool           bInit        = true;
 
-        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFcCommonBti(uIndex, compParam, surfaceParam, bInit));
+        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFcCommonStatefulSurface(uIndex, true, compParam, surfaceParam, bInit));
 
         if (bInit)
         {
@@ -1180,23 +1315,52 @@ MOS_STATUS VpOclFcFilter::SetupSingleFcCommonKrnArg(uint32_t layerNum, std::vect
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpOclFcFilter::SetupSingleFc420PL3InputBti(uint32_t uIndex, uint32_t layIndex, SURFACE_PARAMS &surfaceParam, bool &bInit)
+MOS_STATUS VpOclFcFilter::SetupSingleFc420PL3InputStatefulSurface(uint32_t uIndex, bool isBTI, uint32_t layIndex, SURFACE_PARAMS &surfaceParam, bool &bInit)
 {
     switch (uIndex)
     {
     case FC_420PL3_INPUT_IMAGEREAD_INPUT0PLY:
         surfaceParam.surfType = SurfaceType(SurfaceTypeFcInputLayer0 + layIndex);
+        surfaceParam.planeIndex = 0; //non BTI
         break;
     case FC_420PL3_INPUT_IMAGEREAD_INPUT0PL1:
+        if (isBTI)
+        {
+            surfaceParam.surfType = SurfaceTypeSubPlane;
+        }
+        else
+        {
+            surfaceParam.surfType   = SurfaceType(SurfaceTypeFcInputLayer0 + layIndex);
+            surfaceParam.planeIndex = 1;
+
+        }
+        break;
     case FC_420PL3_INPUT_IMAGEREAD_INPUT0PL2:
-        surfaceParam.surfType = SurfaceTypeSubPlane;
+        if (isBTI)
+        {
+            surfaceParam.surfType = SurfaceTypeSubPlane;
+        }
+        else
+        {
+            surfaceParam.surfType   = SurfaceType(SurfaceTypeFcInputLayer0 + layIndex);
+            surfaceParam.planeIndex = 2;
+        }
         break;
     case FC_420PL3_INPUT_IMAGEREAD_OUTPUTPLY:
         surfaceParam.surfType = SurfaceType(SurfaceTypeFcIntermediaInput + layIndex);
         surfaceParam.isOutput = true;
+        surfaceParam.planeIndex = 0;  //non BTI
         break;
     case FC_420PL3_INPUT_IMAGEREAD_OUTPUTPLUV:
-        surfaceParam.surfType = SurfaceTypeSubPlane;
+        if (isBTI)
+        {
+            surfaceParam.surfType = SurfaceTypeSubPlane;
+        }
+        else
+        {
+            surfaceParam.surfType   = SurfaceType(SurfaceTypeFcIntermediaInput + layIndex);
+            surfaceParam.planeIndex = 1;
+        }
         break;
     default:
         bInit = false;
@@ -1205,24 +1369,52 @@ MOS_STATUS VpOclFcFilter::SetupSingleFc420PL3InputBti(uint32_t uIndex, uint32_t 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpOclFcFilter::SetupSingleFc420PL3OutputBti(uint32_t uIndex, SURFACE_PARAMS &surfaceParam, bool &bInit)
+MOS_STATUS VpOclFcFilter::SetupSingleFc420PL3OutputStatefulSurface(uint32_t uIndex, bool isBTI, SURFACE_PARAMS &surfaceParam, bool &bInit)
 {
     VP_FUNC_CALL();
     switch (uIndex)
     {
     case FC_420PL3_OUTPUT_IMAGEWRITE_INPUTPLY:
         surfaceParam.surfType = SurfaceType(SurfaceTypeFcIntermediaOutput);
+        surfaceParam.planeIndex = 0; // non BTI
         break;
     case FC_420PL3_OUTPUT_IMAGEWRITE_INPUTPLUV:
-        surfaceParam.surfType = SurfaceTypeSubPlane;
+        if (isBTI)
+        {
+            surfaceParam.surfType = SurfaceTypeSubPlane;
+        }
+        else
+        {
+            surfaceParam.surfType = SurfaceType(SurfaceTypeFcIntermediaOutput);
+            surfaceParam.planeIndex = 1;
+        }
         break;
     case FC_420PL3_OUTPUT_IMAGEWRITE_OUTPUTPLY:
-        surfaceParam.surfType = SurfaceType(SurfaceTypeFcTarget0);
-        surfaceParam.isOutput = true;
+        surfaceParam.surfType   = SurfaceType(SurfaceTypeFcTarget0);
+        surfaceParam.isOutput   = true;
+        surfaceParam.planeIndex = 0;  // non BTI
         break;
     case FC_420PL3_OUTPUT_IMAGEWRITE_OUTPUTPLU:
+        if (isBTI)
+        {
+            surfaceParam.surfType = SurfaceTypeSubPlane;
+        }
+        else
+        {
+            surfaceParam.surfType = SurfaceType(SurfaceTypeFcTarget0);
+            surfaceParam.planeIndex = 1;
+        }
+        break;
     case FC_420PL3_OUTPUT_IMAGEWRITE_OUTPUTPLV:
-        surfaceParam.surfType = SurfaceTypeSubPlane;
+        if (isBTI)
+        {
+            surfaceParam.surfType = SurfaceTypeSubPlane;
+        }
+        else
+        {
+            surfaceParam.surfType   = SurfaceType(SurfaceTypeFcTarget0);
+            surfaceParam.planeIndex = 2;
+        }
         break;
     default:
         bInit = false;
@@ -1231,14 +1423,15 @@ MOS_STATUS VpOclFcFilter::SetupSingleFc420PL3OutputBti(uint32_t uIndex, SURFACE_
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpOclFcFilter::SetupSingleFcCommonBti(uint32_t uIndex, const OCL_FC_COMP_PARAM &compParam, SURFACE_PARAMS &surfaceParam, bool &bInit)
+MOS_STATUS VpOclFcFilter::SetupSingleFcCommonStatefulSurface(uint32_t uIndex, bool isBTI, const OCL_FC_COMP_PARAM &compParam, SURFACE_PARAMS &surfaceParam, bool &bInit)
 {
     switch (uIndex)
     {
     case FC_COMMON_FASTCOMP_INPUT0PL0:
         if (compParam.layerNumber > 0)
         {
-            surfaceParam.surfType = compParam.inputLayersParam[0].needIntermediaSurface ? SurfaceTypeFcIntermediaInput : SurfaceTypeFcInputLayer0;
+            surfaceParam.surfType   = compParam.inputLayersParam[0].needIntermediaSurface ? SurfaceTypeFcIntermediaInput : SurfaceTypeFcInputLayer0;
+            surfaceParam.planeIndex = 0;  //non BTI
             if (compParam.inputLayersParam[0].diParams.enabled &&
                 compParam.inputLayersParam[0].diParams.params.DIMode == DI_MODE_BOB)
             {
@@ -1253,7 +1446,8 @@ MOS_STATUS VpOclFcFilter::SetupSingleFcCommonBti(uint32_t uIndex, const OCL_FC_C
     case FC_COMMON_FASTCOMP_INPUT1PL0:
         if (compParam.layerNumber > 1)
         {
-            surfaceParam.surfType = compParam.inputLayersParam[1].needIntermediaSurface ? SurfaceType(SurfaceTypeFcIntermediaInput + 1) : SurfaceType(SurfaceTypeFcInputLayer0 + 1);
+            surfaceParam.surfType   = compParam.inputLayersParam[1].needIntermediaSurface ? SurfaceType(SurfaceTypeFcIntermediaInput + 1) : SurfaceType(SurfaceTypeFcInputLayer0 + 1);
+            surfaceParam.planeIndex = 0;  //non BTI
             if (compParam.inputLayersParam[1].diParams.enabled &&
                 compParam.inputLayersParam[1].diParams.params.DIMode == DI_MODE_BOB)
             {
@@ -1268,7 +1462,8 @@ MOS_STATUS VpOclFcFilter::SetupSingleFcCommonBti(uint32_t uIndex, const OCL_FC_C
     case FC_COMMON_FASTCOMP_INPUT2PL0:
         if (compParam.layerNumber > 2)
         {
-            surfaceParam.surfType = compParam.inputLayersParam[2].needIntermediaSurface ? SurfaceType(SurfaceTypeFcIntermediaInput + 2) : SurfaceType(SurfaceTypeFcInputLayer0 + 2);
+            surfaceParam.surfType   = compParam.inputLayersParam[2].needIntermediaSurface ? SurfaceType(SurfaceTypeFcIntermediaInput + 2) : SurfaceType(SurfaceTypeFcInputLayer0 + 2);
+            surfaceParam.planeIndex = 0;  //non BTI
             if (compParam.inputLayersParam[2].diParams.enabled &&
                 compParam.inputLayersParam[2].diParams.params.DIMode == DI_MODE_BOB)
             {
@@ -1283,7 +1478,8 @@ MOS_STATUS VpOclFcFilter::SetupSingleFcCommonBti(uint32_t uIndex, const OCL_FC_C
     case FC_COMMON_FASTCOMP_INPUT3PL0:
         if (compParam.layerNumber > 3)
         {
-            surfaceParam.surfType = compParam.inputLayersParam[3].needIntermediaSurface ? SurfaceType(SurfaceTypeFcIntermediaInput + 3) : SurfaceType(SurfaceTypeFcInputLayer0 + 3);
+            surfaceParam.surfType   = compParam.inputLayersParam[3].needIntermediaSurface ? SurfaceType(SurfaceTypeFcIntermediaInput + 3) : SurfaceType(SurfaceTypeFcInputLayer0 + 3);
+            surfaceParam.planeIndex = 0;  //non BTI
             if (compParam.inputLayersParam[3].diParams.enabled &&
                 compParam.inputLayersParam[3].diParams.params.DIMode == DI_MODE_BOB)
             {
@@ -1298,7 +1494,8 @@ MOS_STATUS VpOclFcFilter::SetupSingleFcCommonBti(uint32_t uIndex, const OCL_FC_C
     case FC_COMMON_FASTCOMP_INPUT4PL0:
         if (compParam.layerNumber > 4)
         {
-            surfaceParam.surfType = compParam.inputLayersParam[4].needIntermediaSurface ? SurfaceType(SurfaceTypeFcIntermediaInput + 4) : SurfaceType(SurfaceTypeFcInputLayer0 + 4);
+            surfaceParam.surfType   = compParam.inputLayersParam[4].needIntermediaSurface ? SurfaceType(SurfaceTypeFcIntermediaInput + 4) : SurfaceType(SurfaceTypeFcInputLayer0 + 4);
+            surfaceParam.planeIndex = 0;  //non BTI
             if (compParam.inputLayersParam[4].diParams.enabled &&
                 compParam.inputLayersParam[4].diParams.params.DIMode == DI_MODE_BOB)
             {
@@ -1313,7 +1510,8 @@ MOS_STATUS VpOclFcFilter::SetupSingleFcCommonBti(uint32_t uIndex, const OCL_FC_C
     case FC_COMMON_FASTCOMP_INPUT5PL0:
         if (compParam.layerNumber > 5)
         {
-            surfaceParam.surfType = compParam.inputLayersParam[5].needIntermediaSurface ? SurfaceType(SurfaceTypeFcIntermediaInput + 5) : SurfaceType(SurfaceTypeFcInputLayer0 + 5);
+            surfaceParam.surfType   = compParam.inputLayersParam[5].needIntermediaSurface ? SurfaceType(SurfaceTypeFcIntermediaInput + 5) : SurfaceType(SurfaceTypeFcInputLayer0 + 5);
+            surfaceParam.planeIndex = 0;  //non BTI
             if (compParam.inputLayersParam[5].diParams.enabled &&
                 compParam.inputLayersParam[5].diParams.params.DIMode == DI_MODE_BOB)
             {
@@ -1328,7 +1526,8 @@ MOS_STATUS VpOclFcFilter::SetupSingleFcCommonBti(uint32_t uIndex, const OCL_FC_C
     case FC_COMMON_FASTCOMP_INPUT6PL0:
         if (compParam.layerNumber > 6)
         {
-            surfaceParam.surfType = compParam.inputLayersParam[6].needIntermediaSurface ? SurfaceType(SurfaceTypeFcIntermediaInput + 6) : SurfaceType(SurfaceTypeFcInputLayer0 + 6);
+            surfaceParam.surfType   = compParam.inputLayersParam[6].needIntermediaSurface ? SurfaceType(SurfaceTypeFcIntermediaInput + 6) : SurfaceType(SurfaceTypeFcInputLayer0 + 6);
+            surfaceParam.planeIndex = 0;  //non BTI
             if (compParam.inputLayersParam[6].diParams.enabled &&
                 compParam.inputLayersParam[6].diParams.params.DIMode == DI_MODE_BOB)
             {
@@ -1343,7 +1542,8 @@ MOS_STATUS VpOclFcFilter::SetupSingleFcCommonBti(uint32_t uIndex, const OCL_FC_C
     case FC_COMMON_FASTCOMP_INPUT7PL0:
         if (compParam.layerNumber > 7)
         {
-            surfaceParam.surfType = compParam.inputLayersParam[7].needIntermediaSurface ? SurfaceType(SurfaceTypeFcIntermediaInput + 7) : SurfaceType(SurfaceTypeFcInputLayer0 + 7);
+            surfaceParam.surfType   = compParam.inputLayersParam[7].needIntermediaSurface ? SurfaceType(SurfaceTypeFcIntermediaInput + 7) : SurfaceType(SurfaceTypeFcInputLayer0 + 7);
+            surfaceParam.planeIndex = 0;  //non BTI
             if (compParam.inputLayersParam[7].diParams.enabled &&
                 compParam.inputLayersParam[7].diParams.params.DIMode == DI_MODE_BOB)
             {
@@ -1356,131 +1556,364 @@ MOS_STATUS VpOclFcFilter::SetupSingleFcCommonBti(uint32_t uIndex, const OCL_FC_C
         }
         break;
     case FC_COMMON_FASTCOMP_OUTPUTPL0:
-        surfaceParam.surfType = compParam.outputLayerParam.needIntermediaSurface ? SurfaceTypeFcIntermediaOutput : SurfaceTypeFcTarget0;
-        surfaceParam.isOutput = true;
+        surfaceParam.surfType   = compParam.outputLayerParam.needIntermediaSurface ? SurfaceTypeFcIntermediaOutput : SurfaceTypeFcTarget0;
+        surfaceParam.isOutput   = true;
+        surfaceParam.planeIndex = 0;  //non BTI
         break;
     case FC_COMMON_FASTCOMP_INPUT0PL1:
-        if (compParam.layerNumber > 0 && compParam.inputLayersParam[0].needSepareateIntermediaSecPlane)
+        if (compParam.layerNumber > 0)
         {
-            surfaceParam.surfType = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane);
             if (compParam.inputLayersParam[0].diParams.enabled &&
                 compParam.inputLayersParam[0].diParams.params.DIMode == DI_MODE_BOB)
             {
                 surfaceParam.needVerticalStirde = true;
             }
+            if (isBTI)
+            {
+                if (compParam.inputLayersParam[0].needSepareateIntermediaSecPlane)
+                {
+                    surfaceParam.surfType = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane);
+                }
+                else
+                {
+                    surfaceParam.surfType = SurfaceTypeSubPlane;
+                }
+            }
+            else
+            {
+                if (compParam.inputLayersParam[0].needSepareateIntermediaSecPlane)
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane);
+                    surfaceParam.planeIndex = 0;
+                }
+                else if (compParam.inputLayersParam[0].needIntermediaSurface)
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcIntermediaInput);
+                    surfaceParam.planeIndex = 1;
+                }
+                else
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcInputLayer0);
+                    surfaceParam.planeIndex = 1;
+                }
+            }
         }
         else
         {
-            surfaceParam.surfType = SurfaceTypeSubPlane;
+            surfaceParam.surfType = SurfaceTypeInvalid;
         }
         break;
     case FC_COMMON_FASTCOMP_INPUT1PL1:
-        if (compParam.layerNumber > 1 && compParam.inputLayersParam[1].needSepareateIntermediaSecPlane)
+        if (compParam.layerNumber > 1)
         {
-            surfaceParam.surfType = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + 1);
             if (compParam.inputLayersParam[1].diParams.enabled &&
                 compParam.inputLayersParam[1].diParams.params.DIMode == DI_MODE_BOB)
             {
                 surfaceParam.needVerticalStirde = true;
             }
+            if (isBTI)
+            {
+                if (compParam.inputLayersParam[1].needSepareateIntermediaSecPlane)
+                {
+                    surfaceParam.surfType = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + 1);
+                }
+                else
+                {
+                    surfaceParam.surfType = SurfaceTypeSubPlane;
+                }
+            }
+            else
+            {
+                if (compParam.inputLayersParam[1].needSepareateIntermediaSecPlane)
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + 1);
+                    surfaceParam.planeIndex = 0;
+                }
+                else if (compParam.inputLayersParam[1].needIntermediaSurface)
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcIntermediaInput + 1);
+                    surfaceParam.planeIndex = 1;
+                }
+                else
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcInputLayer0 + 1);
+                    surfaceParam.planeIndex = 1;
+                }
+            }
         }
         else
         {
-            surfaceParam.surfType = SurfaceTypeSubPlane;
+            surfaceParam.surfType = SurfaceTypeInvalid;
         }
         break;
     case FC_COMMON_FASTCOMP_INPUT2PL1:
-        if (compParam.layerNumber > 2 && compParam.inputLayersParam[2].needSepareateIntermediaSecPlane)
+        if (compParam.layerNumber > 2)
         {
-            surfaceParam.surfType = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + 2);
             if (compParam.inputLayersParam[2].diParams.enabled &&
                 compParam.inputLayersParam[2].diParams.params.DIMode == DI_MODE_BOB)
             {
                 surfaceParam.needVerticalStirde = true;
             }
+            if (isBTI)
+            {
+                if (compParam.inputLayersParam[2].needSepareateIntermediaSecPlane)
+                {
+                    surfaceParam.surfType = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + 2);
+                }
+                else
+                {
+                    surfaceParam.surfType = SurfaceTypeSubPlane;
+                }
+            }
+            else
+            {
+                if (compParam.inputLayersParam[2].needSepareateIntermediaSecPlane)
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + 2);
+                    surfaceParam.planeIndex = 0;
+                }
+                else if (compParam.inputLayersParam[2].needIntermediaSurface)
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcIntermediaInput + 2);
+                    surfaceParam.planeIndex = 1;
+                }
+                else
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcInputLayer0 + 2);
+                    surfaceParam.planeIndex = 1;
+                }
+            }
         }
         else
         {
-            surfaceParam.surfType = SurfaceTypeSubPlane;
+            surfaceParam.surfType = SurfaceTypeInvalid;
         }
         break;
     case FC_COMMON_FASTCOMP_INPUT3PL1:
-        if (compParam.layerNumber > 3 && compParam.inputLayersParam[3].needSepareateIntermediaSecPlane)
+        if (compParam.layerNumber > 3)
         {
-            surfaceParam.surfType = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + 3);
             if (compParam.inputLayersParam[3].diParams.enabled &&
                 compParam.inputLayersParam[3].diParams.params.DIMode == DI_MODE_BOB)
             {
                 surfaceParam.needVerticalStirde = true;
             }
+            if (isBTI)
+            {
+                if (compParam.inputLayersParam[3].needSepareateIntermediaSecPlane)
+                {
+                    surfaceParam.surfType = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + 3);
+                }
+                else
+                {
+                    surfaceParam.surfType = SurfaceTypeSubPlane;
+                }
+            }
+            else
+            {
+                if (compParam.inputLayersParam[3].needSepareateIntermediaSecPlane)
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + 3);
+                    surfaceParam.planeIndex = 0;
+                }
+                else if (compParam.inputLayersParam[3].needIntermediaSurface)
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcIntermediaInput + 3);
+                    surfaceParam.planeIndex = 1;
+                }
+                else
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcInputLayer0 + 3);
+                    surfaceParam.planeIndex = 1;
+                }
+            }
         }
         else
         {
-            surfaceParam.surfType = SurfaceTypeSubPlane;
+            surfaceParam.surfType = SurfaceTypeInvalid;
         }
         break;
     case FC_COMMON_FASTCOMP_INPUT4PL1:
-        if (compParam.layerNumber > 4 && compParam.inputLayersParam[4].needSepareateIntermediaSecPlane)
+        if (compParam.layerNumber > 4)
         {
-            surfaceParam.surfType = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + 4);
             if (compParam.inputLayersParam[4].diParams.enabled &&
                 compParam.inputLayersParam[4].diParams.params.DIMode == DI_MODE_BOB)
             {
                 surfaceParam.needVerticalStirde = true;
             }
+            if (isBTI)
+            {
+                if (compParam.inputLayersParam[4].needSepareateIntermediaSecPlane)
+                {
+                    surfaceParam.surfType = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + 4);
+                }
+                else
+                {
+                    surfaceParam.surfType = SurfaceTypeSubPlane;
+                }
+            }
+            else
+            {
+                if (compParam.inputLayersParam[4].needSepareateIntermediaSecPlane)
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + 4);
+                    surfaceParam.planeIndex = 0;
+                }
+                else if (compParam.inputLayersParam[4].needIntermediaSurface)
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcIntermediaInput + 4);
+                    surfaceParam.planeIndex = 1;
+                }
+                else
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcInputLayer0 + 4);
+                    surfaceParam.planeIndex = 1;
+                }
+            }
         }
         else
         {
-            surfaceParam.surfType = SurfaceTypeSubPlane;
+            surfaceParam.surfType = SurfaceTypeInvalid;
         }
         break;
     case FC_COMMON_FASTCOMP_INPUT5PL1:
-        if (compParam.layerNumber > 5 && compParam.inputLayersParam[5].needSepareateIntermediaSecPlane)
+        if (compParam.layerNumber > 5)
         {
-            surfaceParam.surfType = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + 5);
             if (compParam.inputLayersParam[5].diParams.enabled &&
                 compParam.inputLayersParam[5].diParams.params.DIMode == DI_MODE_BOB)
             {
                 surfaceParam.needVerticalStirde = true;
             }
+            if (isBTI)
+            {
+                if (compParam.inputLayersParam[5].needSepareateIntermediaSecPlane)
+                {
+                    surfaceParam.surfType = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + 5);
+                }
+                else
+                {
+                    surfaceParam.surfType = SurfaceTypeSubPlane;
+                }
+            }
+            else
+            {
+                if (compParam.inputLayersParam[5].needSepareateIntermediaSecPlane)
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + 5);
+                    surfaceParam.planeIndex = 0;
+                }
+                else if (compParam.inputLayersParam[5].needIntermediaSurface)
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcIntermediaInput + 5);
+                    surfaceParam.planeIndex = 1;
+                }
+                else
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcInputLayer0 + 5);
+                    surfaceParam.planeIndex = 1;
+                }
+            }
         }
         else
         {
-            surfaceParam.surfType = SurfaceTypeSubPlane;
+            surfaceParam.surfType = SurfaceTypeInvalid;
         }
         break;
     case FC_COMMON_FASTCOMP_INPUT6PL1:
-        if (compParam.layerNumber > 6 && compParam.inputLayersParam[6].needSepareateIntermediaSecPlane)
+        if (compParam.layerNumber > 6)
         {
-            surfaceParam.surfType = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + 6);
             if (compParam.inputLayersParam[6].diParams.enabled &&
                 compParam.inputLayersParam[6].diParams.params.DIMode == DI_MODE_BOB)
             {
                 surfaceParam.needVerticalStirde = true;
             }
+            if (isBTI)
+            {
+                if (compParam.inputLayersParam[6].needSepareateIntermediaSecPlane)
+                {
+                    surfaceParam.surfType = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + 6);
+                }
+                else
+                {
+                    surfaceParam.surfType = SurfaceTypeSubPlane;
+                }
+            }
+            else
+            {
+                if (compParam.inputLayersParam[6].needSepareateIntermediaSecPlane)
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + 6);
+                    surfaceParam.planeIndex = 0;
+                }
+                else if (compParam.inputLayersParam[6].needIntermediaSurface)
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcIntermediaInput + 6);
+                    surfaceParam.planeIndex = 1;
+                }
+                else
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcInputLayer0 + 6);
+                    surfaceParam.planeIndex = 1;
+                }
+            }
         }
         else
         {
-            surfaceParam.surfType = SurfaceTypeSubPlane;
+            surfaceParam.surfType = SurfaceTypeInvalid;
         }
         break;
     case FC_COMMON_FASTCOMP_INPUT7PL1:
-        if (compParam.layerNumber > 7 && compParam.inputLayersParam[7].needSepareateIntermediaSecPlane)
+        if (compParam.layerNumber > 7)
         {
-            surfaceParam.surfType = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + 7);
             if (compParam.inputLayersParam[7].diParams.enabled &&
                 compParam.inputLayersParam[7].diParams.params.DIMode == DI_MODE_BOB)
             {
                 surfaceParam.needVerticalStirde = true;
             }
+            if (isBTI)
+            {
+                if (compParam.inputLayersParam[7].needSepareateIntermediaSecPlane)
+                {
+                    surfaceParam.surfType = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + 7);
+                }
+                else
+                {
+                    surfaceParam.surfType = SurfaceTypeSubPlane;
+                }
+            }
+            else
+            {
+                if (compParam.inputLayersParam[7].needSepareateIntermediaSecPlane)
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcSeparateIntermediaInputSecPlane + 7);
+                    surfaceParam.planeIndex = 0;
+                }
+                else if (compParam.inputLayersParam[7].needIntermediaSurface)
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcIntermediaInput + 7);
+                    surfaceParam.planeIndex = 1;
+                }
+                else
+                {
+                    surfaceParam.surfType   = SurfaceType(SurfaceTypeFcInputLayer0 + 7);
+                    surfaceParam.planeIndex = 1;
+                }
+            }
         }
         else
         {
-            surfaceParam.surfType = SurfaceTypeSubPlane;
+            surfaceParam.surfType = SurfaceTypeInvalid;
         }
         break;
     case FC_COMMON_FASTCOMP_OUTPUTPL1:
-        surfaceParam.surfType = SurfaceTypeSubPlane;
+        if (isBTI)
+        {
+            surfaceParam.surfType = SurfaceTypeSubPlane;
+        }
+        else
+        {
+            surfaceParam.surfType   = compParam.outputLayerParam.needIntermediaSurface ? SurfaceTypeFcIntermediaOutput : SurfaceTypeFcTarget0;
+            surfaceParam.planeIndex = 1;
+        }
         break;
     default:
         bInit = false;
@@ -2904,11 +3337,24 @@ MOS_STATUS VpOclFcFilter::GenerateFcFastExpressKrnParam(OCL_FC_COMP_PARAM &compP
             MOS_ZeroMemory(krnArg.pData, krnArg.uSize);
         }
 
-        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFcFastExpressKrnArg(compParam.layerNumber, imageParam, targetParam, localSize, globalSize, krnArg, bInit));
-
-        if (bInit)
+        if (kernelArg.addressMode == AddressingModeBindless && kernelArg.eArgKind == ARG_KIND_SURFACE)
         {
-            krnArgs.push_back(krnArg);
+            SURFACE_PARAMS surfaceParam = {};
+            VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFcFastExpressStatefulSurface(uIndex, false, compParam, surfaceParam, bInit));
+
+            if (bInit)
+            {
+                krnStatefulSurfaces.emplace(uIndex, surfaceParam);
+            }
+        }
+        else
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFcFastExpressKrnArg(compParam.layerNumber, imageParam, targetParam, localSize, globalSize, krnArg, bInit));
+
+            if (bInit)
+            {
+                krnArgs.push_back(krnArg);
+            }
         }
     }
 
@@ -2918,7 +3364,7 @@ MOS_STATUS VpOclFcFilter::GenerateFcFastExpressKrnParam(OCL_FC_COMP_PARAM &compP
         SURFACE_PARAMS surfaceParam = {};
         bool           bInit        = true;
 
-        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFcFastExpressBti(uIndex, compParam, surfaceParam, bInit));
+        VP_PUBLIC_CHK_STATUS_RETURN(SetupSingleFcFastExpressStatefulSurface(uIndex, true, compParam, surfaceParam, bInit));
 
         if (bInit)
         {
@@ -2938,7 +3384,7 @@ MOS_STATUS VpOclFcFilter::GenerateFcFastExpressKrnParam(OCL_FC_COMP_PARAM &compP
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpOclFcFilter::SetupSingleFcFastExpressBti(uint32_t uIndex, const OCL_FC_COMP_PARAM &compParam, SURFACE_PARAMS &surfaceParam, bool &bInit)
+MOS_STATUS VpOclFcFilter::SetupSingleFcFastExpressStatefulSurface(uint32_t uIndex, bool isBTI, const OCL_FC_COMP_PARAM &compParam, SURFACE_PARAMS &surfaceParam, bool &bInit)
 {
     switch (uIndex)
     {
@@ -2946,6 +3392,7 @@ MOS_STATUS VpOclFcFilter::SetupSingleFcFastExpressBti(uint32_t uIndex, const OCL
         if (compParam.layerNumber > 0)
         {
             surfaceParam.surfType = compParam.inputLayersParam[0].needIntermediaSurface ? SurfaceTypeFcIntermediaInput : SurfaceTypeFcInputLayer0;
+            surfaceParam.planeIndex = 0; //non BTI
             if (compParam.inputLayersParam[0].diParams.enabled &&
                 compParam.inputLayersParam[0].diParams.params.DIMode == DI_MODE_BOB)
             {
@@ -2959,26 +3406,63 @@ MOS_STATUS VpOclFcFilter::SetupSingleFcFastExpressBti(uint32_t uIndex, const OCL
         break;
     case FC_FP_FASTEXPRESS_OUTPUTPL0:
         surfaceParam.surfType        = compParam.outputLayerParam.needIntermediaSurface ? SurfaceTypeFcIntermediaOutput : SurfaceTypeFcTarget0;
+        surfaceParam.planeIndex      = 0;  //non BTI
         surfaceParam.isOutput        = true;
         surfaceParam.combineChannelY = true;
         break;
     case FC_FP_FASTEXPRESS_INPUTPL1:
-        if (compParam.layerNumber > 0 && compParam.inputLayersParam[0].needSepareateIntermediaSecPlane)
+        if (compParam.layerNumber > 0)
         {
-            surfaceParam.surfType = SurfaceTypeFcSeparateIntermediaInputSecPlane;
             if (compParam.inputLayersParam[0].diParams.enabled &&
                 compParam.inputLayersParam[0].diParams.params.DIMode == DI_MODE_BOB)
             {
                 surfaceParam.needVerticalStirde = true;
             }
+            if (isBTI)
+            {
+                if (compParam.inputLayersParam[0].needSepareateIntermediaSecPlane)
+                {
+                    surfaceParam.surfType = SurfaceTypeFcSeparateIntermediaInputSecPlane;
+                }
+                else
+                {
+                    surfaceParam.surfType = SurfaceTypeSubPlane;
+                }
+            }
+            else
+            {
+                if (compParam.inputLayersParam[0].needSepareateIntermediaSecPlane)
+                {
+                    surfaceParam.surfType   = SurfaceTypeFcSeparateIntermediaInputSecPlane;
+                    surfaceParam.planeIndex = 0;
+                }
+                else if (compParam.inputLayersParam[0].needIntermediaSurface)
+                {
+                    surfaceParam.surfType   = SurfaceTypeFcIntermediaInput;
+                    surfaceParam.planeIndex = 1;
+                }
+                else
+                {
+                    surfaceParam.surfType   = SurfaceTypeFcInputLayer0;
+                    surfaceParam.planeIndex = 1;
+                }
+            }
         }
         else
         {
-            surfaceParam.surfType = SurfaceTypeSubPlane;
+            surfaceParam.surfType = SurfaceTypeInvalid;
         }
         break;
     case FC_FP_FASTEXPRESS_OUTPUTPL1:
-        surfaceParam.surfType = SurfaceTypeSubPlane;
+        if (isBTI)
+        {
+            surfaceParam.surfType = SurfaceTypeSubPlane;
+        }
+        else
+        {
+            surfaceParam.surfType   = compParam.outputLayerParam.needIntermediaSurface ? SurfaceTypeFcIntermediaOutput : SurfaceTypeFcTarget0;
+            surfaceParam.planeIndex = 0;  //non BTI
+        }
         break;
     default:
         bInit = false;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Intel Corporation
+ * Copyright (c) 2025, Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
@@ -43,6 +43,8 @@ enum ARGS_FC_422HV_INPUT_IMAGEREAD
     FC_422HV_INPUT_IMAGEREAD_ENQUEUED_LOCAL_SIZE,
     FC_422HV_INPUT_IMAGEREAD_GLOBAL_ID_OFFSET,
     FC_422HV_INPUT_IMAGEREAD_LOCAL_SIZE,
+    FC_422HV_INPUT_IMAGEREAD_INDIRECT_DATA_POINTER,
+    FC_422HV_INPUT_IMAGEREAD_SCRATCH_POINTER,
     FC_422HV_INPUT_IMAGEREAD_MAX
 };
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Intel Corporation
+ * Copyright (c) 2025, Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
@@ -45,6 +45,8 @@ enum ARGS_FC_FP_FASTEXPRESS
     FC_FP_FASTEXPRESS_ENQUEUED_LOCAL_SIZE,
     FC_FP_FASTEXPRESS_GLOBAL_ID_OFFSET,
     FC_FP_FASTEXPRESS_LOCAL_SIZE,
+    FC_FP_FASTEXPRESS_INDIRECT_DATA_POINTER,
+    FC_FP_FASTEXPRESS_SCRATCH_POINTER,
     FC_FP_FASTEXPRESS_MAX
 };
 

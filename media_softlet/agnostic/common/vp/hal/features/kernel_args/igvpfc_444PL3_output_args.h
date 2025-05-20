@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Intel Corporation
+ * Copyright (c) 2025, Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
@@ -40,6 +40,8 @@ enum ARGS_FC_444PL3_OUTPUT_IMAGEWRITE
     FC_444PL3_OUTPUT_IMAGEWRITE_ENQUEUED_LOCAL_SIZE,
     FC_444PL3_OUTPUT_IMAGEWRITE_GLOBAL_ID_OFFSET,
     FC_444PL3_OUTPUT_IMAGEWRITE_LOCAL_SIZE,
+    FC_444PL3_OUTPUT_IMAGEWRITE_INDIRECT_DATA_POINTER,
+    FC_444PL3_OUTPUT_IMAGEWRITE_SCRATCH_POINTER,
     FC_444PL3_OUTPUT_IMAGEWRITE_MAX
 };
 

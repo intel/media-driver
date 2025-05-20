@@ -228,33 +228,33 @@ protected:
     //OCL FC common kernel
     MOS_STATUS GenerateFcCommonKrnParam(OCL_FC_COMP_PARAM &compParam, OCL_FC_KERNEL_PARAM &param);
     MOS_STATUS SetupSingleFcCommonKrnArg(uint32_t layerNum, std::vector<OCL_FC_KRN_IMAGE_PARAM> &imageParams, OCL_FC_KRN_TARGET_PARAM &targetParam, uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit);
-    MOS_STATUS SetupSingleFcCommonBti(uint32_t uIndex, const OCL_FC_COMP_PARAM &compParam, SURFACE_PARAMS &surfaceParam, bool &bInit);
+    MOS_STATUS SetupSingleFcCommonStatefulSurface(uint32_t uIndex, bool isBTI, const OCL_FC_COMP_PARAM &compParam, SURFACE_PARAMS &surfaceParam, bool &bInit);
     
     //OCL FC 420 PL3 input kernel
     MOS_STATUS GenerateFc420PL3InputParam(OCL_FC_LAYER_PARAM &inputLayersParam, uint32_t index, OCL_FC_KERNEL_PARAM &param);
-    MOS_STATUS SetupSingleFc420PL3InputBti(uint32_t uIndex, uint32_t layIndex, SURFACE_PARAMS &surfaceParam, bool &bInit);
+    MOS_STATUS SetupSingleFc420PL3InputStatefulSurface(uint32_t uIndex, bool isBTI, uint32_t layIndex, SURFACE_PARAMS &surfaceParam, bool &bInit);
     MOS_STATUS SetupSingleFc420PL3InputKrnArg(uint32_t srcSurfaceWidth, uint32_t srcSurfaceHeight, uint32_t lumaChannelIndices, uint32_t chromaChannelIndices[4], uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit);
     MOS_STATUS ConvertInputOutputSingleChannelIndexToKrnParam(MOS_FORMAT format, uint32_t &inputChannelIndex);
 
     //OCL FC 420 PL3 output kernel
     MOS_STATUS GenerateFc420PL3OutputParam(OCL_FC_LAYER_PARAM &outputLayersParam, OCL_FC_KERNEL_PARAM &param);
-    MOS_STATUS SetupSingleFc420PL3OutputBti(uint32_t uIndex, SURFACE_PARAMS &surfaceParam, bool &bInit);
+    MOS_STATUS SetupSingleFc420PL3OutputStatefulSurface(uint32_t uIndex, bool isBTI, SURFACE_PARAMS &surfaceParam, bool &bInit);
     MOS_STATUS SetupSingleFc420PL3OutputKrnArg(uint32_t srcSurfaceWidth, uint32_t srcSurfaceHeight, uint32_t lumaChannelIndices, uint32_t chromaChannelIndices[2], uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit);
 
     //OCL FC 422HV/411P input kernel
     MOS_STATUS GenerateFc422HVInputParam(OCL_FC_LAYER_PARAM &inputLayersParam, uint32_t index, OCL_FC_KERNEL_PARAM &param);
-    MOS_STATUS SetupSingleFc422HVInputBti(uint32_t uIndex, uint32_t layIndex, SURFACE_PARAMS &surfaceParam, bool &bInit);
+    MOS_STATUS SetupSingleFc422HVInputStatefulSurface(uint32_t uIndex, bool isBTI, uint32_t layIndex, SURFACE_PARAMS &surfaceParam, bool &bInit);
     MOS_STATUS SetupSingleFc422HVInputKrnArg(uint32_t srcSurfaceWidthPL1, uint32_t srcSurfaceHeightPL1, uint32_t channelIndex, uint32_t chromaChannelIndices[4], uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit);
     
     //OCL FC 444 PL3 input kernel
     MOS_STATUS GenerateFc444PL3InputParam(OCL_FC_LAYER_PARAM &layer, uint32_t layerNumber, OCL_FC_KERNEL_PARAM &param, uint32_t layerIndex);
     MOS_STATUS SetupSingleFc444PL3InputKrnArg(uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit, uint32_t inputChannelIndices[4], uint32_t outputChannelIndices[4], uint32_t planeChannelIndices);
-    MOS_STATUS SetupSingleFc444PL3InputBti(uint32_t uIndex, SURFACE_PARAMS &surfaceParam, uint32_t layerIndex, bool &bInit);
+    MOS_STATUS SetupSingleFc444PL3InputStatefulSurface(uint32_t uIndex, bool isBTI, SURFACE_PARAMS &surfaceParam, uint32_t layerIndex, bool &bInit);
     
     //OCL FC 444 PL3 output kernel
     MOS_STATUS GenerateFc444PL3OutputParam(OCL_FC_LAYER_PARAM &outputLayersParam, OCL_FC_KERNEL_PARAM &param);
     MOS_STATUS SetupSingleFc444PL3OutputKrnArg(uint32_t localSize[3], KRN_ARG &krnArg, bool &bInit, uint32_t inputChannelIndices[4], uint32_t outputChannelIndices[4]);
-    MOS_STATUS SetupSingleFc444PL3OutputBti(uint32_t uIndex, SURFACE_PARAMS &surfaceParam, bool &bInit);
+    MOS_STATUS SetupSingleFc444PL3OutputStatefulSurface(uint32_t uIndex, bool isBTI, SURFACE_PARAMS &surfaceParam, bool &bInit);
 
     MOS_STATUS GetDefaultScalingMode(VPHAL_SCALING_MODE &defaultScalingMode, SwFilterPipe &executedPipe);
     MOS_STATUS GetChromaSitingFactor(MOS_FORMAT format, uint8_t &hitSecPlaneFactorX, uint8_t &hitSecPlaneFactorY);
@@ -292,7 +292,7 @@ protected:
     MOS_STATUS GenerateFcFastExpressKrnParam(OCL_FC_COMP_PARAM &compParam, OCL_FC_KERNEL_PARAM &param);
     MOS_STATUS GenerateFastExpressInputOutputParam(OCL_FC_COMP_PARAM &compParam, OCL_FC_FP_KRN_IMAGE_PARAM &imageParam, OCL_FC_FP_KRN_TARGET_PARAM &targetParam);
     MOS_STATUS SetupSingleFcFastExpressKrnArg(uint32_t layerNum, OCL_FC_FP_KRN_IMAGE_PARAM &imageParams, OCL_FC_FP_KRN_TARGET_PARAM &targetParam, uint32_t localSize[3], uint32_t globalSize[3], KRN_ARG &krnArg, bool &bInit);
-    MOS_STATUS SetupSingleFcFastExpressBti(uint32_t uIndex, const OCL_FC_COMP_PARAM &compParam, SURFACE_PARAMS &surfaceParam, bool &bInit);
+    MOS_STATUS SetupSingleFcFastExpressStatefulSurface(uint32_t uIndex, bool isBTI, const OCL_FC_COMP_PARAM &compParam, SURFACE_PARAMS &surfaceParam, bool &bInit);
     MOS_STATUS ConvertAlignedTrgRectToKrnParam(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, bool enableColorFill, OCL_FC_FP_KRN_TARGET_PARAM &targetParam);
     void       PrintFastExpressKrnParam(OCL_FC_FP_KRN_IMAGE_PARAM &imageParam, OCL_FC_FP_KRN_TARGET_PARAM &targetParam);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Intel Corporation
+ * Copyright (c) 2025, Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
@@ -65,6 +65,8 @@ enum ARGS_FC_COMMON_FASTCOMP
     FC_COMMON_FASTCOMP_ENQUEUED_LOCAL_SIZE,
     FC_COMMON_FASTCOMP_GLOBAL_ID_OFFSET,
     FC_COMMON_FASTCOMP_LOCAL_SIZE,
+    FC_COMMON_FASTCOMP_INDIRECT_DATA_POINTER,
+    FC_COMMON_FASTCOMP_SCRATCH_POINTER,
     FC_COMMON_FASTCOMP_MAX
 };
 
