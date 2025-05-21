@@ -28,12 +28,12 @@
 
 namespace vp
 {
-PolicyFcFeatureWrapHandler::PolicyFcFeatureWrapHandler(VP_HW_CAPS &hwCaps, bool enableL0FC) : PolicyFeatureHandler(hwCaps), m_enableL0FC(enableL0FC)
+PolicyFcFeatureWrapHandler::PolicyFcFeatureWrapHandler(VP_HW_CAPS &hwCaps, bool enableOclFC) : PolicyFeatureHandler(hwCaps), m_enableOclFC(enableOclFC)
 {
     m_Type = FeatureTypeFc;
-    if (m_l0fcFeatureHandler == nullptr)
+    if (m_oclfcFeatureHandler == nullptr)
     {
-        m_l0fcFeatureHandler = MOS_New(PolicyL0FcFeatureHandler, hwCaps);
+        m_oclfcFeatureHandler = MOS_New(PolicyOclFcFeatureHandler, hwCaps);
     }
     if (m_fcFeatureHandler == nullptr)
     {
@@ -43,22 +43,22 @@ PolicyFcFeatureWrapHandler::PolicyFcFeatureWrapHandler(VP_HW_CAPS &hwCaps, bool 
 
 PolicyFcFeatureWrapHandler::~PolicyFcFeatureWrapHandler()
 {
-    MOS_Delete(m_l0fcFeatureHandler);
-    m_l0fcFeatureHandler = nullptr;
+    MOS_Delete(m_oclfcFeatureHandler);
+    m_oclfcFeatureHandler = nullptr;
     MOS_Delete(m_fcFeatureHandler);
     m_fcFeatureHandler = nullptr;
 }
 
 bool PolicyFcFeatureWrapHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
 {
-    if (m_enableL0FC && !vpExecuteCaps.bFallbackLegacyFC)
+    if (m_enableOclFC && !vpExecuteCaps.bFallbackLegacyFC)
     {
-        if (!m_l0fcFeatureHandler)
+        if (!m_oclfcFeatureHandler)
         {
-            VP_PUBLIC_ASSERTMESSAGE("m_l0fcFeatureHandler is nullptr");
+            VP_PUBLIC_ASSERTMESSAGE("m_oclfcFeatureHandler is nullptr");
             return false;
         }
-        return m_l0fcFeatureHandler->IsFeatureEnabled(vpExecuteCaps);
+        return m_oclfcFeatureHandler->IsFeatureEnabled(vpExecuteCaps);
     }
     else
     {
@@ -73,14 +73,14 @@ bool PolicyFcFeatureWrapHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
 
 HwFilterParameter *PolicyFcFeatureWrapHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface)
 {
-    if (m_enableL0FC && !vpExecuteCaps.bFallbackLegacyFC)
+    if (m_enableOclFC && !vpExecuteCaps.bFallbackLegacyFC)
     {
-        if (!m_l0fcFeatureHandler)
+        if (!m_oclfcFeatureHandler)
         {
-            VP_PUBLIC_ASSERTMESSAGE("m_l0fcFeatureHandler is nullptr");
+            VP_PUBLIC_ASSERTMESSAGE("m_oclfcFeatureHandler is nullptr");
             return nullptr;
         }
-        return m_l0fcFeatureHandler->CreateHwFilterParam(vpExecuteCaps, swFilterPipe, pHwInterface);
+        return m_oclfcFeatureHandler->CreateHwFilterParam(vpExecuteCaps, swFilterPipe, pHwInterface);
     }
     else
     {
@@ -95,10 +95,10 @@ HwFilterParameter *PolicyFcFeatureWrapHandler::CreateHwFilterParam(VP_EXECUTE_CA
 
 MOS_STATUS PolicyFcFeatureWrapHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
 {
-    if (m_enableL0FC && !caps.bFallbackLegacyFC)
+    if (m_enableOclFC && !caps.bFallbackLegacyFC)
     {
-        VP_PUBLIC_CHK_NULL_RETURN(m_l0fcFeatureHandler);
-        return m_l0fcFeatureHandler->UpdateFeaturePipe(caps, feature, featurePipe, executePipe, isInputPipe, index);
+        VP_PUBLIC_CHK_NULL_RETURN(m_oclfcFeatureHandler);
+        return m_oclfcFeatureHandler->UpdateFeaturePipe(caps, feature, featurePipe, executePipe, isInputPipe, index);
     }
     else
     {
@@ -109,10 +109,10 @@ MOS_STATUS PolicyFcFeatureWrapHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, S
 
 MOS_STATUS PolicyFcFeatureWrapHandler::UpdateUnusedFeature(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
 {
-    if (m_enableL0FC && !caps.bFallbackLegacyFC)
+    if (m_enableOclFC && !caps.bFallbackLegacyFC)
     {
-        VP_PUBLIC_CHK_NULL_RETURN(m_l0fcFeatureHandler);
-        return m_l0fcFeatureHandler->UpdateUnusedFeature(caps, feature, featurePipe, executePipe, isInputPipe, index);
+        VP_PUBLIC_CHK_NULL_RETURN(m_oclfcFeatureHandler);
+        return m_oclfcFeatureHandler->UpdateUnusedFeature(caps, feature, featurePipe, executePipe, isInputPipe, index);
     }
     else
     {
@@ -132,20 +132,20 @@ MOS_STATUS PolicyFcFeatureWrapHandler::ReleaseHwFeatureParameter(HwFilterParamet
     }
     else
     {
-        HwFilterL0FcParameter *l0fcParam = dynamic_cast<HwFilterL0FcParameter *>(pParam);
-        VP_PUBLIC_CHK_NULL_RETURN(l0fcParam);
-        //this is a L0 FC hw filter param, return it to L0 FC handler
-        VP_PUBLIC_CHK_NULL_RETURN(m_l0fcFeatureHandler);
-        return m_l0fcFeatureHandler->ReleaseHwFeatureParameter(pParam);
+        HwFilterOclFcParameter *oclfcParam = dynamic_cast<HwFilterOclFcParameter *>(pParam);
+        VP_PUBLIC_CHK_NULL_RETURN(oclfcParam);
+        //this is a OCL FC hw filter param, return it to OCL FC handler
+        VP_PUBLIC_CHK_NULL_RETURN(m_oclfcFeatureHandler);
+        return m_oclfcFeatureHandler->ReleaseHwFeatureParameter(pParam);
     }
 }
 
-PolicyFcWrapHandler::PolicyFcWrapHandler(VP_HW_CAPS &hwCaps, bool enableL0FC) : PolicyFeatureHandler(hwCaps), m_enableL0FC(enableL0FC)
+PolicyFcWrapHandler::PolicyFcWrapHandler(VP_HW_CAPS &hwCaps, bool enableOclFC) : PolicyFeatureHandler(hwCaps), m_enableOclFC(enableOclFC)
 {
     m_Type = FeatureTypeFc;
-    if (m_l0fcHandler == nullptr)
+    if (m_oclfcHandler == nullptr)
     {
-        m_l0fcHandler = MOS_New(PolicyL0FcHandler, hwCaps);
+        m_oclfcHandler = MOS_New(PolicyOclFcHandler, hwCaps);
     }
     if (m_fcHandler == nullptr)
     {
@@ -155,22 +155,22 @@ PolicyFcWrapHandler::PolicyFcWrapHandler(VP_HW_CAPS &hwCaps, bool enableL0FC) : 
 
 PolicyFcWrapHandler::~PolicyFcWrapHandler()
 {
-    MOS_Delete(m_l0fcHandler);
-    m_l0fcHandler = nullptr;
+    MOS_Delete(m_oclfcHandler);
+    m_oclfcHandler = nullptr;
     MOS_Delete(m_fcHandler);
     m_fcHandler = nullptr;
 }
 
 HwFilterParameter *PolicyFcWrapHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpExecuteCaps, SwFilterPipe &swFilterPipe, PVP_MHWINTERFACE pHwInterface)
 {
-    if (m_enableL0FC && !vpExecuteCaps.bFallbackLegacyFC)
+    if (m_enableOclFC && !vpExecuteCaps.bFallbackLegacyFC)
     {
-        if (!m_l0fcHandler)
+        if (!m_oclfcHandler)
         {
-            VP_PUBLIC_ASSERTMESSAGE("m_l0fcHandler is nullptr");
+            VP_PUBLIC_ASSERTMESSAGE("m_oclfcHandler is nullptr");
             return nullptr;
         }
-        return m_l0fcHandler->CreateHwFilterParam(vpExecuteCaps, swFilterPipe, pHwInterface);
+        return m_oclfcHandler->CreateHwFilterParam(vpExecuteCaps, swFilterPipe, pHwInterface);
     }
     else
     {
@@ -185,14 +185,14 @@ HwFilterParameter *PolicyFcWrapHandler::CreateHwFilterParam(VP_EXECUTE_CAPS vpEx
 
 bool PolicyFcWrapHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
 {
-    if (m_enableL0FC && !vpExecuteCaps.bFallbackLegacyFC)
+    if (m_enableOclFC && !vpExecuteCaps.bFallbackLegacyFC)
     {
-        if (!m_l0fcHandler)
+        if (!m_oclfcHandler)
         {
-            VP_PUBLIC_ASSERTMESSAGE("m_l0fcHandler is nullptr");
+            VP_PUBLIC_ASSERTMESSAGE("m_oclfcHandler is nullptr");
             return false;
         }
-        return m_l0fcHandler->IsFeatureEnabled(vpExecuteCaps);
+        return m_oclfcHandler->IsFeatureEnabled(vpExecuteCaps);
     }
     else
     {
@@ -207,10 +207,10 @@ bool PolicyFcWrapHandler::IsFeatureEnabled(VP_EXECUTE_CAPS vpExecuteCaps)
 
 MOS_STATUS PolicyFcWrapHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
 {
-    if (m_enableL0FC && !caps.bFallbackLegacyFC)
+    if (m_enableOclFC && !caps.bFallbackLegacyFC)
     {
-        VP_PUBLIC_CHK_NULL_RETURN(m_l0fcHandler);
-        return m_l0fcHandler->UpdateFeaturePipe(caps, feature, featurePipe, executePipe, isInputPipe, index);
+        VP_PUBLIC_CHK_NULL_RETURN(m_oclfcHandler);
+        return m_oclfcHandler->UpdateFeaturePipe(caps, feature, featurePipe, executePipe, isInputPipe, index);
     }
     else
     {
@@ -221,10 +221,10 @@ MOS_STATUS PolicyFcWrapHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter
 
 MOS_STATUS PolicyFcWrapHandler::UpdateUnusedFeature(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
 {
-    if (m_enableL0FC && !caps.bFallbackLegacyFC)
+    if (m_enableOclFC && !caps.bFallbackLegacyFC)
     {
-        VP_PUBLIC_CHK_NULL_RETURN(m_l0fcHandler);
-        return m_l0fcHandler->UpdateUnusedFeature(caps, feature, featurePipe, executePipe, isInputPipe, index);
+        VP_PUBLIC_CHK_NULL_RETURN(m_oclfcHandler);
+        return m_oclfcHandler->UpdateUnusedFeature(caps, feature, featurePipe, executePipe, isInputPipe, index);
     }
     else
     {
@@ -235,10 +235,10 @@ MOS_STATUS PolicyFcWrapHandler::UpdateUnusedFeature(VP_EXECUTE_CAPS caps, SwFilt
 
 MOS_STATUS PolicyFcWrapHandler::LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilterPipe &featurePipe, VP_EXECUTE_CAPS &caps)
 {
-    if (m_enableL0FC && !caps.bFallbackLegacyFC)
+    if (m_enableOclFC && !caps.bFallbackLegacyFC)
     {
-        VP_PUBLIC_CHK_NULL_RETURN(m_l0fcHandler);
-        return m_l0fcHandler->LayerSelectForProcess(layerIndexes, featurePipe, caps);
+        VP_PUBLIC_CHK_NULL_RETURN(m_oclfcHandler);
+        return m_oclfcHandler->LayerSelectForProcess(layerIndexes, featurePipe, caps);
     }
     else
     {
@@ -258,11 +258,11 @@ MOS_STATUS PolicyFcWrapHandler::ReleaseHwFeatureParameter(HwFilterParameter *&pP
     }
     else
     {
-        HwFilterL0FcParameter *l0fcParam = dynamic_cast<HwFilterL0FcParameter *>(pParam);
-        VP_PUBLIC_CHK_NULL_RETURN(l0fcParam);
-        //this is a L0 FC hw filter param, return it to L0 FC handler
-        VP_PUBLIC_CHK_NULL_RETURN(m_l0fcHandler);
-        return m_l0fcHandler->ReleaseHwFeatureParameter(pParam);
+        HwFilterOclFcParameter *oclfcParam = dynamic_cast<HwFilterOclFcParameter *>(pParam);
+        VP_PUBLIC_CHK_NULL_RETURN(oclfcParam);
+        //this is a OCL FC hw filter param, return it to OCL FC handler
+        VP_PUBLIC_CHK_NULL_RETURN(m_oclfcHandler);
+        return m_oclfcHandler->ReleaseHwFeatureParameter(pParam);
     }
 }
 

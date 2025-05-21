@@ -37,6 +37,7 @@ static const std::string Hdr3DLutKernelName("hdr_3dlut");
 static const bool enableDump        = false;
 static const int32_t lutWidth       = 65*2;
 static const int32_t lutHeight      = 65 * 128;
+static const int32_t lutSize        = 65;
 
 static const float ccm_identity[12] = { 1.0f, 0.0f, 0.0f, 0.0f,
                                         0.0f, 1.0f, 0.0f, 0.0f,
@@ -371,7 +372,15 @@ void Hdr3DLutGeneratorG12::InitCoefSurface(const uint32_t maxDLL, const uint32_t
         CalcCCMMatrix();
         MOS_SecureMemcpy(ccmMatrix, sizeof(float) * 12, color_matrix_calculation, sizeof(float) * 12);
 
-        tmMode          = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2S;
+        if (maxDLL > 800)
+        {
+            tmMode = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2E;
+            VPHAL_RENDER_NORMALMESSAGE("Change curve to H2E, maxDLL %d", maxDLL);
+        }
+        else
+        {
+            tmMode = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2S;
+        }
         oetfCurve       = (OETF_CURVE_TYPE)OETF_SRGB;
         tmSrcType       = (TONE_MAPPING_SOURCE_TYPE)TONE_MAPPING_SOURCE_PSEUDO_Y_BT709;
     }
@@ -445,8 +454,8 @@ void Hdr3DLutGeneratorG12::Render(const uint32_t maxDLL, const uint32_t maxCLL, 
         Hdr3DLutCmRenderG12::Hdr3DLutPayload hdr3DLutPayload = { 0 };
         hdr3DLutPayload.hdr3DLutSurface = MOS_New(VpCmSurfaceHolder<CmBuffer>, p3DLutSurface, m_cmContext);
         hdr3DLutPayload.hdrCoefSurface = m_hdrCoefSurface;
-        hdr3DLutPayload.hdr3DLutSurfaceWidth = lutWidth;
-        hdr3DLutPayload.hdr3DLutSurfaceHeight = lutHeight;
+        hdr3DLutPayload.hdr3DLutSurfaceWidth = lutSize;
+        hdr3DLutPayload.hdr3DLutSurfaceHeight = lutSize;
 
         VPHAL_RENDER_CHK_NULL_NO_STATUS(m_cmContext);
         m_cmContext->ConnectEventListener(m_eventManager);

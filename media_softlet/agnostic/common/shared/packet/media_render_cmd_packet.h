@@ -78,6 +78,7 @@ class MhwCpInterface;
         (MhwKernelParam).iSize    = (_pKernelEntry)->iSize;                         \
         (MhwKernelParam).iKUID    = (_pKernelEntry)->iKUID;                         \
         (MhwKernelParam).iKCID    = (_pKernelEntry)->iKCID;                         \
+        (MhwKernelParam).iPaddingSize = (_pKernelEntry)->iPaddingSize;              \
     } while(0)
 
 typedef struct _PIPECONTRL_PARAMS
@@ -120,8 +121,8 @@ typedef struct _KERNEL_WALKER_PARAMS
 
     bool                                hasBarrier;
     uint32_t                            slmSize;
-    PMHW_INLINE_DATA_PARAMS             inlineDataParamBase;
-    uint32_t                            inlineDataParamSize;
+
+    uint32_t                            simdSize;
 }KERNEL_WALKER_PARAMS, * PKERNEL_WALKER_PARAMS;
 
 typedef struct _KERNEL_PACKET_RENDER_DATA
@@ -203,7 +204,7 @@ public:
         PRENDERHAL_SURFACE_NEXT         pRenderSurface,
         PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
         bool                            bWrite,
-        std::set<uint32_t>             &stateOffsets);
+        std::vector<uint64_t>          &stateGfxAddress);
 
     // Step3: RSS Setup, return index insert in binding table
     virtual uint32_t SetSurfaceForHwAccess(
@@ -228,7 +229,7 @@ public:
         PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
         std::set<uint32_t>             &bindingIndexes,
         bool                            bWrite,
-        std::set<uint32_t>             &stateOffsets,
+        std::vector<uint64_t>          &stateGfxAddress,
         uint32_t                        capcityOfSurfaceEntries = 0,
         PRENDERHAL_SURFACE_STATE_ENTRY *surfaceEntries      = nullptr,
         uint32_t                       *numOfSurfaceEntries = nullptr);
@@ -238,7 +239,7 @@ public:
         PRENDERHAL_SURFACE_NEXT         pRenderSurface,
         PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
         bool                            bWrite,
-        std::set<uint32_t>             &stateOffsets);
+        std::vector<uint64_t>          &stateGfxAddress);
 
     virtual uint32_t SetBufferForHwAccess(
         PMOS_SURFACE                    buffer,
@@ -253,7 +254,7 @@ public:
         PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
         std::set<uint32_t>             &bindingIndexes,
         bool                            bWrite,
-        std::set<uint32_t>             &stateOffsets);
+        std::vector<uint64_t>          &stateGfxAddress);
 
     virtual uint32_t SetBufferForHwAccess(
         MOS_BUFFER                      buffer,

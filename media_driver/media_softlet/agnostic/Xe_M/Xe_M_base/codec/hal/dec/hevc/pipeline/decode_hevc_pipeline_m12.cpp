@@ -521,9 +521,7 @@ MOS_STATUS HevcPipelineM12::Initialize(void *settings)
     m_basicFeature = dynamic_cast<HevcBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
     DECODE_CHK_NULL(m_basicFeature);
 
-#ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(InitMmcState());
-#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -554,12 +552,10 @@ MOS_STATUS HevcPipelineM12::Uninitialize()
         pair.second->Destroy();
     }
 
-#ifdef _MMC_SUPPORTED
     if (m_mmcState != nullptr)
     {
         MOS_Delete(m_mmcState);
     }
-#endif
 
     return HevcPipeline::Uninitialize();
 }
@@ -651,7 +647,6 @@ MOS_STATUS HevcPipelineM12::CreatePreSubPipeLines(DecodeSubPipelineManager &subP
     return MOS_STATUS_SUCCESS;
 }
 
-#ifdef _MMC_SUPPORTED
 MOS_STATUS HevcPipelineM12::InitMmcState()
 {
     DECODE_FUNC_CALL();
@@ -662,7 +657,6 @@ MOS_STATUS HevcPipelineM12::InitMmcState()
     DECODE_CHK_STATUS(m_basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
     return MOS_STATUS_SUCCESS;
 }
-#endif
 
 #if USE_CODECHAL_DEBUG_TOOL
 MOS_STATUS HevcPipelineM12::DumpParams(HevcBasicFeature &basicFeature)

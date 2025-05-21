@@ -1,5 +1,5 @@
 ﻿/*
-* Copyright (c) 2018-2022, Intel Corporation
+* Copyright (c) 2018-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -68,6 +68,12 @@ MOS_STATUS EncodeHevcVdencFeatureManager::CheckFeatures(void *params)
     {
         m_ddiTargetUsage = hevcSeqParams->TargetUsage;
         ENCODE_CHK_STATUS_RETURN(MapTargetUsage(hevcSeqParams->TargetUsage));
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_forceTargetUsage != 0)
+        {
+            hevcSeqParams->TargetUsage = m_forceTargetUsage;
+        }
+#endif
         m_targetUsage = hevcSeqParams->TargetUsage;
     }
 

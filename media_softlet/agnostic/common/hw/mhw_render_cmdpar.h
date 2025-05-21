@@ -64,8 +64,7 @@ struct MHW_VFE_SCOREBOARD
 struct MHW_HEAPS_RESOURCE
 {
     PMOS_RESOURCE          presInstructionBuffer = nullptr;
-    PMHW_INLINE_DATA_PARAMS inlineDataParamsBase   = nullptr;
-    uint32_t                inlineDataParamSize   = 0;
+    uint64_t               kernelStartGfxAddress = 0;
 };
 
 enum MHW_VFE_SLICE_DISABLE
@@ -399,6 +398,7 @@ struct _MHW_PAR_T(COMPUTE_WALKER)
     bool                      isGenerateLocalId             = false;
     MHW_EMIT_LOCAL_MODE       emitLocal                     = MHW_EMIT_LOCAL_NONE;
     uint32_t                  preferredSlmAllocationSize    = 0;
+    uint32_t                  simdSize                      = 0;
     _MHW_PAR_T(CFE_STATE)     cfeState                      = {};
     MHW_HEAPS_RESOURCE        heapsResource                 = {};
 

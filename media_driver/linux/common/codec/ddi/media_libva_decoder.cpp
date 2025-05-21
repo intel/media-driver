@@ -924,7 +924,7 @@ VAStatus DdiDecode_SetGpuPriority(
         DDI_CHK_NULL(osInterface, "nullptr osInterface.", VA_STATUS_ERROR_ALLOCATION_FAILED);
         osInterface->pfnSetGpuPriority(osInterface, priority);
     }
-#ifdef _MMC_SUPPORTED
+
     //set the priority for decomp interface
     if(mediaCtx->pMediaMemDecompState)
     {
@@ -932,7 +932,7 @@ VAStatus DdiDecode_SetGpuPriority(
         if(mediaVeboxDecompState->m_osInterface)
             mediaVeboxDecompState->m_osInterface->pfnSetGpuPriority(mediaVeboxDecompState->m_osInterface, priority);
     }
-#endif
+
 #if MOS_EVENT_TRACE_DUMP_SUPPORTED
     {
         MOS_TraceEvent(EVENT_DECODE_DDI_SETGPUPRIORITYVA, EVENT_TYPE_END, NULL, 0, NULL, 0);

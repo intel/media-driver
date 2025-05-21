@@ -72,6 +72,7 @@ MOS_STATUS VpRenderKernelObj::GetKernelEntry(Kdll_CacheEntry &entry)
     entry.iFilterSize   = 2;
     entry.pFilter       = nullptr;
     entry.iSize         = m_kernelSize;
+    entry.iPaddingSize  = m_kernelPaddingSize; 
     entry.pBinary       = (uint8_t *)m_kernelBinary;
     return MOS_STATUS_SUCCESS;
 }
@@ -158,9 +159,9 @@ MOS_STATUS VpRenderKernelObj::SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET_S
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderKernelObj::SetKernelStatefulSurfaces(KERNEL_ARG_INDEX_SURFACE_MAP& statefulSurfaces)
+MOS_STATUS VpRenderKernelObj::SetKernelStatefulSurfaces(KERNEL_ARG_INDEX_SURFACE_MAP &statefulSurfaces)
 {
-    VP_FUNC_CALL();
+    m_argIndexSurfMap = statefulSurfaces;
     return MOS_STATUS_SUCCESS;
 }
 
@@ -237,7 +238,7 @@ MOS_STATUS VpRenderKernelObj::SetupStatelessBuffer()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderKernelObj::SetupStatelessBufferResource(SurfaceType surf)
+MOS_STATUS VpRenderKernelObj::SetupStatelessBufferResource(SurfaceType surf, bool isWrite)
 {
     VP_RENDER_CHK_NULL_RETURN(m_surfaceGroup);
     VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
@@ -253,9 +254,9 @@ MOS_STATUS VpRenderKernelObj::SetupStatelessBufferResource(SurfaceType surf)
         VP_RENDER_CHK_STATUS_RETURN(osInterface->pfnRegisterResource(
             osInterface,
             &curSurf->osSurface->OsResource,
-            false,
+            isWrite,
             true));
-        m_statelessArray.insert(std::make_pair(surf, ui64GfxAddress));
+        m_statelessArray.emplace(surf, ui64GfxAddress);
     }
 
     return MOS_STATUS_SUCCESS;
@@ -712,32 +713,57 @@ void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
 #endif
 }
 
-MOS_STATUS VpRenderKernelObj::SetInlineDataParameter(KRN_ARG args, RENDERHAL_INTERFACE *renderhal)
+MOS_STATUS VpRenderKernelObj::SetInlineDataParameter(KRN_ARG arg, uint8_t* inlineData)
 {
     VP_FUNC_CALL();
-    MHW_INLINE_DATA_PARAMS inlineDataPar = {};
-    VP_RENDER_CHK_NULL_RETURN(renderhal);
-    MHW_STATE_BASE_ADDR_PARAMS *pStateBaseParams = &renderhal->StateBaseAddressParams;
-    inlineDataPar.dwOffset                       = args.uOffsetInPayload;
-    inlineDataPar.dwSize                         = args.uSize;
-    if (args.implicitArgType == IndirectDataPtr || args.implicitArgType == SamplerStateBasePtr)
+    VP_RENDER_CHK_NULL_RETURN(inlineData);
+    if (arg.implicitArgType == IndirectDataPtr)
     {
-        inlineDataPar.resource = pStateBaseParams->presGeneralState;
-        inlineDataPar.isPtrType = true;
+        MOS_SecureMemcpy(inlineData + arg.uOffsetInPayload, arg.uSize, &m_curbeGfxAddress, sizeof(m_curbeGfxAddress));
+        VP_RENDER_NORMALMESSAGE("Setting Inline Data KernelID %d, index %d , value 0x%x, argKind %d", m_kernelId, arg.uIndex, m_curbeGfxAddress, arg.eArgKind);
     }
-    else if (args.implicitArgType == SurfaceStateBasePtr)
+    else if (arg.implicitArgType == ValueType)
     {
-        // New Heaps
-        inlineDataPar.isPtrType = true;
-    }
-    else if (args.implicitArgType == ValueType)
-    {
-        inlineDataPar.isPtrType = false;
+        if (arg.pData != nullptr)
+        {
+            MOS_SecureMemcpy(inlineData + arg.uOffsetInPayload, arg.uSize, arg.pData, arg.uSize);
+            VP_RENDER_NORMALMESSAGE("Setting Inline Data KernelID %d, index %d , value %d, argKind %d", m_kernelId, arg.uIndex, *(uint32_t *)arg.pData, arg.eArgKind);
+        }
+        else
+        {
+            VP_RENDER_NORMALMESSAGE("KernelID %d, index %d, argKind %d is empty", m_kernelId, arg.uIndex, arg.eArgKind);
+        }
     }
 
-    // walkerParam.inlineDataParamBase will add m_inlineDataParams.data() in each kernel
-    // walkerParam.inlineDataParamSize will add m_inlineDataParams.size() in each kernel
-    m_inlineDataParams.push_back(inlineDataPar);
+    return MOS_STATUS_SUCCESS;
+}
 
+MOS_STATUS VpRenderKernelObj::GetBindlessSamplerGfxAddress(uint32_t samplerIndex, uint64_t &address)
+{
+    auto     it           = m_bindlessSamperArray.find(samplerIndex);
+    VP_PUBLIC_CHK_NOT_FOUND_RETURN(it, &m_bindlessSamperArray);
+    address = it->second;
+    VP_PUBLIC_CHK_VALUE_RETURN(address == 0, false);
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpRenderKernelObj::GetBindlessSurfaceStateGfxAddress(KRN_ARG &arg, uint64_t &address)
+{
+    auto surfMapHandle = m_argIndexSurfMap.find(arg.uIndex);
+    VP_PUBLIC_CHK_NOT_FOUND_RETURN(surfMapHandle, &m_argIndexSurfMap);
+    if (surfMapHandle->second.surfType == SurfaceTypeInvalid)
+    {
+        address = 0;                   //for invalid surface type, it means the surface in not used in this senario
+        return MOS_STATUS_SUCCESS;
+    }
+    auto bindlessAddressHandle = m_bindlessSurfaceArray.find(surfMapHandle->second.surfType);
+    VP_PUBLIC_CHK_NOT_FOUND_RETURN(bindlessAddressHandle, &m_bindlessSurfaceArray);
+    if (surfMapHandle->second.planeIndex >= bindlessAddressHandle->second.size())
+    {
+        address = 0;                   //for those surfaces plane number less than kernel interface max, skip these sub planes
+        return MOS_STATUS_SUCCESS;
+    }
+    address = bindlessAddressHandle->second.at(surfMapHandle->second.planeIndex);
+    VP_PUBLIC_CHK_VALUE_RETURN(address == 0, false);
     return MOS_STATUS_SUCCESS;
 }

@@ -31,6 +31,7 @@
 #include "vp_debug.h"
 #include "vp_user_setting.h"
 #include "renderhal_platform_interface.h"
+#include "vp_user_feature_control.h"
 
 VpPipelineAdapterBase::VpPipelineAdapterBase(
     vp::VpPlatformInterface &vpPlatformInterface,

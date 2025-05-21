@@ -886,6 +886,11 @@ MOS_STATUS Mos_InitOsInterface(
     pOsInterface->pfnDeleteMhwCpInterface               = Delete_MhwCpInterface;
     pOsInterface->pfnInsertCacheSetting                 = Mos_InsertCacheSetting;
     pOsInterface->pfnGetCacheSetting                    = Mos_GetCacheSetting;
+    pOsInterface->pfnSetHybridCmdMgrToGpuContext        = MOS_SetHybridCmdMgrToGpuContext;
+    pOsInterface->pfnSetHybridMgrSubmitMode             = MOS_SetHybridCmdMgrSubmitMode;
+    pOsInterface->pfnStartHybridCmdMgr                  = MOS_StartHybridCmdMgr;
+    pOsInterface->pfnStopHybridCmdMgr                   = MOS_StopHybridCmdMgr;
+    pOsInterface->pfnSubmitPackage                      = MOS_SubmitPackage;
 #if !EMUL
     pOsInterface->pfnCreateSecureDecodeInterface        = Create_SecureDecodeInterface;
     pOsInterface->pfnDeleteSecureDecodeInterface        = Delete_SecureDecodeInterface;
@@ -926,7 +931,7 @@ MOS_STATUS Mos_InitOsInterface(
         MediaUserSetting::Group::Device);
 #endif
 
-    if (pOsInterface->apoMosEnabled)
+    if (pOsInterface->apoMosEnabled || pOsInterface->apoMosForLegacyRuntime)
     {
         pOsInterface->osStreamState->osCpInterface = pOsInterface->osCpInterface;
     }
@@ -1215,6 +1220,39 @@ bool Mos_InsertCacheSetting(CACHE_COMPONENTS id, std::map<uint64_t, MOS_CACHE_EL
 bool Mos_GetCacheSetting(MOS_COMPONENT id, uint32_t feature, bool bOut, ENGINE_TYPE engineType, MOS_CACHE_ELEMENT &element, bool isHeapSurf)
 {
     return LoadCacheSettings(id, feature, bOut, engineType, element, isHeapSurf);
+}
+
+MOS_STATUS MOS_SetHybridCmdMgrToGpuContext(
+    PMOS_INTERFACE pOsInterface,
+    uint64_t       gpuCtxOnHybridCmd)
+{
+    return MosInterface::SetHybridCmdMgrToGpuContext(pOsInterface, gpuCtxOnHybridCmd);
+}
+
+MOS_STATUS MOS_SetHybridCmdMgrSubmitMode(
+    PMOS_INTERFACE pOsInterface,
+    uint64_t       hybridMgrSubmitMode)
+{
+    return MosInterface::SetHybridCmdMgrSubmitMode(pOsInterface, hybridMgrSubmitMode);
+}
+
+MOS_STATUS MOS_StartHybridCmdMgr(
+    PMOS_INTERFACE pOsInterface)
+{
+    return MosInterface::StartHybridCmdMgr(pOsInterface);
+}
+
+MOS_STATUS MOS_StopHybridCmdMgr(
+    PMOS_INTERFACE pOsInterface)
+{
+    return MosInterface::StopHybridCmdMgr(pOsInterface);
+}
+
+MOS_STATUS MOS_SubmitPackage(
+    PMOS_INTERFACE pOsInterface,
+    CmdPackage    &cmdPackage)
+{
+    return MosInterface::SubmitPackage(pOsInterface, cmdPackage);
 }
 
 #if (_DEBUG || _RELEASE_INTERNAL)

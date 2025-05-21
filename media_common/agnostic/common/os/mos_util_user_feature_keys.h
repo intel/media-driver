@@ -134,10 +134,12 @@
 #define __MEDIA_USER_FEATURE_VALUE_SIM_ENABLE                             "Simulation Enable"
 #define __MEDIA_USER_FEATURE_VALUE_SIM_IN_USE                             "Simulation In Use"
 
+#define __MEDIA_USER_FEATURE_VALUE_ENABLE_VDBOX_ID_REPORT                 "Enable VDBOX ID Report"
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_VE_DEBUG_OVERRIDE               "Enable VE Debug Override"
 #define __MEDIA_USER_FEATURE_VALUE_FORCE_VDBOX                            "Force VDBOX"
 #define __MEDIA_USER_FEATURE_VALUE_FORCE_VEBOX                            "Force VEBOX"
 #define __MEDIA_USER_FEATURE_VALUE_FORCE_YFYS                             "Force to allocate YfYs"
+#define __MEDIA_USER_FEATURE_VALUE_USED_VDBOX_ID                          "Used VDBOX ID"
 
 #define __MEDIA_USER_FEATURE_VALUE_NULL_HW_ACCELERATION_ENABLE            "NullHWAccelerationEnable"
 
@@ -421,6 +423,9 @@
 #define __MEDIA_USER_FEATURE_VALUE_VP_MMC_IN_USE                                "VP MMC In Use"
 
 #define __MEDIA_USER_FEATURE_VALUE_NULLHW_ENABLE                                "NULL HW Enable"
+#if (_DEBUG || _RELEASE_INTERNAL)
+#define __MEDIA_USER_FEATURE_VALUE_NULLHW_PROXY_REPEAT_COUNT                    "NULL HW Proxy Repeat Count"
+#endif
 #define __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_PLATFORM                         "MockAdaptor Platform"
 #define __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_STEPPING                         "MockAdaptor Stepping"
 #define __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_DEVICE                           "MockAdaptor Device ID"
@@ -436,6 +441,7 @@
 #define __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_OUTPUT_FILE_NAME    "Perf Profiler Output File Name"
 #define __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_BUFFER_SIZE_KEY     "Perf Profiler Buffer Size"
 #define __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_MUL_PROC_SINGLE_BIN "Perf Profiler Multi Process Single Binary"
+#define __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_PARALLEL_EXEC       "Perf Profiler Parallel Execution Support"
 
 #define __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_KEY_1      "Perf Profiler Register 1"
 #define __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_REGISTER_KEY_2      "Perf Profiler Register 2"

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2023, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -256,6 +256,15 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
 
     DeclareUserSettingKey(
         userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_PARALLEL_EXEC,
+        MediaUserSetting::Group::Device,
+        false,
+        true,
+        true,
+        USER_SETTING_CONFIG_PERF_PATH); //"Perf Profiler Parallel Execution Support."
+
+    DeclareUserSettingKey(
+        userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_OUTPUT_FILE_NAME,
         MediaUserSetting::Group::Device,
         "Perf_DATA_00_00.bin",
@@ -438,7 +447,7 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
         userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_MEDIA_NATIVE_FENCE_MODE,
         MediaUserSetting::Group::Device,
-        0,
+        1,
         true);
 
     return MOS_STATUS_SUCCESS;
@@ -1140,6 +1149,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
 
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_ENABLE_VDBOX_ID_REPORT,
+        MediaUserSetting::Group::Device,
+        0,
+        true); //"Enable Vdbox physical engine id report"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_FORCE_VDBOX,
         MediaUserSetting::Group::Device,
         0,
@@ -1151,6 +1167,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         MediaUserSetting::Group::Device,
         0,
         true); //"Force the VEBox to be used. (Default 0: FORCE_VEBOX_NONE )"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_USED_VDBOX_ID,
+        MediaUserSetting::Group::Device,
+        0,
+        true); //"Used Vdbox physical id. (Default 0: Not used, Each Hex symbol represents one VDBOX, e.g. bits[3:0] means VD0, bits[7:4] means VD1)"
 
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
@@ -1375,7 +1398,14 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         MediaUserSetting::Group::Device,
         0,
         true); // "Enable NULL HW or not"
-
+#if (_DEBUG || _RELEASE_INTERNAL)
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_NULLHW_PROXY_REPEAT_COUNT,
+        MediaUserSetting::Group::Device,
+        0,
+        true);
+#endif
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_PLATFORM,
@@ -1474,6 +1504,20 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         MediaUserSetting::Group::Device,
         0,
         true);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "ForceTargetUsage",
+        MediaUserSetting::Group::Sequence,
+        uint32_t(0),
+        false);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "ChromaPrefetchDisable",
+        MediaUserSetting::Group::Sequence,
+        uint32_t(0), // 0 chroma prefetch enabled, 1 chroma prefetch disabled ;
+        false);
     return MOS_STATUS_SUCCESS;
 }
 

@@ -48,7 +48,7 @@ MOS_STATUS DecodeSubPacketManager::Register(uint32_t packetId, DecodeSubPacket& 
     auto iter = m_subPacketList.find(packetId);
     DECODE_CHK_COND(iter != m_subPacketList.end(), "Failed to register sub packet %d", packetId);
 
-    m_subPacketList.insert(std::make_pair(packetId, &subPacket));
+    m_subPacketList.emplace(packetId, &subPacket);
     return MOS_STATUS_SUCCESS;
 }
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -41,6 +41,17 @@ namespace decode
 {
 class DecodeDownSamplingFeature: public MediaFeature
 {
+    enum HistogramBufferType
+    {
+        HistogramY = 0,
+        HistogramU,
+        HistogramV,
+        HistogramStatistics,
+        HistogramStreamIn,
+        HistogramStreamOut,
+        HistogramStreamMax
+    };
+
 public:
     using SurfaceWidthT  = decltype(MOS_SURFACE::dwWidth);
     using SurfaceHeightT = decltype(MOS_SURFACE::dwHeight);
@@ -68,6 +79,8 @@ public:
 
     virtual MOS_STATUS DumpSfcOutputs(CodechalDebugInterface* debugInterface);
 
+    virtual bool IsVDAQMHistogramEnabled() const { return m_aqmHistogramEnable; }
+
     // Downsampling input
     PMOS_SURFACE   m_inputSurface = nullptr;
     CodecRectangle m_inputSurfaceRegion = {};
@@ -92,6 +105,15 @@ public:
     bool           m_histogramDebug    = false;
     const uint32_t m_histogramBinWidth = 4;
 
+    bool           m_aqmHistogramEnable         = false;    // VDAQM histogram enabled
+    PMOS_BUFFER    m_histogramBufferU           = nullptr;  // VDAQM histogram internal buffer for current frame
+    PMOS_SURFACE   m_histogramDestSurfU         = nullptr;  // VDAQM histogram dest surface U
+    PMOS_BUFFER    m_histogramBufferV           = nullptr;  // VDAQM histogram internal buffer for current frame
+    PMOS_SURFACE   m_histogramDestSurfV         = nullptr;  // VDAQM histogram dest surface V
+    PMOS_BUFFER    m_histogramStatisticsSummary = nullptr;  // VDAQM histogram Statistics summary output address
+    PMOS_BUFFER    m_histogramMetaDataStreamOut = nullptr;  // VDAQM histogram Metadata streamout output
+    PMOS_BUFFER    m_histogramMetaDataStreamIn  = nullptr;  // VDAQM histogram Metadata streamout input
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_SURFACE    m_outputSurfaceList[DecodeBasicFeature::m_maxFrameIndex] = {}; //! \brief Downsampled surfaces
 #endif
@@ -103,14 +125,20 @@ protected:
     virtual MOS_STATUS GetDecodeTargetSize(SurfaceWidthT &width, SurfaceHeightT &height) = 0;
     virtual MOS_STATUS GetDecodeTargetFormat(MOS_FORMAT &format) = 0;
     virtual MOS_STATUS UpdateDecodeTarget(MOS_SURFACE &surface) = 0;
-    PMOS_BUFFER        AllocateHistogramBuffer(uint8_t frameIndex);
+    PMOS_BUFFER        AllocateHistogramBuffer(uint8_t frameIndex, HistogramBufferType bufferType);
+    void               FreeHistogramBuffer();
 
     PMOS_INTERFACE       m_osInterface  = nullptr;
     DecodeAllocator     *m_allocator    = nullptr;
     DecodeBasicFeature  *m_basicFeature = nullptr;
 
     InternalTargets      m_internalTargets; //!< Internal targets for downsampling input if application dosen't prepare
-    PMOS_BUFFER          m_histogramBufferList[DecodeBasicFeature::m_maxFrameIndex] = {};  //! \brief Internal histogram output buffer list
+    PMOS_BUFFER          m_histogramBufferList[DecodeBasicFeature::m_maxFrameIndex] = {};   //! \brief Internal histogram output buffer list
+    PMOS_BUFFER          m_histogramBufferUList[DecodeBasicFeature::m_maxFrameIndex] = {};  //! \brief Internal histogram U plane output buffer list
+    PMOS_BUFFER          m_histogramBufferVList[DecodeBasicFeature::m_maxFrameIndex] = {};  //! \brief Internal histogram V plane output buffer list
+    PMOS_BUFFER          m_histogramBufferStatisticsSummaryList[DecodeBasicFeature::m_maxFrameIndex] = {};  //! \brief Internal histogram statistics summary buffer list
+    PMOS_BUFFER          m_histogramBufferMetaDataStreamInList[DecodeBasicFeature::m_maxFrameIndex]  = {};  //! \brief Internal histogram stream in buffer list
+    PMOS_BUFFER          m_histogramBufferMetaDataStreamOutList[DecodeBasicFeature::m_maxFrameIndex] = {};  //! \brief Internal histogram stream out buffer list
 
 MEDIA_CLASS_DEFINE_END(decode__DecodeDownSamplingFeature)
 };

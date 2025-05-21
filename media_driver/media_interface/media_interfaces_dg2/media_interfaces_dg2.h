@@ -55,7 +55,7 @@
 #include "mhw_vdbox_avp_xe_hpm.h"
 #include "mhw_vdbox_huc_xe_hpm.h"
 #include "mhw_vdbox_avp_g12_X.h"
-#ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_vdenc_xe_hpm_ext.h"
 #else
 #include "mhw_vdbox_vdenc_xe_hpm.h"
@@ -126,7 +126,7 @@
 #endif
 
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
-#ifdef _APOGEIOS_SUPPORTED
+#ifdef _MEDIA_RESERVED
 #include "encode_vp9_vdenc_pipeline_adapter_xe_hpm.h"
 #endif
 #endif
@@ -157,7 +157,7 @@ public:
     using Mfx       = MhwVdboxMfxInterfaceXe_Xpm;
     using Hcp       = MhwVdboxHcpInterfaceXe_Hpm;
     using Huc       = MhwVdboxHucInterfaceXe_Hpm;
-#ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
     using Vdenc     = MhwVdboxVdencInterfaceXe_HpmExt;
 #else
     using Vdenc     = MhwVdboxVdencInterfaceXe_Hpm;
@@ -194,7 +194,7 @@ public:
     using Hcp       = MhwVdboxHcpInterfaceXe_Hpm;
     using Avp       = MhwVdboxAvpInterfaceXe_Hpm;
     using Huc       = MhwVdboxHucInterfaceXe_Hpm;
-#ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
     using Vdenc     = MhwVdboxVdencInterfaceXe_HpmExt;
 #else
     using Vdenc     = MhwVdboxVdencInterfaceXe_Hpm;
@@ -227,9 +227,8 @@ public:
     using Mcpy  = MediaCopyState_Xe_Hpm;
 
     MOS_STATUS Initialize(
-        PMOS_INTERFACE osInterface,
-        MhwInterfaces *mhwInterfaces);
-
+        PMOS_INTERFACE osInterface);
+protected:
     MhwInterfaces* CreateMhwInterface(
         PMOS_INTERFACE osInterface);
 };

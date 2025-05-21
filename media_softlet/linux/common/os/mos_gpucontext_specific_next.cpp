@@ -34,9 +34,7 @@
 #include "mos_os_virtualengine_next.h"
 #include "mos_interface.h"
 #include "mos_os_cp_interface_specific.h"
-#ifdef ENABLE_XE_KMD
 #include "mos_gpucontext_specific_next_xe.h"
-#endif
 
 #define MI_BATCHBUFFER_END 0x05000000
 static pthread_mutex_t command_dump_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -119,12 +117,11 @@ GpuContextNext *GpuContextSpecificNext::Create(
     {
         return MOS_New(GpuContextSpecificNext, gpuNode, cmdBufMgr, reusedContext);
     }
-#ifdef ENABLE_XE_KMD
     else if (DEVICE_TYPE_XE == type)
     {
         return MOS_New(GpuContextSpecificNextXe, gpuNode, cmdBufMgr, reusedContext);
     }
-#endif
+
     return nullptr;
 }
 
@@ -671,25 +668,29 @@ void GpuContextSpecificNext::Clear()
     }
     MOS_FreeMemAndSetNull(m_statusBufferResource);
 
-    MosUtilities::MosLockMutex(m_cmdBufPoolMutex);
-
-    if (m_cmdBufMgr)
+    if(m_cmdBufPoolMutex)
     {
-        for (auto& curCommandBuffer : m_cmdBufPool)
+        MosUtilities::MosLockMutex(m_cmdBufPoolMutex);
+
+        if (m_cmdBufMgr)
         {
-            auto curCommandBufferSpecific = static_cast<CommandBufferSpecificNext *>(curCommandBuffer);
-            if (curCommandBufferSpecific == nullptr)
-                continue;
-            curCommandBufferSpecific->waitReady(); // wait ready and return to comamnd buffer manager.
-            m_cmdBufMgr->ReleaseCmdBuf(curCommandBuffer);
+            for (auto& curCommandBuffer : m_cmdBufPool)
+            {
+                auto curCommandBufferSpecific = static_cast<CommandBufferSpecificNext *>(curCommandBuffer);
+                if (curCommandBufferSpecific == nullptr)
+                    continue;
+                curCommandBufferSpecific->waitReady(); // wait ready and return to comamnd buffer manager.
+                m_cmdBufMgr->ReleaseCmdBuf(curCommandBuffer);
+            }
         }
+
+        m_cmdBufPool.clear();
+
+        MosUtilities::MosUnlockMutex(m_cmdBufPoolMutex);
+        MosUtilities::MosDestroyMutex(m_cmdBufPoolMutex);
+        m_cmdBufPoolMutex = nullptr;
     }
 
-    m_cmdBufPool.clear();
-
-    MosUtilities::MosUnlockMutex(m_cmdBufPoolMutex);
-    MosUtilities::MosDestroyMutex(m_cmdBufPoolMutex);
-    m_cmdBufPoolMutex = nullptr;
     MOS_SafeFreeMemory(m_commandBuffer);
     m_commandBuffer = nullptr;
     MOS_SafeFreeMemory(m_allocationList);
@@ -1215,7 +1216,7 @@ MOS_STATUS GpuContextSpecificNext::MapResourcesToAuxTable(mos_linux_bo *cmd_bo)
     MOS_OS_CHK_NULL_RETURN(osCtx);
 
     AuxTableMgr *auxTableMgr = osCtx->GetAuxTableMgr();
-    if (auxTableMgr)
+    if (auxTableMgr && m_currentNumPatchLocations > 0)
     {
         // Map compress allocations to aux table if it is not mapped.
         for (uint32_t i = 0; i < m_numAllocations; i++)

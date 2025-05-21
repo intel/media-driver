@@ -23,6 +23,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/media_cmd_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_render_cmd_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/media_packet_next.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/npu_cmd_packet.cpp
 )
 
 set(TMP_HEADERS_
@@ -30,6 +31,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_cmd_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/media_render_cmd_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/media_packet.h
+    ${CMAKE_CURRENT_LIST_DIR}/npu_cmd_packet.h
 )
 set(SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_
     ${SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_}

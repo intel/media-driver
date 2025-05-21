@@ -79,6 +79,7 @@ public:
     DeclareDecodePacketId(avcPictureSubPacketId);
     DeclareDecodePacketId(avcSliceSubPacketId);
     DeclareDecodePacketId(avcFormatMonoPicPktId);
+    DeclareDecodePacketId(avcDecodeAqmId);
 
 protected:
     //!

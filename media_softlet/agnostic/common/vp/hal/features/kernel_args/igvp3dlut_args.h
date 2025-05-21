@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Intel Corporation
+ * Copyright (c) 2025, Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the
@@ -36,8 +36,6 @@ enum ARGS_3DLUT_FILLLUTTABLE
     LUT_FILLLUTTABLE_LUTSIZE,
     LUT_FILLLUTTABLE_MULSIZE,
     LUT_FILLLUTTABLE_PRIVATE_BASE_STATELESS,
-    LUT_FILLLUTTABLE_GLOBAL_ID_OFFSET,
-    LUT_FILLLUTTABLE_LOCAL_SIZE,
     LUT_FILLLUTTABLE_MAX
 };
 

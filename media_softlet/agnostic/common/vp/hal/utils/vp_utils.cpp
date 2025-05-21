@@ -423,7 +423,7 @@ MOS_STATUS VpUtils::GetPixelWithCSCForColorFill(
     else if (IS_COLOR_SPACE_BT2020(dstCspace))
     {
         // Target is BT2020, which is not supported by legacy convert
-        VP_PUBLIC_NORMALMESSAGE("Will do special convert to BT2020. Source Cspace %d. Target Cspace %d", srcCspace, dstColor);
+        VP_PUBLIC_NORMALMESSAGE("Will do special convert to BT2020. Source Cspace %d. Target Cspace %d", srcCspace, dstCspace);
         float pCscMatrix[12]     = {};
         auto  SDRDegamma_sRGB_x1 = [](float c) -> float {
             if (c <= VPHAL_HDR_EOTF_COEFF1_TRADITIONNAL_GAMMA_SRGB)
@@ -533,6 +533,41 @@ MOS_STATUS VpUtils::GetPixelWithCSCForColorFill(
             VP_PUBLIC_ASSERTMESSAGE("Not supported color fill cspace convert. Source Cspace %d. Target Cspace %d", srcCspace, dstColor);
         }
     } 
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpUtils::GetNormalizedCSCMatrix(
+    MEDIA_CSPACE src,
+    MEDIA_CSPACE dst,
+    float        cscMatrix[12])
+{
+    VP_PUBLIC_CHK_NULL_RETURN(cscMatrix);
+
+    if ((IS_COLOR_SPACE_BT2020(src) && !IS_COLOR_SPACE_BT2020(dst)) ||
+        (!IS_COLOR_SPACE_BT2020(src) && IS_COLOR_SPACE_BT2020(dst)))
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Not support hdr to sdr or sdr to hdr csc convert. Src CSpace %d, Dst CSpace %d", src, dst);
+    }
+
+    KernelDll_GetCSCMatrix(src, dst, cscMatrix);
+
+    //for BT2020RGB convert to BT2020RGB, KernelDll_GetCSCMatrix use 1023 as max bias
+    //for other cases, such as sRGB/BT709/BT601 and BT2020YUV convert BT2020RGB, KernelDll_GetCSCMatrix use 255 as max bias
+    //so need to normalize w/ different value
+    if ((src == CSpace_BT2020_stRGB && dst == CSpace_BT2020_RGB) ||
+        (src == CSpace_BT2020_RGB && dst == CSpace_BT2020_stRGB))
+    {
+        cscMatrix[3] /= 1023.f;
+        cscMatrix[7] /= 1023.f;
+        cscMatrix[11] /= 1023.f;
+    }
+    else
+    {
+        cscMatrix[3] /= 255.f;
+        cscMatrix[7] /= 255.f;
+        cscMatrix[11] /= 255.f;
+    }
 
     return MOS_STATUS_SUCCESS;
 }

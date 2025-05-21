@@ -46,13 +46,18 @@ HevcVdencFastPass::HevcVdencFastPass(
 
     //regkey to control fast pass encode settings
     MediaUserSetting::Value outValue;
-    ReadUserSetting(m_userSettingPtr,
+    MOS_STATUS statusKey = ReadUserSetting(m_userSettingPtr,
         outValue,
         "Enable Fast Pass Encode",
         MediaUserSetting::Group::Sequence);
-
-    m_enableFastPass = outValue.Get<bool>();
-    if (m_enableFastPass)
+    
+    if (statusKey == MOS_STATUS_SUCCESS)
+    {
+        m_enableFastpassFromRegKey = true;
+        m_enableFastPass           = outValue.Get<bool>();
+    }
+    
+    if (m_enableFastpassFromRegKey && m_enableFastPass)
     {
         MediaUserSetting::Value outValue_ratio;
         MediaUserSetting::Value outValue_type;
@@ -84,6 +89,19 @@ HevcVdencFastPass::HevcVdencFastPass(
 
 MOS_STATUS HevcVdencFastPass::Update(void *params)
 {
+    ENCODE_FUNC_CALL();
+    ENCODE_CHK_NULL_RETURN(params);
+    EncoderParams *encodeParams = static_cast<EncoderParams *>(params);
+    m_hevcSeqParams = static_cast<PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS>(encodeParams->pSeqParams);
+    ENCODE_CHK_NULL_RETURN(m_hevcSeqParams);
+    
+    if (!m_enableFastpassFromRegKey)
+    {
+        m_enableFastPass        = m_hevcFeature->m_hevcSeqParams->EnableFastPass;
+        m_fastPassShiftIndex    = m_hevcSeqParams->FastPassRatio;
+        m_fastPassDownScaleType = m_hevcFeature->m_hevcSeqParams->FastPassDsType;
+    }
+   
     if (!m_enableFastPass)
     {
         return MOS_STATUS_SUCCESS;

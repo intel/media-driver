@@ -112,7 +112,7 @@ MOS_STATUS VpScalingFilter::SfcAdjustBoundary(
 }
 
 template <typename T>
-inline void swap(T &a, T &b)
+inline void _swap(T &a, T &b)
 {
     T tmp = b;
     b     = a;
@@ -151,7 +151,7 @@ void VpScalingFilter::GetFormatWidthHeightAlignUnit(
     if (bRotateNeeded && bOutput)
     {
         // Output rect has been rotated in SwFilterScaling::Configure. Need to swap the alignUnit accordingly.
-        swap(widthAlignUnit, heightAlignUnit);
+        _swap(widthAlignUnit, heightAlignUnit);
     }
 }
 
@@ -506,6 +506,9 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
         float                       fScaleX = 0.0f;
         float                       fScaleY = 0.0f;
 
+        VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface);
+        VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface->m_vpPlatformInterface);
+
         if (!m_sfcScalingParams)
         {
             m_sfcScalingParams = (SFC_SCALING_PARAMS*)MOS_AllocAndZeroMemory(sizeof(SFC_SCALING_PARAMS));
@@ -569,6 +572,71 @@ MOS_STATUS VpScalingFilter::CalculateEngineParams()
         m_sfcScalingParams->dwSourceRegionWidth            = MOS_ALIGN_FLOOR(
             MOS_MIN((uint32_t)(m_scalingParams.input.rcSrc.right - m_scalingParams.input.rcSrc.left), m_sfcScalingParams->dwInputFrameWidth),
             wInputWidthAlignUnit);
+
+        m_pvpMhwInterface->m_vpPlatformInterface->SetForceVeboxInputHeight8AlignedFlag(false);
+
+        uint32_t sourceHeight = m_sfcScalingParams->dwSourceRegionHeight + m_sfcScalingParams->dwSourceRegionVerticalOffset;
+        uint32_t modHeight = sourceHeight % 32;
+
+        VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface);
+        VP_PUBLIC_CHK_NULL_RETURN(m_pvpMhwInterface->m_osInterface)
+        auto *waTable = m_pvpMhwInterface->m_osInterface->pfnGetWaTable(m_pvpMhwInterface->m_osInterface);
+        VP_PUBLIC_CHK_NULL_RETURN(waTable);
+        if (MEDIA_IS_WA(waTable, Wa_16021308716) && m_executeCaps.bSFC && (m_executeCaps.bHDR3DLUT /*|| m_executeCaps.bDN || m_executeCaps.bDI*/) &&
+            (modHeight > 0 && (modHeight <= 4)))
+        {
+            VP_PUBLIC_NORMALMESSAGE("SourceRegion need be adjusted. SourceRegionHeight = %d, SourceRegionVerticalOffset = %d, modHeight = %d, dwInputFrameHeight = %d",
+                m_sfcScalingParams->dwSourceRegionHeight,
+                m_sfcScalingParams->dwSourceRegionVerticalOffset,
+                modHeight,
+                m_sfcScalingParams->dwInputFrameHeight);
+
+            if (wInputHeightAlignUnit <= 8 &&
+                MOS_ALIGN_CEIL(m_sfcScalingParams->dwInputFrameHeight, 8) <= m_scalingParams.input.dwHeight)
+            {
+                VP_PUBLIC_NORMALMESSAGE("Sfc input height updated from %d to %d by force 8 aligned, original dwHeight %d",
+                    m_sfcScalingParams->dwInputFrameHeight,
+                    MOS_ALIGN_CEIL(m_sfcScalingParams->dwInputFrameHeight, 8),
+                    m_scalingParams.input.dwHeight);
+                m_sfcScalingParams->dwInputFrameHeight = MOS_ALIGN_CEIL(m_sfcScalingParams->dwInputFrameHeight, 8);
+                m_pvpMhwInterface->m_vpPlatformInterface->SetForceVeboxInputHeight8AlignedFlag(true);
+            }
+
+            if (wInputHeightAlignUnit <= 8 &&
+                MOS_ALIGN_CEIL(m_sfcScalingParams->dwInputFrameHeight, 8) <= m_scalingParams.input.dwHeight)
+            {
+                VP_PUBLIC_NORMALMESSAGE("Sfc input height updated from %d to %d by force 8 aligned, original dwHeight %d",
+                    m_sfcScalingParams->dwInputFrameHeight,
+                    MOS_ALIGN_CEIL(m_sfcScalingParams->dwInputFrameHeight, 8),
+                    m_scalingParams.input.dwHeight);
+                m_sfcScalingParams->dwInputFrameHeight = MOS_ALIGN_CEIL(m_sfcScalingParams->dwInputFrameHeight, 8);
+                m_pvpMhwInterface->m_vpPlatformInterface->SetForceVeboxInputHeight8AlignedFlag(true);
+            }
+
+            // Aligned delta w/ wInputHeightAlignUnit to ensure dwSourceRegionHeight and dwSourceRegionVerticalOffset being valid
+            // after adjusted.
+            uint32_t downShiftDelta = MOS_ALIGN_CEIL(5 - modHeight, wInputHeightAlignUnit);
+            uint32_t upShiftDelta = MOS_ALIGN_CEIL(modHeight, wInputHeightAlignUnit);
+
+            if (downShiftDelta <= upShiftDelta && sourceHeight + downShiftDelta <= m_sfcScalingParams->dwInputFrameHeight)
+            {
+                VP_PUBLIC_NORMALMESSAGE("SourceRegion down shift %d.", downShiftDelta);
+                m_sfcScalingParams->dwSourceRegionVerticalOffset += downShiftDelta;
+            }
+            else
+            {
+                if (m_sfcScalingParams->dwSourceRegionVerticalOffset >= upShiftDelta)
+                {
+                    VP_PUBLIC_NORMALMESSAGE("SourceRegion up shift %d.", upShiftDelta);
+                    m_sfcScalingParams->dwSourceRegionVerticalOffset -= upShiftDelta;
+                }
+                else
+                {
+                    VP_PUBLIC_NORMALMESSAGE("SourceRegion cropped %d.", upShiftDelta);
+                    m_sfcScalingParams->dwSourceRegionHeight -= upShiftDelta;
+                }
+            }
+        }
 
         // Size of the Output Region over the Render Target
         wOutputRegionHeight = MOS_ALIGN_CEIL(

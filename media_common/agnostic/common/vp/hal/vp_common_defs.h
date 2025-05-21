@@ -184,11 +184,14 @@ enum VpKernelID
     // mediacopy-render copy
     kernelRenderCopy,
 
-    kernelL0FcCommon,
-    kernelL0FcFP,
-    kernelL0Fc444PL3Input,
-    kernelL0Fc420PL3Input,
-    kernelL0Fc420PL3Output,
+    kernelOclFcCommon,
+    kernelOclFcFP,
+    kernelOclFc444PL3Input,
+    kernelOclFc444PL3Output,
+    kernelOclFc420PL3Input,
+    kernelOclFc420PL3Output,
+    kernelOclFc422HVInput,
+
     baseKernelMaxNumID
 };
 
@@ -196,9 +199,24 @@ enum VpKernelIDNext
 {
     vpKernelIDNextBase = 0x200,
     kernelHdr3DLutCalc = vpKernelIDNextBase,
-    kernelHdr3DLutCalcL0,
+    kernelHdr3DLutCalcOcl,
     kernelHVSCalc,
+
+    // AI Common
+    kernelAiCommon,
+    kernelAiCommonEnd = kernelAiCommon + 0x1000,
+
     vpKernelIDNextMax
+};
+
+//!
+//! \brief Base VP graph list
+//!
+enum VP_GRAPH_ID
+{
+    VP_GRAPH_ID_INVALID = 0,
+
+    VP_GRAPH_ID_BASE_MAX
 };
 
 typedef struct _VPHAL_COMPOSITE_CACHE_CNTL
@@ -549,7 +567,8 @@ typedef enum _VPHAL_OUTPUT_PIPE_MODE
     VPHAL_OUTPUT_PIPE_MODE_INVALID = -1,  //!< None output pipe selected. This is an invalid state
     VPHAL_OUTPUT_PIPE_MODE_COMP    = 0,   //!< Composition output pipe. RenderTarget will be written by Composition
     VPHAL_OUTPUT_PIPE_MODE_SFC     = 1,   //!< SFC output pipe. RenderTarget will be written by SFC
-    VPHAL_OUTPUT_PIPE_MODE_VEBOX   = 2    //!< Vebox output pipe. RenderTarget will be written by Vebox
+    VPHAL_OUTPUT_PIPE_MODE_VEBOX   = 2,    //!< Vebox output pipe. RenderTarget will be written by Vebox
+    VPHAL_OUTPUT_PIPE_MODE_NPU     = 3
 } VPHAL_OUTPUT_PIPE_MODE,
     *PVPHAL_OUTPUT_PIPE_MODE;
 
@@ -915,6 +934,7 @@ typedef struct _VPHAL_3DLUT_PARAMS
     uint32_t       ChannelMapping     = 0;        // Channel Mapping for the 3DLUT input to 3DLUT output.
     uint16_t       BitDepthPerChannel = 0;        // Bit Depth Per Channel(4 channels for 3DLUT).
     uint16_t       ByteCountPerEntry  = 0;        // Byte Count Per Entry including reserved bytes.
+    uint16_t       MappingMode        = 0;        // Mapping Mode
 
     VPHAL_3DLUT_INTERPOLATION InterpolationMethod = VPHAL_3DLUT_INTERPOLATION_DEFAULT;  // VEBox 3DLut interpolation mode
 } VPHAL_3DLUT_PARAMS, *PVPHAL_3DLUT_PARAMS;
@@ -1073,6 +1093,8 @@ struct VPHAL_RENDER_PARAMS
 
     bool bForceToRender = false;  // Force to render to perform scaling.
 
+    HANDLE gpuAppTaskEvent;  //!< GPU App task event
+
     VPHAL_RENDER_PARAMS() : uSrcCount(0),
                             pSrc(),
                             uDstCount(0),
@@ -1095,7 +1117,8 @@ struct VPHAL_RENDER_PARAMS
                             pExtensionData(nullptr),
                             bPathKernel(false),
                             bUseVEHdrSfc(false),
-                            bNonFirstFrame(false)
+                            bNonFirstFrame(false),
+                            gpuAppTaskEvent(nullptr)
     {
     }
 };

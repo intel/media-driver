@@ -30,7 +30,7 @@
 
 #include "mhw_vdbox_vdenc_impl.h"
 
-#ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_vdenc_impl_xe2_lpm_base_ext.h"
 #endif
 
@@ -45,6 +45,17 @@ namespace xe2_lpm_base
 template <typename cmd_t>
 class BaseImpl : public vdenc::Impl<cmd_t>
 {
+public:
+    virtual uint32_t GetCmd1CommandSize() override
+    {
+        return cmd_t::VDENC_CMD1_CMD::byteSize;
+    }
+
+    virtual uint32_t GetCmd2CommandSize() override
+    {
+        return cmd_t::VDENC_CMD2_CMD::byteSize;
+    }
+
 protected:
     using base_t = vdenc::Impl<cmd_t>;
 

@@ -34,8 +34,9 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/vp_di_filter.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_fc_filter.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_cgc_filter.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/vp_l0_fc_filter.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_ocl_fc_filter.cpp
     ${CMAKE_CURRENT_LIST_DIR}/vp_fc_wrap_filter.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/vp_ai_filter.cpp
 )
 
 set(TMP_HEADERS_
@@ -52,8 +53,9 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/vp_di_filter.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_fc_filter.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_cgc_filter.h
-    ${CMAKE_CURRENT_LIST_DIR}/vp_l0_fc_filter.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_ocl_fc_filter.h
     ${CMAKE_CURRENT_LIST_DIR}/vp_fc_wrap_filter.h
+    ${CMAKE_CURRENT_LIST_DIR}/vp_ai_filter.h
 )
 
 set(SOFTLET_VP_SOURCES_

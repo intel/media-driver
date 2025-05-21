@@ -1591,7 +1591,6 @@ void DdiVpFunctions::VpFeatureReport(PVP_CONFIG config, PDDI_VP_CONTEXT vpCtx)
         config->dwCurrentVEFeatureInUse,
         MediaUserSetting::Group::Sequence);
 
-#ifdef _MMC_SUPPORTED
     //VP Primary Surface Compress Mode Report
     ReportUserSetting(
         userSettingPtr,
@@ -1604,7 +1603,7 @@ void DdiVpFunctions::VpFeatureReport(PVP_CONFIG config, PDDI_VP_CONTEXT vpCtx)
         __VPHAL_RT_MMC_COMPRESSMODE,
         config->dwRTCompressMode,
         MediaUserSetting::Group::Sequence);
-#endif
+
     //VP RT Cache Usage
     ReportUserSetting(
         userSettingPtr,
@@ -1626,7 +1625,6 @@ void DdiVpFunctions::VpFeatureReport(PVP_CONFIG config, PDDI_VP_CONTEXT vpCtx)
         config->dwCurrentHdrMode,
         MediaUserSetting::Group::Sequence);
 
-#ifdef _MMC_SUPPORTED
     //VP MMC In Use
     ReportUserSettingForDebug(
         userSettingPtr,
@@ -1648,7 +1646,6 @@ void DdiVpFunctions::VpFeatureReport(PVP_CONFIG config, PDDI_VP_CONTEXT vpCtx)
         config->dwRTCompressible,
         MediaUserSetting::Group::Sequence);
 
-#endif
 #endif //(_DEBUG || _RELEASE_INTERNAL)
 
     if (config->dwCurrentVeboxScalability != config->dwReportedVeboxScalability)

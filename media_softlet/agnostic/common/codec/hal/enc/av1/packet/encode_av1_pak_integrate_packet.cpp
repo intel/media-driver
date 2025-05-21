@@ -51,10 +51,9 @@ namespace encode {
         ENCODE_CHK_NULL_RETURN(m_miItf);
 
         ENCODE_CHK_NULL_RETURN(m_pipeline);
-#ifdef _MMC_SUPPORTED
+
         m_mmcState = m_pipeline->GetMmcState();
         ENCODE_CHK_NULL_RETURN(m_mmcState);
-#endif
 
         return MOS_STATUS_SUCCESS;
     }
@@ -388,7 +387,7 @@ namespace encode {
         PMOS_RESOURCE osResource = nullptr;
         uint32_t      offset     = 0;
 
-        m_statusReport->GetAddress(statusReportSumSquareError, osResource, offset);
+        ENCODE_CHK_STATUS_RETURN(m_statusReport->GetAddress(statusReportSumSquareError, osResource, offset));
 
         for (auto i = 0; i < 3; i++)  // 64 bit SSE values for luma/ chroma channels need to be copied
         {

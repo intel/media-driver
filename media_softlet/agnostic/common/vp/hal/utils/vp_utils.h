@@ -64,8 +64,13 @@ using MosFormatArray = std::vector<MOS_FORMAT>;
 #define VP_PUBLIC_ASSERT(_expr)                                                   \
     MOS_ASSERT(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC, _expr)
 
+#if (_DEBUG || _RELEASE_INTERNAL)
 #define VP_PUBLIC_ASSERTMESSAGE(_message, ...)                                    \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC, _message, ##__VA_ARGS__)
+#else
+#define VP_PUBLIC_ASSERTMESSAGE(_message, ...)                                    \
+    OcaOnMosCriticalMessage(MOS_FUNCTION, __LINE__);
+#endif
 
 #define VP_PUBLIC_NORMALMESSAGE(_message, ...)                                    \
     MOS_NORMALMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC, _message, ##__VA_ARGS__)
@@ -156,8 +161,13 @@ using MosFormatArray = std::vector<MOS_FORMAT>;
 #define VP_RENDER_ASSERT(_expr)                                                   \
     MOS_ASSERT(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_RENDER, _expr)
 
+#if !(_DEBUG || _RELEASE_INTERNAL)
 #define VP_RENDER_ASSERTMESSAGE(_message, ...)                                    \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_RENDER, _message, ##__VA_ARGS__)
+#else
+#define VP_RENDER_ASSERTMESSAGE(_message, ...)                                    \
+    OcaOnMosCriticalMessage(MOS_FUNCTION, __LINE__);
+#endif
 
 #define VP_RENDER_NORMALMESSAGE(_message, ...)                                    \
     MOS_NORMALMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_RENDER, _message, ##__VA_ARGS__)
@@ -328,20 +338,24 @@ protected:
 #define __MEDIA_USER_FEATURE_VALUE_INTER_FRAME_MEMORY_NINJA_START_COUNTER "InterFrameNinjaStartCounter"
 #define __MEDIA_USER_FEATURE_VALUE_INTER_FRAME_MEMORY_NINJA_END_COUNTER "InterFrameNinjaEndCounter"
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_IFNCC                         "EnableIFNCC"
-// For L0 3DLut
-#define __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_L0_3DLUT                   "Enable L0 3DLUT"
-#define __MEDIA_USER_FEATURE_VALUE_VP_L0_3DLUT_ENABLED                  "L0 3DLUT Enabled"
+// For OCL 3DLut
+#define __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_OCL_3DLUT                  "Enable OCL 3DLUT"
+#define __MEDIA_USER_FEATURE_VALUE_VP_OCL_3DLUT_ENABLED                 "OCL 3DLUT Enabled"
 
-// For L0 FC
-#define __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_L0_FC                      "Enable L0 FC"
-#define __MEDIA_USER_FEATURE_VALUE_DISABLE_VP_L0_FC_FP                  "Disable L0 FC FP"
-#define __MEDIA_USER_FEATURE_VALUE_VP_L0_FC_ENABLED                     "L0 FC Enabled"
-#define __MEDIA_USER_FEATURE_VALUE_VP_L0_FC_REPORT                      "L0 FC Diff Report"
+// For OCL FC
+#define __MEDIA_USER_FEATURE_VALUE_ENABLE_VP_OCL_FC                      "Enable OCL FC"
+#define __MEDIA_USER_FEATURE_VALUE_DISABLE_VP_OCL_FC_FP                  "Disable OCL FC FP"
+#define __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_SUPPORTED                   "OCL FC Supported"
+#define __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_FEATURE_REPORT              "OCL FC Feature Report"
+#define __MEDIA_USER_FEATURE_VALUE_VP_OCL_FC_REPORT                      "OCL FC Diff Report"
+#define __MEDIA_USER_FEATURE_VALUE_VP_LEGACY_FC_IN_USE                   "Legacy FC In Use"
 
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_VESFC_LINEAR_OUTPUT_BY_TILECONVERT "Enable VESFC Linearoutput By TileConvert"
 
 #define  __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_ID_REPORT              "Enable VEBOX ID REPORT"
 #define  __MEDIA_USER_FEATURE_VALUE_USED_VEBOX_ID                       "USED VEBOX ID"
+#define __MEDIA_USER_FEATURE_VALUE_FALLBACK_SCALING_TO_RENDER_8K        "VP Fallback Scaling To Render 8k"
+#define __MEDIA_USER_FEATURE_VALUE_FALLBACK_SCALING_TO_RENDER_8K_REPORT "VP Fallback Scaling To Render 8k Report"
 #endif  //(_DEBUG || _RELEASE_INTERNAL)
 
 class VpUtils
@@ -467,6 +481,23 @@ public:
         float                 output[4],
         VPHAL_CSPACE          srcCspace,
         VPHAL_CSPACE          dstCspace);
+
+    //!
+    //! \brief    Get Color Space Convert Normalized Matrix
+    //! \details  Get Color Space Convert Normalized Matrix
+    //! \param    [out] pCSC_Matrix
+    //!           Pointer to float
+    //! \param    [in] src
+    //!           Source Color Space
+    //! \param    [in] dst
+    //!           Target Color Space
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful
+    //!
+    static MOS_STATUS GetNormalizedCSCMatrix(
+        MEDIA_CSPACE src,
+        MEDIA_CSPACE dst,
+        float        cscMatrix[12]);
 
 private:
     //!

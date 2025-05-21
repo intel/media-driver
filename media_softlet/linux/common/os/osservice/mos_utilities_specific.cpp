@@ -40,7 +40,6 @@
 #include <sys/types.h>
 #include <sys/sem.h>
 #include <sys/mman.h>
-#include "mos_compat.h" // libc variative definitions: backtrace
 #include "mos_user_setting.h"
 #include "mos_utilities_specific.h"
 #include "mos_utilities.h"
@@ -2465,7 +2464,7 @@ void MosUtilities::MosTraceEventInit()
             MosUtilitiesSpecificNext::m_levelEnv = static_cast<uint32_t>(strtoll(val, nullptr, 0));
         }
         m_mosTraceEnable = true;
-        m_mosTraceFilter = &MosUtilitiesSpecificNext::m_filterEnv;
+        m_mosTraceFilter = { &MosUtilitiesSpecificNext::m_filterEnv, 1};
         m_mosTraceLevel  = reinterpret_cast<uint8_t *>(&MosUtilitiesSpecificNext::m_levelEnv);
     }
     else

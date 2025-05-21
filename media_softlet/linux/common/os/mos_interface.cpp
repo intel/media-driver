@@ -2393,8 +2393,8 @@ MOS_STATUS MosInterface::GetMemoryCompressionMode(
 
     if (MEDIA_IS_SKU(skuTable, FtrXe2Compression))
     {
-        // reusing MC to mark all media engins to turn on compression
-        if (resource->pGmmResInfo->GetResFlags().Info.MediaCompressed == 1)
+        // reusing MC to mark all media engins to turn on compression w/ NotCompressed Flag
+        if (!resource->pGmmResInfo->GetResFlags().Info.NotCompressed)
         {
             resMmcMode = MOS_MEMCOMP_MC;
         }
@@ -2566,9 +2566,14 @@ MOS_STATUS MosInterface::DoubleBufferCopyResource(
             return MOS_STATUS_NULL_POINTER;
         }
     };
-
+    
+    void *mmd = nullptr;
+    if (mosDecompression && mosDecompression->GetMediaMemDecompState())
+    {
+        mmd = *mosDecompression->GetMediaMemDecompState();
+    }
     // If mmd device not registered, use media vebopx copy.
-    if (lbdMemDecomp() != MOS_STATUS_SUCCESS && mosDecompression && !mosDecompression->GetMediaMemDecompState())
+    if (lbdMemDecomp() != MOS_STATUS_SUCCESS && mosDecompression && !mmd)
     {
         MOS_OS_CRITICALMESSAGE("MMD device not registered. Use media copy instead.");
         status = MosInterface::UnifiedMediaCopyResource(streamState, inputResource, outputResource, MCPY_METHOD_BALANCE);
@@ -2934,11 +2939,12 @@ unsigned int MosInterface::GetPATIndexFromGmm(
                 return false;
             }
         };
+
         // GetDriverProtectionBits funtion could hide gmm details info,
         // and we should use GetDriverProtectionBits to replace CachePolicyGetPATIndex in future.
         // isCompressionEnable could be false temparaily.
         bool isCompressionEnable = false;
-        if (gmmResourceInfo->GetResFlags().Info.MediaCompressed     &&
+        if (gmmResourceInfo->GetResFlags().Info.NotCompressed == 0  &&
             IsFormatSupportCompression()                            &&
             gmmResourceInfo->GetResFlags().Info.Tile4 == 1          &&
             gmmResourceInfo->GetBaseWidth() > 64                    &&
@@ -3031,28 +3037,6 @@ MosCpInterface *MosInterface::GetCpInterface(MOS_STREAM_HANDLE streamState)
     return streamState ? streamState->osCpInterface : nullptr;
 }
 
-MOS_VE_HANDLE MosInterface::GetVirtualEngineState(
-    MOS_STREAM_HANDLE streamState)
-{
-    MOS_OS_FUNCTION_ENTER;
-
-    return streamState ? streamState->virtualEngineInterface : nullptr;
-}
-
-MOS_STATUS MosInterface::SetVirtualEngineState(
-    MOS_STREAM_HANDLE streamState,
-    MOS_VE_HANDLE veState)
-{
-    MOS_OS_FUNCTION_ENTER;
-
-    MOS_OS_CHK_NULL_RETURN(streamState);
-    MOS_OS_CHK_NULL_RETURN(veState);
-
-    streamState->virtualEngineInterface = veState;
-
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS MosInterface::CreateVirtualEngineState(
     MOS_STREAM_HANDLE streamState,
     PMOS_VIRTUALENGINE_INIT_PARAMS veInitParms,
@@ -3118,22 +3102,44 @@ MOS_STATUS MosInterface::GetVeHintParams(
     return streamState->virtualEngineInterface->GetHintParams(scalableMode, hintParams);
 }
 
-MOS_STATUS MosInterface::SetVeSubmissionType(
-    MOS_STREAM_HANDLE     streamState,
-    COMMAND_BUFFER_HANDLE cmdBuf,
-    MOS_SUBMISSION_TYPE   type)
+MOS_STATUS MosInterface::SetHybridCmdMgrToGpuContext(
+    PMOS_INTERFACE pOsInterface,
+    uint64_t       gpuCtxOnHybridCmd)
 {
-    MOS_OS_CHK_NULL_RETURN(cmdBuf);
-    MOS_OS_CHK_NULL_RETURN(streamState);
-    MOS_OS_CHK_NULL_RETURN(streamState->virtualEngineInterface);
+    return MOS_STATUS_SUCCESS;
+}
 
-    return streamState->virtualEngineInterface->SetSubmissionType(cmdBuf, type);
+MOS_STATUS MosInterface::SetHybridCmdMgrSubmitMode(
+    PMOS_INTERFACE pOsInterface,
+    uint64_t       hybridMgrSubmitMode)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::StartHybridCmdMgr(
+    PMOS_INTERFACE pOsInterface)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::StopHybridCmdMgr(
+    PMOS_INTERFACE pOsInterface)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::SubmitPackage(
+    PMOS_INTERFACE pOsInterface,
+    CmdPackage    &cmdPackage)
+{
+    return MOS_STATUS_SUCCESS;
 }
 
 #if _DEBUG || _RELEASE_INTERNAL
 
-uint8_t MosInterface::GetVeEngineCount(
-    MOS_STREAM_HANDLE streamState)
+    uint8_t
+    MosInterface::GetVeEngineCount(
+        MOS_STREAM_HANDLE streamState)
 {
     return streamState && streamState->virtualEngineInterface ?
         streamState->virtualEngineInterface->GetEngineCount() : 0;
@@ -3843,7 +3849,8 @@ MOS_FORMAT MosInterface::GmmFmtToMosFmt(
         {GMM_FORMAT_R24_UNORM_X8_TYPELESS, Format_D24S8UN},
         {GMM_FORMAT_R32_FLOAT_X8X24_TYPELESS, Format_D32S8X24_FLOAT},
         {GMM_FORMAT_R16G16_SINT_TYPE, Format_R16G16S},
-        {GMM_FORMAT_R32G32B32A32_FLOAT, Format_R32G32B32A32F}};
+        {GMM_FORMAT_R32G32B32A32_FLOAT, Format_R32G32B32A32F},
+        {GMM_FORMAT_R8G8_UNORM_TYPE, Format_R8G8UN}};
 
     auto iter = gmm2MosFmtMap.find(format);
     if (iter != gmm2MosFmtMap.end())
@@ -3905,7 +3912,8 @@ GMM_RESOURCE_FORMAT MosInterface::MosFmtToGmmFmt(MOS_FORMAT format)
         {Format_R10G10B10A2,    GMM_FORMAT_R10G10B10A2_UNORM_TYPE},
         {Format_B10G10R10A2,    GMM_FORMAT_B10G10R10A2_UNORM_TYPE},
         {Format_A16B16G16R16F,  GMM_FORMAT_R16G16B16A16_FLOAT},
-        {Format_R32G32B32A32F,  GMM_FORMAT_R32G32B32A32_FLOAT}
+        {Format_R32G32B32A32F,  GMM_FORMAT_R32G32B32A32_FLOAT},
+        {Format_R8G8UN,         GMM_FORMAT_R8G8_UNORM_TYPE}
     };
     
     auto iter = mos2GmmFmtMap.find(format);
@@ -4122,4 +4130,8 @@ bool MosInterface::m_bTrinity = false;
 void MosInterface::SetIsTrinityEnabled(bool bTrinity)
 {
     return;
+}
+bool MosInterface::IsGpuSyncByCmd(MOS_STREAM_HANDLE streamState)
+{
+    return false;
 }

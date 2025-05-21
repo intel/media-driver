@@ -54,7 +54,7 @@ MOS_STATUS VpHdrFilter::Prepare()
 MOS_STATUS VpHdrFilter::Destroy()
 {
     VP_FUNC_CALL();
-    for (auto &handle : m_renderHdr3DLutL0Params)
+    for (auto &handle : m_renderHdr3DLutOclParams)
     {
         KRN_ARG &krnArg = handle.second;
         MOS_FreeMemAndSetNull(krnArg.pData);
@@ -116,7 +116,7 @@ MOS_STATUS VpHdrFilter::CalculateEngineParams(
         m_renderHdr3DLutParams.threadWidth  = hdrParams.lutSize;
         m_renderHdr3DLutParams.threadHeight = hdrParams.lutSize;
 
-        if (hdrParams.isL0KernelEnabled == false)
+        if (hdrParams.isOclKernelEnabled == false)
         {
             KRN_ARG krnArg  = {};
             krnArg.uIndex   = 0;
@@ -157,18 +157,18 @@ MOS_STATUS VpHdrFilter::CalculateEngineParams(
             uint32_t    localDepth             = 1;
             m_renderHdr3DLutParams.localWidth  = localWidth;
             m_renderHdr3DLutParams.localHeight = localHeight;
-            m_renderHdr3DLutParams.kernelId    = (VpKernelID)kernelHdr3DLutCalcL0;
+            m_renderHdr3DLutParams.kernelId    = (VpKernelID)kernelHdr3DLutCalcOcl;
 
             //step 1: setting curbe arguments
             for (auto const &kernelArg : kernelArgs)
             {
                 uint32_t uIndex    = kernelArg.uIndex;
-                auto     argHandle = m_renderHdr3DLutL0Params.find(uIndex);
-                if (argHandle == m_renderHdr3DLutL0Params.end())
+                auto     argHandle = m_renderHdr3DLutOclParams.find(uIndex);
+                if (argHandle == m_renderHdr3DLutOclParams.end())
                 {
                     KRN_ARG krnArg = {};
-                    argHandle      = m_renderHdr3DLutL0Params.insert(std::make_pair(uIndex, krnArg)).first;
-                    VP_PUBLIC_CHK_NOT_FOUND_RETURN(argHandle, &m_renderHdr3DLutL0Params);
+                    argHandle      = m_renderHdr3DLutOclParams.insert(std::make_pair(uIndex, krnArg)).first;
+                    VP_PUBLIC_CHK_NOT_FOUND_RETURN(argHandle, &m_renderHdr3DLutOclParams);
                 }
                 KRN_ARG &krnArg = argHandle->second;
                 krnArg.uIndex   = uIndex;
@@ -186,7 +186,7 @@ MOS_STATUS VpHdrFilter::CalculateEngineParams(
                     VP_PUBLIC_CHK_VALUE_RETURN(krnArg.uSize, kernelArg.uSize);
                     MOS_ZeroMemory(krnArg.pData, krnArg.uSize);
                 }
-                uint16_t mulSize = hdrParams.lutSize == 65 ? 128 : 64;
+                uint32_t mulSize = hdrParams.lutSize == 65 ? 128 : 64;
                 krnArg.eArgKind  = kernelArg.eArgKind;
                 switch (krnArg.uIndex)
                 {
@@ -200,17 +200,11 @@ MOS_STATUS VpHdrFilter::CalculateEngineParams(
                     break;
                 case LUT_FILLLUTTABLE_LUTSIZE:
                     VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
-                    MOS_SecureMemcpy(krnArg.pData, kernelArg.uSize, &hdrParams.lutSize, sizeof(uint16_t));
+                    MOS_SecureMemcpy(krnArg.pData, kernelArg.uSize, &hdrParams.lutSize, sizeof(hdrParams.lutSize));
                     break;
                 case LUT_FILLLUTTABLE_MULSIZE:
                     VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
-                    MOS_SecureMemcpy(krnArg.pData, kernelArg.uSize, &mulSize, sizeof(uint16_t));
-                    break;
-                case LUT_FILLLUTTABLE_LOCAL_SIZE:
-                    VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
-                    static_cast<uint32_t *>(krnArg.pData)[0] = localWidth;
-                    static_cast<uint32_t *>(krnArg.pData)[1] = localHeight;
-                    static_cast<uint32_t *>(krnArg.pData)[2] = localDepth;
+                    MOS_SecureMemcpy(krnArg.pData, kernelArg.uSize, &mulSize, sizeof(mulSize));
                     break;
                 default:
                     bInit = false;

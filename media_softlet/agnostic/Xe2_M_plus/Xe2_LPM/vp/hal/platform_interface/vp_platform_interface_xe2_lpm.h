@@ -57,6 +57,7 @@ public:
     virtual VpCmdPacket *CreateVeboxPacket(MediaTask * task, _VP_MHWINTERFACE *hwInterface, VpAllocator *&allocator, VPMediaMemComp *mmc);
     virtual MOS_STATUS CreateSfcRender(SfcRenderBase *&sfcRender, VP_MHWINTERFACE &vpMhwinterface, PVpAllocator allocator);
     virtual VpCmdPacket *CreateRenderPacket(MediaTask * task, _VP_MHWINTERFACE *hwInterface, VpAllocator *&allocator, VPMediaMemComp *mmc, VpKernelSet* kernel);
+    virtual VpCmdPacket      *CreateNpuPacket(MediaTask *task, _VP_MHWINTERFACE *hwInterface, VpAllocator *&allocator, VPMediaMemComp *mmc, VpGraphSet *graph);
     virtual MOS_STATUS VeboxQueryStatLayout(
         VEBOX_STAT_QUERY_TYPE queryType,
         uint32_t* pQuery);
@@ -73,6 +74,8 @@ public:
     virtual MOS_STATUS ConfigureVpScalability(VP_MHWINTERFACE &vpMhwInterface);
 
     virtual MOS_STATUS InitPolicyRules(VP_POLICY_RULES &rules) override;
+
+    virtual MOS_STATUS InitVpFeatureSupportBits() override;
 
 protected:
     bool m_disableSfcDithering = false;

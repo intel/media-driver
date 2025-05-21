@@ -49,6 +49,7 @@ public:
     }
 
     MOS_STATUS SetEuThreadSchedulingMode(uint32_t mode);
+    MOS_STATUS SetLargeGrfMode(uint32_t mode);
 
     virtual MOS_STATUS Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket) override;
 
@@ -67,7 +68,9 @@ public:
 
     virtual MOS_STATUS SetDnHVSParams(PRENDER_DN_HVS_CAL_PARAMS params);
 
-    virtual MOS_STATUS SetL0FcParams(PRENDER_L0_FC_PARAMS params);
+    virtual MOS_STATUS SetOclFcParams(PRENDER_OCL_FC_PARAMS params);
+
+    virtual MOS_STATUS SetAiParams(PRENDER_AI_PARAMS params);
 
     virtual MOS_STATUS DumpOutput() override;
 
@@ -90,6 +93,8 @@ protected:
     virtual MOS_STATUS SetupSurfaceState();
 
     virtual MOS_STATUS SetupCurbeState();
+
+    virtual MOS_STATUS SetupCurbeStateInBindlessMode();
 
     virtual VP_SURFACE* GetSurface(SurfaceType type);
 

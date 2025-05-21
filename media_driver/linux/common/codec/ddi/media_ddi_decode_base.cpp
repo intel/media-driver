@@ -1238,7 +1238,6 @@ VAStatus DdiMediaDecode::CreateCodecHal(
         return vaStatus;
     }
 
-#ifdef _MMC_SUPPORTED
     if (!osInterface->apoMosEnabled                                                  &&
         MEDIA_IS_SKU(osInterface->pfnGetSkuTable(osInterface), FtrMemoryCompression) &&
         !mediaCtx->pMediaMemDecompState)
@@ -1246,7 +1245,6 @@ VAStatus DdiMediaDecode::CreateCodecHal(
         mediaCtx->pMediaMemDecompState =
             static_cast<MediaMemDecompState *>(MmdDevice::CreateFactory(mosCtx));
     }
-#endif
 
     m_ddiDecodeCtx->pCpDdiInterface->CreateCencDecode(codecHal->GetDebugInterface(), mosCtx, m_codechalSettings);
 

@@ -1,7 +1,7 @@
 
 /*===================== begin_copyright_notice ==================================
 
-# Copyright (c) 2021-2024, Intel Corporation
+# Copyright (c) 2021-2025, Intel Corporation
 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -42,7 +42,7 @@
 #include <cstddef>
 #include "media_class_trace.h"
 
-#ifdef IGFX_AQM_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_aqm_hwcmd_ext.h"
 #endif
 
@@ -339,7 +339,7 @@ public:
         static const size_t byteSize = 8;
     };
 
-#ifdef IGFX_AQM_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_aqm_hwcmd_xe2_hpm_ext.h"
 #else
     //!
@@ -1031,6 +1031,14 @@ public:
         static const size_t dwSize = 3;
         static const size_t byteSize = 12;
     };
+
+#ifdef _MEDIA_RESERVED
+    #include "mhw_vdbox_aqm_hwcmd_xe2_hpm_ext.h"
+#else
+    struct AQM_HIST_STATE_CMD {};
+    struct AQM_HIST_BUFF_ADDR_STATE_CMD {};
+    struct AQM_HIST_FLUSH_CMD {};
+#endif
 
 MEDIA_CLASS_DEFINE_END(mhw__vdbox__aqm__xe2_hpm__Cmd)
 };

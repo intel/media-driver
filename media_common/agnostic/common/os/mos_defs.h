@@ -512,6 +512,7 @@ enum MOS_COMPONENT
     COMPONENT_MEMDECOMP,
     COMPONENT_MCPY,
     COMPONENT_OCA,
+    COMPONENT_MOS,
 };
 C_ASSERT(COMPONENT_OCA == 11);  // When adding, update assert
 

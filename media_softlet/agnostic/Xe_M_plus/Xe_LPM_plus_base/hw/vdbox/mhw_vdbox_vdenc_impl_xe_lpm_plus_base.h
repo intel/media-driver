@@ -44,6 +44,17 @@ namespace xe_lpm_plus_base
 template <typename cmd_t>
 class BaseImplGeneric : public vdenc::Impl<cmd_t>
 {
+public:
+    virtual uint32_t GetCmd1CommandSize() override
+    {
+        return cmd_t::VDENC_CMD1_CMD::byteSize;
+    }
+
+    virtual uint32_t GetCmd2CommandSize() override
+    {
+        return cmd_t::VDENC_CMD2_CMD::byteSize;
+    }
+
 protected:
     using base_t = vdenc::Impl<cmd_t>;
 
@@ -110,6 +121,16 @@ protected:
 
         return MOS_STATUS_SUCCESS;
     }
+    _MHW_SETCMD_OVERRIDE_DECL(VDENC_AVC_IMG_STATE)
+    {
+        _MHW_SETCMD_CALLBASE(VDENC_AVC_IMG_STATE);
+
+#define DO_FIELDS_EXT() \
+        __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_AVC_IMG_STATE_IMPL_XE_LPM_BASE_EXT)
+
+#include "mhw_hwcmd_process_cmdfields.h"
+    }
+
 MEDIA_CLASS_DEFINE_END(mhw__vdbox__vdenc__xe_lpm_plus_base__BaseImplGeneric)
 };
 }  // namespace xe_lpm_plus_base

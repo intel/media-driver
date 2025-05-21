@@ -58,6 +58,9 @@ public:
     {
         return MOS_STATUS_SUCCESS;
     }
+
+    bool IsVeboxTypeHMode();
+
 protected:
     VpInterface& m_vpInterface;
     FeatureType     m_type;
@@ -289,6 +292,89 @@ protected:
 
 MEDIA_CLASS_DEFINE_END(vp__SwFilterCgcHandler)
 };
+
+template <class SwFilterClassType, FeatureType Type>
+class SwFilterAiBaseHandler : public SwFilterFeatureHandler
+{
+public:
+    SwFilterAiBaseHandler(VpInterface &vpInterface) : SwFilterFeatureHandler(vpInterface, Type), m_swFilterFactory(vpInterface) {};
+    virtual ~SwFilterAiBaseHandler();
+    virtual SwFilter  *CreateSwFilter();
+    virtual MOS_STATUS InitializePipeIntermediateSurface(PVPHAL_SURFACE vphalSurf, bool isNpuShared = false);
+
+    // This need to be implemented by derived class
+    virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType) = 0;
+    // If the feature needs pre/post processing, then return 3, otherwise return 1
+    virtual int GetPipeCountForProcessing(VP_PIPELINE_PARAMS &params) override = 0;
+    // If the feature needs pre/post processing, then override this function, ottherwise just return MOS_STATUS_SUCCESS
+    virtual MOS_STATUS UpdateParamsForProcessing(VP_PIPELINE_PARAMS &params, int index) override = 0;
+
+protected:
+    virtual void Destory(SwFilter*& swFilter)
+    {
+        VP_FUNC_CALL();
+        SwFilterClassType *filter = dynamic_cast<SwFilterClassType *>(swFilter);
+        m_swFilterFactory.Destory(filter);
+    }
+
+protected:
+    SwFilterFactory<SwFilterClassType> m_swFilterFactory;
+
+MEDIA_CLASS_DEFINE_END(vp__SwFilterAiBaseHandler)
+};
+
+template <class SwFilterClassType, FeatureType Type>
+SwFilterAiBaseHandler<SwFilterClassType, Type>::~SwFilterAiBaseHandler()
+{
+}
+
+template <class SwFilterClassType, FeatureType Type>
+SwFilter *SwFilterAiBaseHandler<SwFilterClassType, Type>::CreateSwFilter()
+{
+    VP_FUNC_CALL();
+    SwFilter *swFilter = nullptr;
+    swFilter           = m_swFilterFactory.Create();
+    if (swFilter)
+    {
+        swFilter->SetFeatureType(Type);
+    }
+
+    return swFilter;
+}
+
+template <class SwFilterClassType, FeatureType Type>
+MOS_STATUS SwFilterAiBaseHandler<SwFilterClassType, Type>::InitializePipeIntermediateSurface(PVPHAL_SURFACE vphalSurf, bool isNpuShared)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(vphalSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetPrimaryResourceManager());
+    if (!Mos_ResourceIsNull(&vphalSurf->OsResource))
+    {
+        //this is not an empty vphal surface or the pipeline intermediate surface has already been initialized
+        return MOS_STATUS_SUCCESS;
+    }
+
+    bool        allocated       = false;
+    PVP_SURFACE originVpSurface = vphalSurf->pPipeIntermediateSurface;
+
+    if (isNpuShared)
+    {
+        uint32_t size = MOS_MAX(1, vphalSurf->dwWidth) * MOS_MAX(1, vphalSurf->dwHeight);
+        VP_PUBLIC_CHK_STATUS_RETURN(m_vpInterface.GetAllocator().ReAllocateNpuBuffer(vphalSurf->pPipeIntermediateSurface, "VpPipelineNpuIntermediateSurface", size, allocated));
+    }
+    else
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(m_vpInterface.GetAllocator().ReAllocateVpSurfaceWithSameConfigOfVphalSurface(
+            vphalSurf->pPipeIntermediateSurface,
+            vphalSurf,
+            "VpPipelineIntermediateSurface",
+            allocated));
+    }
+
+    VP_PUBLIC_CHK_STATUS_RETURN(m_vpInterface.GetPrimaryResourceManager()->EmplaceCrossPipeContextResource(vphalSurf->pPipeIntermediateSurface, allocated ? originVpSurface : nullptr));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 }
 
 #endif //__SW_FILTER_HANDLE_H__

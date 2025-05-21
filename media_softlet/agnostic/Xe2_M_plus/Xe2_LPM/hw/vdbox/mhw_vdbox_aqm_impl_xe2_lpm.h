@@ -51,7 +51,7 @@ protected:
 public:
     Impl(PMOS_INTERFACE osItf) : base_t(osItf){};
 
-#ifdef IGFX_AQM_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_aqm_impl_xe2_lpm_ext.h"
 #endif
 

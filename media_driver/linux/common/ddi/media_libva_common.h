@@ -39,10 +39,8 @@ class CmdBufMgr;
 #include "mos_os.h"
 #include "mos_auxtable_mgr.h"
 
-#ifdef _MANUAL_SOFTLET_
 #include "ddi_media_functions.h"
 #include "media_interfaces_hwinfo.h"
-#endif
 
 #include <va/va.h>
 #include <va/va_backend.h>

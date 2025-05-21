@@ -249,10 +249,10 @@ MOS_STATUS VpRenderHdr3DLutKernel::SetupSurfaceState()
 
     UpdateCurbeBindingIndex(SurfaceType3DLut, BI_VEBOX_HDR_3DLUT_3DLUT);
     kernelSurfaceParam.isOutput                         = true;
-    m_surfaceState.insert(std::make_pair(SurfaceType3DLut, kernelSurfaceParam));
+    m_surfaceState.emplace(SurfaceType3DLut, kernelSurfaceParam);
     UpdateCurbeBindingIndex(SurfaceType3DLutCoef, BI_VEBOX_HDR_3DLUT_COEF);
     kernelSurfaceParam.isOutput                         = false;
-    m_surfaceState.insert(std::make_pair(SurfaceType3DLutCoef, kernelSurfaceParam));
+    m_surfaceState.emplace(SurfaceType3DLutCoef, kernelSurfaceParam);
 
     VP_RENDER_CHK_STATUS_RETURN(InitCoefSurface(m_maxDisplayLum, m_maxContentLevelLum, m_hdrMode));
 
@@ -390,7 +390,16 @@ MOS_STATUS VpRenderHdr3DLutKernel::InitCoefSurface(const uint32_t maxDLL, const 
         CalcCCMMatrix();
         MOS_SecureMemcpy(ccmMatrix, sizeof(float) * 12, color_matrix_calculation, sizeof(float) * 12);
 
-        tmMode    = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2S;
+        if (maxDLL > 800)
+        {
+            tmMode = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2E;
+            VP_RENDER_NORMALMESSAGE("Change curve to H2E, maxDLL %d", maxDLL);
+        }
+        else
+        {
+            tmMode = (TONE_MAPPING_MODE)TONE_MAPPING_MODE_H2S;
+        }
+
         oetfCurve = (OETF_CURVE_TYPE)OETF_SRGB;
         tmSrcType = (TONE_MAPPING_SOURCE_TYPE)TONE_MAPPING_SOURCE_PSEUDO_Y_BT709;
     }
@@ -427,6 +436,18 @@ MOS_STATUS VpRenderHdr3DLutKernel::InitCoefSurface(const uint32_t maxDLL, const 
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpRenderHdr3DLutKernel::SetPerfTag()
+{
+    VP_FUNC_CALL();
+    VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
+    auto osInterface = m_hwInterface->m_osInterface;
+    VP_RENDER_CHK_NULL_RETURN(osInterface);
+    VP_RENDER_CHK_NULL_RETURN(osInterface->pfnSetPerfTag);
+
+    osInterface->pfnSetPerfTag(osInterface, VPHAL_EU3DLUT);
+    return MOS_STATUS_SUCCESS;
+}
+
 VpRenderHdr3DLutKernelCM::VpRenderHdr3DLutKernelCM(PVP_MHWINTERFACE hwInterface, VpKernelID kernelID, uint32_t kernelIndex, PVpAllocator allocator) : 
     VpRenderHdr3DLutKernel(hwInterface, kernelID, kernelIndex, VP_HDR_KERNEL_NAME, allocator)
 {
@@ -444,7 +465,7 @@ MOS_STATUS VpRenderHdr3DLutKernelCM::Init(VpRenderKernel &kernel)
 {
     VP_FUNC_CALL();
     m_kernelSize = kernel.GetKernelSize() + KERNEL_BINARY_PADDING_SIZE;
-
+    m_kernelPaddingSize = KERNEL_BINARY_PADDING_SIZE;
     uint8_t *pKernelBin = (uint8_t *)kernel.GetKernelBinPointer();
     VP_RENDER_CHK_NULL_RETURN(pKernelBin);
 
@@ -572,10 +593,10 @@ MOS_STATUS VpRenderHdr3DLutKernelCM::SetupSurfaceState()
 
     UpdateCurbeBindingIndex(SurfaceType3DLut, BI_VEBOX_HDR_3DLUT_3DLUT_CM);
     kernelSurfaceParam.isOutput                         = true;
-    m_surfaceState.insert(std::make_pair(SurfaceType3DLut, kernelSurfaceParam));
+    m_surfaceState.emplace(SurfaceType3DLut, kernelSurfaceParam);
     UpdateCurbeBindingIndex(SurfaceType3DLutCoef, BI_VEBOX_HDR_3DLUT_COEF_CM);
     kernelSurfaceParam.isOutput                         = false;
-    m_surfaceState.insert(std::make_pair(SurfaceType3DLutCoef, kernelSurfaceParam));
+    m_surfaceState.emplace(SurfaceType3DLutCoef, kernelSurfaceParam);
     
     VP_RENDER_CHK_STATUS_RETURN(InitCoefSurface(m_maxDisplayLum, m_maxContentLevelLum, m_hdrMode));
 
@@ -634,5 +655,17 @@ MOS_STATUS VpRenderHdr3DLutKernelCM::SetKernelConfigs(KERNEL_CONFIGS& kernelConf
             m_maxDisplayLum, m_maxContentLevelLum, m_hdrMode);
     }
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpRenderHdr3DLutKernelCM::SetPerfTag()
+{
+    VP_FUNC_CALL();
+    VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
+    auto osInterface = m_hwInterface->m_osInterface;
+    VP_RENDER_CHK_NULL_RETURN(osInterface);
+    VP_RENDER_CHK_NULL_RETURN(osInterface->pfnSetPerfTag);
+
+    osInterface->pfnSetPerfTag(osInterface, VPHAL_EU3DLUT);
     return MOS_STATUS_SUCCESS;
 }

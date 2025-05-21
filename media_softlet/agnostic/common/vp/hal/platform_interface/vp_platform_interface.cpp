@@ -138,7 +138,7 @@ MOS_STATUS VpPlatformInterface::InitVPFCKernels(
             patchKernelSize,
             ModifyFunctionPointers);
 
-        m_kernelPool.insert(std::make_pair(vpKernel.GetKernelName(), vpKernel));
+        m_kernelPool.emplace(vpKernel.GetKernelName(), vpKernel);
     }
 
     return MOS_STATUS_SUCCESS;
@@ -260,7 +260,7 @@ void VpPlatformInterface::AddVpIsaKernelEntryToList(
     else
     {
         m_vpDelayLoadedBinaryList.push_back(tmpEntry);
-        m_vpDelayLoadedFeatureSet.insert(std::make_pair(delayKernelType, false));
+        m_vpDelayLoadedFeatureSet.emplace(delayKernelType, false);
     }
 }
 
@@ -275,7 +275,7 @@ void VpPlatformInterface::AddVpNativeAdvKernelEntryToList(
     tmpEntry.kernelBin     = kernelBin;
     tmpEntry.kernelBinSize = kernelBinSize;
 
-    m_vpNativeAdvKernelBinaryList.insert(std::make_pair(kernelName, tmpEntry));
+    m_vpNativeAdvKernelBinaryList.emplace(kernelName, tmpEntry);
 }
 
 void VpPlatformInterface::InitVpDelayedNativeAdvKernel(
@@ -296,7 +296,7 @@ void VpPlatformInterface::AddNativeAdvKernelToDelayedList(
     DelayLoadedFunc       func)
 {
     VP_FUNC_CALL();
-    m_vpDelayLoadedNativeFunctionSet.insert(std::make_pair(kernelType, func));
+    m_vpDelayLoadedNativeFunctionSet.emplace(kernelType, func);
 }
 
 void       KernelDll_ModifyFunctionPointers_Next(Kdll_State *pState);
@@ -357,7 +357,7 @@ void VpPlatformInterface::InitVpNativeAdvKernels(
     vpKernel.SetKernelName(kernelName);
     vpKernel.SetKernelBinOffset(0x0);
     vpKernel.SetKernelBinSize(kernelBinaryEntry.kernelBinSize);
-    m_kernelPool.insert(std::make_pair(vpKernel.GetKernelName(), vpKernel));
+    m_kernelPool.emplace(vpKernel.GetKernelName(), vpKernel);
 
     return;
 }
@@ -522,7 +522,7 @@ MOS_STATUS VpPlatformInterface::InitVpCmKernels(
             vpKernel.AddKernelArg(kernelArg);
         }
 
-        m_kernelPool.insert(std::make_pair(vpKernel.GetKernelName(), vpKernel));
+        m_kernelPool.emplace(vpKernel.GetKernelName(), vpKernel);
     }
 
     MOS_Delete(isaFile);
@@ -645,6 +645,14 @@ MOS_STATUS VpPlatformInterface::GetInputFrameWidthHeightAlignUnit(
     return eStatus;
 }
 
+void VpPlatformInterface::SetForceVeboxInputHeight8AlignedFlag(bool enable)
+{
+    if (m_veboxItf)
+    {
+        m_veboxItf->SetForceInputHeight8AlignedFlag(enable);
+    }   
+}
+
 MOS_STATUS VpPlatformInterface::GetVeboxHeapInfo(
     PVP_MHWINTERFACE          pvpMhwInterface,
     const MHW_VEBOX_HEAP    **ppVeboxHeap)
@@ -740,5 +748,5 @@ void VpPlatformInterface::InitVpDelayedNativeAdvKernel(
         vpKernel.AddKernelBti(kernelBtis[i]);
     }
 
-    m_kernelPool.insert(std::make_pair(vpKernel.GetKernelName(), vpKernel));
+    m_kernelPool.emplace(vpKernel.GetKernelName(), vpKernel);
 }

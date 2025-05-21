@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -145,10 +145,8 @@ namespace decode{
             return MOS_STATUS_INVALID_PARAMETER;
         }
 
-#ifdef _MMC_SUPPORTED
         m_mmcState = m_av1Pipeline->GetMmcState();
         DECODE_CHK_NULL(m_mmcState);
-#endif
 
         DECODE_CHK_STATUS(SetRowstoreCachingOffsets());
 
@@ -1006,11 +1004,10 @@ namespace decode{
         dstSurfaceParams.ucBitDepthChromaMinus8     = m_av1PicParams->m_bitDepthIdx << 1;
         dstSurfaceParams.dwUVPlaneAlignment         = 8;
 
-#ifdef _MMC_SUPPORTED
         DECODE_CHK_STATUS(m_mmcState->SetSurfaceMmcState(&(m_av1BasicFeature->m_destSurface)));
         DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(dstSurfaceParams.psSurface, &dstSurfaceParams.mmcState));
         DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(dstSurfaceParams.psSurface, &dstSurfaceParams.dwCompressionFormat));
-#endif
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1018,11 +1015,9 @@ namespace decode{
     {
         DECODE_FUNC_CALL();
 
-#ifdef _MMC_SUPPORTED
         //Record each reference surface mmc state
         uint8_t  skipMask          = 0;
         uint32_t compressionFormat = 0;
-#endif
 
         if (m_av1PicParams->m_picInfoFlags.m_fields.m_frameType != keyFrame && m_av1PicParams->m_picInfoFlags.m_fields.m_frameType != intraOnlyFrame)
         {
@@ -1062,7 +1057,7 @@ namespace decode{
                 refSurfaceParams[i].dwUVPlaneAlignment         = 8;
                 refSurfaceParams[i].psSurface                  = &refSurface[i];
                 refSurfaceParams[i].ucSurfaceStateId           = surfaceId[i];
-            #ifdef _MMC_SUPPORTED
+
                 DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(refSurfaceParams[i].psSurface, &refSurfaceParams[i].mmcState));
                 DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(refSurfaceParams[i].psSurface, &refSurfaceParams[i].dwCompressionFormat));
                 if (refSurfaceParams[i].mmcState == MOS_MEMCOMP_DISABLED)
@@ -1074,10 +1069,8 @@ namespace decode{
                     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(refSurfaceParams[i].psSurface, &compressionFormat));
                 }
                 DECODE_NORMALMESSAGE("AV1 MMC skip mask is %d compression format %d\n", skipMask, compressionFormat);
-            #endif
             }
 
-#ifdef _MMC_SUPPORTED
             if (m_mmcState->IsMmcEnabled())
             {
                 for (auto i = 0; i < av1TotalRefsPerFrame; i++)
@@ -1090,7 +1083,6 @@ namespace decode{
                     refSurfaceParams[i].dwCompressionFormat = compressionFormat;
                 }
             }
-#endif
         }
 
         return MOS_STATUS_SUCCESS;
@@ -1131,6 +1123,11 @@ namespace decode{
             DECODE_CHK_STATUS(SetAvpRefSurfaceParams(refSurfaceParams));
             for (uint8_t i = 0; i < av1TotalRefsPerFrame; i++)
             {
+                if (m_av1BasicFeature->m_bitDepth == 10 &&
+                    m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+                {
+                    refSurfaceParams[i].psSurface->Format = Format_P010;
+                }
                 DECODE_CHK_STATUS(m_avpInterface->AddAvpSurfaceCmd(&cmdBuffer, &refSurfaceParams[i]));
             }
         }
@@ -1422,9 +1419,9 @@ namespace decode{
 
         MhwVdboxAvpPipeBufAddrParams pipeBufAddrParams = {};
         DECODE_CHK_STATUS(SetAvpPipeBufAddrParamsForDummyWL(pipeBufAddrParams));
-#ifdef _MMC_SUPPORTED
+
         pipeBufAddrParams.m_preDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
-#endif
+
         DECODE_CHK_STATUS(m_avpInterface->AddAvpPipeBufAddrCmd(&cmdBuffer, &pipeBufAddrParams));
 
         return MOS_STATUS_SUCCESS;
@@ -1497,6 +1494,8 @@ namespace decode{
                 }
             }
         }
+
+        DECODE_CHK_STATUS(m_av1BasicFeature->m_refFrames.GetValidReferenceIndex(&picStateParams.m_validRefPicIdx));
 
         return MOS_STATUS_SUCCESS;
     }

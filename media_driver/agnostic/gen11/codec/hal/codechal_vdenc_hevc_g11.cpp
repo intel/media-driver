@@ -35,7 +35,7 @@
 #include "mhw_vdbox_vdenc_g11_X.h"
 #include "codechal_huc_cmd_initializer_g11.h"
 #include "codechal_debug_encode_par_g11.h"
-#ifdef _ENCODE_VDENC_RESERVED
+#ifdef _MEDIA_RESERVED
 #include "codechal_debug_encode_brc.h"
 #endif
 
@@ -2290,9 +2290,9 @@ MOS_STATUS CodechalVdencHevcStateG11::ExecutePictureLevel()
     SetHcpPipeBufAddrParams(*m_pipeBufAddrParams);
     m_pipeBufAddrParams->pRawSurfParam = &srcSurfaceParams;
     m_pipeBufAddrParams->pDecodedReconParam = &reconSurfaceParams;
-#ifdef _MMC_SUPPORTED
+
     SetPipeBufAddr(&cmdBuffer);
-#endif
+
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_pipeModeSelectParams);
     SetHcpPipeModeSelectParams(*m_pipeModeSelectParams);
 
@@ -5907,7 +5907,7 @@ MOS_STATUS CodechalVdencHevcStateG11::HuCLookaheadInit()
     virtualAddrParams.regionParams[0].presRegion = &m_vdencLaHistoryBuffer; 
     virtualAddrParams.regionParams[0].isWritable = true; 
 
-#if USE_CODECHAL_DEBUG_TOOL && _ENCODE_VDENC_RESERVED
+#if USE_CODECHAL_DEBUG_TOOL && _MEDIA_RESERVED
     if (m_swLaMode)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_DbgCallSwLookaheadImpl(
@@ -6022,7 +6022,7 @@ MOS_STATUS CodechalVdencHevcStateG11::HuCLookaheadUpdate()
     virtualAddrParams.regionParams[2].presRegion = &m_vdencLaDataBuffer;
     virtualAddrParams.regionParams[2].isWritable = true; 
 
-#if USE_CODECHAL_DEBUG_TOOL && _ENCODE_VDENC_RESERVED
+#if USE_CODECHAL_DEBUG_TOOL && _MEDIA_RESERVED
     if (m_swLaMode)
     {
         bool isLaAnalysisRequired = true;

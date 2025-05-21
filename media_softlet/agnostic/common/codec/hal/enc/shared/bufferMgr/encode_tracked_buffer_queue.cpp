@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -124,7 +124,7 @@ void *BufferQueue::AllocateResource()
         }
         else if (m_resourceType == ResourceType::bufferResource)
         {
-            return m_allocator->AllocateResource(m_allocParam, true);
+            return m_allocator->AllocateResource(m_allocParam, !m_allocParam.Flags.bNotLockable);
         }
         else
         {

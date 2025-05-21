@@ -85,6 +85,15 @@ namespace encode
             "Encode RateControl Method",
             m_rcMode,
             MediaUserSetting::Group::Sequence);
+        
+        ENCODE_CHK_NULL_RETURN(m_basicFeature->m_av1PicParams);
+        MediaUserSetting::Value outValue;
+        ReadUserSetting(
+            m_userSettingPtr,
+            outValue,
+            "Adaptive TU Enable",
+            MediaUserSetting::Group::Sequence);
+        m_basicFeature->m_av1PicParams->AdaptiveTUEnabled |= outValue.Get<uint8_t>(); 
 #endif
         return MOS_STATUS_SUCCESS;
     }
@@ -211,6 +220,7 @@ namespace encode
         dmem->UPD_CurHeight = (uint16_t)m_basicFeature->m_oriFrameHeight;
         dmem->UPD_Asyn = 0;
         dmem->UPD_EnableAdaptiveRounding = (m_basicFeature->m_roundingMethod == RoundingMethod::adaptiveRounding);
+        dmem->UPD_AdaptiveTUEnabled = picParams->AdaptiveTUEnabled;
 
         if (seqParams->GopRefDist == 16 && m_rcMode == RATECONTROL_CQL)
             dmem->UPD_MaxBRCLevel = 4;
@@ -223,13 +233,11 @@ namespace encode
         else
             dmem->UPD_MaxBRCLevel = 0;
 
-        bool bAllowedPyramid = seqParams->GopRefDist != 3;
-
         if (m_basicFeature->m_pictureCodingType == I_TYPE)
         {
             dmem->UPD_CurrFrameType = AV1_BRC_FRAME_TYPE_I;
         }
-        else if (seqParams->SeqFlags.fields.HierarchicalFlag && bAllowedPyramid)
+        else if (seqParams->SeqFlags.fields.HierarchicalFlag)
         {
             if (picParams->HierarchLevelPlus1 > 0)
             {
@@ -242,9 +250,10 @@ namespace encode
                 dmem->UPD_CurrFrameType = hierchLevelPlus1_to_brclevel.count(picParams->HierarchLevelPlus1) ? hierchLevelPlus1_to_brclevel[picParams->HierarchLevelPlus1] : AV1_BRC_FRAME_TYPE_INVALID;
                 //Invalid HierarchLevelPlus1 or LBD frames at level 3 eror check.
                 if ((dmem->UPD_CurrFrameType == AV1_BRC_FRAME_TYPE_INVALID) ||
-                    (m_basicFeature->m_ref.IsLowDelay() && dmem->UPD_CurrFrameType == AV1_BRC_FRAME_TYPE_B2))
+                    (m_basicFeature->m_ref.IsLowDelay() && dmem->UPD_CurrFrameType == AV1_BRC_FRAME_TYPE_B2) ||
+                    (m_rcMode != RATECONTROL_CQL && dmem->UPD_CurrFrameType == AV1_BRC_FRAME_TYPE_B3))
                 {
-                    ENCODE_VERBOSEMESSAGE("AV1_BRC_FRAME_TYPE_INVALID or LBD picture doesn't support Level 4\n");
+                    ENCODE_VERBOSEMESSAGE("AV1_BRC_FRAME_TYPE_INVALID or LBD picture doesn't support Level 4, or AV1_BRC_FRAME_TYPE_B3 only supported in RATECONTROL_CQL mode\n");
                     dmem->UPD_CurrFrameType = AV1_BRC_FRAME_TYPE_B2;
                 }
             }
@@ -431,11 +440,15 @@ namespace encode
         return profileLevelMaxFrame;
     }
 
-    inline int32_t ComputeVDEncInitQPI(uint32_t width, uint32_t height, FRAMERATE frameRate, uint32_t targetBitRate, uint16_t gopPicSize, bool is10Bit, uint16_t n_p)
+    inline int32_t ComputeVDEncInitQPI(uint32_t width, uint32_t height, FRAMERATE frameRate, uint32_t targetBitRate, uint16_t gopPicSize, bool is10Bit, uint8_t chromaFormat, uint16_t n_p)
     {
         ENCODE_FUNC_CALL();
 
         uint32_t frameSize = ((width * height * 3) >> 1);
+        if (chromaFormat == AVP_CHROMA_FORMAT_YUV444)
+        {
+            frameSize *= 2;
+        }
         if (is10Bit)
         {
             frameSize = (frameSize * 10) >> 3;
@@ -571,6 +584,7 @@ namespace encode
                 m_basicFeature->m_av1SeqParams->TargetBitRate[0],
                 m_basicFeature->m_av1SeqParams->GopPicSize,
                 m_basicFeature->m_is10Bit,
+                m_basicFeature->m_chromaFormat,
                 dmem->INIT_GopP);
 
         qpP = qpI + 20;

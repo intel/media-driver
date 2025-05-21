@@ -970,7 +970,7 @@ struct EncodeStatusReport
     FRAME_STATS_INFO *pFrmStatsInfo;
     BLOCK_STATS_INFO *pBlkStatsInfo;
 
-    uint32_t                        reserved[4];            //!< align with apo path hal structure EncodeStatusReportData
+    uint32_t                        reserved[6];            //!< align with apo path hal structure EncodeStatusReportData
 
     uint32_t                        MSE[3];
     
@@ -1745,10 +1745,6 @@ public:
     CmEvent *m_cmEvent[CM_EVENT_NUM] = {nullptr};
     short    m_cmEventIdx = 0;  // current  event idx
     short    m_cmEventCheckIdx = 0;
-
-#ifdef FEI_ENABLE_CMRT
-    CodechalEncodeMdfKernelResource resDSKernel;
-#endif
 
     bool m_colorbitSupported = false;
 

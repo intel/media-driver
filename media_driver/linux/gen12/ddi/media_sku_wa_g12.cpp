@@ -59,8 +59,8 @@ static struct LinuxCodecInfo tglCodecInfo =
     .vp8Encoding    = 0,
     .hevcVdenc      = 1,
     .vp9Vdenc       = 1,
-    .adv0Decoding   = 1,
-    .adv1Decoding   = 1,
+    .adv0Decoding   = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
+    .adv1Decoding   = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
 };
 
 static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
@@ -286,12 +286,10 @@ static bool InitTglMediaSku(struct GfxDeviceInfo *devInfo,
         "Enable Compressible Surface Creation",
         MediaUserSetting::Group::Device);
         
-#ifdef _MMC_SUPPORTED
     if (compressibleSurfaceEnable)
     {
         MEDIA_WR_SKU(skuTable, FtrCompressibleSurfaceDefault, 1);
     }
-#endif
 
     MEDIA_WR_SKU(skuTable, FtrHDR, 1);
 
@@ -442,6 +440,9 @@ static bool InitDG1MediaWa(struct GfxDeviceInfo *devInfo,
 
     /* Enable VPP copy */
     MEDIA_WR_WA(waTable, WaEnableVPPCopy, 1);
+
+    MEDIA_WR_WA(waTable, WaDisableSetObjectCapture, 1);
+
     return true;
 }
 

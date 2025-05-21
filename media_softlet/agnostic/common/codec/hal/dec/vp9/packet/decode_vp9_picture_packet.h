@@ -108,9 +108,7 @@ namespace decode
             uint32_t &commandBufferSize,
             uint32_t &requestedPatchListSize) override;
 
-#ifdef _MMC_SUPPORTED
         MOS_STATUS SetRefMmcStatus(uint8_t surfaceID, PMOS_SURFACE pSurface);
-#endif
 
         enum CodechalDecodeRefAddrIndex
         {
@@ -216,11 +214,9 @@ namespace decode
         static const uint32_t m_reconUVPlaneAlignment  = 8;
         static const uint32_t m_uvPlaneAlignmentLegacy = 8;  //! starting Gen9 the alignment is relaxed to 4x instead of 16x
 
-#ifdef _MMC_SUPPORTED
         uint8_t m_refsMmcEnable = 0;
         uint8_t m_refsMmcType   = 0;
         uint32_t m_mmcFormat    = 0;
-#endif
 
         typedef union
         {

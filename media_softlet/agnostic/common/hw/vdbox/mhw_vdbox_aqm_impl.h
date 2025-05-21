@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2024, Intel Corporation
+* Copyright (c) 2021-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 #include "mhw_vdbox_aqm_itf.h"
 #include "mhw_impl.h"
 
-#ifdef IGFX_AQM_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_aqm_hwcmd_ext.h"
 #include "mhw_vdbox_aqm_cmdpar_ext.h"
 #include "mhw_vdbox_aqm_impl_ext.h"
@@ -310,7 +310,169 @@ protected:
 
 #include "mhw_hwcmd_process_cmdfields.h"
     }
-MEDIA_CLASS_DEFINE_END(mhw__vdbox__aqm__Impl)
+
+#ifdef _MEDIA_RESERVED
+    _MHW_SETCMD_OVERRIDE_DECL(AQM_HIST_STATE)
+    {
+        _MHW_SETCMD_CALLBASE(AQM_HIST_STATE);
+
+#define DO_FIELDS() \
+    DO_FIELD(DW1, CodecType, params.CodecType); \
+    DO_FIELD(DW1, InputChromaSubsamplingFormat, params.inputChromaSubsamplingFormat); \
+    DO_FIELD(DW1, LumaPixelBitDepth, params.lumaPixelBitDepth); \
+    DO_FIELD(DW1, OperatingMode, params.operatingMode); \
+    DO_FIELD(DW1, InitializationMode, params.initializationMode); \
+    DO_FIELD(DW1, YHistogramEnable, params.yHistogramEnable); \
+    DO_FIELD(DW1, UHistogramEnable, params.uHistogramEnable); \
+    DO_FIELD(DW1, VHistogramEnable, params.vHistogramEnable); \
+    DO_FIELD(DW1, DisableForStatisticalSummaryOfHistogram, params.disableStatisticalSummaryHistogram); \
+    DO_FIELD(DW1, ChromaPixelBitDepth, params.chromaPixelBitDepth); \
+    DO_FIELD(DW2, FrameOrTileSizeInPixels, params.frameOrTileSizeInPixels)
+
+        #include "mhw_hwcmd_process_cmdfields.h"
+    }
+
+    _MHW_SETCMD_OVERRIDE_DECL(AQM_HIST_BUFF_ADDR_STATE)
+    {
+        _MHW_SETCMD_CALLBASE(AQM_HIST_BUFF_ADDR_STATE);
+
+        MHW_RESOURCE_PARAMS resourceParams = {};
+        resourceParams.dwLsbNum            = MHW_VDBOX_HCP_GENERAL_STATE_SHIFT;
+        resourceParams.HwCommandType       = MOS_MFX_PIPE_BUF_ADDR;
+
+        if (!Mos_ResourceIsNull(params.AqmYChannelHistogramOutputBuffer))
+        {
+            cmd.AQMYChannelHistogramOutputAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 1;  //TODO: change to below line when enabling GMM Cacheability for HW resources; this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_AVP_CDF_INIT_CODEC].Value;
+
+            resourceParams.presResource    = params.AqmYChannelHistogramOutputBuffer;
+            resourceParams.dwOffset        = 0;
+            resourceParams.pdwCmd          = (cmd.AQMYChannelHistogramOutputAddress.DW0_1.Value);
+            resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(AQMYChannelHistogramOutputAddress);
+            resourceParams.bIsWritable     = true;
+
+            InitMocsParams(resourceParams, &cmd.AQMYChannelHistogramOutputAddressAttributes.DW0.Value, 1, 6);
+
+            MHW_MI_CHK_STATUS(AddResourceToCmd(
+                this->m_osItf,
+                this->m_currentCmdBuf,
+                &resourceParams));
+        }
+
+        if (!Mos_ResourceIsNull(params.AqmUChannelHistogramOutputBuffer))
+        {
+            cmd.AQMUChannelHistogramOutputAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 1;  //TODO: change to below line when enabling GMM Cacheability for HW resources; this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_AVP_CDF_INIT_CODEC].Value;
+
+            resourceParams.presResource    = params.AqmUChannelHistogramOutputBuffer;
+            resourceParams.dwOffset        = 0;
+            resourceParams.pdwCmd          = (cmd.AQMUChannelHistogramOutputAddress.DW0_1.Value);
+            resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(AQMUChannelHistogramOutputAddress);
+            resourceParams.bIsWritable     = true;
+
+            InitMocsParams(resourceParams, &cmd.AQMUChannelHistogramOutputAddressAttributes.DW0.Value, 1, 6);
+
+            MHW_MI_CHK_STATUS(AddResourceToCmd(
+                this->m_osItf,
+                this->m_currentCmdBuf,
+                &resourceParams));
+        }
+
+        if (!Mos_ResourceIsNull(params.AqmVChannelHistogramOutputBuffer))
+        {
+            cmd.AQMVChannelHistogramOutputAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 1;  //TODO: change to below line when enabling GMM Cacheability for HW resources; this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_AVP_CDF_INIT_CODEC].Value;
+
+            resourceParams.presResource    = params.AqmVChannelHistogramOutputBuffer;
+            resourceParams.dwOffset        = 0;
+            resourceParams.pdwCmd          = (cmd.AQMVChannelHistogramOutputAddress.DW0_1.Value);
+            resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(AQMVChannelHistogramOutputAddress);
+            resourceParams.bIsWritable     = true;
+
+            InitMocsParams(resourceParams, &cmd.AQMVChannelHistogramOutputAddressAttributes.DW0.Value, 1, 6);
+
+            MHW_MI_CHK_STATUS(AddResourceToCmd(
+                this->m_osItf,
+                this->m_currentCmdBuf,
+                &resourceParams));
+        }
+
+        if (!Mos_ResourceIsNull(params.AqmStatisticsSummaryOutputBuffer))
+        {
+            cmd.AQMStatisticsSummaryOutputAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 1;  //TODO: change to below line when enabling GMM Cacheability for HW resources; this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_AVP_CDF_INIT_CODEC].Value;
+
+            resourceParams.presResource    = params.AqmStatisticsSummaryOutputBuffer;
+            resourceParams.dwOffset        = 0;
+            resourceParams.pdwCmd          = (cmd.AQMStatisticsSummaryOutputAddress.DW0_1.Value);
+            resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(AQMStatisticsSummaryOutputAddress);
+            resourceParams.bIsWritable     = true;
+
+            InitMocsParams(resourceParams, &cmd.AQMStatisticsSummaryOutputAddressAttributes.DW0.Value, 1, 6);
+
+            MHW_MI_CHK_STATUS(AddResourceToCmd(
+                this->m_osItf,
+                this->m_currentCmdBuf,
+                &resourceParams));
+        }
+
+        if (!Mos_ResourceIsNull(params.MetadataStreamoutOutputBuffer))
+        {
+            cmd.MetadataStreamoutOutputAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 1;  //TODO: change to below line when enabling GMM Cacheability for HW resources; this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_AVP_CDF_INIT_CODEC].Value;
+
+            resourceParams.presResource    = params.MetadataStreamoutOutputBuffer;
+            resourceParams.dwOffset        = 0;
+            resourceParams.pdwCmd          = (cmd.MetadataStreamoutOutputAddress.DW0_1.Value);
+            resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(MetadataStreamoutOutputAddress);
+            resourceParams.bIsWritable     = true;
+
+            InitMocsParams(resourceParams, &cmd.MetadataStreamoutOutputAddressAttributes.DW0.Value, 1, 6);
+
+            MHW_MI_CHK_STATUS(AddResourceToCmd(
+                this->m_osItf,
+                this->m_currentCmdBuf,
+                &resourceParams));
+        }
+
+        if (!Mos_ResourceIsNull(params.MetadataStreaminInputBuffer))
+        {
+            cmd.MetadataStreaminInputAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 1;  //TODO: change to below line when enabling GMM Cacheability for HW resources; this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_AVP_CDF_INIT_CODEC].Value;
+
+            resourceParams.presResource    = params.MetadataStreaminInputBuffer;
+            resourceParams.dwOffset        = 0;
+            resourceParams.pdwCmd          = (cmd.MetadataStreaminInputAddress.DW0_1.Value);
+            resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(MetadataStreaminInputAddress);
+            resourceParams.bIsWritable     = true;
+
+            InitMocsParams(resourceParams, &cmd.MetadataStreaminInputAddressAttributes.DW0.Value, 1, 6);
+
+            MHW_MI_CHK_STATUS(AddResourceToCmd(
+                this->m_osItf,
+                this->m_currentCmdBuf,
+                &resourceParams));
+        }
+        return MOS_STATUS_SUCCESS;
+    }
+
+    _MHW_SETCMD_OVERRIDE_DECL(AQM_HIST_FLUSH)
+    {
+        _MHW_SETCMD_CALLBASE(AQM_HIST_FLUSH);
+
+        #define DO_FIELDS()  \
+            DO_FIELD(DW1, AqmHistFlush, params.aqmHistFlush)
+
+        #include "mhw_hwcmd_process_cmdfields.h"
+    }
+#endif //_MEDIA_RESERVED
+
+    _MHW_SETCMD_OVERRIDE_DECL(AQM_VD_CONTROL_STATE)
+    {
+        _MHW_SETCMD_CALLBASE(AQM_VD_CONTROL_STATE);
+
+        cmd.VdControlStateBody.DW0.PipelineInitialization                    = params.pipelineInitialization;
+        cmd.VdControlStateBody.DW0.VDboxPipelineArchitectureClockgateDisable = params.VDboxPipelineArchitectureClockgateDisable;
+        cmd.VdControlStateBody.DW1.MemoryImplicitFlush                       = params.memoryImplicitFlush;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MEDIA_CLASS_DEFINE_END(mhw__vdbox__aqm__Impl)
 };
 }  // namespace aqm
 }  // namespace vdbox

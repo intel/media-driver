@@ -67,7 +67,7 @@ MOS_STATUS HwFilterPipeFactory::Destory(HwFilterPipe *&pHwfilterPipe)
 /*                                      HwFilterFactory                                             */
 /****************************************************************************************************/
 
-HwFilterFactory::HwFilterFactory(VpInterface &vpInterface) : m_allocatorVebox(vpInterface), m_allocatorVeboxSfc(vpInterface), m_allocatorRender(vpInterface)
+HwFilterFactory::HwFilterFactory(VpInterface &vpInterface) : m_allocatorVebox(vpInterface), m_allocatorVeboxSfc(vpInterface), m_allocatorRender(vpInterface), m_allocatorNpu(vpInterface)
 {
 }
 
@@ -90,6 +90,9 @@ HwFilter *HwFilterFactory::Create(HW_FILTER_PARAMS &param)
         break;
     case EngineTypeRender:
         p = m_allocatorRender.Create();
+        break;
+    case EngineTypeNpu:
+        p = m_allocatorNpu.Create();
         break;
     default:
         return nullptr;
@@ -150,6 +153,21 @@ void HwFilterFactory::Destory(HwFilter *&pHwFilter)
             if (p)
             {
                 m_allocatorRender.Destory(p);
+                pHwFilter = nullptr;
+            }
+            else
+            {
+                VP_PUBLIC_ASSERTMESSAGE("Invalid engine type for hwFilter!");
+                MOS_Delete(pHwFilter);
+            }
+            break;
+        }
+        case EngineTypeNpu:
+        {
+            HwFilterNpu *p = dynamic_cast<HwFilterNpu *>(pHwFilter);
+            if (p)
+            {
+                m_allocatorNpu.Destory(p);
                 pHwFilter = nullptr;
             }
             else

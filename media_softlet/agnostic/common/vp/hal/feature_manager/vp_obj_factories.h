@@ -124,6 +124,7 @@ private:
     VpObjAllocator<HwFilterVebox> m_allocatorVebox;
     VpObjAllocator<HwFilterVeboxSfc> m_allocatorVeboxSfc;
     VpObjAllocator<HwFilterRender> m_allocatorRender;
+    VpObjAllocator<HwFilterNpu> m_allocatorNpu;
 
 MEDIA_CLASS_DEFINE_END(vp__HwFilterFactory)
 };

@@ -72,6 +72,27 @@ public:
     virtual MOS_STATUS Submit(bool immediateSubmit, MediaScalability *scalability, CodechalDebugInterface *debugInterface) = 0;
 
     //!
+    //! \brief  Submit all the packets in the pool for execution
+    //! \param  [in] immediateSubmit
+    //!         Submit the command buffer is true, otherwise only build the command sequence and
+    //!         reserve for future sumission
+    //! \param  [in] scalability
+    //!         Media scalability state instance for task submit
+    //! \param  [in] levelzeroRuntimeInUse
+    //!         Whether submit to levelzero runtime instead of MHW
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS Submit(bool immediateSubmit, MediaScalability *scalability, CodechalDebugInterface *debugInterface, bool levelzeroRuntimeInUse) = 0;
+
+    //!
+    //! \brief  Submit packets to levelzero runtime
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SubmitToLevelzeroRuntime() = 0;
+
+    //!
     //! \brief  Clear the packets in the pool, this method must be invoked
     //!         after Submit() or when user want to explicitly clears the pool
     //! \return MOS_STATUS

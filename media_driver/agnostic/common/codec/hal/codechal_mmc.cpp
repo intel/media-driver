@@ -36,7 +36,7 @@ CodecHalMmcState::CodecHalMmcState(CodechalHwInterface  *hwInterface)
     CODECHAL_HW_ASSERT(hwInterface->GetOsInterface());
     m_osInterface   = hwInterface->GetOsInterface();
     CODECHAL_HW_ASSERT(hwInterface->GetSkuTable());
-#ifdef _MMC_SUPPORTED
+
     m_hcpMmcEnabled = MEDIA_IS_SKU(hwInterface->GetSkuTable(), FtrHcpDecMemoryCompression);
     m_10bitMmcEnabled = MEDIA_IS_SKU(hwInterface->GetSkuTable(), Ftr10bitDecMemoryCompression);
     m_gpuMmuPageFaultEnabled = MEDIA_IS_SKU(hwInterface->GetSkuTable(), FtrGpuMmuPageFault);
@@ -65,7 +65,6 @@ CodecHalMmcState::CodecHalMmcState(CodechalHwInterface  *hwInterface)
         userFeatureWriteData.ValueID = __MEDIA_USER_FEATURE_VALUE_CODEC_MMC_IN_USE_ID;
         MOS_UserFeature_WriteValues_ID(nullptr, &userFeatureWriteData, 1, m_osInterface->pOsContext);
     }
-#endif
 }
 bool CodecHalMmcState::IsMmcEnabled()
 {
@@ -238,7 +237,7 @@ MOS_STATUS CodecHalMmcState::UpdateUserFeatureKey(PMOS_SURFACE surface)
     CODECHAL_HW_FUNCTION_ENTER;
 
     CODECHAL_HW_CHK_NULL_RETURN(surface);
-#ifdef _MMC_SUPPORTED
+
     if (!m_userFeatureUpdated)
     {
         MOS_USER_FEATURE_VALUE_WRITE_DATA       userFeatureWriteData;
@@ -254,7 +253,6 @@ MOS_STATUS CodecHalMmcState::UpdateUserFeatureKey(PMOS_SURFACE surface)
 
         m_userFeatureUpdated = true;
     }
-#endif
     return eStatus;
 }
 #endif

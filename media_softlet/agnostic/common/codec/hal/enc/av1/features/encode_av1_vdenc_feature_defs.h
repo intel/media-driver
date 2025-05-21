@@ -44,6 +44,7 @@ struct Av1FeatureIDs : public FeatureIDs
         av1Scc,
         av1Aqm,
         av1FastPass,
+        av1LookupTableRounding,
 #if _MEDIA_RESERVED
 #define AV1_FEATURE_IDS_EXT
 #include "encode_av1_vdenc_feature_defs_ext.h"

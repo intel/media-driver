@@ -230,7 +230,6 @@ MOS_STATUS MhwInterfacesXehp_Sdv::Initialize(
     return MOS_STATUS_SUCCESS;
 }
 
-#ifdef _MMC_SUPPORTED
 static bool xehpRegisteredMmd =
     MediaFactory<uint32_t, MmdDevice>::
     Register<MmdDeviceXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
@@ -298,54 +297,58 @@ MhwInterfaces* MmdDeviceXe_Xpm::CreateMhwInterface(
 
     return mhw;
 }
-#endif
 
 static bool xehpRegisteredMcpy =
     MediaFactory<uint32_t, McpyDevice>::
     Register<McpyDeviceXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
 
 MOS_STATUS McpyDeviceXe_Xpm::Initialize(
-    PMOS_INTERFACE osInterface,
-    MhwInterfaces *mhwInterfaces)
+    PMOS_INTERFACE osInterface)
 {
-#define MCPY_FAILURE()                                       \
-{                                                           \
-    if (device != nullptr)                                  \
-    {                                                       \
-        MOS_Delete(device);                                 \
-    }                                                       \
-    return MOS_STATUS_NO_SPACE;                             \
-}
     MHW_FUNCTION_ENTER;
 
     Mcpy *device = nullptr;
+    MhwInterfaces* mhwInterfaces = nullptr;
 
-    if (mhwInterfaces->m_miInterface == nullptr)
-    {
-        MCPY_FAILURE();
-    }
+    auto deleterOnFailure = [&](bool deleteOsInterface, bool deleteMhwInterface){
+        if (deleteOsInterface && osInterface != nullptr)
+        {
+            if (osInterface->pfnDestroy)
+            {
+                osInterface->pfnDestroy(osInterface, false);
+            }
+            MOS_FreeMemory(osInterface);
+        }
 
-    if (mhwInterfaces->m_veboxInterface == nullptr)
-    {
-        MCPY_FAILURE();
-    }
+        if (deleteMhwInterface && mhwInterfaces != nullptr)
+        {
+            mhwInterfaces->Destroy();
+            MOS_Delete(mhwInterfaces);
+        }
 
-    if (mhwInterfaces->m_bltInterface == nullptr)
-    {
-        MCPY_FAILURE();
-    }
+        MOS_Delete(device);
+    };
 
     device = MOS_New(Mcpy);
-
     if (device == nullptr)
     {
-        MCPY_FAILURE();
+        deleterOnFailure(true, false);
+        return MOS_STATUS_NO_SPACE;
+    }
+
+    mhwInterfaces = CreateMhwInterface(osInterface);
+    if (mhwInterfaces->m_miInterface == nullptr ||
+        mhwInterfaces->m_veboxInterface == nullptr ||
+        mhwInterfaces->m_bltInterface == nullptr)
+    {
+        deleterOnFailure(true, true);
+        return MOS_STATUS_NO_SPACE;
     }
 
     if (device->Initialize(
         osInterface, mhwInterfaces) != MOS_STATUS_SUCCESS)
     {
-        MOS_Delete(device);
+        deleterOnFailure(false, false);
         MOS_OS_CHK_STATUS_RETURN(MOS_STATUS_UNINITIALIZED);
     }
 
@@ -495,7 +498,7 @@ MOS_STATUS CodechalInterfacesXe_Xpm::Initialize(
     #ifdef _HEVC_DECODE_SUPPORTED
         if (info->Mode == CODECHAL_DECODE_MODE_HEVCVLD)
         {
-        #ifdef _APOGEIOS_SUPPORTED
+        #ifdef _MEDIA_RESERVED
             bool apogeiosEnable = true;
             MOS_USER_FEATURE_VALUE_DATA         userFeatureData;
             MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));

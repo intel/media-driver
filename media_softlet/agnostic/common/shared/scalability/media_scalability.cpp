@@ -141,7 +141,7 @@ MOS_STATUS MediaScalability::VerifySpaceAvailable(uint32_t requestedSize, uint32
 
 MOS_STATUS MediaScalability::Destroy()
 {
-    if (m_osInterface->apoMosEnabled)
+    if (m_osInterface->apoMosEnabled || m_osInterface->apoMosForLegacyRuntime)
     {
         if (m_veState)
         {

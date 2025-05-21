@@ -169,6 +169,39 @@ MOS_STATUS SwFilterSubPipe::AddSwFilterUnordered(SwFilter *swFilter)
     return m_UnorderedFilters.AddSwFilter(swFilter);
 }
 
+MOS_STATUS SwFilterSubPipe::GetAiSwFilter(SwFilterAiBase *&swAiFilter)
+{
+    SwFilterAiBase *aiFilter = nullptr;
+    swAiFilter               = nullptr;
+    for (SwFilterSet*& swFilterSet : m_OrderedFilters)
+    {
+        if (swFilterSet)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(swFilterSet->GetAiSwFilter(aiFilter));
+            if (aiFilter)
+            {
+                if (swAiFilter)
+                {
+                    VP_PUBLIC_ASSERTMESSAGE("Only one AI Sw Filter is allowed in one SwFilterSubPipe. More than one is found. The last one is in ordered filters. Feature Types: %d and %d", swAiFilter->GetFeatureType(), aiFilter->GetFeatureType());
+                    VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+                }
+                swAiFilter = aiFilter;
+            }
+        }
+    }
+    VP_PUBLIC_CHK_STATUS_RETURN(m_UnorderedFilters.GetAiSwFilter(aiFilter));
+    if (aiFilter)
+    {
+        if (swAiFilter)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Only one AI Sw Filter is allowed in one SwFilterSubPipe. More than one is found. The last one is in unordered filters. Feature Types: %d and %d", swAiFilter->GetFeatureType(), aiFilter->GetFeatureType());
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
+        swAiFilter = aiFilter;
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
 /****************************************************************************************************/
 /*                                      SwFilterPipe                                                */
 /****************************************************************************************************/
@@ -718,6 +751,7 @@ MOS_STATUS SwFilterPipe::AddSwFilterOrdered(SwFilter *swFilter, bool isInputPipe
 
     VP_PUBLIC_CHK_STATUS_RETURN(pSubPipe->AddSwFilterOrdered(swFilter, useNewSwFilterSet));
     swFilter->SetExePipeFlag(m_isExePipe);
+    m_gpuCtxOnHybridCmd |= swFilter->GetGpuCtxOnHybridCmd();
 
     return MOS_STATUS_SUCCESS;
 }
@@ -750,6 +784,7 @@ MOS_STATUS SwFilterPipe::AddSwFilterUnordered(SwFilter *swFilter, bool isInputPi
 
     VP_PUBLIC_CHK_STATUS_RETURN(pSubPipe->AddSwFilterUnordered(swFilter));
     swFilter->SetExePipeFlag(m_isExePipe);
+    m_gpuCtxOnHybridCmd |= swFilter->GetGpuCtxOnHybridCmd();
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1027,7 +1062,7 @@ MOS_STATUS RemoveUnusedLayers(std::vector<uint32_t> &indexForRemove, std::vector
             {
                 VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
             }
-            objForRemove.insert(std::make_pair(layers[index], layers[index]));
+            objForRemove.emplace(layers[index], layers[index]);
             layers[index] = nullptr;
         }
         for (auto it : objForRemove)
@@ -1151,6 +1186,38 @@ bool SwFilterPipe::IsAllInputPipeSurfaceFeatureEmpty(std::vector<int> &layerInde
     }
 
     return true;
+}
+
+MOS_STATUS SwFilterPipe::QuerySwAiFilter(bool &containsSwAiFilter)
+{
+    containsSwAiFilter = false;
+    for (SwFilterSubPipe*& inputPipe : m_InputPipes)
+    {
+        SwFilterAiBase* swAiFilter = nullptr;
+        if (inputPipe)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(inputPipe->GetAiSwFilter(swAiFilter));
+            if (swAiFilter)
+            {
+                containsSwAiFilter = true;
+                return MOS_STATUS_SUCCESS;
+            }
+        }
+    }
+    for (SwFilterSubPipe *&outputPipe : m_OutputPipes)
+    {
+        SwFilterAiBase *swAiFilter = nullptr;
+        if (outputPipe)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(outputPipe->GetAiSwFilter(swAiFilter));
+            if (swAiFilter)
+            {
+                containsSwAiFilter = true;
+                return MOS_STATUS_SUCCESS;
+            }
+        }
+    }
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS SwFilterPipe::AddRTLog()

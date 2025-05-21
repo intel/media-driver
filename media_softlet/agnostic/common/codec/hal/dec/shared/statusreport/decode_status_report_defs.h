@@ -33,35 +33,6 @@
 
 namespace decode
 {
-
-enum CsEngineIdDef
-{
-    // Instance ID
-    csInstanceIdVdbox0 = 0,
-    csInstanceIdVdbox1 = 1,
-    csInstanceIdVdbox2 = 2,
-    csInstanceIdVdbox3 = 3,
-    csInstanceIdVdbox4 = 4,
-    csInstanceIdVdbox5 = 5,
-    csInstanceIdVdbox6 = 6,
-    csInstanceIdVdbox7 = 7,
-    csInstanceIdMax,
-    // Class ID
-    classIdVideoEngine = 1,
-};
-
-union CsEngineId
-{
-    struct
-    {
-        uint32_t       classId            : 3;    //[0...4]
-        uint32_t       reservedFiled1     : 1;    //[0]
-        uint32_t       instanceId         : 6;    //[0...7]
-        uint32_t       reservedField2     : 22;   //[0]
-    } fields;
-    uint32_t            value;
-};
-
 enum DecodeStatusReportType
 {
     statusReportGlobalCount = STATUS_REPORT_GLOBAL_COUNT,

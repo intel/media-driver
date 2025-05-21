@@ -193,6 +193,15 @@ public:
         return "";
     }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //!
+    //! \brief  Store engine id data
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail
+    //!
+    MOS_STATUS StoreEngineId(MOS_COMMAND_BUFFER *cmdBuffer, uint32_t statusReportType, uint8_t curPipe = 0, uint32_t csEngineIdReg = CS_ENGINE_ID_OFFSET);
+#endif
+
 protected:
 
     //!

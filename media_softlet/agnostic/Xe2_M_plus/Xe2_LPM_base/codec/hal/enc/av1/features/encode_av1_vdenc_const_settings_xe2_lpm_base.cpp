@@ -184,7 +184,7 @@ MOS_STATUS EncodeAv1VdencConstSettingsXe2_Lpm_Base::SetVdencCmd1Settings()
         if (TargetUsage == 7)
         {
             par.vdencCmd1Par2[6] = 0x9;
-            par.vdencCmd1Par2[7] = 0x8f;
+            par.vdencCmd1Par2[7] = 0xb;
         }
 
         for (auto i = 0; i < 12; i++)

@@ -148,6 +148,13 @@ VpCmdPacket *VpPlatformInterfacsXe2_Lpm::CreateRenderPacket(MediaTask *task, _VP
     return MOS_New(VpRenderCmdPacket, task, hwInterface, allocator, mmc, kernel);
 }
 
+VpCmdPacket *VpPlatformInterfacsXe2_Lpm::CreateNpuPacket(MediaTask *task, _VP_MHWINTERFACE *hwInterface, VpAllocator *&allocator, VPMediaMemComp *mmc, VpGraphSet *graph)
+{
+    VP_FUNC_CALL();
+
+    return MOS_New(VpNpuCmdPacket, task, hwInterface, allocator, mmc);
+}
+
 MOS_STATUS VpPlatformInterfacsXe2_Lpm::CreateSfcRender(SfcRenderBase *&sfcRender, VP_MHWINTERFACE &vpMhwinterface, PVpAllocator allocator)
 {
     VP_FUNC_CALL();
@@ -252,5 +259,12 @@ MOS_STATUS VpPlatformInterfacsXe2_Lpm::InitPolicyRules(VP_POLICY_RULES &rules)
 
     rules.isHDR33LutSizeEnabled = true;
     rules.is1K1DLutSurfaceInUse = true;
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpPlatformInterfacsXe2_Lpm::InitVpFeatureSupportBits()
+{
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_STATUS_RETURN(VpPlatformInterface::InitVpFeatureSupportBits());
     return MOS_STATUS_SUCCESS;
 }

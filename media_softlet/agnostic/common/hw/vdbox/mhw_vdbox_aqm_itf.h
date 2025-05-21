@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2024, Intel Corporation
+* Copyright (c) 2021-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 #include "mhw_impl.h"
 #include "mhw_vdbox_aqm_cmdpar.h"
 
-#ifdef IGFX_AQM_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_aqm_itf_ext.h"
 #endif
 
@@ -42,7 +42,10 @@
     DEF(AQM_PIPE_BUF_ADDR_STATE);       \
     DEF(AQM_TILE_CODING);               \
     DEF(AQM_VD_CONTROL_STATE);          \
-    DEF(AQM_SLICE_STATE)
+    DEF(AQM_SLICE_STATE);               \
+    DEF(AQM_HIST_STATE);                \
+    DEF(AQM_HIST_BUFF_ADDR_STATE);      \
+    DEF(AQM_HIST_FLUSH)
 
 namespace mhw
 {

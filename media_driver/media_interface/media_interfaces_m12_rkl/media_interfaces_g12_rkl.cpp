@@ -45,11 +45,10 @@ static bool rklRegisteredMhw =
 #define PLATFORM_INTEL_RKL   19
 #define GENX_TGLLP           12
 
-#ifdef _MMC_SUPPORTED
 static bool rklRegisteredMmd =
     MediaFactory<uint32_t, MmdDevice>::
     Register<MmdDeviceG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);
-#endif
+
 static bool RegisteredNv12ToP010 =
     MediaFactory<uint32_t, Nv12ToP010Device>::
     Register<Nv12ToP010DeviceG12Tgllp>((uint32_t)IGFX_ROCKETLAKE);

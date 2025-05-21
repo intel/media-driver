@@ -111,7 +111,7 @@
 #endif
 #ifdef _HEVC_ENCODE_VDENC_SUPPORTED
 #include "codechal_vdenc_hevc_xe_xpm.h"
-#ifdef _APOGEIOS_SUPPORTED
+#ifdef _MEDIA_RESERVED
 #include "encode_hevc_vdenc_pipeline_adapter_xe_xpm_plus.h"
 #endif
 #endif
@@ -217,9 +217,8 @@ class McpyDeviceXe_Xpm_Plus : public McpyDevice
 public:
     using Mcpy = MediaCopyStateXe_Xpm_Plus;
     MOS_STATUS Initialize(
-        PMOS_INTERFACE osInterface,
-        MhwInterfaces *mhwInterfaces);
-
+        PMOS_INTERFACE osInterface);
+protected:
     MhwInterfaces* CreateMhwInterface(
         PMOS_INTERFACE osInterface);
 };

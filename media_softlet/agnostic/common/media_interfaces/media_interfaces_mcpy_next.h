@@ -40,8 +40,6 @@ class McpyDeviceNext
 public:
     virtual ~McpyDeviceNext() {}
 
-    MediaCopyBaseState *m_mcpyDevice = nullptr; //!< Media memory copy device
-
     //!
     //! \brief    Create Media memory copy instance
     //! \details  Entry point to create Gen specific media memory compression instance
@@ -63,9 +61,9 @@ public:
     //! \return   MOS_STATUS_SUCCESS if succeeded, else error code.
     //!
     virtual MOS_STATUS Initialize(
-        PMOS_INTERFACE    osInterface,
-        MhwInterfacesNext *mhwInterfaces) = 0;
+        PMOS_INTERFACE osInterface) = 0;
 
+protected:
     //!
     //! \brief    Creat platform specific media copy HW interface
     //! \param    [in] osInterface
@@ -74,8 +72,72 @@ public:
     //!
     virtual MhwInterfacesNext* CreateMhwInterface(
         PMOS_INTERFACE osInterface);
+
+protected:
+    MediaCopyBaseState *m_mcpyDevice = nullptr;  //!< Media copy state
+
     MEDIA_CLASS_DEFINE_END(McpyDeviceNext)
 };
+
+template <typename Mhw, typename Mcpy>
+class McpyDeviceNext_T : public McpyDeviceNext
+{
+public:
+    virtual MOS_STATUS Initialize(
+        PMOS_INTERFACE     osInterface) override
+    {
+        Mcpy *device        = nullptr;
+        Mhw  *mhwInterfaces = nullptr;
+
+        auto deleterOnFailure = [&](bool deleteOsInterface, bool deleteMhwInterface) {
+            if (deleteOsInterface && osInterface != nullptr)
+            {
+                if (osInterface->pfnDestroy)
+                {
+                    osInterface->pfnDestroy(osInterface, false);
+                }
+                MOS_FreeMemory(osInterface);
+            }
+
+            if (deleteMhwInterface && mhwInterfaces != nullptr)
+            {
+                mhwInterfaces->Destroy();
+                MOS_Delete(mhwInterfaces);
+            }
+
+            MOS_Delete(device);
+        };
+
+        device = MOS_New(Mcpy);
+        if (device == nullptr)
+        {
+            deleterOnFailure(true, false);
+            return MOS_STATUS_NO_SPACE;
+        }
+
+        mhwInterfaces = CreateMhwInterface(osInterface);
+        if (mhwInterfaces->m_miItf == nullptr ||
+            mhwInterfaces->m_veboxItf == nullptr ||
+            mhwInterfaces->m_bltItf == nullptr)
+        {
+            deleterOnFailure(true, true);
+            return MOS_STATUS_NO_SPACE;
+        }
+
+        if (device->Initialize(
+                osInterface, mhwInterfaces) != MOS_STATUS_SUCCESS)
+        {
+            deleterOnFailure(false, false);
+            MOS_OS_CHK_STATUS_RETURN(MOS_STATUS_UNINITIALIZED);
+        }
+
+        m_mcpyDevice = device;
+        return MOS_STATUS_SUCCESS;
+    }
+};
+
+template <typename Mcpy>
+using McpyDeviceNextImpl = McpyDeviceNext_T<MhwInterfacesNext, Mcpy>;
 
 extern template class MediaFactory<uint32_t, McpyDeviceNext>;
 

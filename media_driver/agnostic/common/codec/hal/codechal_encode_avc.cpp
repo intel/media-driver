@@ -7613,7 +7613,7 @@ MOS_STATUS CodechalEncodeAvcEnc::AllocateResourcesBrc()
     if (bBrcDistortionBufferSupported)
     {
         // BRC Distortion Surface
-        downscaledFieldHeightInMB4x = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS((m_frameHeight + 1) >> 3);
+        downscaledFieldHeightInMB4x = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS((m_frameHeight + 7) >> 3);
         width = MOS_ALIGN_CEIL((m_downscaledWidthInMb4x << 3), 64);
         height = MOS_ALIGN_CEIL((downscaledFieldHeightInMB4x << 2), 8) << 1;
 
@@ -7778,7 +7778,7 @@ MOS_STATUS CodechalEncodeAvcEnc::AllocateResourcesMbBrc()
     MOS_ZeroMemory(&lockFlagsWriteOnly, sizeof(MOS_LOCK_PARAMS));
     lockFlagsWriteOnly.WriteOnly = 1;
 
-    uint32_t downscaledFieldHeightInMB4x = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS((m_frameHeight + 1) >> 3);
+    uint32_t downscaledFieldHeightInMB4x = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS((m_frameHeight + 7) >> 3);
 
     // Mb QP Surface
     if (Mos_ResourceIsNull(&BrcBuffers.sBrcMbQpBuffer.OsResource))
@@ -9095,14 +9095,10 @@ MOS_STATUS CodechalEncodeAvcEnc::ExecutePreEnc(EncoderParams* encodeParams)
     CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(ExecuteKernelFunctions(),
         "ENC failed.");
 
-#ifndef FEI_ENABLE_CMRT
     // Flush encode eStatus buffer
     CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(ResetStatusReport(),
         "ResetStatusReprot failed.");
-#else
-    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(ResetStatusReport(),
-        "ResetStatusReprot failed.");
-#endif
+
     m_disableStatusReport = false;
 
     if (m_firstFrame == false && m_firstTwoFrames == true)

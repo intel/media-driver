@@ -366,7 +366,7 @@ typedef struct _CODEC_AV1_ENCODE_PICTURE_PARAMS
     uint8_t         ref_frame_idx[7];       // [0..6]
     uint8_t         HierarchLevelPlus1;
     uint8_t         primary_ref_frame;      // [0..7]
-    uint8_t         Reserved8b3;
+    uint8_t         AdaptiveTUEnabled;
     uint8_t         Reserved8b4;
     uint8_t         order_hint;
 
@@ -555,7 +555,14 @@ typedef struct _CODEC_AV1_ENCODE_PICTURE_PARAMS
         uint8_t value;
     } QualityInfoSupportFlags;
     uint8_t     reserved8b[2];
-    uint32_t    Reserved10[14];
+
+    union
+    {
+        void    *pBlkQualityInfo;
+        uint32_t Reserved9[2];
+    };
+
+    uint32_t    Reserved10[12];
 } CODEC_AV1_ENCODE_PICTURE_PARAMS, *PCODEC_AV1_ENCODE_PICTURE_PARAMS;
 
 /*! \brief Slice-level parameters of a compressed picture for AV1 encoding.

@@ -29,6 +29,7 @@
 #include "vp_allocator.h"
 #include "vp_utils.h"
 #include "mos_solo_generic.h"
+#include "levelzero_npu_interface.h"
 
 using namespace vp;
 
@@ -231,9 +232,24 @@ VP_SURFACE *VpAllocator::AllocateVpSurface(VPHAL_SURFACE &vphalSurf)
     VP_FUNC_CALL();
     if (Mos_ResourceIsNull(&vphalSurf.OsResource))
     {
+        if (vphalSurf.pPipeIntermediateSurface)
+        {
+            VP_SURFACE *surf = MOS_New(VP_SURFACE);
+            if (surf == nullptr)
+            {
+                return nullptr;
+            }
+            surf->osSurface = MOS_New(MOS_SURFACE);
+            if (MOS_FAILED(CopyVpSurface(*surf, *vphalSurf.pPipeIntermediateSurface)))
+            {
+                MOS_Delete(surf->osSurface);
+                MOS_Delete(surf);
+                return nullptr;
+            }
+            return surf;
+        }
         return nullptr;
     }
-
     VP_SURFACE *surf = MOS_New(VP_SURFACE);
 
     if (nullptr == surf)
@@ -487,8 +503,8 @@ MOS_STATUS VpAllocator::DestroyVpSurface(VP_SURFACE* &surface, bool deferredDest
     {
 #if !EMUL
     MT_LOG5(MT_VP_HAL_DESTROY_SURF, MT_NORMAL,
-        MT_VP_HAL_SURF_ALLOC_PARAM_PTR, *(int64_t *)(&surface),
-        MT_VP_HAL_SURF_ALLOC_PARAM_MOS_SURF_PTR, *(int64_t *)(&surface->osSurface),
+        MT_VP_HAL_SURF_ALLOC_PARAM_PTR, (int64_t)surface,
+        MT_VP_HAL_SURF_ALLOC_PARAM_MOS_SURF_PTR, (int64_t)surface->osSurface,
         MT_VP_HAL_SURF_ALLOC_PARAM_IS_RES_OWNER, surface->isResourceOwner,
         MT_VP_HAL_SURF_ALLOC_PARAM_HANDLE, static_cast<int64_t>(surface->GetAllocationHandle(m_osInterface)),
         MT_VP_HAL_SURF_ALLOC_PARAM_SIZE, static_cast<int64_t>(surface->osSurface->OsResource.pGmmResInfo ? surface->osSurface->OsResource.pGmmResInfo->GetSizeAllocation() : 0));
@@ -740,7 +756,7 @@ MOS_STATUS VpAllocator::AllocParamsInitType(
     VP_FUNC_CALL();
     VP_PUBLIC_CHK_NULL_RETURN(surface);
 
-#if !EMUL && !LINUX
+#if !EMUL && !LINUX && !ANDROID
     //  Need to reallocate surface according to expected tiletype instead of tiletype of the surface what we have
     if ( surface                           != nullptr &&
          surface->OsResource.pGmmResInfo   != nullptr &&
@@ -785,6 +801,98 @@ MOS_STATUS VpAllocator::AllocParamsInitType(
         allocParams.TileType = defaultTileType;
     }
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpAllocator::DestroyNpuBuffer(
+    VP_SURFACE*& surface)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(m_osInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_osInterface->npuInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_osInterface->npuInterface->pfnFreeHostMem);
+
+    MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
+    //if free the compressed surface, need set the sync dealloc flag as 1 for sync dealloc for aux table update
+    if (surface && IsSyncFreeNeededForMMCSurface(surface->osSurface))
+    {
+        resFreeFlags.SynchronousDestroy = 1;
+        VP_PUBLIC_NORMALMESSAGE("Set SynchronousDestroy flag for compressed resource");
+    }
+    void *npuHostMem = surface ? surface->zeNpuHostMem : nullptr;
+    MOS_STATUS eStatus    = MOS_STATUS_SUCCESS;
+    eStatus = DestroyVpSurface(surface, false, resFreeFlags);
+    VP_PUBLIC_CHK_STATUS_RETURN(m_osInterface->npuInterface->pfnFreeHostMem(m_osInterface->npuInterface, npuHostMem));
+
+    return eStatus;
+}
+
+MOS_STATUS VpAllocator::ReAllocateNpuBuffer(
+    VP_SURFACE *&surface,
+    PCCHAR       surfaceName,
+    uint32_t     size,
+    bool        &allocated)
+{
+    VP_FUNC_CALL();
+
+    allocated = false;
+    VP_PUBLIC_CHK_NULL_RETURN(m_osInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_osInterface->npuInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_osInterface->npuInterface->pfnAllocateHostMem);
+    VP_PUBLIC_CHK_NULL_RETURN(m_osInterface->npuInterface->pfnFreeHostMem);
+
+    auto surfInfoCheck = [=](VP_SURFACE *&surface) -> bool {
+        return (surface->bufferWidth == size) && (Format_Buffer == surface->osSurface->Format);
+    };
+
+    if (surface &&
+        surface->osSurface &&
+        !Mos_ResourceIsNull(&surface->osSurface->OsResource) &&
+        surface->zeNpuHostMem != nullptr &&
+        surfInfoCheck(surface))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (surface && nullptr == surface->osSurface)
+    {
+        // VP_SURFACE should always be allocated by interface in VpAllocator,
+        // which will ensure nullptr != surface->osSurface.
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
+    VP_PUBLIC_CHK_STATUS_RETURN(DestroyNpuBuffer(surface));
+    
+    surface = AllocateVpSurface();
+    VP_PUBLIC_CHK_NULL_RETURN(surface);
+    if (surface->osSurface == nullptr)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(DestroyVpSurface(surface));
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_NO_SPACE);
+    }
+
+    void *npuHostMem = nullptr;
+    VP_PUBLIC_CHK_STATUS_RETURN(m_osInterface->npuInterface->pfnAllocateHostMem(m_osInterface->npuInterface, size, npuHostMem));
+    VP_PUBLIC_CHK_NULL_RETURN(npuHostMem);
+
+    GMM_RESOURCE_FORMAT gmmFormat = {};
+#if !EMUL
+    gmmFormat = GMM_FORMAT_GENERIC_8BIT;
+#endif
+    if (MOS_STATUS_SUCCESS != AllocateCPUResource(&surface->osSurface->OsResource, (size_t)npuHostMem, size, 1, size, size, 0, gmmFormat))
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(m_osInterface->npuInterface->pfnFreeHostMem(m_osInterface->npuInterface, npuHostMem));
+        VP_PUBLIC_CHK_STATUS_RETURN(DestroyVpSurface(surface));
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_NO_SPACE);
+    }
+    surface->zeNpuHostMem    = npuHostMem;
+    surface->isResourceOwner = true;
+    surface->osSurface->dwWidth  = size;
+    surface->osSurface->dwHeight = 1;
+    surface->osSurface->dwSize   = size;
+    surface->osSurface->TileType = MOS_TILE_LINEAR;
+    surface->osSurface->Format   = Format_Buffer;
+
+    allocated = true;
     return MOS_STATUS_SUCCESS;
 }
 
@@ -929,8 +1037,8 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
 
 #if !EMUL
     MT_LOG6(MT_VP_HAL_REALLOC_SURF, MT_NORMAL,
-        MT_VP_HAL_SURF_ALLOC_PARAM_PTR, *(int64_t *)(&surface),
-        MT_VP_HAL_SURF_ALLOC_PARAM_MOS_SURF_PTR, *(int64_t *)(&surface->osSurface),
+        MT_VP_HAL_SURF_ALLOC_PARAM_PTR, (int64_t)surface,
+        MT_VP_HAL_SURF_ALLOC_PARAM_MOS_SURF_PTR, (int64_t)surface->osSurface,
         MT_VP_HAL_SURF_ALLOC_PARAM_IS_RES_OWNER, surface->isResourceOwner,
         MT_VP_HAL_SURF_ALLOC_PARAM_HANDLE, static_cast<int64_t>(surface->GetAllocationHandle(m_osInterface)),
         MT_VP_HAL_SURF_ALLOC_PARAM_SIZE, static_cast<int64_t>(surface->osSurface->OsResource.pGmmResInfo ? surface->osSurface->OsResource.pGmmResInfo->GetSizeAllocation() : 0),
@@ -1041,6 +1149,69 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
     return eStatus;
 }
 #endif
+
+MOS_STATUS VpAllocator::ReAllocateVpSurfaceWithSameConfigOfVphalSurface(
+    VP_SURFACE          *&surface,
+    const PVPHAL_SURFACE &vphalSurface,
+    PCCHAR                surfaceName,
+    bool                 &allocated)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(vphalSurface);
+
+    MOS_GFXRES_TYPE     defaultResType  = MOS_GFXRES_INVALID;
+    MOS_TILE_TYPE       defaultTileType = MOS_TILE_LINEAR;
+    MOS_HW_RESOURCE_DEF resUsageType    = MOS_HW_RESOURCE_DEF_MAX;
+    MOS_TILE_MODE_GMM   tileModeByForce = MOS_TILE_UNSET_GMM;
+    if (Mos_ResourceIsNull(&vphalSurface->OsResource))
+    {
+        bool isBuffer   = (vphalSurface->Format == Format_Buffer || vphalSurface->Format == Format_RAW);
+        defaultResType  = isBuffer ? MOS_GFXRES_BUFFER : MOS_GFXRES_2D;
+        defaultTileType = isBuffer ? MOS_TILE_LINEAR : MOS_TILE_Y;
+        resUsageType    = vphalSurface->OsResource.mocsMosResUsageType;
+        tileModeByForce = vphalSurface->OsResource.TileModeGMM;
+    }
+    else
+    {
+        defaultResType = m_osInterface->pfnGetResType(&vphalSurface->OsResource);
+        defaultTileType = vphalSurface->OsResource.TileType;
+        resUsageType    = MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER;
+        tileModeByForce = MOS_TILE_UNSET_GMM;
+    }
+    VP_PUBLIC_CHK_STATUS_RETURN(ReAllocateSurface(
+        surface,
+        surfaceName,
+        vphalSurface->Format,
+        defaultResType,
+        defaultTileType,
+        vphalSurface->dwWidth,
+        vphalSurface->dwHeight,
+        vphalSurface->bCompressible,
+        vphalSurface->CompressionMode,
+        allocated,
+        false,
+        false,
+        resUsageType,
+        tileModeByForce));
+
+    // Initialize other parameters in vp surface according to vphal surface.
+    surface->ColorSpace     = vphalSurface->ColorSpace;
+    surface->ExtendedGamut  = vphalSurface->ExtendedGamut;
+    surface->Palette        = vphalSurface->Palette;
+    surface->bQueryVariance = vphalSurface->bQueryVariance;
+    surface->FrameID        = vphalSurface->FrameID;
+    surface->uFwdRefCount   = vphalSurface->uFwdRefCount;
+    surface->uBwdRefCount   = vphalSurface->uBwdRefCount;
+    surface->pFwdRef        = vphalSurface->pFwdRef;
+    surface->pBwdRef        = vphalSurface->pBwdRef;
+    surface->SurfType       = vphalSurface->SurfType;
+    surface->SampleType     = vphalSurface->SampleType;
+    surface->ChromaSiting   = vphalSurface->ChromaSiting;
+    surface->rcSrc          = vphalSurface->rcSrc;
+    surface->rcDst          = vphalSurface->rcDst;
+    surface->rcMaxSrc       = vphalSurface->rcMaxSrc;
+
+    return MOS_STATUS_SUCCESS;
+}
 
 MOS_STATUS VpAllocator::OsFillResource(
     PMOS_RESOURCE     osResource,

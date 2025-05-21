@@ -32,7 +32,7 @@
 #include "mhw_impl.h"
 #include "mhw_mi_impl.h"
 
-#ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_vdenc_impl_ext.h"
 #include "mhw_vdbox_vdenc_hwcmd_ext.h"
 #endif
@@ -144,6 +144,17 @@ class Impl : public Itf, public mhw::Impl
     MmioRegistersVdbox m_mmioRegisters[MHW_VDBOX_NODE_MAX] = {};  //!< Mfx mmio registers
 
 public:
+    virtual uint32_t GetCmd1CommandSize() override
+    {
+        // Just return 0 here, please implement logic in platform sepecific impl class.
+        return 0;
+    }
+
+    virtual uint32_t GetCmd2CommandSize() override
+    {
+        // Just return 0 here, please implement logic in platform sepecific impl class.
+        return 0;
+    }
 
     MOS_STATUS SetRowstoreCachingOffsets(const RowStorePar &par) override
     {

@@ -111,6 +111,8 @@ public:
         return true;
     }
 
+    virtual MOS_STATUS InitVpFeatureSupportBits() override;
+
 protected:
     bool m_disableSfcDithering = false;
 

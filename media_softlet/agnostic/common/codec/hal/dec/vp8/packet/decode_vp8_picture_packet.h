@@ -37,7 +37,7 @@ using namespace mhw::vdbox::mfx;
 
 namespace decode
 {
-    class Vp8DecodePicPkt : public DecodeSubPacket, public Itf::ParSetting
+    class Vp8DecodePicPkt : public DecodeSubPacket, public mhw::vdbox::mfx::Itf::ParSetting
     {
     public:
         //!
@@ -48,7 +48,7 @@ namespace decode
         {
             if (m_hwInterface != nullptr)
             {
-                m_mfxItf       = std::static_pointer_cast<Itf>(m_hwInterface->GetMfxInterfaceNext());
+                m_mfxItf       = std::static_pointer_cast<mhw::vdbox::mfx::Itf>(m_hwInterface->GetMfxInterfaceNext());
                 m_miItf        = std::static_pointer_cast<mhw::mi::Itf>(hwInterface->GetMiInterfaceNext());
             }
         }
@@ -150,7 +150,7 @@ namespace decode
         DecodeMemComp               *m_mmcState                                     = nullptr;
         DecodeAllocator             *m_allocator                                    = nullptr;
 
-        std::shared_ptr<Itf>         m_mfxItf            = nullptr;
+        std::shared_ptr<mhw::vdbox::mfx::Itf> m_mfxItf                              = nullptr;
         
     MEDIA_CLASS_DEFINE_END(decode__Vp8DecodePicPkt)
  };

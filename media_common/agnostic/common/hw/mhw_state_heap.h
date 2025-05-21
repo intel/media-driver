@@ -253,6 +253,7 @@ typedef struct _MHW_KERNEL_PARAM
     void    *pExtra;                         //!< Kernel parameter
     uint8_t *pBinary;                        //!< Pointer to kernel binary
     int32_t iSize;                          //!< Kernel size
+    int32_t iPaddingSize;                   //!< Padding size  
     int32_t iGrfCount;                      //!< Number of registers
     int32_t iBTCount;                       //!< Number of BT entries
     int32_t iThreadCount;                   //!< Number of threads (max)
@@ -698,14 +699,6 @@ typedef enum _MHW_CHROMAKEY_MODE
     MHW_CHROMAKEY_MODE_KILL_ON_ANY_MATCH = 0,
     MHW_CHROMAKEY_MODE_REPLACE_BLACK = 1
 } MHW_CHROMAKEY_MODE;
-
-typedef struct _MHW_INLINE_DATA_PARAMS
-{
-    uint32_t          dwOffset;
-    uint32_t          dwSize;
-    PMOS_RESOURCE     resource;
-    bool              isPtrType;
-} MHW_INLINE_DATA_PARAMS, *PMHW_INLINE_DATA_PARAMS;
 
 typedef struct _MHW_SAMPLER_STATE_UNORM_PARAM
 {

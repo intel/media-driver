@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2023, Intel Corporation
+* Copyright (c) 2020-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1675,9 +1675,20 @@ MOS_STATUS MhwVdboxAvpInterfaceG12::AddAvpDecodePicStateCmd(
         memset(refScaleFactor, 0, sizeof(refScaleFactor));
         memset(refFrameRes, 0, sizeof(refFrameRes));
 
-        for (auto i = 0; i < 7; i++)//i=0 corresponds to LAST_FRAME
+        for (auto i = 0; i < av1NumInterRefFrames; i++)  //i=0 corresponds to LAST_FRAME
         {
-            refPicIndex = refFrameList[picParams->m_refFrameIdx[i]].FrameIdx;
+            refPicIndex = 0xFF;
+            if (picParams->m_refFrameIdx[i] < av1TotalRefsPerFrame &&
+                refFrameList[picParams->m_refFrameIdx[i]].FrameIdx < CODECHAL_MAX_DPB_NUM_AV1)
+            {
+                refPicIndex = refFrameList[picParams->m_refFrameIdx[i]].FrameIdx;
+            }
+            else
+            {
+                refPicIndex = params->m_validRefPicIdx;
+            }
+            MHW_ASSERT(refPicIndex < CODECHAL_MAX_DPB_NUM_AV1);
+
             refFrameWidth[i]    = params->m_refList[refPicIndex]->m_frameWidth;
             refFrameHeight[i]   = params->m_refList[refPicIndex]->m_frameHeight;
 

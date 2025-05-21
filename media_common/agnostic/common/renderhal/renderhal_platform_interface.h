@@ -565,6 +565,13 @@ public:
         return MOS_STATUS_SUCCESS;
     };
 
+    virtual MOS_STATUS SendStateComputeMpde(
+        PRENDERHAL_INTERFACE pRenderHal,
+        PMOS_COMMAND_BUFFER  pCmdBuffer)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
     virtual bool IsBindlessHeapInUse(
         PRENDERHAL_INTERFACE pRenderHal)
     {

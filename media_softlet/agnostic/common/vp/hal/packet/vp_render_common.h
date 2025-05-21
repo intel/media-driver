@@ -69,13 +69,13 @@ enum KRN_ARG_KIND
     ARG_KIND_SURFACE_2D_SCOREBOARD  = 0x2A,
     ARG_KIND_GENERAL_DEPCNT         = 0x30,
 
-    //For L0 used only
+    //For OCL used only
     ARG_KIND_INLINE                 = 0xa00
 };
 
 enum KRN_ARG_ADDRESSMODE
 {
-    AddressingModeStateful = 0,
+    AddressingModeStateful = 0,   //this stateful specifically means bindful stateful surfaces. Not bindless statefull surfaces.
     AddressingModeStateless,
     AddressingModeBindless,
     AddressIngModeMax
@@ -85,9 +85,7 @@ enum IMPLICIT_ARG_TYPE
 {
     ValueType = 0,
     IndirectDataPtr,
-    ScratchPtr,
-    SamplerStateBasePtr,
-    SurfaceStateBasePtr
+    ScratchPtr
 };
 
 struct KRN_ARG
@@ -102,14 +100,14 @@ struct KRN_ARG
     IMPLICIT_ARG_TYPE      implicitArgType;
 };
 
-//for L0 use only
+//for OCL use only
 struct KRN_BTI
 {
     uint32_t               uIndex;
     uint32_t               uBTI;
 };
 
-//for L0 use only
+//for OCL use only
 struct KRN_EXECUTE_ENV
 {
     uint32_t uBarrierCount;
@@ -128,19 +126,21 @@ struct KRN_EXECUTE_ENV
     uint8_t  uiWorkGroupWalkOrderDimensions[3];
     uint64_t uiPrivateSize;
     uint32_t uiSlmSize;
+    bool     bRequireDisableEufusion;
+    bool     bHasDPAS;
 };
 
 using SurfaceIndex = uint32_t;
 using SamplerIndex = uint32_t;
 using KernelIndex  = uint32_t;              // index of current kernel in KERNEL_PARAMS_LIST
 
-typedef struct _SURFACE_PARAMS
+typedef struct MOS_ALIGNED(16) _SURFACE_PARAMS
 {
     SurfaceType surfType;
     bool        isOutput;
     bool        needVerticalStirde;
     bool        combineChannelY;
-    uint32_t    reserved[4];
+    uint32_t    planeIndex;
 } SURFACE_PARAMS, *PSURFACE_PARAMS;
 using KERNEL_ARG_INDEX_SURFACE_MAP = std::map<uint32_t, SURFACE_PARAMS>;
 

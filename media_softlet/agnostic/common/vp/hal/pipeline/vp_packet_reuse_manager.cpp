@@ -153,7 +153,7 @@ MOS_STATUS VpScalingReuse::StoreTeamsParams(SwFilter *filter, uint32_t index)
         m_params_Teams.erase(index);
     }
 
-    m_params_Teams.insert(std::make_pair(index, params));
+    m_params_Teams.emplace(index, params);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -290,7 +290,7 @@ MOS_STATUS VpCscReuse::StoreTeamsParams(SwFilter *filter, uint32_t index)
         m_params_Teams.erase(index);
     }
 
-    m_params_Teams.insert(std::make_pair(index, params));
+    m_params_Teams.emplace(index, params);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -378,7 +378,7 @@ MOS_STATUS VpRotMirReuse::StoreTeamsParams(SwFilter *filter, uint32_t index)
         m_params_Teams.erase(index);
     }
 
-    m_params_Teams.insert(std::make_pair(index, params));
+    m_params_Teams.emplace(index, params);
     return MOS_STATUS_SUCCESS;
 }
 
@@ -747,39 +747,39 @@ MOS_STATUS VpPacketReuseManager::RegisterFeatures()
     }
     VpFeatureReuseBase *p = MOS_New(VpScalingReuse);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_features.insert(std::make_pair(FeatureTypeScaling, p));
+    m_features.emplace(FeatureTypeScaling, p);
 
     p = MOS_New(VpCscReuse);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_features.insert(std::make_pair(FeatureTypeCsc, p));
+    m_features.emplace(FeatureTypeCsc, p);
 
     p = MOS_New(VpRotMirReuse);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_features.insert(std::make_pair(FeatureTypeRotMir, p));
+    m_features.emplace(FeatureTypeRotMir, p);
 
     p = MOS_New(VpColorFillReuse);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_features.insert(std::make_pair(FeatureTypeColorFill, p));
+    m_features.emplace(FeatureTypeColorFill, p);
 
     p = MOS_New(VpDenoiseReuse);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_features.insert(std::make_pair(FeatureTypeDn, p));
+    m_features.emplace(FeatureTypeDn, p);
 
     p = MOS_New(VpAlphaReuse);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_features.insert(std::make_pair(FeatureTypeAlpha, p));
+    m_features.emplace(FeatureTypeAlpha, p);
 
     p = MOS_New(VpTccReuse);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_features.insert(std::make_pair(FeatureTypeTcc, p));
+    m_features.emplace(FeatureTypeTcc, p);
 
     p = MOS_New(VpSteReuse);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_features.insert(std::make_pair(FeatureTypeSte, p));
+    m_features.emplace(FeatureTypeSte, p);
 
     p = MOS_New(VpProcampReuse);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_features.insert(std::make_pair(FeatureTypeProcamp, p));
+    m_features.emplace(FeatureTypeProcamp, p);
 
 
     return MOS_STATUS_SUCCESS;
@@ -955,6 +955,11 @@ MOS_STATUS VpPacketReuseManager::PreparePacketPipeReuse(SwFilterPipe *&swFilterP
         else
         {
             auto pipe_TeamsPacket = m_pipeReused_TeamsPacket.find(index);
+            if (pipe_TeamsPacket == m_pipeReused_TeamsPacket.end())
+            {
+                VP_PUBLIC_ASSERTMESSAGE("Invalid teams packet pipe for reuse!");
+                VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+            }
 
             VpCmdPacket *packet = pipe_TeamsPacket->second->GetPacket(0);
             VP_PUBLIC_CHK_NULL_RETURN(packet);
@@ -1078,7 +1083,7 @@ MOS_STATUS VpPacketReuseManager::UpdatePacketPipeConfig(PacketPipe *&pipe)
             m_pipeReused_TeamsPacket.erase(curIndex);
         }
 
-        m_pipeReused_TeamsPacket.insert(std::make_pair(curIndex, pipe));
+        m_pipeReused_TeamsPacket.emplace(curIndex, pipe);
 
         curIndex++;
         if (curIndex >= MaxTeamsPacketSize)

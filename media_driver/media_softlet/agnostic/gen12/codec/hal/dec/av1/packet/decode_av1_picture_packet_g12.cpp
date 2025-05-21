@@ -92,9 +92,9 @@ namespace decode
 
         MhwVdboxAvpPipeBufAddrParams pipeBufAddrParams = {};
         DECODE_CHK_STATUS(Av1DecodePicPkt_G12_Base::SetAvpPipeBufAddrParams(pipeBufAddrParams));
-    #ifdef _MMC_SUPPORTED
+
         DECODE_CHK_STATUS(SetSurfaceMmcState(pipeBufAddrParams));
-    #endif
+
         DECODE_CHK_STATUS(m_avpInterface->AddAvpPipeBufAddrCmd(&cmdBuffer, &pipeBufAddrParams));
 
         return MOS_STATUS_SUCCESS;
@@ -104,7 +104,6 @@ namespace decode
     {
         DECODE_FUNC_CALL();
 
-#ifdef _MMC_SUPPORTED
         if (m_mmcState && m_mmcState->IsMmcEnabled())
         {
             DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(
@@ -112,7 +111,6 @@ namespace decode
                 &pipeBufAddrParams.m_preDeblockSurfMmcState));
         }
         else
-#endif
         {
             pipeBufAddrParams.m_preDeblockSurfMmcState = MOS_MEMCOMP_DISABLED;
         }

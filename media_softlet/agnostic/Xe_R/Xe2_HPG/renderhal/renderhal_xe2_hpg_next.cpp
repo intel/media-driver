@@ -23,7 +23,6 @@
 ======================= end_copyright_notice ==================================*/
 //!
 //! \file       renderhal_xe2_hpg_next.cpp
-//! \brief      implementation of Gen12_9 hardware functions
 //! \details    Render functions
 //!
 
@@ -136,9 +135,9 @@ MOS_STATUS XRenderHal_Interface_Xe2_Hpg_Next::SendTo3DStateBindingTablePoolAlloc
     MHW_RENDERHAL_CHK_NULL_RETURN(pCmdBuffer);
     MHW_RENDERHAL_CHK_NULL_RETURN(m_renderItf);
 
-    auto &computerModeParams          = m_renderItf->MHW_GETPAR_F(STATE_COMPUTE_MODE)();
-    computerModeParams                = {};
-    computerModeParams.enableLargeGrf = true;
+    auto &computerModeParams                       = m_renderItf->MHW_GETPAR_F(STATE_COMPUTE_MODE)();
+    computerModeParams                             = {};
+    computerModeParams.enableLargeGrf              = pRenderHal->largeGrfMode;
     computerModeParams.forceEuThreadSchedulingMode = pRenderHal->euThreadSchedulingMode;
     m_renderItf->MHW_ADDCMD_F(STATE_COMPUTE_MODE)(pCmdBuffer);
 

@@ -270,6 +270,13 @@ struct _VEBOX_PROCAMP_PARAMS
     float                           fSaturation;
 };
 
+enum class VEBOX_CSC_BLOCK_TYPE
+{
+    DEFAULT,
+    BACK_END,
+    FRONT_END
+};
+
 struct _VEBOX_CSC_PARAMS
 {
     bool                            bCSCEnabled;                                 // CSC Enabled
@@ -284,6 +291,7 @@ struct _VEBOX_CSC_PARAMS
     uint32_t                        chromaUpSamplingHorizontalCoef;              // Chroma UpSampling Horizontal Coeff
     uint32_t                        chromaDownSamplingVerticalCoef;              // Chroma DownSampling Vertical Coeff
     uint32_t                        chromaDownSamplingHorizontalCoef;            // Chroma DownSampling Horizontal Coeff
+    VEBOX_CSC_BLOCK_TYPE            blockType;                                   // Use Back End CSC or Front End CSC
 };
 
 struct _RENDER_CSC_PARAMS
@@ -462,12 +470,12 @@ using RENDER_FC_PARAMS  = _RENDER_FC_PARAMS;
 using PRENDER_FC_PARAMS = RENDER_FC_PARAMS *;
 
 
-struct L0_FC_KERNEL_CONFIG
+struct OCL_FC_KERNEL_CONFIG
 {
     VPHAL_PERFTAG perfTag = VPHAL_NONE;
 };
 
-struct L0_FC_KERNEL_PARAM
+struct OCL_FC_KERNEL_PARAM
 {
     KERNEL_ARGS                  kernelArgs;
     std::string                  kernelName;
@@ -477,18 +485,45 @@ struct L0_FC_KERNEL_PARAM
     uint32_t                     localWidth;
     uint32_t                     localHeight;
     KERNEL_ARG_INDEX_SURFACE_MAP kernelStatefulSurfaces;
-    L0_FC_KERNEL_CONFIG          kernelConfig;
+    OCL_FC_KERNEL_CONFIG         kernelConfig;
     void                         Init();
 };
 
-using L0_FC_KERNEL_PARAMS = std::vector<L0_FC_KERNEL_PARAM>;
-struct _RENDER_L0_FC_PARAMS
+using OCL_FC_KERNEL_PARAMS = std::vector<OCL_FC_KERNEL_PARAM>;
+struct _RENDER_OCL_FC_PARAMS
 {
-    L0_FC_KERNEL_PARAMS fc_kernelParams = {};
-    void                Init();
+    OCL_FC_KERNEL_PARAMS fc_kernelParams = {};
+    void                 Init();
 };
-using RENDER_L0_FC_PARAMS  = _RENDER_L0_FC_PARAMS;
-using PRENDER_L0_FC_PARAMS = RENDER_L0_FC_PARAMS *;
+using RENDER_OCL_FC_PARAMS  = _RENDER_OCL_FC_PARAMS;
+using PRENDER_OCL_FC_PARAMS = RENDER_OCL_FC_PARAMS *;
+
+struct AI_KERNEL_CONFIG
+{
+    VPHAL_PERFTAG            perfTag     = VPHAL_NONE;
+};
+
+struct AI_KERNEL_PARAM
+{
+    KERNEL_ARGS                  kernelArgs;
+    std::string                  kernelName;
+    uint32_t                     threadWidth;
+    uint32_t                     threadHeight;
+    uint32_t                     localWidth;
+    uint32_t                     localHeight;
+    KERNEL_ARG_INDEX_SURFACE_MAP kernelStatefulSurfaces;
+    void                         Init();
+};
+
+using AI_KERNEL_PARAMS = std::vector<AI_KERNEL_PARAM>;
+struct _RENDER_AI_PARAMS
+{
+    AI_KERNEL_PARAMS ai_kernelParams = {};
+    AI_KERNEL_CONFIG ai_kernelConfig = {};
+    void             Init();
+};
+using RENDER_AI_PARAMS  = _RENDER_AI_PARAMS;
+using PRENDER_AI_PARAMS = RENDER_AI_PARAMS *;
 
 struct _RENDER_HDR_PARAMS
 {

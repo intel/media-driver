@@ -95,11 +95,10 @@ namespace encode {
         m_basicFeature = dynamic_cast<AvcBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
         ENCODE_CHK_NULL_RETURN(m_basicFeature);
 
-#ifdef _MMC_SUPPORTED
         m_mmcState = m_pipeline->GetMmcState();
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         m_basicFeature->m_mmcState = m_mmcState;
-#endif
+
         m_allocator = m_pipeline->GetEncodeAllocator();
         ENCODE_CHK_STATUS_RETURN(AllocateResources());
 
@@ -1117,7 +1116,12 @@ namespace encode {
         ENCODE_CHK_NULL_RETURN(perfProfiler);
         ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd(
             (void *)m_pipeline, m_osInterface, m_miItf, cmdBuffer));
-
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_statusReport && m_statusReport->IsVdboxIdReportEnabled())
+        {
+            StoreEngineId(cmdBuffer, encode::EncodeStatusReportType::statusReportCsEngineIdRegs);
+        }
+#endif
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1445,10 +1449,8 @@ namespace encode {
             ENCODE_CHK_STATUS_RETURN(packetUtilities->SendMarkerCommand(&cmdBuffer, presSetMarker));
         }
 
-    #ifdef _MMC_SUPPORTED
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(&cmdBuffer, false));
-    #endif
 
         MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
         MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));

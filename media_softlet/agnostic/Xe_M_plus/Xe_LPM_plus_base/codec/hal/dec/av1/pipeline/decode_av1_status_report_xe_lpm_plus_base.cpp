@@ -34,7 +34,7 @@ namespace decode {
 class DecodeAllocator;
     DecodeAv1StatusReportXe_Lpm_Plus_Base::DecodeAv1StatusReportXe_Lpm_Plus_Base(
         DecodeAllocator* allocator, bool enableRcs, PMOS_INTERFACE osInterface):
-        DecodeStatusReport(allocator, enableRcs)
+        DecodeStatusReport(allocator, enableRcs, osInterface)
     {
         DECODE_FUNC_CALL()
 

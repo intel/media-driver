@@ -96,11 +96,6 @@
 #endif
 
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
-#ifndef _APOGEIOS_SUPPORTED
-#ifdef _MEDIA_RESERVED
-#include "codechal_vdenc_vp9_xe_lpm_plus.h"
-#endif
-#endif
 #include "encode_vp9_vdenc_pipeline_adapter_xe_lpm_plus.h"
 #endif
 
@@ -141,16 +136,7 @@ public:
 MEDIA_CLASS_DEFINE_END(MmdDeviceXe_Lpm_Plus_Next)
 };
 
-class McpyDeviceXe_Lpm_Plus : public McpyDeviceNext
-{
-public:
-    using Mcpy = MediaCopyStateXe_Lpm_Plus_Base;
-    MOS_STATUS Initialize(
-        PMOS_INTERFACE osInterface,
-        MhwInterfacesNext *mhwInterfaces);
-
-MEDIA_CLASS_DEFINE_END(McpyDeviceXe_Lpm_Plus)
-};
+using McpyDeviceXe_Lpm_Plus = McpyDeviceNextImpl<MediaCopyStateXe_Lpm_Plus_Base>;
 
 class CodechalInterfacesXe_Lpm_Plus : public CodechalDeviceNext
 {

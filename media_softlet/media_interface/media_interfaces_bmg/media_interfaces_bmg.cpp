@@ -168,18 +168,24 @@ MOS_STATUS MhwInterfacesBmg_Next::Initialize(
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    if ((params.m_isCp == false) && (params.Flags.m_value == 0))
+    if ((params.m_isCp == false) && (params.Flags.m_value == 0) && (params.m_isMos == 0))
     {
         MHW_ASSERTMESSAGE("No MHW interfaces were requested for creation.");
         return MOS_STATUS_INVALID_PARAMETER;
     }
+    //MHW_MI must always be created
+    auto ptr = std::make_shared<mhw::mi::xe_lpm_plus_base_next::Impl>(osInterface);
+    m_miItf  = std::static_pointer_cast<mhw::mi::Itf>(ptr);
+    //For mos, need miInterface only
+    if (params.m_isMos)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
 
-    // MHW_CP and MHW_MI must always be created
+    // MHW_CP must always be created
     MOS_STATUS status;
     m_cpInterface = osInterface->pfnCreateMhwCpInterface(osInterface);
     MHW_MI_CHK_NULL(m_cpInterface);
-    auto ptr      = std::make_shared<mhw::mi::xe_lpm_plus_base_next::Impl>(osInterface);
-    m_miItf       = std::static_pointer_cast<mhw::mi::Itf>(ptr);
     ptr->SetCpInterface(m_cpInterface, m_miItf);
 
     if (params.Flags.m_render)
@@ -407,7 +413,23 @@ MOS_STATUS CodechalInterfacesXe2_Hpm::Initialize(
     }
     else if (CodecHalIsEncode(CodecFunction))
     {
-#ifdef _MEDIA_RESERVED
+
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED)
+        if (info->Mode == CODECHAL_ENCODE_MODE_HEVC)
+        {
+            if (CodecHalUsesVdencEngine(info->CodecFunction))
+            {
+                m_codechalDevice = MOS_New(EncodeHevcVdencPipelineAdapterXe2_Hpm, hwInterface, debugInterface);
+                if (m_codechalDevice == nullptr)
+                {
+                    CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
+                    CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
+                }
+                return MOS_STATUS_SUCCESS;
+            }
+        }
+        else
+#endif
 #if defined (_AVC_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_AVC)
         {
@@ -424,6 +446,20 @@ MOS_STATUS CodechalInterfacesXe2_Hpm::Initialize(
         }
         else
 #endif
+#ifdef _JPEG_ENCODE_SUPPORTED
+        if (info->Mode == CODECHAL_ENCODE_MODE_JPEG)
+        {
+            m_codechalDevice = MOS_New(EncodeJpegPipelineAdapter, hwInterface, debugInterface);
+            if (m_codechalDevice == nullptr)
+            {
+                CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
+                CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
+            }
+            return MOS_STATUS_SUCCESS;
+        }
+        else
+#endif
+#ifdef _MEDIA_RESERVED
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
         if (info->Mode == CODECHAL_ENCODE_MODE_VP9)
         {
@@ -437,18 +473,6 @@ MOS_STATUS CodechalInterfacesXe2_Hpm::Initialize(
         }
         else
 #endif
-#ifdef _JPEG_ENCODE_SUPPORTED
-        if (info->Mode == CODECHAL_ENCODE_MODE_JPEG)
-        {
-            m_codechalDevice = MOS_New(EncodeJpegPipelineAdapter, hwInterface, debugInterface);
-            if (m_codechalDevice == nullptr)
-            {
-                CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
-                CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
-            }
-            return MOS_STATUS_SUCCESS;
-        }
-        else
 #endif
 #if defined(_AV1_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == codechalEncodeModeAv1)
@@ -469,23 +493,6 @@ MOS_STATUS CodechalInterfacesXe2_Hpm::Initialize(
             }
         }
         else
-#endif
-#if defined(_HEVC_ENCODE_VDENC_SUPPORTED)
-        if (info->Mode == CODECHAL_ENCODE_MODE_HEVC)
-        {
-            if (CodecHalUsesVdencEngine(info->CodecFunction))
-            {
-                m_codechalDevice = MOS_New(EncodeHevcVdencPipelineAdapterXe2_Hpm, hwInterface, debugInterface);
-                if (m_codechalDevice == nullptr)
-                {
-                    CODECHAL_PUBLIC_ASSERTMESSAGE("Encode state creation failed!");
-                    CODECHAL_PUBLIC_CHK_STATUS_WITH_DESTROY_RETURN(MOS_STATUS_INVALID_PARAMETER, release_func);
-                }
-                return MOS_STATUS_SUCCESS;
-            }
-        }
-        else
-#endif
 #endif
         {
             CODECHAL_PUBLIC_ASSERTMESSAGE("Unsupported encode function requested.");
@@ -530,54 +537,3 @@ MOS_STATUS MediaInterfacesHwInfoDeviceXe2_Hpm::Initialize(PLATFORM platform)
 static bool bmgRegisteredMcpy =
 MediaFactory<uint32_t, McpyDeviceNext>::
 Register<McpyDeviceXe2_Hpm>((uint32_t)IGFX_BMG);
-
-MOS_STATUS McpyDeviceXe2_Hpm::Initialize(
-    PMOS_INTERFACE osInterface,
-    MhwInterfacesNext* mhwInterfaces)
-{
-#define MCPY_FAILURE()                                      \
-{                                                           \
-    if (device != nullptr)                                  \
-    {                                                       \
-        MOS_Delete(device);                                 \
-    }                                                       \
-    return MOS_STATUS_NO_SPACE;                             \
-}
-
-    MHW_FUNCTION_ENTER;
-
-    Mcpy* device = nullptr;
-
-    if (nullptr == mhwInterfaces->m_miItf)
-    {
-        MCPY_FAILURE();
-    }
-
-    if (nullptr == mhwInterfaces->m_veboxItf)
-    {
-        MCPY_FAILURE();
-    }
-
-    if (nullptr == mhwInterfaces->m_bltItf)
-    {
-        MCPY_FAILURE();
-    }
-
-    device = MOS_New(Mcpy);
-
-    if (device == nullptr)
-    {
-        MCPY_FAILURE();
-    }
-
-    if (device->Initialize(
-        osInterface, mhwInterfaces) != MOS_STATUS_SUCCESS)
-    {
-        MOS_Delete(device);
-        MOS_OS_CHK_STATUS_RETURN(MOS_STATUS_UNINITIALIZED);
-    }
-
-    m_mcpyDevice = device;
-
-    return MOS_STATUS_SUCCESS;
-}

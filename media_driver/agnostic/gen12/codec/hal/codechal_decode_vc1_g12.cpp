@@ -41,10 +41,9 @@
 
 MOS_STATUS CodechalDecodeVc1G12::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
     m_mmc = MOS_New(CodechalMmcDecodeVc1G12, m_hwInterface, this);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_mmc);
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -59,7 +58,6 @@ MOS_STATUS CodechalDecodeVc1G12::AllocateStandard(
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(CodechalDecodeVc1::AllocateStandard(settings));
 
-#ifdef _MMC_SUPPORTED
     // Disable Decode MMC for IGFX
     if (!MEDIA_IS_SKU(m_hwInterface->GetSkuTable(), FtrFlatPhysCCS))
     {
@@ -78,7 +76,6 @@ MOS_STATUS CodechalDecodeVc1G12::AllocateStandard(
             &m_HucPatchListSizeNeeded,
             &stateCmdSizeParams);
     }
-#endif
 
     if ( MOS_VE_SUPPORTED(m_osInterface))
     {
@@ -138,7 +135,6 @@ MOS_STATUS CodechalDecodeVc1G12::SetFrameStates()
         CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeSinglePipeVE_SetHintParams(m_veState, &vesetParams));
     }
 
-#ifdef _MMC_SUPPORTED
     bool isBPicture = m_mfxInterface->IsVc1BPicture(
                         m_vc1PicParams->CurrPic,
                         m_vc1PicParams->picture_fields.is_first_field,
@@ -162,7 +158,6 @@ MOS_STATUS CodechalDecodeVc1G12::SetFrameStates()
     {
         m_deblockingEnabled = true;
     }
-#endif
 
     return eStatus;
 }
@@ -172,7 +167,7 @@ MOS_STATUS CodechalDecodeVc1G12::DecodeStateLevel()
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_DECODE_FUNCTION_ENTER;
-#ifdef _MMC_SUPPORTED
+
     // To make sure aux table is clear when MMC off(IGFX)
     // Can not clear aux table for DGFX because of stolen memory
     if (!m_mmc->IsMmcEnabled() && !Mos_ResourceIsNull(&m_destSurface.OsResource) && m_destSurface.OsResource.bConvertedFromDDIResource)
@@ -191,7 +186,6 @@ MOS_STATUS CodechalDecodeVc1G12::DecodeStateLevel()
                 this, m_miInterface, &m_destSurface.OsResource, m_veState));
         }
     }
-#endif
 
     PCODEC_REF_LIST     *vc1RefList;
     vc1RefList = &(m_vc1RefList[0]);
@@ -289,9 +283,7 @@ MOS_STATUS CodechalDecodeVc1G12::DecodeStateLevel()
         pipeBufAddrParams.psPreDeblockSurface = destSurface;
     }
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&pipeBufAddrParams));
-#endif
 
         // when there is not a forward or backward reference,
         // the index is set to the destination frame index
@@ -342,11 +334,9 @@ MOS_STATUS CodechalDecodeVc1G12::DecodeStateLevel()
             &(m_streamOutBuffer[m_streamOutCurrBufIdx]);
     }
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->CheckReferenceList(&pipeBufAddrParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetRefrenceSync(m_disableDecodeSyncLock, m_disableLockForTranscode));
-#endif
 
     CODECHAL_DEBUG_TOOL(
         for (int i = 0; i < CODEC_MAX_NUM_REF_FRAME_NON_AVC; i++)
@@ -463,9 +453,8 @@ MOS_STATUS CodechalDecodeVc1G12::DecodeStateLevel()
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPipeModeSelectCmd(&cmdBuffer, &pipeModeSelectParams));
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetSurfaceState(&surfaceParams));
-#endif
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxSurfaceCmd(&cmdBuffer, &surfaceParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPipeBufAddrCmd(&cmdBuffer, &pipeBufAddrParams));
@@ -1301,10 +1290,10 @@ MOS_STATUS CodechalDecodeVc1G12::HandleSkipFrame()
             surfaceSize,                            // u32CopyLength
             srcSurface.dwOffset,                    // u32CopyInputOffset
             m_destSurface.dwOffset));               // u32CopyOutputOffset
-#ifdef _MMC_SUPPORTED
+
         auto mmc = static_cast<CodechalMmcDecodeVc1G12*>(m_mmc);
         CODECHAL_DECODE_CHK_STATUS_RETURN(mmc->CopyAuxSurfForSkip(&cmdBuffer, &srcSurface.OsResource, &m_destSurface.OsResource));
-#endif
+
         syncParams = g_cInitSyncParams;
         syncParams.GpuContext = m_videoContextForWa;
         syncParams.presSyncResource         = &m_destSurface.OsResource;
@@ -1453,14 +1442,12 @@ MOS_STATUS CodechalDecodeVc1G12::PerformVc1Olp()
     surfaceParamsSrc.dwCacheabilityControl  =
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC].Value;
 
-#ifdef _MMC_SUPPORTED
     if (m_mmc)
     {
         CODECHAL_SURFACE_CODEC_PARAMS srcSurfaceParam = {};
         srcSurfaceParam.psSurface = &m_destSurface;
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetSurfaceParams(&srcSurfaceParam));
     }
-#endif
 
     MHW_RCS_SURFACE_PARAMS surfaceParamsDst;
     MOS_ZeroMemory(&surfaceParamsDst, sizeof(surfaceParamsDst));
@@ -1473,14 +1460,12 @@ MOS_STATUS CodechalDecodeVc1G12::PerformVc1Olp()
     surfaceParamsDst.dwCacheabilityControl =
         m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_POST_DEBLOCKING_CODEC].Value;
 
-#ifdef _MMC_SUPPORTED
     if (m_mmc)
     {
         CODECHAL_SURFACE_CODEC_PARAMS dstSurfaceParam = {};
         dstSurfaceParam.psSurface = &m_deblockSurface;
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetSurfaceParams(&dstSurfaceParam));
     }
-#endif
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(stateHeapInterface->pfnSetSurfaceState(
         stateHeapInterface,

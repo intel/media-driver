@@ -179,11 +179,9 @@ namespace decode
         params = {};
         DECODE_CHK_STATUS(HevcDecodePicPkt::MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params));
 
-#ifdef _MMC_SUPPORTED
         HevcDecodeMemComp *hevcDecodeMemComp = dynamic_cast<HevcDecodeMemComp *>(m_mmcState);
         DECODE_CHK_NULL(hevcDecodeMemComp);
         DECODE_CHK_STATUS(hevcDecodeMemComp->CheckReferenceList(*m_hevcBasicFeature, params.PostDeblockSurfMmcState, params.PreDeblockSurfMmcState, params.presReferences));
-#endif
 
         auto decodeMode = m_hevcPipeline->GetDecodeMode();
         if (decodeMode == HevcPipeline::virtualTileDecodeMode ||

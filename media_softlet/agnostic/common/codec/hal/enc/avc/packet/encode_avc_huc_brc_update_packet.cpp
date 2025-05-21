@@ -141,7 +141,15 @@ MOS_STATUS AvcHucBrcUpdatePkt::AllocateResources()
         allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
         allocatedbuffer = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
         ENCODE_CHK_NULL_RETURN(allocatedbuffer);
-        m_vdencBrcImageStatesReadBuffer[k] = allocatedbuffer;
+        m_vdencBrcImageStatesReadBufferOrigin[k] = allocatedbuffer;
+
+        // VDENC IMG STATE read buffer
+        allocParamsForBufferLinear.dwBytes      = m_brcFeature->GetVdencBRCImgStateBufferSize();
+        allocParamsForBufferLinear.pBufName     = "VDENC BRC IMG State Read Buffer";
+        allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
+        allocatedbuffer                         = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
+        ENCODE_CHK_NULL_RETURN(allocatedbuffer);
+        m_vdencBrcImageStatesReadBufferTU7[k] = allocatedbuffer;
 
         for (auto i = 0; i < VDENC_BRC_NUM_OF_PASSES; i++)
         {
@@ -334,8 +342,18 @@ MOS_STATUS AvcHucBrcUpdatePkt::Execute(PMOS_COMMAND_BUFFER cmdBuffer, bool store
 MOS_STATUS AvcHucBrcUpdatePkt::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t packetPhase)
 {
     ENCODE_FUNC_CALL();
+    ENCODE_CHK_NULL_RETURN(m_basicFeature->m_picParam);
+    ENCODE_CHK_NULL_RETURN(m_basicFeature->m_seqParam);
 
-    ENCODE_CHK_STATUS_RETURN(ConstructImageStateReadBuffer(m_vdencBrcImageStatesReadBuffer[m_pipeline->m_currRecycledBufIdx]));
+    ENCODE_CHK_STATUS_RETURN(ConstructImageStateReadBuffer(m_vdencBrcImageStatesReadBufferOrigin[m_pipeline->m_currRecycledBufIdx]));
+
+    if (m_basicFeature->m_picParam->AdaptiveTUEnabled != 0)
+    {
+        auto original_TU              = m_basicFeature->m_targetUsage;
+        m_basicFeature->m_targetUsage = m_basicFeature->m_seqParam->TargetUsage = 7;
+        ENCODE_CHK_STATUS_RETURN(ConstructImageStateReadBuffer(m_vdencBrcImageStatesReadBufferTU7[m_pipeline->m_currRecycledBufIdx]));
+        m_basicFeature->m_targetUsage = m_basicFeature->m_seqParam->TargetUsage = original_TU;
+    }
 
     bool firstTaskInPhase = packetPhase & firstPacket;
     bool requestProlog = false;
@@ -525,7 +543,7 @@ MHW_SETPAR_DECL_SRC(HUC_VIRTUAL_ADDR_STATE, AvcHucBrcUpdatePkt)
     // Input regions
     params.regionParams[1].presRegion = m_basicFeature->m_recycleBuf->GetBuffer(VdencStatsBuffer, 0);
     params.regionParams[2].presRegion = m_basicFeature->m_recycleBuf->GetBuffer(BrcPakStatisticBuffer, 0);
-    params.regionParams[3].presRegion = m_vdencBrcImageStatesReadBuffer[m_pipeline->m_currRecycledBufIdx];
+    params.regionParams[3].presRegion = m_vdencBrcImageStatesReadBufferOrigin[m_pipeline->m_currRecycledBufIdx];
     params.regionParams[5].presRegion = m_vdencBrcConstDataBuffer[GetCurrConstDataBufIdx()];
     params.regionParams[7].presRegion = m_basicFeature->m_recycleBuf->GetBuffer(PakSliceSizeStreamOutBuffer, m_pipeline->GetCurrentPass() ?
         m_basicFeature->m_frameNum : m_basicFeature->m_frameNum ? m_basicFeature->m_frameNum-1 : 0);   // use stats from previous frame for pass 0
@@ -540,6 +558,11 @@ MHW_SETPAR_DECL_SRC(HUC_VIRTUAL_ADDR_STATE, AvcHucBrcUpdatePkt)
             return MOS_STATUS_UNIMPLEMENTED;
         }
         params.regionParams[8].presRegion = m_basicFeature->m_recycleBuf->GetBuffer(RecycleResId::HucRoiMapBuffer, m_basicFeature->m_frameNum);
+    }
+
+    if (m_basicFeature->m_picParam->AdaptiveTUEnabled != 0)
+    {
+        params.regionParams[12].presRegion = m_vdencBrcImageStatesReadBufferTU7[m_pipeline->m_currRecycledBufIdx];
     }
 
     return MOS_STATUS_SUCCESS;

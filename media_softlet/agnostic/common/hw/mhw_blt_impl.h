@@ -215,6 +215,10 @@ public:
             cmd.DW0.ColorDepth, cmd.DW8.SourcePitch, cmd.DW8.SourceMocs, cmd.DW8.SourceTiling, srcMmcModel,
             cmd.DW1.DestinationPitch, cmd.DW1.DestinationMocsValue, cmd.DW1.DestinationTiling, dstMmcModel);
 
+        MT_LOG7(MT_MEDIA_COPY, MT_NORMAL, MT_GENERIC_VALUE, cmd.DW0.ColorDepth, MT_GENERIC_VALUE, cmd.DW1.Value, MT_GENERIC_VALUE, cmd.DW2.Value, MT_GENERIC_VALUE, cmd.DW3.Value,
+                MT_GENERIC_VALUE, cmd.DW6.Value, MT_GENERIC_VALUE, cmd.DW7.Value, MT_GENERIC_VALUE, cmd.DW8.Value);
+        MT_LOG7(MT_MEDIA_COPY, MT_NORMAL, MT_GENERIC_VALUE, cmd.DW11.Value, MT_GENERIC_VALUE, cmd.DW16.Value, MT_GENERIC_VALUE, cmd.DW17.Value,
+                    MT_GENERIC_VALUE, cmd.DW18.Value, MT_GENERIC_VALUE, cmd.DW19.Value, MT_GENERIC_VALUE, cmd.DW20.Value, MT_GENERIC_VALUE, cmd.DW21.Value);
         return MOS_STATUS_SUCCESS;
     }
 

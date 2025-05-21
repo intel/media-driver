@@ -41,6 +41,8 @@
 #include "vp_packet_shared_context.h"
 #include "vp_kernelset.h"
 #include "vp_packet_reuse_manager.h"
+#include "vp_graphset.h"
+#include "vp_graph_manager.h"
 
 namespace vp
 {
@@ -227,6 +229,11 @@ public:
         return m_allocator;
     }
 
+    virtual bool IsOclFCEnabled()
+    {
+        return m_vpMhwInterface.m_userFeatureControl->EnableOclFC();
+    }
+
     // for debug purpose
 #if (_DEBUG || _RELEASE_INTERNAL)
     //!
@@ -323,12 +330,26 @@ protected:
 
     virtual MOS_STATUS CreateSinglePipeContext();
 
-//!
-//! \brief  create media kernel sets
-//! \return MOS_STATUS
-//!         MOS_STATUS_SUCCESS if success, else fail reason
-//!
+    //!
+    //! \brief  create media kernel sets
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
     virtual MOS_STATUS CreateVpKernelSets();
+
+    //!
+    //! \brief  create media graph sets
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS CreateVpGraphSets();
+
+    //!
+    //! \brief  create media graph manager
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS CreateVpGraphManager();
 
     virtual MOS_STATUS CheckFeatures(void *params, bool &bapgFuncSupported);
 
@@ -463,6 +484,8 @@ protected:
     VPFeatureManager      *m_paramChecker           = nullptr;
     VP_PACKET_SHARED_CONTEXT *m_packetSharedContext = nullptr;
     VpInterface           *m_vpInterface            = nullptr;
+    VpGraphSet            *m_graphSet               = nullptr;
+    VpGraphManager        *m_graphManager           = nullptr;
 #if (_DEBUG || _RELEASE_INTERNAL)
     VPHAL_SURFACE         *m_tempTargetSurface      = nullptr;
 #endif
@@ -470,6 +493,7 @@ protected:
     VpUserFeatureControl  *m_userFeatureControl = nullptr;
     std::vector<VpSinglePipeContext *> m_vpPipeContexts     = {};
     VpPipelineParamFactory            *m_pipelineParamFactory = nullptr;
+    bool                               m_reportOnceFlag       = true;
 
     MEDIA_CLASS_DEFINE_END(vp__VpPipeline)
 };
@@ -487,14 +511,14 @@ public:
     VpSinglePipeContext();
     virtual ~VpSinglePipeContext();
 
-    virtual MOS_STATUS Init(PMOS_INTERFACE osInterface, VpAllocator *allocator, VphalFeatureReport *reporting, vp::VpPlatformInterface *vpPlatformInterface, PacketPipeFactory *packetPipeFactory, VpUserFeatureControl *userFeatureControl, MediaCopyWrapper *mediaCopyWrapper);
+    virtual MOS_STATUS Init(PMOS_INTERFACE osInterface, VpAllocator *allocator, VphalFeatureReport *reporting, vp::VpPlatformInterface *vpPlatformInterface, PacketPipeFactory *packetPipeFactory, VpUserFeatureControl *userFeatureControl, MediaCopyWrapper *mediaCopyWrapper, VpGraphManager *graphManager);
 
     //!
     //! \brief  create reource manager
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS CreateResourceManager(PMOS_INTERFACE osInterface, VpAllocator *allocator, VphalFeatureReport *reporting, vp::VpPlatformInterface *vpPlatformInterface, vp::VpUserFeatureControl *userFeatureControl, MediaCopyWrapper *mediaCopyWrapper);
+    virtual MOS_STATUS CreateResourceManager(PMOS_INTERFACE osInterface, VpAllocator *allocator, VphalFeatureReport *reporting, vp::VpPlatformInterface *vpPlatformInterface, vp::VpUserFeatureControl *userFeatureControl, MediaCopyWrapper *mediaCopyWrapper, VpGraphManager *graphManager);
 
     virtual MOS_STATUS CreatePacketReuseManager(PacketPipeFactory *pPacketPipeFactory, VpUserFeatureControl *userFeatureControl);
 
@@ -573,14 +597,16 @@ protected:
 class VpInterface
 {
 public:
-    VpInterface(PVP_MHWINTERFACE pHwInterface, VpAllocator& allocator, VpResourceManager* resourceManager) :
+    VpInterface(PVP_MHWINTERFACE pHwInterface, VpAllocator &allocator, VpResourceManager *resourceManager, VpGraphManager *graphManager) :
         m_swFilterPipeFactory(*this),
         m_hwFilterPipeFactory(*this),
         m_hwFilterFactory(*this),
         m_hwInterface(pHwInterface),
         m_allocator(allocator),
         m_resourceManager(resourceManager),
-        m_swFilterHandler(nullptr) // setting when create feature manager
+        m_swFilterHandler(nullptr), // setting when create feature manager
+        m_graphManager(graphManager),
+        m_primaryResourceManager(resourceManager)
     {
     }
 
@@ -644,9 +670,20 @@ public:
         return m_resourceManager;
     }
 
+    VpResourceManager *GetPrimaryResourceManager()
+    {
+        //This is the resource manager in the m_vpPipeContexts[0]. The resources across different pipe contexts will be stored in the primary resource manager
+        return m_primaryResourceManager;
+    }
+
     PVP_MHWINTERFACE GetHwInterface()
     {
         return m_hwInterface;
+    }
+
+    VpGraphManager* GetGraphManager()
+    {
+        return m_graphManager;
     }
 
     MOS_STATUS SwitchResourceManager(VpResourceManager *resManager)
@@ -664,6 +701,10 @@ private:
     VpAllocator& m_allocator;
     VpResourceManager* m_resourceManager;
     std::map<FeatureType, SwFilterFeatureHandler*>* m_swFilterHandler = nullptr;
+    VpGraphManager                                  *m_graphManager    = nullptr;
+
+    //This is the resource manager in the m_vpPipeContexts[0]. The resources across different pipe contexts will be stored in the primary resource manager
+    VpResourceManager *m_primaryResourceManager = nullptr;
 
 MEDIA_CLASS_DEFINE_END(vp__VpInterface)
 };

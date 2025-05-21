@@ -268,7 +268,6 @@ MOS_STATUS MhwInterfacesDg2::Initialize(
     return MOS_STATUS_SUCCESS;
 }
 
-#ifdef _MMC_SUPPORTED
 static bool dg2RegisteredMmd =
     MediaFactory<uint32_t, MmdDevice>::
     Register<MmdDeviceXe_Hpm>((uint32_t)IGFX_DG2);
@@ -340,54 +339,58 @@ MhwInterfaces* MmdDeviceXe_Hpm::CreateMhwInterface(
 
     return mhw;
 }
-#endif
 
 static bool dg2RegisteredMcpy =
     MediaFactory<uint32_t, McpyDevice>::
     Register<McpyDeviceXe_Hpm>((uint32_t)IGFX_DG2);
 
 MOS_STATUS McpyDeviceXe_Hpm::Initialize(
-    PMOS_INTERFACE osInterface,
-    MhwInterfaces *mhwInterfaces)
+    PMOS_INTERFACE osInterface)
 {
-#define MCPY_FAILURE()                                       \
-{                                                           \
-    if (device != nullptr)                                  \
-    {                                                       \
-        MOS_Delete(device);                                 \
-    }                                                       \
-    return MOS_STATUS_NO_SPACE;                             \
-}
     MHW_FUNCTION_ENTER;
 
     Mcpy *device = nullptr;
+    MhwInterfaces* mhwInterfaces = nullptr;
 
-    if (mhwInterfaces->m_miInterface == nullptr)
-    {
-        MCPY_FAILURE();
-    }
+    auto deleterOnFailure = [&](bool deleteOsInterface, bool deleteMhwInterface){
+        if (deleteOsInterface && osInterface != nullptr)
+        {
+            if (osInterface->pfnDestroy)
+            {
+                osInterface->pfnDestroy(osInterface, false);
+            }
+            MOS_FreeMemory(osInterface);
+        }
 
-    if (mhwInterfaces->m_veboxInterface == nullptr)
-    {
-        MCPY_FAILURE();
-    }
+        if (deleteMhwInterface && mhwInterfaces != nullptr)
+        {
+            mhwInterfaces->Destroy();
+            MOS_Delete(mhwInterfaces);
+        }
 
-    if (mhwInterfaces->m_bltInterface == nullptr)
-    {
-        MCPY_FAILURE();
-    }
+        MOS_Delete(device);
+    };
 
     device = MOS_New(Mcpy);
-
     if (device == nullptr)
     {
-        MCPY_FAILURE();
+        deleterOnFailure(true, false);
+        return MOS_STATUS_NO_SPACE;
+    }
+
+    mhwInterfaces = CreateMhwInterface(osInterface);
+    if (mhwInterfaces->m_miInterface == nullptr ||
+        mhwInterfaces->m_veboxInterface == nullptr ||
+        mhwInterfaces->m_bltInterface == nullptr)
+    {
+        deleterOnFailure(true, true);
+        return MOS_STATUS_NO_SPACE;
     }
 
     if (device->Initialize(
         osInterface, mhwInterfaces) != MOS_STATUS_SUCCESS)
     {
-        MOS_Delete(device);
+        deleterOnFailure(false, false);
         MOS_OS_CHK_STATUS_RETURN(MOS_STATUS_UNINITIALIZED);
     }
 

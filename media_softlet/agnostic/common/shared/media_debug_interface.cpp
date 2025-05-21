@@ -427,7 +427,6 @@ MOS_STATUS MediaDebugInterface::DumpMosSpecificResourceInfoToOfs(
             FIELD_TO_OFS_8SHIFT(Info.KernelModeMapped);
             FIELD_TO_OFS_8SHIFT(Info.LayoutBelow);
             FIELD_TO_OFS_8SHIFT(Info.LayoutMono);
-            FIELD_TO_OFS_8SHIFT(Info.LayoutRight);
             FIELD_TO_OFS_8SHIFT(Info.LocalOnly);
             FIELD_TO_OFS_8SHIFT(Info.Linear);
             FIELD_TO_OFS_8SHIFT(Info.MediaCompressed);

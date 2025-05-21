@@ -638,6 +638,78 @@ MOS_STATUS VpVeboxCmdPacketLegacy::SetSfcCSCParams(PSFC_CSC_PARAMS cscParams)
     }
 }
 
+MOS_STATUS VpVeboxCmdPacketLegacy::SetVeboxCSCParams(PVEBOX_CSC_PARAMS cscParams)
+{
+    VP_FUNC_CALL();
+
+    VP_RENDER_CHK_NULL_RETURN(cscParams);
+
+    if (cscParams->blockType == VEBOX_CSC_BLOCK_TYPE::FRONT_END)
+    {
+        VP_RENDER_CHK_STATUS_RETURN(SetVeboxFeCSCParams(cscParams));
+    }
+    else  //cscParams->blockType == VEBOX_CSC_BLOCK_TYPE::BACK_END
+    {
+        VP_RENDER_CHK_STATUS_RETURN(SetVeboxBeCSCParams(cscParams));
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpVeboxCmdPacketLegacy::SetVeboxFeCSCParams(PVEBOX_CSC_PARAMS cscParams)
+{
+    VP_FUNC_CALL();
+
+    VP_RENDER_CHK_NULL_RETURN(cscParams);
+
+    VpVeboxRenderData *pRenderData = GetLastExecRenderData();
+    VP_RENDER_CHK_NULL_RETURN(pRenderData);
+
+    pRenderData->IECP.FeCSC.bFeCSCEnabled = cscParams->bCSCEnabled;
+
+    MHW_VEBOX_IECP_PARAMS &veboxIecpParams = pRenderData->GetIECPParams();
+
+    if (m_CscInputCspace != cscParams->inputColorSpace ||
+        m_CscOutputCspace != cscParams->outputColorSpace)
+    {
+        // For VE 3DLUT HDR cases, CSC params will be overriden in Vebox Interface_BT2020YUVToRGB
+        // Get the matrix to use for conversion
+        // For BeCSC, it will call VeboxGetBeCSCMatrix, because it may need to swap channel
+        // For FeCSC, no need to swap channel, because no SFC is used when using FeCSC. Vebox will directly output
+        VpHal_GetCscMatrix(
+            cscParams->inputColorSpace,
+            cscParams->outputColorSpace,
+            m_fCscCoeff,
+            m_fCscInOffset,
+            m_fCscOutOffset);
+
+        veboxIecpParams.srcFormat  = cscParams->inputFormat;
+        veboxIecpParams.dstFormat  = cscParams->outputFormat;
+        veboxIecpParams.ColorSpace = (MHW_CSPACE)cscParams->inputColorSpace;
+    }
+
+    if (m_PacketCaps.bVebox &&
+        m_PacketCaps.bFeCSC &&
+        cscParams->bCSCEnabled)
+    {
+        veboxIecpParams.bFeCSCEnable     = true;
+        veboxIecpParams.pfFeCscCoeff     = m_fCscCoeff;
+        veboxIecpParams.pfFeCscInOffset  = m_fCscInOffset;
+        veboxIecpParams.pfFeCscOutOffset = m_fCscOutOffset;
+        if ((cscParams->outputFormat == Format_A16B16G16R16F) || (cscParams->outputFormat == Format_A16R16G16B16F))
+        {
+            // Use CCM to do CSC for FP16 VEBOX output
+            veboxIecpParams.bFeCSCEnable  = false;
+            veboxIecpParams.bCcmCscEnable = true;
+        }
+    }
+
+    VP_RENDER_CHK_STATUS_RETURN(SetVeboxOutputAlphaParams(cscParams));
+    VP_RENDER_CHK_STATUS_RETURN(SetVeboxChromasitingParams(cscParams));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpVeboxCmdPacketLegacy::SetVeboxBeCSCParams(PVEBOX_CSC_PARAMS cscParams)
 {
     VP_FUNC_CALL();
@@ -1968,11 +2040,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::RenderVeboxCmd(
     }
     VP_RENDER_CHK_NULL_RETURN(pVeboxHeap);
 
-#ifdef _MMC_SUPPORTED
-
     VP_RENDER_CHK_STATUS_RETURN(setVeboxProCmd(pMhwMiInterface, pVeboxInterface, CmdBuffer));
-
-#endif
 
     // Initialize the scalability
     curPipe    = scalability->GetCurrentPipe();
@@ -2043,11 +2111,8 @@ MOS_STATUS VpVeboxCmdPacketLegacy::RenderVeboxCmd(
         if (bMultipipe)
         {
             // Insert prolog with VE params
-#ifdef _MMC_SUPPORTED
 
             VP_RENDER_CHK_STATUS_RETURN(setVeboxProCmd(pMhwMiInterface, pVeboxInterface, pCmdBufferInUse));
-
-#endif
 
             MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
             MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
@@ -2965,10 +3030,11 @@ MOS_STATUS VpVeboxCmdPacketLegacy::AddVeboxIECPState()
 
     if (pRenderData->IECP.IsIecpEnabled())
     {
-        VP_PUBLIC_NORMALMESSAGE("IecpState is added. ace %d, lace %d, becsc %d, tcc %d, ste %d, procamp %d, std %d",
+        VP_PUBLIC_NORMALMESSAGE("IecpState is added. ace %d, lace %d, becsc %d, fecsc %d, tcc %d, ste %d, procamp %d, std %d",
             pRenderData->IECP.ACE.bAceEnabled,
             pRenderData->IECP.LACE.bLaceEnabled,
             pRenderData->IECP.BeCSC.bBeCSCEnabled,
+            pRenderData->IECP.FeCSC.bFeCSCEnabled,
             pRenderData->IECP.TCC.bTccEnabled,
             pRenderData->IECP.STE.bSteEnabled,
             pRenderData->IECP.PROCAMP.bProcampEnabled,

@@ -117,23 +117,19 @@ MOS_STATUS JpegDecodePkt::SendPrologWithFrameTracking(MOS_COMMAND_BUFFER& cmdBuf
     DECODE_CHK_NULL(makerPacket);
     DECODE_CHK_STATUS(makerPacket->Execute(cmdBuffer));
 
-#ifdef _MMC_SUPPORTED
     m_mmcState = m_jpegPipeline->GetMmcState();
     bool isMmcEnabled = (m_mmcState != nullptr && m_mmcState->IsMmcEnabled());
     if (isMmcEnabled)
     {
         DECODE_CHK_STATUS(m_mmcState->SendPrologCmd(&cmdBuffer, false));
     }
-#endif
 
     MHW_GENERIC_PROLOG_PARAMS  genericPrologParams;
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
     genericPrologParams.pOsInterface = m_osInterface;
     genericPrologParams.pvMiInterface = nullptr;
 
-#ifdef _MMC_SUPPORTED
     genericPrologParams.bMmcEnabled = isMmcEnabled;
-#endif
 
     DECODE_CHK_STATUS(Mhw_SendGenericPrologCmdNext(&cmdBuffer, &genericPrologParams, m_miItf));
 
@@ -247,7 +243,12 @@ MOS_STATUS JpegDecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER*
     DECODE_CHK_NULL(perfProfiler);
     DECODE_CHK_STATUS(perfProfiler->AddPerfCollectStartCmd(
         (void*)m_jpegPipeline, m_osInterface, m_miItf, cmdBuffer));
-
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_statusReport && m_statusReport->IsVdboxIdReportEnabled())
+    {
+        StoreEngineId(cmdBuffer, decode::DecodeStatusReportType::CsEngineIdOffset_0);
+    }
+#endif
     return MOS_STATUS_SUCCESS;
 }
 

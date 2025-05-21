@@ -320,6 +320,18 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
         __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE_MER_HEADER,
         MediaUserSetting::Group::Device);
 
+    // Read parallel execution support
+    bool addPid = false;
+    ReadUserSetting(
+        userSettingPtr,
+        addPid,
+        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_PARALLEL_EXEC,
+        MediaUserSetting::Group::Device);
+
+    if (addPid)
+    {
+        m_outputFileName += "-" + std::to_string(MosUtilities::MosGetPid());
+    }
     // Read memory information register address
     int8_t regIndex = 0;
     for (regIndex = 0; regIndex < 8; regIndex++)
@@ -684,11 +696,6 @@ MOS_STATUS MediaPerfProfiler::AddStoreBitstreamSizeCmd(
     uint32_t                       reg)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
-    
-    if (m_profilerEnabled == 0)
-    {
-        return status;
-    }
 
     CHK_NULL_RETURN(context);
     CHK_NULL_RETURN(osInterface);
@@ -697,6 +704,11 @@ MOS_STATUS MediaPerfProfiler::AddStoreBitstreamSizeCmd(
 
     PMOS_CONTEXT pOsContext = osInterface->pOsContext;
     CHK_NULL_RETURN(pOsContext);
+
+    if (m_profilerEnabled == 0 || m_initializedMap[pOsContext] == false)
+    {
+        return status;
+    }
 
     uint32_t perfDataIndex = m_contextIndexMap[context];
 

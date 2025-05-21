@@ -134,6 +134,8 @@ MOS_STATUS VpRenderCmdPacket::LoadKernel()
         return MOS_STATUS_UNKNOWN;
     }
     // Allocate Media ID, link to kernel
+    // iCurbeOffset and iCurbeLength is useless in bindless mode
+    // pRenderHal->pfnSetupInterfaceDesc is not used in bindless mode, it's set in send compute walker
     m_renderData.mediaID = m_renderHal->pfnAllocateMediaID(
         m_renderHal,
         iKrnAllocation,
@@ -149,6 +151,25 @@ MOS_STATUS VpRenderCmdPacket::LoadKernel()
         return MOS_STATUS_UNKNOWN;
     }
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpRenderCmdPacket::SetLargeGrfMode(uint32_t mode)
+{
+    VP_FUNC_CALL();
+    VP_RENDER_CHK_NULL_RETURN(m_renderHal);
+    uint32_t curMode = m_renderHal->largeGrfMode;
+    if (curMode != mode)
+    {
+        if (curMode != 0)
+        {
+            RENDER_PACKET_ASSERTMESSAGE("HW Not support different large grf modes in same BB!");
+        }
+        else
+        {
+            m_renderHal->largeGrfMode = mode;
+        }
+    }
     return MOS_STATUS_SUCCESS;
 }
 
@@ -204,6 +225,7 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
     }
 
     m_renderHal->euThreadSchedulingMode = 0;
+    m_renderHal->largeGrfMode           = 0;
 
     VP_RENDER_CHK_STATUS_RETURN(m_kernelSet->CreateKernelObjects(
         m_renderKernelParams,
@@ -229,7 +251,9 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
             VP_RENDER_CHK_NULL_RETURN(m_kernel);
 
             m_kernel->SetCacheCntl(m_surfMemCacheCtl);
+            m_kernel->SetPerfTag();
             VP_RENDER_CHK_STATUS_RETURN(SetEuThreadSchedulingMode(m_kernel->GetEuThreadSchedulingMode()));
+            VP_RENDER_CHK_STATUS_RETURN(SetLargeGrfMode(m_kernel->GetLargeGrfMode()));
 
             // reset render Data for current kernel
             MOS_ZeroMemory(&m_renderData, sizeof(KERNEL_PACKET_RENDER_DATA));
@@ -249,11 +273,22 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
 
             VP_RENDER_CHK_STATUS_RETURN(SetupSurfaceState());  // once Surface setup done, surface index should be created here
 
-            VP_RENDER_CHK_STATUS_RETURN(SetupCurbeState());  // Set Curbe with updated surface index
+            if (m_renderHal->isBindlessHeapInUse == false)
+            {
+                VP_RENDER_CHK_STATUS_RETURN(SetupCurbeState());  // Set Curbe with updated surface index
+            }
 
             VP_RENDER_CHK_STATUS_RETURN(LoadKernel());
 
             VP_RENDER_CHK_STATUS_RETURN(SetupSamplerStates());
+
+            if (m_renderHal->isBindlessHeapInUse)
+            {
+                // In bindless mode, Curbe need to set after surface state setup and sampler state setup
+                // Since bindless surface and bindless sampler only can be set into curbe after they are setup
+                // In bindful mode, they don't need to be set in curbe
+                VP_RENDER_CHK_STATUS_RETURN(SetupCurbeStateInBindlessMode());
+            }
 
             VP_RENDER_CHK_STATUS_RETURN(SetupWalkerParams());
 
@@ -265,7 +300,7 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
                 m_renderData.iInlineLength,
                 m_renderData.scoreboardParams));
 
-            m_kernelRenderData.insert(std::make_pair(it->first, m_renderData));
+            m_kernelRenderData.emplace(it->first, m_renderData);
         }
     }
     else if (m_submissionMode == MULTI_KERNELS_SINGLE_MEDIA_STATE)
@@ -309,6 +344,7 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
             VP_RENDER_CHK_NULL_RETURN(m_kernel);
             m_kernel->SetPerfTag();
             VP_RENDER_CHK_STATUS_RETURN(SetEuThreadSchedulingMode(m_kernel->GetEuThreadSchedulingMode()));
+            VP_RENDER_CHK_STATUS_RETURN(SetLargeGrfMode(m_kernel->GetLargeGrfMode()));
 
             if (it != m_kernelObjs.begin())
             {
@@ -326,15 +362,26 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
 
             VP_RENDER_CHK_STATUS_RETURN(SetupSurfaceState());  // once Surface setup done, surface index should be created here
 
-            VP_RENDER_CHK_STATUS_RETURN(SetupCurbeState());  // Set Curbe with updated surface index
+            if (m_renderHal->isBindlessHeapInUse == false)
+            {
+                VP_RENDER_CHK_STATUS_RETURN(SetupCurbeState());  // Set Curbe with updated surface index
+            }
 
             VP_RENDER_CHK_STATUS_RETURN(LoadKernel());
 
             VP_RENDER_CHK_STATUS_RETURN(SetupSamplerStates());
 
+            if (m_renderHal->isBindlessHeapInUse)
+            {
+                // In bindless mode, Curbe need to set after surface state setup and sampler state setup
+                // Since bindless surface and bindless sampler only can be set into curbe after they are setup
+                // In bindful mode, they don't need to be set in curbe
+                VP_RENDER_CHK_STATUS_RETURN(SetupCurbeStateInBindlessMode());
+            }
+
             VP_RENDER_CHK_STATUS_RETURN(SetupWalkerParams());
 
-            m_kernelRenderData.insert(std::make_pair(it->first, m_renderData));
+            m_kernelRenderData.emplace(it->first, m_renderData);
         }
 
         VP_RENDER_CHK_STATUS_RETURN(m_renderHal->pfnSetVfeStateParams(
@@ -379,6 +426,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSamplerStates()
         }
         else
         {
+            VP_RENDER_NORMALMESSAGE("Sampler State is empty for samplerIndex %d", samplerIndex);
             MHW_SAMPLER_STATE_PARAM param = {};
             samplerStates.push_back(param);
         }
@@ -733,7 +781,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                 bWrite = false;
             }
 
-            std::set<uint32_t> stateOffsets;
+            std::vector<uint64_t> stateGfxAddress;
             if (kernelSurfaceParam->surfaceOverwriteParams.bindedKernel && !kernelSurfaceParam->surfaceOverwriteParams.bufferResource)
             {
                 auto bindingMap = m_kernel->GetSurfaceBindingIndex(type);
@@ -747,7 +795,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                     &renderSurfaceParams,
                     bindingMap,
                     bWrite,
-                    stateOffsets,
+                    stateGfxAddress,
                     kernelSurfaceParam->iCapcityOfSurfaceEntry,
                     kernelSurfaceParam->surfaceEntries,
                     kernelSurfaceParam->sizeOfSurfaceEntries));
@@ -773,7 +821,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                         &renderSurfaceParams,
                         bindingMap,
                         bWrite,
-                        stateOffsets));
+                        stateGfxAddress));
                     for (uint32_t const &bti : bindingMap)
                     {
                         VP_RENDER_NORMALMESSAGE("Using Binded Index Buffer. KernelID %d, SurfType %d, bti %d", m_kernel->GetKernelId(), type, bti);
@@ -791,7 +839,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                         &renderHalSurface,
                         &renderSurfaceParams,
                         bWrite,
-                        stateOffsets);
+                        stateGfxAddress);
                     VP_RENDER_CHK_STATUS_RETURN(m_kernel->UpdateCurbeBindingIndex(type, index));
                     VP_RENDER_NORMALMESSAGE("Using UnBinded Index Buffer. KernelID %d, SurfType %d, bti %d", m_kernel->GetKernelId(), type, index);
                 }
@@ -802,15 +850,15 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                         &renderHalSurface,
                         &renderSurfaceParams,
                         bWrite,
-                        stateOffsets);
+                        stateGfxAddress);
                     VP_RENDER_CHK_STATUS_RETURN(m_kernel->UpdateCurbeBindingIndex(type, index));
                     VP_RENDER_NORMALMESSAGE("Using UnBinded Index Surface. KernelID %d, SurfType %d, bti %d. If 1D buffer overwrite to 2D for use, it will go SetSurfaceForHwAccess()", m_kernel->GetKernelId(), type, index);
                 }
             }
 
-            if (stateOffsets.size() > 0)
+            if (stateGfxAddress.size() > 0)
             {
-                m_kernel->UpdateBindlessSurfaceResource(type, stateOffsets);
+                m_kernel->UpdateBindlessSurfaceResource(type, stateGfxAddress);
             }
         }
         VP_RENDER_CHK_STATUS_RETURN(m_kernel->UpdateCompParams());
@@ -921,6 +969,54 @@ bool VpRenderCmdPacket::IsRenderUncompressedWriteNeeded(PVP_SURFACE VpSurface)
     }
 
     return false;
+}
+
+MOS_STATUS VpRenderCmdPacket::SetupCurbeStateInBindlessMode()
+{
+    VP_FUNC_CALL();
+    MT_LOG1(MT_VP_HAL_RENDER_SETUP_CURBE_STATE, MT_NORMAL, MT_FUNC_START, 1);
+    VP_RENDER_CHK_NULL_RETURN(m_kernel);
+    VP_PUBLIC_CHK_NULL_RETURN(m_renderHal->pStateHeap);
+    VP_PUBLIC_CHK_NULL_RETURN(m_osInterface);
+    VP_PUBLIC_CHK_NULL_RETURN(m_osInterface->pfnGetResourceGfxAddress);
+    // set the Curbe Data length
+    void    *curbeData          = nullptr;
+    uint32_t curbeLength        = 0;
+    uint32_t curbeLengthAligned = 0;
+
+    VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetCurbeState(curbeData, curbeLength, curbeLengthAligned, m_renderData.KernelParam, m_renderHal->dwCurbeBlockAlign));
+
+    m_renderData.iCurbeOffset = m_renderHal->pfnLoadCurbeData(
+        m_renderHal,
+        m_renderData.mediaState,
+        curbeData,
+        curbeLength);
+
+    if (m_renderData.iCurbeOffset < 0 ||
+        (m_renderData.iCurbeOffset & 0x1F) != 0 ||
+        (m_renderData.iCurbeOffset + static_cast<int32_t>(curbeLengthAligned)) > m_renderData.mediaState->iCurbeOffset)
+    {
+        RENDER_PACKET_ASSERTMESSAGE("Curbe Set Fail, return error");
+        return MOS_STATUS_UNKNOWN;
+    }
+    
+    PMOS_RESOURCE resource = &m_renderHal->pStateHeap->GshOsResource;
+    VP_PUBLIC_CHK_VALUE_RETURN(Mos_ResourceIsNull(resource), false);
+    uint64_t gfxAddress = m_osInterface->pfnGetResourceGfxAddress(m_osInterface, resource) +
+                          m_renderHal->pStateHeap->pCurMediaState->dwOffset +
+                          m_renderHal->pStateHeap->dwOffsetCurbe +
+                          m_renderData.iCurbeOffset;
+    VP_PUBLIC_CHK_STATUS_RETURN(m_kernel->SetCurbeGfxAddress(gfxAddress));
+    
+
+    m_renderData.iCurbeLength = curbeLengthAligned;
+
+    m_totalCurbeSize += m_renderData.iCurbeLength;
+
+    m_kernel->FreeCurbe(curbeData);
+    MT_LOG2(MT_VP_HAL_RENDER_SETUP_CURBE_STATE, MT_NORMAL, MT_FUNC_END, 1, MT_MOS_STATUS, MOS_STATUS_SUCCESS);
+
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS VpRenderCmdPacket::SetupCurbeState()
@@ -1714,7 +1810,7 @@ MOS_STATUS VpRenderCmdPacket::SubmitWithMultiKernel(MOS_COMMAND_BUFFER *commandB
 
     MOS_ZeroMemory(&PipeControlParams, sizeof(PipeControlParams));
     PipeControlParams.dwFlushMode                   = MHW_FLUSH_WRITE_CACHE;
-    PipeControlParams.bGenericMediaStateClear       = true;
+    PipeControlParams.bGenericMediaStateClear       = true; // this value is ignored for compute walker.
     PipeControlParams.bIndirectStatePointersDisable = true;
     PipeControlParams.bDisableCSStall               = false;
 
@@ -1836,11 +1932,12 @@ void VpRenderCmdPacket::PrintWalkerParas(MHW_GPGPU_WALKER_PARAMS& WalkerParams)
         WalkerParams.GroupStartingY,
         WalkerParams.GroupStartingZ,
         WalkerParams.SLMSize);
-    VP_RENDER_VERBOSEMESSAGE("GpGPU WalkerParams: GenerateLocalId %d, EmitLocal %d, EmitInlineParameter %d, HasBarrier %d",
+    VP_RENDER_VERBOSEMESSAGE("GpGPU WalkerParams: GenerateLocalId %d, EmitLocal %d, EmitInlineParameter %d, HasBarrier %d, SIMD size %d",
         WalkerParams.isGenerateLocalID,
         WalkerParams.emitLocal,
         WalkerParams.isEmitInlineParameter,
-        WalkerParams.hasBarrier);
+        WalkerParams.hasBarrier,
+        WalkerParams.simdSize);
     VP_RENDER_VERBOSEMESSAGE("GpGPU WalkerParams: InlineDataLength = %d, InlineData = %s",
         WalkerParams.inlineDataLength,
         inlineData.c_str());
@@ -1929,9 +2026,16 @@ MOS_STATUS VpRenderCmdPacket::SendMediaStates(
     // Send State Base Address command
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendStateBaseAddress(pRenderHal, pCmdBuffer));
 
-    if (pRenderHal->bComputeContextInUse && !pRenderHal->isBindlessHeapInUse)
+    if (pRenderHal->bComputeContextInUse)
     {
-        pRenderHal->pRenderHalPltInterface->SendTo3DStateBindingTablePoolAlloc(pRenderHal, pCmdBuffer);
+        if (!pRenderHal->isBindlessHeapInUse)
+        {
+            pRenderHal->pRenderHalPltInterface->SendTo3DStateBindingTablePoolAlloc(pRenderHal, pCmdBuffer);
+        }
+        else
+        {
+            pRenderHal->pRenderHalPltInterface->SendStateComputeMpde(pRenderHal, pCmdBuffer);
+        }
     }
 
     // Send Surface States
@@ -2067,17 +2171,20 @@ MOS_STATUS VpRenderCmdPacket::SetFcParams(PRENDER_FC_PARAMS params)
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(params);
 
-    m_kernelConfigs.insert(std::make_pair(params->kernelId, (void *)params));
+    m_kernelConfigs.emplace(params->kernelId, (void *)params);
 
     KERNEL_PARAMS kernelParams = {};
     kernelParams.kernelId      = params->kernelId;
     m_renderKernelParams.push_back(kernelParams);
     m_isMultiBindingTables = false;
     m_submissionMode       = SINGLE_KERNEL_ONLY;
+#if(_DEBUG || _RELEASE_INTERNAL)  
+    m_report->GetFeatures().isLegacyFCInUse = true;
+#endif
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderCmdPacket::SetL0FcParams(PRENDER_L0_FC_PARAMS params)
+MOS_STATUS VpRenderCmdPacket::SetOclFcParams(PRENDER_OCL_FC_PARAMS params)
 {
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(params);
@@ -2096,9 +2203,37 @@ MOS_STATUS VpRenderCmdPacket::SetL0FcParams(PRENDER_L0_FC_PARAMS params)
 
         m_renderKernelParams.push_back(kernelParam);
 
-        m_kernelConfigs.insert(std::make_pair(krnParams.kernelId, (void *)(&krnParams.kernelConfig)));
+        m_kernelConfigs.emplace(krnParams.kernelId, (void *)(&krnParams.kernelConfig));
     }
 
+    m_submissionMode            = MULTI_KERNELS_SINGLE_MEDIA_STATE;
+    m_isMultiBindingTables      = true;
+    m_isLargeSurfaceStateNeeded = true;
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpRenderCmdPacket::SetAiParams(PRENDER_AI_PARAMS params)
+{
+    VP_FUNC_CALL();
+    VP_RENDER_CHK_NULL_RETURN(params);
+
+    KERNEL_PARAMS kernelParam = {};
+    for (auto &krnParams : params->ai_kernelParams)
+    {
+        kernelParam.kernelId                       = VpKernelID(kernelAiCommon);
+        kernelParam.kernelArgs                     = krnParams.kernelArgs;
+        kernelParam.kernelThreadSpace.uWidth       = krnParams.threadWidth;
+        kernelParam.kernelThreadSpace.uHeight      = krnParams.threadHeight;
+        kernelParam.kernelThreadSpace.uLocalWidth  = krnParams.localWidth;
+        kernelParam.kernelThreadSpace.uLocalHeight = krnParams.localHeight;
+        kernelParam.syncFlag                       = true;
+        kernelParam.kernelStatefulSurfaces         = krnParams.kernelStatefulSurfaces;
+        kernelParam.kernelName                     = krnParams.kernelName;
+
+        m_renderKernelParams.push_back(kernelParam);
+    }
+
+    m_kernelConfigs.insert(std::make_pair(VpKernelID(kernelAiCommon), (void *)(&params->ai_kernelConfig)));
     m_submissionMode            = MULTI_KERNELS_SINGLE_MEDIA_STATE;
     m_isMultiBindingTables      = true;
     m_isLargeSurfaceStateNeeded = true;
@@ -2111,7 +2246,7 @@ MOS_STATUS VpRenderCmdPacket::SetHdr3DLutParams(
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(params);
 
-    m_kernelConfigs.insert(std::make_pair(params->kernelId, (void *)params));
+    m_kernelConfigs.emplace(params->kernelId, (void *)params);
 
     KERNEL_PARAMS kernelParams = {};
     kernelParams.kernelId = params->kernelId;
@@ -2154,7 +2289,7 @@ MOS_STATUS VpRenderCmdPacket::SetDnHVSParams(
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(params);
 
-    m_kernelConfigs.insert(std::make_pair(params->kernelId, (void *)params));
+    m_kernelConfigs.emplace(params->kernelId, (void *)params);
 
     KERNEL_PARAMS kernelParams = {};
     kernelParams.kernelId      = params->kernelId;
@@ -2216,10 +2351,10 @@ MOS_STATUS VpRenderCmdPacket::SetHdrParams(PRENDER_HDR_PARAMS params)
         default:
             break;
         }
-        m_kernelSamplerStateGroup.insert(std::make_pair(i, samplerStateParam));
+        m_kernelSamplerStateGroup.emplace(i, samplerStateParam);
     }
 
-    m_kernelConfigs.insert(std::make_pair(params->kernelId, (void *)params));
+    m_kernelConfigs.emplace(params->kernelId, (void *)params);
 
     kernelParams.kernelId                  = params->kernelId;
     kernelParams.kernelThreadSpace.uWidth  = params->threadWidth;

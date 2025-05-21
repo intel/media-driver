@@ -230,6 +230,24 @@ public:
     {
         return MOS_STATUS_SUCCESS;
     }
+    
+    virtual MOS_GPU_COMPONENT_ID GetGpuComponentId() = 0;
+
+    virtual MOS_STATUS SetHybridCmdMgr(HybridCmdMgr *hybridCmdMgr)
+    {
+        m_hybridCmdMgr = hybridCmdMgr;
+        return MOS_STATUS_SUCCESS;
+    }
+
+    virtual HybridCmdMgr* GetHybridCmdMgr()
+    {
+        return m_hybridCmdMgr;
+    }
+
+    bool IsSubmitToHybridMgr()
+    {
+        return (m_hybridCmdMgr != nullptr);
+    }
 
 protected:
     //! \brief    Hardware node for current gpu context
@@ -255,6 +273,9 @@ protected:
 
     //! \brief    VE attribute buffer
     MOS_CMD_BUF_ATTRI_VE m_bufAttriVe = {};
-MEDIA_CLASS_DEFINE_END(GpuContextNext)
+
+    HybridCmdMgr *m_hybridCmdMgr = nullptr;
+
+    MEDIA_CLASS_DEFINE_END(GpuContextNext)
 };
 #endif  // #ifndef __MOS_GPU_CONTEXT_NEXT_H__

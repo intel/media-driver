@@ -397,6 +397,9 @@ typedef enum _MEDIA_EVENT
     EVENT_DECODE_IP_ALIGNMENT,                     //! event for Decode IP Alignment
     EVENT_ENCODE_IP_ALIGNMENT,                     //! event for Encode IP Alignment
     EVENT_VPP_IP_ALIGNMENT,                        //! event for VPP IP Alignment
+    EVENT_IP_ALIGNMENT_INIT,                       //! event for IP Alignment Init
+    EVENT_IP_ALIGNMENT_REPORT,                     //! event for IP Alignment Report
+    EVENT_ENCODE_DDI_11_DESTROYVIDEOENCODER        //! event for Encode Destroy Device
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE
@@ -407,12 +410,9 @@ typedef enum _MEDIA_EVENT_TYPE
     EVENT_TYPE_INFO2 = 3,           //! function extra information event
 } MEDIA_EVENT_TYPE;
 
-typedef enum _MT_LEVEL
-{
-    MT_VERBOSE  = 0,  //! verbos runtime log
-    MT_NORMAL   = 1,  //! normal runtime log
-    MT_CRITICAL = 2,  //! critical runtime log
-} MT_LEVEL;
+#define MT_CRITICAL ((int32_t)MT_LOG_LEVEL::CRITICAL)  //! critical runtime log
+#define MT_NORMAL   ((int32_t)MT_LOG_LEVEL::NORMAL)    //! normal runtime log
+#define MT_VERBOSE  ((int32_t)MT_LOG_LEVEL::VERBOSE)   //! verbos runtime log
 
 class MtEnable
 {
@@ -903,6 +903,7 @@ typedef enum _MT_PARAM_ID
     MT_SYNC_LAST_FENCE_TAG,
     MT_SYNC_WAIT_BEFORE_SYNC,
     MT_SYNC_WAIT_MICROSECOND,
+    MT_SYNC_WAIT_RESULT,
     MT_PARAM_ID_CP_BASE  = 0x01000000,
     MT_CP_SESSION_TYPE,
     MT_CP_SESSION_MODE,

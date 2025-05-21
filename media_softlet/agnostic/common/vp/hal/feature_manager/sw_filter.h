@@ -36,6 +36,7 @@
 #include <vector>
 #include "media_sfc_interface.h"
 #include "surface_type.h"
+#include "vp_ai_kernel_pipe.h"
 
 namespace vp
 {
@@ -45,6 +46,7 @@ class SwFilterSubPipe;
 #define FEATURE_TYPE_ENGINE_BITS_SFC        0x20
 #define FEATURE_TYPE_ENGINE_BITS_VEBOX      0x40
 #define FEATURE_TYPE_ENGINE_BITS_RENDER     0x80
+#define FEATURE_TYPE_ENGINE_BITS_NPU        0xa0
 
 #define FEATURE_TYPE_ENGINE_BITS_SUB_STEP   0x01
 
@@ -52,6 +54,7 @@ class SwFilterSubPipe;
 #define IS_FEATURE_TYPE_ON_VEBOX(type)      ((type)&FEATURE_TYPE_ENGINE_BITS_VEBOX)
 #define IS_FEATURE_TYPE_ON_VEBOX_SFC(type)  (IS_FEATURE_TYPE_ON_SFC(type) || IS_FEATURE_TYPE_ON_VEBOX(type))
 #define IS_FEATURE_TYPE_ON_RENDER(type)     ((type)&FEATURE_TYPE_ENGINE_BITS_RENDER)
+#define IS_FEATURE_TYPE_ON_NPU(type) ((type) & FEATURE_TYPE_ENGINE_BITS_NPU)
 
 #define FEATURE_TYPE_MASK                   0xffffff00
 #define FEATURE_TYPE_ENGINE_ASSIGNED(feature) (((feature)&FEATURE_TYPE_MASK) != (feature))
@@ -115,6 +118,9 @@ enum FeatureType
     FeatureTypeAlphaOnSfc           = FeatureTypeAlpha | FEATURE_TYPE_ENGINE_BITS_SFC,
     FeatureTypeAlphaOnVebox         = FeatureTypeAlpha | FEATURE_TYPE_ENGINE_BITS_VEBOX,
     FeatureTypeAlphaOnRender        = FeatureTypeAlpha | FEATURE_TYPE_ENGINE_BITS_RENDER,
+    FeatureTypeAi                   = 0x1300,
+    FeatureTypeAiOnRender           = FeatureTypeAi | FEATURE_TYPE_ENGINE_BITS_RENDER,
+    FeatureTypeAiOnNpu              = FeatureTypeAi | FEATURE_TYPE_ENGINE_BITS_NPU,
     NumOfFeatureTypeBase,
 
 #ifdef _MEDIA_RESERVED
@@ -376,6 +382,11 @@ public:
 
     VP_MHWINTERFACE* GetHwInterface();
 
+    uint64_t GetGpuCtxOnHybridCmd()
+    {
+        return m_gpuContxtOnHybridCmd;
+    }
+
 protected:
     VpInterface &m_vpInterface;
     FeatureType m_type = FeatureTypeInvalid;
@@ -385,6 +396,7 @@ protected:
     bool m_noNeedUpdate = false;
     RenderTargetType m_renderTargetType = RenderTargetTypeSurface;
     bool m_isInExePipe = false;
+    uint64_t m_gpuContxtOnHybridCmd = 0;
 
 MEDIA_CLASS_DEFINE_END(vp__SwFilter)
 };
@@ -884,7 +896,7 @@ struct FeatureParamHdr : public FeatureParam
     uint32_t                uiSplitFramePortions                 = 1;                     //!< Split Frame flag
     bool                    bForceSplitFrame                     = false;
     bool                    bNeed3DSampler                       = false;                 //!< indicate whether 3D should neede by force considering AVS removal etc.
-    bool                    isL0KernelEnabled                    = false;
+    bool                    isOclKernelEnabled                    = false;
 
     HDR_PARAMS srcHDRParams    = {};
     HDR_PARAMS targetHDRParams = {};
@@ -1117,6 +1129,44 @@ protected:
 MEDIA_CLASS_DEFINE_END(vp__SwFilterCgc)
 };
 
+
+
+struct FeatureParamAi : public FeatureParam
+{
+    uint32_t             stageIndex      = 0;
+    AI_SETTING_PIPE      settings        = {};
+    AI_SPLIT_GROUP_INDEX splitGroupIndex = {};
+};
+
+class SwFilterAiBase : public SwFilter
+{
+public:
+    SwFilterAiBase(VpInterface &vpInterface, FeatureType featureType);
+    virtual ~SwFilterAiBase();
+    virtual MOS_STATUS       Clean();
+    virtual MOS_STATUS       Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, int surfIndex) final;
+    virtual FeatureParamAi  &GetSwFilterParams();
+    virtual SwFilter        *Clone();
+    virtual bool             operator==(SwFilter &swFilter);
+    virtual MOS_STATUS       Update(VP_SURFACE *inputSurf, VP_SURFACE *outputSurf, SwFilterSubPipe &pipe);
+    virtual MOS_STATUS       GetStagePipeSettings(uint32_t stageIndex, std::vector<AI_SINGLE_LAYER_BASE_SETTING *> &currentStagePipeSettings);
+    virtual MOS_STATUS       InitializeNpu(AI_SETTING_PIPE &settingPipe);
+    virtual MOS_STATUS       InitializeStageGroupIndex(AI_SETTING_PIPE &settingPipe, AI_SPLIT_GROUP_INDEX &splitGroupIndex);
+    // This need to be implemented by derived class
+    virtual MOS_STATUS RegisterAiSettingPipe(VP_PIPELINE_PARAMS &params, AI_SETTING_PIPE &settingPipe) = 0;
+
+    virtual MOS_STATUS AddFeatureGraphRTLog()
+    {
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterAi%d: stageIndex %d, setting size %d, split group size %d", m_type, m_Params.stageIndex, m_Params.settings.size(), m_Params.splitGroupIndex.size());
+        return MOS_STATUS_SUCCESS;
+    }
+
+protected:
+    FeatureParamAi m_Params = {};
+
+MEDIA_CLASS_DEFINE_END(vp__SwFilterAiBase)
+};
+
 class SwFilterSet
 {
 public:
@@ -1137,6 +1187,8 @@ public:
     std::vector<class SwFilterSet *> *GetLocation();
     void SetLocation(std::vector<class SwFilterSet *> *location);
     RenderTargetType                  GetRenderTargetType();
+
+    MOS_STATUS GetAiSwFilter(SwFilterAiBase *&swAiFilter);
 
 private:
     std::map<FeatureType, SwFilter *> m_swFilters;

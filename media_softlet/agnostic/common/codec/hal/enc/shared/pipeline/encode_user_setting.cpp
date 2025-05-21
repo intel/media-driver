@@ -217,6 +217,12 @@ MOS_STATUS EncodePipeline::InitUserSetting(MediaUserSettingSharedPtr userSetting
         MediaUserSetting::Group::Sequence,
         int32_t(0),
         true);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "Adaptive TU Enable",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        false);
 #endif
 
 #if _MEDIA_RESERVED

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2023, Intel Corporation
+* Copyright (c) 2019-2024, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -208,10 +208,11 @@ public:
 
 protected:
 
-    uint8_t m_prevFrameIdx = 0;                 //!< primary reference frame index
-    Av1BasicFeature *m_basicFeature = nullptr;  //!< AV1 basic feature
-    DecodeAllocator *m_allocator    = nullptr;  //!< Decode allocator
-    std::vector<uint8_t> m_activeReferenceList; //!< Active reference list of current picture
+    uint8_t m_prevFrameIdx = 0;                   //!< primary reference frame index
+    Av1BasicFeature *m_basicFeature = nullptr;    //!< AV1 basic feature
+    DecodeAllocator *m_allocator    = nullptr;    //!< Decode allocator
+    std::vector<uint8_t> m_activeReferenceList;   //!< Active reference list of current picture
+    PMOS_INTERFACE       m_osInterface = nullptr; //!< Os interface
 
 MEDIA_CLASS_DEFINE_END(decode__Av1ReferenceFrames)
 };

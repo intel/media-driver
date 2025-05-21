@@ -117,10 +117,8 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::Prepare()
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-#ifdef _MMC_SUPPORTED
     m_mmcState = m_vp9Pipeline->GetMmcState();
     DECODE_CHK_NULL(m_mmcState);
-#endif
 
     DECODE_CHK_STATUS(SetRowstoreCachingOffsets());
 
@@ -339,11 +337,10 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::SetHcpDstSurfaceParams(MHW_VDBOX_SURFACE_PA
     dstSurfaceParams.ucBitDepthChromaMinus8 = m_vp9PicParams->BitDepthMinus8;
     dstSurfaceParams.dwUVPlaneAlignment     = 8;
 
-#ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(m_mmcState->SetSurfaceMmcState(&(m_vp9BasicFeature->m_destSurface)));
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(dstSurfaceParams.psSurface, &dstSurfaceParams.mmcState));
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(dstSurfaceParams.psSurface, &dstSurfaceParams.dwCompressionFormat));
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -373,20 +370,18 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::SetHcpRefSurfaceParams(MHW_VDBOX_SURFACE_PA
             break;
         }
 
-#ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(m_mmcState->SetSurfaceMmcState(refSurfaceParams[i].psSurface));
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(refSurfaceParams[i].psSurface, &refSurfaceParams[i].mmcState));
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(refSurfaceParams[i].psSurface, &refSurfaceParams[i].dwCompressionFormat));
-#endif
     }
-#ifdef _MMC_SUPPORTED
+
     if (m_mmcState->IsMmcEnabled())
     {
         Vp9DecodeMemComp *vp9DecodeMemComp = dynamic_cast<Vp9DecodeMemComp *>(m_mmcState);
         DECODE_CHK_STATUS(vp9DecodeMemComp->SetRefSurfaceMask(*m_vp9BasicFeature, refSurfaceParams));
         DECODE_CHK_STATUS(vp9DecodeMemComp->SetRefSurfaceCompressionFormat(*m_vp9BasicFeature, refSurfaceParams));
     }
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -484,9 +479,7 @@ MOS_STATUS Vp9DecodePicPktXe_M_Base::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_
     pipeBufAddrParams.presHvdLineRowStoreBuffer = &(m_resHvcLineRowstoreBuffer->OsResource);
     pipeBufAddrParams.presHvdTileRowStoreBuffer = &(m_resHvcTileRowstoreBuffer->OsResource);
 
-#ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(pipeBufAddrParams.psPreDeblockSurface, &pipeBufAddrParams.PreDeblockSurfMmcState));
-#endif
 
      
     pipeBufAddrParams.presVp9SegmentIdBuffer = &(m_vp9BasicFeature->m_resVp9SegmentIdBuffer->OsResource);

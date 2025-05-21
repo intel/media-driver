@@ -71,8 +71,8 @@ static struct LinuxCodecInfo XehpSdvCodecInfo =
     .vp8Encoding    = 0,
     .hevcVdenc      = 0,
     .vp9Vdenc       = 0,
-    .adv0Decoding   = 1,
-    .adv1Decoding   = 1,
+    .adv0Decoding   = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
+    .adv1Decoding   = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
 };
 
 static struct LinuxCodecInfo Dg2CodecInfo =
@@ -96,8 +96,8 @@ static struct LinuxCodecInfo Dg2CodecInfo =
     .vp8Encoding    = 0,
     .hevcVdenc      = 1,
     .vp9Vdenc       = 1,
-    .adv0Decoding   = 1,
-    .adv1Decoding   = 1,
+    .adv0Decoding   = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
+    .adv1Decoding   = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
 };
 
 static struct LinuxCodecInfo PvcCodecInfo =
@@ -131,8 +131,8 @@ static struct LinuxCodecInfo PvcCodecInfo =
     .hevcVdenc      = 0,
     .vp9Vdenc       = 0,
 #endif
-    .adv0Decoding   = 1,
-    .adv1Decoding   = 1,
+    .adv0Decoding   = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
+    .adv1Decoding   = SET_STATUS_BY_FULL_OPEN_SOURCE(1, 0),
 };
 
 static bool InitTglMediaSkuExt(struct GfxDeviceInfo *devInfo,
@@ -325,12 +325,10 @@ static bool InitTglMediaSkuExt(struct GfxDeviceInfo *devInfo,
         "Enable Compressible Surface Creation",
         MediaUserSetting::Group::Device);
         
-#ifdef _MMC_SUPPORTED
     if (compressibleSurfaceEnable)
     {
         MEDIA_WR_SKU(skuTable, FtrCompressibleSurfaceDefault, 1);
     }
-#endif
 
     if (drvInfo->devId == 0xFF20)
     {
@@ -917,6 +915,8 @@ static bool InitDg2MediaWa(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, WaDisableSetObjectCapture, 1);
 
     MEDIA_WR_WA(waTable, Wa_15013355402, 1);
+
+    MEDIA_WR_WA(waTable, Wa_AvcUnalignedHeight, 0);
 
     return true;
 }

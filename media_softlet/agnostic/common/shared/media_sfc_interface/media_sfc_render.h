@@ -109,6 +109,23 @@ public:
     MOS_STATUS Render(VEBOX_SFC_PARAMS &param);
 
     //!
+    //! \brief    Sfc Command Size
+    //! \details  Calculate Command size of SFC commands.
+    //! \return   uint32_t
+    //!           Return calculated size
+    //!
+    uint32_t GetSfcCommandSize()
+    {
+        return m_sfcItf->MHW_GETSIZE_F(SFC_LOCK)() +
+               m_sfcItf->MHW_GETSIZE_F(SFC_STATE)() +
+               m_sfcItf->MHW_GETSIZE_F(SFC_AVS_STATE)() +
+               m_sfcItf->MHW_GETSIZE_F(SFC_AVS_LUMA_Coeff_Table)() +
+               m_sfcItf->MHW_GETSIZE_F(SFC_AVS_CHROMA_Coeff_Table)() +
+               m_sfcItf->MHW_GETSIZE_F(SFC_IEF_STATE)() +
+               m_sfcItf->MHW_GETSIZE_F(SFC_FRAME_START)();
+    }
+
+    //!
     //! \brief    MediaSfcInterface initialize
     //! \details  Initialize the MediaSfcInterface.
     //! \return   MOS_STATUS

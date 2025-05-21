@@ -169,7 +169,7 @@ MOS_STATUS DecodeScalabilitySinglePipeNext::SendAttrWithFrameTracking(
     {
         PMOS_RESOURCE resource = nullptr;
         uint32_t      offset   = 0;
-        m_statusReport->GetAddress(decode::statusReportGlobalCount, resource, offset);
+        SCALABILITY_CHK_STATUS_RETURN(m_statusReport->GetAddress(decode::statusReportGlobalCount, resource, offset));
 
         cmdBuffer.Attributes.bEnableMediaFrameTracking    = true;
         cmdBuffer.Attributes.resMediaFrameTrackingSurface = resource;

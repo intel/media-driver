@@ -123,8 +123,8 @@ MOS_STATUS EncodeHevcVdencConstSettingsXe2_Lpm_Base::SetVdencCmd1Settings()
         VDENC_CMD1_LAMBDA() {
             if (m_hevcSeqParams->TargetUsage == 7)
             {
-                par.vdencCmd1Par2[6] = 143;
-                par.vdencCmd1Par2[7] = 143;
+                par.vdencCmd1Par2[6] = 9;
+                par.vdencCmd1Par2[7] = 11;
             }
 
             return MOS_STATUS_SUCCESS;

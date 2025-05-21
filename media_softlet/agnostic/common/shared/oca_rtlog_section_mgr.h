@@ -50,8 +50,8 @@ protected:
     void                        *m_LockedHeap    = nullptr;  //!< System (logical) address for state heap.
     std::atomic<bool>            m_IsInitialized {false};    //!< ture if current heap object has been initialized.
     uint32_t                     m_Offset        = 0;
-    int32_t                      m_HeapHandle    = 0;
-    int32_t                      m_EntryCount    = 0;
+    uint32_t                     m_HeapHandle    = 0;
+    uint32_t                     m_EntryCount    = 0;
 
     OcaRtLogSectionMgr &operator=(OcaRtLogSectionMgr &)
     {
@@ -65,7 +65,7 @@ private:
     static uint8_t *InitSectionMgrAndGetAddress();
 
     void       Init(uint8_t *logSysMem, uint32_t size, uint32_t componentSize, uint32_t offset);
-    int32_t    AllocHeapHandle();
+    uint32_t   AllocHeapHandle();
     MOS_STATUS InsertData(MOS_OCA_RTLOG_HEADER header, const void *param);
     MOS_STATUS InsertUid(MOS_OCA_RTLOG_SECTION_HEADER sectionHeader);
     bool       IsInitialized() { return m_IsInitialized; }

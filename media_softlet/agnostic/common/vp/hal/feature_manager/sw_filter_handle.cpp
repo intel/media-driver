@@ -73,6 +73,19 @@ MOS_STATUS SwFilterFeatureHandler::CreateSwFilter(SwFilter*& swFilter, VP_PIPELI
     return MOS_STATUS_SUCCESS;
 }
 
+bool SwFilterFeatureHandler::IsVeboxTypeHMode()
+{
+    VP_FUNC_CALL();
+    bool veboxTypeH = false;
+    if (m_vpInterface.GetHwInterface() &&
+        m_vpInterface.GetHwInterface()->m_userFeatureControl)
+    {
+        auto userFeatureControl = m_vpInterface.GetHwInterface()->m_userFeatureControl;
+        veboxTypeH              = userFeatureControl->IsVeboxTypeHMode();
+    }
+    return veboxTypeH;
+}
+
 bool SwFilterFeatureHandler::IsFeatureEnabled(VEBOX_SFC_PARAMS& params)
 {
     VP_FUNC_CALL();
@@ -356,6 +369,12 @@ bool SwFilterDnHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInpu
 {
     VP_FUNC_CALL();
 
+
+    if (SwFilterFeatureHandler::IsVeboxTypeHMode())
+    {
+        return false;
+    }
+
     PVP_MHWINTERFACE hwInterface = m_vpInterface.GetHwInterface();
     // secure mode
     if (hwInterface->m_osInterface->osCpInterface &&
@@ -455,6 +474,11 @@ bool SwFilterDiHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInpu
 {
     VP_FUNC_CALL();
 
+    if (SwFilterFeatureHandler::IsVeboxTypeHMode())
+    {
+        return false;
+    }
+
     if (!SwFilterFeatureHandler::IsFeatureEnabled(params, isInputSurf, surfIndex, pipeType))
     {
         return false;
@@ -516,6 +540,11 @@ bool SwFilterSteHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInp
 {
     VP_FUNC_CALL();
 
+    if (SwFilterFeatureHandler::IsVeboxTypeHMode())
+    {
+        return false;
+    }
+
     if (!SwFilterFeatureHandler::IsFeatureEnabled(params, isInputSurf, surfIndex, pipeType))
     {
         return false;
@@ -571,6 +600,11 @@ SwFilterTccHandler::~SwFilterTccHandler()
 bool SwFilterTccHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex, SwFilterPipeType pipeType)
 {
     VP_FUNC_CALL();
+
+    if (SwFilterFeatureHandler::IsVeboxTypeHMode())
+    {
+        return false;
+    }
 
     if (!SwFilterFeatureHandler::IsFeatureEnabled(params, isInputSurf, surfIndex, pipeType))
     {
@@ -1015,6 +1049,11 @@ SwFilterCgcHandler::~SwFilterCgcHandler()
 bool SwFilterCgcHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex, SwFilterPipeType pipeType)
 {
     VP_FUNC_CALL();
+
+    if (SwFilterFeatureHandler::IsVeboxTypeHMode())
+    {
+        return false;
+    }
 
     if (!SwFilterFeatureHandler::IsFeatureEnabled(params, isInputSurf, surfIndex, pipeType))
     {

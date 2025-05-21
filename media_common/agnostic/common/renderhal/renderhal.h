@@ -84,6 +84,8 @@ class XRenderHal_Platform_Interface;
 #define MHW_RENDERHAL_CHK_NULL_RETURN(_ptr)                                            \
     MOS_CHK_NULL_RETURN(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, _ptr)
 
+#define MHW_RENDERHAL_CHK_VALUE_RETURN(_value, _expect_value)                          \
+    MOS_CHK_STATUS_RETURN(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC, ((_value) == (_expect_value)) ? MOS_STATUS_SUCCESS : MOS_STATUS_INVALID_PARAMETER)
 
 #define MHW_RENDERHAL_UNUSED(x)                                                         \
     MOS_UNUSED(x)
@@ -1066,6 +1068,7 @@ typedef struct _RENDERHAL_SURFACE_STATE_ENTRY
     uint16_t                        wUYOffset;                                      //
     uint16_t                        wVXOffset;                                      // (X,Y) offset V (AVS/ADI)
     uint16_t                        wVYOffset;                                      //
+    uint64_t                        stateGfxAddress;                                // Gfx Address of Surface State
 } RENDERHAL_SURFACE_STATE_ENTRY, *PRENDERHAL_SURFACE_STATE_ENTRY;
 
 //!
@@ -1185,6 +1188,7 @@ typedef struct _RENDERHAL_INTERFACE
     MHW_SIP_STATE_PARAMS         SipStateParams;
     MHW_WALKER_MODE              MediaWalkerMode;                               // Media object walker mode from Regkey: repel, dual mode, quad mode
     uint32_t                     euThreadSchedulingMode;
+    uint32_t                     largeGrfMode;
 
     RENDERHAL_SURFACE_STATE_TYPE SurfaceTypeDefault;                            // Surface State type default
     RENDERHAL_SURFACE_STATE_TYPE SurfaceTypeAdvanced;                           // Surface State type advanced
@@ -1384,6 +1388,7 @@ typedef struct _RENDERHAL_INTERFACE
 
     MOS_STATUS (*pfnSendBindlessSurfaceStates) (
                 PRENDERHAL_INTERFACE            pRenderHal,
+                PMOS_COMMAND_BUFFER             pCmdBuffer,
                 bool                            bNeedNullPatch);
 
     MOS_STATUS (* pfnBindSurfaceState) (
@@ -1483,7 +1488,7 @@ typedef struct _RENDERHAL_INTERFACE
                 int32_t                  iMediaID,
                 PMHW_SAMPLER_STATE_PARAM pSamplerParams,
                 int32_t                  iSamplers,
-                std::map<uint32_t, uint32_t> &samplerMap);
+                std::map<uint32_t, uint64_t> &samplerMap);
 
     int32_t (* pfnAllocateMediaID) (
                 PRENDERHAL_INTERFACE        pRenderHal,

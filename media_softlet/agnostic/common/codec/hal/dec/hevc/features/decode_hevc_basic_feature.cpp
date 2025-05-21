@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2022, Intel Corporation
+* Copyright (c) 2019-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -84,6 +84,27 @@ MOS_STATUS HevcBasicFeature::Update(void *params)
 
     DECODE_CHK_STATUS(SetPictureStructs());
     DECODE_CHK_STATUS(SetSliceStructs());
+    DECODE_CHK_STATUS(SurfaceSizeCheck(params));
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS HevcBasicFeature::SurfaceSizeCheck(void *params)
+{
+    DECODE_FUNC_CALL();
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    DECODE_CHK_NULL(params);
+    CodechalDecodeParams* decodeParams = (CodechalDecodeParams*)params;
+    // Skip decode process cases, surface size smaller than picture size is expected.
+    if (decodeParams->m_procParams != nullptr)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+#endif
+
+    DECODE_CHK_COND((uint32_t)(m_destSurface.dwPitch * m_destSurface.dwHeight) < (m_width * m_height),
+        "The RT surface size is smaller than decoded picture size, insufficient surface size will cause read/write access violation.");
 
     return MOS_STATUS_SUCCESS;
 }

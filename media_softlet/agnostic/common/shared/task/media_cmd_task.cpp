@@ -70,6 +70,45 @@ MOS_STATUS CmdTask::CalculateCmdBufferSizeFromActivePackets()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS CmdTask::SubmitToLevelzeroRuntime()
+{
+    for (auto &prop : m_packets)
+    {
+        auto    packet      = prop.packet;
+        uint8_t packetPhase = MediaPacket::otherPacket;
+        MEDIA_CHK_NULL_RETURN(packet);
+
+        MEDIA_CHK_STATUS_RETURN(packet->Prepare());
+        MEDIA_CHK_STATUS_RETURN(packet->Submit(nullptr, packetPhase));
+    }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    for (auto prop : m_packets)
+    {
+        auto packet = prop.packet;
+        MEDIA_CHK_NULL_RETURN(packet);
+        MEDIA_CHK_STATUS_RETURN(packet->DumpOutput());
+    }
+#endif  // _DEBUG || _RELEASE_INTERNAL
+
+    // clear the packet lists since all commands are submitted
+    m_packets.clear();
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS CmdTask::Submit(bool immediateSubmit, MediaScalability *scalability, CodechalDebugInterface *debugInterface, bool levelzeroRuntimeInUse)
+{
+    if (levelzeroRuntimeInUse)
+    {
+        return SubmitToLevelzeroRuntime();
+    }
+    else
+    {
+        return Submit(immediateSubmit, scalability, debugInterface);
+    }
+}
+
 MOS_STATUS CmdTask::Submit(bool immediateSubmit, MediaScalability *scalability, CodechalDebugInterface *debugInterface)
 {
     MEDIA_CHK_NULL_RETURN(scalability);

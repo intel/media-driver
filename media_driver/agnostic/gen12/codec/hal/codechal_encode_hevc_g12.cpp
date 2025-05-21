@@ -9059,9 +9059,9 @@ MOS_STATUS CodechalEncHevcStateG12::AddHcpPipeBufAddrCmd(
 
     *m_pipeBufAddrParams = {};
     SetHcpPipeBufAddrParams(*m_pipeBufAddrParams);
-#ifdef _MMC_SUPPORTED
+
     m_mmcState->SetPipeBufAddr(m_pipeBufAddrParams);
-#endif
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpPipeBufAddrCmd(cmdBuffer, m_pipeBufAddrParams));
 
     return eStatus;
@@ -9344,10 +9344,8 @@ MOS_STATUS CodechalEncHevcStateG12::SendPrologWithFrameTracking(
         return eStatus;
     }
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(m_miInterface, cmdBuffer, gpuContext));
-#endif
 
     if (!IsLastPipe())
     {
@@ -9411,10 +9409,10 @@ void CodechalEncHevcStateG12::ResizeOnResChange()
 MOS_STATUS CodechalEncHevcStateG12::InitMmcState()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
-#ifdef _MMC_SUPPORTED
+
     m_mmcState = MOS_New(CodechalMmcEncodeHevcG12, m_hwInterface, this);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

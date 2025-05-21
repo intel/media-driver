@@ -196,6 +196,7 @@ static bool InitBmgMediaSkuExt(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrWithSlimVdbox, 0);
 
     MEDIA_WR_SKU(skuTable, FtrE2ECompression, 1);
+    MEDIA_WR_SKU(skuTable, FtrXe2Compression , 1);
     MEDIA_WR_SKU(skuTable, FtrHDR, 1);
     MEDIA_WR_SKU(skuTable, FtrDisableRenderTargetWidthAdjust, 1);
 
@@ -210,6 +211,7 @@ static bool InitBmgMediaSkuExt(struct GfxDeviceInfo *devInfo,
     if (userFeatureData.bData)
     {
         MEDIA_WR_SKU(skuTable, FtrE2ECompression, 0);
+        MEDIA_WR_SKU(skuTable, FtrXe2Compression , 0);
     }
 
     // Create uncompressible surface by default
@@ -222,12 +224,11 @@ static bool InitBmgMediaSkuExt(struct GfxDeviceInfo *devInfo,
         "Enable Compressible Surface Creation",
         MediaUserSetting::Group::Device);
         
-#ifdef _MMC_SUPPORTED
     if (compressibleSurfaceEnable)
     {
         MEDIA_WR_SKU(skuTable, FtrCompressibleSurfaceDefault, 1);
     }
-#endif
+
     //Disable LocalMemory for all iGraphics
     MEDIA_WR_SKU(skuTable, FtrLocalMemory, 1);
 
@@ -235,14 +236,8 @@ static bool InitBmgMediaSkuExt(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrUseSwSwizzling, 0);
     MEDIA_WR_SKU(skuTable, FtrMemoryRemapSupport, 1);
 
-
     MEDIA_WR_SKU(skuTable, FtrAV1VLDLSTDecoding, 1);
     MEDIA_WR_SKU(skuTable, FtrMediaIPSeparation , 1);
-    MEDIA_WR_SKU(skuTable, FtrXe2Compression , 1);
-    if (!compressibleSurfaceEnable)
-    {
-        MEDIA_WR_SKU(skuTable, FtrXe2Compression , 0);
-    }
 
     return true;
 }
@@ -279,7 +274,9 @@ static bool InitBmgMediaWaExt(struct GfxDeviceInfo *devInfo,
       CPU blt call will add/remove padding on the platform*/
     MEDIA_WR_WA(waTable, WaDisableGmmLibOffsetInDeriveImage, 1);
 
-
+    // This requirement comes from XE KMD for tile4 + compress + scanout surface
+    // Currently, it only applies to xe2 dgpu
+    MEDIA_WR_WA(waTable, WaTile4CompressScanoutSurf64KNeed , 1);
 
     /* Turn off MMC for codec, need to remove once turn it on */
     MEDIA_WR_WA(waTable, WaDisableCodecMmc, 0);

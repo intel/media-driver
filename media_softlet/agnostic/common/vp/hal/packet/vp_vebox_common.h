@@ -230,6 +230,15 @@ public:
 
         union
         {
+            struct
+            {
+                uint32_t bFeCSCEnabled : 1;  // Front end CSC enabled;
+            };
+            uint32_t value = 0;
+        } FeCSC;
+
+        union
+        {
              struct
              {
                  uint32_t bCGCEnabled : 1;  // Color Gamut Compression enabled;
@@ -240,7 +249,7 @@ public:
         bool IsIecpEnabled()
         {
             return ACE.bAceEnabled || LACE.bLaceEnabled ||
-                    BeCSC.bBeCSCEnabled || TCC.bTccEnabled ||
+                    BeCSC.bBeCSCEnabled || FeCSC.bFeCSCEnabled || TCC.bTccEnabled ||
                    STE.bSteEnabled || PROCAMP.bProcampEnabled || STE.bStdEnabled || CGC.bCGCEnabled;
         }
     } IECP;

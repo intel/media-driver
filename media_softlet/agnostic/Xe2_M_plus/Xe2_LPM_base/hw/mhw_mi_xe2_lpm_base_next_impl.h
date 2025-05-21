@@ -1066,6 +1066,192 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    virtual MOS_STATUS AddWaitInSyncBatchBuffer(
+        uint64_t                      fenceTokenValue,
+        uint64_t                      gpuVirtualAddress,
+        uint64_t                      waitValue,
+        MHW_BATCH_BUFFER             *batchBuffer,
+        MHW_SEMAPHORE_WATI_REGISTERS &tokenRegister,
+        PMOS_COMMAND_BUFFER           cmdbuffer) override
+    {
+        MOS_STATUS status = MOS_STATUS_SUCCESS;
+
+        //set fence token value to token register
+        auto &miLoadRegImmParams      = MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
+        miLoadRegImmParams            = {};
+        miLoadRegImmParams.dwData     = static_cast<uint32_t>(fenceTokenValue);
+        miLoadRegImmParams.dwRegister = tokenRegister.m_tokenRegister;
+        miLoadRegImmParams.bMMIORemap = tokenRegister.m_bMMIORemap;
+        status                        = MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdbuffer, batchBuffer);  //with fenceToken
+        MHW_CHK_STATUS_RETURN(status);
+
+        //MI_SEMAPHORE_WAIT
+        uint32_t valueLow = static_cast<uint32_t>(waitValue & 0xffffffff);
+
+        //Only support fence value up to uint32_t max,
+        //but the fence definition is in uint64_t.
+        //If fence value exceeds uint32_t max, time out is expected.
+        auto &params             = MHW_GETPAR_F(MI_SEMAPHORE_WAIT)();
+        params                   = {};
+        params.gpuVirtualAddress = gpuVirtualAddress;
+        params.bPollingWaitMode  = true;
+        params.dwSemaphoreData   = valueLow;
+        params.CompareOperation  = (mhw::mi::MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION)MHW_MI_SAD_GREATER_THAN_OR_EQUAL_SDD;
+        params.dwResourceOffset  = 0;
+        params.bRegisterPollMode = false;
+        status                   = MHW_ADDCMD_F(MI_SEMAPHORE_WAIT)(cmdbuffer, batchBuffer);
+        MHW_CHK_STATUS_RETURN(status);
+
+        //clear the token register
+        miLoadRegImmParams            = {};
+        miLoadRegImmParams.dwData     = 0;
+        miLoadRegImmParams.dwRegister = tokenRegister.m_tokenRegister;
+        miLoadRegImmParams.bMMIORemap = tokenRegister.m_bMMIORemap;
+        status                        = MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdbuffer, batchBuffer);  //with fenceToken
+        MHW_CHK_STATUS_RETURN(status);
+
+        return status;
+    }
+
+    virtual MOS_STATUS AddSignalInSyncBatchBuffer(
+        uint64_t                      fenceTokenValue,
+        uint64_t                      currentValueGpuVA,
+        uint64_t                      monitoredValueGpuVA,
+        uint64_t                      signalValue,
+        MHW_SEMAPHORE_WATI_REGISTERS &tokenRegister,
+        PMOS_COMMAND_BUFFER           cmdbuffer) override
+    {
+        auto &atomiParams             = MHW_GETPAR_F(MI_ATOMIC)();
+        atomiParams                   = {};
+        atomiParams.gpuVirtualAddress = currentValueGpuVA;
+        atomiParams.dwDataSize        = sizeof(uint64_t);
+        atomiParams.Operation         = (mhw::mi::MHW_COMMON_MI_ATOMIC_OPCODE)MHW_MI_ATOMIC_MOVE;
+        atomiParams.bInlineData       = true;
+        atomiParams.dwOperand1Data[0] = static_cast<uint32_t>(signalValue & 0xffffffff);
+        atomiParams.dwOperand1Data[1] = (static_cast<uint32_t>(signalValue >> 32));
+        auto status                   = MHW_ADDCMD_F(MI_ATOMIC)(cmdbuffer);
+        MHW_CHK_STATUS_RETURN(status);
+
+        //set fence token value to token register
+        auto &miLoadRegImmParams      = MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
+        miLoadRegImmParams            = {};
+        miLoadRegImmParams.dwData     = static_cast<uint32_t>(fenceTokenValue);
+        miLoadRegImmParams.dwRegister = tokenRegister.m_tokenRegister;
+        miLoadRegImmParams.bMMIORemap = tokenRegister.m_bMMIORemap;
+        status                        = MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdbuffer, nullptr);  //with fenceToken
+        MHW_CHK_STATUS_RETURN(status);
+
+        //MI_SEMAPHORE_SIGNAL
+        auto &params = MHW_GETPAR_F(MI_SEMAPHORE_SIGNAL)();
+        params       = {};
+        status       = MHW_ADDCMD_F(MI_SEMAPHORE_SIGNAL)(cmdbuffer, nullptr);
+        MHW_CHK_STATUS_RETURN(status);
+
+        //clear the token register
+        miLoadRegImmParams            = {};
+        miLoadRegImmParams.dwData     = 0;
+        miLoadRegImmParams.dwRegister = tokenRegister.m_tokenRegister;
+        miLoadRegImmParams.bMMIORemap = tokenRegister.m_bMMIORemap;
+        status                        = MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdbuffer, nullptr);  //with fenceToken
+        MHW_CHK_STATUS_RETURN(status);
+
+        //signal to cpu conditionally, MI_USER_INTERRUPT if CurrentValue >= MonitoredValue
+        {
+            //Load current value to gpr2
+            auto &miLoadRegMemParams             = MHW_GETPAR_F(MI_LOAD_REGISTER_MEM)();
+            miLoadRegMemParams                   = {};
+            miLoadRegMemParams.gpuVirtualAddress = currentValueGpuVA;
+            miLoadRegMemParams.dwRegister        = tokenRegister.m_gpr2Lo;
+            miLoadRegMemParams.bMMIORemap        = tokenRegister.m_bMMIORemap;
+            status                               = MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(cmdbuffer, nullptr);
+            MHW_CHK_STATUS_RETURN(status);
+            miLoadRegMemParams                   = {};
+            miLoadRegMemParams.gpuVirtualAddress = currentValueGpuVA + sizeof(uint32_t);
+            miLoadRegMemParams.dwRegister        = tokenRegister.m_gpr2Hi;
+            miLoadRegMemParams.bMMIORemap        = tokenRegister.m_bMMIORemap;
+            status                               = MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(cmdbuffer, nullptr);
+            MHW_CHK_STATUS_RETURN(status);
+            //Load monitored value to gpr3
+            miLoadRegMemParams                   = {};
+            miLoadRegMemParams.gpuVirtualAddress = monitoredValueGpuVA;
+            miLoadRegMemParams.dwRegister        = tokenRegister.m_gpr3Lo;
+            miLoadRegMemParams.bMMIORemap        = tokenRegister.m_bMMIORemap;
+            status                               = MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(cmdbuffer, nullptr);
+            MHW_CHK_STATUS_RETURN(status);
+            miLoadRegMemParams                   = {};
+            miLoadRegMemParams.gpuVirtualAddress = monitoredValueGpuVA + sizeof(uint32_t);
+            miLoadRegMemParams.dwRegister        = tokenRegister.m_gpr3Hi;
+            miLoadRegMemParams.bMMIORemap        = tokenRegister.m_bMMIORemap;
+            status                               = MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(cmdbuffer, nullptr);
+            MHW_CHK_STATUS_RETURN(status);
+
+            //math: cv - mv
+            {
+                // If CV>=MV, signal cpu.
+                // If CF is set, i.e., MV > CV --> No interrupt or NOOP on Set
+                // If CF isn't set i.e., CV >= MV --> Generate Interrupt
+                //Prepare math payload
+                MHW_MI_ALU_PARAMS miAluParams[4] = {};
+                // LOAD(SRCA, R2)
+                miAluParams[0].AluOpcode = MHW_MI_ALU_LOAD;
+                miAluParams[0].Operand1  = MHW_MI_ALU_SRCA;
+                miAluParams[0].Operand2  = MHW_MI_ALU_GPREG2;
+
+                // LOAD(SRCB, R3)
+                miAluParams[1].AluOpcode = MHW_MI_ALU_LOAD;
+                miAluParams[1].Operand1  = MHW_MI_ALU_SRCB;
+                miAluParams[1].Operand2  = MHW_MI_ALU_GPREG3;
+
+                // SUB, ACCU = CV - MV
+                miAluParams[2].AluOpcode = MHW_MI_ALU_SUB;
+
+                // STORE(R0, CF)
+                miAluParams[3].AluOpcode = MHW_MI_ALU_STORE;
+                miAluParams[3].Operand1  = MHW_MI_ALU_GPREG0;
+                miAluParams[3].Operand2  = MHW_MI_ALU_CF;
+
+                auto &miMathParams          = MHW_GETPAR_F(MI_MATH)();
+                miMathParams                = {};
+                miMathParams.pAluPayload    = miAluParams;
+                miMathParams.dwNumAluParams = 4;  // four ALU commands needed for this substract opertaion. see following ALU commands.
+                status                      = MHW_ADDCMD_F(MI_MATH)(cmdbuffer, nullptr);
+                MHW_CHK_STATUS_RETURN(status);
+            }
+
+            //conditional interrupt if CurrentValue >= MonitoredValue
+            {
+                // MI_LOAD_REGISTER_REG(GPR_R0, MI_PREDICATE_RESULT_2) Load CF into Result2 register
+                auto &miLoadRgRegParams         = MHW_GETPAR_F(MI_LOAD_REGISTER_REG)();
+                miLoadRgRegParams               = {};
+                miLoadRgRegParams.dwSrcRegister = tokenRegister.m_gpr0Lo;
+                miLoadRgRegParams.dwDstRegister = tokenRegister.m_predicateResult2;
+                miLoadRgRegParams.bMMIORemap    = tokenRegister.m_bMMIORemap;
+                status                          = MHW_ADDCMD_F(MI_LOAD_REGISTER_REG)(cmdbuffer, nullptr);
+                MHW_CHK_STATUS_RETURN(status);
+
+                //MI_SET_PREDICATE(Predicate_Enable = NOOP_on_Result2_Set)
+                auto &miSetPredicateParams           = MHW_GETPAR_F(MI_SET_PREDICATE)();
+                miSetPredicateParams                 = {};
+                miSetPredicateParams.PredicateEnable = MHW_MI_SET_PREDICATE_ENABLE_ON_CLEAR;
+                status                               = MHW_ADDCMD_F(MI_SET_PREDICATE)(cmdbuffer, nullptr);  //MI_SET_PREDICATE(Predicate_Enable = NOOP_on_Result2_Set)
+                MHW_CHK_STATUS_RETURN(status);
+
+                //mi_user_interrupt
+                auto &miUserInterruptParams = MHW_GETPAR_F(MI_USER_INTERRUPT)();
+                miUserInterruptParams       = {};
+                status                      = MHW_ADDCMD_F(MI_USER_INTERRUPT)(cmdbuffer, nullptr);  //MI_SET_PREDICATE(Predicate_Enable = NOOP_on_Result2_Set)
+                MHW_CHK_STATUS_RETURN(status);
+
+                //MI_SET_PREDICATE(Predicate_Enable = NOOP_Never) // Disable predication
+                miSetPredicateParams                 = {};
+                miSetPredicateParams.PredicateEnable = MHW_MI_SET_PREDICATE_DISABLE;
+                status                               = MHW_ADDCMD_F(MI_SET_PREDICATE)(cmdbuffer, nullptr);
+                MHW_CHK_STATUS_RETURN(status);
+            }
+        }  //signal to cpu conditionally
+        return MOS_STATUS_SUCCESS;
+    }
+
 private:
 #if (_DEBUG || _RELEASE_INTERNAL)
     bool m_useManualThreshold = false;  // Flag for denoting if using manual threshold value

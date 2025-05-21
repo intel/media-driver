@@ -777,7 +777,6 @@ MOS_STATUS HevcBasicFeature::GetSurfaceMmcInfo(PMOS_SURFACE surface, MOS_MEMCOMP
 
     ENCODE_CHK_NULL_RETURN(surface);
 
-#ifdef _MMC_SUPPORTED
     ENCODE_CHK_NULL_RETURN(m_mmcState);
     if (m_mmcState->IsMmcEnabled())
     {
@@ -788,7 +787,6 @@ MOS_STATUS HevcBasicFeature::GetSurfaceMmcInfo(PMOS_SURFACE surface, MOS_MEMCOMP
     {
         mmcState = MOS_MEMCOMP_DISABLED;
     }
-#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -924,7 +922,6 @@ MHW_SETPAR_DECL_SRC(VDENC_DS_REF_SURFACE_STATE, HevcBasicFeature)
 
 MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, HevcBasicFeature)
 {
-#ifdef _MMC_SUPPORTED
     ENCODE_CHK_NULL_RETURN(m_mmcState);   
     if (m_mmcState->IsMmcEnabled())
     {
@@ -938,7 +935,6 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, HevcBasicFeature)
         params.mmcStateRaw          = MOS_MEMCOMP_DISABLED;
         params.compressionFormatRaw = 0;
     }
-#endif
 
     params.surfaceRaw               = m_rawSurfaceToPak;
     params.surfaceDsStage1          = m_8xDSSurface;
@@ -1370,13 +1366,12 @@ MHW_SETPAR_DECL_SRC(HCP_SURFACE_STATE, HevcBasicFeature)
         reconSurfHeight = m_rawSurfaceToPak->dwHeight;
         break;
     }
-#ifdef _MMC_SUPPORTED
+
     GetSurfaceMmcInfo(psSurface, params.mmcState, params.dwCompressionFormat);
     if (params.surfaceStateId == CODECHAL_HCP_REF_SURFACE_ID)
     {
         m_ref.MHW_SETPAR_F(HCP_SURFACE_STATE)(params);
     }
-#endif
 
     ENCODE_CHK_NULL_RETURN(psSurface);
     params.surfacePitchMinus1 = psSurface->dwPitch - 1;
@@ -1471,7 +1466,7 @@ MHW_SETPAR_DECL_SRC(HCP_SURFACE_STATE, HevcBasicFeature)
     else if (params.surfaceFormat == hcp::SURFACE_FORMAT::SURFACE_FORMAT_Y216VARIANT ||
              params.surfaceFormat == hcp::SURFACE_FORMAT::SURFACE_FORMAT_YUY2VARIANT)
     {
-        params.yOffsetForUCbInPixel = params.yOffsetForVCr = (uint16_t)reconSurfHeight;
+        params.yOffsetForUCbInPixel = params.yOffsetForVCr = MOS_ALIGN_CEIL((uint16_t)reconSurfHeight, 8);
     }
 
     return MOS_STATUS_SUCCESS;

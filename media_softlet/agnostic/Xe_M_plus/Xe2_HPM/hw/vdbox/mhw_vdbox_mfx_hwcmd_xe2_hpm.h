@@ -1663,8 +1663,8 @@ public:
         {
             struct
             {
-                uint32_t FrameSize : __CODEGEN_BITFIELD(0, 15);    //!< Frame Size
-                uint32_t Reserved48 : __CODEGEN_BITFIELD(16, 31);  //!< Reserved
+                uint32_t FrameSize : __CODEGEN_BITFIELD(0, 16);    //!< Frame Size
+                uint32_t Reserved49 : __CODEGEN_BITFIELD(17, 31);  //!< Reserved
             };
             uint32_t Value;
         } DW1;

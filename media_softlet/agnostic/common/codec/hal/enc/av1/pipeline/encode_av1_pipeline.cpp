@@ -318,6 +318,9 @@ MOS_STATUS Av1Pipeline::DumpPicParams(
     oss << "SegIdBlockSize = " << +picParams->PicFlags.fields.SegIdBlockSize << std::endl;
     oss << "EnableFrameOBU = " << +picParams->PicFlags.fields.EnableFrameOBU << std::endl;
     oss << "DisableFrameRecon = " << +picParams->PicFlags.fields.DisableFrameRecon << std::endl;
+    oss << "LongTermReference = " << +picParams->PicFlags.fields.LongTermReference << std::endl;
+    oss << "allow_intrabc = " << +picParams->PicFlags.fields.allow_intrabc << std::endl;
+    oss << "PaletteModeEnable = " << +picParams->PicFlags.fields.PaletteModeEnable << std::endl;
     oss << "Reserved2 = " << +picParams->PicFlags.fields.Reserved2 << std::endl;
     oss << "PicFlags.value = " << +picParams->PicFlags.value << std::endl;
 
@@ -370,23 +373,23 @@ MOS_STATUS Av1Pipeline::DumpPicParams(
     oss << "Reserved7 = " << +picParams->Reserved7 << std::endl;
 
     // delta_q parameters
-    oss << "delta_q_present_flag = " << +picParams->dwModeControlFlags.fields.delta_q_present_flag << std::endl;
-    oss << "log2_delta_q_res = " << +picParams->dwModeControlFlags.fields.log2_delta_q_res << std::endl;
+    oss << "dwModeControlFlags.fields.delta_q_present_flag = " << +picParams->dwModeControlFlags.fields.delta_q_present_flag << std::endl;
+    oss << "dwModeControlFlags.fields.log2_delta_q_res = " << +picParams->dwModeControlFlags.fields.log2_delta_q_res << std::endl;
 
     // delta_lf parameters
-    oss << "delta_lf_present_flag = " << +picParams->dwModeControlFlags.fields.delta_lf_present_flag << std::endl;
-    oss << "log2_delta_lf_res = " << +picParams->dwModeControlFlags.fields.log2_delta_lf_res << std::endl;
-    oss << "delta_lf_multi = " << +picParams->dwModeControlFlags.fields.delta_lf_multi << std::endl;
+    oss << "dwModeControlFlags.fields.delta_lf_present_flag = " << +picParams->dwModeControlFlags.fields.delta_lf_present_flag << std::endl;
+    oss << "dwModeControlFlags.fields.log2_delta_lf_res = " << +picParams->dwModeControlFlags.fields.log2_delta_lf_res << std::endl;
+    oss << "dwModeControlFlags.fields.delta_lf_multi = " << +picParams->dwModeControlFlags.fields.delta_lf_multi << std::endl;
 
     // read_tx_mode
-    oss << "tx_mode = " << +picParams->dwModeControlFlags.fields.tx_mode << std::endl;
+    oss << "dwModeControlFlags.fields.tx_mode = " << +picParams->dwModeControlFlags.fields.tx_mode << std::endl;
 
     // read_frame_reference_mode
-    oss << "reference_mode = " << +picParams->dwModeControlFlags.fields.reference_mode << std::endl;
-    oss << "reduced_tx_set_used = " << +picParams->dwModeControlFlags.fields.reduced_tx_set_used << std::endl;
+    oss << "dwModeControlFlags.fields.reference_mode = " << +picParams->dwModeControlFlags.fields.reference_mode << std::endl;
+    oss << "dwModeControlFlags.fields.reduced_tx_set_used = " << +picParams->dwModeControlFlags.fields.reduced_tx_set_used << std::endl;
 
-    oss << "skip_mode_present = " << +picParams->dwModeControlFlags.fields.skip_mode_present << std::endl;
-    oss << "Reserved8 = " << +picParams->dwModeControlFlags.fields.Reserved8 << std::endl;
+    oss << "dwModeControlFlags.fields.skip_mode_present = " << +picParams->dwModeControlFlags.fields.skip_mode_present << std::endl;
+    oss << "dwModeControlFlags.fields.Reserved8 = " << +picParams->dwModeControlFlags.fields.Reserved8 << std::endl;
     oss << "dwModeControlFlags.value = " << +picParams->dwModeControlFlags.value << std::endl;
 
     oss << "stAV1Segments.SegmentFlags.fields.segmentation_enabled = " << +picParams->stAV1Segments.SegmentFlags.fields.segmentation_enabled << std::endl;

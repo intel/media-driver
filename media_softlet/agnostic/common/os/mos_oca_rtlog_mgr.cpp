@@ -103,7 +103,7 @@ MOS_STATUS MosOcaRTLogMgr::RegisterRes(OsContextNext *osDriverContext, MOS_OCA_R
         MOS_OS_CHK_STATUS_RETURN(status);
     }
     s_ocaMutex.Lock();
-    m_resMap.insert(std::make_pair(osDriverContext, *resInterface));
+    m_resMap.emplace(osDriverContext, *resInterface);
     s_ocaMutex.Unlock();
     osDriverContext->SetRtLogRes(resInterface->ocaRTLogResource);
     return MOS_STATUS_SUCCESS;

@@ -52,6 +52,7 @@
 #include "mos_oca_interface_specific.h"
 #include "mos_os_next.h"
 #include "mos_os_cp_interface_specific.h"
+#include "levelzero_npu_interface.h"
 
 //!
 //! \brief DRM VMAP patch
@@ -913,7 +914,14 @@ MOS_STATUS Mos_DestroyInterface(PMOS_INTERFACE osInterface)
             }
         }
     }
-
+    if (osInterface->hybridCmdMgr)
+    {
+        MOS_Delete(osInterface->hybridCmdMgr);
+    }
+    if (osInterface->npuInterface)
+    {
+        MOS_Delete(osInterface->npuInterface);
+    }
     if (osInterface->osCpInterface)
     {
         Delete_MosCpInterface(osInterface->osCpInterface);
@@ -3388,6 +3396,12 @@ bool Mos_Specific_IsAsyncDevice(PMOS_INTERFACE osInterface)
     return false;
 }
 
+bool Mos_Specific_IsGpuSyncByCmd(
+    PMOS_INTERFACE osInterface)
+{
+    return false;
+}
+
 MOS_STATUS Mos_Specific_LoadFunction(
     PMOS_INTERFACE osInterface)
 {
@@ -3643,6 +3657,22 @@ MOS_STATUS Mos_Specific_InitInterface(
             osInterface->bMediaReset          = false;
             osInterface->umdMediaResetEnable = false;
         }
+    }
+
+    osInterface->npuInterface = MOS_New(L0NpuInterface, osInterface);
+    if (osInterface->npuInterface == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("fail to create level zerp npu interface.");
+        Mos_DestroyInterface(osInterface);
+        return MOS_STATUS_UNKNOWN;
+    }
+
+    osInterface->hybridCmdMgr = MOS_New(HybridCmdMgr);
+    if (osInterface->hybridCmdMgr == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("fail to create hybridCmdMgr");
+        Mos_DestroyInterface(osInterface);
+        return MOS_STATUS_UNKNOWN;
     }
 
     // initialize MOS_CP interface

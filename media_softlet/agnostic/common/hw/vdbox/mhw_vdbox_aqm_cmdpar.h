@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2024, Intel Corporation
+* Copyright (c) 2021-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -31,7 +31,7 @@
 #include "codec_def_common_encode.h"
 #include "mhw_vdbox_cmdpar.h"
 
-#if IGFX_AQM_INTERFACE_EXT_SUPPORT
+#if _MEDIA_RESERVED
 #include "mhw_vdbox_aqm_cmdpar_ext.h"
 #define __MHW_VDBOX_AQM_WRAPPER(STUFF)
 #define __MHW_VDBOX_AQM_WRAPPER_EXT(STUFF) STUFF
@@ -119,6 +119,9 @@ struct _MHW_PAR_T(AQM_TILE_CODING)
 
 struct _MHW_PAR_T(AQM_VD_CONTROL_STATE)
 {
+    uint8_t pipelineInitialization                    = 0;
+    uint8_t VDboxPipelineArchitectureClockgateDisable = 0;
+    uint8_t memoryImplicitFlush                       = 0;
 };
 
 struct _MHW_PAR_T(AQM_SLICE_STATE)
@@ -128,6 +131,45 @@ struct _MHW_PAR_T(AQM_SLICE_STATE)
     uint32_t tileSliceStartLcuMbY     = 0;
     uint32_t nextTileSliceStartLcuMbX = 0;
     uint32_t nextTileSliceStartLcuMbY = 0;
+};
+
+
+struct _MHW_PAR_T(AQM_HIST_STATE)
+{
+    uint8_t  chromaPixelBitDepth                = 0;
+    bool     disableStatisticalSummaryHistogram = 0;
+    bool     vHistogramEnable                   = 0;
+    bool     uHistogramEnable                   = 0;
+    bool     yHistogramEnable                   = 0;
+    bool     initializationMode                 = 0;
+    bool     operatingMode                      = 0;
+    uint8_t  lumaPixelBitDepth                  = 0;
+    uint8_t  inputChromaSubsamplingFormat       = 0;
+    uint8_t  CodecType                          = 0;
+    uint32_t frameOrTileSizeInPixels            = 0;
+};
+
+struct _MHW_PAR_T(AQM_HIST_BUFF_ADDR_STATE)
+{
+    bool          mediaLevel2CachingEnable         = false;
+    uint8_t       tileMode                         = 0;
+    bool          rowStoreScratchBufferCacheSelect = 0;
+    bool          compressionType                  = 0;
+    bool          memoryCompressionEnable          = 0;
+    uint8_t       arbitrationPriorityControl       = 0;
+    uint8_t       indexToMOCSTable                 = 0;
+    bool          reserved                         = 0;
+    PMOS_RESOURCE AqmYChannelHistogramOutputBuffer = nullptr;
+    PMOS_RESOURCE AqmUChannelHistogramOutputBuffer = nullptr;
+    PMOS_RESOURCE AqmVChannelHistogramOutputBuffer = nullptr;
+    PMOS_RESOURCE AqmStatisticsSummaryOutputBuffer = nullptr;
+    PMOS_RESOURCE MetadataStreamoutOutputBuffer    = nullptr;
+    PMOS_RESOURCE MetadataStreaminInputBuffer      = nullptr;
+};
+
+struct _MHW_PAR_T(AQM_HIST_FLUSH)
+{
+    uint32_t aqmHistFlush = 0;
 };
 
 __MHW_VDBOX_AQM_WRAPPER_EXT(AQM_CMD_CMDPAR_EXT);

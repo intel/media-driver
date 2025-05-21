@@ -71,13 +71,12 @@ MOS_STATUS AvcPipelineXe2_Hpm::InitMmcState()
 {
     DECODE_FUNC_CALL();
 
-#ifdef _MMC_SUPPORTED
     DECODE_CHK_NULL(m_hwInterface);
     m_mmcState = MOS_New(DecodeMemCompXe2_Hpm, m_hwInterface);
     DECODE_CHK_NULL(m_mmcState);
 
     DECODE_CHK_STATUS(m_basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -112,12 +111,11 @@ MOS_STATUS AvcPipelineXe2_Hpm::Execute()
 #endif
 #if (_DEBUG || _RELEASE_INTERNAL)
             DECODE_CHK_STATUS(StatusCheck());
-#ifdef _MMC_SUPPORTED
+
             if (m_mmcState != nullptr)
             {
                 m_mmcState->ReportSurfaceMmcMode(&(m_basicFeature->m_destSurface));
             }
-#endif
 #endif
 
             // Only update user features for the first frame.

@@ -427,8 +427,7 @@ MOS_STATUS EncodeScalabilityMultiPipe::GetCmdBuffer(PMOS_COMMAND_BUFFER cmdBuffe
     SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &m_primaryCmdBuffer, 0));
     uint32_t bufIdxPlus1 = m_currentPipe + 1;  //Make CMD buffer one next to one.
     m_osInterface->pfnGetCommandBuffer(m_osInterface, &m_secondaryCmdBuffer[bufIdxPlus1 - 1], bufIdxPlus1);
-
-    if (m_osInterface->apoMosEnabled)
+    if (m_osInterface->apoMosEnabled || m_osInterface->apoMosForLegacyRuntime)
     {
         int32_t submissionType = IsFirstPipe() ? SUBMISSION_TYPE_MULTI_PIPE_MASTER : SUBMISSION_TYPE_MULTI_PIPE_SLAVE;
         if (IsLastPipe())
@@ -767,7 +766,7 @@ MOS_STATUS EncodeScalabilityMultiPipe::SendAttrWithFrameTracking(
 
     if (frameTrackingRequested && m_frameTrackingEnabled)
     {
-        m_statusReport->GetAddress(encode::statusReportGlobalCount, resource, offset);
+        ENCODE_CHK_STATUS_RETURN(m_statusReport->GetAddress(encode::statusReportGlobalCount, resource, offset));
         cmdBuffer.Attributes.bEnableMediaFrameTracking    = true;
         cmdBuffer.Attributes.resMediaFrameTrackingSurface = resource;
         cmdBuffer.Attributes.dwMediaFrameTrackingTag      = m_statusReport->GetSubmittedCount() + 1;

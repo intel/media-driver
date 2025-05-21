@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2024, Intel Corporation
+* Copyright (c) 2021-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -296,12 +296,11 @@ namespace decode
         DECODE_FUNC_CALL();
         DECODE_CHK_STATUS(DecodePipeline::UserFeatureReport());
 
-    #ifdef _MMC_SUPPORTED
         CODECHAL_DEBUG_TOOL(
             if (m_mmcState != nullptr){
                 m_mmcState->UpdateUserFeatureKey(&(m_basicFeature->m_destSurface));
             })
-    #endif
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -333,14 +332,12 @@ namespace decode
 
     MOS_STATUS VvcPipeline::InitMmcState()
     {
-#ifdef _MMC_SUPPORTED
         DECODE_CHK_NULL(m_hwInterface);
         DECODE_CHK_NULL(m_basicFeature);
 
         m_mmcState = MOS_New(DecodeMemComp, m_hwInterface);
         DECODE_CHK_NULL(m_mmcState);
         DECODE_CHK_STATUS(m_basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
-#endif
 
         return MOS_STATUS_SUCCESS;
     }
@@ -379,7 +376,7 @@ namespace decode
                 PMHW_BATCH_BUFFER &batchBuf = m_sliceLevelBBArray->Fetch();
                 DECODE_CHK_NULL(batchBuf);
                 DECODE_CHK_STATUS(m_allocator->Resize(
-                    batchBuf, size, basicFeature.m_numSlices, notLockableVideoMem));
+                    batchBuf, size, 1, notLockableVideoMem));
             }
 
             //Tile Level BB Array Allocation

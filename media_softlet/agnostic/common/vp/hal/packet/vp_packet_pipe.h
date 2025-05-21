@@ -27,12 +27,12 @@
 #include "vp_pipeline_common.h"
 #include "vp_allocator.h"
 #include "vp_debug_interface.h"
+#include "vp_graphset.h"
 
 #include <vector>
 #include "hw_filter.h"
 
 #include "vp_packet_shared_context.h"
-//#include "vp_kernelset.h"
 
 class MediaScalability;
 class MediaContext;
@@ -48,7 +48,7 @@ class PacketFactory
 public:
     PacketFactory(VpPlatformInterface *vpPlatformInterface);
     virtual ~PacketFactory();
-    MOS_STATUS   Initialize(MediaTask *pTask, PVP_MHWINTERFACE pHwInterface, PVpAllocator pAllocator, VPMediaMemComp *pMmc, VP_PACKET_SHARED_CONTEXT *packetSharedContext, VpKernelSet *vpKernels, void *debugInterface);
+    MOS_STATUS   Initialize(MediaTask *pTask, PVP_MHWINTERFACE pHwInterface, PVpAllocator pAllocator, VPMediaMemComp *pMmc, VP_PACKET_SHARED_CONTEXT *packetSharedContext, VpKernelSet *vpKernels, void *debugInterface, VpGraphSet *vpGraphSets);
     VpCmdPacket *CreatePacket(EngineType type);
     void ReturnPacket(VpCmdPacket *&pPacket);
 
@@ -57,11 +57,13 @@ public:
 protected:
     VpCmdPacket *CreateVeboxPacket();
     VpCmdPacket *CreateRenderPacket();
+    VpCmdPacket *CreateNpuPacket();
 
     void ClearPacketPool(std::vector<VpCmdPacket *> &pool);
 
     std::vector<VpCmdPacket *> m_VeboxPacketPool;
     std::vector<VpCmdPacket *> m_RenderPacketPool;
+    VpCmdPacket               *m_NpuPacket = nullptr;   //Only one npu packet needed in current case
 
     MediaTask           *m_pTask = nullptr;
     PVP_MHWINTERFACE    m_pHwInterface = nullptr;
@@ -69,6 +71,7 @@ protected:
     VPMediaMemComp      *m_pMmc = nullptr;
     VpPlatformInterface *m_vpPlatformInterface = nullptr;
     VpKernelSet         *m_kernelSet = nullptr;
+    VpGraphSet          *m_graphSet = nullptr;
     VP_PACKET_SHARED_CONTEXT *m_packetSharedContext = nullptr;
 
 MEDIA_CLASS_DEFINE_END(vp__PacketFactory)
@@ -81,7 +84,7 @@ public:
     virtual ~PacketPipe();
     MOS_STATUS Clean();
     MOS_STATUS AddPacket(HwFilter &hwFilter);
-    MOS_STATUS Execute(MediaStatusReport *statusReport, MediaScalability *&scalability, MediaContext *mediaContext, bool bEnableVirtualEngine, uint8_t numVebox);
+    MOS_STATUS Execute(MediaStatusReport *statusReport, MediaScalability *&scalability, MediaContext *mediaContext, bool bEnableVirtualEngine, uint8_t numVebox, uint64_t gpuCtxOnHybridCmd, uint32_t frameCnt);
     VPHAL_OUTPUT_PIPE_MODE GetOutputPipeMode()
     {
         return m_outputPipeMode;
@@ -102,7 +105,7 @@ public:
         return idx < m_Pipe.size() ? m_Pipe[idx] : nullptr;
     }
 
-    static MOS_STATUS SwitchContext(PacketType type, MediaScalability *&scalability, MediaContext *mediaContext, bool bEnableVirtualEngine, uint8_t numVebox);
+    static MOS_STATUS SwitchContext(PacketType type, MediaScalability *&scalability, MediaContext *mediaContext, bool bEnableVirtualEngine, uint8_t numVebox, uint64_t gpuCtxOnHybridCmd = 0);
 
 private:
     VpCmdPacket *CreatePacket(EngineType type);

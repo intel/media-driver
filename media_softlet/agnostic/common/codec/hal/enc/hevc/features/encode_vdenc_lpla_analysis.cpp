@@ -26,6 +26,7 @@
 
 #include "encode_vdenc_lpla_analysis.h"
 #include "encode_hevc_vdenc_feature_manager.h"
+#include "encode_vdenc_hevc_fastpass.h"
 
 namespace encode
 {
@@ -38,11 +39,12 @@ namespace encode
         m_hwInterface(hwInterface),
         m_allocator(allocator)
     {
-        auto encFeatureManager = dynamic_cast<EncodeHevcVdencFeatureManager *>(featureManager);
-        ENCODE_CHK_NULL_NO_STATUS_RETURN(encFeatureManager);
+        m_featureManager = dynamic_cast<EncodeHevcVdencFeatureManager *>(featureManager);
+        ENCODE_CHK_NULL_NO_STATUS_RETURN(m_featureManager);
 
-        m_basicFeature = dynamic_cast<EncodeBasicFeature *>(encFeatureManager->GetFeature(FeatureIDs::basicFeature));
+        m_basicFeature = dynamic_cast<EncodeBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
         ENCODE_CHK_NULL_NO_STATUS_RETURN(m_basicFeature);
+
         ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
         m_osInterface = hwInterface->GetOsInterface();
 
@@ -802,17 +804,30 @@ namespace encode
     {
         ENCODE_FUNC_CALL();
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
+        ENCODE_CHK_NULL_RETURN(m_basicFeature);
         // Setup LAInit DMEM
         auto hucVdencLaInitDmem = (VdencHevcHucLaDmem *)m_allocator->LockResourceForWrite(m_vdencLaInitDmemBuffer);
         ENCODE_CHK_NULL_RETURN(hucVdencLaInitDmem);
         MOS_ZeroMemory(hucVdencLaInitDmem, sizeof(VdencHevcHucLaDmem));
 
         uint32_t initVbvFullness = MOS_MIN(m_hevcSeqParams->InitVBVBufferFullnessInBit, m_hevcSeqParams->VBVBufferSizeInBit);
-        uint8_t downscaleRatioIndicator = 2;  // 4x downscaling
-        if (m_hevcPicParams->DownScaleRatio.fields.X16Minus1_X == 15 && m_hevcPicParams->DownScaleRatio.fields.X16Minus1_Y == 15)
+        
+        auto fastPassFeature = dynamic_cast<HevcVdencFastPass *>(m_featureManager->GetFeature(HevcFeatureIDs::hevcVdencFastPassFeature));
+        if (fastPassFeature && m_hevcSeqParams->EnableFastPass)
         {
-            downscaleRatioIndicator = 0;  // no downscaling
+            hucVdencLaInitDmem->downscaleRatio = m_hevcSeqParams->FastPassRatio;
+            hucVdencLaInitDmem->enc_frame_width = fastPassFeature->GetFastPassDsWidth();
+            hucVdencLaInitDmem->enc_frame_height = fastPassFeature->GetFastPassDsHeight();
+        }
+        else
+        {
+            hucVdencLaInitDmem->downscaleRatio = 2;  // 4x downscaling
+            if (m_hevcPicParams->DownScaleRatio.fields.X16Minus1_X == 15 && m_hevcPicParams->DownScaleRatio.fields.X16Minus1_Y == 15)
+            {
+                hucVdencLaInitDmem->downscaleRatio = 0;  // no downscaling
+            }
+            hucVdencLaInitDmem->enc_frame_width  = m_basicFeature->m_frameWidth;
+            hucVdencLaInitDmem->enc_frame_height = m_basicFeature->m_frameHeight;
         }
 
         hucVdencLaInitDmem->lookAheadFunc = 0;
@@ -821,10 +836,6 @@ namespace encode
         hucVdencLaInitDmem->vbvInitialFullness = initVbvFullness / m_averageFrameSize;
         hucVdencLaInitDmem->statsRecords = m_numLaDataEntry;
         hucVdencLaInitDmem->averageFrameSize = m_averageFrameSize >> 3;
-        hucVdencLaInitDmem->downscaleRatio = downscaleRatioIndicator;
-        ENCODE_CHK_NULL_RETURN(m_basicFeature);
-        hucVdencLaInitDmem->enc_frame_width = m_basicFeature->m_frameWidth;
-        hucVdencLaInitDmem->enc_frame_height = m_basicFeature->m_frameHeight;
         hucVdencLaInitDmem->codec_type = m_hevcSeqParams->FullPassCodecType;
         hucVdencLaInitDmem->mbr_ratio = (m_hevcSeqParams->TargetBitRate > 0 && m_hevcSeqParams->MaxBitRate >= m_hevcSeqParams->TargetBitRate) ?
                                         m_hevcSeqParams->MaxBitRate * 100 / m_hevcSeqParams->TargetBitRate : 100;

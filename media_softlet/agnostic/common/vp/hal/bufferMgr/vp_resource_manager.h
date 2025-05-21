@@ -34,6 +34,7 @@
 #include "vp_utils.h"
 #include "vp_hdr_resource_manager.h"
 #include "media_copy_wrapper.h"
+#include "vp_graph_manager.h"
 
 #define VP_MAX_NUM_VEBOX_SURFACES     4                                       //!< Vebox output surface creation, also can be reuse for DI usage:
                                                                               //!< for DI: 2 for ADI plus additional 2 for parallel execution
@@ -353,7 +354,7 @@ struct VP_SURFACE_PARAMS
 class VpResourceManager
 {
 public:
-    VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting, vp::VpPlatformInterface &vpPlatformInterface, MediaCopyWrapper *mediaCopyWrapper, vp::VpUserFeatureControl *vpUserFeatureControl);
+    VpResourceManager(MOS_INTERFACE &osInterface, VpAllocator &allocator, VphalFeatureReport &reporting, vp::VpPlatformInterface &vpPlatformInterface, MediaCopyWrapper *mediaCopyWrapper, vp::VpUserFeatureControl *vpUserFeatureControl, vp::VpGraphManager* graphManager);
     virtual ~VpResourceManager();
     virtual MOS_STATUS OnNewFrameProcessStart(SwFilterPipe &pipe);
     virtual void OnNewFrameProcessEnd();
@@ -364,6 +365,7 @@ public:
         std::vector<VP_SURFACE *> &pastSurfaces, std::vector<VP_SURFACE *> &futureSurfaces,
         RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting, SwFilterPipe& executedFilters);
     MOS_STATUS GetUpdatedExecuteResource(std::vector<FeatureType> &featurePool, VP_EXECUTE_CAPS &caps, SwFilterPipe &swfilterPipe, VP_SURFACE_SETTING &surfSetting);
+    MOS_STATUS EmplaceCrossPipeContextResource(PVP_SURFACE surface, PVP_SURFACE originSurface);
 
     virtual MOS_STATUS FillLinearBufferWithEncZero(VP_SURFACE *surface, uint32_t width, uint32_t height);
 
@@ -455,6 +457,9 @@ protected:
     virtual MOS_STATUS AssignFcResources(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface,
         std::vector<VP_SURFACE *> &pastSurfaces, std::vector<VP_SURFACE *> &futureSurfaces,
         RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
+    virtual MOS_STATUS  AssignNpuResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, std::vector<VP_SURFACE *> &pastSurfaces, std::vector<VP_SURFACE *> &futureSurfaces, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting, SwFilterPipe &executedFilters);
+    virtual MOS_STATUS  AssignAiNpuResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, SwFilterPipe &executedFilters, VP_SURFACE_SETTING &surfSetting);
+    virtual MOS_STATUS  AssignAiKernelResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, SwFilterPipe &executedFilters, VP_SURFACE_SETTING &surfSetting);
     virtual MOS_STATUS AssignVeboxResourceForRender(VP_EXECUTE_CAPS &caps, VP_SURFACE *inputSurface, RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING &surfSetting);
     virtual MOS_STATUS AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURFACE* inputSurface, VP_SURFACE* outputSurface, VP_SURFACE* pastSurface, VP_SURFACE* futureSurface,
         RESOURCE_ASSIGNMENT_HINT resHint, VP_SURFACE_SETTING& surfSetting, SwFilterPipe& executedFilters);
@@ -463,7 +468,7 @@ protected:
     void AddSurfaceConfig(bool _b64DI, bool _sfcEnable, bool _sameSample, bool _outOfBound, bool _pastRefAvailable, bool _futureRefAvailable, bool _firstDiField,
         VEBOX_SURFACE_ID _currentInputSurface, VEBOX_SURFACE_ID _pastInputSurface, VEBOX_SURFACE_ID _currentOutputSurface, VEBOX_SURFACE_ID _pastOutputSurface)
     {
-        m_veboxSurfaceConfigMap.insert(std::make_pair(VEBOX_SURFACES_CONFIG(_b64DI, _sfcEnable, _sameSample, _outOfBound, _pastRefAvailable, _futureRefAvailable, _firstDiField).value, VEBOX_SURFACES(_currentInputSurface, _pastInputSurface, _currentOutputSurface, _pastOutputSurface)));
+        m_veboxSurfaceConfigMap.emplace(VEBOX_SURFACES_CONFIG(_b64DI, _sfcEnable, _sameSample, _outOfBound, _pastRefAvailable, _futureRefAvailable, _firstDiField).value, VEBOX_SURFACES(_currentInputSurface, _pastInputSurface, _currentOutputSurface, _pastOutputSurface));
     }
 
     virtual MOS_STATUS GetIntermediaColorAndFormat3DLutOutput(VPHAL_CSPACE &colorSpace, MOS_FORMAT &format, SwFilterPipe &executedFilters);
@@ -496,6 +501,7 @@ protected:
     VphalFeatureReport           &m_reporting;
     vp::VpPlatformInterface      &m_vpPlatformInterface;
     vp::VpUserFeatureControl     *m_vpUserFeatureControl = nullptr;
+    vp::VpGraphManager           *m_graphManager         = nullptr;
 
     // Vebox Resource
     VP_SURFACE* m_veboxDenoiseOutput[VP_NUM_DN_SURFACES]     = {};            //!< Vebox Denoise output surface
@@ -551,14 +557,22 @@ protected:
     VP_SURFACE *m_temperalInput                               = nullptr;
 
     // Fc Resource
-    VP_SURFACE *m_cmfcCoeff                                   = nullptr;
-    VP_SURFACE *m_fcIntermediaSurfaceOutput                         = nullptr;
-    VP_SURFACE *m_fcIntermediaSurfaceInput[VP_COMP_MAX_LAYERS]      = {};
+    VP_SURFACE *m_cmfcCoeff                                                    = nullptr;
+    VP_SURFACE *m_fcIntermediaSurfaceOutput                                    = nullptr;
+    VP_SURFACE *m_fcIntermediaSurfaceInput[VP_COMP_MAX_LAYERS]                 = {};
+    VP_SURFACE *m_fcSeparateIntermediaSurfaceSecPlaneInput[VP_COMP_MAX_LAYERS] = {};
     //for decompreesion sync on interlace input of FC
     VP_SURFACE *m_decompressionSyncSurface                                  = nullptr;
     // Hdr Resource
     VphdrResourceManager *m_hdrResourceManager                = nullptr;
     MediaUserSettingSharedPtr m_userSettingPtr                = nullptr;   //!< usersettingInstance
+
+    // AI Resource
+    std::map<SurfaceType, VP_SURFACE *> m_aiIntermediateSurface = {};
+    std::map<SurfaceType, VP_SURFACE *> m_aiNpuCopiedSurface    = {};
+
+    //Cross Pipe Context Resource
+    std::set<VP_SURFACE *> m_crossPipeContextSurfaces;
 
     MediaCopyWrapper *m_mediaCopyWrapper                      = nullptr;
 

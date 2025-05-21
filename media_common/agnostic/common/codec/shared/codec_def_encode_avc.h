@@ -726,6 +726,16 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     *   RefFrameList[] should include all the reference pictures in DPB, which means either the picture is referred by current picture or future pictures, it should have a valid entry in it.
     */
     CODEC_PICTURE   RefFrameList[CODEC_AVC_MAX_NUM_REF_FRAME];
+
+
+    /*! \brief Each entry of the list specifies the frame resource of the reference pictures.
+    *
+    *   The value of FrameIdx is the same as the reference frame index saved in RefList. And valid value range is [0..14, 0x7F]. 
+    *   RefFrameList[] should include all the reference pictures in DPB, which means either the picture is referred by current picture or future pictures, it should have a valid entry in it.
+    *   currently only for Vulkan encode
+    */
+    MOS_SURFACE     RefFrameListSurface[CODEC_AVC_MAX_NUM_REF_FRAME]; 
+
     /*! \brief Denotes "used for reference" frames as defined in the AVC specification.
     *
     *   The flag is accessed by:
@@ -1049,6 +1059,8 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     *  Default value 0 means no suggestion for Qp modulation
     */
     uint8_t         QpModulationStrength;
+
+    uint8_t         AdaptiveTUEnabled;
 
     /*! \brief StatusReportEnable
     *
