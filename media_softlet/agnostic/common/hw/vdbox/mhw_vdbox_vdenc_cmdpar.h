@@ -575,6 +575,7 @@ struct _MHW_PAR_T(VDENC_CMD2)
     uint32_t intraRefreshBoundary[3]          = {};
     uint8_t  av1RefId[2][4]                   = {{1, 1, 1, 1}, {1, 1, 1, 1}};
     uint8_t  subPelMode                       = 3;
+    uint8_t  av1EnableIntraEdgeFilter         = 0;
 
     __MHW_VDBOX_VDENC_WRAPPER(
         std::vector<std::function<MOS_STATUS(uint32_t *)>> extSettings);
