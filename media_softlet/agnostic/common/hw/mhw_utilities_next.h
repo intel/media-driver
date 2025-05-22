@@ -603,6 +603,17 @@ typedef struct _MHW_MOCS_PARAMS
     uint8_t  bitFieldHigh;
 } MHW_MOCS_PARAMS;
 
+struct MHW_INDIRECT_STATE_RESOURCE_PARAMS
+{
+    PMOS_RESOURCE stateHeap      = nullptr;
+    uint8_t      *stateBasePtr   = nullptr;
+    uint32_t      stateOffset    = 0;
+    PMOS_RESOURCE resource       = nullptr;
+    uint32_t      resourceOffset = 0;
+    bool          isWrite        = false;
+};
+using PMHW_INDIRECT_STATE_RESOURCE_PARAMS = MHW_INDIRECT_STATE_RESOURCE_PARAMS*;
+
 typedef struct _MHW_RESOURCE_PARAMS
 {
     PMOS_RESOURCE                       presResource;

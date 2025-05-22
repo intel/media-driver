@@ -565,7 +565,7 @@ public:
         return MOS_STATUS_SUCCESS;
     };
 
-    virtual MOS_STATUS SendStateComputeMpde(
+    virtual MOS_STATUS SendStateComputeMode(
         PRENDERHAL_INTERFACE pRenderHal,
         PMOS_COMMAND_BUFFER  pCmdBuffer)
     {

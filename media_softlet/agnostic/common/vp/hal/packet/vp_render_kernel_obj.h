@@ -86,7 +86,6 @@ using KERNEL_SAMPLER_STATES = std::vector<MHW_SAMPLER_STATE_PARAM>;
 using KERNEL_SAMPLER_INDEX = std::vector<SamplerIndex>;
 using KERNEL_SURFACE_CONFIG = std::map<SurfaceType, KERNEL_SURFACE_STATE_PARAM>;
 using KERNEL_SURFACE_BINDING_INDEX = std::map<SurfaceType, std::set<uint32_t>>;
-using KERNEL_STATELESS_BUFF_CONFIG = std::map<SurfaceType, uint64_t>;
 using KERNEL_BINDELESS_SURFACE = std::map<SurfaceType, std::vector<uint64_t>>;
 using KERNEL_BINDELESS_SAMPLER = std::map<uint32_t, uint64_t>;
 
@@ -570,6 +569,16 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    std::vector<MHW_INDIRECT_STATE_RESOURCE_PARAMS> &GetCurbeResourceList()
+    {
+        return m_curbeResourceList;
+    }
+
+    std::vector<MHW_INDIRECT_STATE_RESOURCE_PARAMS> &GetInlineResourceList()
+    {
+        return m_inlineResourceList;
+    }
+
 protected:
 
     virtual MOS_STATUS SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, bool bSyncFlag, bool flushL1 = false);
@@ -587,8 +596,6 @@ protected:
     virtual MOS_STATUS CpPrepareResources();
 
     virtual MOS_STATUS SetupStatelessBuffer();
-
-    virtual MOS_STATUS SetupStatelessBufferResource(SurfaceType surf, bool isWrite);
 
     virtual MOS_STATUS GetCurbeState(void *&curbe, uint32_t &curbeLength) = 0;
 
@@ -613,9 +620,10 @@ protected:
     KERNEL_SURFACE_BINDING_INDEX                            m_surfaceBindingIndex;      // store the binding index for processed surface
     PVpAllocator                                            m_allocator = nullptr;
     MediaUserSettingSharedPtr                               m_userSettingPtr = nullptr;  // usersettingInstance
-    KERNEL_STATELESS_BUFF_CONFIG                            m_statelessArray;
     KERNEL_BINDELESS_SURFACE                                m_bindlessSurfaceArray;
     KERNEL_BINDELESS_SAMPLER                                m_bindlessSamperArray;
+    std::vector<MHW_INDIRECT_STATE_RESOURCE_PARAMS>         m_curbeResourceList  = {};
+    std::vector<MHW_INDIRECT_STATE_RESOURCE_PARAMS>         m_inlineResourceList = {};
     // kernel attribute 
     std::string                                             m_kernelName = "";
     void *                                                  m_kernelBinary = nullptr;

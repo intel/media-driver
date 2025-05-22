@@ -985,6 +985,7 @@ MOS_STATUS VpRenderCmdPacket::SetupCurbeStateInBindlessMode()
     uint32_t curbeLengthAligned = 0;
 
     VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetCurbeState(curbeData, curbeLength, curbeLengthAligned, m_renderData.KernelParam, m_renderHal->dwCurbeBlockAlign));
+    VP_RENDER_CHK_STATUS_RETURN(m_renderHal->pfnSetCurbeResourceList(m_renderHal, m_kernel->GetCurbeResourceList().data(), m_kernel->GetCurbeResourceList().size()));
 
     m_renderData.iCurbeOffset = m_renderHal->pfnLoadCurbeData(
         m_renderHal,
@@ -1096,6 +1097,7 @@ MOS_STATUS VpRenderCmdPacket::SetupWalkerParams()
     VP_RENDER_CHK_NULL_RETURN(m_kernel);
 
     VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetWalkerSetting(m_renderData.walkerParam, m_renderData));
+    VP_RENDER_CHK_STATUS_RETURN(m_renderHal->pfnSetInlineResourceList(m_renderHal, m_kernel->GetInlineResourceList().data(), m_kernel->GetInlineResourceList().size()));
     MT_LOG2(MT_VP_CREATE, MT_NORMAL, MT_FUNC_END, 1, MT_MOS_STATUS, MOS_STATUS_SUCCESS);
 
     return MOS_STATUS_SUCCESS;
@@ -2034,7 +2036,7 @@ MOS_STATUS VpRenderCmdPacket::SendMediaStates(
         }
         else
         {
-            pRenderHal->pRenderHalPltInterface->SendStateComputeMpde(pRenderHal, pCmdBuffer);
+            pRenderHal->pRenderHalPltInterface->SendStateComputeMode(pRenderHal, pCmdBuffer);
         }
     }
 

@@ -218,6 +218,54 @@ public:
         cmd.DW4.GenerateLocalId = params.isGenerateLocalId;
         cmd.DW4.EmitLocal       = params.emitLocal;
 
+        if (params.heapsResource.curbeResourceListSize > 0)
+        {
+            MHW_MI_CHK_NULL(params.heapsResource.curbeResourceList);
+            for (uint32_t i = 0; i < params.heapsResource.curbeResourceListSize; ++i)
+            {
+                MHW_INDIRECT_STATE_RESOURCE_PARAMS &resourceParam = params.heapsResource.curbeResourceList[i];
+                MHW_MI_CHK_NULL(resourceParam.stateHeap);
+                MHW_MI_CHK_NULL(resourceParam.stateBasePtr);
+                MOS_COMMAND_BUFFER                  cmdBuffer     = {};
+                MHW_RESOURCE_PARAMS                 params        = {};
+                cmdBuffer.OsResource                              = *resourceParam.stateHeap;
+                cmdBuffer.pCmdBase                                = (uint32_t *)resourceParam.stateBasePtr;
+                cmdBuffer.iOffset                                 = resourceParam.stateOffset;
+                
+                params.pdwCmd                                     = (uint32_t*)(resourceParam.stateBasePtr + resourceParam.stateOffset);
+                params.presResource                               = resourceParam.resource;
+                params.dwLocationInCmd                            = 0;
+                params.dwOffset                                   = resourceParam.resourceOffset;
+                params.bIsWritable                                = resourceParam.isWrite;
+                params.HwCommandType                              = MOS_HW_COMMANDS;
+
+                MHW_MI_CHK_STATUS(AddResourceToCmd(m_osItf, &cmdBuffer, &params));
+            }
+        }
+
+        if (params.heapsResource.inlineResourceListSize > 0)
+        {
+            MHW_MI_CHK_NULL(params.heapsResource.inlineResourceList);
+            for (uint32_t i = 0; i < params.heapsResource.inlineResourceListSize; ++i)
+            {
+                MHW_INDIRECT_STATE_RESOURCE_PARAMS &resourceParam = params.heapsResource.inlineResourceList[i];
+                MHW_RESOURCE_PARAMS                 params        = {};
+
+                if (resourceParam.stateOffset % sizeof(uint32_t) != 0)
+                {
+                    MHW_MI_CHK_STATUS(MOS_STATUS_INVALID_PARAMETER);
+                }
+                params.pdwCmd          = (uint32_t *)((uint8_t *)cmd.InlineData.Value + resourceParam.stateOffset);
+                params.presResource    = resourceParam.resource;
+                params.dwLocationInCmd = resourceParam.stateOffset / sizeof(uint32_t) + _MHW_CMD_DW_LOCATION(InlineData.Value);
+                params.dwOffset        = resourceParam.resourceOffset;
+                params.bIsWritable     = resourceParam.isWrite;
+                params.HwCommandType   = MOS_HW_COMMANDS;
+
+                MHW_MI_CHK_STATUS(AddResourceToCmd(m_osItf, m_currentCmdBuf, &params));
+            }
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 

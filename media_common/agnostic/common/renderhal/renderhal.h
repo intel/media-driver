@@ -1216,6 +1216,12 @@ typedef struct _RENDERHAL_INTERFACE
 
     const void                  *sseuTable;                                     // pointer of const VphalSseuSetting table on a platform
 
+    PMHW_INDIRECT_STATE_RESOURCE_PARAMS curbeResourceList;
+    uint32_t                            curbeResourceListSize;
+
+    PMHW_INDIRECT_STATE_RESOURCE_PARAMS inlineResourceList;
+    uint32_t                            inlineResourceListSize;
+
     uint32_t                    dwIndirectHeapSize;
     uint32_t                    dwTimeoutMs;
     int32_t                     iMaxPalettes;
@@ -1766,6 +1772,16 @@ typedef struct _RENDERHAL_INTERFACE
                 PRENDERHAL_L3_CACHE_SETTINGS    pCacheSettings,
                 bool                            bEnableSLM);
 
+    MOS_STATUS (*pfnSetCurbeResourceList)(
+        PRENDERHAL_INTERFACE                pRenderHal,
+        PMHW_INDIRECT_STATE_RESOURCE_PARAMS curbeResourceList,
+        uint32_t                            curbeResourceListSize);
+
+    MOS_STATUS (*pfnSetInlineResourceList)(
+        PRENDERHAL_INTERFACE                pRenderHal,
+        PMHW_INDIRECT_STATE_RESOURCE_PARAMS inlineResourceList,
+        uint32_t                            inlineResourceListSize);
+
     //!
     //! \brief    Get mmio registers address
     //! \details  Get mmio registers address
@@ -1945,6 +1961,16 @@ MOS_STATUS RenderHal_SetSurfaceStateToken(
     PRENDERHAL_INTERFACE        pRenderHal,
     PMHW_SURFACE_TOKEN_PARAMS   pParams,
     void                        *pSurfaceStateToken);
+
+MOS_STATUS RenderHal_SetInlineResourceList(
+    PRENDERHAL_INTERFACE                pRenderHal,
+    PMHW_INDIRECT_STATE_RESOURCE_PARAMS inlineResourceList,
+    uint32_t                            inlineResourceListSize);
+
+MOS_STATUS RenderHal_SetCurbeResourceList(
+    PRENDERHAL_INTERFACE                pRenderHal,
+    PMHW_INDIRECT_STATE_RESOURCE_PARAMS curbeResourceList,
+    uint32_t                            curbeResourceListSize);
 
 //!
 //! \brief    Send Surfaces PatchList

@@ -4857,6 +4857,19 @@ int32_t RenderHal_LoadCurbeData(
                 {
                     MOS_ZeroMemory(pPtrCurbe + iSize, iCurbeSize);
                 }
+
+                if (pRenderHal->curbeResourceListSize > 0)
+                {
+                    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->curbeResourceList);
+
+                    for (uint32_t i = 0; i < pRenderHal->curbeResourceListSize; ++i)
+                    {
+                        MHW_INDIRECT_STATE_RESOURCE_PARAMS &resourceParam = pRenderHal->curbeResourceList[i];
+                        resourceParam.stateHeap                           = &pStateHeap->GshOsResource;
+                        resourceParam.stateBasePtr                        = pStateHeap->pGshBuffer;
+                        resourceParam.stateOffset += (pStateHeap->pCurMediaState->dwOffset + pStateHeap->dwOffsetCurbe + iOffset);
+                    }
+                }
             }
         }
     }
@@ -5705,7 +5718,7 @@ MOS_STATUS RenderHal_AssignBindlessSurfaceStates(
     return eStatus;
 }
 
-MOS_STATUS RenderHal_SendSurfaces_Bindelss(
+MOS_STATUS RenderHal_SendBindlessSurfaces(
     PRENDERHAL_INTERFACE pRenderHal,
     PMOS_COMMAND_BUFFER  pCmdBuffer,
     bool                 bNeedNullPatch)
@@ -7493,7 +7506,7 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->pfnSetSurfaceStateBuffer      = RenderHal_SetSurfaceStateBuffer;
     pRenderHal->pfnCalculateYOffset           = RenderHal_CalculateYOffset;
     pRenderHal->pfnAssignBindlessSurfaceStates = RenderHal_AssignBindlessSurfaceStates;
-    pRenderHal->pfnSendBindlessSurfaceStates   = RenderHal_SendSurfaces_Bindelss;
+    pRenderHal->pfnSendBindlessSurfaceStates   = RenderHal_SendBindlessSurfaces;
 
     pRenderHal->pfnGetPlaneDefinitionForCommonMessage = RenderHal_GetPlaneDefinitionForCommonMessage;
 
@@ -7527,6 +7540,8 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->pfnSendPalette                = RenderHal_SendPalette;
     pRenderHal->pfnSendMediaStates            = RenderHal_SendMediaStates;
     pRenderHal->pfnSendStateBaseAddress       = RenderHal_SendStateBaseAddress;
+    pRenderHal->pfnSetCurbeResourceList       = RenderHal_SetCurbeResourceList;
+    pRenderHal->pfnSetInlineResourceList      = RenderHal_SetInlineResourceList;
 
     // Initialize OS dependent RenderHal Interfaces common to all platforms
     pRenderHal->pfnReset                      = RenderHal_Reset;
@@ -7759,3 +7774,44 @@ MOS_STATUS RenderHal_SetBufferSurfaceForHwAccess(
     return eStatus;
 }
 
+MOS_STATUS RenderHal_SetInlineResourceList(
+    PRENDERHAL_INTERFACE                pRenderHal,
+    PMHW_INDIRECT_STATE_RESOURCE_PARAMS inlineResourceList,
+    uint32_t                            inlineResourceListSize)
+{
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    if (inlineResourceListSize > 0)
+    {
+        MHW_RENDERHAL_CHK_NULL_RETURN(inlineResourceList);
+        pRenderHal->inlineResourceList     = inlineResourceList;
+        pRenderHal->inlineResourceListSize = inlineResourceListSize;
+    }
+    else
+    {
+        pRenderHal->inlineResourceList     = nullptr;
+        pRenderHal->inlineResourceListSize = 0;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS RenderHal_SetCurbeResourceList(
+    PRENDERHAL_INTERFACE                pRenderHal,
+    PMHW_INDIRECT_STATE_RESOURCE_PARAMS curbeResourceList,
+    uint32_t                            curbeResourceListSize)
+{
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    if (curbeResourceListSize > 0)
+    {
+        MHW_RENDERHAL_CHK_NULL_RETURN(curbeResourceList);
+        pRenderHal->curbeResourceList     = curbeResourceList;
+        pRenderHal->curbeResourceListSize = curbeResourceListSize;
+    }
+    else
+    {
+        pRenderHal->curbeResourceList     = nullptr;
+        pRenderHal->curbeResourceListSize = 0;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}

@@ -193,10 +193,12 @@ MOS_STATUS VpHdrFilter::CalculateEngineParams(
                 case LUT_FILLLUTTABLE_IOLUTINDEX:
                     VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
                     *(uint32_t *)krnArg.pData = SurfaceType3DLut;
+                    krnArg.isOutput           = true;
                     break;
                 case LUT_FILLLUTTABLE_ICOEFINDEX:
                     VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
                     *(uint32_t *)krnArg.pData = SurfaceType3DLutCoef;
+                    krnArg.isOutput           = false;
                     break;
                 case LUT_FILLLUTTABLE_LUTSIZE:
                     VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);

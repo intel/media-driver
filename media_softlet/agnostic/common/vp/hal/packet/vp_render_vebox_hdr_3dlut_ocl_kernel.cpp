@@ -284,15 +284,14 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::CpPrepareResources()
 MOS_STATUS VpRenderHdr3DLutOclKernel::SetupStatelessBuffer()
 {
     VP_FUNC_CALL();
-    m_statelessArray.clear();
-    VP_RENDER_CHK_STATUS_RETURN(SetupStatelessBufferResource(SurfaceType3DLutCoef, false));
-    VP_RENDER_CHK_STATUS_RETURN(SetupStatelessBufferResource(SurfaceType3DLut, true));
+
     return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS VpRenderHdr3DLutOclKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
 {
     VP_FUNC_CALL();
+    m_curbeResourceList.clear();
     curbeLength = m_curbeSize;
 
     VP_RENDER_NORMALMESSAGE("KernelID %d, Curbe Size %d\n", m_kernelId, curbeLength);
@@ -326,11 +325,19 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::GetCurbeState(void *&curbe, uint32_t &curb
         {
             if (arg.addressMode == AddressingModeStateless && arg.pData != nullptr)
             {
+                VP_PUBLIC_CHK_NULL_RETURN(m_surfaceGroup);
                 SurfaceType surfType = *((SurfaceType *)arg.pData);
-                auto        it       = m_statelessArray.find(surfType);
-                VP_PUBLIC_CHK_NOT_FOUND_RETURN(it, &m_statelessArray);
-                uint64_t ui64GfxAddress = it->second;
-                MOS_SecureMemcpy(pCurbe + arg.uOffsetInPayload, arg.uSize, &ui64GfxAddress, sizeof(ui64GfxAddress));
+                auto        it       = m_surfaceGroup->find(surfType);
+                VP_PUBLIC_CHK_NOT_FOUND_RETURN(it, m_surfaceGroup);
+                PVP_SURFACE surface = it->second;
+                VP_PUBLIC_CHK_NULL_RETURN(surface);
+                VP_PUBLIC_CHK_NULL_RETURN(surface->osSurface);
+
+                MHW_INDIRECT_STATE_RESOURCE_PARAMS params = {};
+                params.isWrite                            = arg.isOutput;
+                params.resource                           = &surface->osSurface->OsResource;
+                params.stateOffset                        = arg.uOffsetInPayload;
+                m_curbeResourceList.push_back(params);
             }
         }
         else if (arg.eArgKind == ARG_KIND_INLINE)
@@ -368,6 +375,7 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::GetWalkerSetting(KERNEL_WALKER_PARAMS &wal
 // Only for Adv kernels.
 MOS_STATUS VpRenderHdr3DLutOclKernel::GetInlineData(uint8_t *inlineData)
 {
+    m_inlineResourceList.clear();
     for (auto &arg : m_kernelArgs)
     {
         if (arg.eArgKind == ARG_KIND_INLINE)
@@ -376,12 +384,20 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::GetInlineData(uint8_t *inlineData)
             {
                 if (arg.addressMode == AddressingModeStateless)
                 {
+                    VP_PUBLIC_CHK_NULL_RETURN(m_surfaceGroup);
                     SurfaceType surfType = *((SurfaceType *)arg.pData);
-                    auto        it       = m_statelessArray.find(surfType);
-                    VP_PUBLIC_CHK_NOT_FOUND_RETURN(it, &m_statelessArray);
-                    uint64_t ui64GfxAddress = it->second;
-                    MOS_SecureMemcpy(inlineData + arg.uOffsetInPayload, arg.uSize, &ui64GfxAddress, sizeof(ui64GfxAddress));
-                    VP_RENDER_NORMALMESSAGE("Setting Inline Data Statelss Surface KernelID %d, index %d , value %d, address 0x%x argKind %d", m_kernelId, arg.uIndex, *(uint32_t *)arg.pData, ui64GfxAddress, arg.eArgKind);
+                    auto        it       = m_surfaceGroup->find(surfType);
+                    VP_PUBLIC_CHK_NOT_FOUND_RETURN(it, m_surfaceGroup);
+                    PVP_SURFACE surface = it->second;
+                    VP_PUBLIC_CHK_NULL_RETURN(surface);
+                    VP_PUBLIC_CHK_NULL_RETURN(surface->osSurface);
+
+                    MHW_INDIRECT_STATE_RESOURCE_PARAMS params = {};
+                    params.isWrite                            = arg.isOutput;
+                    params.resource                           = &surface->osSurface->OsResource;
+                    params.stateOffset                        = arg.uOffsetInPayload;
+                    m_inlineResourceList.push_back(params);
+                    VP_RENDER_NORMALMESSAGE("Setting Stateless Inline Data Statelss Surface KernelID %d, index %d , surfType %d, argKind %d", m_kernelId, arg.uIndex, *(uint32_t *)arg.pData, arg.eArgKind);
                 }
                 else
                 {
@@ -577,6 +593,7 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_
                     {
                         dstArg.eArgKind = srcArg.eArgKind;
                         dstArg.pData    = srcArg.pData;
+                        dstArg.isOutput = srcArg.isOutput;
                         srcArg.pData    = nullptr;
                     }
                 }

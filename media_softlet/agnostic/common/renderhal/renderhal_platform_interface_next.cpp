@@ -1544,6 +1544,7 @@ MHW_SETPAR_DECL_SRC(COMPUTE_WALKER, XRenderHal_Platform_Interface_Next)
 {
     MHW_RENDERHAL_CHK_NULL_RETURN(m_gpgpuWalkerParams);
     MHW_RENDERHAL_CHK_NULL_RETURN(m_interfaceDescriptorParams);
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_renderHal);
 
     params.simdSize                 = m_gpgpuWalkerParams->simdSize;
     params.IndirectDataLength       = m_gpgpuWalkerParams->IndirectDataLength;
@@ -1592,6 +1593,11 @@ MHW_SETPAR_DECL_SRC(COMPUTE_WALKER, XRenderHal_Platform_Interface_Next)
 
     params.isGenerateLocalId = m_gpgpuWalkerParams->isGenerateLocalID;
     params.emitLocal         = mhw::render::MHW_EMIT_LOCAL_MODE(m_gpgpuWalkerParams->emitLocal);
+
+    params.heapsResource.curbeResourceList      = m_renderHal->curbeResourceList;
+    params.heapsResource.curbeResourceListSize = m_renderHal->curbeResourceListSize;
+    params.heapsResource.inlineResourceList    = m_renderHal->inlineResourceList;
+    params.heapsResource.inlineResourceListSize = m_renderHal->inlineResourceListSize;
 
     return MOS_STATUS_SUCCESS;
 }
