@@ -28,7 +28,7 @@
 #define __CAPSTABLE_DATA_XE3_LPM_R0_SPECIFIC_H__
 
 #include "capstable_data_vp_xe3_lpm_r0_specific.h"
-#ifdef _MEDIA_RESERVED
+
 #if defined(_HEVC_ENCODE_VDENC_SUPPORTED)
 #include "capstable_data_hevc_encode_xe3_lpm_r0_specific.h"
 #endif
@@ -37,7 +37,6 @@
 #endif 
 #if defined(_AV1_ENCODE_VDENC_SUPPORTED)
 #include "capstable_data_av1_encode_xe3_lpm_r0_specific.h"
-#endif
 #endif
 #if defined(_VP9_ENCODE_VDENC_SUPPORTED)
 #include "capstable_data_vp9_encode_xe3_lpm_r0_specific.h"
@@ -121,7 +120,7 @@ static const std::map<const uint32_t, const VAImageFormat*> imgtbl_Xe3_lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileHEVCSccMain444_10_Xe3_Lpm_r0
 {
-#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCSccMain444_10_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -131,7 +130,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCSccMain444_10_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileHEVCSccMain444_Xe3_Lpm_r0
 {
-#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCSccMain444_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -141,7 +140,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCSccMain444_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileHEVCSccMain10_Xe3_Lpm_r0
 {
-#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCSccMain10_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -151,7 +150,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCSccMain10_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileHEVCSccMain_Xe3_Lpm_r0
 {
-#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCSccMain_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -161,7 +160,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCSccMain_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileHEVCMain444_10_Xe3_Lpm_r0
 {
-#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCMain444_10_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -171,7 +170,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCMain444_10_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileHEVCMain444_Xe3_Lpm_r0
 {
-#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCMain444_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -181,7 +180,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCMain444_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileHEVCMain10_Xe3_Lpm_r0
 {
-#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCMain10_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -191,7 +190,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCMain10_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileHEVCMain_Xe3_Lpm_r0
 {
-#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCMain_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -208,7 +207,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCMain12_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileHEVCMain422_10_Xe3_Lpm_r0
 {
-#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCMain422_10_Data_Xe3_Lpm_r0},
 #endif
 
@@ -233,7 +232,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCMain444_12_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileH264Main_Xe3_Lpm_r0
 {
-#if defined(_AVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_AVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileH264Main_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_AVC_DECODE_SUPPORTED)
@@ -243,7 +242,7 @@ static const EntrypointMap entrypointMap_VAProfileH264Main_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileH264High_Xe3_Lpm_r0
 {
-#if defined(_AVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_AVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileH264High_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_AVC_DECODE_SUPPORTED)
@@ -253,7 +252,7 @@ static const EntrypointMap entrypointMap_VAProfileH264High_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileH264ConstrainedBaseline_Xe3_Lpm_r0
 {
-#if defined(_AVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_AVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileH264ConstrainedBaseline_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_AVC_DECODE_SUPPORTED)
@@ -263,7 +262,7 @@ static const EntrypointMap entrypointMap_VAProfileH264ConstrainedBaseline_Xe3_Lp
 
 static const EntrypointMap entrypointMap_VAProfileJPEGBaseline_Xe3_Lpm_r0
 {
-#if defined(_JPEG_ENCODE_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_JPEG_ENCODE_SUPPORTED) 
     {VAEntrypointEncPicture, &entrypointMap_VAProfileJPEGBaseline_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_JPEG_DECODE_SUPPORTED)
@@ -273,7 +272,7 @@ static const EntrypointMap entrypointMap_VAProfileJPEGBaseline_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileAV1Profile0_Xe3_Lpm_r0
 {
-#if defined(_AV1_ENCODE_VDENC_SUPPORTED)&& defined(_MEDIA_RESERVED)
+#if defined(_AV1_ENCODE_VDENC_SUPPORTED)
     {VAEntrypointEncSlice, &entrypointMap_VAProfileAV1Profile0_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_AV1_DECODE_SUPPORTED)
@@ -283,7 +282,7 @@ static const EntrypointMap entrypointMap_VAProfileAV1Profile0_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileAV1Profile1_Xe3_Lpm_r0
 {
-#if defined(_AV1_ENCODE_VDENC_SUPPORTED)&& defined(_MEDIA_RESERVED)
+#if defined(_AV1_ENCODE_VDENC_SUPPORTED)
     {VAEntrypointEncSlice, &entrypointMap_VAProfileAV1Profile1_Data_Xe3_Lpm_r0},
 #endif
 };
