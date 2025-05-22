@@ -20,3 +20,4 @@
 
 media_include_subdirectory(vp9)
 media_include_subdirectory(avc)
+media_include_subdirectory(av1)

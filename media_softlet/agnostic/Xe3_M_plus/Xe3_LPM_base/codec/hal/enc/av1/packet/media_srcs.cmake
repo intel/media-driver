@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Intel Corporation
+# Copyright (c) 2022, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,6 +18,32 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(features)
-media_include_subdirectory(packet)
-media_include_subdirectory(pipeline)
+if ("${AV1_Encode_VDEnc_Supported}" STREQUAL "yes")
+    set(TMP_SOURCES_
+        ${CMAKE_CURRENT_LIST_DIR}/encode_av1_vdenc_packet_xe3_lpm_base.cpp
+    )
+
+    set(TMP_HEADERS_
+        ${CMAKE_CURRENT_LIST_DIR}/encode_av1_vdenc_packet_xe3_lpm_base.h
+    )
+set(SOFTLET_ENCODE_AV1_HEADERS_
+    ${SOFTLET_ENCODE_AV1_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(SOFTLET_ENCODE_AV1_SOURCES_
+    ${SOFTLET_ENCODE_AV1_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+source_group( CodecHalNext\\Xe3_LPM_base\\Encode FILES ${TMP_SOURCES_} ${TMP_HEADERS_} )
+
+set(TMP_SOURCES_ "")
+set(TMP_HEADERS_ "")
+
+endif()
+
+set(SOFTLET_ENCODE_AV1_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_ENCODE_AV1_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)
