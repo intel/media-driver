@@ -86,7 +86,6 @@ Copyright (c) 2024, Intel Corporation
 #include "encode_jpeg_pipeline_adapter.h"
 #endif
 
-#ifdef _MEDIA_RESERVED
 #ifdef _HEVC_ENCODE_VDENC_SUPPORTED
 #include "encode_hevc_vdenc_pipeline_adapter_xe3_lpm_base.h"
 #endif
@@ -97,7 +96,6 @@ Copyright (c) 2024, Intel Corporation
 
 #ifdef _AVC_ENCODE_VDENC_SUPPORTED
 #include "encode_avc_vdenc_pipeline_adapter_xe3_lpm.h"
-#endif
 #endif
 
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED

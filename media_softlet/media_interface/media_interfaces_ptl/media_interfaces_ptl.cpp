@@ -423,7 +423,7 @@ MOS_STATUS CodechalInterfacesXe3_Lpm::Initialize(
     }
     else if (CodecHalIsEncode(CodecFunction))
     {
-#if defined(_AVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_AVC_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_AVC)
         {
             if (CodecHalUsesVdencEngine(info->CodecFunction))
@@ -465,7 +465,7 @@ MOS_STATUS CodechalInterfacesXe3_Lpm::Initialize(
         }
         else
 #endif
-#if defined(_AV1_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_AV1_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == codechalEncodeModeAv1)
         {
             if (CodecHalUsesVdencEngine(info->CodecFunction))
@@ -485,7 +485,7 @@ MOS_STATUS CodechalInterfacesXe3_Lpm::Initialize(
         }
         else
 #endif
-#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_HEVC)
         {
             if (CodecHalUsesVdencEngine(info->CodecFunction))
