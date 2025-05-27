@@ -1006,6 +1006,13 @@ typedef struct _RENDERHAL_INTERFACE_DESCRIPTOR_PARAMS
 //! \brief  ======== HW Abstraction Params ===================================
 //!
 
+struct RENDERHAL_STATE_LOCATION
+{
+    PMOS_RESOURCE stateHeap = 0;
+    uint32_t      offset    = 0;
+};
+using PRENDERHAL_STATE_LOCATION = RENDERHAL_STATE_LOCATION*;
+
 typedef struct _RENDERHAL_SURFACE_STATE_PARAMS
 {
     RENDERHAL_SURFACE_STATE_TYPE    Type                      : 5;              // Type of surface state
@@ -1068,7 +1075,7 @@ typedef struct _RENDERHAL_SURFACE_STATE_ENTRY
     uint16_t                        wUYOffset;                                      //
     uint16_t                        wVXOffset;                                      // (X,Y) offset V (AVS/ADI)
     uint16_t                        wVYOffset;                                      //
-    uint64_t                        stateGfxAddress;                                // Gfx Address of Surface State
+    RENDERHAL_STATE_LOCATION        stateLocation;                                  // Gfx Location of Surface State
 } RENDERHAL_SURFACE_STATE_ENTRY, *PRENDERHAL_SURFACE_STATE_ENTRY;
 
 //!
@@ -1215,12 +1222,6 @@ typedef struct _RENDERHAL_INTERFACE
     uint32_t                    dwSamplerAvsIncrement;                          // Unifies pfnSetSamplerStates
 
     const void                  *sseuTable;                                     // pointer of const VphalSseuSetting table on a platform
-
-    PMHW_INDIRECT_STATE_RESOURCE_PARAMS curbeResourceList;
-    uint32_t                            curbeResourceListSize;
-
-    PMHW_INDIRECT_STATE_RESOURCE_PARAMS inlineResourceList;
-    uint32_t                            inlineResourceListSize;
 
     uint32_t                    dwIndirectHeapSize;
     uint32_t                    dwTimeoutMs;
@@ -1489,12 +1490,12 @@ typedef struct _RENDERHAL_INTERFACE
                 PMHW_SAMPLER_STATE_PARAM    pSamplerParams,
                 int32_t                     iSamplers);
 
-    MOS_STATUS (*pfnSetAndGetSamplerStates) (
-                PRENDERHAL_INTERFACE     pRenderHal,
-                int32_t                  iMediaID,
-                PMHW_SAMPLER_STATE_PARAM pSamplerParams,
-                int32_t                  iSamplers,
-                std::map<uint32_t, uint64_t> &samplerMap);
+    MOS_STATUS (*pfnSetAndGetSamplerStates)(
+        PRENDERHAL_INTERFACE                          pRenderHal,
+        int32_t                                       iMediaID,
+        PMHW_SAMPLER_STATE_PARAM                      pSamplerParams,
+        int32_t                                       iSamplers,
+        std::map<uint32_t, RENDERHAL_STATE_LOCATION> &samplerMap);
 
     int32_t (* pfnAllocateMediaID) (
                 PRENDERHAL_INTERFACE        pRenderHal,
@@ -1772,16 +1773,6 @@ typedef struct _RENDERHAL_INTERFACE
                 PRENDERHAL_L3_CACHE_SETTINGS    pCacheSettings,
                 bool                            bEnableSLM);
 
-    MOS_STATUS (*pfnSetCurbeResourceList)(
-        PRENDERHAL_INTERFACE                pRenderHal,
-        PMHW_INDIRECT_STATE_RESOURCE_PARAMS curbeResourceList,
-        uint32_t                            curbeResourceListSize);
-
-    MOS_STATUS (*pfnSetInlineResourceList)(
-        PRENDERHAL_INTERFACE                pRenderHal,
-        PMHW_INDIRECT_STATE_RESOURCE_PARAMS inlineResourceList,
-        uint32_t                            inlineResourceListSize);
-
     //!
     //! \brief    Get mmio registers address
     //! \details  Get mmio registers address
@@ -1961,16 +1952,6 @@ MOS_STATUS RenderHal_SetSurfaceStateToken(
     PRENDERHAL_INTERFACE        pRenderHal,
     PMHW_SURFACE_TOKEN_PARAMS   pParams,
     void                        *pSurfaceStateToken);
-
-MOS_STATUS RenderHal_SetInlineResourceList(
-    PRENDERHAL_INTERFACE                pRenderHal,
-    PMHW_INDIRECT_STATE_RESOURCE_PARAMS inlineResourceList,
-    uint32_t                            inlineResourceListSize);
-
-MOS_STATUS RenderHal_SetCurbeResourceList(
-    PRENDERHAL_INTERFACE                pRenderHal,
-    PMHW_INDIRECT_STATE_RESOURCE_PARAMS curbeResourceList,
-    uint32_t                            curbeResourceListSize);
 
 //!
 //! \brief    Send Surfaces PatchList

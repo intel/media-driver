@@ -94,6 +94,12 @@ MOS_STATUS VpRenderKernelObj::GetWalkerSetting(KERNEL_WALKER_PARAMS& walkerParam
     // kernelSettings.CURBE_Length is 32 aligned with 5 bits shift.
     // renderData.iCurbeLength is RENDERHAL_CURBE_BLOCK_ALIGN(64) aligned.
     walkerParam.iCurbeLength    = renderData.iCurbeLength;
+
+    walkerParam.curbeResourceList      = m_curbeResourceList.data();
+    walkerParam.curbeResourceListSize  = m_curbeResourceList.size();
+    walkerParam.inlineResourceList     = m_inlineResourceList.data();
+    walkerParam.inlineResourceListSize = m_inlineResourceList.size();
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -215,6 +221,9 @@ MOS_STATUS VpRenderKernelObj::InitKernel(void* binary, uint32_t size, KERNEL_CON
     // m_kernelBinary and m_kernelSize being nullptr and 0 for FC case.
     m_kernelBinary = binary;
     m_kernelSize = size;
+    m_curbeResourceList.clear();
+    m_inlineResourceList.clear();
+    m_curbeLocation = {};
     SetCacheCntl(&surfMemCacheCtl);
     VP_RENDER_CHK_STATUS_RETURN(SetKernelConfigs(kernelConfigs));
     VP_RENDER_CHK_STATUS_RETURN(SetProcessSurfaceGroup(surfacesGroup));
@@ -231,19 +240,12 @@ MOS_STATUS VpRenderKernelObj::CpPrepareResources()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderKernelObj::SetupStatelessBuffer()
-{
-    VP_RENDER_NORMALMESSAGE("Not prepare stateless buffer in kernel %d.", m_kernelId);
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS VpRenderKernelObj::SetProcessSurfaceGroup(VP_SURFACE_GROUP &surfaces)
 {
     m_surfaceGroup = &surfaces;
     VP_RENDER_CHK_STATUS_RETURN(InitBindlessResources());
     VP_RENDER_CHK_STATUS_RETURN(SetupSurfaceState());
     VP_RENDER_CHK_STATUS_RETURN(CpPrepareResources());
-    VP_RENDER_CHK_STATUS_RETURN(SetupStatelessBuffer());
     return MOS_STATUS_SUCCESS;
 }
 
@@ -688,14 +690,38 @@ void VpRenderKernelObj::DumpSurface(VP_SURFACE* pSurface, PCCHAR fileName)
 #endif
 }
 
+MOS_STATUS VpRenderKernelObj::UpdateCurbeStateHeapInfo(PMOS_RESOURCE stateHeap, uint8_t *statePtr, uint32_t offset)
+{
+    VP_RENDER_CHK_NULL_RETURN(stateHeap);
+    VP_RENDER_CHK_NULL_RETURN(statePtr);
+
+    m_curbeLocation.offset    = offset;
+    m_curbeLocation.stateHeap = stateHeap;
+
+    for (MHW_INDIRECT_STATE_RESOURCE_PARAMS &resourceParam : m_curbeResourceList)
+    {
+        resourceParam.stateHeap    = stateHeap;
+        resourceParam.stateBasePtr = statePtr;
+        resourceParam.stateOffset += offset;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpRenderKernelObj::SetInlineDataParameter(KRN_ARG arg, uint8_t* inlineData)
 {
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(inlineData);
     if (arg.implicitArgType == IndirectDataPtr)
     {
-        MOS_SecureMemcpy(inlineData + arg.uOffsetInPayload, arg.uSize, &m_curbeGfxAddress, sizeof(m_curbeGfxAddress));
-        VP_RENDER_NORMALMESSAGE("Setting Inline Data KernelID %d, index %d , value 0x%x, argKind %d", m_kernelId, arg.uIndex, m_curbeGfxAddress, arg.eArgKind);
+        VP_RENDER_CHK_NULL_RETURN(m_curbeLocation.stateHeap);
+        MHW_INDIRECT_STATE_RESOURCE_PARAMS params = {};
+        params.isWrite                            = false;
+        params.resource                           = m_curbeLocation.stateHeap;
+        params.resourceOffset                     = m_curbeLocation.offset;
+        params.stateOffset                        = arg.uOffsetInPayload;
+        m_inlineResourceList.push_back(params);
+        VP_RENDER_NORMALMESSAGE("Setting Indirect State Data Inline Data KernelID %d, index %d , argKind %d", m_kernelId, arg.uIndex, arg.eArgKind);
     }
     else if (arg.implicitArgType == ValueType)
     {
@@ -713,32 +739,48 @@ MOS_STATUS VpRenderKernelObj::SetInlineDataParameter(KRN_ARG arg, uint8_t* inlin
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderKernelObj::GetBindlessSamplerGfxAddress(uint32_t samplerIndex, uint64_t &address)
+MOS_STATUS VpRenderKernelObj::SetBindlessSamplerToResourceList(KRN_ARG &arg, uint32_t samplerIndex)
 {
-    auto     it           = m_bindlessSamperArray.find(samplerIndex);
+    auto it = m_bindlessSamperArray.find(samplerIndex);
     VP_PUBLIC_CHK_NOT_FOUND_RETURN(it, &m_bindlessSamperArray);
-    address = it->second;
-    VP_PUBLIC_CHK_VALUE_RETURN(address == 0, false);
+    RENDERHAL_STATE_LOCATION &samplerStateLocation = it->second;
+    VP_PUBLIC_CHK_NULL_RETURN(samplerStateLocation.stateHeap);
+    
+    MHW_INDIRECT_STATE_RESOURCE_PARAMS params = {};
+    params.isWrite                            = false;
+    params.resource                           = samplerStateLocation.stateHeap;
+    params.resourceOffset                     = samplerStateLocation.offset;
+    params.stateOffset                        = arg.uOffsetInPayload;
+    m_curbeResourceList.push_back(params);
+
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderKernelObj::GetBindlessSurfaceStateGfxAddress(KRN_ARG &arg, uint64_t &address)
+MOS_STATUS VpRenderKernelObj::SetBindlessSurfaceStateToResourceList(KRN_ARG &arg)
 {
     auto surfMapHandle = m_argIndexSurfMap.find(arg.uIndex);
     VP_PUBLIC_CHK_NOT_FOUND_RETURN(surfMapHandle, &m_argIndexSurfMap);
     if (surfMapHandle->second.surfType == SurfaceTypeInvalid)
     {
-        address = 0;                   //for invalid surface type, it means the surface in not used in this senario
+        //for invalid surface type, it means the surface in not used in this senario
         return MOS_STATUS_SUCCESS;
     }
     auto bindlessAddressHandle = m_bindlessSurfaceArray.find(surfMapHandle->second.surfType);
     VP_PUBLIC_CHK_NOT_FOUND_RETURN(bindlessAddressHandle, &m_bindlessSurfaceArray);
     if (surfMapHandle->second.planeIndex >= bindlessAddressHandle->second.size())
     {
-        address = 0;                   //for those surfaces plane number less than kernel interface max, skip these sub planes
+        //for those surfaces plane number less than kernel interface max, skip these sub planes
         return MOS_STATUS_SUCCESS;
     }
-    address = bindlessAddressHandle->second.at(surfMapHandle->second.planeIndex);
-    VP_PUBLIC_CHK_VALUE_RETURN(address == 0, false);
+    RENDERHAL_STATE_LOCATION& surfStateLocation = bindlessAddressHandle->second.at(surfMapHandle->second.planeIndex);
+    VP_PUBLIC_CHK_NULL_RETURN(surfStateLocation.stateHeap);
+
+    MHW_INDIRECT_STATE_RESOURCE_PARAMS params = {};
+    params.isWrite                            = false;
+    params.resource                           = surfStateLocation.stateHeap;
+    params.resourceOffset                     = surfStateLocation.offset;     //this is the offset of surface state in SurfStateHep
+    params.stateOffset                        = arg.uOffsetInPayload;   //this is the offset of curbe state in GSH
+    m_curbeResourceList.push_back(params);
+    
     return MOS_STATUS_SUCCESS;
 }

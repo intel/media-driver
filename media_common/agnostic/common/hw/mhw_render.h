@@ -313,6 +313,12 @@ typedef struct _MHW_GPGPU_WALKER_PARAMS
 
     uint32_t                   simdSize;
 
+    PMHW_INDIRECT_STATE_RESOURCE_PARAMS curbeResourceList;
+    uint32_t                            curbeResourceListSize;
+
+    PMHW_INDIRECT_STATE_RESOURCE_PARAMS inlineResourceList;
+    uint32_t                            inlineResourceListSize;
+
 } MHW_GPGPU_WALKER_PARAMS, *PMHW_GPGPU_WALKER_PARAMS;
 
 typedef struct _MHW_MEDIA_OBJECT_PARAMS

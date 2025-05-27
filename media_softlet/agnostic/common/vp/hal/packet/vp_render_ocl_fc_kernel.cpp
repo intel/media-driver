@@ -261,10 +261,8 @@ MOS_STATUS VpRenderOclFcKernel::GetCurbeState(void *&curbe, uint32_t &curbeLengt
             if (arg.addressMode == AddressingModeBindless)
             {
                 // this is bindless surface
-                uint64_t gfxAddress = 0;
-                VP_PUBLIC_CHK_STATUS_RETURN(GetBindlessSurfaceStateGfxAddress(arg, gfxAddress));
-                MOS_SecureMemcpy(pCurbe + arg.uOffsetInPayload, arg.uSize, &gfxAddress, sizeof(gfxAddress));
-                VP_RENDER_NORMALMESSAGE("Setting Curbe State Bindless Surface KernelID %d, index %d , value 0x%x, argKind %d", m_kernelId, arg.uIndex, gfxAddress, arg.eArgKind);
+                VP_PUBLIC_CHK_STATUS_RETURN(SetBindlessSurfaceStateToResourceList(arg));
+                VP_RENDER_NORMALMESSAGE("Setting Curbe State Bindless Surface KernelID %d, index %d, argKind %d", m_kernelId, arg.uIndex, arg.eArgKind);
             }
             else
             {
@@ -286,11 +284,9 @@ MOS_STATUS VpRenderOclFcKernel::GetCurbeState(void *&curbe, uint32_t &curbeLengt
             if (arg.addressMode == AddressingModeBindless)
             {
                 VP_RENDER_CHK_NULL_RETURN(arg.pData);
-                uint64_t gfxAddress   = 0;
                 uint32_t samplerIndex = (*(uint32_t *)arg.pData == MHW_SAMPLER_FILTER_NEAREST) ? 0 : 1;
-                VP_RENDER_CHK_STATUS_RETURN(GetBindlessSamplerGfxAddress(samplerIndex, gfxAddress));
-                MOS_SecureMemcpy(pCurbe + arg.uOffsetInPayload, arg.uSize, &gfxAddress, sizeof(gfxAddress));
-                VP_RENDER_NORMALMESSAGE("Setting Curbe State Bindless Sampler KernelID %d, index %d , value 0x%x, argKind %d", m_kernelId, arg.uIndex, gfxAddress, arg.eArgKind);
+                VP_RENDER_CHK_STATUS_RETURN(SetBindlessSamplerToResourceList(arg, samplerIndex));
+                VP_RENDER_NORMALMESSAGE("Setting Curbe State Bindless Sampler KernelID %d, index %d, argKind %d", m_kernelId, arg.uIndex, arg.eArgKind);
             }
             break;
         default:
@@ -464,6 +460,11 @@ MOS_STATUS VpRenderOclFcKernel::GetWalkerSetting(KERNEL_WALKER_PARAMS &walkerPar
     // kernelSettings.CURBE_Length is 32 aligned with 5 bits shift.
     // renderData.iCurbeLength is RENDERHAL_CURBE_BLOCK_ALIGN(64) aligned.
     walkerParam.iCurbeLength = renderData.iCurbeLength;
+
+    walkerParam.curbeResourceList      = m_curbeResourceList.data();
+    walkerParam.curbeResourceListSize  = m_curbeResourceList.size();
+    walkerParam.inlineResourceList     = m_inlineResourceList.data();
+    walkerParam.inlineResourceListSize = m_inlineResourceList.size();
 
     return MOS_STATUS_SUCCESS;
 }

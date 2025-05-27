@@ -475,7 +475,6 @@ MOS_STATUS VpRenderCmdPacket::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t 
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-
     if (!m_surfSetting.dumpLaceSurface &&
         !m_surfSetting.dumpPostSurface)
     {
@@ -781,7 +780,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                 bWrite = false;
             }
 
-            std::vector<uint64_t> stateGfxAddress;
+            std::vector<RENDERHAL_STATE_LOCATION> stateLocations;
             if (kernelSurfaceParam->surfaceOverwriteParams.bindedKernel && !kernelSurfaceParam->surfaceOverwriteParams.bufferResource)
             {
                 auto bindingMap = m_kernel->GetSurfaceBindingIndex(type);
@@ -795,7 +794,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                     &renderSurfaceParams,
                     bindingMap,
                     bWrite,
-                    stateGfxAddress,
+                    stateLocations,
                     kernelSurfaceParam->iCapcityOfSurfaceEntry,
                     kernelSurfaceParam->surfaceEntries,
                     kernelSurfaceParam->sizeOfSurfaceEntries));
@@ -821,7 +820,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                         &renderSurfaceParams,
                         bindingMap,
                         bWrite,
-                        stateGfxAddress));
+                        stateLocations));
                     for (uint32_t const &bti : bindingMap)
                     {
                         VP_RENDER_NORMALMESSAGE("Using Binded Index Buffer. KernelID %d, SurfType %d, bti %d", m_kernel->GetKernelId(), type, bti);
@@ -839,7 +838,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                         &renderHalSurface,
                         &renderSurfaceParams,
                         bWrite,
-                        stateGfxAddress);
+                        stateLocations);
                     VP_RENDER_CHK_STATUS_RETURN(m_kernel->UpdateCurbeBindingIndex(type, index));
                     VP_RENDER_NORMALMESSAGE("Using UnBinded Index Buffer. KernelID %d, SurfType %d, bti %d", m_kernel->GetKernelId(), type, index);
                 }
@@ -850,15 +849,15 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                         &renderHalSurface,
                         &renderSurfaceParams,
                         bWrite,
-                        stateGfxAddress);
+                        stateLocations);
                     VP_RENDER_CHK_STATUS_RETURN(m_kernel->UpdateCurbeBindingIndex(type, index));
                     VP_RENDER_NORMALMESSAGE("Using UnBinded Index Surface. KernelID %d, SurfType %d, bti %d. If 1D buffer overwrite to 2D for use, it will go SetSurfaceForHwAccess()", m_kernel->GetKernelId(), type, index);
                 }
             }
 
-            if (stateGfxAddress.size() > 0)
+            if (stateLocations.size() > 0)
             {
-                m_kernel->UpdateBindlessSurfaceResource(type, stateGfxAddress);
+                m_kernel->UpdateBindlessSurfaceResource(type, stateLocations);
             }
         }
         VP_RENDER_CHK_STATUS_RETURN(m_kernel->UpdateCompParams());
@@ -977,15 +976,12 @@ MOS_STATUS VpRenderCmdPacket::SetupCurbeStateInBindlessMode()
     MT_LOG1(MT_VP_HAL_RENDER_SETUP_CURBE_STATE, MT_NORMAL, MT_FUNC_START, 1);
     VP_RENDER_CHK_NULL_RETURN(m_kernel);
     VP_PUBLIC_CHK_NULL_RETURN(m_renderHal->pStateHeap);
-    VP_PUBLIC_CHK_NULL_RETURN(m_osInterface);
-    VP_PUBLIC_CHK_NULL_RETURN(m_osInterface->pfnGetResourceGfxAddress);
     // set the Curbe Data length
     void    *curbeData          = nullptr;
     uint32_t curbeLength        = 0;
     uint32_t curbeLengthAligned = 0;
 
     VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetCurbeState(curbeData, curbeLength, curbeLengthAligned, m_renderData.KernelParam, m_renderHal->dwCurbeBlockAlign));
-    VP_RENDER_CHK_STATUS_RETURN(m_renderHal->pfnSetCurbeResourceList(m_renderHal, m_kernel->GetCurbeResourceList().data(), m_kernel->GetCurbeResourceList().size()));
 
     m_renderData.iCurbeOffset = m_renderHal->pfnLoadCurbeData(
         m_renderHal,
@@ -1000,15 +996,11 @@ MOS_STATUS VpRenderCmdPacket::SetupCurbeStateInBindlessMode()
         RENDER_PACKET_ASSERTMESSAGE("Curbe Set Fail, return error");
         return MOS_STATUS_UNKNOWN;
     }
-    
-    PMOS_RESOURCE resource = &m_renderHal->pStateHeap->GshOsResource;
-    VP_PUBLIC_CHK_VALUE_RETURN(Mos_ResourceIsNull(resource), false);
-    uint64_t gfxAddress = m_osInterface->pfnGetResourceGfxAddress(m_osInterface, resource) +
-                          m_renderHal->pStateHeap->pCurMediaState->dwOffset +
-                          m_renderHal->pStateHeap->dwOffsetCurbe +
-                          m_renderData.iCurbeOffset;
-    VP_PUBLIC_CHK_STATUS_RETURN(m_kernel->SetCurbeGfxAddress(gfxAddress));
-    
+
+    VP_PUBLIC_CHK_STATUS_RETURN(m_kernel->UpdateCurbeStateHeapInfo(
+        &m_renderHal->pStateHeap->GshOsResource, 
+        m_renderHal->pStateHeap->pGshBuffer, 
+        m_renderHal->pStateHeap->pCurMediaState->dwOffset + m_renderHal->pStateHeap->dwOffsetCurbe + m_renderData.iCurbeOffset));
 
     m_renderData.iCurbeLength = curbeLengthAligned;
 
@@ -1048,6 +1040,12 @@ MOS_STATUS VpRenderCmdPacket::SetupCurbeState()
     m_renderData.iCurbeLength = curbeLengthAligned;
  
     m_totalCurbeSize += m_renderData.iCurbeLength;
+
+    VP_RENDER_CHK_NULL_RETURN(m_renderHal->pStateHeap);
+    VP_PUBLIC_CHK_STATUS_RETURN(m_kernel->UpdateCurbeStateHeapInfo(
+        &m_renderHal->pStateHeap->GshOsResource,
+        m_renderHal->pStateHeap->pGshBuffer,
+        m_renderHal->pStateHeap->pCurMediaState->dwOffset + m_renderHal->pStateHeap->dwOffsetCurbe + m_renderData.iCurbeOffset));
 
     m_kernel->FreeCurbe(curbeData);
     MT_LOG2(MT_VP_HAL_RENDER_SETUP_CURBE_STATE, MT_NORMAL, MT_FUNC_END, 1, MT_MOS_STATUS, MOS_STATUS_SUCCESS);
@@ -1097,7 +1095,6 @@ MOS_STATUS VpRenderCmdPacket::SetupWalkerParams()
     VP_RENDER_CHK_NULL_RETURN(m_kernel);
 
     VP_RENDER_CHK_STATUS_RETURN(m_kernel->GetWalkerSetting(m_renderData.walkerParam, m_renderData));
-    VP_RENDER_CHK_STATUS_RETURN(m_renderHal->pfnSetInlineResourceList(m_renderHal, m_kernel->GetInlineResourceList().data(), m_kernel->GetInlineResourceList().size()));
     MT_LOG2(MT_VP_CREATE, MT_NORMAL, MT_FUNC_END, 1, MT_MOS_STATUS, MOS_STATUS_SUCCESS);
 
     return MOS_STATUS_SUCCESS;

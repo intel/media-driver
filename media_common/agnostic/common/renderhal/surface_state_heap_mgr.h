@@ -75,8 +75,6 @@ public:
 
     void RefreshSync();
 
-    MOS_STATUS RegisterHeap();
-
     MOS_STATUS DestroyHeap();
 
     MOS_STATUS AssignSurfaceState();

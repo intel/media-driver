@@ -55,7 +55,6 @@ protected:
     virtual MOS_STATUS SetupSurfaceState() override;
     virtual MOS_STATUS SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, bool bSyncFlag, bool flushL1 = false);
     virtual MOS_STATUS SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET_SHARED_CONTEXT *sharedContext);
-    virtual MOS_STATUS SetupStatelessBuffer() override;
 
     PRENDERHAL_INTERFACE m_renderHal = nullptr;
 

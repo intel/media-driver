@@ -281,17 +281,9 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::CpPrepareResources()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderHdr3DLutOclKernel::SetupStatelessBuffer()
-{
-    VP_FUNC_CALL();
-
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS VpRenderHdr3DLutOclKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
 {
     VP_FUNC_CALL();
-    m_curbeResourceList.clear();
     curbeLength = m_curbeSize;
 
     VP_RENDER_NORMALMESSAGE("KernelID %d, Curbe Size %d\n", m_kernelId, curbeLength);
@@ -369,13 +361,18 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::GetWalkerSetting(KERNEL_WALKER_PARAMS &wal
     // kernelSettings.CURBE_Length is 32 aligned with 5 bits shift.
     // renderData.iCurbeLength is RENDERHAL_CURBE_BLOCK_ALIGN(64) aligned.
     walkerParam.iCurbeLength = renderData.iCurbeLength;
+
+    walkerParam.curbeResourceList      = m_curbeResourceList.data();
+    walkerParam.curbeResourceListSize  = m_curbeResourceList.size();
+    walkerParam.inlineResourceList     = m_inlineResourceList.data();
+    walkerParam.inlineResourceListSize = m_inlineResourceList.size();
+
     return MOS_STATUS_SUCCESS;
 }
 
 // Only for Adv kernels.
 MOS_STATUS VpRenderHdr3DLutOclKernel::GetInlineData(uint8_t *inlineData)
 {
-    m_inlineResourceList.clear();
     for (auto &arg : m_kernelArgs)
     {
         if (arg.eArgKind == ARG_KIND_INLINE)

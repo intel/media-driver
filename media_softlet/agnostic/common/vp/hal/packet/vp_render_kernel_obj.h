@@ -86,8 +86,8 @@ using KERNEL_SAMPLER_STATES = std::vector<MHW_SAMPLER_STATE_PARAM>;
 using KERNEL_SAMPLER_INDEX = std::vector<SamplerIndex>;
 using KERNEL_SURFACE_CONFIG = std::map<SurfaceType, KERNEL_SURFACE_STATE_PARAM>;
 using KERNEL_SURFACE_BINDING_INDEX = std::map<SurfaceType, std::set<uint32_t>>;
-using KERNEL_BINDELESS_SURFACE = std::map<SurfaceType, std::vector<uint64_t>>;
-using KERNEL_BINDELESS_SAMPLER = std::map<uint32_t, uint64_t>;
+using KERNEL_BINDELESS_SURFACE = std::map<SurfaceType, std::vector<RENDERHAL_STATE_LOCATION>>;
+using KERNEL_BINDELESS_SAMPLER = std::map<uint32_t, RENDERHAL_STATE_LOCATION>;
 
 typedef struct _KERNEL_PARAMS
 {
@@ -533,25 +533,25 @@ public:
 
     virtual MOS_STATUS InitRenderHalSurfaceCMF(MOS_SURFACE* src, PRENDERHAL_SURFACE renderHalSurface);
 
-    virtual MOS_STATUS UpdateBindlessSurfaceResource(SurfaceType surf, std::vector<uint64_t> stateGfxAddress)
+    virtual MOS_STATUS UpdateBindlessSurfaceResource(SurfaceType surf, std::vector<RENDERHAL_STATE_LOCATION> stateLocations)
     {
         if (surf != SurfaceTypeInvalid && surf != SurfaceTypeSubPlane)
         {
             auto handle = m_bindlessSurfaceArray.find(surf);
             if (handle == m_bindlessSurfaceArray.end())
             {
-                m_bindlessSurfaceArray.insert(std::make_pair(surf, stateGfxAddress));
+                m_bindlessSurfaceArray.insert(std::make_pair(surf, stateLocations));
             }
             else
             {
-                handle->second = stateGfxAddress;
+                handle->second = stateLocations;
             }
         }
 
         return MOS_STATUS_SUCCESS;
     }
 
-    virtual std::map<uint32_t, uint64_t>& GetBindlessSamplers()
+    virtual KERNEL_BINDELESS_SAMPLER &GetBindlessSamplers()
     {
         return m_bindlessSamperArray;
     }
@@ -563,21 +563,7 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    virtual MOS_STATUS SetCurbeGfxAddress(uint64_t address)
-    {
-        m_curbeGfxAddress = address;
-        return MOS_STATUS_SUCCESS;
-    }
-
-    std::vector<MHW_INDIRECT_STATE_RESOURCE_PARAMS> &GetCurbeResourceList()
-    {
-        return m_curbeResourceList;
-    }
-
-    std::vector<MHW_INDIRECT_STATE_RESOURCE_PARAMS> &GetInlineResourceList()
-    {
-        return m_inlineResourceList;
-    }
+    MOS_STATUS UpdateCurbeStateHeapInfo(PMOS_RESOURCE stateHeap, uint8_t *statePtr, uint32_t offset);
 
 protected:
 
@@ -595,8 +581,6 @@ protected:
 
     virtual MOS_STATUS CpPrepareResources();
 
-    virtual MOS_STATUS SetupStatelessBuffer();
-
     virtual MOS_STATUS GetCurbeState(void *&curbe, uint32_t &curbeLength) = 0;
 
     virtual MOS_STATUS GetAlignedLength(uint32_t &curbeLength, uint32_t &curbeLengthAligned, RENDERHAL_KERNEL_PARAM kernelParam, uint32_t dwBlockAlign)
@@ -609,8 +593,8 @@ protected:
 
     virtual MOS_STATUS SetInlineDataParameter(KRN_ARG arg, uint8_t *inlineData);
 
-    virtual MOS_STATUS GetBindlessSamplerGfxAddress(uint32_t samplerIndex, uint64_t &address);
-    virtual MOS_STATUS GetBindlessSurfaceStateGfxAddress(KRN_ARG &arg, uint64_t &address);
+    virtual MOS_STATUS SetBindlessSamplerToResourceList(KRN_ARG &arg, uint32_t samplerIndex);
+    virtual MOS_STATUS SetBindlessSurfaceStateToResourceList(KRN_ARG &arg);
 
 protected:
 
@@ -633,7 +617,8 @@ protected:
     VpKernelID                                              m_kernelId = kernelCombinedFc;
     DelayLoadedKernelType                                   m_kernelType     = KernelNone;
     KernelIndex                                             m_kernelIndex = 0;          // index of current kernel in KERNEL_PARAMS_LIST
-    uint64_t                                                m_curbeGfxAddress   = 0;
+
+    RENDERHAL_STATE_LOCATION                                m_curbeLocation     = {};
 
     PKERNEL_TUNING_PARAMS                                   m_kernelTuningParams = nullptr;
 

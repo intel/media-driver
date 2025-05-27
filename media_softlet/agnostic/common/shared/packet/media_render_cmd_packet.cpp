@@ -477,11 +477,11 @@ uint32_t RenderCmdPacket::SetSurfaceForHwAccess(
 
 
 uint32_t RenderCmdPacket::SetSurfaceForHwAccess(
-    PMOS_SURFACE                    surface,
-    PRENDERHAL_SURFACE_NEXT         pRenderSurface,
-    PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
-    bool                            bWrite,
-    std::vector<uint64_t>          &stateGfxAddress)
+    PMOS_SURFACE                           surface,
+    PRENDERHAL_SURFACE_NEXT                pRenderSurface,
+    PRENDERHAL_SURFACE_STATE_PARAMS        pSurfaceParams,
+    bool                                   bWrite,
+    std::vector<RENDERHAL_STATE_LOCATION> &stateLocations)
 {
     PMOS_INTERFACE                 pOsInterface;
     PRENDERHAL_SURFACE_STATE_ENTRY pSurfaceEntries[MHW_MAX_SURFACE_PLANES];
@@ -580,7 +580,7 @@ uint32_t RenderCmdPacket::SetSurfaceForHwAccess(
     {
         for (i = 0; i < iSurfaceEntries; i++)
         {
-            stateGfxAddress.push_back(pSurfaceEntries[i]->stateGfxAddress);
+            stateLocations.push_back(pSurfaceEntries[i]->stateLocation);
         }
     }
 
@@ -689,15 +689,15 @@ MOS_STATUS RenderCmdPacket::SetSurfaceForHwAccess(
 }
 
 MOS_STATUS RenderCmdPacket::SetSurfaceForHwAccess(
-    PMOS_SURFACE                    surface,
-    PRENDERHAL_SURFACE_NEXT         pRenderSurface,
-    PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
-    std::set<uint32_t>             &bindingIndexes,
-    bool                            bWrite,
-    std::vector<uint64_t>          &stateGfxAddress,
-    uint32_t                        capcityOfSurfaceEntries,
-    PRENDERHAL_SURFACE_STATE_ENTRY *surfaceEntries,
-    uint32_t                       *numOfSurfaceEntries)
+    PMOS_SURFACE                           surface,
+    PRENDERHAL_SURFACE_NEXT                pRenderSurface,
+    PRENDERHAL_SURFACE_STATE_PARAMS        pSurfaceParams,
+    std::set<uint32_t>                    &bindingIndexes,
+    bool                                   bWrite,
+    std::vector<RENDERHAL_STATE_LOCATION> &stateLocations,
+    uint32_t                               capcityOfSurfaceEntries,
+    PRENDERHAL_SURFACE_STATE_ENTRY        *surfaceEntries,
+    uint32_t                              *numOfSurfaceEntries)
 {
     PMOS_INTERFACE                  pOsInterface                              = nullptr;
     PRENDERHAL_SURFACE_STATE_ENTRY  pSurfaceEntries[MHW_MAX_SURFACE_PLANES]   = {};
@@ -795,7 +795,7 @@ MOS_STATUS RenderCmdPacket::SetSurfaceForHwAccess(
     {
         for (i = 0; i < iSurfaceEntries; i++)
         {
-            stateGfxAddress.push_back(pSurfaceEntries[i]->stateGfxAddress);
+            stateLocations.push_back(pSurfaceEntries[i]->stateLocation);
         }
     }
 
@@ -809,11 +809,11 @@ MOS_STATUS RenderCmdPacket::SetSurfaceForHwAccess(
 
 
 uint32_t RenderCmdPacket::SetBufferForHwAccess(
-    PMOS_SURFACE                    buffer,
-    PRENDERHAL_SURFACE_NEXT         pRenderSurface,
-    PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
-    bool                            bWrite,
-    std::vector<uint64_t>          &stateGfxAddress)
+    PMOS_SURFACE                           buffer,
+    PRENDERHAL_SURFACE_NEXT                pRenderSurface,
+    PRENDERHAL_SURFACE_STATE_PARAMS        pSurfaceParams,
+    bool                                   bWrite,
+    std::vector<RENDERHAL_STATE_LOCATION> &stateLocations)
 {
     RENDERHAL_SURFACE              RenderHalSurface;
     RENDERHAL_SURFACE_STATE_PARAMS SurfaceParam;
@@ -869,7 +869,7 @@ uint32_t RenderCmdPacket::SetBufferForHwAccess(
     }
     else
     {
-        stateGfxAddress.push_back(pSurfaceEntry->stateGfxAddress);
+        stateLocations.push_back(pSurfaceEntry->stateLocation);
     }
     return pRenderSurface->Index;
 }
@@ -931,12 +931,12 @@ uint32_t RenderCmdPacket::SetBufferForHwAccess(PMOS_SURFACE buffer, PRENDERHAL_S
 }
 
 MOS_STATUS RenderCmdPacket::SetBufferForHwAccess(
-    PMOS_SURFACE                    buffer,
-    PRENDERHAL_SURFACE_NEXT         pRenderSurface,
-    PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
-    std::set<uint32_t>             &bindingIndexes,
-    bool                            bWrite,
-    std::vector<uint64_t>          &stateGfxAddress)
+    PMOS_SURFACE                           buffer,
+    PRENDERHAL_SURFACE_NEXT                pRenderSurface,
+    PRENDERHAL_SURFACE_STATE_PARAMS        pSurfaceParams,
+    std::set<uint32_t>                    &bindingIndexes,
+    bool                                   bWrite,
+    std::vector<RENDERHAL_STATE_LOCATION> &stateLocations)
 {
     RENDERHAL_SURFACE              RenderHalSurface = {};
     RENDERHAL_SURFACE_STATE_PARAMS SurfaceParam     = {};
@@ -998,7 +998,7 @@ MOS_STATUS RenderCmdPacket::SetBufferForHwAccess(
     }
     else
     {
-        stateGfxAddress.push_back(pSurfaceEntry->stateGfxAddress);
+        stateLocations.push_back(pSurfaceEntry->stateLocation);
     }
 
     return eStatus;
@@ -1265,6 +1265,13 @@ MOS_STATUS RenderCmdPacket::PrepareComputeWalkerParams(KERNEL_WALKER_PARAMS para
 
     gpgpuWalker.SLMSize           = params.slmSize;
     gpgpuWalker.hasBarrier        = params.hasBarrier;
+
+    gpgpuWalker.curbeResourceList     = params.curbeResourceList;
+    gpgpuWalker.curbeResourceListSize = params.curbeResourceListSize;
+
+    gpgpuWalker.inlineResourceList     = params.inlineResourceList;
+    gpgpuWalker.inlineResourceListSize = params.inlineResourceListSize;
+
     return MOS_STATUS_SUCCESS;
 }
 

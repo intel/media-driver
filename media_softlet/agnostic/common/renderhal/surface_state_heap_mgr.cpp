@@ -126,18 +126,6 @@ MOS_STATUS SurfaceStateHeapManager::DestroyHeap()
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS SurfaceStateHeapManager::RegisterHeap()
-{
-    MHW_CHK_NULL_RETURN(m_osInterface);
-    if (Mos_ResourceIsNull(&m_surfStateHeap->osResource))
-    {
-        MHW_CHK_STATUS_RETURN(MOS_STATUS_NULL_POINTER);
-    }
-    MHW_CHK_STATUS_RETURN(m_osInterface->pfnRegisterResource(m_osInterface, &m_surfStateHeap->osResource, false, true));
-
-    return MOS_STATUS_SUCCESS;
-}
-
 void SurfaceStateHeapManager::RefreshSync()
 {
     SURFACE_STATES_OBJ      *pCurInstance;

@@ -40,10 +40,10 @@ VpRenderAiKernel::VpRenderAiKernel(PVP_MHWINTERFACE hwInterface, std::string ker
     m_useIndependentSamplerGroup = true;
 
     VpKernelID kernelBinaryID = VpKernelID(kernelAiCommon);
-    auto handle = m_kernelBiniaryIdMap.find(kernelName);
+    auto       handle         = m_kernelBiniaryIdMap.find(kernelName);
     if (m_kernelBiniaryIdMap.find(kernelName) == m_kernelBiniaryIdMap.end())
     {
-        handle = m_kernelBiniaryIdMap.insert(std::make_pair(kernelName, m_currentBiniaryID)).first;
+        handle             = m_kernelBiniaryIdMap.insert(std::make_pair(kernelName, m_currentBiniaryID)).first;
         m_currentBiniaryID = VpKernelID(m_currentBiniaryID + 1);
     }
     if (handle == m_kernelBiniaryIdMap.end())
@@ -151,7 +151,7 @@ MOS_STATUS VpRenderAiKernel::SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET_SH
     for (KRN_ARG &srcArg : kernelArgs)
     {
         auto handle = m_kernelArgs.find(srcArg.uIndex);
-        
+
         if (handle != m_kernelArgs.end())
         {
             if (srcArg.eArgKind == ARG_KIND_GENERAL || srcArg.eArgKind == ARG_KIND_INLINE)
@@ -215,50 +215,10 @@ MOS_STATUS VpRenderAiKernel::SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET_SH
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderAiKernel::SetupStatelessBuffer()
-{
-    VP_PUBLIC_CHK_NULL_RETURN(m_surfaceGroup);
-    VP_PUBLIC_CHK_NULL_RETURN(m_hwInterface);
-    PMOS_INTERFACE osInterface = m_hwInterface->m_osInterface;
-    VP_PUBLIC_CHK_NULL_RETURN(osInterface);
-
-    for (auto& handle : m_kernelArgs)
-    {
-        KRN_ARG &arg = handle.second;
-        if (arg.eArgKind == ARG_KIND_SURFACE && arg.addressMode == AddressingModeStateless)
-        {
-            if(arg.pData == nullptr)
-            {
-                VP_RENDER_ASSERTMESSAGE("The Kernel Argument Stateless Surface Data is null! KernelName %s, argIndex %d", m_kernelName.c_str(), arg.uIndex);
-                return MOS_STATUS_INVALID_PARAMETER;
-            }
-            SURFACE_PARAMS &surfaceParam = *(SURFACE_PARAMS *)arg.pData;
-            if (surfaceParam.surfType == SurfaceTypeSubPlane || surfaceParam.surfType == SurfaceTypeInvalid)
-            {
-                VP_RENDER_NORMALMESSAGE("Will skip stateless surface argIndex %d for its surf type is set as %d", arg.uIndex, surfaceParam.surfType);
-                arg.pData = nullptr;
-            }
-            else
-            {
-                auto surfHandle = m_surfaceGroup->find(surfaceParam.surfType);
-                VP_PUBLIC_CHK_NOT_FOUND_RETURN(surfHandle, m_surfaceGroup);
-                VP_PUBLIC_CHK_NULL_RETURN(surfHandle->second);
-                uint64_t ui64GfxAddress = osInterface->pfnGetResourceGfxAddress(osInterface, &surfHandle->second->osSurface->OsResource);
-                VP_RENDER_CHK_STATUS_RETURN(osInterface->pfnRegisterResource(
-                    osInterface,
-                    &surfHandle->second->osSurface->OsResource,
-                    surfaceParam.isOutput,
-                    true));
-                *(uint64_t *)arg.pData = ui64GfxAddress;
-            }
-        }
-    }
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS VpRenderAiKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
 {
     VP_FUNC_CALL();
+    m_curbeResourceList.clear();
     curbeLength = m_curbeSize;
 
     VP_RENDER_NORMALMESSAGE("KernelID %d, Kernel Name %s, Curbe Size %d\n", m_kernelId, m_kernelName.c_str(), curbeLength);
@@ -279,11 +239,41 @@ MOS_STATUS VpRenderAiKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
         switch (arg.eArgKind)
         {
         case ARG_KIND_GENERAL:
-        case ARG_KIND_SURFACE:
             if (arg.pData != nullptr)
             {
                 MOS_SecureMemcpy(pCurbe + arg.uOffsetInPayload, arg.uSize, arg.pData, arg.uSize);
                 VP_RENDER_NORMALMESSAGE("Setting Curbe State KernelName %s, index %d , value %d, argKind %d", m_kernelName.c_str(), arg.uIndex, *(uint32_t *)arg.pData, arg.eArgKind);
+            }
+            else
+            {
+                VP_RENDER_NORMALMESSAGE("KernelName %s, index %d, argKind %d is empty", m_kernelName.c_str(), arg.uIndex, arg.eArgKind);
+            }
+            break;
+        case ARG_KIND_SURFACE:
+            if (arg.pData != nullptr)
+            {
+                if (arg.addressMode == AddressingModeStateless)
+                {
+                    VP_PUBLIC_CHK_NULL_RETURN(m_surfaceGroup);
+                    SURFACE_PARAMS &surfaceParam = *(SURFACE_PARAMS *)arg.pData;
+                    if (surfaceParam.surfType == SurfaceTypeSubPlane || surfaceParam.surfType == SurfaceTypeInvalid)
+                    {
+                        VP_RENDER_NORMALMESSAGE("Will skip stateless surface argIndex %d for its surf type is set as %d", arg.uIndex, surfaceParam.surfType);
+                        arg.pData = nullptr;
+                        continue;
+                    }
+                    auto surfHandle = m_surfaceGroup->find(surfaceParam.surfType);
+                    VP_PUBLIC_CHK_NOT_FOUND_RETURN(surfHandle, m_surfaceGroup);
+                    VP_PUBLIC_CHK_NULL_RETURN(surfHandle->second);
+                    VP_PUBLIC_CHK_NULL_RETURN(surfHandle->second->osSurface);
+
+                    MHW_INDIRECT_STATE_RESOURCE_PARAMS params = {};
+                    params.isWrite                            = surfaceParam.isOutput;
+                    params.resource                           = &surfHandle->second->osSurface->OsResource;
+                    params.stateOffset                        = arg.uOffsetInPayload;
+                    m_curbeResourceList.push_back(params);
+                    VP_RENDER_NORMALMESSAGE("Setting Stateless Curbe State KernelName %s, index %d , surfType %d, argKind %d", m_kernelName.c_str(), arg.uIndex, surfaceParam.surfType, arg.eArgKind);
+                }
             }
             else
             {
@@ -408,6 +398,11 @@ MOS_STATUS VpRenderAiKernel::GetWalkerSetting(KERNEL_WALKER_PARAMS &walkerParam,
     // kernelSettings.CURBE_Length is 32 aligned with 5 bits shift.
     // renderData.iCurbeLength is RENDERHAL_CURBE_BLOCK_ALIGN(64) aligned.
     walkerParam.iCurbeLength = renderData.iCurbeLength;
+
+    walkerParam.curbeResourceList      = m_curbeResourceList.data();
+    walkerParam.curbeResourceListSize  = m_curbeResourceList.size();
+    walkerParam.inlineResourceList     = m_inlineResourceList.data();
+    walkerParam.inlineResourceListSize = m_inlineResourceList.size();
 
     return MOS_STATUS_SUCCESS;
 }

@@ -123,6 +123,12 @@ typedef struct _KERNEL_WALKER_PARAMS
     uint32_t                            slmSize;
 
     uint32_t                            simdSize;
+
+    PMHW_INDIRECT_STATE_RESOURCE_PARAMS curbeResourceList;
+    uint32_t                            curbeResourceListSize;
+
+    PMHW_INDIRECT_STATE_RESOURCE_PARAMS inlineResourceList;
+    uint32_t                            inlineResourceListSize;
 }KERNEL_WALKER_PARAMS, * PKERNEL_WALKER_PARAMS;
 
 typedef struct _KERNEL_PACKET_RENDER_DATA
@@ -200,11 +206,11 @@ public:
     }
 
     virtual uint32_t SetSurfaceForHwAccess(
-        PMOS_SURFACE                    surface,
-        PRENDERHAL_SURFACE_NEXT         pRenderSurface,
-        PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
-        bool                            bWrite,
-        std::vector<uint64_t>          &stateGfxAddress);
+        PMOS_SURFACE                           surface,
+        PRENDERHAL_SURFACE_NEXT                pRenderSurface,
+        PRENDERHAL_SURFACE_STATE_PARAMS        pSurfaceParams,
+        bool                                   bWrite,
+        std::vector<RENDERHAL_STATE_LOCATION> &stateLocations);
 
     // Step3: RSS Setup, return index insert in binding table
     virtual uint32_t SetSurfaceForHwAccess(
@@ -224,22 +230,22 @@ public:
         uint32_t *                      numOfSurfaceEntries = nullptr);
 
     virtual MOS_STATUS SetSurfaceForHwAccess(
-        PMOS_SURFACE                    surface,
-        PRENDERHAL_SURFACE_NEXT         pRenderSurface,
-        PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
-        std::set<uint32_t>             &bindingIndexes,
-        bool                            bWrite,
-        std::vector<uint64_t>          &stateGfxAddress,
-        uint32_t                        capcityOfSurfaceEntries = 0,
-        PRENDERHAL_SURFACE_STATE_ENTRY *surfaceEntries      = nullptr,
-        uint32_t                       *numOfSurfaceEntries = nullptr);
+        PMOS_SURFACE                           surface,
+        PRENDERHAL_SURFACE_NEXT                pRenderSurface,
+        PRENDERHAL_SURFACE_STATE_PARAMS        pSurfaceParams,
+        std::set<uint32_t>                    &bindingIndexes,
+        bool                                   bWrite,
+        std::vector<RENDERHAL_STATE_LOCATION> &stateLocations,
+        uint32_t                               capcityOfSurfaceEntries = 0,
+        PRENDERHAL_SURFACE_STATE_ENTRY        *surfaceEntries          = nullptr,
+        uint32_t                              *numOfSurfaceEntries     = nullptr);
 
     virtual uint32_t SetBufferForHwAccess(
-        PMOS_SURFACE                    buffer,
-        PRENDERHAL_SURFACE_NEXT         pRenderSurface,
-        PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
-        bool                            bWrite,
-        std::vector<uint64_t>          &stateGfxAddress);
+        PMOS_SURFACE                           buffer,
+        PRENDERHAL_SURFACE_NEXT                pRenderSurface,
+        PRENDERHAL_SURFACE_STATE_PARAMS        pSurfaceParams,
+        bool                                   bWrite,
+        std::vector<RENDERHAL_STATE_LOCATION> &stateLocations);
 
     virtual uint32_t SetBufferForHwAccess(
         PMOS_SURFACE                    buffer,
@@ -249,12 +255,12 @@ public:
         bool                            bWrite);
     
     virtual MOS_STATUS SetBufferForHwAccess(
-        PMOS_SURFACE                    buffer,
-        PRENDERHAL_SURFACE_NEXT         pRenderSurface,
-        PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
-        std::set<uint32_t>             &bindingIndexes,
-        bool                            bWrite,
-        std::vector<uint64_t>          &stateGfxAddress);
+        PMOS_SURFACE                           buffer,
+        PRENDERHAL_SURFACE_NEXT                pRenderSurface,
+        PRENDERHAL_SURFACE_STATE_PARAMS        pSurfaceParams,
+        std::set<uint32_t>                    &bindingIndexes,
+        bool                                   bWrite,
+        std::vector<RENDERHAL_STATE_LOCATION> &stateLocations);
 
     virtual uint32_t SetBufferForHwAccess(
         MOS_BUFFER                      buffer,
