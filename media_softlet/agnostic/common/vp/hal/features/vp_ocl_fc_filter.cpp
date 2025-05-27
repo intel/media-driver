@@ -3461,7 +3461,7 @@ MOS_STATUS VpOclFcFilter::SetupSingleFcFastExpressStatefulSurface(uint32_t uInde
         else
         {
             surfaceParam.surfType   = compParam.outputLayerParam.needIntermediaSurface ? SurfaceTypeFcIntermediaOutput : SurfaceTypeFcTarget0;
-            surfaceParam.planeIndex = 0;  //non BTI
+            surfaceParam.planeIndex = 1;  //non BTI
         }
         break;
     default:
