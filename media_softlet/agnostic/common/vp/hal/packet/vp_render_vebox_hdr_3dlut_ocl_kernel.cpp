@@ -244,6 +244,9 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::Init(VpRenderKernel &kernel)
 
     m_curbeSize = kernel.GetCurbeSize();
 
+    m_curbeResourceList.clear();
+    m_inlineResourceList.clear();
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -315,8 +318,9 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::GetCurbeState(void *&curbe, uint32_t &curb
         }
         else if (arg.eArgKind == ARG_KIND_SURFACE)
         {
-            if (arg.addressMode == AddressingModeStateless && arg.pData != nullptr)
+            if (arg.addressMode == AddressingModeStateless)
             {
+                VP_PUBLIC_CHK_NULL_RETURN(arg.pData)
                 VP_PUBLIC_CHK_NULL_RETURN(m_surfaceGroup);
                 SurfaceType surfType = *((SurfaceType *)arg.pData);
                 auto        it       = m_surfaceGroup->find(surfType);
@@ -377,9 +381,9 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::GetInlineData(uint8_t *inlineData)
     {
         if (arg.eArgKind == ARG_KIND_INLINE)
         {
-            if (arg.pData != nullptr)
+            if (arg.addressMode == AddressingModeStateless)
             {
-                if (arg.addressMode == AddressingModeStateless)
+                if (arg.pData != nullptr)
                 {
                     VP_PUBLIC_CHK_NULL_RETURN(m_surfaceGroup);
                     SurfaceType surfType = *((SurfaceType *)arg.pData);
@@ -394,18 +398,24 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::GetInlineData(uint8_t *inlineData)
                     params.resource                           = &surface->osSurface->OsResource;
                     params.stateOffset                        = arg.uOffsetInPayload;
                     m_inlineResourceList.push_back(params);
-                    VP_RENDER_NORMALMESSAGE("Setting Stateless Inline Data Statelss Surface KernelID %d, index %d , surfType %d, argKind %d", m_kernelId, arg.uIndex, *(uint32_t *)arg.pData, arg.eArgKind);
+                    VP_RENDER_NORMALMESSAGE("Setting Stateless Inline Data Statelss Surface KernelID %d, index %d , surfType %d, argKind %d", m_kernelId, arg.uIndex, *(uint32_t *)arg.pData, arg.eArgKind); 
                 }
                 else
                 {
-                    MOS_SecureMemcpy(inlineData + arg.uOffsetInPayload, arg.uSize, arg.pData, arg.uSize);
-                    VP_RENDER_NORMALMESSAGE("Setting Inline Data KernelID %d, index %d , value %d, argKind %d", m_kernelId, arg.uIndex, *(uint32_t *)arg.pData, arg.eArgKind);
+                    VP_RENDER_ASSERTMESSAGE("KernelID %d, index %d, argKind %d Stateless Surface is empty", m_kernelId, arg.uIndex, arg.eArgKind);
                 }
-                
             }
             else
             {
-                VP_RENDER_NORMALMESSAGE("KernelID %d, index %d, argKind %d is empty", m_kernelId, arg.uIndex, arg.eArgKind);
+                if (arg.pData != nullptr)
+                {
+                    MOS_SecureMemcpy(inlineData + arg.uOffsetInPayload, arg.uSize, arg.pData, arg.uSize);
+                    VP_RENDER_NORMALMESSAGE("Setting Inline Data KernelID %d, index %d , value %d, argKind %d", m_kernelId, arg.uIndex, *(uint32_t *)arg.pData, arg.eArgKind); 
+                }
+                else
+                {
+                    VP_RENDER_NORMALMESSAGE("KernelID %d, index %d, argKind %d is empty", m_kernelId, arg.uIndex, arg.eArgKind);
+                }
             }
         }
     }
