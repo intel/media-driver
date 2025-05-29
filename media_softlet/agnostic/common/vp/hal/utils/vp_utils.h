@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2023, Intel Corporation
+* Copyright (c) 2018-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,9 @@ using MosFormatArray = std::vector<MOS_FORMAT>;
 #define VP_HW_ASSERTMESSAGE(_message, ...)                                        \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_HW, _message, ##__VA_ARGS__)
 
+#define VP_HW_WARNINGMESSAGE(_message, ...)                                       \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_HW, _message, ##__VA_ARGS__)
+
 #define VP_HW_NORMALMESSAGE(_message, ...)                                        \
     MOS_NORMALMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_HW, _message, ##__VA_ARGS__)
 
@@ -71,6 +74,9 @@ using MosFormatArray = std::vector<MOS_FORMAT>;
 #define VP_PUBLIC_ASSERTMESSAGE(_message, ...)                                    \
     OcaOnMosCriticalMessage(MOS_FUNCTION, __LINE__);
 #endif
+
+#define VP_PUBLIC_WARNINGMESSAGE(_message, ...)                                   \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC, _message, ##__VA_ARGS__)
 
 #define VP_PUBLIC_NORMALMESSAGE(_message, ...)                                    \
     MOS_NORMALMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC, _message, ##__VA_ARGS__)
@@ -128,6 +134,9 @@ using MosFormatArray = std::vector<MOS_FORMAT>;
 #define VP_DEBUG_ASSERTMESSAGE(_message, ...)                                     \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DEBUG, _message, ##__VA_ARGS__)
 
+#define VP_DEBUG_WARNINGMESSAGE(_message, ...)                                    \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DEBUG, _message, ##__VA_ARGS__)
+
 #define VP_DEBUG_NORMALMESSAGE(_message, ...)                                     \
     MOS_NORMALMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DEBUG, _message, ##__VA_ARGS__)
 
@@ -169,6 +178,9 @@ using MosFormatArray = std::vector<MOS_FORMAT>;
     OcaOnMosCriticalMessage(MOS_FUNCTION, __LINE__);
 #endif
 
+#define VP_RENDER_WARNINGMESSAGE(_message, ...)                                   \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_RENDER, _message, ##__VA_ARGS__)
+
 #define VP_RENDER_NORMALMESSAGE(_message, ...)                                    \
     MOS_NORMALMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_RENDER, _message, ##__VA_ARGS__)
 
@@ -207,6 +219,9 @@ using MosFormatArray = std::vector<MOS_FORMAT>;
 
 #define VP_DDI_ASSERTMESSAGE(_message, ...)                                          \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DDI, _message, ##__VA_ARGS__)
+
+#define VP_DDI_WARNINGMESSAGE(_message, ...)                                         \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DDI, _message, ##__VA_ARGS__)
 
 #define VP_DDI_NORMALMESSAGE(_message, ...)                                          \
     MOS_NORMALMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DDI, _message, ##__VA_ARGS__)

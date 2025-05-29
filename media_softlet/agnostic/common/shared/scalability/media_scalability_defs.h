@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2020, Intel Corporation
+* Copyright (c) 2018-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -41,6 +41,9 @@
 
 #define SCALABILITY_ASSERTMESSAGE(_message, ...) \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_SCALABILITY, 0, _message, ##__VA_ARGS__)
+
+#define SCALABILITY_WARNINGMESSAGE(_message, ...) \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_SCALABILITY, 0, _message, ##__VA_ARGS__)
 
 #define SCALABILITY_NORMALMESSAGE(_message, ...) \
     MOS_NORMALMESSAGE(MOS_COMPONENT_SCALABILITY, 0, _message, ##__VA_ARGS__)

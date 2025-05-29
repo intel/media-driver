@@ -516,7 +516,7 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
         userSettingPtr,
         __MOS_USER_FEATURE_KEY_SUB_COMPONENT_OS_TAG,
         MediaUserSetting::Group::Device,
-        0,
+        uint64_t(0),
         true);
 
     DeclareUserSettingKey(
@@ -537,7 +537,7 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
         userSettingPtr,
         __MOS_USER_FEATURE_KEY_SUB_COMPONENT_MHW_TAG,
         MediaUserSetting::Group::Device,
-        0,
+        uint64_t(0),
         true);
 
     DeclareUserSettingKey(
@@ -558,7 +558,7 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
         userSettingPtr,
         __MOS_USER_FEATURE_KEY_SUB_COMPONENT_CODEC_TAG,
         MediaUserSetting::Group::Device,
-        0,
+        uint64_t(0),
         true);
 
     DeclareUserSettingKey(
@@ -579,7 +579,7 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
         userSettingPtr,
         __MOS_USER_FEATURE_KEY_SUB_COMPONENT_VP_TAG,
         MediaUserSetting::Group::Device,
-        0,
+        uint64_t(0),
         true);
 
     DeclareUserSettingKey(
@@ -600,7 +600,7 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
         userSettingPtr,
         __MOS_USER_FEATURE_KEY_SUB_COMPONENT_CP_TAG,
         MediaUserSetting::Group::Device,
-        0,
+        uint64_t(0),
         true);
 
     DeclareUserSettingKey(
@@ -621,7 +621,7 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
         userSettingPtr,
         __MOS_USER_FEATURE_KEY_SUB_COMPONENT_DDI_TAG,
         MediaUserSetting::Group::Device,
-        0,
+        uint64_t(0),
         true);
 
     DeclareUserSettingKey(
@@ -642,7 +642,7 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
         userSettingPtr,
         __MOS_USER_FEATURE_KEY_SUB_COMPONENT_CM_TAG,
         MediaUserSetting::Group::Device,
-        0,
+        uint64_t(0),
         true);
 
     DeclareUserSettingKey(
@@ -663,7 +663,7 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
         userSettingPtr,
         __MOS_USER_FEATURE_KEY_SUB_COMPONENT_SCALABILITY_TAG,
         MediaUserSetting::Group::Device,
-        0,
+        uint64_t(0),
         true);
 
     DeclareUserSettingKey(
@@ -684,7 +684,7 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
         userSettingPtr,
         __MOS_USER_FEATURE_KEY_SUB_COMPONENT_MMC_TAG,
         MediaUserSetting::Group::Device,
-        0,
+        uint64_t(0),
         true);
 
     DeclareUserSettingKey(
@@ -705,7 +705,7 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
         userSettingPtr,
         __MOS_USER_FEATURE_KEY_SUB_COMPONENT_MCPY_TAG,
         MediaUserSetting::Group::Device,
-        0,
+        uint64_t(0),
         true);
 
     return MOS_STATUS_SUCCESS;

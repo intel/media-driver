@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017, Intel Corporation
+* Copyright (c) 2017-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -43,6 +43,9 @@
 //! Asserts and prints \a _message at critical message level
 #define HEAP_ASSERTMESSAGE(_message, ...)                                                 \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_HW, MOS_SUBCOMP_SELF, _message, ##__VA_ARGS__)
+//! Prints \a _message at warning message level
+#define HEAP_WARNINGMESSAGE(_message, ...)                                                \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_HW, MOS_SUBCOMP_SELF, _message, ##__VA_ARGS__)
 //! Prints \a _message at normal message level
 #define HEAP_NORMALMESSAGE(_message, ...)                                                 \
     MOS_NORMALMESSAGE(MOS_COMPONENT_HW, MOS_SUBCOMP_SELF, _message, ##__VA_ARGS__)

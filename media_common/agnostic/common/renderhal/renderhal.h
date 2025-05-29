@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2022, Intel Corporation
+* Copyright (c) 2009-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -50,6 +50,9 @@ class XRenderHal_Platform_Interface;
 
 #define MHW_RENDERHAL_ASSERTMESSAGE(_message, ...)                                        \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, _message, ##__VA_ARGS__)
+
+#define MHW_RENDERHAL_WARNINGMESSAGE(_message, ...)                                       \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, _message, ##__VA_ARGS__)
 
 #define MHW_RENDERHAL_NORMALMESSAGE(_message, ...)                                        \
     MOS_NORMALMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, _message, ##__VA_ARGS__)

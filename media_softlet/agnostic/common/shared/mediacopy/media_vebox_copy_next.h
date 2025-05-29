@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,7 @@
 #define VEBOX_COPY_CHK_NULL(_ptr)                  MOS_CHK_NULL(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_VEBOX, _ptr)
 #define VEBOX_COPY_CHK_NULL_RETURN(_ptr)           MOS_CHK_NULL_RETURN(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_VEBOX, _ptr)
 #define VEBOX_COPY_ASSERTMESSAGE(_message, ...)    MOS_ASSERTMESSAGE(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_VEBOX, _message, ##__VA_ARGS__)
+#define VEBOX_COPY_WARNINGMESSAGE(_message, ...)   MOS_WARNINGMESSAGE(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_VEBOX, _message, ##__VA_ARGS__)
 #define VEBOX_COPY_NORMALMESSAGE(_message, ...)    MOS_NORMALMESSAGE(MOS_COMPONENT_MCPY, MOS_MCPY_SUBCOMP_VEBOX, _message, ##__VA_ARGS__)
 
 class VeboxCopyStateNext

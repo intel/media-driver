@@ -54,6 +54,9 @@ enum HuCFunction
     OcaOnMosCriticalMessage(MOS_FUNCTION, __LINE__);
 #endif
 
+#define ENCODE_WARNINGMESSAGE(_message, ...)                                   \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, _message, ##__VA_ARGS__)
+
 #define ENCODE_NORMALMESSAGE(_message, ...)                                    \
     MOS_NORMALMESSAGE(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, _message, ##__VA_ARGS__)
 

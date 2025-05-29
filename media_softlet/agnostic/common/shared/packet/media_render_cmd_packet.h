@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2021-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -48,6 +48,9 @@ class MhwCpInterface;
 
 #define RENDER_PACKET_ASSERTMESSAGE(_message, ...) \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_HW, 0, _message, ##__VA_ARGS__)
+
+#define RENDER_PACKET_WARNINGMESSAGE(_message, ...) \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_HW, 0, _message, ##__VA_ARGS__)
 
 #define RENDER_PACKET_NORMALMESSAGE(_message, ...) \
     MOS_NORMALMESSAGE(MOS_COMPONENT_HW, 0, _message, ##__VA_ARGS__)

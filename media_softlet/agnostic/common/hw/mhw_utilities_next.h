@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -111,6 +111,9 @@ typedef struct _MHW_BATCH_BUFFER MHW_BATCH_BUFFER, * PMHW_BATCH_BUFFER;
 
 #define MHW_ASSERTMESSAGE(_message, ...)                                        \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _message, ##__VA_ARGS__)
+
+#define MHW_WARNINGMESSAGE(_message, ...)                                       \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _message, ##__VA_ARGS__)
 
 #define MHW_NORMALMESSAGE(_message, ...)                                        \
     MOS_NORMALMESSAGE(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _message, ##__VA_ARGS__)

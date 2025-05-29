@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2022, Intel Corporation
+* Copyright (c) 2019-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -184,12 +184,15 @@ typedef enum
 {
     MOS_MESSAGE_LVL_DISABLED                  = 0,
     MOS_MESSAGE_LVL_CRITICAL                  = 1,
-    MOS_MESSAGE_LVL_NORMAL                    = 2,
-    MOS_MESSAGE_LVL_VERBOSE                   = 3,
-    MOS_MESSAGE_LVL_FUNCTION_ENTRY            = 4,
-    MOS_MESSAGE_LVL_FUNCTION_EXIT             = 5,
-    MOS_MESSAGE_LVL_FUNCTION_ENTRY_VERBOSE    = 6,
-    MOS_MESSAGE_LVL_MEMNINJA                  = 7,
+    // Add warning level, which is defined in 4th bit separately, keep the 3-bit message level and 1-bit assert flag setting unchanged.
+    MOS_MESSAGE_LVL_WARNING                   = 2,
+    // Map the legacy message level (>= MOS_MESSAGE_LVL_NORMAL) to level+1, keep the 3-bit message level and 1-bit assert flag setting unchanged.
+    MOS_MESSAGE_LVL_NORMAL                    = 3,
+    MOS_MESSAGE_LVL_VERBOSE                   = 4,
+    MOS_MESSAGE_LVL_FUNCTION_ENTRY            = 5,
+    MOS_MESSAGE_LVL_FUNCTION_EXIT             = 6,
+    MOS_MESSAGE_LVL_FUNCTION_ENTRY_VERBOSE    = 7,
+    MOS_MESSAGE_LVL_MEMNINJA                  = 8,
     MOS_MESSAGE_LVL_COUNT
 } MOS_MESSAGE_LEVEL;
 
@@ -659,6 +662,13 @@ MEDIA_CLASS_DEFINE_END(MosUtilDebug)
     MOS_ASSERT(_compID, _subCompID, false);
 
 //!
+//! \def MOS_WARNINGMESSAGE(_compID, _subCompID, _message, ...)
+//!  Output DEBUG message \a _message with \_a _compID and \_a _subCompID info
+//!
+#define MOS_WARNINGMESSAGE(_compID, _subCompID, _message, ...)                              \
+    MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_WARNING, _compID, _subCompID, _message, ##__VA_ARGS__)
+
+//!
 //! \def MOS_NORMALMESSAGE(_compID, _subCompID, _message, ...)
 //!  Output NORMAL message \a _message with \_a _compID and \_a _subCompID info
 //!
@@ -886,6 +896,7 @@ MEDIA_CLASS_DEFINE_END(MosUtilDebug)
 #define MOS_FUNCTION_EXIT(_compID, _subCompID, hr)
 #define MOS_FUNCTION_ENTER_VERBOSE(_compID, _subCompID)
 #define MOS_ASSERTMESSAGE(_compID, _subCompID, _message, ...)
+#define MOS_WARNINGMESSAGE(_compID, _subCompID, _message, ...)
 #define MOS_NORMALMESSAGE(_compID, _subCompID, _message, ...)
 #define MOS_VERBOSEMESSAGE(_compID, _subCompID, _message, ...)
 #define MOS_CRITICALMESSAGE(_compID, _subCompID, _message, ...)
@@ -1354,6 +1365,13 @@ MOS_CHK_NULL_RETURN_NULL(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _ptr)
 //!
 #define MOS_OS_CRITICALMESSAGE(_message, ...)                                                 \
     MOS_CRITICALMESSAGE(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _message, ##__VA_ARGS__)
+
+//!
+//! \def MOS_OS_WARNINGMESSAGE(_message, ...)
+//!  MOS_UTIL_WARNINGMESSAGE \a _message with MOS Utility comp/subcomp info
+//!
+#define MOS_OS_WARNINGMESSAGE(_message, ...)                                                \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _message, ##__VA_ARGS__)
 
 //!
 //! \def MOS_OS_NORMALMESSAGE(_message, ...)
