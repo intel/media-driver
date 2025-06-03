@@ -268,10 +268,10 @@
 //!        3 bits for level, 1 bit for assert on/off, 1 bit for warning message per sub-component.
 //!        Each component has to create a separate key for its sub-comps.
 //!
-//!     63_____60_59_____55_54______50_49_______45_44_________40_39_____35_34______30_29_____25_24_____20_19_____15_14__10_9_____________5_4______________0
-//!     |        |   LIB   |   DLL    |AUTHCHANNEL|SECURESESSION| CMD_BFR | UMD_CTXT |  CODEC  | GPU_HAL | PCH_HAL |  OS  |    DEVICE     |    CP_DDI     |
-//!     |Reserved|  W|A|L  |   W|A|L  |   W|A|L   |    W|A|L    |  W|A|L  |  W|A|L   |  W|A|L  |  W|A|L  |  W|A|L  |W|A|L |Warn|Asrt|level|Warn|Asrt|level|
-//!     |________|_________|__________|___________|_____________|_________|__________|_________|_________|_________|______|_______________|_______________|
+//!     63_____30_29___25_24___20_19_____15_14_____10_9_____5_4______________0
+//!     |        | CODEC |  MHW  | GPU_HAL | TEE_HAL |   OS  |     DDI       |
+//!     |Reserved| W|A|L | W|A|L |  W|A|L  |  W|A|L  | W|A|L |Warn|Asrt|level|
+//!     |________|_______|_______|_________|_________|_______|_______________|
 //!
 #define __MOS_USER_FEATURE_KEY_SUB_COMPONENT_CP_TAG                 "CP Sub Components Tags"
 

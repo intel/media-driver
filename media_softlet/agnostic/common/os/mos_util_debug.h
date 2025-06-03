@@ -104,26 +104,29 @@ typedef enum
 //       in mos_util_user_feature_keys.h if you change this enum.
 typedef enum
 {
-    MOS_CP_SUBCOMP_DDI              = 0,             // CP-related DDIs
-    MOS_CP_SUBCOMP_DEVICE           = 1,             // The CP device class
-    MOS_CP_SUBCOMP_OS               = 2,             // The CP OS services classes
-    MOS_CP_SUBCOMP_PCH_HAL          = 3,             // The CP PCH HAL class
-    MOS_CP_SUBCOMP_GPU_HAL          = 4,             // The CP GPU HAL classes
-    MOS_CP_SUBCOMP_CODEC            = 5,             // Content Protection portions of the Codec UMD
-    MOS_CP_SUBCOMP_UMD_CONTEXT      = 6,             // Content Protection portions of UMD device context
-    MOS_CP_SUBCOMP_CMD_BUFFER       = 7,             // Content Protection Command buffer class
-    MOS_CP_SUBCOMP_SECURESESSION    = 8,             // The secure session classes
-    MOS_CP_SUBCOMP_AUTHCHANNEL      = 9,             // The AuthChannel classes
-    MOS_CP_SUBCOMP_DLL              = 10,            // CP DLL classes
-    MOS_CP_SUBCOMP_LIB              = 11,            // Lib classes
-    MOS_CP_SUBCOMP_MHW              = 12,            // CP MHW classes
-    MOS_CP_SUBCOMP_PROTECTEDSESSION = 13,            // Protected session class
-    MOS_CP_SUBCOMP_PROTECTED_RESOURCE_SESSION = 14,  // Protected Resource session class
-    MOS_CP_SUBCOMP_TEE_HAL          = 15,            // CP TEE HAL class
-    MOS_CP_SUBCOMP_CAPS             = 16,            // CP CAPS clas
-    MOS_CP_SUBCOMP_CPLIB            = 17,            // CP CPLIB interacting
-    MOS_CP_SUBCOMP_CENC             = 18,            // CP cenc class
-    MOS_CP_SUBCOMP_COUNT                             // Must be last in the list
+    MOS_CP_SUBCOMP_DDI              = 0,                              // CP-related DDIs
+    MOS_CP_SUBCOMP_DEVICE           = MOS_CP_SUBCOMP_DDI,             // (DDI)The CP device class
+    MOS_CP_SUBCOMP_UMD_CONTEXT      = MOS_CP_SUBCOMP_DDI,             // (DDI)Content Protection portions of UMD device context
+    MOS_CP_SUBCOMP_SECURESESSION    = MOS_CP_SUBCOMP_DDI,             // (DDI)The secure session classes
+    MOS_CP_SUBCOMP_AUTHCHANNEL      = MOS_CP_SUBCOMP_DDI,             // (DDI)The AuthChannel classes
+    MOS_CP_SUBCOMP_PROTECTEDSESSION = MOS_CP_SUBCOMP_DDI,             // (DDI)Protected session class
+    MOS_CP_SUBCOMP_PROTECTED_RESOURCE_SESSION = MOS_CP_SUBCOMP_DDI,   // (DDI)Protected Resource session class
+    MOS_CP_SUBCOMP_CAPS             = MOS_CP_SUBCOMP_DDI,             // (DDI)CP CAPS clas
+
+    MOS_CP_SUBCOMP_OS               = 1,                              // The CP OS services classes
+
+    MOS_CP_SUBCOMP_TEE_HAL          = 2,                              // CP TEE HAL class
+    MOS_CP_SUBCOMP_PCH_HAL          = MOS_CP_SUBCOMP_TEE_HAL,         // (TEE_HAL)The CP PCH HAL class
+    MOS_CP_SUBCOMP_DLL              = MOS_CP_SUBCOMP_TEE_HAL,         // (TEE_HAL)CP DLL classes
+
+    MOS_CP_SUBCOMP_GPU_HAL          = 3,                              // The CP GPU HAL classes
+
+    MOS_CP_SUBCOMP_MHW              = 4,                              // CP MHW classes
+
+    MOS_CP_SUBCOMP_CODEC            = 5,                              // Content Protection portions of the Codec UMD
+    MOS_CP_SUBCOMP_CENC             = MOS_CP_SUBCOMP_CODEC,           // (CODEC)CP cenc class
+
+    MOS_CP_SUBCOMP_COUNT                                              // Must be last in the list
 } MOS_CP_SUBCOMP_ID;
 
 //!
