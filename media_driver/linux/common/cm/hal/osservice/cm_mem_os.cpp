@@ -27,18 +27,27 @@
 #include "cm_mem.h"
 #include "cm_mem_os.h"
 #include "cm_mem_os_c_impl.h"
+
+#if !defined(__loongarch64)
 #include "cm_mem_os_sse4_impl.h"
+#endif
 
 typedef void(*t_CmFastMemCopyFromWC)( void* dst, const void* src, const size_t bytes );
 
+#if !defined(__loongarch64)
 #define CM_FAST_MEM_COPY_CPU_INIT_C(func)       (func ## _C)
 #define CM_FAST_MEM_COPY_CPU_INIT_SSE4(func)    (func ## _SSE4)
 #define CM_FAST_MEM_COPY_CPU_INIT(func)         (is_SSE4_available ? CM_FAST_MEM_COPY_CPU_INIT_SSE4(func) : CM_FAST_MEM_COPY_CPU_INIT_C(func))
+#endif
 
 void CmFastMemCopyFromWC( void* dst, const void* src, const size_t bytes, CPU_INSTRUCTION_LEVEL cpuInstructionLevel )
 {
+#if defined(__loongarch64)
+    CmFastMemCopyFromWC_C(dst, src, bytes);
+#else
     static const bool is_SSE4_available = (cpuInstructionLevel >= CPU_INSTRUCTION_LEVEL_SSE4_1);
     static const t_CmFastMemCopyFromWC CmFastMemCopyFromWC_impl = CM_FAST_MEM_COPY_CPU_INIT(CmFastMemCopyFromWC);
 
     CmFastMemCopyFromWC_impl(dst, src, bytes);
+#endif
 }

@@ -53,9 +53,6 @@ set(MEDIA_COMPILER_FLAGS_COMMON
     -ffunction-sections
     -Wl,--gc-sections
 
-    # -m32 or -m64
-    -m${ARCH}
-
     # Global defines
     -DLINUX=1
     -DLINUX
@@ -65,6 +62,12 @@ set(MEDIA_COMPILER_FLAGS_COMMON
     -g
 )
 
+if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "^loongarch")
+    list(APPEND MEDIA_COMPILER_FLAGS_COMMON "-Wno-overloaded-virtual")
+else()
+    # -m32 or -m64
+    list(APPEND MEDIA_COMPILER_FLAGS_COMMON "-m${ARCH}")
+endif()
 
 if(${UFO_MARCH} STREQUAL "slm")
     set(MEDIA_COMPILER_FLAGS_COMMON
