@@ -109,7 +109,7 @@ namespace decode
         // decide ALF error concealment
         if(m_concealAlfMask)
         {
-            DECODE_ASSERTMESSAGE("Error concealed: Disable ALF since out-of-range ALF parameters detected.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: Disable ALF since out-of-range ALF parameters detected.\n");
             m_vvcPicParams->m_spsFlags0.m_fields.m_spsAlfEnabledFlag    = 0;
             m_vvcPicParams->m_spsFlags0.m_fields.m_spsCcalfEnabledFlag  = 0;
             m_vvcPicParams->m_ppsFlags.m_fields.m_ppsAlfInfoInPhFlag    = 1;
@@ -440,7 +440,7 @@ namespace decode
             numSlices = (m_vvcPicParams->m_ppsFlags.m_fields.m_ppsSingleSlicePerSubpicFlag)? (m_vvcPicParams->m_spsNumSubpicsMinus1 + 1):(m_vvcPicParams->m_ppsNumSlicesInPicMinus1 + 1);
             if (m_numSlices != numSlices)
             {
-                DECODE_ASSERTMESSAGE("Rect Slice: Slice number is incorrect.\n");
+                DECODE_WARNINGMESSAGE("Rect Slice: Slice number is incorrect.\n");
             }
         }
 
@@ -453,7 +453,7 @@ namespace decode
 
         if ((m_vvcPicParams->m_spsFlags0.m_fields.m_spsMaxLumaTransformSize64Flag == 1) && (m_vvcPicParams->m_spsLog2CtuSizeMinus5 == 0))
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force sps_max_luma_transform_size_64_flag = 0 when sps_log2_ctu_size_minus5 = 0.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force sps_max_luma_transform_size_64_flag = 0 when sps_log2_ctu_size_minus5 = 0.\n");
             m_vvcPicParams->m_spsFlags0.m_fields.m_spsMaxLumaTransformSize64Flag = 0;
         }
 
@@ -603,7 +603,7 @@ namespace decode
             m_vvcPicParams->m_spsFlags2.m_fields.m_spsVirtualBoundariesEnabledFlag &&
             !m_vvcPicParams->m_spsFlags2.m_fields.m_spsVirtualBoundariesPresentFlag)
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force sps_virtual_boundaries_enabled_flag from 1 to 0.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force sps_virtual_boundaries_enabled_flag from 1 to 0.\n");
             m_vvcPicParams->m_spsFlags2.m_fields.m_spsVirtualBoundariesEnabledFlag = 0;
         }
 
@@ -624,7 +624,7 @@ namespace decode
 
             if (m_vvcPicParams->m_spsFlags2.m_fields.m_spsVirtualBoundariesPresentFlag)
             {
-                DECODE_ASSERTMESSAGE("Error concealed: force sps_virtual_boundaries_present_flag from 1 to 0 when (pps_pic_width_in_luma_samples != sps_pic_width_max_in_luma_samples || pps_pic_height_in_luma_samples != sps_pic_height_max_in_luma_samples).\n");
+                DECODE_WARNINGMESSAGE("Error concealed: force sps_virtual_boundaries_present_flag from 1 to 0 when (pps_pic_width_in_luma_samples != sps_pic_width_max_in_luma_samples || pps_pic_height_in_luma_samples != sps_pic_height_max_in_luma_samples).\n");
                 m_vvcPicParams->m_spsFlags2.m_fields.m_spsVirtualBoundariesEnabledFlag = 0;
             }
         }
@@ -741,7 +741,7 @@ namespace decode
                 m_vvcPicParams->m_ppsFlags.m_fields.m_ppsSliceChromaQpOffsetsPresentFlag != 0 ||
                 m_vvcPicParams->m_ppsFlags.m_fields.m_ppsCuChromaQpOffsetListEnabledFlag != 0))
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force chroma qp offsets/flags to 0 for (sps_chroma_format_idc == 0 || pps_chroma_tool_offsets_present_flag == 0).\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force chroma qp offsets/flags to 0 for (sps_chroma_format_idc == 0 || pps_chroma_tool_offsets_present_flag == 0).\n");
             m_vvcPicParams->m_ppsCbQpOffset = 0;
             m_vvcPicParams->m_ppsCrQpOffset = 0;
             m_vvcPicParams->m_ppsJointCbcrQpOffsetValue = 0;
@@ -755,7 +755,7 @@ namespace decode
             {
                 if (m_vvcPicParams->m_ppsJointCbcrQpOffsetList[i] != 0)
                 {
-                    DECODE_ASSERTMESSAGE("Error concealed: force pps_joint_cbcr_qp_offset_list[i] to 0 since pps_chroma_tool_offsets_present_flag == 0.\n");
+                    DECODE_WARNINGMESSAGE("Error concealed: force pps_joint_cbcr_qp_offset_list[i] to 0 since pps_chroma_tool_offsets_present_flag == 0.\n");
                     m_vvcPicParams->m_ppsJointCbcrQpOffsetList[i] = 0;
                 }
             }
@@ -767,14 +767,14 @@ namespace decode
         if ((!partitionFlag || (m_vvcPicParams->m_ppsFlags.m_fields.m_ppsDeblockingFilterOverrideEnabledFlag == 0)) &&
             (m_vvcPicParams->m_ppsFlags.m_fields.m_ppsDbfInfoInPhFlag == 1))
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force pps_dbf_info_in_ph_flag to 0 when (!pps_no_pic_partition_flag && pps_deblocking_filter_override_enabled_flag) is false.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force pps_dbf_info_in_ph_flag to 0 when (!pps_no_pic_partition_flag && pps_deblocking_filter_override_enabled_flag) is false.\n");
             m_vvcPicParams->m_ppsFlags.m_fields.m_ppsDbfInfoInPhFlag = 0;
         }
 
         if (m_vvcPicParams->m_ppsFlags.m_fields.m_ppsDeblockingFilterDisabledFlag &&
             (m_vvcPicParams->m_ppsLumaBetaOffsetDiv2 != 0 || m_vvcPicParams->m_ppsLumaTcOffsetDiv2 != 0))
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force luma_beta_offset_div2 and luma_tc_offset_div2 to 0 when pps_deblocking_filter_disabled_flag is true.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force luma_beta_offset_div2 and luma_tc_offset_div2 to 0 when pps_deblocking_filter_disabled_flag is true.\n");
             m_vvcPicParams->m_ppsLumaBetaOffsetDiv2 = 0;
             m_vvcPicParams->m_ppsLumaTcOffsetDiv2 = 0;
         }
@@ -785,7 +785,7 @@ namespace decode
              m_vvcPicParams->m_phCrBetaOffsetDiv2 != m_vvcPicParams->m_phLumaBetaOffsetDiv2 ||
              m_vvcPicParams->m_phCrTcOffsetDiv2 != m_vvcPicParams->m_phLumaTcOffsetDiv2))
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force chroma beta/tc offsets to the same syntax of luma when pps_chroma_tool_offsets_present_flag is 0.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force chroma beta/tc offsets to the same syntax of luma when pps_chroma_tool_offsets_present_flag is 0.\n");
             m_vvcPicParams->m_phCbBetaOffsetDiv2    = m_vvcPicParams->m_phLumaBetaOffsetDiv2;
             m_vvcPicParams->m_phCbTcOffsetDiv2      = m_vvcPicParams->m_phLumaTcOffsetDiv2;
             m_vvcPicParams->m_phCrBetaOffsetDiv2    = m_vvcPicParams->m_phLumaBetaOffsetDiv2;
@@ -795,7 +795,7 @@ namespace decode
         if (m_shortFormatInUse && ((!m_vvcPicParams->m_ppsFlags.m_fields.m_ppsWeightedPredFlag && !m_vvcPicParams->m_ppsFlags.m_fields.m_ppsWeightedBipredFlag) ||
             !m_vvcPicParams->m_ppsFlags.m_fields.m_ppsRplInfoInPhFlag) && m_vvcPicParams->m_ppsFlags.m_fields.m_ppsWpInfoInPhFlag)
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force pps_wp_info_in_ph_flag = 0 when ((pps_weighted_pred_flag == 0 &&  pps_weighted_bipred_flag ==0) || pps_rpl_info_in_ph_flag == 0 ).\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force pps_wp_info_in_ph_flag = 0 when ((pps_weighted_pred_flag == 0 &&  pps_weighted_bipred_flag ==0) || pps_rpl_info_in_ph_flag == 0 ).\n");
             m_vvcPicParams->m_ppsFlags.m_fields.m_ppsWpInfoInPhFlag = 0;
         }
 
@@ -803,7 +803,7 @@ namespace decode
             !m_vvcPicParams->m_ppsFlags.m_fields.m_ppsAlfInfoInPhFlag) &&
             m_vvcPicParams->m_phFlags.m_fields.m_phAlfEnabledFlag)
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force ph_alf_enabled_flag = 0 when (sps_alf_enabled_flag == 0 || pps_alf_info_in_ph_flag == 0) is true\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force ph_alf_enabled_flag = 0 when (sps_alf_enabled_flag == 0 || pps_alf_info_in_ph_flag == 0) is true\n");
             m_vvcPicParams->m_phFlags.m_fields.m_phAlfEnabledFlag = 0;
         }
 
@@ -816,7 +816,7 @@ namespace decode
                     if (m_alfApsArray[i].m_alfFlags.m_fields.m_alfCcCbFilterSignalFlag ||
                         m_alfApsArray[i].m_alfFlags.m_fields.m_alfCcCrFilterSignalFlag)
                     {
-                        DECODE_ASSERTMESSAGE("Error concealed: force alf_cc_cb_filter_signal_flag = 0, alf_cc_cr_filter_signal_flag = 0 when sps_ccalf_enabled_flag is 0\n");
+                        DECODE_WARNINGMESSAGE("Error concealed: force alf_cc_cb_filter_signal_flag = 0, alf_cc_cr_filter_signal_flag = 0 when sps_ccalf_enabled_flag is 0\n");
                         m_alfApsArray[i].m_alfFlags.m_fields.m_alfCcCbFilterSignalFlag = 0;
                         m_alfApsArray[i].m_alfFlags.m_fields.m_alfCcCrFilterSignalFlag = 0;
                     }
@@ -828,7 +828,7 @@ namespace decode
             (m_vvcPicParams->m_phFlags.m_fields.m_phAlfCbEnabledFlag ||
              m_vvcPicParams->m_phFlags.m_fields.m_phAlfCrEnabledFlag))
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force ph_alf_cb_enabled_flag = 0, ph_alf_cr_enabled_flag = 0 when ph_alf_enabled_flag = 0.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force ph_alf_cb_enabled_flag = 0, ph_alf_cr_enabled_flag = 0 when ph_alf_enabled_flag = 0.\n");
             m_vvcPicParams->m_phFlags.m_fields.m_phAlfCbEnabledFlag = 0;
             m_vvcPicParams->m_phFlags.m_fields.m_phAlfCrEnabledFlag = 0;
         }
@@ -837,27 +837,27 @@ namespace decode
             (m_vvcPicParams->m_phFlags.m_fields.m_phAlfCcCbEnabledFlag ||
              m_vvcPicParams->m_phFlags.m_fields.m_phAlfCcCrEnabledFlag))
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force ph_alf_cc_cb_enabled_flag = 0, ph_alf_cc_cr_enabled_flag = 0 when sps_ccalf_enabled_flag = 0.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force ph_alf_cc_cb_enabled_flag = 0, ph_alf_cc_cr_enabled_flag = 0 when sps_ccalf_enabled_flag = 0.\n");
             m_vvcPicParams->m_phFlags.m_fields.m_phAlfCcCbEnabledFlag = 0;
             m_vvcPicParams->m_phFlags.m_fields.m_phAlfCcCrEnabledFlag = 0;
         }
 
         if (!m_vvcPicParams->m_spsFlags0.m_fields.m_spsLmcsEnabledFlag && m_vvcPicParams->m_phFlags.m_fields.m_phLmcsEnabledFlag)
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force ph_lmcs_enabled_flag = 0 when sps_lmcs_enabled_flag = 0.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force ph_lmcs_enabled_flag = 0 when sps_lmcs_enabled_flag = 0.\n");
             m_vvcPicParams->m_phFlags.m_fields.m_phLmcsEnabledFlag = 0;
         }
 
         if (!m_vvcPicParams->m_phFlags.m_fields.m_phLmcsEnabledFlag && m_vvcPicParams->m_phFlags.m_fields.m_phChromaResidualScaleFlag)
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force ph_chroma_residual_scale_flag = 0 when ph_lmcs_enabled_flag = 0.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force ph_chroma_residual_scale_flag = 0 when ph_lmcs_enabled_flag = 0.\n");
             m_vvcPicParams->m_phFlags.m_fields.m_phChromaResidualScaleFlag = 0;
         }
 
         if (!m_vvcPicParams->m_spsFlags2.m_fields.m_spsExplicitScalingListEnabledFlag &&
             m_vvcPicParams->m_phFlags.m_fields.m_phExplicitScalingListEnabledFlag)
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force ph_explicit_scaling_list_enabled_flag = 0 when sps_explicit_scaling_list_enabled_flag = 0.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force ph_explicit_scaling_list_enabled_flag = 0 when sps_explicit_scaling_list_enabled_flag = 0.\n");
             m_vvcPicParams->m_phFlags.m_fields.m_phExplicitScalingListEnabledFlag = 0;
         }
 
@@ -865,42 +865,42 @@ namespace decode
              m_vvcPicParams->m_spsFlags2.m_fields.m_spsVirtualBoundariesPresentFlag) &&
             m_vvcPicParams->m_phFlags.m_fields.m_phVirtualBoundariesPresentFlag)
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force ph_virtual_boundaries_present_flag = 0 when (sps_virtual_boundaries_enabled_flag == 0 || sps_virtual_boundaries_present_flag == 1) is true.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force ph_virtual_boundaries_present_flag = 0 when (sps_virtual_boundaries_enabled_flag == 0 || sps_virtual_boundaries_present_flag == 1) is true.\n");
             m_vvcPicParams->m_phFlags.m_fields.m_phVirtualBoundariesPresentFlag = 0;
         }
 
         if (!m_vvcPicParams->m_ppsFlags.m_fields.m_ppsCuQpDeltaEnabledFlag &&
             m_vvcPicParams->m_phCuQpDeltaSubdivIntraSlice != 0)
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force ph_cu_qp_delta_subdiv_intra_slice = 0 when pps_cu_qp_delta_enabled_flag is 0.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force ph_cu_qp_delta_subdiv_intra_slice = 0 when pps_cu_qp_delta_enabled_flag is 0.\n");
             m_vvcPicParams->m_phCuQpDeltaSubdivIntraSlice = 0;
         }
 
         if (!m_vvcPicParams->m_ppsFlags.m_fields.m_ppsCuChromaQpOffsetListEnabledFlag &&
             m_vvcPicParams->m_phCuChromaQpOffsetSubdivIntraSlice != 0)
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force ph_cu_chroma_qp_offset_subdiv_intra_slice = 0 when pps_cu_chroma_qp_offset_list_enabled_flag is 0.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force ph_cu_chroma_qp_offset_subdiv_intra_slice = 0 when pps_cu_chroma_qp_offset_list_enabled_flag is 0.\n");
             m_vvcPicParams->m_phCuChromaQpOffsetSubdivIntraSlice = 0;
         }
 
         if (!m_vvcPicParams->m_ppsFlags.m_fields.m_ppsCuQpDeltaEnabledFlag &&
             m_vvcPicParams->m_phCuQpDeltaSubdivInterSlice != 0)
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force ph_cu_qp_delta_subdiv_inter_slice = 0 when pps_cu_qp_delta_enabled_flag is 0.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force ph_cu_qp_delta_subdiv_inter_slice = 0 when pps_cu_qp_delta_enabled_flag is 0.\n");
             m_vvcPicParams->m_phCuQpDeltaSubdivInterSlice = 0;
         }
 
         if (!m_vvcPicParams->m_ppsFlags.m_fields.m_ppsCuChromaQpOffsetListEnabledFlag &&
             m_vvcPicParams->m_phCuChromaQpOffsetSubdivInterSlice != 0)
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force ph_cu_chroma_qp_offset_subdiv_inter_slice = 0 when pps_cu_chroma_qp_offset_list_enabled_flag is 0.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force ph_cu_chroma_qp_offset_subdiv_inter_slice = 0 when pps_cu_chroma_qp_offset_list_enabled_flag is 0.\n");
             m_vvcPicParams->m_phCuChromaQpOffsetSubdivInterSlice = 0;
         }
 
         if (m_shortFormatInUse && !m_vvcPicParams->m_spsFlags1.m_fields.m_spsTemporalMvpEnabledFlag &&
             m_vvcPicParams->m_phFlags.m_fields.m_phTemporalMvpEnabledFlag)
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force ph_temporal_mvp_enabled_flag = 0 when sps_temporal_mvp_enabled_flag is 0.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force ph_temporal_mvp_enabled_flag = 0 when sps_temporal_mvp_enabled_flag is 0.\n");
             m_vvcPicParams->m_phFlags.m_fields.m_phTemporalMvpEnabledFlag = 0;
         }
 
@@ -940,7 +940,7 @@ namespace decode
 
             if (allDiffFlag)
             {
-                DECODE_ASSERTMESSAGE("Error concealed: force ph_temporal_mvp_enabled_flag = 0 if no reference picture in the DPB has the same spatial resolution and the same scaling window offsets as the current picture.\n");
+                DECODE_WARNINGMESSAGE("Error concealed: force ph_temporal_mvp_enabled_flag = 0 if no reference picture in the DPB has the same spatial resolution and the same scaling window offsets as the current picture.\n");
                 m_vvcPicParams->m_phFlags.m_fields.m_phTemporalMvpEnabledFlag = 0;
             }
         }
@@ -957,7 +957,7 @@ namespace decode
         if (m_shortFormatInUse && !m_vvcPicParams->m_spsFlags1.m_fields.m_spsMmvdFullpelOnlyEnabledFlag &&
             m_vvcPicParams->m_phFlags.m_fields.m_phMmvdFullpelOnlyFlag)
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force ph_mmvd_fullpel_only_flag = 0 when sps_mmvd_fullpel_only_enabled_flag is 0.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force ph_mmvd_fullpel_only_flag = 0 when sps_mmvd_fullpel_only_enabled_flag is 0.\n");
             m_vvcPicParams->m_phFlags.m_fields.m_phMmvdFullpelOnlyFlag = 0;
         }
 
@@ -977,7 +977,7 @@ namespace decode
             }
             else
             {
-                DECODE_ASSERTMESSAGE("Error concealed: since pps_rpl_info_in_ph_flag = 1 && num_ref_entries[ 1 ][ RplsIdx[ 1 ] ] = 0, do concealment:\n\
+                DECODE_WARNINGMESSAGE("Error concealed: since pps_rpl_info_in_ph_flag = 1 && num_ref_entries[ 1 ][ RplsIdx[ 1 ] ] = 0, do concealment:\n\
                 Force ph_bdof_disabled_flag = sps_bdof_control_present_in_ph_flag == 0? 1 - sps_bdof_enabled_flag : 1;\n\
                 Force ph_dmvr_disabled_flag = sps_dmvr_control_present_in_ph_flag == 0 ? 1 - sps_dmvr_enabled_flag : 1;\n");
 
@@ -989,28 +989,28 @@ namespace decode
         if (m_shortFormatInUse && !m_vvcPicParams->m_spsFlags1.m_fields.m_spsBdofControlPresentInPhFlag &&
             m_vvcPicParams->m_phFlags.m_fields.m_phBdofDisabledFlag != bdofDisabledFlag)
         {
-            DECODE_ASSERTMESSAGE("Error concealed: Force ph_bdof_disabled_flag = sps_bdof_control_present_in_ph_flag == 0? 1 - sps_bdof_enabled_flag : 1;\n");
+            DECODE_WARNINGMESSAGE("Error concealed: Force ph_bdof_disabled_flag = sps_bdof_control_present_in_ph_flag == 0? 1 - sps_bdof_enabled_flag : 1;\n");
             m_vvcPicParams->m_phFlags.m_fields.m_phBdofDisabledFlag = bdofDisabledFlag;
         }
 
         if (m_shortFormatInUse && !m_vvcPicParams->m_spsFlags1.m_fields.m_spsDmvrControlPresentInPhFlag &&
             m_vvcPicParams->m_phFlags.m_fields.m_phDmvrDisabledFlag != dmvrDisabledFlag)
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force ph_dmvr_disabled_flag = sps_dmvr_control_present_in_ph_flag == 0 ? 1 - sps_dmvr_enabled_flag : 1;\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force ph_dmvr_disabled_flag = sps_dmvr_control_present_in_ph_flag == 0 ? 1 - sps_dmvr_enabled_flag : 1;\n");
             m_vvcPicParams->m_phFlags.m_fields.m_phDmvrDisabledFlag = dmvrDisabledFlag;
         }
 
         if (m_shortFormatInUse && !m_vvcPicParams->m_spsFlags1.m_fields.m_spsProfControlPresentInPhFlag &&
             m_vvcPicParams->m_phFlags.m_fields.m_phProfDisabledFlag != 1 - m_vvcPicParams->m_spsFlags1.m_fields.m_spsAffineProfEnabledFlag)
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force ph_prof_disabled_flag = 1-sps_affine_prof_enabled_flag when sps_prof_control_present_in_ph_flag = 0.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force ph_prof_disabled_flag = 1-sps_affine_prof_enabled_flag when sps_prof_control_present_in_ph_flag = 0.\n");
             m_vvcPicParams->m_phFlags.m_fields.m_phProfDisabledFlag = 1 - m_vvcPicParams->m_spsFlags1.m_fields.m_spsAffineProfEnabledFlag;
         }
 
         if ((!m_vvcPicParams->m_spsFlags0.m_fields.m_spsSaoEnabledFlag || !m_vvcPicParams->m_ppsFlags.m_fields.m_ppsSaoInfoInPhFlag) &&
             m_vvcPicParams->m_phFlags.m_fields.m_phSaoLumaEnabledFlag)
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force ph_sao_luma_enabled_flag = 0 when (sps_sao_enabled_flag == 0 ||  pps_sao_info_in_ph_flag == 0) is true.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force ph_sao_luma_enabled_flag = 0 when (sps_sao_enabled_flag == 0 ||  pps_sao_info_in_ph_flag == 0) is true.\n");
             m_vvcPicParams->m_phFlags.m_fields.m_phSaoLumaEnabledFlag = 0;
         }
 
@@ -1019,7 +1019,7 @@ namespace decode
             m_vvcPicParams->m_spsChromaFormatIdc == 0) &&
             m_vvcPicParams->m_phFlags.m_fields.m_phSaoChromaEnabledFlag)
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force ph_sao_chroma_enabled_flag = 0 when (sps_sao_enabled_flag == 0 ||  pps_sao_info_in_ph_flag == 0 || sps_chroma_format_idc  ==  0) is true.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force ph_sao_chroma_enabled_flag = 0 when (sps_sao_enabled_flag == 0 ||  pps_sao_info_in_ph_flag == 0 || sps_chroma_format_idc  ==  0) is true.\n");
             m_vvcPicParams->m_phFlags.m_fields.m_phSaoChromaEnabledFlag = 0;
         }
 
@@ -1029,7 +1029,7 @@ namespace decode
            (m_vvcPicParams->m_phLumaBetaOffsetDiv2 != m_vvcPicParams->m_ppsLumaBetaOffsetDiv2 ||
             m_vvcPicParams->m_phLumaTcOffsetDiv2 != m_vvcPicParams->m_ppsLumaTcOffsetDiv2))
         {
-            DECODE_ASSERTMESSAGE("Error concealed: force ph_luma_beta_offset_div2=pps_luma_beta_offset_div2, ph_luma_tc_offset_div2 = pps_luma_tc_offset_div2 when (pps_dbf_info_in_ph_flag == 0 || ph_deblocking_filter_disabled_flag == 1) is true.\n");
+            DECODE_WARNINGMESSAGE("Error concealed: force ph_luma_beta_offset_div2=pps_luma_beta_offset_div2, ph_luma_tc_offset_div2 = pps_luma_tc_offset_div2 when (pps_dbf_info_in_ph_flag == 0 || ph_deblocking_filter_disabled_flag == 1) is true.\n");
             m_vvcPicParams->m_phLumaBetaOffsetDiv2 = m_vvcPicParams->m_ppsLumaBetaOffsetDiv2;
             m_vvcPicParams->m_phLumaTcOffsetDiv2 = m_vvcPicParams->m_ppsLumaTcOffsetDiv2;
         }
@@ -1050,7 +1050,7 @@ namespace decode
                     m_vvcPicParams->m_phCrBetaOffsetDiv2 != crBetaOffsetDiv2 ||
                     m_vvcPicParams->m_phCrTcOffsetDiv2 != crTcOffsetDiv2))
             {
-                DECODE_ASSERTMESSAGE(
+                DECODE_WARNINGMESSAGE(
                     "Error concealed: force the following since (pps_dbf_info_in_ph_flag == 0 || ph_deblocking_filter_disabled_flag == 1 || pps_chroma_tool_offsets_present_flag == 0) is true: \n\
                 ph_cb_beta_offset_div2  = pps_chroma_tool_offsets_present_flag == 1? pps_cb_beta_offset_div2 : ph_luma_beta_offset_div2;\n\
                 ph_cb_tc_offset_div2    = pps_chroma_tool_offsets_present_flag == 1? pps_cb_tc_offset_div2 : ph_luma_tc_offset_div2;\n\

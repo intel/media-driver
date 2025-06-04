@@ -126,36 +126,36 @@ namespace decode {
         if(m_avcPicParams->seq_fields.chroma_format_idc != 3
             && m_avcPicParams->seq_fields.residual_colour_transform_flag)
         {
-            DECODE_ASSERTMESSAGE("Conflict with H264 Spec! residual_colour_transform_flag can be set only when chroma_format_idc != 3");
+            DECODE_WARNINGMESSAGE("Conflict with H264 Spec! residual_colour_transform_flag can be set only when chroma_format_idc != 3");
         }
 
         if(m_avcPicParams->seq_fields.frame_mbs_only_flag && m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag != 0)
         {
             if(m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag != 0)
             {
-                DECODE_ASSERTMESSAGE("Conflict with H264 Spec! mb_adaptive_frame_field_flag should be 0 when frame_mbs_only_flag is set");
+                DECODE_WARNINGMESSAGE("Conflict with H264 Spec! mb_adaptive_frame_field_flag should be 0 when frame_mbs_only_flag is set");
                 m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag = 0;
             }
 
             if(m_avcPicParams->pic_fields.field_pic_flag)
             {
-                DECODE_ASSERTMESSAGE("Conflict with H264 Spec! field_pic_flag should be 0 when frame_mbs_only_flag is set");
+                DECODE_WARNINGMESSAGE("Conflict with H264 Spec! field_pic_flag should be 0 when frame_mbs_only_flag is set");
             }
         }
 
         if(m_avcPicParams->seq_fields.log2_max_frame_num_minus4 > 12)
         {
-            DECODE_ASSERTMESSAGE("Conflict with H264 Spec! log2_max_frame_num_minus4 is out of range");
+            DECODE_WARNINGMESSAGE("Conflict with H264 Spec! log2_max_frame_num_minus4 is out of range");
         }
 
         if(m_avcPicParams->seq_fields.pic_order_cnt_type > 2)
         {
-            DECODE_ASSERTMESSAGE("Conflict with H264 Spec! pic_order_cnt_type is out of range");
+            DECODE_WARNINGMESSAGE("Conflict with H264 Spec! pic_order_cnt_type is out of range");
         }
 
         if(m_avcPicParams->seq_fields.pic_order_cnt_type == 1 && m_avcPicParams->seq_fields.log2_max_pic_order_cnt_lsb_minus4 != 0)
         {
-            DECODE_ASSERTMESSAGE("Conflict with H264 Spec!  log2_max_pic_order_cnt_lsb_minus4 should be 0 when pic_order_cnt_type is set");
+            DECODE_WARNINGMESSAGE("Conflict with H264 Spec!  log2_max_pic_order_cnt_lsb_minus4 should be 0 when pic_order_cnt_type is set");
             m_avcPicParams->seq_fields.log2_max_pic_order_cnt_lsb_minus4 = 0;
         }
 
@@ -163,26 +163,26 @@ namespace decode {
         {
             if(m_avcPicParams->seq_fields.delta_pic_order_always_zero_flag != 0)
             {
-                DECODE_ASSERTMESSAGE("Conflict with H264 Spec! delta_pic_order_always_zero_flag should be 0 when pic_order_cnt_type is not set");
+                DECODE_WARNINGMESSAGE("Conflict with H264 Spec! delta_pic_order_always_zero_flag should be 0 when pic_order_cnt_type is not set");
                 m_avcPicParams->seq_fields.delta_pic_order_always_zero_flag = 0;
             }
 
             if(m_avcPicParams->seq_fields.log2_max_pic_order_cnt_lsb_minus4 > 12)
             {
-                DECODE_ASSERTMESSAGE("Conflict with H264 Spec! log2_max_pic_order_cnt_lsb_minus4 is out of range");
+                DECODE_WARNINGMESSAGE("Conflict with H264 Spec! log2_max_pic_order_cnt_lsb_minus4 is out of range");
             }
         }
 
         //currently num_slice_groups_minus1, slice_group_map_type and slice_group_change_rate_minus1 are all set to 0 in driver
         if(m_avcPicParams->num_slice_groups_minus1 > 7)
         {
-            DECODE_ASSERTMESSAGE("Conflict with H264 Spec! num_slice_groups_minus1 is out of range");
+            DECODE_WARNINGMESSAGE("Conflict with H264 Spec! num_slice_groups_minus1 is out of range");
         }
         else
         {
             if(m_avcPicParams->slice_group_map_type > 6)
             {
-                DECODE_ASSERTMESSAGE("Conflict with H264 Spec! slice_group_map_type is out of range");
+                DECODE_WARNINGMESSAGE("Conflict with H264 Spec! slice_group_map_type is out of range");
             }
             else if(m_avcPicParams->slice_group_map_type == 3
                     || m_avcPicParams->slice_group_map_type == 4
@@ -191,36 +191,36 @@ namespace decode {
 
                 if(m_avcPicParams->slice_group_change_rate_minus1 > (m_avcPicParams->pic_width_in_mbs_minus1 + 1) * (m_avcPicParams->pic_height_in_mbs_minus1 + 1))
                 {
-                    DECODE_ASSERTMESSAGE("Conflict with H264 Spec! slice_group_change_rate_minus1 is out of range");
+                    DECODE_WARNINGMESSAGE("Conflict with H264 Spec! slice_group_change_rate_minus1 is out of range");
                 }
             }
             else if(m_avcPicParams->slice_group_change_rate_minus1 != 0)
             {
-                DECODE_ASSERTMESSAGE("Conflict with H264 Spec!");
+                DECODE_WARNINGMESSAGE("Conflict with H264 Spec!");
             }
         }
 
         if(m_avcPicParams->pic_init_qp_minus26 < -(26 + 6 * m_avcPicParams->bit_depth_luma_minus8)
             || m_avcPicParams->pic_init_qp_minus26 > 25)
         {
-            DECODE_ASSERTMESSAGE("Conflict with H264 Spec! pic_init_qp_minus26 is out of range");
+            DECODE_WARNINGMESSAGE("Conflict with H264 Spec! pic_init_qp_minus26 is out of range");
         }
 
         if(m_avcPicParams->chroma_qp_index_offset < -12
             || m_avcPicParams->chroma_qp_index_offset > 12)
         {
-            DECODE_ASSERTMESSAGE("Conflict with H264 Spec! chroma_qp_index_offset is out of range");
+            DECODE_WARNINGMESSAGE("Conflict with H264 Spec! chroma_qp_index_offset is out of range");
         }
 
         if(m_avcPicParams->second_chroma_qp_index_offset < -12
             || m_avcPicParams->second_chroma_qp_index_offset > 12)
         {
-            DECODE_ASSERTMESSAGE("Conflict with H264 Spec! second_chroma_qp_index_offset is out of range");
+            DECODE_WARNINGMESSAGE("Conflict with H264 Spec! second_chroma_qp_index_offset is out of range");
         }
 
         if(m_avcPicParams->pic_fields.weighted_bipred_idc > 2)
         {
-            DECODE_ASSERTMESSAGE("Conflict with H264 Spec! weighted_bipred_idc is out of range");
+            DECODE_WARNINGMESSAGE("Conflict with H264 Spec! weighted_bipred_idc is out of range");
         }
 
         if (!m_shortFormatInUse)
@@ -233,12 +233,12 @@ namespace decode {
                     if (slc->num_ref_idx_l0_active_minus1 > 15)
                     {
                         slc->num_ref_idx_l0_active_minus1 = 0;
-                        DECODE_ASSERTMESSAGE("Conflict with H264 Spec! num_ref_idx_l0_active_minus1 is out of range");
+                        DECODE_WARNINGMESSAGE("Conflict with H264 Spec! num_ref_idx_l0_active_minus1 is out of range");
                     }
                     if (slc->num_ref_idx_l1_active_minus1 > 15)
                     {
                         slc->num_ref_idx_l1_active_minus1 = 0;
-                        DECODE_ASSERTMESSAGE("Conflict with H264 Spec! num_ref_idx_l1_active_minus1 is out of range");
+                        DECODE_WARNINGMESSAGE("Conflict with H264 Spec! num_ref_idx_l1_active_minus1 is out of range");
                     }
                 }
                 else if(m_avcPicParams->pic_fields.field_pic_flag == 1)
@@ -246,12 +246,12 @@ namespace decode {
                     if (slc->num_ref_idx_l0_active_minus1 > 31)
                     {
                         slc->num_ref_idx_l0_active_minus1 = 0;
-                        DECODE_ASSERTMESSAGE("Conflict with H264 Spec! num_ref_idx_l0_active_minus1 is out of range");
+                        DECODE_WARNINGMESSAGE("Conflict with H264 Spec! num_ref_idx_l0_active_minus1 is out of range");
                     }
                     if (slc->num_ref_idx_l1_active_minus1 > 31)
                     {
                         slc->num_ref_idx_l1_active_minus1 = 0;
-                        DECODE_ASSERTMESSAGE("Conflict with H264 Spec! num_ref_idx_l1_active_minus1 is out of range");
+                        DECODE_WARNINGMESSAGE("Conflict with H264 Spec! num_ref_idx_l1_active_minus1 is out of range");
                     }
                 }
             }
@@ -460,7 +460,7 @@ namespace decode {
             || m_avcPicParams->bit_depth_luma_minus8 > 0
             || m_avcPicParams->bit_depth_chroma_minus8 > 0)
         {
-            DECODE_ASSERTMESSAGE("Only 4:2:0 8bit is supported!");
+            DECODE_WARNINGMESSAGE("Only 4:2:0 8bit is supported!");
         }
 
         return MOS_STATUS_SUCCESS;

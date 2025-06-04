@@ -207,7 +207,7 @@ MOS_STATUS HevcBasicFeature::ErrorDetectAndConceal()
     // diff_cu_qp_delta_depth range is [0, log2_diff_max_min_luma_coding_block_size]
     if (m_hevcPicParams->diff_cu_qp_delta_depth > m_hevcPicParams->log2_diff_max_min_luma_coding_block_size)
     {
-        DECODE_ASSERTMESSAGE("diff_cu_qp_delta_depth %d is invalid\n", m_hevcPicParams->diff_cu_qp_delta_depth);
+        DECODE_WARNINGMESSAGE("diff_cu_qp_delta_depth %d is invalid\n", m_hevcPicParams->diff_cu_qp_delta_depth);
         m_hevcPicParams->diff_cu_qp_delta_depth = 0;
     }
 
@@ -255,31 +255,31 @@ MOS_STATUS HevcBasicFeature::ErrorDetectAndConceal()
         if (m_hevcPicParams->transform_skip_enabled_flag == 0)
         {
             m_hevcRextPicParams->log2_max_transform_skip_block_size_minus2 = 0;
-            DECODE_ASSERTMESSAGE("log2_max_transform_skip_block_size_minus2 should equal to 0 when transform_skip_enabled_flag not present\n");
+            DECODE_WARNINGMESSAGE("log2_max_transform_skip_block_size_minus2 should equal to 0 when transform_skip_enabled_flag not present\n");
         }
 
         if (m_hevcRextPicParams->diff_cu_chroma_qp_offset_depth > m_hevcPicParams->log2_diff_max_min_luma_coding_block_size)
         {
-            DECODE_ASSERTMESSAGE("diff_cu_chroma_qp_offset_depth is out of range\n");
+            DECODE_WARNINGMESSAGE("diff_cu_chroma_qp_offset_depth is out of range\n");
         }
 
         // only for 4:4:4 it can be program to non-zero
         if (m_hevcPicParams->chroma_format_idc != 3)
         {
-            DECODE_ASSERTMESSAGE("chroma_qp_offset_list_enabled_flag is only supported in 4:4:4\n");
+            DECODE_WARNINGMESSAGE("chroma_qp_offset_list_enabled_flag is only supported in 4:4:4\n");
         }
 
         // chroma_qp_offset_list_len_minus1 range is [0, 5]
         if (m_hevcRextPicParams->chroma_qp_offset_list_len_minus1 > 5)
         {
-            DECODE_ASSERTMESSAGE("chroma_qp_offset_list_len_minus1 is out of range [0, 5]\n");
+            DECODE_WARNINGMESSAGE("chroma_qp_offset_list_len_minus1 is out of range [0, 5]\n");
         }
 
         // check if TU size is valid
         auto maxTUSize = m_hevcPicParams->log2_diff_max_min_transform_block_size + m_hevcPicParams->log2_min_transform_block_size_minus2;
         if (m_hevcRextPicParams->log2_max_transform_skip_block_size_minus2 > maxTUSize)
         {
-            DECODE_ASSERTMESSAGE("log2_max_transform_skip_block_size_minus2 is out of range\n");
+            DECODE_WARNINGMESSAGE("log2_max_transform_skip_block_size_minus2 is out of range\n");
         }
     }
 
@@ -290,7 +290,7 @@ MOS_STATUS HevcBasicFeature::ErrorDetectAndConceal()
         {
             if (m_hevcPicParams->entropy_coding_sync_enabled_flag && m_hevcPicParams->tiles_enabled_flag)
             {
-                DECODE_ASSERTMESSAGE("Only SCC 4:4:4 allows both tiles_enabled_flag and entropy_coding_sync_enabled_flag to be on at the same time\n");
+                DECODE_WARNINGMESSAGE("Only SCC 4:4:4 allows both tiles_enabled_flag and entropy_coding_sync_enabled_flag to be on at the same time\n");
             }
         }
     }

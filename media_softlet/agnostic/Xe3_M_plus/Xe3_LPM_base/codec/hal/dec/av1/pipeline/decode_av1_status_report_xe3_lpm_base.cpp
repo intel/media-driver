@@ -65,7 +65,7 @@ namespace decode {
                 statusReportData->codecStatus = CODECHAL_STATUS_SUCCESSFUL;
             }
 
-            DECODE_ASSERTMESSAGE(
+            DECODE_WARNINGMESSAGE(
                 "Superblock Y Position for the First Error detected in the current decoded tile: %d, \n"
                 "Superblock X Position for the First Error detected in the current decoded tile: %d, \n"
                 "Bitstream Overflow:            %d, \n"
