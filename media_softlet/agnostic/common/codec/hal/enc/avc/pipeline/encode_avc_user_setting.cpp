@@ -125,6 +125,13 @@ MOS_STATUS AvcVdencPipeline::InitUserSetting(MediaUserSettingSharedPtr userSetti
         MediaUserSetting::Group::Sequence,
         false,
         false);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "AVC Pak Rho Domain StreamOut Enable",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        false);
 #endif
     return MOS_STATUS_SUCCESS;
 }
