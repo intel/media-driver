@@ -88,7 +88,7 @@ namespace encode
 
             if ((m_basicFeature->m_targetUsage == 7 || m_basicFeature->m_targetUsage == 6) && (m_enablePalette || m_enableIBC))
             {
-                data[52] &= 0xfffffff1;
+                data[54] &= 0xfffffff1;
             }
 
             if (m_IBCEnabledForCurrentTile)

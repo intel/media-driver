@@ -116,7 +116,7 @@ MHW_SETPAR_DECL_SRC(VDENC_CMD2, Av1BasicFeatureXe3_Lpm_Base)
         if (IsFrameLossless(*m_av1PicParams))
         {
             data[64]               = data[64] & 0xfffffffc;
-            data[54]               = data[54] & 0xfffffdf;
+            data[54]               = data[54] & 0xffffffbf;
             data[63]               = (data[63] & 0xff00ffff) | 0x10000;
             data[63]               = (data[63] & 0xffff00ff) | 0x100;
             data[63]               = (data[63] & 0xffffff00) | 0x1;
