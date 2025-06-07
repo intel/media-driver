@@ -166,16 +166,16 @@ void SfcRenderBase::SetColorFillParams(
 {
     VP_FUNC_CALL();
 
-    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(m_renderData.pColorFillParams);
+    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(m_renderData.sfcStateParams);
 
-    psfcStateParams->bColorFillEnable = m_renderData.pColorFillParams->bColorfillEnable;
+    psfcStateParams->bColorFillEnable = m_renderData.sfcStateParams->bColorFillEnable;
 
     if (psfcStateParams->bColorFillEnable)
     {
-        psfcStateParams->fColorFillYRPixel = m_renderData.pColorFillParams->fColorFillYRPixel;
-        psfcStateParams->fColorFillUGPixel = m_renderData.pColorFillParams->fColorFillUGPixel;
-        psfcStateParams->fColorFillVBPixel = m_renderData.pColorFillParams->fColorFillVBPixel;
-        psfcStateParams->fColorFillAPixel  = m_renderData.pColorFillParams->fColorFillAPixel;
+        psfcStateParams->fColorFillYRPixel = m_renderData.sfcStateParams->fColorFillYRPixel;
+        psfcStateParams->fColorFillUGPixel = m_renderData.sfcStateParams->fColorFillUGPixel;
+        psfcStateParams->fColorFillVBPixel = m_renderData.sfcStateParams->fColorFillVBPixel;
+        psfcStateParams->fColorFillAPixel  = m_renderData.sfcStateParams->fColorFillAPixel;
     }
 }
 
@@ -665,7 +665,7 @@ MOS_STATUS SfcRenderBase::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
     m_renderData.SfcScalingMode = scalingParams->sfcScalingMode;
 
     // ColorFill/Alpha settings
-    m_renderData.pColorFillParams            = &(scalingParams->sfcColorfillParams);
+    m_renderData.sfcStateParams->bColorFillEnable  = scalingParams->sfcColorfillParams.bColorfillEnable;
     m_renderData.sfcStateParams->fAlphaPixel = scalingParams->sfcColorfillParams.fAlphaPixel;
     m_renderData.sfcStateParams->fColorFillAPixel  = scalingParams->sfcColorfillParams.fColorFillAPixel;
     m_renderData.sfcStateParams->fColorFillUGPixel = scalingParams->sfcColorfillParams.fColorFillUGPixel;
