@@ -911,13 +911,13 @@ CM_RT_API int32_t CmKernelRT::SetThreadCount(uint32_t count )
     return CM_SUCCESS;
 }
 
-int32_t CmKernelRT::GetThreadCount(uint32_t& count )
+int32_t CmKernelRT::GetThreadCount(uint32_t& count ) const
 {
     count = m_threadCount;
     return CM_SUCCESS;
 }
 
-int32_t CmKernelRT::GetKernelSurfaces(bool  *&surfArray)
+int32_t CmKernelRT::GetKernelSurfaces(bool  *&surfArray) const
 {
     surfArray = m_surfaceArray;
     return CM_SUCCESS;
@@ -945,7 +945,7 @@ int32_t CmKernelRT::ResetKernelSurfaces()
 //|             Use "value + indexSurfaceArray" to locate its surfaceIndex
 //| Returns:    CmSurface. Null if not found
 //*-----------------------------------------------------------------------------
-CmSurface* CmKernelRT::GetSurfaceFromSurfaceArray( SurfaceIndex* value, uint32_t indexSurfaceArray)
+CmSurface* CmKernelRT::GetSurfaceFromSurfaceArray( SurfaceIndex* value, uint32_t indexSurfaceArray) const
 {
     int32_t hr                          = CM_SUCCESS;
     CmSurface *surface           = nullptr;
@@ -1105,7 +1105,7 @@ finish:
 //|             vmeCmIndexArray points to arg.surfIndex
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmKernelRT::SetArgsSingleVme(CmSurfaceVme* vmeSurface, uint8_t *vmeArgValueArray, uint16_t *cmSufacesArray)
+int32_t CmKernelRT::SetArgsSingleVme(CmSurfaceVme* vmeSurface, uint8_t *vmeArgValueArray, uint16_t *cmSufacesArray) const
 {
 
     int32_t hr = CM_SUCCESS;
@@ -2391,10 +2391,10 @@ CM_RT_API int32_t CmKernelRT::SetThreadArg(uint32_t threadId, uint32_t index, si
 //| Purpose:  Calculate the total size of kernel data
 //*-----------------------------------------------------------------------------
 int32_t CmKernelRT::CalcKernelDataSize(
-                uint32_t movInstNum,                 // [in] the number of move instructions
-                uint32_t numArgs,                   // [in] number of args , surface array count
-                uint32_t argSize,                   // [in] Size of arguments
-                uint32_t & totalKernelDataSize)      // [out] total size of kernel data
+                uint32_t movInstNum,                  // [in] the number of move instructions
+                uint32_t numArgs,                     // [in] number of args , surface array count
+                uint32_t argSize,                     // [in] Size of arguments
+                uint32_t & totalKernelDataSize) const // [out] total size of kernel data
 {
     int32_t hr             = CM_SUCCESS;
 
