@@ -369,6 +369,13 @@ bool SwFilterDnHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInpu
 {
     VP_FUNC_CALL();
 
+    PVPHAL_SURFACE vphalSurf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
+    if (!(vphalSurf                &&
+        vphalSurf->pDenoiseParams &&
+        (vphalSurf->pDenoiseParams->bEnableLuma || vphalSurf->pDenoiseParams->bEnableHVSDenoise)))
+    {
+        return false;
+    }
 
     if (SwFilterFeatureHandler::IsVeboxTypeHMode())
     {
@@ -411,7 +418,7 @@ bool SwFilterDnHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInpu
         (inputSurface->Format == Format_A8R8G8B8   ||
         inputSurface->Format == Format_A16R16G16B16))
     {
-        VP_PUBLIC_NORMALMESSAGE("Unsupported Format '0x%08x' which DN will not supported", inputSurface->Format);
+        VP_PUBLIC_ASSERTMESSAGE("Unsupported Format '0x%08x' which DN will not supported", inputSurface->Format);
         return false;
     }
 
@@ -424,14 +431,7 @@ bool SwFilterDnHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInpu
         return false;
     }
 
-    PVPHAL_SURFACE vphalSurf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
-    if (vphalSurf && vphalSurf->pDenoiseParams &&
-        (vphalSurf->pDenoiseParams->bEnableLuma || vphalSurf->pDenoiseParams->bEnableHVSDenoise))
-    {
-        return true;
-    }
-
-    return false;
+    return true;
 }
 
 SwFilter* SwFilterDnHandler::CreateSwFilter()
@@ -473,6 +473,11 @@ SwFilterDiHandler::~SwFilterDiHandler()
 bool SwFilterDiHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex, SwFilterPipeType pipeType)
 {
     VP_FUNC_CALL();
+    PVPHAL_SURFACE vphalSurf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
+    if (!(vphalSurf && vphalSurf->pDeinterlaceParams))
+    {
+        return false;
+    }
 
     if (SwFilterFeatureHandler::IsVeboxTypeHMode())
     {
@@ -484,12 +489,6 @@ bool SwFilterDiHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInpu
         return false;
     }
 
-    PVPHAL_SURFACE vphalSurf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
-    if (vphalSurf && vphalSurf->pDeinterlaceParams && vphalSurf->SampleType != SAMPLE_PROGRESSIVE)
-    {
-        return true;
-    }
-
     if (vphalSurf && vphalSurf->bQueryVariance &&
         vphalSurf->Format != Format_P010 &&
         vphalSurf->Format != Format_P016)
@@ -497,6 +496,14 @@ bool SwFilterDiHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInpu
         VP_PUBLIC_NORMALMESSAGE("Query Variance is enabled, but APG didn't support this feature yet");
     }
 
+    if (vphalSurf->SampleType != SAMPLE_PROGRESSIVE)
+    {
+        return true;
+    }
+    else
+    {
+        VP_PUBLIC_ASSERTMESSAGE("DI: pDeinterlaceParams != NULL and SampleType = SAMPLE_PROGRESSIVE, driver disable DI");
+    }
     return false;
 }
 
@@ -539,6 +546,13 @@ SwFilterSteHandler::~SwFilterSteHandler()
 bool SwFilterSteHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex, SwFilterPipeType pipeType)
 {
     VP_FUNC_CALL();
+    PVPHAL_SURFACE vphalSurf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
+    if (!(vphalSurf && vphalSurf->pColorPipeParams    &&
+        (vphalSurf->pColorPipeParams->bEnableSTE      ||
+        vphalSurf->pColorPipeParams->bEnableSTD)))
+    {
+        return false;
+    }
 
     if (SwFilterFeatureHandler::IsVeboxTypeHMode())
     {
@@ -550,15 +564,7 @@ bool SwFilterSteHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInp
         return false;
     }
 
-    PVPHAL_SURFACE vphalSurf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
-    if (vphalSurf && vphalSurf->pColorPipeParams &&
-            (vphalSurf->pColorPipeParams->bEnableSTE ||
-        vphalSurf->pColorPipeParams->bEnableSTD))
-    {
-        return true;
-    }
-
-    return false;
+    return true;
 }
 
 SwFilter* SwFilterSteHandler::CreateSwFilter()
@@ -600,6 +606,13 @@ SwFilterTccHandler::~SwFilterTccHandler()
 bool SwFilterTccHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInputSurf, int surfIndex, SwFilterPipeType pipeType)
 {
     VP_FUNC_CALL();
+    PVPHAL_SURFACE vphalSurf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
+    if (!(vphalSurf                  &&
+        vphalSurf->pColorPipeParams  &&
+        vphalSurf->pColorPipeParams->bEnableTCC))
+    {
+        return false;
+    }
 
     if (SwFilterFeatureHandler::IsVeboxTypeHMode())
     {
@@ -611,14 +624,7 @@ bool SwFilterTccHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInp
         return false;
     }
 
-    PVPHAL_SURFACE vphalSurf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
-    if (vphalSurf && vphalSurf->pColorPipeParams &&
-        vphalSurf->pColorPipeParams->bEnableTCC)
-    {
-        return true;
-    }
-
-    return false;
+    return true;
 }
 
 SwFilter* SwFilterTccHandler::CreateSwFilter()
@@ -661,17 +667,26 @@ bool SwFilterProcampHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool i
 {
     VP_FUNC_CALL();
 
+    PVPHAL_SURFACE vphalSurf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
+    if (!(vphalSurf                  &&
+        vphalSurf->pProcampParams    &&
+        vphalSurf->pProcampParams->bEnabled))
+    {
+        return false;
+    }
+
     if (!SwFilterFeatureHandler::IsFeatureEnabled(params, isInputSurf, surfIndex, pipeType))
     {
         return false;
     }
 
-    PVPHAL_SURFACE vphalSurf = isInputSurf ? params.pSrc[surfIndex] : params.pTarget[surfIndex];
-    if (vphalSurf && vphalSurf->pProcampParams &&
-        !IS_RGB_FORMAT(vphalSurf->Format)      &&
-        vphalSurf->pProcampParams->bEnabled)
+    if (!IS_RGB_FORMAT(vphalSurf->Format))
     {
         return true;
+    }
+    else
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Procamp: input format is RGB format, driver disable Procamp");
     }
 
     return false;
@@ -1050,6 +1065,14 @@ bool SwFilterCgcHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInp
 {
     VP_FUNC_CALL();
 
+    PVPHAL_SURFACE inputSurf  = static_cast<PVPHAL_SURFACE>(isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0]);
+    PVPHAL_SURFACE outputSurf = static_cast<PVPHAL_SURFACE>(isInputSurf ? params.pTarget[0] : params.pTarget[surfIndex]);
+
+    if (!(inputSurf && outputSurf))
+    {
+        return false;
+    }
+
     if (SwFilterFeatureHandler::IsVeboxTypeHMode())
     {
         return false;
@@ -1069,15 +1092,11 @@ bool SwFilterCgcHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInp
         return false;
     }
 
-    PVPHAL_SURFACE inputSurf  = static_cast<PVPHAL_SURFACE>(isInputSurf ? params.pSrc[surfIndex] : params.pSrc[0]);
-    PVPHAL_SURFACE outputSurf = static_cast<PVPHAL_SURFACE>(isInputSurf ? params.pTarget[0] : params.pTarget[surfIndex]);
-
-    if (inputSurf && outputSurf &&
-        IS_COLOR_SPACE_BT2020_YUV(inputSurf->ColorSpace) &&
-      (!(inputSurf->pHDRParams && 
+    if (IS_COLOR_SPACE_BT2020_YUV(inputSurf->ColorSpace) &&
+        (!(inputSurf->pHDRParams &&
         (inputSurf->pHDRParams->EOTF != VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR) &&
-       !(outputSurf->pHDRParams && 
-        (outputSurf->pHDRParams->EOTF != VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR))))) // When HDR Enabled, GC should always be turn off, not to create the sw filter
+        !(outputSurf->pHDRParams &&
+        (outputSurf->pHDRParams->EOTF != VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR)))))  // When HDR Enabled, GC should always be turn off, not to create the sw filter
     {
         if ((outputSurf->ColorSpace == CSpace_BT601) ||
             (outputSurf->ColorSpace == CSpace_BT709) ||
@@ -1089,7 +1108,6 @@ bool SwFilterCgcHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInp
             return true;
         }
     }
-
     return false;
 }
 
