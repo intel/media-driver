@@ -139,6 +139,7 @@ MOS_STATUS XRenderHal_Interface_Xe2_Hpg_Next::SendTo3DStateBindingTablePoolAlloc
     computerModeParams                             = {};
     computerModeParams.enableLargeGrf              = pRenderHal->largeGrfMode;
     computerModeParams.forceEuThreadSchedulingMode = pRenderHal->euThreadSchedulingMode;
+    computerModeParams.enableVariableRegisterSizeAllocationVrt = pRenderHal->enableVariableRegisterSizeAllocationVrt;
     m_renderItf->MHW_ADDCMD_F(STATE_COMPUTE_MODE)(pCmdBuffer);
 
     SETPAR_AND_ADDCMD(_3DSTATE_BINDING_TABLE_POOL_ALLOC, m_renderItf, pCmdBuffer);

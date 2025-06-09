@@ -1584,6 +1584,7 @@ MHW_SETPAR_DECL_SRC(COMPUTE_WALKER, XRenderHal_Platform_Interface_Next)
         params.simdSize = 32;
     }
 
+    params.registersPerThread    = m_gpgpuWalkerParams->registersPerThread;
     params.isEmitInlineParameter = m_gpgpuWalkerParams->isEmitInlineParameter;
     if (m_gpgpuWalkerParams->inlineDataLength > 0 && m_gpgpuWalkerParams->inlineData)
     {

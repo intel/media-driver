@@ -312,6 +312,7 @@ typedef struct _MHW_GPGPU_WALKER_PARAMS
     bool                       hasBarrier;
 
     uint32_t                   simdSize;
+    uint32_t                   registersPerThread;
 
     PMHW_INDIRECT_STATE_RESOURCE_PARAMS curbeResourceList;
     uint32_t                            curbeResourceListSize;

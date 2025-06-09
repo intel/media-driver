@@ -61,6 +61,11 @@ public:
 
     virtual MOS_STATUS InitPolicyRules(VP_POLICY_RULES &rules) override;
 
+    virtual bool IsVrtEnabled() override
+    {
+        return true;
+    }
+
 protected:
     bool m_disableSfcDithering = false;
 

@@ -460,6 +460,11 @@ public:
         return m_isOclKernelEnabled;
     }
 
+    virtual bool IsVrtEnabled()
+    {
+        return false;
+    }
+
     virtual MOS_STATUS InitVpFeatureSupportBits()
     {
         return MOS_STATUS_SUCCESS;

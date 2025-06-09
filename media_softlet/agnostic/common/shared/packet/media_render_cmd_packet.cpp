@@ -1265,6 +1265,8 @@ MOS_STATUS RenderCmdPacket::PrepareComputeWalkerParams(KERNEL_WALKER_PARAMS para
 
     gpgpuWalker.SLMSize           = params.slmSize;
     gpgpuWalker.hasBarrier        = params.hasBarrier;
+    
+    gpgpuWalker.registersPerThread = params.registersPerThread;
 
     gpgpuWalker.curbeResourceList     = params.curbeResourceList;
     gpgpuWalker.curbeResourceListSize = params.curbeResourceListSize;

@@ -152,6 +152,7 @@ public:
         cmd.DW1.Mask1                          = 0xFFFF;
         cmd.DW1.LargeGrfMode                   = params.enableLargeGrf;
         cmd.DW1.EuThreadSchedulingModeOverride = params.forceEuThreadSchedulingMode;
+        cmd.DW1.EnableVariableRegisterSizeAllocationVrt = params.enableVariableRegisterSizeAllocationVrt;
 
         return MOS_STATUS_SUCCESS;
     }
@@ -217,6 +218,37 @@ public:
 
         cmd.DW4.GenerateLocalId = params.isGenerateLocalId;
         cmd.DW4.EmitLocal       = params.emitLocal;
+
+        switch (params.registersPerThread)
+        {
+        case 32:
+            cmd.InterfaceDescriptor.DW2.RegistersPerThread = Cmd::COMPUTE_WALKER_CMD::INTERFACE_DESCRIPTOR_DATA_CMD::REGISTERS_PER_THREAD_REGISTERS32;
+            break;
+        case 64:
+            cmd.InterfaceDescriptor.DW2.RegistersPerThread = Cmd::COMPUTE_WALKER_CMD::INTERFACE_DESCRIPTOR_DATA_CMD::REGISTERS_PER_THREAD_REGISTERS64;
+            break;
+        case 96:
+            cmd.InterfaceDescriptor.DW2.RegistersPerThread = Cmd::COMPUTE_WALKER_CMD::INTERFACE_DESCRIPTOR_DATA_CMD::REGISTERS_PER_THREAD_REGISTERS96;
+            break;
+        case 0:
+        case 128:
+            cmd.InterfaceDescriptor.DW2.RegistersPerThread = Cmd::COMPUTE_WALKER_CMD::INTERFACE_DESCRIPTOR_DATA_CMD::REGISTERS_PER_THREAD_REGISTERS128;
+            break;
+        case 160:
+            cmd.InterfaceDescriptor.DW2.RegistersPerThread = Cmd::COMPUTE_WALKER_CMD::INTERFACE_DESCRIPTOR_DATA_CMD::REGISTERS_PER_THREAD_REGISTERS160;
+            break;
+        case 192:
+            cmd.InterfaceDescriptor.DW2.RegistersPerThread = Cmd::COMPUTE_WALKER_CMD::INTERFACE_DESCRIPTOR_DATA_CMD::REGISTERS_PER_THREAD_REGISTERS192;
+            break;
+        case 256:
+            cmd.InterfaceDescriptor.DW2.RegistersPerThread = Cmd::COMPUTE_WALKER_CMD::INTERFACE_DESCRIPTOR_DATA_CMD::REGISTERS_PER_THREAD_REGISTERS256;
+            break;
+        case 512:
+            cmd.InterfaceDescriptor.DW2.RegistersPerThread = Cmd::COMPUTE_WALKER_CMD::INTERFACE_DESCRIPTOR_DATA_CMD::REGISTERS_PER_THREAD_REGISTERS512;
+            break;
+        default:
+            MHW_MI_CHK_STATUS(MOS_STATUS_INVALID_PARAMETER);
+        }
 
         if (params.heapsResource.curbeResourceListSize > 0)
         {

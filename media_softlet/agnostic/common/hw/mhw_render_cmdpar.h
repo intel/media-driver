@@ -402,15 +402,16 @@ struct _MHW_PAR_T(COMPUTE_WALKER)
     MHW_EMIT_LOCAL_MODE       emitLocal                     = MHW_EMIT_LOCAL_NONE;
     uint32_t                  preferredSlmAllocationSize    = 0;
     uint32_t                  simdSize                      = 0;
+    uint32_t                  registersPerThread            = 0;
     _MHW_PAR_T(CFE_STATE)     cfeState                      = {};
     MHW_HEAPS_RESOURCE        heapsResource                 = {};
-
 };
 
 struct _MHW_PAR_T(STATE_COMPUTE_MODE)
 {
-    bool enableLargeGrf = false;
-    uint32_t forceEuThreadSchedulingMode = 0;
+    bool     enableLargeGrf                          = false;
+    uint32_t forceEuThreadSchedulingMode             = 0;
+    bool     enableVariableRegisterSizeAllocationVrt = false;
 };
 
 }  // namespace render

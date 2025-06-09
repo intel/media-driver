@@ -198,6 +198,8 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
     VP_RENDER_CHK_NULL_RETURN(m_renderHal);
     VP_RENDER_CHK_NULL_RETURN(m_kernelSet);
     VP_RENDER_CHK_NULL_RETURN(m_surfMemCacheCtl);
+    VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
+    VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_vpPlatformInterface);
 
     if (m_renderHal->pStateHeap == nullptr)
     {
@@ -224,8 +226,9 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
         return MOS_STATUS_SUCCESS;
     }
 
-    m_renderHal->euThreadSchedulingMode = 0;
-    m_renderHal->largeGrfMode           = 0;
+    m_renderHal->euThreadSchedulingMode                  = 0;
+    m_renderHal->largeGrfMode                            = 0;
+    m_renderHal->enableVariableRegisterSizeAllocationVrt = m_hwInterface->m_vpPlatformInterface->IsVrtEnabled();
 
     VP_RENDER_CHK_STATUS_RETURN(m_kernelSet->CreateKernelObjects(
         m_renderKernelParams,
@@ -1931,12 +1934,13 @@ void VpRenderCmdPacket::PrintWalkerParas(MHW_GPGPU_WALKER_PARAMS& WalkerParams)
         WalkerParams.GroupStartingY,
         WalkerParams.GroupStartingZ,
         WalkerParams.SLMSize);
-    VP_RENDER_VERBOSEMESSAGE("GpGPU WalkerParams: GenerateLocalId %d, EmitLocal %d, EmitInlineParameter %d, HasBarrier %d, SIMD size %d",
+    VP_RENDER_VERBOSEMESSAGE("GpGPU WalkerParams: GenerateLocalId %d, EmitLocal %d, EmitInlineParameter %d, HasBarrier %d, SIMD size %d, RegistersPerThread %d",
         WalkerParams.isGenerateLocalID,
         WalkerParams.emitLocal,
         WalkerParams.isEmitInlineParameter,
         WalkerParams.hasBarrier,
-        WalkerParams.simdSize);
+        WalkerParams.simdSize,
+        WalkerParams.registersPerThread);
     VP_RENDER_VERBOSEMESSAGE("GpGPU WalkerParams: InlineDataLength = %d, InlineData = %s",
         WalkerParams.inlineDataLength,
         inlineData.c_str());

@@ -1199,6 +1199,7 @@ typedef struct _RENDERHAL_INTERFACE
     MHW_WALKER_MODE              MediaWalkerMode;                               // Media object walker mode from Regkey: repel, dual mode, quad mode
     uint32_t                     euThreadSchedulingMode;
     uint32_t                     largeGrfMode;
+    uint32_t                     enableVariableRegisterSizeAllocationVrt;
 
     RENDERHAL_SURFACE_STATE_TYPE SurfaceTypeDefault;                            // Surface State type default
     RENDERHAL_SURFACE_STATE_TYPE SurfaceTypeAdvanced;                           // Surface State type advanced

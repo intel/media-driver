@@ -464,6 +464,7 @@ MOS_STATUS VpRenderAiKernel::SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, 
             m_walkerParam.emitLocal         = MHW_EMIT_LOCAL_XYZ;
         }
     }
+    m_walkerParam.registersPerThread = m_kernelEnv.uGrfCount;
 
     return MOS_STATUS_SUCCESS;
 }

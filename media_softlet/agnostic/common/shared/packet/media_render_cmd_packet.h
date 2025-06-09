@@ -127,6 +127,8 @@ typedef struct _KERNEL_WALKER_PARAMS
 
     uint32_t                            simdSize;
 
+    uint32_t                            registersPerThread;
+
     PMHW_INDIRECT_STATE_RESOURCE_PARAMS curbeResourceList;
     uint32_t                            curbeResourceListSize;
 
