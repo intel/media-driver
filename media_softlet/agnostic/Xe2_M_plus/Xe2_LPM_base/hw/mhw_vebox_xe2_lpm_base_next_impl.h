@@ -1430,7 +1430,7 @@ public:
         }
         else
         {
-            MHW_ASSERTMESSAGE("Unknown branch!");
+            MHW_WARNINGMESSAGE("Unknown branch!");
         }
 
         return eStatus;
