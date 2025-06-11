@@ -6899,7 +6899,7 @@ bool CompositeState::BuildFilter(
         //--------------------------------
         // Set layer rotation
         //--------------------------------
-        pFilter->rotation = pSrc->Rotation;
+        pFilter->rotation = MEDIA_ROTATION(pSrc->Rotation);
 
         //--------------------------------
         // Set layer color space
@@ -7160,7 +7160,7 @@ bool CompositeState::BuildFilter(
         (pCompParams->uSourceCount > 0))
     {
         // either single layer L0 or all layer with the same rotation degree.
-        pFilter->rotation = pCompParams->pSource[0]->Rotation;
+        pFilter->rotation = MEDIA_ROTATION(pCompParams->pSource[0]->Rotation);
     }
 
     //-------------------------------------------------------

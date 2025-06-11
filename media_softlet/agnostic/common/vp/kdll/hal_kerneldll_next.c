@@ -53,6 +53,7 @@
 
 // Kernel IDs and Kernel Names
 #include "vpkrnheader.h"  // IDR_VP_TOTAL_NUM_KERNELS
+#include "cm_fc_ld.h"
 
 // Undefine _DEBUG symbol for the remaining of the KDLL Release build
 #if _DEBUG == 2
@@ -1438,7 +1439,7 @@ bool KernelDll_FindRule(
 
             // Match current layer rotation
             case RID_IsLayerRotation:
-                if (pSearchState->pFilter->rotation == (VPHAL_ROTATION)pRuleEntry->value)
+                if (pSearchState->pFilter->rotation == (MEDIA_ROTATION)pRuleEntry->value)
                 {
                     continue;
                 }
@@ -1501,7 +1502,7 @@ bool KernelDll_FindRule(
 
             // Match Src0 rotation
             case RID_IsSrc0Rotation:
-                if (pSearchState->src0_rotation == (VPHAL_ROTATION)pRuleEntry->value)
+                if (pSearchState->src0_rotation == (MEDIA_ROTATION)pRuleEntry->value)
                 {
                     continue;
                 }
@@ -2309,7 +2310,7 @@ void KernelDll_StartKernelSearch(
             if (!pFilter[nLayer].bEnableDscale &&
                 (!pFilter[nLayer].bWaEnableDscale ||
                     (pFilter[nLayer].layer == Layer_SubVideo &&
-                        pFilter[nLayer].rotation != VPHAL_ROTATION_IDENTITY)))
+                        pFilter[nLayer].rotation != MEDIA_ROTATION(VPHAL_ROTATION_IDENTITY))))
             {
                 if (pFilter[nLayer].sampler == Sample_Scaling_034x)
                 {

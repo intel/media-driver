@@ -28,3 +28,4 @@
 #include "capstable_data_xe_lpm_plus_r0_specific.h"
 
 static bool capsTableXe_Lpm_Plus_r0Registered = MediaCapsTable<CapsData>::RegisterCaps(plt_Xe_Lpm_plus_r0, capsData_Xe_Lpm_plus_r0);
+static bool capsTableXe_Lpm_Plus_Ext_r0Registered = MediaCapsTable<CapsData>::RegisterCaps(plt_Xe_Lpm_plus_ext_r0, capsData_Xe_Lpm_plus_r0);

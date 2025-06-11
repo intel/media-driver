@@ -901,7 +901,7 @@ MOS_STATUS VpRenderFcKernel::BuildFilter(
         //--------------------------------
         // Set layer rotation
         //--------------------------------
-        pFilter->rotation = src->rotation;
+        pFilter->rotation = MEDIA_ROTATION(src->rotation);
         if (src->rotation != VPHAL_ROTATION_IDENTITY)
         {
             bRotation = true;

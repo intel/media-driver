@@ -176,9 +176,6 @@ public:
         cmd.DW2.IndirectDataLength = params.IndirectDataLength;
         cmd.DW3.IndirectDataStartAddress = params.IndirectDataStartAddress >> MHW_COMPUTE_INDIRECT_SHIFT;
 
-        cmd.DW4.SIMDSize = mhw::render::xe_hpg::Cmd::COMPUTE_WALKER_CMD::SIMD_SIZE_SIMD32;
-
-        cmd.DW5.ExecutionMask = 0xffffffff;
         cmd.DW6.LocalXMaximum = params.ThreadWidth - 1;
         cmd.DW6.LocalYMaximum = params.ThreadHeight - 1;
         cmd.DW6.LocalZMaximum = params.ThreadDepth - 1;
@@ -229,6 +226,24 @@ public:
                 &resourceParams));
             cmd.postsync_data.DW0.Operation = mhw::render::xe_hpg::Cmd::COMPUTE_WALKER_CMD::POSTSYNC_DATA_CMD::POSTSYNC_OPERATION_WRITE_TIMESTAMP;
         }
+
+        if (params.simdSize == 16)
+        {
+            cmd.DW4.SIMDSize      = mhw::render::xe_hpg::Cmd::COMPUTE_WALKER_CMD::SIMD_SIZE_SIMD16;
+            cmd.DW4.MessageSIMD   = 1;
+            cmd.DW5.ExecutionMask = 0xffff;
+        }
+        else
+        {
+            cmd.DW4.SIMDSize      = mhw::render::xe_hpg::Cmd::COMPUTE_WALKER_CMD::SIMD_SIZE_SIMD32;
+            cmd.DW4.MessageSIMD   = 2;
+            cmd.DW5.ExecutionMask = 0xffffffff;
+        }
+
+        cmd.DW4.GenerateLocalID     = params.isGenerateLocalId;
+        cmd.DW4.EmitLocal           = params.emitLocal;
+        cmd.DW4.EmitInlineParameter = params.isEmitInlineParameter;
+        MOS_SecureMemcpy(cmd.inline_data.Value, sizeof(cmd.inline_data.Value), params.inlineData, params.inlineDataLength);
 
         return MOS_STATUS_SUCCESS;
     }

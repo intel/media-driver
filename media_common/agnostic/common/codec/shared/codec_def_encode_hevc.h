@@ -735,7 +735,8 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
             uint32_t            pps_deblocking_filter_disabled_flag     : 1;
             uint32_t            bEnableCTULevelReport                   : 1;  // [0..1]
             uint32_t            bEnablePartialFrameUpdate               : 1;
-            uint32_t            reservedbits                            : 3;
+            uint32_t            bEnableSaliencyEncode                   : 1;
+            uint32_t            reservedbits                            : 2;
         };
         uint32_t                PicFlags;
     };

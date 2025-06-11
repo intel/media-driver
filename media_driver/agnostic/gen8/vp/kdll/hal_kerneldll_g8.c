@@ -104,11 +104,11 @@ void KernelDll_StartKernelSearch_g8(
         {
             for (nLayer = 1; nLayer < iFilterSize - 1; nLayer++)
             {
-                if (pSearchState->pFilter[nLayer].rotation == VPHAL_ROTATION_IDENTITY)
+                if (pSearchState->pFilter[nLayer].rotation == MEDIA_ROTATION(VPHAL_ROTATION_IDENTITY))
                 {
                     // If any layer except L0 needs rotation then rotate RT and skip preComp L0 Rotation
                     pSearchState->bRTRotate = false;
-                    pSearchState->pFilter[iFilterSize-1].rotation = VPHAL_ROTATION_IDENTITY;
+                    pSearchState->pFilter[iFilterSize - 1].rotation = MEDIA_ROTATION(VPHAL_ROTATION_IDENTITY);
                     break;
                  }
              }

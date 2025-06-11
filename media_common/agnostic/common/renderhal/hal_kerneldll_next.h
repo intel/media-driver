@@ -26,10 +26,8 @@
 #ifndef __HAL_KERNELDLL_NEXT_H__
 #define __HAL_KERNELDLL_NEXT_H__
 
-#include "vp_common.h"
-// Kernel IDs and Kernel Names
-#include "vpkrnheader.h"  // IDR_VP_TOTAL_NUM_KERNELS
-#include "cm_fc_ld.h"
+#include "mos_os.h"
+#include "media_common_defs.h"
 
 #if EMUL
 
@@ -538,8 +536,8 @@ typedef struct tagKdll_CSC_Matrix
     int bInUse : 1;  // Matrix is in use and valid (LSB)
     int : 3;
     Kdll_CoeffID iCoeffID : 4;     // Coeffient set
-    VPHAL_CSPACE SrcSpace : 8;     // Source Color Space
-    VPHAL_CSPACE DstSpace : 8;     // Destionation Color Space
+    MEDIA_CSPACE SrcSpace : 8;     // Source Color Space
+    MEDIA_CSPACE DstSpace : 8;     // Destionation Color Space
     int          iProcampID : 8;   // Procamp parameter set (-1 if no Procamp) (MSB)
     int          iProcampVersion;  // Last procamp version (to recalculate matrix)
     short        Coeff[12];        // CSC kernel coeff: [Y'/R']   [0  1  2]   [Y/R]   [ 3]
@@ -550,7 +548,7 @@ typedef struct tagKdll_CSC_Matrix
 // Structure that defines a full set of CSC or CSC+PA parameters to be used by a combined kernel
 typedef struct tagKdll_CSC_Params
 {
-    VPHAL_CSPACE    ColorSpace;                 // Selected Color Space
+    MEDIA_CSPACE    ColorSpace;                 // Selected Color Space
     Kdll_CSC_Matrix Matrix[DL_CSC_MAX];         // CSC conversion matrix (3x3 + 1x3)
     uint8_t         MatrixID[DL_CSC_MAX];       // Coefficient allocation array
     uint8_t         PatchMatrixID[DL_CSC_MAX];  // CSC Matrix ID
@@ -563,7 +561,7 @@ typedef struct tagKdll_FilterEntry
     // Current layer
     Kdll_Layer      layer;            // source layer       (Layer identification - Bg, Main, Sub, Gfx, ...)
     MOS_FORMAT      format;           // source format      (Pixel/Sampling Format - ARBG, NV12, YUY2, ...)
-    VPHAL_CSPACE    cspace;           // source color space (BT709, BT601, xvYCC709, xvYCC601, sRGB, ...)
+    MEDIA_CSPACE    cspace;           // source color space (BT709, BT601, xvYCC709, xvYCC601, sRGB, ...)
     Kdll_Sampling   sampler;          // sampling mode      (AVS, Scaling, ColorFill, Luma Keying, ...)
     int32_t         colorfill : 16;   // colorfill          (true/false)
     int32_t         lumakey : 16;     // Luma key           (true/false)
@@ -571,7 +569,7 @@ typedef struct tagKdll_FilterEntry
     Kdll_Processing process;          // processing mode    (Compositing, Constant Blending, Source Blending, ...)
     int             procamp;          // index to procamp parameters (-1 of Procamp disabled)
     int             matrix;           // index to CSC matrix entry   (-1 if CSC not required)
-    VPHAL_ROTATION  rotation;         // rotation angle
+    MEDIA_ROTATION  rotation;         // rotation angle
     MOS_TILE_TYPE   tiletype;         // Tiling Type
     bool            dualout;          // dual output mode
     bool            bWaEnableDscale;  // enable DScale kernels for sampler-unrom issue
@@ -649,7 +647,7 @@ typedef struct tagKdll_CacheEntry
     int               iFilterSize;       // kernel filter size
     Kdll_FilterEntry *pFilter;           // kernel filter description
     Kdll_CSC_Params * pCscParams;        // kernel CSC parameters
-    VPHAL_CSPACE      colorfill_cspace;  // intermediate color space for colorfill
+    MEDIA_CSPACE      colorfill_cspace;  // intermediate color space for colorfill
 
     // Cache control
     int      iKCID;      // kernel cache id (dynamically linked kernel)
@@ -729,7 +727,7 @@ typedef struct tagKdll_State
     int32_t       iProcampSize;  // Size of the array of Procamp parameters
 
     // Colorfill
-    VPHAL_CSPACE colorfill_cspace;  // Selected colorfill Color Space by Kdll
+    MEDIA_CSPACE colorfill_cspace;  // Selected colorfill Color Space by Kdll
 
     // Start kernel search
     void (*pfnStartKernelSearch)(PKdll_State pState,
@@ -811,7 +809,7 @@ typedef struct tagKdll_SearchState
     // Current state
     Kdll_FilterEntry *pFilter;       // Current filter entry
     Kdll_ParserState  state;         // Parser state
-    VPHAL_CSPACE      cspace;        // Destination color space
+    MEDIA_CSPACE      cspace;        // Destination color space
     int               quadrant;      // Current quadrant
     int               layer_number;  // Current layer number
 
@@ -823,7 +821,7 @@ typedef struct tagKdll_SearchState
     int32_t         src0_procamp;    // Src0 procamp
     Kdll_CoeffID    src0_coeff;      // Src0 CSC coefficiants
     Kdll_Processing src0_process;    // Src0 processing mode
-    VPHAL_ROTATION  src0_rotation;   // Src0 Rotate
+    MEDIA_ROTATION  src0_rotation;   // Src0 Rotate
 
     // Src1 state
     MOS_FORMAT      src1_format;          // Src1 source format
@@ -833,7 +831,7 @@ typedef struct tagKdll_SearchState
     int32_t         src1_procamp;         // Src1 procamp
     Kdll_CoeffID    src1_coeff;           // Src1 CSC coefficients
     Kdll_Processing src1_process;         // Src1 processing mode
-    VPHAL_ROTATION  src1_rotation;        // Src1 Rotate
+    MEDIA_ROTATION  src1_rotation;        // Src1 Rotate
 
     // Render Target Format
     MOS_FORMAT target_format;  // Render Target format
@@ -859,10 +857,10 @@ bool KernelDll_IsYUVFormat(MOS_FORMAT format);
 
 bool KernelDll_IsFormat(
     MOS_FORMAT   format,
-    VPHAL_CSPACE cspace,
+    MEDIA_CSPACE cspace,
     MOS_FORMAT   match);
 
-VPHAL_CSPACE KernelDll_TranslateCspace(VPHAL_CSPACE cspace);
+MEDIA_CSPACE KernelDll_TranslateCspace(MEDIA_CSPACE cspace);
 
 bool KernelDll_MapCSCMatrix(
     Kdll_CSCType type,
@@ -879,8 +877,8 @@ bool KernelDll_UpdateState(
     Kdll_SearchState *pSearchState);
 
 bool KernelDll_IsCspace(
-    VPHAL_CSPACE cspace,
-    VPHAL_CSPACE match);
+    MEDIA_CSPACE cspace,
+    MEDIA_CSPACE match);
 
 void KernelDll_GetCSCMatrix(
     Kdll_CSpace src,

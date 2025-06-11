@@ -25,7 +25,8 @@
 #include "mos_util_debug.h"
 #include "mos_utilities.h"
 
-#define _SW_BRC _MEDIA_RESERVED && (_DEBUG || _RELEASE_INTERNAL)
+#define _SW_BRC             _MEDIA_RESERVED && (_DEBUG || _RELEASE_INTERNAL)
+#define _KERNEL_RESERVED    _MEDIA_RESERVED && ENABLE_KERNELS
 
 enum HuCFunction
 {

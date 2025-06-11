@@ -33,6 +33,9 @@
 #include "encode_hevc_brc.h"
 #include "mhw_vdbox_vdenc_itf.h"
 #include "mhw_vdbox_huc_itf.h"
+#if _KERNEL_RESERVED
+#include "encode_saliency_feature.h"
+#endif
 
 namespace encode
 {
@@ -253,6 +256,10 @@ protected:
     EncodeBasicFeature *m_basicFeature = nullptr;
     CodechalHwInterfaceNext *m_hwInterface = nullptr;
     PMOS_INTERFACE m_osInterface = nullptr;
+
+#if _KERNEL_RESERVED
+    EncodeSaliencyFeature *m_saliencyFeature = nullptr;
+#endif
 
     bool IFrameIsSet = false;
     bool PBFrameIsSet = false;

@@ -68,6 +68,15 @@ protected:
     //!
     MOS_STATUS CheckFeatures(void *params) override;
 
+    //!
+    //! \brief  Create features
+    //! \param  [in] constsettings
+    //!         feature const settings
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS CreateFeatures(void *constSettings) override;
+
 MEDIA_CLASS_DEFINE_END(encode__EncodeHevcVdencFeatureManagerXe_Lpm_Plus)
 };
 

@@ -25,6 +25,8 @@
 //! \details    render copy implement file
 //!
 
+#include "vpkrnheader.h"
+#include "vp_common_defs.h"
 #include "media_render_copy_next.h"
 #include "media_interfaces_mhw_next.h"
 #include "media_render_common.h"

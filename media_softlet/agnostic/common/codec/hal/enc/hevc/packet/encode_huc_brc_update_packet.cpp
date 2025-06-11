@@ -33,6 +33,9 @@
 #include "encode_vdenc_lpla_analysis.h"
 #include "encode_hevc_vdenc_lpla_enc.h"
 #include "encode_hevc_header_packer.h"
+#if _KERNEL_RESERVED
+#include "encode_saliency_feature.h"
+#endif
 
 namespace encode
 {
@@ -840,6 +843,14 @@ namespace encode
         // set HCP_PIC_STATE command
         SETPAR_AND_ADDCMD(HCP_PIC_STATE, m_hcpItf, &constructedCmdBuf);
         m_cmd2StartInBytes = constructedCmdBuf.iOffset;
+
+#if _KERNEL_RESERVED
+        auto saliencyFeature = dynamic_cast<EncodeSaliencyFeature *>(m_featureManager->GetFeature(FeatureIDs::saliencyFeature));
+        if (saliencyFeature)
+        {
+            saliencyFeature->m_brcQpOffset = m_cmd2StartInBytes;
+        }
+#endif
 
         SETPAR_AND_ADDCMD(VDENC_CMD2, m_vdencItf, &constructedCmdBuf);
 

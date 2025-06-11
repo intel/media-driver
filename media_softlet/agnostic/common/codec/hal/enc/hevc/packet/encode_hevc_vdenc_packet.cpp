@@ -31,6 +31,9 @@
 #include "media_perf_profiler.h"
 #include "codec_hw_next.h"
 #include "hal_oca_interface_next.h"
+#if _KERNEL_RESERVED
+#include "encode_saliency_feature.h"
+#endif
 
 using namespace mhw::vdbox;
 
@@ -2365,6 +2368,29 @@ MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFE
         storeDataParams.dwResourceOffset = params->dwStatusBufNumPassesOffset;
         storeDataParams.dwValue          = params->ucPass;
         ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer));
+
+#if _KERNEL_RESERVED
+        ENCODE_CHK_NULL_RETURN(m_featureManager);
+        auto saliencyFeature = dynamic_cast<EncodeSaliencyFeature *>(m_featureManager->GetFeature(FeatureIDs::saliencyFeature));
+        if (saliencyFeature)
+        {
+            bool saliencyEnabled = false;
+            ENCODE_CHK_STATUS_RETURN(saliencyFeature->IsEnabled(saliencyEnabled));
+            if (saliencyEnabled)
+            {
+                auto brcFeature = dynamic_cast<HEVCEncodeBRC *>(m_featureManager->GetFeature(HevcFeatureIDs::hevcBrcFeature));
+                ENCODE_CHK_NULL_RETURN(brcFeature);
+
+                auto &miCpyMemMemParams       = m_miItf->MHW_GETPAR_F(MI_COPY_MEM_MEM)();
+                miCpyMemMemParams             = {};
+                miCpyMemMemParams.presSrc     = brcFeature->GetHevcVdenc2ndLevelBatchBuffer(m_pipeline->m_currRecycledBufIdx);
+                miCpyMemMemParams.dwSrcOffset = saliencyFeature->m_brcQpOffset + 27 * sizeof(uint32_t);
+                miCpyMemMemParams.presDst     = saliencyFeature->m_saliencyKernelPar.pBaseQpBuf;
+                miCpyMemMemParams.dwDstOffset = 0;
+                ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
+            }
+        }
+#endif
 
         return eStatus;
     }

@@ -28,6 +28,8 @@
 #ifndef __VP_COMMON_DEFS_H__
 #define __VP_COMMON_DEFS_H__
 
+#include <cstdint>
+#include "mos_defs.h"
 #include "media_common_defs.h"
 
 #define ADDRESS_PAGE_ALIGNMENT_MASK_X64 0xFFFFFFFFFFFFF000ULL

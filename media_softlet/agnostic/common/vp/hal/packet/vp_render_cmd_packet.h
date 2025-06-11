@@ -164,8 +164,6 @@ protected:
 protected:
 
     KERNEL_OBJECTS                     m_kernelObjs;
-    // Only for MULTI_KERNELS_WITH_ONE_MEDIA_STATE case.
-    KERNEL_RENDER_DATA                 m_kernelRenderData;
 
     KERNEL_CONFIGS                     m_kernelConfigs; // Kernel parameters for legacy kernels.
 
@@ -177,7 +175,6 @@ protected:
     KERNEL_SAMPLER_STATE_GROUP         m_kernelSamplerStateGroup;
 
     KERNEL_SUBMISSION_MODE             m_submissionMode   = SINGLE_KERNEL_ONLY;
-    uint32_t                           m_slmSize          = 0;
     uint32_t                           m_totalCurbeSize   = 0;
     uint32_t                           m_totoalInlineSize = 0;
 

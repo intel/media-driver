@@ -27,6 +27,7 @@
 //!
 #include "hal_kerneldll_next.h"  // Rule definitions
 #include "vpkrnheader.h"    // Kernel IDs
+#include "vp_common_defs.h"
 
 extern const Kdll_RuleEntry g_KdllRuleTable_Next[] =
 {

@@ -189,6 +189,8 @@ typedef struct _RENDERHAL_SURFACE_NEXT : public _RENDERHAL_SURFACE
     uint32_t Index;
 }RENDERHAL_SURFACE_NEXT, * PRENDERHAL_SURFACE_NEXT;
 
+using KERNEL_RENDER_DATA = std::map<uint32_t, KERNEL_PACKET_RENDER_DATA>;
+
 class RenderCmdPacket : virtual public CmdPacket, public mhw::mi::Itf::ParSetting
 {
 public:
@@ -347,6 +349,8 @@ protected:
 
     virtual void UpdateKernelConfigParam(RENDERHAL_KERNEL_PARAM &kernelParam);
 
+    MOS_STATUS SendMultiKernelMediaStates(PRENDERHAL_INTERFACE pRenderHal, PMOS_COMMAND_BUFFER pCmdBuffer);
+
 protected:
     PRENDERHAL_INTERFACE        m_renderHal = nullptr;
     MhwCpInterface*             m_cpInterface = nullptr;
@@ -393,6 +397,10 @@ protected:
     uint32_t                m_bKernelFenceEnabled : 1;
     bool                    m_bFlushToGo = true;
     uint8_t                 m_ui8InterfaceDescriptorOffset = 0;
+
+    uint32_t           m_slmSize          = 0;
+    KERNEL_RENDER_DATA m_kernelRenderData = {};  // Only for MULTI_KERNELS_WITH_ONE_MEDIA_STATE case.
+
 MEDIA_CLASS_DEFINE_END(RenderCmdPacket)
 };
 #endif // __MEDIA_RENDER_CMD_PACKET_H__

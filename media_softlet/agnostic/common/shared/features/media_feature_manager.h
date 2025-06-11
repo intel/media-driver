@@ -68,6 +68,7 @@ struct FeatureIDs
         basicFeature = CONSTRUCTFEATUREID(FEATURE_COMPONENT_COMMON, FEATURE_SUBCOMPONENT_COMMON, 0),
         encodeTile,
         preEncFeature,
+        saliencyFeature,
     };
 };
 //!

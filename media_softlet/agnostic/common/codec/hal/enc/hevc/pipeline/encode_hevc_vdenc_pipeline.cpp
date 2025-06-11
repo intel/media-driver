@@ -29,6 +29,9 @@
 #include "encode_tile.h"
 #include "encode_hevc_brc.h"
 #include "encode_vdenc_lpla_analysis.h"
+#if _KERNEL_RESERVED
+#include "encode_saliency_render_cmd_packet.h"
+#endif
 
 namespace encode {
 
@@ -260,6 +263,59 @@ MOS_STATUS HevcVdencPipeline::SwitchContext(uint8_t outputChromaFormat, uint16_t
     ENCODE_CHK_NULL_RETURN(m_scalability);
 
     m_scalability->SetPassNumber(m_featureManager->GetNumPass());
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS HevcVdencPipeline::ExecuteSaliencyPackets()
+{
+#if _KERNEL_RESERVED
+    bool saliencyEnabled = false;
+    RUN_FEATURE_INTERFACE_RETURN(EncodeSaliencyFeature, FeatureIDs::saliencyFeature, IsEnabled, saliencyEnabled);
+    if (saliencyEnabled)
+    {
+        //Switch for Kerenl.
+        ScalabilityPars scalPars = {};
+        ENCODE_CHK_NULL_RETURN(m_mediaContext);
+        ENCODE_CHK_STATUS_RETURN(m_mediaContext->SwitchContext(ComputeVppFunc, &scalPars, &m_scalability));
+
+        uint32_t execMode = 0;
+        RUN_FEATURE_INTERFACE_RETURN(EncodeSaliencyFeature, FeatureIDs::saliencyFeature, GetExecMode, execMode);
+
+         //Execute Saliency Kernels
+        if (execMode & SALIENCY_EXEC_JND)
+        {
+            ENCODE_CHK_STATUS_RETURN(ActivatePacket(hevcSaliencyPacket, true, 0, 0));
+            m_activePacketList.back().frameTrackingRequested = false;
+            ENCODE_CHK_STATUS_RETURN(ExecuteActivePackets());
+        }
+
+        //Copy Anchor frame
+        if (execMode & SALIENCY_EXEC_COPY)
+        {
+            auto saliencyFeature = dynamic_cast<EncodeSaliencyFeature *>(m_featureManager->GetFeature(FeatureIDs::saliencyFeature));
+            ENCODE_CHK_NULL_RETURN(saliencyFeature);
+            ENCODE_CHK_NULL_RETURN(saliencyFeature->m_saliencyKernelPar.pCurrRawSurf);
+            ENCODE_CHK_NULL_RETURN(saliencyFeature->m_saliencyKernelPar.pLastSceneSurf);
+
+            ENCODE_CHK_NULL_RETURN(m_mediaCopyWrapper);
+            ENCODE_CHK_STATUS_RETURN(m_mediaCopyWrapper->MediaCopy(
+                &saliencyFeature->m_saliencyKernelPar.pCurrRawSurf->OsResource,
+                &saliencyFeature->m_saliencyKernelPar.pLastSceneSurf->OsResource,
+                MCPY_METHOD_PERFORMANCE));
+        }
+
+        //Switch back to VDEnc
+        auto feature = dynamic_cast<HevcBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+        ENCODE_CHK_NULL_RETURN(feature);
+        uint16_t numTileRows    = 0;
+        uint16_t numTileColumns = 0;
+        RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, FeatureIDs::encodeTile, GetTileRowColumns, numTileRows, numTileColumns);
+        bool enableTileReplay = false;
+        RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, FeatureIDs::encodeTile, IsTileReplayEnabled, enableTileReplay);
+        ENCODE_CHK_STATUS_RETURN(SwitchContext(feature->m_outputChromaFormat, numTileRows, numTileColumns, enableTileReplay));
+    }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }

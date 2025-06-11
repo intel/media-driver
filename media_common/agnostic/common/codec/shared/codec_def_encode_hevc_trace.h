@@ -273,6 +273,7 @@ public:
         PUSH(TargetFrameSize);
         PUSH(StatusReportEnable.fields.FrameStats);
         PUSH(StatusReportEnable.fields.BlockStats);
+        PUSH(bEnableSaliencyEncode);
 
         MOS_TraceEventExt(
             EVENT_ENCODE_DDI_PIC_PARAM_HEVC,

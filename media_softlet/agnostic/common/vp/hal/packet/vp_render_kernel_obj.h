@@ -26,6 +26,7 @@
 #include "sw_filter.h"
 #include "media_render_cmd_packet.h"
 #include "vp_platform_interface.h"
+#include "vpkrnheader.h"
 #include <vector>
 #include <map>
 #include <set>

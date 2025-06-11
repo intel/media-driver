@@ -31,13 +31,13 @@
 #include "vp_platform_interface.h"
 #include "vp_pipeline_common.h"
 #include "vp_render_kernel_obj.h"
+#include "vpkrnheader.h"
 #include <map>
 
 namespace vp {
 
 // KernelIndex is the index in KERNEL_PARAMS_LIST
 using KERNEL_OBJECTS = std::map<KernelIndex, VpRenderKernelObj*>;
-using KERNEL_RENDER_DATA = std::map<KernelIndex, KERNEL_PACKET_RENDER_DATA>;
 using KERNEL_PARAMS_LIST = std::vector<KERNEL_PARAMS>;
 
 class VpKernelSet

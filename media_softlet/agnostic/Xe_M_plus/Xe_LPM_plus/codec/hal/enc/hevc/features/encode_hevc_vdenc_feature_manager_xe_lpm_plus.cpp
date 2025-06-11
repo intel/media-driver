@@ -26,6 +26,9 @@
 //!
 
 #include "encode_hevc_vdenc_feature_manager_xe_lpm_plus.h"
+#if _KERNEL_RESERVED
+#include "encode_hevc_vdenc_saliency_xe_lpm_plus.h"
+#endif
 
 namespace encode
 {
@@ -55,5 +58,20 @@ MOS_STATUS EncodeHevcVdencFeatureManagerXe_Lpm_Plus::CheckFeatures(void* params)
 
     return MOS_STATUS_SUCCESS;
 }
+
+MOS_STATUS EncodeHevcVdencFeatureManagerXe_Lpm_Plus::CreateFeatures(void* constSettings)
+{
+    ENCODE_FUNC_CALL();
+
+    ENCODE_CHK_STATUS_RETURN(EncodeHevcVdencFeatureManagerXe_Lpm_Plus_Base::CreateFeatures(constSettings));
+
+#if _KERNEL_RESERVED
+    HevcVdencSaliencyXe_Lpm_Plus *hevcSaliency = MOS_New(HevcVdencSaliencyXe_Lpm_Plus, this, m_allocator, m_hwInterface, constSettings);
+    ENCODE_CHK_STATUS_RETURN(RegisterFeatures(FeatureIDs::saliencyFeature, hevcSaliency, {HevcPipeline::encodePreEncPacket}));
+#endif
+
+    return MOS_STATUS_SUCCESS;
+}
+
 }
 

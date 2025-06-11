@@ -110,4 +110,12 @@
 #include "decode_scalability_singlepipe_next.h"
 #include "decode_scalability_multipipe_next.h"
 
+class MediaInterfacesHwInfoDeviceXe_Lpm_Plus_Ext : public MediaInterfacesHwInfoDevice
+{
+public:
+    virtual MOS_STATUS Initialize(PLATFORM platform) override;
+
+    MEDIA_CLASS_DEFINE_END(MediaInterfacesHwInfoDeviceXe_Lpm_Plus_Ext)
+};
+
 #endif  // __MEDIA_INTERFACES_ARL_H__
