@@ -587,7 +587,7 @@ namespace encode {
 
         PMOS_RESOURCE presMetadataBuffer = m_basicFeature->m_resMetadataBuffer;
         MetaDataOffset resourceOffset    = m_basicFeature->m_metaDataOffset;
-        if ((presMetadataBuffer == nullptr) || !m_pipeline->IsLastPass())
+        if (presMetadataBuffer == nullptr)
         {
             return MOS_STATUS_SUCCESS;
         }
