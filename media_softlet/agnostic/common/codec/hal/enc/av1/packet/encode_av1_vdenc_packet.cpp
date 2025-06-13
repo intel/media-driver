@@ -2132,6 +2132,11 @@ namespace encode{
         miLoadRegMemParams.dwRegister      = mmioRegs->generalPurposeRegister0LoOffset;
         ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(cmdBuffer));
 
+        //Clear VCS_GPR0_Hi
+        auto &miLoadRegImmParams      = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
+        miLoadRegImmParams.dwData     = 0;
+        miLoadRegImmParams.dwRegister = mmioRegs->generalPurposeRegister0HiOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer));
 
         uint32_t SHRNum          = static_cast<uint32_t>(log2(significantBits & (significantBits - 1) ^ significantBits));
         uint32_t miMathCmdNum    = 0;
@@ -2153,20 +2158,24 @@ namespace encode{
         {
             mhw::mi::MHW_MI_ALU_PARAMS aluParams[4] = {};
             uint32_t                   aluCount     = 0;
-            //load shr bits to register4
-            auto &miLoadRegImmParams      = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
+
+            //load shr bits to GPREG4
             miLoadRegImmParams            = {};
             miLoadRegImmParams.dwData     = SHRbit[i];
             miLoadRegImmParams.dwRegister = mmioRegs->generalPurposeRegister4LoOffset;
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer));
 
-            //load1 srca, reg1
+            miLoadRegImmParams.dwData     = 0;
+            miLoadRegImmParams.dwRegister = mmioRegs->generalPurposeRegister4HiOffset;
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer));
+
+            //load1 srca, GPREG0
             aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
             aluParams[aluCount].Operand1  = MHW_MI_ALU_SRCA;
             aluParams[aluCount].Operand2  = MHW_MI_ALU_GPREG0;
             ++aluCount;
 
-            //load2 srcb, reg2
+            //load2 srcb, GPREG4
             aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
             aluParams[aluCount].Operand1  = MHW_MI_ALU_SRCB;
             aluParams[aluCount].Operand2  = MHW_MI_ALU_GPREG4;
