@@ -884,6 +884,6 @@ enum RoundingMethod
 {
     fixedRounding = 0,
     adaptiveRounding,
-    lookUpTableRounding
+    lookUpTableRounding = 3
 };
 #endif  // __CODEC_DEF_ENCODE_AV1_H__

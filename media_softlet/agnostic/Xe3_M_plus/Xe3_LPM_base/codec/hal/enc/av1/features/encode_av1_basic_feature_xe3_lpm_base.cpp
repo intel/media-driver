@@ -89,6 +89,11 @@ MOS_STATUS Av1BasicFeatureXe3_Lpm_Base::Update(void *params)
         m_postCdefReconSurfaceFlag = true;
     }
 
+    if (m_roundingMethod == RoundingMethod::adaptiveRounding)
+    {
+        m_roundingMethod = RoundingMethod::lookUpTableRounding;
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
