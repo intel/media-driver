@@ -58,7 +58,7 @@ public:
         return m_osInterface;
     }
 
-    MOS_STATUS CreateReferenceBeforeLoopFilter();
+    virtual MOS_STATUS CreateReferenceBeforeLoopFilter();
 
     bool IsLastSlice(uint32_t sliceIdx);
     bool IsIndependentSlice(uint32_t sliceIdx);
