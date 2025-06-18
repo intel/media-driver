@@ -2093,6 +2093,7 @@ VAStatus MediaLibvaCaps::CreateEncConfig(
         {
             case VAProfileHEVCMain:
             case VAProfileHEVCMain10:
+            case VAProfileHEVCMain422_10:
             case VAProfileHEVCMain444:
             case VAProfileHEVCMain444_10:
                 rc_mb_flag = true;
