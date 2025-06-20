@@ -165,7 +165,7 @@ void SfcRenderBase::SetColorFillParams(
     mhw::sfc::SFC_STATE_PAR       *psfcStateParams)
 {
     VP_FUNC_CALL();
-
+    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(psfcStateParams);
     VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(m_renderData.sfcStateParams);
 
     psfcStateParams->bColorFillEnable = m_renderData.sfcStateParams->bColorFillEnable;
