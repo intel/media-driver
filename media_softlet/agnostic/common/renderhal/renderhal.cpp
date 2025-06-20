@@ -1785,7 +1785,8 @@ MOS_STATUS RenderHal_ReAllocateStateHeapsforAdvFeatureWithAllHeapsEnlarged(
         (pRenderhalSettings->iKernelCount    == pParams->iKernelCount) &&
         (pRenderhalSettings->iCurbeSize      == pParams->iCurbeSize) &&
         (pRenderhalSettings->iKernelHeapSize == pParams->iKernelHeapSize) &&
-        (pRenderhalSettings->iSurfacesPerBT  == pParams->iSurfacesPerBT))
+        (pRenderhalSettings->iSurfacesPerBT  == pParams->iSurfacesPerBT) &&
+        (pRenderhalSettings->iMediaIDs       == pParams->iMediaIDs))
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -1801,10 +1802,19 @@ MOS_STATUS RenderHal_ReAllocateStateHeapsforAdvFeatureWithAllHeapsEnlarged(
     pRenderhalSettings->iCurbeSize      = pParams->iCurbeSize;
     pRenderhalSettings->iKernelHeapSize = pParams->iKernelHeapSize;
     pRenderhalSettings->iSurfacesPerBT  = pParams->iSurfacesPerBT;
+    pRenderhalSettings->iMediaIDs       = pParams->iMediaIDs;
     eStatus                             = pRenderHal->pfnAllocateStateHeaps(pRenderHal, pRenderhalSettings);
     bAllocated                          = true;
 
     return eStatus;
+}
+
+MOS_STATUS RenderHal_OverwriteEnlargedHeapParams(
+    PRENDERHAL_INTERFACE      pRenderHal,
+    RENDERHAL_ENLARGE_PARAMS &params)
+{
+    pRenderHal->enlargeStateHeapSettingsForAdv = params;
+    return MOS_STATUS_SUCCESS;
 }
 
 //!
@@ -4340,15 +4350,22 @@ MOS_STATUS RenderHal_GetPlaneDefinitionForCommonMessage(
     case Format_YVYU:
     case Format_UYVY:
     case Format_VYUY:
-        if (pParam->isOutput)
+        if (pParam->usePackedPlanar)
         {
-            //For writing, packed 422 formats use R8G8 to write half pixel(YU/YV) separately
-            planeDefinition = RENDERHAL_PLANES_R8G8_UNORM;
+            planeDefinition = RENDERHAL_PLANES_ARGB;
         }
         else
         {
-            //For reading, packed 422 formats use R8G8 for Y and A8R8G8B8 for UV
-            planeDefinition = RENDERHAL_PLANES_YUY2_2PLANES_WIDTH_UNALIGNED;
+            if (pParam->isOutput)
+            {
+                //For writing, packed 422 formats use R8G8 to write half pixel(YU/YV) separately
+                planeDefinition = RENDERHAL_PLANES_R8G8_UNORM;
+            }
+            else
+            {
+                //For reading, packed 422 formats use R8G8 for Y and A8R8G8B8 for UV
+                planeDefinition = RENDERHAL_PLANES_YUY2_2PLANES_WIDTH_UNALIGNED;
+            }
         }
         break;
     case Format_Y210:
@@ -7468,6 +7485,7 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->pfnFreeStateHeaps                    = RenderHal_FreeStateHeaps;
     pRenderHal->pfnReAllocateStateHeapsforAdvFeatureWithSshEnlarged      = RenderHal_ReAllocateStateHeapsforAdvFeatureWithSshEnlarged;
     pRenderHal->pfnReAllocateStateHeapsforAdvFeatureWithAllHeapsEnlarged = RenderHal_ReAllocateStateHeapsforAdvFeatureWithAllHeapsEnlarged;
+    pRenderHal->pfnOverwriteEnlargedHeapParams                           = RenderHal_OverwriteEnlargedHeapParams;
 
     // Slice Shutdown Mode
     pRenderHal->pfnSetSliceShutdownMode       = RenderHal_SetSliceShutdownMode;
@@ -7575,6 +7593,7 @@ MOS_STATUS RenderHal_InitInterface(
     pRenderHal->dwSamplerAvsIncrement         = pRenderHal->pRenderHalPltInterface->GetSizeSamplerStateAvs(pRenderHal);
     pRenderHal->bComputeContextInUse          = pRenderHal->pRenderHalPltInterface->IsComputeContextInUse(pRenderHal);
     pRenderHal->isBindlessHeapInUse           = pRenderHal->pRenderHalPltInterface->IsBindlessHeapInUse(pRenderHal);
+    pRenderHal->grfSize                       = pRenderHal->pRenderHalPltInterface->GetGrfSize();
 
     pRenderHal->dwMaskCrsThdConDataRdLn       = (uint32_t) -1;
     pRenderHal->dwMinNumberThreadsInGroup     = 1;

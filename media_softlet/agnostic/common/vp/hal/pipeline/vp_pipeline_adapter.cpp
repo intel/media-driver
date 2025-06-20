@@ -86,6 +86,11 @@ MOS_STATUS VpPipelineAdapter::Init(
     RENDERHAL_SETTINGS RenderHalSettings;
     RenderHalSettings.iMediaStates = pVpHalSettings->mediaStates;
     VP_PUBLIC_CHK_STATUS_RETURN(vpMhwinterface.m_renderHal->pfnInitialize(vpMhwinterface.m_renderHal, &RenderHalSettings));
+    if (m_vpPlatformInterface.GetKernelConfig() &&
+        m_vpPlatformInterface.GetKernelConfig()->GetRenderEnlargeOverwriteParams().needOverwrite)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(vpMhwinterface.m_renderHal->pfnOverwriteEnlargedHeapParams(vpMhwinterface.m_renderHal, m_vpPlatformInterface.GetKernelConfig()->GetRenderEnlargeOverwriteParams().params));
+    }
     vpMhwinterface.m_renderHal->sseuTable = VpHalDefaultSSEUTable;
 
     return m_vpPipeline->Init(&vpMhwinterface);

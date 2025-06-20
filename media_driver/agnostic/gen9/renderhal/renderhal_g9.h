@@ -331,6 +331,12 @@ public:
         MOS_UNUSED(pRenderHal);
         return false;
     }
+
+    virtual uint32_t GetGrfSize() override
+    {
+        return 32;
+    }
+
 protected:
     MHW_VFE_PARAMS               m_vfeStateParams;
     mhw_render_g9_X::PALETTE_ENTRY_CMD

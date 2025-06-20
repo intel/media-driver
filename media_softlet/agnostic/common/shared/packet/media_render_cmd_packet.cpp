@@ -1240,13 +1240,15 @@ MOS_STATUS RenderCmdPacket::PrepareComputeWalkerParams(KERNEL_WALKER_PARAMS para
     // The X dimension of the thread group (maximum X is dimension -1), same as GroupHeight.
     gpgpuWalker.GroupWidth  = params.iBlocksX;
     gpgpuWalker.GroupHeight = params.iBlocksY;
+    gpgpuWalker.GroupDepth  = params.iBlocksZ;
     if (params.isGroupStartInvolvedInGroupSize)
     {
         gpgpuWalker.GroupWidth += gpgpuWalker.GroupStartingX;
         gpgpuWalker.GroupHeight += gpgpuWalker.GroupStartingY;
     }
 
-    if (params.threadDepth && params.threadWidth && params.threadHeight && params.isGenerateLocalID && params.emitLocal != MHW_EMIT_LOCAL_NONE)
+    if (params.threadDepth && params.threadWidth && params.threadHeight &&
+        ((params.isGenerateLocalID && params.emitLocal != MHW_EMIT_LOCAL_NONE) || params.slmSize > 0))
     {
         gpgpuWalker.ThreadWidth  = params.threadWidth;
         gpgpuWalker.ThreadHeight = params.threadHeight;

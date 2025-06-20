@@ -597,6 +597,12 @@ protected:
     virtual MOS_STATUS SetBindlessSamplerToResourceList(KRN_ARG &arg, uint32_t samplerIndex);
     virtual MOS_STATUS SetBindlessSurfaceStateToResourceList(KRN_ARG &arg);
 
+    bool IsLocalIdGeneratedByRuntime(KRN_EXECUTE_ENV &krnEnv, KRN_PER_THREAD_ARG_INFO &perThreadInfo, uint32_t localWidth, uint32_t localHeight, uint32_t localDepth);
+
+    MOS_STATUS PaddingPerThreadCurbe(uint32_t &curbeSize, uint32_t localWidth, uint32_t localHeight, uint32_t localDepth);
+
+    MOS_STATUS SetPerThreadCurbe(uint8_t *curbe, uint32_t offset, uint32_t curbeSize, KRN_PER_THREAD_ARG_INFO &perThreadInfo, uint32_t localWidth, uint32_t localHeight, uint32_t localDepth);
+
 protected:
 
     VP_SURFACE_GROUP                                        *m_surfaceGroup = nullptr;  // input surface process surface groups

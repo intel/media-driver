@@ -45,6 +45,7 @@ struct KERNEL_THREAD_SPACE
 {
     uint32_t uWidth;
     uint32_t uHeight;
+    uint32_t uDepth;
     uint32_t uLocalWidth;
     uint32_t uLocalHeight;
 };
@@ -130,6 +131,12 @@ struct KRN_EXECUTE_ENV
     bool     bHasDPAS;
 };
 
+struct KRN_PER_THREAD_ARG_INFO
+{
+    uint32_t packedLocalIdOffset = 0;
+    uint32_t packedLocalIdSize   = 0;
+};
+
 using SurfaceIndex = uint32_t;
 using SamplerIndex = uint32_t;
 using KernelIndex  = uint32_t;              // index of current kernel in KERNEL_PARAMS_LIST
@@ -141,6 +148,7 @@ typedef struct MOS_ALIGNED(16) _SURFACE_PARAMS
     bool        needVerticalStirde;
     bool        combineChannelY;
     uint32_t    planeIndex;
+    bool        usePackedPlanar;
 } SURFACE_PARAMS, *PSURFACE_PARAMS;
 using KERNEL_ARG_INDEX_SURFACE_MAP = std::map<uint32_t, SURFACE_PARAMS>;
 

@@ -87,6 +87,8 @@ MOS_STATUS VpRenderAiKernel::Init(VpRenderKernel &kernel)
 
     m_kernelEnv = kernel.GetKernelExeEnv();
 
+    m_kernelPerThreadArgInfo = kernel.GetKernelPerThreadArgInfo();
+
     m_curbeSize = kernel.GetCurbeSize();
 
     m_inlineData.resize(m_kernelEnv.uInlineDataPayloadSize);
@@ -220,6 +222,12 @@ MOS_STATUS VpRenderAiKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
     VP_FUNC_CALL();
     m_curbeResourceList.clear();
     curbeLength = m_curbeSize;
+    
+    bool isLocalIdGeneratedByRuntime = IsLocalIdGeneratedByRuntime(m_kernelEnv, m_kernelPerThreadArgInfo, m_walkerParam.threadWidth, m_walkerParam.threadHeight, m_walkerParam.threadDepth);
+    if (isLocalIdGeneratedByRuntime)
+    {
+        VP_RENDER_CHK_STATUS_RETURN(PaddingPerThreadCurbe(curbeLength, m_walkerParam.threadWidth, m_walkerParam.threadHeight, m_walkerParam.threadDepth));
+    }
 
     VP_RENDER_NORMALMESSAGE("KernelID %d, Kernel Name %s, Curbe Size %d\n", m_kernelId, m_kernelName.c_str(), curbeLength);
 
@@ -288,7 +296,77 @@ MOS_STATUS VpRenderAiKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
         }
     }
 
+    if (isLocalIdGeneratedByRuntime)
+    {
+        VP_RENDER_CHK_STATUS_RETURN(SetPerThreadCurbe(pCurbe, m_curbeSize, curbeLength, m_kernelPerThreadArgInfo, m_walkerParam.threadWidth, m_walkerParam.threadHeight, m_walkerParam.threadDepth));
+    }
+
     curbe = pCurbe;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpRenderAiKernel::GetKernelSurfaceParam(bool isBTI, SURFACE_PARAMS &surfParam, KERNEL_SURFACE_STATE_PARAM &kernelSurfaceParam)
+{
+    MOS_ZeroMemory(&kernelSurfaceParam, sizeof(KERNEL_SURFACE_STATE_PARAM));
+    kernelSurfaceParam.surfaceOverwriteParams.updatedRenderSurfaces = true;
+    kernelSurfaceParam.surfaceOverwriteParams.bindedKernel          = isBTI;
+    PRENDERHAL_SURFACE_STATE_PARAMS pRenderSurfaceParams            = &kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams;
+    pRenderSurfaceParams->bAVS                                      = false;
+    pRenderSurfaceParams->Boundary                                  = RENDERHAL_SS_BOUNDARY_ORIGINAL;
+    pRenderSurfaceParams->b2PlaneNV12NeededByKernel                 = true;
+    pRenderSurfaceParams->forceCommonSurfaceMessage                 = true;
+    MOS_HW_RESOURCE_DEF resourceType                                = MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER;
+    SurfaceType         surfType                                    = surfParam.surfType;
+
+    if (surfParam.combineChannelY)
+    {
+        pRenderSurfaceParams->combineChannelY = true;
+    }
+    pRenderSurfaceParams->isOutput        = surfParam.isOutput;
+    pRenderSurfaceParams->usePackedPlanar = surfParam.usePackedPlanar;
+
+    auto surf = m_surfaceGroup->find(surfType);
+    if (m_surfaceGroup->end() == surf)
+    {
+        VP_RENDER_ASSERTMESSAGE("surf was not found %d", surfType);
+        VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_NULL_POINTER);
+    }
+    VP_RENDER_CHK_NULL_RETURN(surf->second);
+    VP_RENDER_CHK_NULL_RETURN(surf->second->osSurface);
+
+    pRenderSurfaceParams->MemObjCtl = (m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
+                                           resourceType,
+                                           m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface)))
+                                          .DwordValue;
+    pRenderSurfaceParams->Component = COMPONENT_VPCommon;
+
+    if (surfParam.needVerticalStirde)
+    {
+        switch (surf->second->SampleType)
+        {
+        case SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD:
+        case SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD:
+            pRenderSurfaceParams->bVertStride     = true;
+            pRenderSurfaceParams->bVertStrideOffs = 0;
+            break;
+        case SAMPLE_INTERLEAVED_EVEN_FIRST_BOTTOM_FIELD:
+        case SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD:
+            pRenderSurfaceParams->bVertStride     = true;
+            pRenderSurfaceParams->bVertStrideOffs = 1;
+            break;
+        default:
+            pRenderSurfaceParams->bVertStride     = false;
+            pRenderSurfaceParams->bVertStrideOffs = 0;
+            break;
+        }
+    }
+
+    if (surf->second->osSurface->Format == Format_Buffer || surf->second->osSurface->Format == Format_RAW)
+    {
+        kernelSurfaceParam.surfaceOverwriteParams.updatedSurfaceParams = true;
+        kernelSurfaceParam.surfaceOverwriteParams.bufferResource       = true;
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -303,79 +381,26 @@ MOS_STATUS VpRenderAiKernel::SetupSurfaceState()
     {
         uint32_t argIndex = it->first;
         uint32_t bti      = it->second;
-
         VP_RENDER_NORMALMESSAGE("Setting Surface State for AI Kernel. KernelName %s, layer %d, argIndex %d , bti %d", m_kernelName.c_str(), m_kernelIndex, argIndex, bti);
-
-        MOS_ZeroMemory(&kernelSurfaceParam, sizeof(KERNEL_SURFACE_STATE_PARAM));
-        kernelSurfaceParam.surfaceOverwriteParams.updatedRenderSurfaces = true;
-        kernelSurfaceParam.surfaceOverwriteParams.bindedKernel          = true;
-        PRENDERHAL_SURFACE_STATE_PARAMS pRenderSurfaceParams            = &kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams;
-        pRenderSurfaceParams->bAVS                                      = false;
-        pRenderSurfaceParams->Boundary                                  = RENDERHAL_SS_BOUNDARY_ORIGINAL;
-        pRenderSurfaceParams->b2PlaneNV12NeededByKernel                 = true;
-        pRenderSurfaceParams->forceCommonSurfaceMessage                 = true;
-        SurfaceType         surfType                                    = SurfaceTypeInvalid;
-        MOS_HW_RESOURCE_DEF resourceType                                = MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER;
 
         auto surfHandle = m_argIndexSurfMap.find(argIndex);
         VP_PUBLIC_CHK_NOT_FOUND_RETURN(surfHandle, &m_argIndexSurfMap);
-        if (surfHandle->second.combineChannelY)
-        {
-            pRenderSurfaceParams->combineChannelY = true;
-        }
-        surfType = surfHandle->second.surfType;
+        SURFACE_PARAMS &surfParam = surfHandle->second;
+        SurfaceType     surfType  = surfParam.surfType;
+
         if (surfType == SurfaceTypeSubPlane || surfType == SurfaceTypeInvalid)
         {
             VP_RENDER_NORMALMESSAGE("Will skip surface argIndex %d, bti %d for its surf type is set as %d", argIndex, bti, surfType);
             continue;
         }
-        pRenderSurfaceParams->isOutput = surfHandle->second.isOutput;
+        
         if (m_surfaceState.find(surfType) != m_surfaceState.end())
         {
             UpdateCurbeBindingIndex(surfType, bti);
             continue;
         }
-        auto surf = m_surfaceGroup->find(surfType);
-        if (m_surfaceGroup->end() == surf)
-        {
-            VP_RENDER_ASSERTMESSAGE("surf was not found %d", surfType);
-            return MOS_STATUS_NULL_POINTER;
-        }
-        VP_RENDER_CHK_NULL_RETURN(surf->second);
-        VP_RENDER_CHK_NULL_RETURN(surf->second->osSurface);
 
-        pRenderSurfaceParams->MemObjCtl = (m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-                                               resourceType,
-                                               m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface)))
-                                              .DwordValue;
-        pRenderSurfaceParams->Component = COMPONENT_VPCommon;
-
-        if (surfHandle->second.needVerticalStirde)
-        {
-            switch (surf->second->SampleType)
-            {
-            case SAMPLE_INTERLEAVED_EVEN_FIRST_TOP_FIELD:
-            case SAMPLE_INTERLEAVED_ODD_FIRST_TOP_FIELD:
-                pRenderSurfaceParams->bVertStride     = true;
-                pRenderSurfaceParams->bVertStrideOffs = 0;
-                break;
-            case SAMPLE_INTERLEAVED_EVEN_FIRST_BOTTOM_FIELD:
-            case SAMPLE_INTERLEAVED_ODD_FIRST_BOTTOM_FIELD:
-                pRenderSurfaceParams->bVertStride     = true;
-                pRenderSurfaceParams->bVertStrideOffs = 1;
-                break;
-            default:
-                pRenderSurfaceParams->bVertStride     = false;
-                pRenderSurfaceParams->bVertStrideOffs = 0;
-                break;
-            }
-        }
-
-        if (surf->second->osSurface->Format == Format_Buffer || surf->second->osSurface->Format == Format_RAW)
-        {
-            kernelSurfaceParam.surfaceOverwriteParams.updatedSurfaceParams = true;
-            kernelSurfaceParam.surfaceOverwriteParams.bufferResource       = true;
-        }
+        VP_PUBLIC_CHK_STATUS_RETURN(GetKernelSurfaceParam(true, surfParam, kernelSurfaceParam));   
 
         m_surfaceState.insert(std::make_pair(surfType, kernelSurfaceParam));
 
@@ -415,6 +440,7 @@ MOS_STATUS VpRenderAiKernel::SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, 
 
     m_walkerParam.iBlocksX          = threadSpace.uWidth;
     m_walkerParam.iBlocksY          = threadSpace.uHeight;
+    m_walkerParam.iBlocksZ          = threadSpace.uDepth;
     m_walkerParam.threadWidth       = threadSpace.uLocalWidth;
     m_walkerParam.threadHeight      = threadSpace.uLocalHeight;
     m_walkerParam.threadDepth       = 1;

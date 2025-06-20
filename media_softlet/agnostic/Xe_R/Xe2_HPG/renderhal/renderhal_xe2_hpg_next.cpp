@@ -40,6 +40,7 @@
 #define ENLARGE_KERNEL_COUNT_XE2_HPG RENDERHAL_KERNEL_COUNT * 3
 #define ENLARGE_KERNEL_HEAP_XE2_HPG RENDERHAL_KERNEL_HEAP * 3
 #define ENLARGE_CURBE_SIZE_XE2_HPG RENDERHAL_CURBE_SIZE * 16
+#define ENLARGED_SSH_BINDING_TABLES_XE2_HPG   16
 
 extern const RENDERHAL_STATE_HEAP_SETTINGS g_cRenderHal_State_Heap_Settings_xe2_hpg =
 {
@@ -72,12 +73,13 @@ extern const RENDERHAL_STATE_HEAP_SETTINGS g_cRenderHal_State_Heap_Settings_xe2_
 
 extern const RENDERHAL_ENLARGE_PARAMS g_cRenderHal_Enlarge_State_Heap_Settings_Adv_xe2_hpg =
 {
-    RENDERHAL_SSH_BINDING_TABLES_MAX,      //!< iBindingTables
+    ENLARGED_SSH_BINDING_TABLES_XE2_HPG,    //!< iBindingTables
     RENDERHAL_SSH_SURFACE_STATES_MAX,      //!< iSurfaceStates
     RENDERHAL_SSH_SURFACES_PER_BT_XE2_HPG, //!< iSurfacesPerBT
     ENLARGE_KERNEL_COUNT_XE2_HPG,          //!< iKernelCount
     ENLARGE_KERNEL_HEAP_XE2_HPG,           //!< iKernelHeapSize
-    ENLARGE_CURBE_SIZE_XE2_HPG             //!< iCurbeSize
+    ENLARGE_CURBE_SIZE_XE2_HPG,            //!< iCurbeSize
+    RENDERHAL_MEDIA_IDS                    //!< iMediaIDs
 };
 
 MOS_STATUS XRenderHal_Interface_Xe2_Hpg_Next::IsRenderHalMMCEnabled(

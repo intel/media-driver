@@ -2227,6 +2227,7 @@ MOS_STATUS VpRenderCmdPacket::SetAiParams(PRENDER_AI_PARAMS params)
         kernelParam.kernelArgs                     = krnParams.kernelArgs;
         kernelParam.kernelThreadSpace.uWidth       = krnParams.threadWidth;
         kernelParam.kernelThreadSpace.uHeight      = krnParams.threadHeight;
+        kernelParam.kernelThreadSpace.uDepth       = krnParams.threadDepth;
         kernelParam.kernelThreadSpace.uLocalWidth  = krnParams.localWidth;
         kernelParam.kernelThreadSpace.uLocalHeight = krnParams.localHeight;
         kernelParam.syncFlag                       = true;

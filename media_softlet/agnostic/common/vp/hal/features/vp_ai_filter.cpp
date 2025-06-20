@@ -39,6 +39,7 @@ void AI_KERNEL_PARAM::Init()
     kernelName.clear();
     threadWidth  = 0;
     threadHeight = 0;
+    threadDepth  = 0;
     localWidth   = 0;
     localHeight  = 0;
     kernelStatefulSurfaces.clear();
@@ -195,6 +196,7 @@ MOS_STATUS VpAiFilter::InitKrnParams(AI_KERNEL_PARAMS &krnParams, SwFilterPipe &
         kernelParam.kernelName   = singleLayerSetting.kernelName;
         kernelParam.threadWidth  = singleLayerSetting.groupWidth;
         kernelParam.threadHeight = singleLayerSetting.groupHeight;
+        kernelParam.threadDepth  = singleLayerSetting.groupDepth;
         kernelParam.localWidth   = singleLayerSetting.localWidth;
         kernelParam.localHeight  = singleLayerSetting.localHeight;
 

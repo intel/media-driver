@@ -102,6 +102,7 @@ typedef struct _KERNEL_WALKER_PARAMS
 
     int32_t                             iBlocksX;
     int32_t                             iBlocksY;
+    int32_t                             iBlocksZ;
     RECT                                alignedRect;
     PIPECONTRL_PARAMS                   pipeControlParams;
     bool                                isVerticalPattern;

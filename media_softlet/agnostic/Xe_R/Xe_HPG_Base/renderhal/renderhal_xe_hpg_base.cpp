@@ -35,6 +35,7 @@
 #define ENLARGE_KERNEL_COUNT_HPG_BASE          RENDERHAL_KERNEL_COUNT * 3
 #define ENLARGE_KERNEL_HEAP_HPG_BASE           RENDERHAL_KERNEL_HEAP * 3
 #define ENLARGE_CURBE_SIZE_HPG_BASE            RENDERHAL_CURBE_SIZE * 16
+#define ENLARGED_SSH_BINDING_TABLES_HPG_BASE   16
 
 extern const RENDERHAL_STATE_HEAP_SETTINGS g_cRenderHal_State_Heap_Settings_hpg_base =
 {
@@ -67,12 +68,13 @@ extern const RENDERHAL_STATE_HEAP_SETTINGS g_cRenderHal_State_Heap_Settings_hpg_
 
 extern const RENDERHAL_ENLARGE_PARAMS g_cRenderHal_Enlarge_State_Heap_Settings_Adv_hpg_base =
 {
-    RENDERHAL_SSH_BINDING_TABLES_MAX,       //!< iBindingTables
+    ENLARGED_SSH_BINDING_TABLES_HPG_BASE,   //!< iBindingTables
     RENDERHAL_SSH_SURFACE_STATES_MAX,       //!< iSurfaceStates
     RENDERHAL_SSH_SURFACES_PER_BT,          //!< iSurfacesPerBT
     ENLARGE_KERNEL_COUNT_HPG_BASE,          //!< iKernelCount
     ENLARGE_KERNEL_HEAP_HPG_BASE,           //!< iKernelHeapSize
-    ENLARGE_CURBE_SIZE_HPG_BASE             //!< iCurbeSize
+    ENLARGE_CURBE_SIZE_HPG_BASE,            //!< iCurbeSize
+    RENDERHAL_MEDIA_IDS                     //!< iMediaIDs
 };
 
 const uint32_t g_cLookup_RotationMode_hpg_base[8] = 

@@ -76,6 +76,11 @@ public:
     virtual void InitStateHeapSettings(
         PRENDERHAL_INTERFACE pRenderHal) override;
 
+    virtual uint32_t GetGrfSize() override
+    {
+        return 64;
+    }
+
 MEDIA_CLASS_DEFINE_END(XRenderHal_Interface_Xe2_Hpg_Next)
 };
 

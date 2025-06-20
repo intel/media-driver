@@ -187,6 +187,11 @@ public:
         RENDERHAL_INTERFACE *renderHal,
         uint32_t             indexOfBindingTable);
 
+    virtual uint32_t GetGrfSize() override
+    {
+        return 32;
+    }
+
     MHW_SETPAR_DECL_HDR(CFE_STATE);
 
 protected:

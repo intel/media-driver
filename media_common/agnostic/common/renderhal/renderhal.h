@@ -112,7 +112,7 @@ class XRenderHal_Platform_Interface;
 
 #define RENDERHAL_SSH_BINDING_TABLES        1
 #define RENDERHAL_SSH_BINDING_TABLES_MIN    1
-#define RENDERHAL_SSH_BINDING_TABLES_MAX   16
+#define RENDERHAL_SSH_BINDING_TABLES_MAX   32
 #define RENDERHAL_SSH_BINDING_TABLE_ALIGN  64
 
 #define RENDERHAL_SSH_SURFACE_STATES       40
@@ -1044,6 +1044,7 @@ typedef struct _RENDERHAL_SURFACE_STATE_PARAMS
     uint32_t                        surfaceType               : 11;
     MOS_COMPONENT                   Component                 : 4;
     uint32_t                        combineChannelY           : 1;              // Combine 2 Luma Channel pixels into 1 pixel, so that kernel can reduce write times
+    uint32_t                        usePackedPlanar           : 1;              // Force using packed planr
     RENDERHAL_MEMORY_OBJECT_CONTROL MemObjCtl;                                  // Caching attributes
 } RENDERHAL_SURFACE_STATE_PARAMS, *PRENDERHAL_SURFACE_STATE_PARAMS;
 
@@ -1154,6 +1155,7 @@ typedef struct _RENDERHAL_ENLARGE_PARAMS
     int32_t iKernelCount;     // Number of Kernels that can be loaded
     int32_t iKernelHeapSize;  // Size of GSH block for kernels
     int32_t iCurbeSize;       // Size of CURBE area
+    int32_t iMediaIDs;        // Number of Media Interface Descriptors
 } RENDERHAL_ENLARGE_PARAMS, *PRENDERHAL_ENLARGE_PARAMS;
 
 //!
@@ -1219,6 +1221,7 @@ typedef struct _RENDERHAL_INTERFACE
     bool                        bComputeContextInUse;                           // Compute Context use for media
     bool                        isBindlessHeapInUse;                            // Bindless Heap Mode use
 
+    uint32_t                    grfSize;                                        // The size of GRF registers, which can be get from GRF Registers from Spec
     uint32_t                    dwMaskCrsThdConDataRdLn;                        // Unifies pfnSetupInterfaceDescriptor for g75,g8,...
     uint32_t                    dwMinNumberThreadsInGroup;                      // Unifies pfnSetupInterfaceDescriptor for g75,g8,...
     uint32_t                    dwCurbeBlockAlign;                              // Unifies pfnLoadCurbeData - Curbe Block Alignment
@@ -1337,6 +1340,10 @@ typedef struct _RENDERHAL_INTERFACE
 
     MOS_STATUS (* pfnRefreshSync) (
                 PRENDERHAL_INTERFACE     pRenderHal);
+
+    MOS_STATUS (*pfnOverwriteEnlargedHeapParams)(
+        PRENDERHAL_INTERFACE      pRenderHal,
+        RENDERHAL_ENLARGE_PARAMS &params);
 
     //---------------------------
     // SSH, surface states

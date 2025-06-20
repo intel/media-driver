@@ -299,10 +299,11 @@ public:
     //!           [in] SLM size
     //! \return   Preferred Slm Allocation Size
     //!
-    virtual uint32_t CalculatePreferredSlmAllocationSizeFromSlmSize(
-        RENDERHAL_INTERFACE *renderHal, 
-        uint32_t             slmSize, 
-        uint32_t             numberOfThreadsPerThreadGroup);
+    virtual MOS_STATUS CalculatePreferredSlmAllocationSizeFromSlmSize(
+        RENDERHAL_INTERFACE *renderHal,
+        uint32_t             slmSize,
+        uint32_t             numberOfThreadsPerThreadGroup,
+        uint32_t            &perferedSlmAllocationSize);
 
     //!
     //! \brief    Set Chroma Direction

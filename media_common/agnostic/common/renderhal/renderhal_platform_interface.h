@@ -706,6 +706,8 @@ public:
 
     virtual std::shared_ptr<mhw::mi::Itf> GetMhwMiItf() = 0;
 
+    virtual uint32_t GetGrfSize() = 0;
+
 };
 
 #endif // __RENDERHAL_PLATFORM_INTERFACE_H__

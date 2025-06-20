@@ -76,6 +76,7 @@ struct AI_SINGLE_GPU_LAYER_SETTING : public AI_SINGLE_LAYER_BASE_SETTING
     std::string kernelName  = "";
     uint32_t    groupWidth  = 0;
     uint32_t    groupHeight = 0;
+    uint32_t    groupDepth  = 0;
     uint32_t    localWidth  = 0;
     uint32_t    localHeight = 0;
     MOS_STATUS (*pfnSetStatefulSurface)            (uint32_t krnArgEnum, SwFilterPipe &executingPipe, SURFACE_PARAMS &surfaceParam, bool &bInit) = nullptr;

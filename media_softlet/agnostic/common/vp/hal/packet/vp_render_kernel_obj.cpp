@@ -784,3 +784,52 @@ MOS_STATUS VpRenderKernelObj::SetBindlessSurfaceStateToResourceList(KRN_ARG &arg
     
     return MOS_STATUS_SUCCESS;
 }
+
+bool VpRenderKernelObj::IsLocalIdGeneratedByRuntime(KRN_EXECUTE_ENV &krnEnv, KRN_PER_THREAD_ARG_INFO &perThreadInfo, uint32_t localWidth, uint32_t localHeight, uint32_t localDepth)
+{
+    return (krnEnv.uiSlmSize > 0 &&
+            krnEnv.uSimdSize == 1 &&
+            perThreadInfo.packedLocalIdSize > 0 &&
+            (localWidth > 1 || localHeight > 1 || localDepth > 1));
+}
+
+MOS_STATUS VpRenderKernelObj::PaddingPerThreadCurbe(uint32_t& curbeSize, uint32_t localWidth, uint32_t localHeight, uint32_t localDepth)
+{
+    VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
+    VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_renderHal);
+    VP_PUBLIC_CHK_VALUE_RETURN(m_hwInterface->m_renderHal->grfSize > 0, true);
+
+    curbeSize = MOS_ALIGN_CEIL(curbeSize, 32);
+    uint32_t localSize = MOS_MAX(localWidth, 1) * MOS_MAX(localHeight, 1) * MOS_MAX(localDepth, 1);  //this is the local thread number
+    curbeSize += localSize * m_hwInterface->m_renderHal->grfSize;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpRenderKernelObj::SetPerThreadCurbe(uint8_t *curbe, uint32_t offset, uint32_t curbeSize, KRN_PER_THREAD_ARG_INFO &perThreadInfo, uint32_t localWidth, uint32_t localHeight, uint32_t localDepth)
+{
+    VP_RENDER_CHK_NULL_RETURN(m_hwInterface);
+    VP_RENDER_CHK_NULL_RETURN(m_hwInterface->m_renderHal);
+    VP_PUBLIC_CHK_VALUE_RETURN(m_hwInterface->m_renderHal->grfSize > 0, true);
+
+    uint32_t totalSize     = MOS_ALIGN_CEIL(offset, 32) + perThreadInfo.packedLocalIdOffset + perThreadInfo.packedLocalIdSize;
+    uint8_t *perThreadData = curbe + MOS_ALIGN_CEIL(offset, 32) + perThreadInfo.packedLocalIdOffset;
+    
+    for (uint16_t threadX = 0; threadX < MOS_MAX(localWidth, 1); ++threadX)
+    {
+        for (uint16_t threadY = 0; threadY < MOS_MAX(localHeight, 1); ++threadY)
+        {
+            for (uint16_t threadZ = 0; threadZ < MOS_MAX(localDepth, 1); ++threadZ)
+            {
+                VP_PUBLIC_CHK_VALUE_RETURN(totalSize <= curbeSize, true);
+                reinterpret_cast<uint16_t *>(perThreadData)[0] = threadX;
+                reinterpret_cast<uint16_t *>(perThreadData)[1] = threadY;
+                reinterpret_cast<uint16_t *>(perThreadData)[2] = threadZ;
+                perThreadData += m_hwInterface->m_renderHal->grfSize;
+                totalSize += m_hwInterface->m_renderHal->grfSize;
+                VP_RENDER_NORMALMESSAGE("Setting Per Thread Data X %d, Y %d, Z %d", threadX, threadY, threadZ);
+            }
+        }
+    }
+    return MOS_STATUS_SUCCESS;
+}

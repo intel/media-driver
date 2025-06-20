@@ -1160,15 +1160,13 @@ MOS_STATUS VpAllocator::ReAllocateVpSurfaceWithSameConfigOfVphalSurface(
 
     MOS_GFXRES_TYPE     defaultResType  = MOS_GFXRES_INVALID;
     MOS_TILE_TYPE       defaultTileType = MOS_TILE_LINEAR;
-    MOS_HW_RESOURCE_DEF resUsageType    = MOS_HW_RESOURCE_DEF_MAX;
+    MOS_HW_RESOURCE_DEF resUsageType    = MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER;
     MOS_TILE_MODE_GMM   tileModeByForce = MOS_TILE_UNSET_GMM;
     if (Mos_ResourceIsNull(&vphalSurface->OsResource))
     {
         bool isBuffer   = (vphalSurface->Format == Format_Buffer || vphalSurface->Format == Format_RAW);
         defaultResType  = isBuffer ? MOS_GFXRES_BUFFER : MOS_GFXRES_2D;
         defaultTileType = isBuffer ? MOS_TILE_LINEAR : MOS_TILE_Y;
-        resUsageType    = vphalSurface->OsResource.mocsMosResUsageType;
-        tileModeByForce = vphalSurface->OsResource.TileModeGMM;
     }
     else
     {

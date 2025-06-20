@@ -145,6 +145,8 @@ public:
 
     MOS_STATUS SetKernelExeEnv(KRN_EXECUTE_ENV &exeEnv);
 
+    MOS_STATUS SetKernelPerThreadArgInfo(KRN_PER_THREAD_ARG_INFO &perThreadArgInfo);
+
     MOS_STATUS SetKernelCurbeSize(uint32_t size);
 
     MOS_STATUS AddKernelBti(KRN_BTI &bti);
@@ -157,6 +159,11 @@ public:
     KRN_EXECUTE_ENV &GetKernelExeEnv()
     {
         return m_kernelExeEnv;
+    }
+
+    KRN_PER_THREAD_ARG_INFO &GetKernelPerThreadArgInfo()
+    {
+        return m_kernelPerThreadArgInfo;
     }
 
 protected:
@@ -179,6 +186,7 @@ protected:
     uint32_t m_curbeSize = 0;
     KERNEL_BTIS     m_kernelBtis;
     KRN_EXECUTE_ENV m_kernelExeEnv = {};
+    KRN_PER_THREAD_ARG_INFO m_kernelPerThreadArgInfo = {};
 
 public:
     const static std::string          s_kernelNameNonAdvKernels;
@@ -384,15 +392,16 @@ public:
 
     //for OCL kernel use only
     virtual void InitVpDelayedNativeAdvKernel(
-        const uint32_t  *kernelBin,
-        uint32_t         kernelBinSize,
-        KRN_ARG         *kernelArgs,
-        uint32_t         kernelArgSize,
-        uint32_t         kernelCurbeSize,
-        KRN_EXECUTE_ENV& kernelExeEnv,
-        KRN_BTI         *kernelBtis,
-        uint32_t         kernelBtiSize,
-        std::string      kernelName);
+        const uint32_t         *kernelBin,
+        uint32_t                kernelBinSize,
+        KRN_ARG                *kernelArgs,
+        uint32_t                kernelArgSize,
+        uint32_t                kernelCurbeSize,
+        KRN_EXECUTE_ENV        &kernelExeEnv,
+        KRN_BTI                *kernelBtis,
+        uint32_t                kernelBtiSize,
+        std::string             kernelName,
+        KRN_PER_THREAD_ARG_INFO perThreadArgInfo = {});
 
     virtual void AddNativeAdvKernelToDelayedList(
         DelayLoadedKernelType kernelType,

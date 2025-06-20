@@ -699,6 +699,14 @@ MOS_STATUS VpRenderKernel::SetKernelExeEnv(KRN_EXECUTE_ENV &exeEnv)
 }
 
 //for L0 use only
+MOS_STATUS VpRenderKernel::SetKernelPerThreadArgInfo(KRN_PER_THREAD_ARG_INFO &perThreadArgInfo)
+{
+    VP_FUNC_CALL();
+    m_kernelPerThreadArgInfo = perThreadArgInfo;
+    return MOS_STATUS_SUCCESS;
+}
+
+//for L0 use only
 MOS_STATUS VpRenderKernel::AddKernelBti(KRN_BTI &bti)
 {
     VP_FUNC_CALL();
@@ -717,26 +725,37 @@ MOS_STATUS VpRenderKernel::SetKernelCurbeSize(uint32_t size)
 
 //for L0 use only
 void VpPlatformInterface::InitVpDelayedNativeAdvKernel(
-    const uint32_t  *kernelBin,
-    uint32_t         kernelBinSize,
-    KRN_ARG         *kernelArgs,
-    uint32_t         kernelArgSize,
-    uint32_t         kernelCurbeSize,
-    KRN_EXECUTE_ENV &kernelExeEnv,
-    KRN_BTI         *kernelBtis,
-    uint32_t         kernelBtiSize,
-    std::string      kernelName)
+    const uint32_t         *kernelBin,
+    uint32_t                kernelBinSize,
+    KRN_ARG                *kernelArgs,
+    uint32_t                kernelArgSize,
+    uint32_t                kernelCurbeSize,
+    KRN_EXECUTE_ENV        &kernelExeEnv,
+    KRN_BTI                *kernelBtis,
+    uint32_t                kernelBtiSize,
+    std::string             kernelName,
+    KRN_PER_THREAD_ARG_INFO perThreadArgInfo)
 {
     VP_FUNC_CALL();
 
     VpRenderKernel vpKernel;
 
+    bool localIdGeneratedByRuntime = (kernelExeEnv.uiSlmSize > 0 && kernelExeEnv.uSimdSize == 1);
+
     vpKernel.SetKernelBinPointer((void *)kernelBin);
     vpKernel.SetKernelName(kernelName);
-    vpKernel.SetKernelBinOffset(kernelExeEnv.uOffsetToSkipPerThreadDataLoad);
-    vpKernel.SetKernelBinSize(kernelBinSize - kernelExeEnv.uOffsetToSkipPerThreadDataLoad);
+    if (localIdGeneratedByRuntime)
+    {
+        vpKernel.SetKernelBinSize(kernelBinSize);
+    }
+    else
+    {
+        vpKernel.SetKernelBinOffset(kernelExeEnv.uOffsetToSkipPerThreadDataLoad);
+        vpKernel.SetKernelBinSize(kernelBinSize - kernelExeEnv.uOffsetToSkipPerThreadDataLoad);
+    }
     vpKernel.SetKernelExeEnv(kernelExeEnv);
     vpKernel.SetKernelCurbeSize(kernelCurbeSize);
+    vpKernel.SetKernelPerThreadArgInfo(perThreadArgInfo);
 
     for (uint32_t i = 0; i < kernelArgSize; ++i)
     {

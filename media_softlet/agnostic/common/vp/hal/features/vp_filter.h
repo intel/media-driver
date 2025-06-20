@@ -509,6 +509,7 @@ struct AI_KERNEL_PARAM
     std::string                  kernelName;
     uint32_t                     threadWidth;
     uint32_t                     threadHeight;
+    uint32_t                     threadDepth;
     uint32_t                     localWidth;
     uint32_t                     localHeight;
     KERNEL_ARG_INDEX_SURFACE_MAP kernelStatefulSurfaces;
