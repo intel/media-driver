@@ -7119,6 +7119,10 @@ bool Mos_Specific_IsGpuSyncByCmd(
     return false;
 }
 
+void Mos_Specific_OnNativeFenceSyncBBAdded(PMOS_COMMAND_BUFFER pCmdBuffer, uint64_t gfxAddr)
+{
+}
+
 //! \brief    Unified OS Initializes OS Linux Interface
 //! \details  Linux OS Interface initilization
 //! \param    PMOS_INTERFACE pOsInterface
@@ -7298,6 +7302,7 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     pOsInterface->pfnIsAsynDevice                           = Mos_Specific_IsAsyncDevice;
     pOsInterface->pfnIsGpuSyncByCmd                         = Mos_Specific_IsGpuSyncByCmd;
+    pOsInterface->pfnOnNativeFenceSyncBBAdded               = Mos_Specific_OnNativeFenceSyncBBAdded;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     pOsInterface->pfnGetEngineLogicId                       = Mos_Specific_GetEngineLogicId;

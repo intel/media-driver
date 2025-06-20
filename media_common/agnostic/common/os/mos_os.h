@@ -2132,6 +2132,8 @@ typedef struct _MOS_INTERFACE
 
     bool (* pfnIsGpuSyncByCmd) (PMOS_INTERFACE osInterface);
 
+    void (*pfnOnNativeFenceSyncBBAdded)(PMOS_COMMAND_BUFFER pCmdBuffer, uint64_t gfxAddr);
+
     // Virtual Engine related
     int32_t                         bSupportVirtualEngine;                        //!< Enable virtual engine flag
     int32_t                         bUseHwSemaForResSyncInVE;                     //!< Flag to indicate if UMD need to send HW sema cmd under this OS when there is a resource sync need with Virtual Engine interface 

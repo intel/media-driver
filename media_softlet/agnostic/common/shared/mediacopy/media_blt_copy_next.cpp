@@ -1069,7 +1069,8 @@ MOS_STATUS BltStateNext::SetPrologParamsforCmdbuffer(PMOS_COMMAND_BUFFER cmdBuff
            //Reset params
            auto &miBatchBufferStartParams = m_miItf->MHW_GETPAR_F(MI_BATCH_BUFFER_START)();
            miBatchBufferStartParams       = {};
-           MHW_ASSERTMESSAGE("addsync bb to cmdbuffer cmdbufferresource = %p, syncMhwBatchBufferResource = %p\n", &(cmdBuffer->OsResource), &(cmdBuffer->syncMhwBatchBuffer->OsResource));
+           uint64_t gfxAddr = pOsInterface->pfnGetResourceGfxAddress(pOsInterface, &cmdBuffer->OsResource);
+           pOsInterface->pfnOnNativeFenceSyncBBAdded(cmdBuffer, gfxAddr);
            MHW_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(cmdBuffer, cmdBuffer->syncMhwBatchBuffer));
    }
 

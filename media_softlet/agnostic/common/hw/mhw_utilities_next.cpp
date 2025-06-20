@@ -476,14 +476,17 @@ MOS_STATUS Mhw_SendGenericPrologCmdNext(
     pWaTable = pOsInterface->pfnGetWaTable(pOsInterface);
     MHW_CHK_NULL_RETURN(pWaTable);
 
-    GpuContext = pOsInterface->pfnGetGpuContext(pOsInterface);
     if (pOsInterface->pfnIsGpuSyncByCmd(pOsInterface) && pCmdBuffer->syncMhwBatchBuffer != nullptr) // Some gpu context may not support sync with batch buffer
     {
         //Reset params
         auto &miBatchBufferStartParams = miItf->MHW_GETPAR_F(MI_BATCH_BUFFER_START)();
+        uint64_t gfxAddr = pOsInterface->pfnGetResourceGfxAddress(pOsInterface, &pCmdBuffer->OsResource);
+        pOsInterface->pfnOnNativeFenceSyncBBAdded(pCmdBuffer, gfxAddr);
         miBatchBufferStartParams       = {};
         MHW_CHK_STATUS_RETURN(miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(pCmdBuffer, pCmdBuffer->syncMhwBatchBuffer));
     }
+
+    GpuContext = pOsInterface->pfnGetGpuContext(pOsInterface);
     if ( pOsInterface->Component != COMPONENT_CM )
     {
         if (    GpuContext == MOS_GPU_CONTEXT_RENDER        ||

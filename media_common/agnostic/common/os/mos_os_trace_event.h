@@ -399,7 +399,11 @@ typedef enum _MEDIA_EVENT
     EVENT_VPP_IP_ALIGNMENT,                        //! event for VPP IP Alignment
     EVENT_IP_ALIGNMENT_INIT,                       //! event for IP Alignment Init
     EVENT_IP_ALIGNMENT_REPORT,                     //! event for IP Alignment Report
-    EVENT_ENCODE_DDI_11_DESTROYVIDEOENCODER        //! event for Encode Destroy Device
+    EVENT_ENCODE_DDI_11_DESTROYVIDEOENCODER,       //! event for Encode Destroy Device
+    EVENT_HWS_NATIVE_FENCE_SYNC_BB_ADDED,          //! event for HWS sync cmd resource added
+    EVENT_HWS_NATIVE_FENCE_SIGNAL,                 //! event for HWS native fence signal
+    EVENT_HWS_NATIVE_FENCE_WAIT,                   //! event for HWS native fence wait for sync
+    EVENT_HWS_NATIVE_FENCE_CMD_FLUSH               //! event for HWS sync cmd flush
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE

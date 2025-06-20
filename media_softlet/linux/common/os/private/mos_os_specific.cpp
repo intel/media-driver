@@ -3402,6 +3402,10 @@ bool Mos_Specific_IsGpuSyncByCmd(
     return false;
 }
 
+void Mos_Specific_OnNativeFenceSyncBBAdded(PMOS_COMMAND_BUFFER pCmdBuffer, uint64_t gfxAddr)
+{
+}
+
 MOS_STATUS Mos_Specific_LoadFunction(
     PMOS_INTERFACE osInterface)
 {
