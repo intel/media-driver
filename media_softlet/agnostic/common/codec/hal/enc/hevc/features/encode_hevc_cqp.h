@@ -66,6 +66,8 @@ public:
     //!
     bool IsRDOQEnabled() { return m_rdoqEnable; }
 
+    void SetRDOQ(bool rdoqEnabled) { m_rdoqEnable = rdoqEnabled; }
+
     MHW_SETPAR_DECL_HDR(HCP_PIC_STATE);
 
     MHW_SETPAR_DECL_HDR(HCP_PIPE_MODE_SELECT);

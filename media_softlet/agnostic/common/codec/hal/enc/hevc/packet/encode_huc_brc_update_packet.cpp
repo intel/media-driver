@@ -686,8 +686,14 @@ namespace encode
         {
             auto original_TU = m_basicFeature->m_targetUsage;
             m_basicFeature->m_targetUsage = m_basicFeature->m_hevcSeqParams->TargetUsage = 7;
+
+            auto cqpFeature = dynamic_cast<HevcEncodeCqp *>(m_featureManager->GetFeature(HevcFeatureIDs::hevcCqpFeature));
+            ENCODE_CHK_NULL_RETURN(cqpFeature);
+            bool original_RDOQ = cqpFeature->IsRDOQEnabled();
+            cqpFeature->SetRDOQ(false);            
             ENCODE_CHK_STATUS_RETURN(ConstructBatchBufferHuCBRC(&m_vdencReadBatchBufferTU7[m_pipeline->m_currRecycledBufIdx][m_pipeline->GetCurrentPass()]));
             m_basicFeature->m_targetUsage = m_basicFeature->m_hevcSeqParams->TargetUsage = original_TU;
+            cqpFeature->SetRDOQ(original_RDOQ);
         }
 
         bool firstTaskInPhase = packetPhase & firstPacket;
