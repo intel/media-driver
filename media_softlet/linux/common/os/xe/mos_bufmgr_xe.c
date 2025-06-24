@@ -2949,6 +2949,12 @@ mos_query_device_blob_xe(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info)
             gfx_info->MaxVECS = hwconfig[i+2];
         }
 
+        if (INTEL_HWCONFIG_SLM_SIZE_PER_SS_IN_KB == hwconfig[i])
+        {
+            assert(hwconfig[i + 1] == 1);
+            gfx_info->SLMSizeInKb = hwconfig[i + 2];
+        }
+
         /* Advance to next key */
         i += hwconfig[i + 1];  // value size
         i += 2;// KL size

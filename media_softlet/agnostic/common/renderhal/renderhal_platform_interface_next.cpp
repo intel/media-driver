@@ -944,15 +944,11 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::CalculatePreferredSlmAllocationSi
     uint32_t workGroupCountPerDss       = (threadsPerDssCount + numberOfThreadsPerThreadGroup - 1) / numberOfThreadsPerThreadGroup;
     uint32_t slmSizePerSubSlice         = slmSizeInKB * workGroupCountPerDss;
 
-    if (gtInfo->SLMSizeInKb != 0)
+    if (gtInfo->SLMSizeInKb == 0)
     {
-        slmSizePerSubSlice = MOS_MIN(slmSizePerSubSlice, gtInfo->SLMSizeInKb);
+        MHW_RENDERHAL_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
     }
-    else
-    {
-        MHW_RENDERHAL_NORMALMESSAGE("Max SLM Size in KB is 0");
-    }
-    
+    slmSizePerSubSlice = MOS_MIN(slmSizePerSubSlice, gtInfo->SLMSizeInKb);
     if (slmSizePerSubSlice < slmSizeInKB)
     {
         MHW_RENDERHAL_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
