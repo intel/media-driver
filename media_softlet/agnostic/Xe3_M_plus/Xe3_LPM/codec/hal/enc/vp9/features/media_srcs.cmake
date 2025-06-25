@@ -23,11 +23,13 @@
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/encode_vp9_vdenc_feature_manager_xe3_lpm.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_vp9_vdenc_const_settings_xe3_lpm.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/encode_vp9_basic_feature_xe3_lpm.cpp
 )
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/encode_vp9_vdenc_feature_manager_xe3_lpm.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_vp9_vdenc_const_settings_xe3_lpm.h
+    ${CMAKE_CURRENT_LIST_DIR}/encode_vp9_basic_feature_xe3_lpm.h
 )
 
 set(SOFTLET_ENCODE_VP9_HEADERS_

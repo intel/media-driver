@@ -66,6 +66,14 @@ protected:
     //!
     MOS_STATUS CreateConstSettings();
 
+    //!
+    //! \brief  Create features
+    //! \param  [in] constsettings
+    //!         feature const settings
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS CreateFeatures(void *constSettings) override;
 MEDIA_CLASS_DEFINE_END(encode__EncodeVp9VdencFeatureManagerXe3_Lpm)
 };
 

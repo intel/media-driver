@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,28 +20,22 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     encode_avc_basic_feature_xe3_lpm.cpp
-//! \brief    Defines the common interface for encode avc Xe3_LPM parameter
+//! \file     encode_vp9_basic_feature_Xe3_Lpm_base.cpp
+//! \brief    Defines the Xe3_LPM+ common class for encode vp9 basic feature
 //!
 
-#include "encode_avc_basic_feature_xe3_lpm.h"
-#include "mhw_vdbox_vdenc_hwcmd_xe3_lpm.h"
+#include "encode_vp9_basic_feature_xe3_lpm.h"
+
+using namespace mhw::vdbox;
 
 namespace encode
 {
-
-MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, AvcBasicFeatureXe3_Lpm)
+MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, Vp9BasicFeatureXe3_Lpm)
 {
-    AvcBasicFeature::MHW_SETPAR_F(VDENC_PIPE_MODE_SELECT)(params);
+    ENCODE_CHK_STATUS_RETURN(Vp9BasicFeature::MHW_SETPAR_F(VDENC_PIPE_MODE_SELECT)(params));
 
-    if (m_seqParam->EnableStreamingBufferLLC || m_seqParam->EnableStreamingBufferDDR)
-    {
-        params.streamingBufferConfig = mhw::vdbox::vdenc::xe3_lpm_base::xe3_lpm::Cmd::VDENC_PIPE_MODE_SELECT_CMD::STREAMING_BUFFER_64;
-        params.captureMode           = mhw::vdbox::vdenc::xe3_lpm_base::xe3_lpm::Cmd::VDENC_PIPE_MODE_SELECT_CMD::CAPTURE_MODE_PARALLEFROMCAMERAPIPE;
-    }
-
-    params.verticalShift32Minus1   = 0;
-    params.numVerticalReqMinus1    = 11;
+    params.verticalShift32Minus1 = 0;
+    params.numVerticalReqMinus1 = 11;
 
     return MOS_STATUS_SUCCESS;
 }

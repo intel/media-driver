@@ -35,6 +35,8 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, HevcBasicFeatureXe3_Lpm_Base)
 
     params.chromaPrefetchDisable = m_chromaPrefetchDisable;
 
+    params.verticalShift32Minus1 = 0;
+    params.numVerticalReqMinus1  = 11;
     return MOS_STATUS_SUCCESS;
 }
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,30 +20,33 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     encode_avc_basic_feature_xe3_lpm.cpp
-//! \brief    Defines the common interface for encode avc Xe3_LPM parameter
+//! \file     encode_vp9_basic_feature_xe3_lpm.h
+//! \brief    Defines the Xe3_LPM+ common class for encode vp9 basic feature
 //!
+#ifndef __ENCODE_VP9_BASIC_FEATURE_XE3_LPM_H__
+#define __ENCODE_VP9_BASIC_FEATURE_XE3_LPM_H__
 
-#include "encode_avc_basic_feature_xe3_lpm.h"
-#include "mhw_vdbox_vdenc_hwcmd_xe3_lpm.h"
+#include "encode_vp9_basic_feature.h"
 
 namespace encode
 {
-
-MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, AvcBasicFeatureXe3_Lpm)
+class Vp9BasicFeatureXe3_Lpm : public Vp9BasicFeature
 {
-    AvcBasicFeature::MHW_SETPAR_F(VDENC_PIPE_MODE_SELECT)(params);
+public:
+    Vp9BasicFeatureXe3_Lpm(EncodeAllocator          *allocator,
+                     CodechalHwInterfaceNext        *hwInterface,
+                     TrackedBuffer                  *trackedBuf,
+                     RecycleResource                *recycleBuf,
+                     void                           *constSettings) :
+                     Vp9BasicFeature(allocator, hwInterface, trackedBuf, recycleBuf, constSettings){};
 
-    if (m_seqParam->EnableStreamingBufferLLC || m_seqParam->EnableStreamingBufferDDR)
-    {
-        params.streamingBufferConfig = mhw::vdbox::vdenc::xe3_lpm_base::xe3_lpm::Cmd::VDENC_PIPE_MODE_SELECT_CMD::STREAMING_BUFFER_64;
-        params.captureMode           = mhw::vdbox::vdenc::xe3_lpm_base::xe3_lpm::Cmd::VDENC_PIPE_MODE_SELECT_CMD::CAPTURE_MODE_PARALLEFROMCAMERAPIPE;
-    }
+    virtual ~Vp9BasicFeatureXe3_Lpm(){};
 
-    params.verticalShift32Minus1   = 0;
-    params.numVerticalReqMinus1    = 11;
+    MHW_SETPAR_DECL_HDR(VDENC_PIPE_MODE_SELECT);
 
-    return MOS_STATUS_SUCCESS;
-}
+    MEDIA_CLASS_DEFINE_END(encode__Vp9BasicFeatureXe3_Lpm);
+};
 
 }  // namespace encode
+
+#endif  // !__ENCODE_VP9_BASIC_FEATURE_XE3_LPM_H__
