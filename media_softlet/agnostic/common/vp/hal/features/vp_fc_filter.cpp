@@ -1093,7 +1093,7 @@ MOS_STATUS PolicyFcHandler::RemoveTransparentLayers(SwFilterPipe& featurePipe)
             // Don't render layer with alpha <= 0.0f
             if (fAlpha <= 0.0f)
             {
-                VP_PUBLIC_NORMALMESSAGE("Layer %d skipped: BlendType %d, fAlpha %d",
+                VP_PUBLIC_NORMALMESSAGE("Layer selected result: Layer %d skipped: BlendType %d, fAlpha %d",
                     i,
                     param.blendingParams->BlendType,
                     param.blendingParams->fAlpha);

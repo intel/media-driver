@@ -3790,10 +3790,10 @@ void VpOclFcFilter::PrintKrnImageParam(uint32_t index, OCL_FC_KRN_IMAGE_PARAM &i
 {
 #if (_DEBUG || _RELEASE_INTERNAL)
     VP_PUBLIC_NORMALMESSAGE("OCL FC ImageParam Layer Index %d", index);
-    VP_PUBLIC_NORMALMESSAGE("OCL FC ImageParam: CSC %f %f %f %f", imageParam.csc.s0123[0], imageParam.csc.s0123[1], imageParam.csc.s0123[2], imageParam.csc.s0123[3]);
-    VP_PUBLIC_NORMALMESSAGE("OCL FC ImageParam: CSC %f %f %f %f", imageParam.csc.s4567[0], imageParam.csc.s4567[1], imageParam.csc.s4567[2], imageParam.csc.s4567[3]);
-    VP_PUBLIC_NORMALMESSAGE("OCL FC ImageParam: CSC %f %f %f %f", imageParam.csc.s89AB[0], imageParam.csc.s89AB[1], imageParam.csc.s89AB[2], imageParam.csc.s89AB[3]);
-    VP_PUBLIC_NORMALMESSAGE("OCL FC ImageParam: CSC %f %f %f %f", imageParam.csc.sCDEF[0], imageParam.csc.sCDEF[1], imageParam.csc.sCDEF[2], imageParam.csc.sCDEF[3]);
+    VP_PUBLIC_NORMALMESSAGE("OCL FC ImageParam: CSC %.15f %.15f %.15f %.15f", imageParam.csc.s0123[0], imageParam.csc.s0123[1], imageParam.csc.s0123[2], imageParam.csc.s0123[3]);
+    VP_PUBLIC_NORMALMESSAGE("OCL FC ImageParam: CSC %.15f %.15f %.15f %.15f", imageParam.csc.s4567[0], imageParam.csc.s4567[1], imageParam.csc.s4567[2], imageParam.csc.s4567[3]);
+    VP_PUBLIC_NORMALMESSAGE("OCL FC ImageParam: CSC %.15f %.15f %.15f %.15f", imageParam.csc.s89AB[0], imageParam.csc.s89AB[1], imageParam.csc.s89AB[2], imageParam.csc.s89AB[3]);
+    VP_PUBLIC_NORMALMESSAGE("OCL FC ImageParam: CSC %.15f %.15f %.15f %.15f", imageParam.csc.sCDEF[0], imageParam.csc.sCDEF[1], imageParam.csc.sCDEF[2], imageParam.csc.sCDEF[3]);
 
     VP_PUBLIC_NORMALMESSAGE("OCL FC ImageParam: inputChannelIndices %u %u %u %u",
         imageParam.inputChannelIndices[0],
