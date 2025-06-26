@@ -1352,7 +1352,8 @@ MOS_STATUS SwFilterHdr::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
             if (surfOutput->pHDRParams)
             {
                 m_Params.uiMaxDisplayLum = surfOutput->pHDRParams->max_display_mastering_luminance;
-                if (surfOutput->pHDRParams->EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084)
+                if ((surfOutput->pHDRParams->EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084) ||
+                    (surfOutput->pHDRParams->EOTF == VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR && IS_RGB64_FLOAT_FORMAT(surfOutput->Format))) // For FP16 output typical usage
                 {
                     m_Params.hdrMode = VPHAL_HDR_MODE_H2H;
                 }
