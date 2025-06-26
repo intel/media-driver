@@ -686,7 +686,7 @@ bool VpPlatformInterface::IsVeboxScalabilityWith4KNotSupported(
 void VpPlatformInterface::DisableRender()
 {
     // media sfc interface should come to here.
-    VP_PUBLIC_NORMALMESSAGE("Disable Render.");
+    VP_PUBLIC_NORMALMESSAGE("Disable Render for media sfc interface path.");
     m_isRenderDisabled = true;
 }
 
