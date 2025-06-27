@@ -187,6 +187,7 @@ struct _VP_EXECUTE_CAPS
             uint64_t bDnKernelUpdate: 1;
             uint64_t bVeboxSecureCopy : 1;
             uint64_t bHDR3DLUT      : 1;  // Vebox 3DLUT needed
+            uint64_t bH2S           : 1;  // Vebox 3DLUT H2S Mode
             uint64_t b1K1DLutInited : 1;
             uint64_t bDV            : 1;
             uint64_t b3DlutOutput   : 1;
@@ -245,6 +246,7 @@ typedef struct _VP_EngineEntry
             uint64_t bt2020ToRGB : 1;           // true if bt2020 to rgb
             uint64_t is1K1DLutSurfaceInUse : 1;  // 1K1DLut surface in use
             uint64_t isHdr33LutSizeEnabled : 1;
+            uint64_t isH2S : 1;                  //Vebox 3DLut H2S
             uint64_t isBayerInputInUse : 1;
             uint64_t frontEndCscNeeded : 1;  // true if use vebox front end csc to do output csc feature instead of using backendcsc + sfc. Only using it when no scaling needed
             uint64_t forceLegacyFC : 1;          // true if OCL FC not support the format, fall back to legacy FC

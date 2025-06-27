@@ -783,7 +783,18 @@ MOS_STATUS Policy::GetCSCExecutionCapsHdr(SwFilter *HDR, SwFilter *CSC)
     VPHAL_CSPACE hdrCSpace  = CSpace_Any;
     if (cscParams->isFullRgbG10P709 && IS_RGB64_FLOAT_FORMAT(cscParams->formatOutput))
     {
-        hdrCSpace = CSpace_BT2020_RGB;
+        if (hdrParams->hdrMode == VPHAL_HDR_MODE_H2H)
+        {
+            hdrCSpace = CSpace_BT2020_RGB;
+        }
+        else if (hdrParams->hdrMode == VPHAL_HDR_MODE_TONE_MAPPING)
+        {
+            hdrCSpace = CSpace_sRGB;
+        }
+        else
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Invalid HDR Mode %d!", hdrParams->hdrMode);
+        }
         hdrFormat = Format_A16B16G16R16;
     }
     else
@@ -2176,6 +2187,9 @@ MOS_STATUS Policy::GetHdrExecutionCaps(SwFilter *feature)
             {
                 pHDREngine->VeboxARGB10bitOutput = 1;
             }
+
+            pHDREngine->isH2S = hdrParams->hdrMode == VPHAL_HDR_MODE_TONE_MAPPING;
+
             VP_PUBLIC_NORMALMESSAGE("HDR_STAGE_VEBOX_3DLUT_NO_UPDATE");
         }
     }
@@ -2192,6 +2206,9 @@ MOS_STATUS Policy::GetHdrExecutionCaps(SwFilter *feature)
         {
             pHDREngine->VeboxARGB10bitOutput = 1;
         }
+
+        pHDREngine->isH2S = hdrParams->hdrMode == VPHAL_HDR_MODE_TONE_MAPPING;
+
         VP_PUBLIC_NORMALMESSAGE("HDR_STAGE_DEFAULT");
     }
 
@@ -4004,10 +4021,8 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
         case FeatureTypeHdr:
             caps.bHDR3DLUT = 1;
             caps.b3DlutOutput |= 1;
-            if (feature->GetFilterEngineCaps().isHdr33LutSizeEnabled)
-            {
-                caps.bHdr33lutsize = 1;
-            }
+            caps.bHdr33lutsize = feature->GetFilterEngineCaps().isHdr33LutSizeEnabled;
+            caps.bH2S = feature->GetFilterEngineCaps().isH2S;
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Hdr, Vebox)));
             break;
         case FeatureTypeCgc:
@@ -4413,7 +4428,7 @@ MOS_STATUS Policy::GetDnParamsOnCaps(PVP_SURFACE surfInput, PVP_SURFACE surfOutp
 
 void Policy::PrintFeatureExecutionCaps(const char *name, VP_EngineEntry &engineCaps)
 {
-    VP_PUBLIC_NORMALMESSAGE("%s, value 0x%x (bEnabled %d, VeboxNeeded %d, SfcNeeded %d, RenderNeeded %d, fcSupported %d, isolated %d, veboxNotSupported %d, sfcNotSupported %d, NpuNeeded %d)",
+    VP_PUBLIC_NORMALMESSAGE("%s, value 0x%x (bEnabled %d, VeboxNeeded %d, SfcNeeded %d, RenderNeeded %d, fcSupported %d, isolated %d, veboxNotSupported %d, sfcNotSupported %d, NpuNeeded %d, isH2S %d)",
         name,
         engineCaps.value,
         engineCaps.bEnabled,
@@ -4424,7 +4439,8 @@ void Policy::PrintFeatureExecutionCaps(const char *name, VP_EngineEntry &engineC
         engineCaps.isolated,
         engineCaps.veboxNotSupported,
         engineCaps.sfcNotSupported,
-        engineCaps.npuNeeded);
+        engineCaps.npuNeeded,
+        engineCaps.isH2S);
 }
 
 };

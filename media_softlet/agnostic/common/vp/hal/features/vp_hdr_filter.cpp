@@ -573,6 +573,8 @@ MOS_STATUS PolicyRenderHdr3DLutCalHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS cap
             filter2ndPass->GetFilterEngineCaps().VeboxARGB10bitOutput = 1;
         }
 
+        filter2ndPass->GetFilterEngineCaps().isH2S = featureHdr->GetSwFilterParams().hdrMode == VPHAL_HDR_MODE_TONE_MAPPING;
+
         executePipe.AddSwFilterUnordered(filter1ndPass, isInputPipe, index);
     }
     else

@@ -170,7 +170,8 @@ VPHAL_CSPACE GetSfcInputColorSpace(VP_EXECUTE_CAPS &executeCaps, VPHAL_CSPACE in
     {
         if (IS_RGB64_FLOAT_FORMAT(outputFormat)) // SFC output FP16, BT2020->BT709
         {
-            return CSpace_BT2020_RGB;
+            VP_PUBLIC_NORMALMESSAGE("H2S Caps %d", executeCaps.bH2S);
+            return executeCaps.bH2S ? CSpace_sRGB : CSpace_BT2020_RGB;
         }
         else
         {
