@@ -711,6 +711,27 @@ MOS_STATUS MediaDebugInterface::DumpBufferInBinary(uint8_t *data, uint32_t size)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS MediaDebugInterface::LoadBufferInBinary(uint8_t *data, uint32_t size)
+{
+    MEDIA_DEBUG_CHK_NULL(data);
+
+    const char *filePath = m_outputFileName.c_str();
+
+    if (size == 0)
+    {
+        return MOS_STATUS_UNKNOWN;
+    }
+
+    std::ifstream ifs(filePath, std::ios_base::in | std::ios_base::binary);
+    if (ifs.fail())
+    {
+        return MOS_STATUS_UNKNOWN;
+    }
+    ifs.read((char *)data, size);
+    ifs.close();
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MediaDebugInterface::DumpBufferInHexDwords(uint8_t *data, uint32_t size)
 {
     MEDIA_DEBUG_CHK_NULL(data);

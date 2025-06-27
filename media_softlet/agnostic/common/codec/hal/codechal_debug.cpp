@@ -2294,6 +2294,7 @@ CodechalDebugInterface::CodechalDebugInterface()
             (!strcmp(attrName, MediaDbgAttr::attrMvData)) ||
             (!strcmp(attrName, MediaDbgAttr::attrSegId)) ||
             (!strcmp(attrName, MediaDbgAttr::attrCoefProb)) ||
+            (!strcmp(attrName, MediaDbgAttr::attrGranularCRCDump)) ||
             m_configMgr->AttrIsEnabled(MediaDbgAttr::attrDumpBufferInBinary))
         {
             binaryDump = true;
@@ -2426,6 +2427,7 @@ CodechalDebugInterface::CodechalDebugInterface()
             (!strcmp(attrName, MediaDbgAttr::attrMvData)) ||
             (!strcmp(attrName, MediaDbgAttr::attrSegId)) ||
             (!strcmp(attrName, MediaDbgAttr::attrCoefProb)) ||
+            (!strcmp(attrName, MediaDbgAttr::attrGranularCRCDump)) ||
             m_configMgr->AttrIsEnabled(MediaDbgAttr::attrDumpBufferInBinary))
         {
             binaryDump = true;
@@ -4227,6 +4229,53 @@ MOS_STATUS CodechalDebugInterface::DumpBuffer(
         size,
         offset,
         mediaState);
+}
+
+MOS_STATUS CodechalDebugInterface::LoadBinaryToLockableBuffer(
+    PMOS_RESOURCE             resource,
+    const char               *attrName,
+    const char               *bufferName,
+    uint32_t                  size,
+    uint32_t                  offset,
+    CODECHAL_MEDIA_STATE_TYPE mediaState)
+{
+    MEDIA_DEBUG_FUNCTION_ENTER;
+
+    MEDIA_DEBUG_CHK_NULL(resource);
+    MEDIA_DEBUG_CHK_NULL(bufferName);
+
+    const char *fileName;
+    if (size == 0)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+    if (mediaState == CODECHAL_NUM_MEDIA_STATES)
+    {
+        fileName = CreateFileName(bufferName, attrName, MediaDbgExtType::dat);
+    }
+    else
+    {
+        std::string kernelName = static_cast<CodecDebugConfigMgr *>(m_configMgr)->GetMediaStateStr(mediaState);
+        fileName               = CreateFileName(kernelName.c_str(), bufferName, MediaDbgExtType::dat);
+    }
+
+    MOS_STATUS      status = MOS_STATUS_SUCCESS;
+
+    MOS_LOCK_PARAMS lockFlags;
+    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+    lockFlags.WriteOnly = 1;
+    uint8_t   *data   = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, resource, &lockFlags);
+    MEDIA_DEBUG_CHK_NULL(data);
+    data += offset;
+
+    status = LoadBufferInBinary(data, size);
+
+    if (data)
+    {
+        m_osInterface->pfnUnlockResource(m_osInterface, resource);
+    }
+
+    return status;
 }
 
 MOS_STATUS CodechalDebugInterface::DumpSurface(

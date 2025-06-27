@@ -154,6 +154,10 @@ protected:
         uint8_t *data,
         uint32_t size);
 
+    MOS_STATUS LoadBufferInBinary(
+        uint8_t *data,
+        uint32_t size);
+
     MOS_STATUS Dump2DBufferInBinary(
         uint8_t *data,
         uint32_t width,

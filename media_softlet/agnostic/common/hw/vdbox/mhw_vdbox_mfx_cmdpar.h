@@ -183,6 +183,8 @@ struct _MHW_PAR_T(MFX_PIPE_BUF_ADDR_STATE)
     PMOS_RESOURCE     presMacroblockIldbStreamOutBuffer2           = nullptr;
     PMOS_RESOURCE *   references                                   = nullptr;
     MOS_MEMCOMP_STATE Ps4xDsSurfMmcState                           = MOS_MEMCOMP_DISABLED;
+
+    __MHW_VDBOX_MFX_WRAPPER_EXT(MFX_PIPE_BUF_ADDR_STATE_EXT);
 };
 
 struct _MHW_PAR_T(MFX_IND_OBJ_BASE_ADDR_STATE)
