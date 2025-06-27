@@ -269,8 +269,9 @@ public:
                 params.dwLocationInCmd                            = 0;
                 params.dwOffset                                   = resourceParam.resourceOffset;
                 params.bIsWritable                                = resourceParam.isWrite;
-                params.HwCommandType                              = MOS_HW_COMMANDS;
+                params.HwCommandType                              = MOS_SURFACE_STATE;
 
+                HalOcaInterfaceNext::InsertResourceHeapToCurrentCmdBufferOcaBufferHandle(cmdBuffer.pCmdBase, m_osItf, m_currentCmdBuf);
                 MHW_MI_CHK_STATUS(AddResourceToCmd(m_osItf, &cmdBuffer, &params));
             }
         }
@@ -292,7 +293,7 @@ public:
                 params.dwLocationInCmd = resourceParam.stateOffset / sizeof(uint32_t) + _MHW_CMD_DW_LOCATION(InlineData.Value);
                 params.dwOffset        = resourceParam.resourceOffset;
                 params.bIsWritable     = resourceParam.isWrite;
-                params.HwCommandType   = MOS_HW_COMMANDS;
+                params.HwCommandType   = MOS_SURFACE_STATE;
 
                 MHW_MI_CHK_STATUS(AddResourceToCmd(m_osItf, m_currentCmdBuf, &params));
             }

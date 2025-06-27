@@ -1136,6 +1136,7 @@ struct FeatureParamAi : public FeatureParam
     uint32_t             stageIndex      = 0;
     AI_SETTING_PIPE      settings        = {};
     AI_SPLIT_GROUP_INDEX splitGroupIndex = {};
+    VPHAL_PERFTAG        perfTag         = VPHAL_NONE;
 };
 
 class SwFilterAiBase : public SwFilter
@@ -1154,6 +1155,7 @@ public:
     virtual MOS_STATUS       InitializeStageGroupIndex(AI_SETTING_PIPE &settingPipe, AI_SPLIT_GROUP_INDEX &splitGroupIndex);
     // This need to be implemented by derived class
     virtual MOS_STATUS RegisterAiSettingPipe(VP_PIPELINE_PARAMS &params, AI_SETTING_PIPE &settingPipe) = 0;
+    virtual MOS_STATUS SetPerfTag(VPHAL_PERFTAG &perfTag);
 
     virtual MOS_STATUS AddFeatureGraphRTLog()
     {

@@ -2177,6 +2177,7 @@ MOS_STATUS SwFilterAiBase::Configure(VP_PIPELINE_PARAMS &params, bool isInputSur
     VP_PUBLIC_CHK_STATUS_RETURN(RegisterAiSettingPipe(params, m_Params.settings));
     VP_PUBLIC_CHK_STATUS_RETURN(InitializeStageGroupIndex(m_Params.settings, m_Params.splitGroupIndex));
     VP_PUBLIC_CHK_STATUS_RETURN(InitializeNpu(m_Params.settings));
+    VP_PUBLIC_CHK_STATUS_RETURN(SetPerfTag(m_Params.perfTag));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -2295,6 +2296,12 @@ MOS_STATUS SwFilterAiBase::GetStagePipeSettings(uint32_t stageIndex, std::vector
         currentStagePipeSettings.push_back(m_Params.settings.at(layerIndex).get());
     }
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SwFilterAiBase::SetPerfTag(VPHAL_PERFTAG &perfTag)
+{
+    perfTag = VPHAL_NONE;
     return MOS_STATUS_SUCCESS;
 }
 

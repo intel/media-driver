@@ -319,7 +319,44 @@ void HalOcaInterfaceNext::DumpResourceInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_IN
     }
 }
 
-    //!
+//!
+//! \brief  Insert bindless/stateless resource state heap into OcaBufferHandlerMap
+//! \param  [in] key
+//!         The base address of resource state heap
+//! \param  [in] osInterface
+//!         Reference to PMOS_INTERFACE.
+//! \param  [in] cmdBuffer
+//!         Command buffer for current BB.
+//! \return void
+//!         No return value. Handle all exception inside the function.
+//!
+void HalOcaInterfaceNext::InsertResourceHeapToCurrentCmdBufferOcaBufferHandle(uint32_t *key, PMOS_INTERFACE osInterface, PMOS_COMMAND_BUFFER _cmdBuffer)
+{
+    if (nullptr == osInterface || nullptr == osInterface->pOsContext || nullptr == _cmdBuffer)
+    {
+        OnOcaError(nullptr, MOS_STATUS_INVALID_PARAMETER, __FUNCTION__, __LINE__);
+        return;
+    }
+    MOS_CONTEXT          &mosContext    = *osInterface->pOsContext;
+    MosOcaInterface      *pOcaInterface = &MosOcaInterfaceSpecific::GetInstance();
+    MOS_STATUS            status        = MOS_STATUS_SUCCESS;
+    MOS_OCA_BUFFER_HANDLE hOcaBuf       = 0;
+    MOS_COMMAND_BUFFER   &cmdBuffer     = _cmdBuffer->cmdBuf1stLvl ? *_cmdBuffer->cmdBuf1stLvl : *_cmdBuffer;
+
+    if (nullptr == pOcaInterface || (hOcaBuf = GetOcaBufferHandle(cmdBuffer, (MOS_CONTEXT_HANDLE)&mosContext)) == 0)
+    {
+        // Will come here for UMD_OCA not being enabled case.
+        return;
+    }
+
+    status = pOcaInterface->InsertOcaBufHandleMap(key, hOcaBuf);
+    if (MOS_FAILED(status))
+    {
+        OnOcaError(&mosContext, status, __FUNCTION__, __LINE__);
+    }
+}
+
+//!
 //! \brief  Trace OCA Sku Value.
 //! \param  [in] cmdBuffer
 //!         Command buffer for current BB.
