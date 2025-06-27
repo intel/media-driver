@@ -559,7 +559,12 @@ MOS_STATUS PolicyAiHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &fe
         SwFilterAiBase *filter2ndPass = featureAI;
         VP_PUBLIC_CHK_NULL_RETURN(filter2ndPass);
         FeatureParamAi &params2ndPass = filter2ndPass->GetSwFilterParams();
-        
+        uint32_t        settingIndex  = param.splitGroupIndex.at(params2ndPass.stageIndex); //the setting index of 2nd filter
+        if (settingIndex >= param.settings.size())
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
+
         SwFilterAiBase *filter1ndPass = (SwFilterAiBase *)feature.Clone();
         VP_PUBLIC_CHK_NULL_RETURN(filter1ndPass);
         filter1ndPass->GetFilterEngineCaps() = filter2ndPass->GetFilterEngineCaps();
@@ -568,11 +573,6 @@ MOS_STATUS PolicyAiHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &fe
 
         params2ndPass.stageIndex += 1;
         // Clear engine caps for filter in 2nd pass
-        uint32_t settingIndex = param.splitGroupIndex.at(params2ndPass.stageIndex - 1);
-        if (settingIndex >= param.settings.size())
-        {
-            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
-        }
         filter2ndPass->SetFeatureType(FeatureType(filter2ndPass->GetFeatureType() & FEATURE_TYPE_MASK));
         filter2ndPass->SetRenderTargetType(RenderTargetTypeSurface);
         filter2ndPass->GetFilterEngineCaps().value           = 0;
