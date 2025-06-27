@@ -7114,12 +7114,19 @@ bool Mos_Specific_IsAsyncDevice(PMOS_INTERFACE pOsInterface)
 }
 
 bool Mos_Specific_IsGpuSyncByCmd(
-    PMOS_INTERFACE osInterface)
+    PMOS_INTERFACE     osInterface,
+    GPU_CONTEXT_HANDLE gpuContextHandle)
 {
     return false;
 }
 
 void Mos_Specific_OnNativeFenceSyncBBAdded(PMOS_COMMAND_BUFFER pCmdBuffer, uint64_t gfxAddr)
+{
+}
+
+void Mos_Specific_DisableNativeFenceSyncByCmd(
+    PMOS_INTERFACE  osInterface,
+    GPU_CONTEXT_HANDLE gpuContextHandle)
 {
 }
 
@@ -7303,6 +7310,7 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnIsAsynDevice                           = Mos_Specific_IsAsyncDevice;
     pOsInterface->pfnIsGpuSyncByCmd                         = Mos_Specific_IsGpuSyncByCmd;
     pOsInterface->pfnOnNativeFenceSyncBBAdded               = Mos_Specific_OnNativeFenceSyncBBAdded;
+    pOsInterface->pfnDisableNativeFenceSyncByCmd            = Mos_Specific_DisableNativeFenceSyncByCmd;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     pOsInterface->pfnGetEngineLogicId                       = Mos_Specific_GetEngineLogicId;

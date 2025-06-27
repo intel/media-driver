@@ -1064,7 +1064,7 @@ MOS_STATUS BltStateNext::SetPrologParamsforCmdbuffer(PMOS_COMMAND_BUFFER cmdBuff
            cmdBuffer->Attributes.dwMediaFrameTrackingAddrOffset = GenericPrologParams.dwMediaFrameTrackingAddrOffset;
            cmdBuffer->Attributes.resMediaFrameTrackingSurface   = GenericPrologParams.presMediaFrameTrackingSurface;
    }
-   if (pOsInterface->pfnIsGpuSyncByCmd(pOsInterface) && cmdBuffer->syncMhwBatchBuffer != nullptr)  // Some gpu context may not support sync with batch buffer
+   if (pOsInterface->pfnIsGpuSyncByCmd(pOsInterface, pOsInterface->CurrentGpuContextHandle) && cmdBuffer->syncMhwBatchBuffer != nullptr)  // Some gpu context may not support sync with batch buffer
    {
            //Reset params
            auto &miBatchBufferStartParams = m_miItf->MHW_GETPAR_F(MI_BATCH_BUFFER_START)();

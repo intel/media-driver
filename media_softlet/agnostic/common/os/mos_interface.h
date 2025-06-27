@@ -2399,7 +2399,8 @@ public:
 
     static void SetIsTrinityEnabled(bool bTrinity);
 
-    static bool IsGpuSyncByCmd(MOS_STREAM_HANDLE streamState);
+    static bool IsGpuSyncByCmd(MOS_STREAM_HANDLE streamState, GPU_CONTEXT_HANDLE gpuContextHandle);
+
 private:
     //!
     //! \brief    Init per stream parameters

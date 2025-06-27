@@ -300,6 +300,8 @@ MOS_STATUS RenderCopyStateNext::SubmitCMD()
     // Set GPU Context to Render Engine
     MCPY_CHK_STATUS_RETURN(pOsInterface->pfnSetGpuContext(pOsInterface, MOS_GPU_CONTEXT_COMPUTE));
 
+    pOsInterface->pfnDisableNativeFenceSyncByCmd(pOsInterface, pOsInterface->CurrentGpuContextHandle);
+
     // Reset allocation list and house keeping
     m_osInterface->pfnResetOsStates(pOsInterface);
 

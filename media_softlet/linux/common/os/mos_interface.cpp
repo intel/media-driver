@@ -4131,7 +4131,7 @@ void MosInterface::SetIsTrinityEnabled(bool bTrinity)
 {
     return;
 }
-bool MosInterface::IsGpuSyncByCmd(MOS_STREAM_HANDLE streamState)
+bool MosInterface::IsGpuSyncByCmd(MOS_STREAM_HANDLE streamState, GPU_CONTEXT_HANDLE gpuContextHandle)
 {
     return false;
 }

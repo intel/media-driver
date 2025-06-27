@@ -2116,6 +2116,10 @@ typedef struct _MOS_INTERFACE
     bool (*pfnIsAsynDevice)(
         PMOS_INTERFACE              osInterface);
 
+    void (*pfnDisableNativeFenceSyncByCmd)(
+        PMOS_INTERFACE osInterface,
+        GPU_CONTEXT_HANDLE gpuContextHandle);
+
     //!
     //! \brief   Get User Setting instance
     //!
@@ -2130,7 +2134,7 @@ typedef struct _MOS_INTERFACE
 
     bool (*pfnGetCacheSetting)(MOS_COMPONENT id, uint32_t feature, bool bOut, ENGINE_TYPE engineType, MOS_CACHE_ELEMENT &element, bool isHeapSurf);
 
-    bool (* pfnIsGpuSyncByCmd) (PMOS_INTERFACE osInterface);
+    bool (*pfnIsGpuSyncByCmd)(PMOS_INTERFACE osInterface, GPU_CONTEXT_HANDLE gpuContextHandle);
 
     void (*pfnOnNativeFenceSyncBBAdded)(PMOS_COMMAND_BUFFER pCmdBuffer, uint64_t gfxAddr);
 
