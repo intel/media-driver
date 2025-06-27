@@ -242,6 +242,16 @@ static bool InitPtlMediaSkuExt(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrAV1VLDLSTDecoding, 1);
     MEDIA_WR_SKU(skuTable, FtrMediaIPSeparation , 1);
 
+    //WCL
+    if (drvInfo->devId == 0xFD80 ||
+        drvInfo->devId == 0xFD81)
+    {
+        MEDIA_WR_SKU(skuTable, FtrVeboxTypeH, 1);
+        MEDIA_WR_SKU(skuTable, FtrCapturePipe, 0);
+        MEDIA_WR_SKU(skuTable, FtrIntelVVCVLDDecodingMain10, 0);
+        MEDIA_WR_SKU(skuTable, FtrIntelVVCVLDDecodingMultilayerMain10, 0);
+    }
+
     return true;
 }
 

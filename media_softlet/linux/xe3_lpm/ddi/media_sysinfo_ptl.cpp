@@ -220,3 +220,10 @@ static bool ptlDeviceB0B0 = DeviceInfoFactory<GfxDeviceInfo>::
 
 static bool ptlDeviceB0FF = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0xB0FF, &ptlInfo);
+
+//WCL DeviceID
+static bool wclDeviceFD80= DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0xFD80, &ptlInfo);
+
+static bool wclDeviceFD81 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0xFD81, &ptlInfo);
