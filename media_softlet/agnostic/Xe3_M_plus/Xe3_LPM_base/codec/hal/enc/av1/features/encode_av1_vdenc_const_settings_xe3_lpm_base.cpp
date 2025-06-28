@@ -68,7 +68,7 @@ const uint8_t  Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par151[NUM_TARGET_U
 const uint8_t  Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par100[NUM_TARGET_USAGE_MODES]              = {0, 0, 0, 0, 0, 0, 3, 3};
 const bool     Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par94[NUM_TARGET_USAGE_MODES]              = {false, false, false, true, true, true, true, true};
 const bool     Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par95[NUM_TARGET_USAGE_MODES]          = {false, false, false, false, false, false, true, true};
-const uint8_t  Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par96[NUM_TARGET_USAGE_MODES]          = {2, 2, 2, 0, 0, 0, 1, 1};
+const uint8_t  Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par96[NUM_TARGET_USAGE_MODES]          = {2, 2, 2, 0, 0, 0, 1, 3};
 const bool     Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par97[NUM_TARGET_USAGE_MODES]            = {false, false, false, false, false, false, false, false};
 const uint8_t  Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par98[NUM_TARGET_USAGE_MODES]             = {0, 0, 0, 1, 1, 1, 1, 1};  // { 0->leftLCU, 1->lcu32x32};
 const uint16_t Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par12[NUM_TARGET_USAGE_MODES]                   = {0x200, 0x200, 0x200, 0x200, 0x200, 0x200, 0x200, 0x200};
