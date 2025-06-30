@@ -618,15 +618,12 @@ MOS_STATUS Policy::UpdateExecuteEngineCapsForHDR(SwFilterPipe &swFilterPipe, VP_
         return MOS_STATUS_SUCCESS;
     }
 
-    // Multi-layer S2H or H2H case.
-    if (pipeCount > 1 && IS_COLOR_SPACE_BT2020(outputSurf->ColorSpace))
-    {
-        VP_PUBLIC_NORMALMESSAGE("multi-layer H2H or S2H, use HDR kernel.");
-        isHdrKernelNeeded = true;
-    }
-
+    bool isNonBt2020Exists = false;
     for (uint32_t i = 0; i < pipeCount; ++i)
     {
+        auto inputSurf = swFilterPipe.GetSurface(true, i);
+        VP_PUBLIC_CHK_NULL_RETURN(inputSurf);
+        isNonBt2020Exists |= !IS_COLOR_SPACE_BT2020(inputSurf->ColorSpace);
         auto filter = (SwFilterHdr *)swFilterPipe.GetSwFilter(true, i, FeatureTypeHdr);
         if (nullptr == filter)
         {
@@ -641,7 +638,16 @@ MOS_STATUS Policy::UpdateExecuteEngineCapsForHDR(SwFilterPipe &swFilterPipe, VP_
         hdrFilters.push_back(filter);
     }
 
-    if (!isHdrKernelNeeded)
+    // Multi-layer S2H or H2H case.
+    if (pipeCount > 1 && IS_COLOR_SPACE_BT2020(outputSurf->ColorSpace))
+    {
+        if (isNonBt2020Exists || hdrFilters.size() > 0)
+        {
+            VP_PUBLIC_NORMALMESSAGE("multi-layer non-BT2020 to BT2020 csc or multi-layer H2H case, use HDR kernel.");
+            isHdrKernelNeeded = true;
+        }
+    }
+    else
     {
         // 1 H2S layer, use vebox 3DLut + fc or HDR kernel based on hdrKernelNeeded flag on hdr filter.
         if (hdrFilters.size() <= 1)
