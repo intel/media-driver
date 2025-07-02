@@ -31,6 +31,9 @@
 #include "encode_hevc_aqm.h"
 #include "encode_vdenc_hevc_fastpass.h"
 #include "encode_hevc_basic_feature_xe3_lpm_base.h"
+#if _KERNEL_RESERVED
+#include "encode_hevc_vdenc_saliency.h"
+#endif
 
 namespace encode
 {
@@ -92,6 +95,10 @@ MOS_STATUS EncodeHevcVdencFeatureManagerXe3_Lpm_Base::CreateFeatures(void *const
     HevcVdencFastPass *hevcFastPass = MOS_New(HevcVdencFastPass, this, m_allocator, m_hwInterface, constSettings);
     ENCODE_CHK_STATUS_RETURN(RegisterFeatures(HevcFeatureIDs::hevcVdencFastPassFeature, hevcFastPass));
 
+#if _KERNEL_RESERVED
+    HevcVdencSaliency *hevcSaliency = MOS_New(HevcVdencSaliency, this, m_allocator, m_hwInterface, constSettings);
+    ENCODE_CHK_STATUS_RETURN(RegisterFeatures(FeatureIDs::saliencyFeature, hevcSaliency, {HevcPipeline::encodePreEncPacket}));
+#endif
     return MOS_STATUS_SUCCESS;
 }
 
