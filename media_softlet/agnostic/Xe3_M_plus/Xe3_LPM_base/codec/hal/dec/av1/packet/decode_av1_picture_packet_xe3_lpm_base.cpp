@@ -226,6 +226,313 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
+    MOS_STATUS Av1DecodePicPktXe3_Lpm_Base::AllocateVariableResources()
+    {
+        DECODE_FUNC_CALL();
+
+        int32_t mibSizeLog2 = m_av1PicParams->m_seqInfoFlags.m_fields.m_use128x128Superblock ? av1MaxMibSizeLog2 : av1MinMibSizeLog2;
+        int32_t miCols      = MOS_ALIGN_CEIL(m_av1PicParams->m_superResUpscaledWidthMinus1 + 1, 8) >> av1MiSizeLog2;
+        int32_t miRows      = MOS_ALIGN_CEIL(m_av1PicParams->m_superResUpscaledHeightMinus1 + 1, 8) >> av1MiSizeLog2;
+        miCols              = MOS_ALIGN_CEIL(miCols, 1 << mibSizeLog2);
+        miRows              = MOS_ALIGN_CEIL(miRows, 1 << mibSizeLog2);
+
+        m_widthInSb                       = miCols >> mibSizeLog2;
+        m_heightInSb                      = miRows >> mibSizeLog2;
+        uint32_t         maxTileWidthInSb = MOS_ROUNDUP_DIVIDE(4096, 1 << (mibSizeLog2 + av1MiSizeLog2));
+        AvpBufferSizePar avpBufSizeParam;
+        MOS_ZeroMemory(&avpBufSizeParam, sizeof(avpBufSizeParam));
+
+        avpBufSizeParam.bitDepthIdc     = m_av1BasicFeature->m_av1DepthIndicator;
+        avpBufSizeParam.width           = m_widthInSb;
+        avpBufSizeParam.height          = m_heightInSb;
+        avpBufSizeParam.tileWidth       = maxTileWidthInSb;
+        avpBufSizeParam.isSb128x128     = m_av1PicParams->m_seqInfoFlags.m_fields.m_use128x128Superblock ? true : false;
+        avpBufSizeParam.curFrameTileNum = m_av1PicParams->m_tileCols * m_av1PicParams->m_tileRows;
+        avpBufSizeParam.numTileCol      = m_av1PicParams->m_tileCols;
+        avpBufSizeParam.chromaFormat    = chromaSamplingFormat;
+
+        // Lamda expression
+        auto AllocateBuffer = [&](PMOS_BUFFER &buffer, AvpBufferType bufferType, const char *bufferName) {
+            DECODE_CHK_STATUS(m_avpItf->GetAvpBufSize(bufferType, &avpBufSizeParam));
+            if (buffer == nullptr)
+            {
+                buffer = m_allocator->AllocateBuffer(
+                    avpBufSizeParam.bufferSize, bufferName, resourceInternalReadWriteCache, notLockableVideoMem);
+                DECODE_CHK_NULL(buffer);
+            }
+            else
+            {
+                DECODE_CHK_STATUS(m_allocator->Resize(buffer, avpBufSizeParam.bufferSize, notLockableVideoMem));
+            }
+            return MOS_STATUS_SUCCESS;
+        };
+
+        // Intrabc Decoded Output Frame Buffer
+        if (m_av1PicParams->m_picInfoFlags.m_fields.m_allowIntrabc)
+        {
+            MOS_SURFACE m_destSurface = m_av1BasicFeature->m_destSurface;
+            if (m_intrabcDecodedOutputFrameBuffer == nullptr)
+            {
+                PMOS_SURFACE surface = nullptr;
+                surface              = m_allocator->AllocateSurface(
+                    m_destSurface.dwWidth,
+                    MOS_ALIGN_CEIL(m_destSurface.dwHeight, 8),
+                    "Intrabc Decoded Output Frame Buffer",
+                    m_destSurface.Format,
+                    false,
+                    resourceInternalReadWriteNoCache,
+                    notLockableVideoMem);
+
+                m_intrabcDecodedOutputFrameBuffer = surface;
+                DECODE_CHK_NULL(m_intrabcDecodedOutputFrameBuffer);
+            }
+            else
+            {
+                DECODE_CHK_STATUS(m_allocator->Resize(
+                    m_intrabcDecodedOutputFrameBuffer,
+                    m_destSurface.dwWidth,
+                    MOS_ALIGN_CEIL(m_destSurface.dwHeight, 8),
+                    notLockableVideoMem));
+            }
+        }
+
+        // Bitstream decode line rowstore buffer
+        if (!m_avpItf->IsBufferRowstoreCacheEnabled(bsdLineBuffer))
+        {
+            DECODE_CHK_STATUS(AllocateBuffer(
+                m_bitstreamDecoderEncoderLineRowstoreReadWriteBuffer,
+                bsdLineBuffer,
+                "BitstreamDecodeLineBuffer"));
+        }
+
+        // Bitstream decode tile line buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_bitstreamDecoderEncoderTileLineRowstoreReadWriteBuffer,
+            bsdTileLineBuffer,
+            "BitstreamDecodeTileLineBuffer"));
+
+        // Intra Prediction Line Rowstore Read/Write Buffer
+        if (!m_avpItf->IsBufferRowstoreCacheEnabled(intraPredLineBuffer))
+        {
+            DECODE_CHK_STATUS(AllocateBuffer(
+                m_intraPredictionLineRowstoreReadWriteBuffer,
+                intraPredLineBuffer,
+                "intraPredictionLineRowstoreBuffer"));
+        }
+
+        // Intra Prediction Tile Line Rowstore Read/Write Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_intraPredictionTileLineRowstoreReadWriteBuffer,
+            intraPredTileLineBuffer,
+            "intraPredictionTileLineRowstoreBuffer"));
+
+        // Spatial motion vector Line rowstore buffer
+        if (!m_avpItf->IsBufferRowstoreCacheEnabled(spatialMvLineBuffer))
+        {
+            DECODE_CHK_STATUS(AllocateBuffer(
+                m_spatialMotionVectorLineReadWriteBuffer,
+                spatialMvLineBuffer,
+                "SpatialMotionVectorLineRowstoreBuffer"));
+        }
+
+        // Spatial motion vector Tile Line Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_spatialMotionVectorCodingTileLineReadWriteBuffer,
+            spatialMvTileLineBuffer,
+            "SpatialMotionVectorTileLineBuffer"));
+
+        // Loop Restoration Meta Tile Column Read/Write Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_loopRestorationMetaTileColumnReadWriteBuffer,
+            lrMetaTileColBuffer,
+            "LoopRestorationMetaTileColumnReadWriteBuffer"));
+
+        // Loop Restoration Filter Tile Read/Write Line Y Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_loopRestorationFilterTileReadWriteLineYBuffer,
+            lrTileLineYBuffer,
+            "LoopRestorationFilterTileReadWriteLineYBuffer"));
+
+        //Loop Restoration Filter Tile Read/Write Line U Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_loopRestorationFilterTileReadWriteLineUBuffer,
+            lrTileLineUBuffer,
+            "LoopRestorationFilterTileReadWriteLineUBuffer"));
+
+        // Loop Restoration Filter Tile Read/Write Line V Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_loopRestorationFilterTileReadWriteLineVBuffer,
+            lrTileLineVBuffer,
+            "LoopRestorationFilterTileReadWriteLineVBuffer"));
+
+        if (!m_avpItf->IsBufferRowstoreCacheEnabled(deblockLineYBuffer))
+        {
+            DECODE_CHK_STATUS(AllocateBuffer(
+                m_deblockerFilterLineReadWriteYBuffer,
+                deblockLineYBuffer,
+                "DeblockerFilterLineReadWriteYBuffer"));
+        }
+
+        if (!m_avpItf->IsBufferRowstoreCacheEnabled(deblockLineUBuffer))
+        {
+            DECODE_CHK_STATUS(AllocateBuffer(
+                m_deblockerFilterLineReadWriteUBuffer,
+                deblockLineUBuffer,
+                "DeblockerFilterLineReadWriteUBuffer"));
+        }
+
+        if (!m_avpItf->IsBufferRowstoreCacheEnabled(deblockLineVBuffer))
+        {
+            DECODE_CHK_STATUS(AllocateBuffer(
+                m_deblockerFilterLineReadWriteVBuffer,
+                deblockLineVBuffer,
+                "DeblockerFilterLineReadWriteVBuffer"));
+        }
+
+        // Deblocking Filter Tile Line Y Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_deblockerFilterTileLineReadWriteYBuffer,
+            deblockTileLineYBuffer,
+            "DeblockerFilterTileLineReadWriteYBuffer"));
+
+        // Deblocking Filter Tile Line V Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_deblockerFilterTileLineReadWriteVBuffer,
+            deblockTileLineVBuffer,
+            "DeblockerFilterTileLineReadWriteVBuffer"));
+
+        // Deblocking Filter Tile Line U Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_deblockerFilterTileLineReadWriteUBuffer,
+            deblockTileLineUBuffer,
+            "DeblockerFilterTileLineReadWriteUBuffer"));
+
+        // Deblocking Filter Tile Column Y Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_deblockerFilterTileColumnReadWriteYBuffer,
+            deblockTileColYBuffer,
+            "DeblockerFilterTileColumnReadWriteYBuffer"));
+
+        // Deblocking Filter Tile Column U Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_deblockerFilterTileColumnReadWriteUBuffer,
+            deblockTileColUBuffer,
+            "DeblockerFilterTileColumnReadWriteUBuffer"));
+
+        // Deblocking Filter Tile Column V Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_deblockerFilterTileColumnReadWriteVBuffer,
+            deblockTileColVBuffer,
+            "DeblockerFilterTileColumnReadWriteVBuffer"));
+
+        // CDEF Filter Line Read/Write Buffer
+        if (!m_avpItf->IsBufferRowstoreCacheEnabled(cdefLineBuffer))
+        {
+            DECODE_CHK_STATUS(AllocateBuffer(
+                m_cdefFilterLineReadWriteBuffer,
+                cdefLineBuffer,
+                "CdefFilterLineReadWriteBuffer"));
+        }
+
+        // CDEF Filter Tile Line Read/Write Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_cdefFilterTileLineReadWriteBuffer,
+            cdefTileLineBuffer,
+            "CdefFilterTileLineReadWriteBuffer"));
+
+        // CDEF Filter Tile Column Read/Write Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_cdefFilterTileColumnReadWriteBuffer,
+            cdefTileColBuffer,
+            "CdefFilterTileColumnReadWriteBuffer"));
+
+        // CDEF Filter Meta Tile Line Read Write Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_cdefFilterMetaTileLineReadWriteBuffer,
+            cdefMetaTileLineBuffer,
+            "CdefFilterMetaTileLineReadWriteBuffer"));
+
+        // CDEF Filter Meta Tile Column Read Write Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_cdefFilterMetaTileColumnReadWriteBuffer,
+            cdefMetaTileColBuffer,
+            "CdefFilterMetaTileColumnReadWriteBuffer"));
+
+        // Cdef Filter Top Left Corner Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_cdefFilterTopLeftCornerReadWriteBuffer,
+            cdefTopLeftCornerBuffer,
+            "CdefFilterTopLeftCornerReadWriteBuffer"));
+
+        // Super-Res Tile Column Y Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_superResTileColumnReadWriteYBuffer,
+            superResTileColYBuffer,
+            "SuperResTileColumnReadWriteYBuffer"));
+
+        // Super-Res Tile Column U Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_superResTileColumnReadWriteUBuffer,
+            superResTileColUBuffer,
+            "SuperResTileColumnReadWriteUBuffer"));
+
+        // Super-Res Tile Column V Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_superResTileColumnReadWriteVBuffer,
+            superResTileColVBuffer,
+            "SuperResTileColumnReadWriteVBuffer"));
+
+        // Loop Restoration Filter Tile Column Y Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_loopRestorationFilterTileColumnReadWriteYBuffer,
+            lrTileColYBuffer,
+            "LoopRestorationFilterTileColumnReadWriteYBuffer"));
+
+        // Loop Restoration Filter Tile Column U Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_loopRestorationFilterTileColumnReadWriteUBuffer,
+            lrTileColUBuffer,
+            "LoopRestorationFilterTileColumnReadWriteUBuffer"));
+
+        // Loop Restoration Filter Tile Column V Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_loopRestorationFilterTileColumnReadWriteVBuffer,
+            lrTileColVBuffer,
+            "LoopRestorationFilterTileColumnReadWriteVBuffer"));
+
+        // Decoded Frame Status Error Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_decodedFrameStatusErrorBuffer,
+            frameStatusErrBuffer,
+            "DecodedFrameStatusErrorBuffer"));
+
+        // Decoded Block Data Streamout Buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_decodedBlockDataStreamoutBuffer,
+            dbdStreamoutBuffer,
+            "DecodedBlockDataStreamoutBuffer"));
+
+        // Film Grain sample template buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_filmGrainSampleTemplateBuf,
+            fgSampleTmpBuffer,
+            "FilmGrainSampleTemplateBuf"));
+
+        // Film Grain tile column data read/write buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_filmGrainTileColumnDataBuf,
+            fgTileColBuffer,
+            "FilmGrainTileColumnBuf"));
+
+        // Loop restoration filter tile column alignment read/write buffer
+        DECODE_CHK_STATUS(AllocateBuffer(
+            m_loopRestorationFilterTileColumnAlignmentBuf,
+            lrTileColAlignBuffer,
+            "LoopRestorationFilterTileColumnAlignmentBuf"));
+
+        return MOS_STATUS_SUCCESS;
+    }
+
     MHW_SETPAR_DECL_SRC(AVP_PIC_STATE, Av1DecodePicPktXe3_Lpm_Base)
     {
         DECODE_FUNC_CALL();
