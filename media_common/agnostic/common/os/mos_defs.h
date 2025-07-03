@@ -403,6 +403,24 @@ typedef struct _MOS_NULL_RENDERING_FLAGS {
 } MOS_NULL_RENDERING_FLAGS;
 
 //!
+//! \brief Native Fence report Flags
+//!
+typedef struct _NATIVE_FENCE_MODE_REPORT_FLAGS
+{
+    union
+    {
+        struct
+        {
+            uint32_t Disabled : 1;
+            uint32_t SyncByCmd : 1;
+            uint32_t SyncByAPI : 1;
+        };
+        uint32_t Value;
+    };
+} NATIVE_FENCE_MODE_REPORT_FLAGS;
+
+
+//!
 //! \brief GPU Context definitions
 //!
 
