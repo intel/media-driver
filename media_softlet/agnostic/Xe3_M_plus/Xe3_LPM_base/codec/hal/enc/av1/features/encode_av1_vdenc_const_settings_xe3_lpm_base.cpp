@@ -80,7 +80,7 @@ const uint8_t  Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par15[NUM_TARGET_US
 const bool     Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par23[NUM_TARGET_USAGE_MODES]                            = {false, false, false, false, false, false, false, false};
 const bool     Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par133[NUM_TARGET_USAGE_MODES]                 = {false, false, false, false, false, false, false, false};
 const bool     Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par102[NUM_TARGET_USAGE_MODES]                 = {true, true, true, true, true, true, false, false};
-const bool     Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par101[NUM_TARGET_USAGE_MODES]                   = {true, true, true, false, false, false, false, false};
+const bool     Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par101[NUM_TARGET_USAGE_MODES]                 = {false, false, false, false, false, false, false, false};
 const bool     Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par109[NUM_TARGET_USAGE_MODES] = {false, false, false, false, false, false, false, false};
 const uint8_t  Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par145[NUM_TARGET_USAGE_MODES]          = {1, 1, 1, 1, 1, 1, 0, 0};
 const uint8_t  Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par146[NUM_TARGET_USAGE_MODES]          = {1, 1, 1, 1, 1, 1, 0, 0};
