@@ -275,10 +275,10 @@ MOS_STATUS AvcHucBrcUpdatePkt::Execute(PMOS_COMMAND_BUFFER cmdBuffer, bool store
     }
 
     // load kernel from WOPCM into L2 storage RAM
-    AddAllCmds_HUC_IMEM_STATE(cmdBuffer);
+    ENCODE_CHK_STATUS_RETURN(AddAllCmds_HUC_IMEM_STATE(cmdBuffer));
 
     // pipe mode select
-    AddAllCmds_HUC_PIPE_MODE_SELECT(cmdBuffer);
+    ENCODE_CHK_STATUS_RETURN(AddAllCmds_HUC_PIPE_MODE_SELECT(cmdBuffer));
 
     // set HuC DMEM param
     SETPAR_AND_ADDCMD(HUC_DMEM_STATE, m_hucItf, cmdBuffer);
