@@ -230,6 +230,8 @@ static bool InitIclMediaWa(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_WA(waTable, Wa_Vp9UnalignedHeight, 1);
 
+    MEDIA_WR_WA(waTable, WaDisableGmmLibOffsetInDeriveImage, 1);
+
     return true;
 }
 
