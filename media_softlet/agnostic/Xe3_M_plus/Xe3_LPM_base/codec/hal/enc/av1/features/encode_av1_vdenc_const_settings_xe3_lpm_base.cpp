@@ -96,7 +96,7 @@ const uint8_t  Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par154[NUM_TARGET_U
 const uint8_t  Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par142[NUM_TARGET_USAGE_MODES]         = {3, 3, 3, 1, 1, 1, 1, 1};
 const uint8_t  Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par143[NUM_TARGET_USAGE_MODES]           = {3, 3, 3, 1, 1, 1, 1, 1};
 const uint8_t  Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par144[NUM_TARGET_USAGE_MODES]           = {3, 3, 3, 1, 1, 1, 1, 1};
-const uint8_t  Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par155[NUM_TARGET_USAGE_MODES]                    = {1, 1, 1, 1, 1, 1, 1, 1};
+const uint8_t  Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par155[NUM_TARGET_USAGE_MODES]                   = {0, 0, 0, 0, 0, 0, 0, 0};
 const uint8_t  Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par156[NUM_TARGET_USAGE_MODES]                    = {2, 2, 2, 2, 2, 2, 1, 1};
 const uint8_t  Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par140[NUM_TARGET_USAGE_MODES]                   = {1, 1, 1, 0, 0, 0, 0, 0};
 const uint8_t  Av1VdencTUConstSettingsXe3_Lpm_Base::vdencCmd2Par141[NUM_TARGET_USAGE_MODES]                 = {1, 1, 1, 0, 0, 0, 0, 0};
@@ -420,9 +420,49 @@ MOS_STATUS EncodeAv1VdencConstSettingsXe3_Lpm_Base::SetVdencCmd2Settings()
 #include "encode_av1_vdenc_const_settings_xe3_lpm_base_open.h"
 #undef VDENC_CMD2_SETTINGS_OPEN
 #endif  // _MEDIA_RESERVED
-    return MOS_STATUS_SUCCESS;
+    return MOS_STATUS_SUCCESS;    
 
-    
+
+}
+
+MOS_STATUS EncodeAv1VdencConstSettingsXe3_Lpm_Base::SetVdencStreaminStateSettings()
+{
+    ENCODE_FUNC_CALL();
+
+    auto setting = static_cast<Av1VdencFeatureSettings *>(m_featureSetting);
+    ENCODE_CHK_NULL_RETURN(setting);
+
+    setting->vdencStreaminStateSettings.emplace_back(
+        VDENC_STREAMIN_STATE_LAMBDA() {
+            static const std::array<
+                std::array<
+                    uint8_t,
+                    NUM_TARGET_USAGE_MODES + 1>,
+                4>
+                numMergeCandidates = {{
+                    {4, 4, 4, 2, 2, 2, 0, 0},
+                    {4, 4, 4, 2, 2, 2, 2, 1},
+                    {5, 5, 5, 2, 2, 2, 2, 2},
+                    {5, 5, 5, 2, 2, 2, 2, 2},
+                }};
+
+            static const std::array<
+                uint8_t,
+                NUM_TARGET_USAGE_MODES + 1>
+                numImePredictors =  {12, 12, 12, 8, 8, 8, 4, 4};
+
+            par.maxTuSize                = 3;  //Maximum TU Size allowed, restriction to be set to 3
+            par.maxCuSize                = (cu64Align) ? 3 : 2;
+            par.numMergeCandidateCu64x64 = numMergeCandidates[3][m_av1SeqParams->TargetUsage];
+            par.numMergeCandidateCu32x32 = numMergeCandidates[2][m_av1SeqParams->TargetUsage];
+            par.numMergeCandidateCu16x16 = numMergeCandidates[1][m_av1SeqParams->TargetUsage];
+            par.numMergeCandidateCu8x8   = numMergeCandidates[0][m_av1SeqParams->TargetUsage];
+            par.numImePredictors         = numImePredictors[m_av1SeqParams->TargetUsage];
+
+            return MOS_STATUS_SUCCESS;
+        });
+
+    return MOS_STATUS_SUCCESS;
 }
 
 }  // namespace encode

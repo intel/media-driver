@@ -78,6 +78,7 @@ namespace encode
     {
         ENCODE_FUNC_CALL();
         m_basicFeature = basicFeature;
+        auto featureManager = basicFeature->GetFeatureManager();
         ENCODE_CHK_NULL_RETURN(m_basicFeature);
         ENCODE_CHK_NULL_RETURN(m_basicFeature->m_av1PicParams);
         ENCODE_CHK_NULL_RETURN(m_basicFeature->m_recycleBuf);
@@ -85,8 +86,22 @@ namespace encode
         ENCODE_CHK_NULL_RETURN(m_allocator);
         m_osInterface = osInterface;
         ENCODE_CHK_NULL_RETURN(m_osInterface);
-
-        SetCommonParams(m_basicFeature->m_targetUsage, m_commonPar);
+        StreamInParams streaminDataParams = {}; 
+        bool cu64Align = true;
+        MOS_ZeroMemory(&streaminDataParams, sizeof(streaminDataParams));
+        auto setting = static_cast<Av1VdencFeatureSettings*>(featureManager->GetFeatureSettings()->GetConstSettings());
+        ENCODE_CHK_NULL_RETURN(setting);
+        for (const auto &lambda : setting->vdencStreaminStateSettings)
+        {
+            lambda(streaminDataParams, cu64Align);
+        }
+        m_commonPar.MaxCuSize = streaminDataParams.maxCuSize;
+        m_commonPar.MaxTuSize = streaminDataParams.maxTuSize;
+        m_commonPar.NumImePredictors = streaminDataParams.numImePredictors;
+        m_commonPar.NumMergeCandidateCu8x8 = streaminDataParams.numMergeCandidateCu8x8;
+        m_commonPar.NumMergeCandidateCu16x16 = streaminDataParams.numMergeCandidateCu16x16;
+        m_commonPar.NumMergeCandidateCu32x32 = streaminDataParams.numMergeCandidateCu32x32;
+        m_commonPar.NumMergeCandidateCu64x64 = streaminDataParams.numMergeCandidateCu64x64;
 
         if (!m_initialized || m_basicFeature->m_resolutionChanged)
         {

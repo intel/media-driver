@@ -88,7 +88,9 @@ public:
 
     virtual MOS_STATUS GetTrackedBuffers() override;
 
-    Av1StreamIn *GetStreamIn();
+    virtual Av1StreamIn *GetStreamIn();
+
+    virtual MediaFeatureManager *GetFeatureManager();
 
     MOS_STATUS GetSurfaceMmcInfo(PMOS_SURFACE surface, MOS_MEMCOMP_STATE& mmcState, uint32_t& compressionFormat) const;
 

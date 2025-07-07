@@ -466,7 +466,13 @@ MOS_STATUS Av1BasicFeature::GetTrackedBuffers()
 Av1StreamIn *Av1BasicFeature::GetStreamIn()
 {
     m_streamIn.Init(this, this->m_allocator, this->m_osInterface);
+    
     return &m_streamIn;
+}
+
+MediaFeatureManager *Av1BasicFeature::GetFeatureManager()
+{
+    return m_featureManager;
 }
 
 MOS_STATUS Av1BasicFeature::GetSurfaceMmcInfo(PMOS_SURFACE surface, MOS_MEMCOMP_STATE& mmcState, uint32_t& compressionFormat) const
