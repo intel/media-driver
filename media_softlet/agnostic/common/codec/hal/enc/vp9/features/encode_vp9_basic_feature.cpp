@@ -352,7 +352,7 @@ MOS_STATUS Vp9BasicFeature::GetTrackedBuffers()
     ENCODE_CHK_NULL_RETURN(m_allocator);
 
     auto currRefList = m_ref.GetCurrRefList();
-    ENCODE_CHK_STATUS_RETURN(m_trackedBuf->Acquire(currRefList, false, true));
+    ENCODE_CHK_STATUS_RETURN(m_trackedBuf->Acquire(currRefList, false, false));
 
     auto currIndex = m_trackedBuf->GetCurrIndex();
 
