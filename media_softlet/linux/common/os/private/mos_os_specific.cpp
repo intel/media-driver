@@ -2272,7 +2272,7 @@ MOS_STATUS Mos_Specific_DestroyGpuComputeContext(
     auto gpuContext = MosInterface::GetGpuContext(osInterface->osStreamState, gpuContextHandle);
     MOS_OS_CHK_NULL_RETURN(gpuContext);
 
-    MOS_GPU_CONTEXT gpuContextName = gpuContext->GetCpuContextID();
+    MOS_GPU_CONTEXT gpuContextName = gpuContext->GetGpuContextID();
     if(gpuContextName != MOS_GPU_CONTEXT_CM_COMPUTE && gpuContextName != MOS_GPU_CONTEXT_COMPUTE)
     {
         MOS_OS_ASSERTMESSAGE("It is not compute gpu context and it will be destroyed in osInterface destroy.");

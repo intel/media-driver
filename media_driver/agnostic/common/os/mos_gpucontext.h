@@ -211,7 +211,7 @@ public:
     //! \brief    Get Gpu context ID
     //! \details  Return the umd side gpu context id for current gpu context 
     //!
-    MOS_GPU_CONTEXT GetCpuContextID() { return m_gpuContext; }
+    MOS_GPU_CONTEXT GetGpuContextID() { return m_gpuContext; }
 
     //!
     //! \brief    Get indirect state size
