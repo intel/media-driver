@@ -196,7 +196,7 @@ MOS_STATUS VpPlatformInterface::InitPolicyRules(VP_POLICY_RULES &rules)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderKernel::SetKernelName(std::string kernelname)
+MOS_STATUS VpRenderKernel::SetKernelName(const std::string &kernelname)
 {
     VP_FUNC_CALL();
     m_kernelName.assign(kernelname);

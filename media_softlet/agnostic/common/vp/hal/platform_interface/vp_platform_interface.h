@@ -101,7 +101,7 @@ public:
         return m_kernelDllState;
     }
 
-    MOS_STATUS SetKernelName(std::string kernelname);
+    MOS_STATUS SetKernelName(const std::string &kernelname);
 
     std::string& GetKernelName()
     {
