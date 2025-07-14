@@ -545,6 +545,10 @@ public:
     static MOS_STATUS DumpCommandBuffer(
         MOS_STREAM_HANDLE streamState,
         COMMAND_BUFFER_HANDLE cmdBuffer);
+
+    static MOS_STATUS DumpSyncCommandBuffer(
+        OsContextNext          *osContext,
+        GpuContextSpecificNext *gpuContext);
 #endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
     //!

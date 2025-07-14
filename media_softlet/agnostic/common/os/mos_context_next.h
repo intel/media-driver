@@ -263,6 +263,12 @@ protected:
 public:
     static const uint32_t m_cmdBufAlignment = 16;   //!> Cmd buffer alignment
     bool                  m_ocaLogSectionSupported = true;
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+    bool                  m_dumpCommandBuffer                   = false;
+    bool                  m_dumpCommandBufferToFile           = false;
+    bool                  m_dumpCommandBufferAsMessages         = false;
+    char                  m_sFileName[MOS_MAX_HLT_FILENAME_LEN] = {0};
+#endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
 protected:
     GpuContextMgrNext              *m_gpuContextMgr     = nullptr; //!> GPU context manager of the device
