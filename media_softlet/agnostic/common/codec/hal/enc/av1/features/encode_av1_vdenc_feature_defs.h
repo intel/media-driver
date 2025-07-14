@@ -42,8 +42,8 @@ struct Av1FeatureIDs : public FeatureIDs
         av1LplaEncFeature,
         av1FullEncFeature,
         av1Scc,
-        av1Aqm,
         av1FastPass,
+        av1Aqm,
         av1LookupTableRounding,
 #if _MEDIA_RESERVED
 #define AV1_FEATURE_IDS_EXT

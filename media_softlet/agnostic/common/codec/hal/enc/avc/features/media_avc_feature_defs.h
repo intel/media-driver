@@ -41,8 +41,8 @@ struct AvcFeatureIDs : public FeatureIDs
         avcCqpRoiFeature,
         avcBrcRoiFeature,
         avcVdencFullEncFeature,
-        avcAqm,
         avcFastPass,
+        avcAqm,
     };
 };
 

@@ -43,7 +43,7 @@ HevcVdencFastPass_Xe2_Hpm_Base::HevcVdencFastPass_Xe2_Hpm_Base(
     m_hevcFeature = dynamic_cast<HevcBasicFeature *>(encFeatureManager->GetFeature(FeatureIDs::basicFeature));
     ENCODE_CHK_NULL_NO_STATUS_RETURN(m_hevcFeature);
 
-    if (m_enableFastpassFromRegKey && m_enableFastPass)
+    if (m_enabled)
     {
         m_fastPassShiftIndex = 2; //Xe2_Hpm HW restrictions.
     }
@@ -57,11 +57,11 @@ MOS_STATUS HevcVdencFastPass_Xe2_Hpm_Base::Update(void *params)
     m_hevcSeqParams = static_cast<PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS>(encodeParams->pSeqParams);
     ENCODE_CHK_NULL_RETURN(m_hevcSeqParams);
 
-    if (!m_enableFastpassFromRegKey)
+    if (m_hevcFeature->m_hevcSeqParams->EnableFastPass)
     {
-        m_enableFastPass        = m_hevcFeature->m_hevcSeqParams->EnableFastPass;
+        m_enabled               = true;
         m_fastPassDownScaleType = m_hevcFeature->m_hevcSeqParams->FastPassDsType;
-        if (m_hevcSeqParams->FastPassRatio == 1)
+        if (m_hevcSeqParams->FastPassRatio <= 1)
         {
             m_hevcSeqParams->FastPassRatio = 2;  //Xe2_Hpm HW restrictions: only support 4x ds.
             ENCODE_NORMALMESSAGE("Xe2_Hpm HW doesn't support 2x downscale, switched to 4x downscale\n");
@@ -69,7 +69,7 @@ MOS_STATUS HevcVdencFastPass_Xe2_Hpm_Base::Update(void *params)
         m_fastPassShiftIndex = m_hevcSeqParams->FastPassRatio;
     }
 
-    if (!m_enableFastPass)
+    if (!m_enabled)
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -92,7 +92,7 @@ MHW_SETPAR_DECL_SRC(VDENC_SRC_SURFACE_STATE, HevcVdencFastPass_Xe2_Hpm_Base)
 {
     ENCODE_FUNC_CALL();
 
-    if (!m_enableFastPass)
+    if (!m_enabled)
     {
         return MOS_STATUS_SUCCESS;
     }

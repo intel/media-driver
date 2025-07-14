@@ -53,12 +53,7 @@ HevcVdencFastPass::HevcVdencFastPass(
     
     if (statusKey == MOS_STATUS_SUCCESS)
     {
-        m_enableFastpassFromRegKey = true;
-        m_enableFastPass           = outValue.Get<bool>();
-    }
-    
-    if (m_enableFastpassFromRegKey && m_enableFastPass)
-    {
+        m_enabled = outValue.Get<bool>();
         MediaUserSetting::Value outValue_ratio;
         MediaUserSetting::Value outValue_type;
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -73,16 +68,7 @@ HevcVdencFastPass::HevcVdencFastPass(
             MediaUserSetting::Group::Sequence);
 #endif
 
-        if (outValue_ratio.Get<int32_t>() == 0)
-        {
-            m_fastPassShiftIndex = 2;
-        }
-        else if (outValue_ratio.Get<int32_t>() == 1)
-        {
-            m_fastPassShiftIndex = 1;
-        }
-        else
-            m_fastPassShiftIndex = 2;
+        m_fastPassShiftIndex    = (outValue_ratio.Get<int32_t>() == 1) ? 1 : 2;
         m_fastPassDownScaleType = (uint8_t)outValue_type.Get<int32_t>();
     }
 }
@@ -95,16 +81,23 @@ MOS_STATUS HevcVdencFastPass::Update(void *params)
     m_hevcSeqParams = static_cast<PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS>(encodeParams->pSeqParams);
     ENCODE_CHK_NULL_RETURN(m_hevcSeqParams);
     
-    if (!m_enableFastpassFromRegKey)
+    if (m_hevcFeature->m_hevcSeqParams->EnableFastPass)
     {
-        m_enableFastPass        = m_hevcFeature->m_hevcSeqParams->EnableFastPass;
+        m_enabled               = true;
         m_fastPassShiftIndex    = m_hevcSeqParams->FastPassRatio;
         m_fastPassDownScaleType = m_hevcFeature->m_hevcSeqParams->FastPassDsType;
-    }
-   
-    if (!m_enableFastPass)
+    }   
+
+    if (!m_enabled)
     {
         return MOS_STATUS_SUCCESS;
+    }
+
+    uint16_t numTiles = (m_hevcFeature->m_hevcPicParams->num_tile_rows_minus1 + 1) * (m_hevcFeature->m_hevcPicParams->num_tile_columns_minus1 + 1);
+    if (numTiles > 1)
+    {
+        ENCODE_ASSERTMESSAGE("FastPass Encode does not support multi-tile.");
+        return MOS_STATUS_INVALID_PARAMETER;
     }
 
     ENCODE_CHK_NULL_RETURN(m_hevcFeature);
@@ -122,12 +115,12 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, HevcVdencFastPass)
 {
     ENCODE_FUNC_CALL();
 
-    if (!m_enableFastPass)
+    if (!m_enabled)
     {
         return MOS_STATUS_SUCCESS;
     }
 
-    params.fastPassEn    = m_enableFastPass;
+    params.fastPassEn    = m_enabled;
     params.fastPassScale = m_fastPassShiftIndex == 2 ? 0 : 1;  // fastPassScale:0 indicates 4x4 ds, fastPassScale:1 indicates 2x2 ds
     params.DownScaleType = m_fastPassDownScaleType;            // DownScaleType:0 indicates bilinear, DownScaleType:1 indicates NN
     params.chromaType     = 1;                                 // Fast pass uses 420 type
@@ -139,7 +132,7 @@ MHW_SETPAR_DECL_SRC(VDENC_CMD2, HevcVdencFastPass)
 {
     ENCODE_FUNC_CALL();
 
-    if (!m_enableFastPass)
+    if (!m_enabled)
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -154,7 +147,7 @@ MHW_SETPAR_DECL_SRC(VDENC_HEVC_VP9_TILE_SLICE_STATE, HevcVdencFastPass)
 {
     ENCODE_FUNC_CALL();
 
-    if (!m_enableFastPass)
+    if (!m_enabled)
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -263,7 +256,7 @@ MHW_SETPAR_DECL_SRC(VDENC_WALKER_STATE, HevcVdencFastPass)
 {
     ENCODE_FUNC_CALL();
 
-    if (!m_enableFastPass)
+    if (!m_enabled)
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -286,7 +279,7 @@ MHW_SETPAR_DECL_SRC(VDENC_REF_SURFACE_STATE, HevcVdencFastPass)
 {
     ENCODE_FUNC_CALL();
 
-    if (!m_enableFastPass)
+    if (!m_enabled)
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -308,7 +301,7 @@ MHW_SETPAR_DECL_SRC(VDENC_DS_REF_SURFACE_STATE, HevcVdencFastPass)
 {
     ENCODE_FUNC_CALL();
 
-    if (!m_enableFastPass)
+    if (!m_enabled)
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -327,7 +320,7 @@ MHW_SETPAR_DECL_SRC(HCP_PIC_STATE, HevcVdencFastPass)
 {
     ENCODE_FUNC_CALL();
 
-    if (!m_enableFastPass)
+    if (!m_enabled)
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -361,7 +354,7 @@ MHW_SETPAR_DECL_SRC(HCP_SURFACE_STATE, HevcVdencFastPass)
 {
     ENCODE_FUNC_CALL();
 
-    if (!m_enableFastPass)
+    if (!m_enabled)
     {
         return MOS_STATUS_SUCCESS;
     }
@@ -382,7 +375,7 @@ MHW_SETPAR_DECL_SRC(HEVC_VP9_RDOQ_STATE, HevcVdencFastPass)
 {
     ENCODE_FUNC_CALL();
 
-    if (!m_enableFastPass)
+    if (!m_enabled)
     {
         return MOS_STATUS_SUCCESS;
     }

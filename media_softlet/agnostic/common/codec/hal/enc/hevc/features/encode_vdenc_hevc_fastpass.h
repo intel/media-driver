@@ -53,6 +53,7 @@ public:
 
     uint32_t GetFastPassDsWidth() { return m_dsWidth; }
     uint32_t GetFastPassDsHeight() { return m_dsHeight; }
+    bool     IsEnabled() { return m_enabled; }
 
     MHW_SETPAR_DECL_HDR(VDENC_PIPE_MODE_SELECT);
 
@@ -76,10 +77,8 @@ protected:
     PMOS_INTERFACE m_osInterface              = nullptr;  //!< Os Inteface
     MOS_RESOURCE   m_vdencRecDownScaledBuffer = {};
 
-    bool    m_enableFastPass           = false;  //!< Flag to indicate if HEVC fastpass is enabled.
     uint8_t m_fastPassShiftIndex       = 0;      //!< downscale shift index for fast pass encode
     uint8_t m_fastPassDownScaleType    = 0;      //!< downscaleType for fast pass encode
-    bool    m_enableFastpassFromRegKey = false;
 
     HevcBasicFeature                  *m_hevcFeature   = nullptr;
     PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS m_hevcSeqParams = nullptr;

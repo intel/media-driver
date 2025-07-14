@@ -42,32 +42,10 @@ AvcVdencFastPass_Xe2_Hpm::AvcVdencFastPass_Xe2_Hpm(
 
     m_basicFeature = dynamic_cast<AvcBasicFeature *>(encFeatureManager->GetFeature(FeatureIDs::basicFeature));
     ENCODE_CHK_NULL_NO_STATUS_RETURN(m_basicFeature);
-
-    if (hwInterface)
-    {
-        m_userSettingPtr = hwInterface->GetOsInterface()->pfnGetUserSettingInstance(hwInterface->GetOsInterface());
-    }
-    //regkey to control fast pass encode settings
-    MediaUserSetting::Value outValue;
-    ReadUserSetting(m_userSettingPtr,
-        outValue,
-        "Enable Fast Pass Encode",
-        MediaUserSetting::Group::Sequence);
-
-    m_enabled = outValue.Get<bool>();
-
+    
     if (m_enabled)
     {
-        MediaUserSetting::Value outValue_ratio;
-        MediaUserSetting::Value outValue_type;
-#if (_DEBUG || _RELEASE_INTERNAL)
-        ReadUserSetting(m_userSettingPtr,
-            outValue_type,
-            "Fast Pass Encode Downscale Type",
-            MediaUserSetting::Group::Sequence);
-#endif
-        m_fastPassShiftIndex = 2; //xe2_hpm HW restriction, only 4x downscaling
-        m_fastPassDownScaleType = (uint8_t)outValue_type.Get<int32_t>();
+        m_fastPassShiftIndex = 2;  //Xe2_Hpm HW restrictions.
     }
 }
 
@@ -76,13 +54,15 @@ MOS_STATUS AvcVdencFastPass_Xe2_Hpm::Update(void *params)
     PCODEC_AVC_ENCODE_SEQUENCE_PARAMS avcSeqParams = m_basicFeature->m_seqParam;
     ENCODE_CHK_NULL_RETURN(avcSeqParams);
 
-    if (avcSeqParams->GopRefDist > 1)  //xe2_hpm HW restriction, no B frame
-    {
-        m_enabled = false;
-    }
-
     if (!m_enabled)
     {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (m_enabled && avcSeqParams->GopRefDist > 1)  //xe2_hpm HW restriction, no B frame
+    {
+        m_enabled = false;
+        ENCODE_NORMALMESSAGE("Xe2_Hpm AVC HW doesn't support B frame for fast pass, disabled fast pass!\n");
         return MOS_STATUS_SUCCESS;
     }
 
