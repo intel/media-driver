@@ -403,7 +403,10 @@ typedef enum _MEDIA_EVENT
     EVENT_HWS_NATIVE_FENCE_SYNC_BB_ADDED,          //! event for HWS sync cmd resource added
     EVENT_HWS_NATIVE_FENCE_SIGNAL,                 //! event for HWS native fence signal
     EVENT_HWS_NATIVE_FENCE_WAIT,                   //! event for HWS native fence wait for sync
-    EVENT_HWS_NATIVE_FENCE_CMD_FLUSH               //! event for HWS sync cmd flush
+    EVENT_HWS_NATIVE_FENCE_CMD_FLUSH,              //! event for HWS sync cmd flush
+    EVENT_HWS_NATIVE_FENCE_ADD_TO_ARRAY_CMD,       //! event for Hws Native Fence Add To Array Cmd
+    EVENT_HWS_NATIVE_FENCE_ADD_TO_QUEUE_API,       //! event for Hws Native Fence Add To Queue Api
+    EVENT_HWS_NATIVE_FENCE_12_WAIT                 //! event for Hws Native Fence 12 Wait
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE
