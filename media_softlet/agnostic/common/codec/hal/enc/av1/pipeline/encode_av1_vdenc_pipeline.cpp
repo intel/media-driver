@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2023, Intel Corporation
+* Copyright (c) 2019-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -270,10 +270,9 @@ MOS_STATUS Av1VdencPipeline::SwitchContext(uint8_t outputChromaFormat, uint16_t 
     m_scalPars->enableVDEnc = true;
     m_scalPars->enableVE = MOS_VE_SUPPORTED(m_osInterface);
 
-    //force to disable scalability for AV1 VDENC
     if(m_dualEncEnable)
     {
-        m_scalPars->numVdbox = m_numVdbox;
+        m_scalPars->numVdbox = MOS_MIN(2, m_numVdbox);  // AV1 VDENC dual enc limit to 2 VDBox
         m_scalPars->forceMultiPipe = true;
         m_scalPars->allowSwArbitarySplit = true;
     }
