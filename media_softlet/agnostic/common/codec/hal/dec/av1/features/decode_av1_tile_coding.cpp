@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2023, Intel Corporation
+* Copyright (c) 2019-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -151,18 +151,18 @@ namespace decode
                     if (m_basicFeature->m_dataSize > m_tileDesc[i].m_offset)
                     {
                         m_tileDesc[i].m_size = m_basicFeature->m_dataSize - m_tileDesc[i].m_offset;
-                        DECODE_ASSERTMESSAGE("The last tile size is oversize, the remaining size is %d\n", m_tileDesc[i].m_size);
+                        DECODE_ASSERTMESSAGE("Decode_Bitstream_Buffer allocated size is insufficient, need to check and increase HeuFactor in buffer size calculation logic.\n");
                     }
                     else
                     {
                         m_tileDesc[i].m_size = 0;
-                        DECODE_ASSERTMESSAGE("The last tile size is invalid, take current tile as missing tile and then set 4 byte dummy WL!!");
+                        DECODE_ASSERTMESSAGE("Decode_Bitstream_Buffer allocated size is insufficient, need to check and increase HeuFactor in buffer size calculation logic.\n");
                     }
                 }
                 else
                 {
                     m_tileDesc[i].m_size = 0;
-                    DECODE_ASSERTMESSAGE("The non-last tile size is oversize, take current tile as missing tile and then set 4 byte dummy WL!\n");
+                    DECODE_ASSERTMESSAGE("Decode_Bitstream_Buffer allocated size is insufficient, need to check and increase HeuFactor in buffer size calculation logic.\n");
                 }
             }
             // For tile missing scenario
