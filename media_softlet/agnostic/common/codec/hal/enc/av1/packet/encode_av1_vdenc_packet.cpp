@@ -1409,7 +1409,7 @@ namespace encode{
                         ENCODE_CHK_NULL_RETURN(pakInsertOutputBatchBuffer);
                         // send pak insert obj cmds after back annotation
                         ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(cmdBuffer, pakInsertOutputBatchBuffer));
-                        auto slbbData = brcFeature->GetSLBData();
+                        const auto &slbbData = brcFeature->GetSLBData();
                         HalOcaInterfaceNext::OnSubLevelBBStart(
                             *cmdBuffer,
                             m_osInterface->pOsContext,
@@ -1923,7 +1923,7 @@ namespace encode{
             auto brcFeature = dynamic_cast<Av1Brc *>(m_featureManager->GetFeature(Av1FeatureIDs::av1BrcFeature));
             ENCODE_CHK_NULL_RETURN(brcFeature);
             auto vdenc2ndLevelBatchBuffer = brcFeature->GetVdenc2ndLevelBatchBuffer(m_pipeline->m_currRecycledBufIdx);
-            auto slbbData                 = brcFeature->GetSLBData();
+            const auto &slbbData                 = brcFeature->GetSLBData();
             
             //qp
             uint32_t qpOffset     = resourceOffset.dwMetaDataSize + tileNum * resourceOffset.dwMetaDataSubRegionSize + resourceOffset.dwTilePartitionSize + AV1ResourceOffset.dwQuantization + AV1ResourceOffset.dwBaseQIndex;
