@@ -57,9 +57,6 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     bool       sfcNeeded                          = false;
     bool       veboxNeeded                        = false;
-    std::shared_ptr<mhw::vebox::Itf> veboxItf     = nullptr;
-    std::shared_ptr<mhw::sfc::Itf>   sfcItf       = nullptr;
-    std::shared_ptr<mhw::mi::Itf>    miItf        = nullptr;
     m_osInterface = m_vpPlatformInterface.GetOsInterface();
     if (m_osInterface == nullptr)
     {
@@ -96,6 +93,9 @@ MOS_STATUS VpPipelineAdapterBase::GetVpMhwInterface(
     SetMhwMiItf(m_vprenderHal->pRenderHalPltInterface->GetMhwMiItf());
     if ((veboxNeeded || sfcNeeded) && !m_clearVideoViewMode)
     {
+        std::shared_ptr<mhw::vebox::Itf> veboxItf     = nullptr;
+        std::shared_ptr<mhw::sfc::Itf>   sfcItf       = nullptr;
+        std::shared_ptr<mhw::mi::Itf>    miItf        = nullptr;
         eStatus = VphalDevice::CreateVPMhwInterfaces(sfcNeeded, veboxNeeded, veboxItf, sfcItf, miItf, m_osInterface);
         if (eStatus == MOS_STATUS_SUCCESS)
         {
