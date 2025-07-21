@@ -2823,7 +2823,9 @@ MOS_STATUS VpParameterDumper::DumpRenderParameter(
     {
         VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t<VPHAL_COLORFILL_PARAMS>\n"));
         VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<bYCbCr>%d</bYCbCr>\n", pRenderParams->pColorFillParams->bYCbCr));
+        VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<COLOR Float Enable=\"integer\">%d</COLOR>\n", pRenderParams->pColorFillParams->isFloat));
         VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<COLOR type=\"integer\">%08x</COLOR>\n", pRenderParams->pColorFillParams->Color));
+        VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<COLOR Float type=\"integer\">%f, %f, %f, %f</COLOR>\n", pRenderParams->pColorFillParams->ColorFloat[0], pRenderParams->pColorFillParams->ColorFloat[1], pRenderParams->pColorFillParams->ColorFloat[2], pRenderParams->pColorFillParams->ColorFloat[3]));
         VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<CSPACE>%s</CSPACE>\n", GetColorSpaceStr(pRenderParams->pColorFillParams->CSpace)));
         VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t</VPHAL_COLORFILL_PARAMS>\n"));
     }

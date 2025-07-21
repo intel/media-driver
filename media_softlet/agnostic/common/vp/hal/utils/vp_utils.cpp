@@ -409,6 +409,31 @@ bool VpUtils::GetCscMatrixForRender8BitWithCoeff(
     return bResult;
 }
 
+MOS_STATUS VpUtils::GetPixelWithCSCForColorFillFloat(
+    float                 input[4],
+    float                 output[4],
+    VPHAL_CSPACE          srcCspace,
+    VPHAL_CSPACE          dstCspace)
+{
+    if (srcCspace == dstCspace)
+    {
+        VP_PUBLIC_NORMALMESSAGE("Set input color to output color for fp16 usage.");
+        // no conversion needed
+        output[0] = input[0];
+        output[1] = input[1];
+        output[2] = input[2];
+        output[3] = input[3];
+    }
+    else
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Not support this colorspace convert for Float Colorfill. Source Color Space: %d, Target Color Space: %d.",
+            srcCspace,
+            dstCspace);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpUtils::GetPixelWithCSCForColorFill(
     VPHAL_COLOR_SAMPLE_8 &input,
     float                 output[4],

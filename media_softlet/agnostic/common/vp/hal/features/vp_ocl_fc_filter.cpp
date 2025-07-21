@@ -3194,7 +3194,14 @@ MOS_STATUS VpOclFcFilter::ConvertColorFillToKrnParam(bool enableColorFill, VPHAL
     {
         VPHAL_COLOR_SAMPLE_8 srcColor = {};
         srcColor.dwValue              = colorFillParams.Color;
-        VP_PUBLIC_CHK_STATUS_RETURN(VpUtils::GetPixelWithCSCForColorFill(srcColor, background, colorFillParams.CSpace, dstCspace));
+        if (colorFillParams.isFloat)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(VpUtils::GetPixelWithCSCForColorFillFloat(colorFillParams.ColorFloat, background, colorFillParams.CSpace, dstCspace));
+        }
+        else
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(VpUtils::GetPixelWithCSCForColorFill(srcColor, background, colorFillParams.CSpace, dstCspace));
+        }
     }
 
     return MOS_STATUS_SUCCESS;
@@ -3732,6 +3739,12 @@ void VpOclFcFilter::PrintCompParam(OCL_FC_COMP_PARAM &compParam)
     VP_PUBLIC_NORMALMESSAGE("OCL FC CompParam: colorFill R %d, G %d, B %d, A %d", color.R, color.G, color.B, color.A);
     VP_PUBLIC_NORMALMESSAGE("OCL FC CompParam: colorFill Y %d, U %d, V %d, A %d", color.Y, color.U, color.V, color.a);
     VP_PUBLIC_NORMALMESSAGE("OCL FC CompParam: colorFill YY %d, Cr %d, Cb %d, A %d", color.YY, color.Cr, color.Cb, color.Alpha);
+    VP_PUBLIC_NORMALMESSAGE("OCL FC CompParam: isFloat %d, colorfloat[0] %f, colorfloat[1] %f, colorfloat[2] %f, colorfloat[3] %f",
+        compParam.colorFillParams.isFloat,
+        compParam.colorFillParams.ColorFloat[0],
+        compParam.colorFillParams.ColorFloat[1],
+        compParam.colorFillParams.ColorFloat[2],
+        compParam.colorFillParams.ColorFloat[3]);
 #endif
 }
 

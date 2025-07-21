@@ -498,6 +498,26 @@ public:
         VPHAL_CSPACE          dstCspace);
 
     //!
+    //! \brief    Performs Color Space Convert for Sample Pixel Float
+    //! \details  Performs Color Space Convert from Src Color Spase to Dst Color Spase
+    //! \param    [out] pOutput
+    //!           Pointer to float
+    //! \param    [in] pInput
+    //!           Pointer to VPHAL_COLOR_SAMPLE_8
+    //! \param    [in] srcCspace
+    //!           Source Color Space
+    //! \param    [in] dstCspace
+    //!           Dest Color Space
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful
+    //!
+    static MOS_STATUS GetPixelWithCSCForColorFillFloat(
+        float                 input[4],
+        float                 output[4],
+        VPHAL_CSPACE          srcCspace,
+        VPHAL_CSPACE          dstCspace);
+
+    //!
     //! \brief    Get Color Space Convert Normalized Matrix
     //! \details  Get Color Space Convert Normalized Matrix
     //! \param    [out] pCSC_Matrix
