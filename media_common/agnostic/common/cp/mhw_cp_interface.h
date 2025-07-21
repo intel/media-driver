@@ -345,6 +345,17 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    virtual MOS_STATUS IsSwproxyStatePartial(
+        PMOS_INTERFACE osInterface,
+        bool           &result)
+    {
+        MOS_UNUSED(osInterface);
+        MOS_UNUSED(result);
+
+        MhwStubMessage();
+        return MOS_STATUS_SUCCESS;
+    }
+
     MEDIA_CLASS_DEFINE_END(MhwCpInterface)
 };
 
