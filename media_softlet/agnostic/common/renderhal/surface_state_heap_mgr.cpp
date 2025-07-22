@@ -269,3 +269,10 @@ MOS_STATUS SurfaceStateHeapManager::AssignSurfaceState()
 
     return eStatus;
 }
+
+MOS_STATUS SurfaceStateHeapManager::AssignUsedSurfaceState(int32_t surfaceStateEntryIndex)
+{
+    MHW_CHK_NULL_RETURN(m_surfStateHeap);
+    m_usedStates.insert(std::make_pair(m_surfStateHeap->uiCurState, surfaceStateEntryIndex));
+    return MOS_STATUS_SUCCESS;
+}

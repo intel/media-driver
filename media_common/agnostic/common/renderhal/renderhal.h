@@ -942,7 +942,7 @@ typedef struct _RENDERHAL_STATE_HEAP
     // Current allocations
     int32_t                 iCurSshBufferIndex;                                 // Current SSH Buffer instance in the SSH heap
     int32_t                 iCurrentBindingTable;                               // Current BT
-    int32_t                 iCurrentSurfaceState;                               // Current SS
+    int32_t                 iCurrentSurfaceState;                               // Current SS. When bindlessInUse is true, this means state entry index
 
     //---------------------------
     // Instruction State Heap

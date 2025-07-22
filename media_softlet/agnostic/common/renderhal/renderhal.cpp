@@ -1476,7 +1476,6 @@ MOS_STATUS RenderHal_AllocateStateHeaps(
                 pRenderHal->pStateHeap = nullptr;
                 return eStatus;
             }
-            pStateHeap->iCurrentSurfaceState = pStateHeap->surfaceStateMgr->m_surfStateHeap->uiCurState;
         }
     }
 
@@ -3024,6 +3023,7 @@ MOS_STATUS RenderHal_AssignSurfaceState(
 {
     PRENDERHAL_STATE_HEAP           pStateHeap;
     int32_t                         iSurfaceEntry;
+    int32_t                         surfaceStateIndex;
     PRENDERHAL_SURFACE_STATE_ENTRY  pSurfaceEntry;
     uint32_t                        dwOffset;
     MOS_STATUS                      eStatus;
@@ -3055,26 +3055,32 @@ MOS_STATUS RenderHal_AssignSurfaceState(
                     pRenderHal->pRenderHalPltInterface->GetSurfaceStateCmdSize());  // Moves the pointer to a Currently assigned Surface State
                                                                                        // Increment the Current Surface State Entry
                                                                                        // Obtain new surface entry and initialize
-        iSurfaceEntry = pStateHeap->iCurrentSurfaceState;
-        pCurSurfaceState = pStateHeap->pSshBuffer + dwOffset;
+        iSurfaceEntry     = pStateHeap->iCurrentSurfaceState;
+        surfaceStateIndex = iSurfaceEntry;
+        pCurSurfaceState  = pStateHeap->pSshBuffer + dwOffset;
         ++pStateHeap->iCurrentSurfaceState;
     }
     else
     {
+        if (pStateHeap->iCurrentSurfaceState >= pRenderHal->StateHeapSettings.iSurfaceStates)
+        {
+            MHW_RENDERHAL_ASSERTMESSAGE("Unable to allocate Surface State Entry for Bindless Mode. Exceeds Maximum.");
+            return eStatus;
+        }
         MHW_RENDERHAL_CHK_NULL_RETURN(pStateHeap->surfaceStateMgr);
         MHW_RENDERHAL_CHK_STATUS_RETURN(pStateHeap->surfaceStateMgr->AssignSurfaceState());
-        SURFACE_STATES_HEAP_OBJ                    *sufStateHeap = pStateHeap->surfaceStateMgr->m_surfStateHeap;
+        SURFACE_STATES_HEAP_OBJ *sufStateHeap = pStateHeap->surfaceStateMgr->m_surfStateHeap;
         MHW_RENDERHAL_CHK_NULL_RETURN(sufStateHeap);
         MHW_RENDERHAL_CHK_NULL_RETURN(sufStateHeap->pLockedOsResourceMem);
         MHW_RENDERHAL_CHK_VALUE_RETURN(Mos_ResourceIsNull(&sufStateHeap->osResource), false);
-        dwOffset = sufStateHeap->uiCurState * sufStateHeap->uiInstanceSize;
-        pCurSurfaceState =sufStateHeap->pLockedOsResourceMem + dwOffset;
-        stateHeap                        = &sufStateHeap->osResource;
-        pStateHeap->iCurrentSurfaceState = sufStateHeap->uiCurState;
-
+        dwOffset          = sufStateHeap->uiCurState * sufStateHeap->uiInstanceSize;
+        pCurSurfaceState  = sufStateHeap->pLockedOsResourceMem + dwOffset;
+        stateHeap         = &sufStateHeap->osResource;
+        surfaceStateIndex = sufStateHeap->uiCurState;
         MHW_RENDERHAL_CHK_STATUS_RETURN(pStateHeap->surfaceStateMgr->AssignUsedSurfaceState(pStateHeap->iCurrentSurfaceState));
         // Obtain new surface entry and initialize
         iSurfaceEntry = pStateHeap->iCurrentSurfaceState;
+        ++pStateHeap->iCurrentSurfaceState;
     }
 
     pSurfaceEntry                       = &pStateHeap->pSurfaceEntry[iSurfaceEntry];
@@ -3086,7 +3092,7 @@ MOS_STATUS RenderHal_AssignSurfaceState(
     *pSurfaceEntry                      = g_cInitSurfaceStateEntry;
 
     // Setup Surface Entry parameters
-    pSurfaceEntry->iSurfStateID         = iSurfaceEntry;
+    pSurfaceEntry->iSurfStateID         = surfaceStateIndex;
     pSurfaceEntry->Type                 = Type;
     pSurfaceEntry->dwSurfStateOffset    = (uint32_t)-1;                         // Each platform to setup
     pSurfaceEntry->pSurfaceState        = pCurSurfaceState;
@@ -5705,23 +5711,22 @@ MOS_STATUS RenderHal_SendMediaStates(
 MOS_STATUS RenderHal_AssignBindlessSurfaceStates(
     PRENDERHAL_INTERFACE pRenderHal)
 {
-    PRENDERHAL_STATE_HEAP pStateHeap = nullptr;
-    MOS_STATUS            eStatus    = MOS_STATUS_UNKNOWN;
-
-    //----------------------------------------
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pStateHeap);
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pStateHeap->surfaceStateMgr);
 
-    pStateHeap = pRenderHal->pStateHeap;
-    if (pStateHeap->surfaceStateMgr->m_usedStates.size() >0)
+    PRENDERHAL_STATE_HEAP pStateHeap = pRenderHal->pStateHeap;
+
+    if (pStateHeap->surfaceStateMgr->m_heapStatus == SURFACE_STATE_USED_HEAP_INITIALIZED &&
+        pStateHeap->surfaceStateMgr->m_usedStates.size() > 0)
     {
-        pStateHeap->surfaceStateMgr->m_usedStates.clear();
+        MHW_RENDERHAL_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
     }
+    pStateHeap->iCurrentSurfaceState = 0;
+    pStateHeap->surfaceStateMgr->m_usedStates.clear();
+    pStateHeap->surfaceStateMgr->m_heapStatus = SURFACE_STATE_USED_HEAP_INITIALIZED;
 
-    eStatus = MOS_STATUS_SUCCESS;
-
-    return eStatus;
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS RenderHal_SendBindlessSurfaces(
@@ -5749,19 +5754,24 @@ MOS_STATUS RenderHal_SendBindlessSurfaces(
         return eStatus;
     }
 
-    for (uint32_t i = 0; i < pStateHeap->surfaceStateMgr->m_usedStates.size(); i++)
+    MHW_RENDERHAL_CHK_VALUE_RETURN(pStateHeap->surfaceStateMgr->m_heapStatus, SURFACE_STATE_USED_HEAP_INITIALIZED);
+
+     for (const auto &pair : pStateHeap->surfaceStateMgr->m_usedStates)
     {
-        uint32_t index = pStateHeap->surfaceStateMgr->m_usedStates[i];
-        // Null Patch is only enabled for Media Patchless
+        uint32_t surfaceStateIndex      = pair.first;
+        uint32_t surfaceStateEntryIndex = pair.second;
+
         SendSurfaceParams.bNeedNullPatch     = bNeedNullPatch;
         SendSurfaceParams.pIndirectStateBase = pStateHeap->surfaceStateMgr->m_surfStateHeap->pLockedOsResourceMem;
-        SendSurfaceParams.iIndirectStateBase = 0; // No need
+        SendSurfaceParams.iIndirectStateBase = 0;  // No need
 
-        SendSurfaceParams.pSurfaceToken       = (uint8_t *)&pStateHeap->pSurfaceEntry[index].SurfaceToken;
-        SendSurfaceParams.pSurfaceStateSource = (uint8_t *)pStateHeap->pSurfaceEntry[index].pSurfaceState;
-        SendSurfaceParams.iSurfaceStateOffset = index * pStateHeap->surfaceStateMgr->m_surfStateHeap->uiInstanceSize;
+        SendSurfaceParams.pSurfaceToken       = (uint8_t *)&pStateHeap->pSurfaceEntry[surfaceStateEntryIndex].SurfaceToken;
+        SendSurfaceParams.pSurfaceStateSource = (uint8_t *)pStateHeap->pSurfaceEntry[surfaceStateEntryIndex].pSurfaceState;
+        SendSurfaceParams.iSurfaceStateOffset = surfaceStateIndex * pStateHeap->surfaceStateMgr->m_surfStateHeap->uiInstanceSize;
         pRenderHal->pfnSendSurfaceStateEntry(pRenderHal, pCmdBuffer, &SendSurfaceParams);
     }
+
+    pStateHeap->surfaceStateMgr->m_heapStatus = SURFACE_STATE_USED_HEAP_SENT;
 
     return eStatus;
 }

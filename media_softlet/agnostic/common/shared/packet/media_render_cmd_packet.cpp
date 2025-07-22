@@ -280,7 +280,8 @@ MOS_STATUS RenderCmdPacket::RenderEngineSetup()
 
     // Allocate and reset SSH instance
     if ((m_isMultiBindingTables == false) || (m_renderHal->pStateHeap->iCurrentBindingTable >= m_renderHal->StateHeapSettings.iBindingTables) ||
-        (m_renderHal->pStateHeap->iCurrentSurfaceState >= m_renderHal->StateHeapSettings.iSurfaceStates) || m_isMultiKernelOneMediaState)
+        (m_renderHal->pStateHeap->iCurrentSurfaceState >= m_renderHal->StateHeapSettings.iSurfaceStates) || m_isMultiKernelOneMediaState ||
+        m_renderHal->isBindlessHeapInUse)
     {
         RENDER_PACKET_CHK_STATUS_RETURN(m_renderHal->pfnAssignSshInstance(m_renderHal));
     }
