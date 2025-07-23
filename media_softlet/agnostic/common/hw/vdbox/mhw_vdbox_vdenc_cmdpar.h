@@ -567,7 +567,7 @@ struct _MHW_PAR_T(VDENC_CMD2)
     uint8_t  intraRefreshMbSizeMinus1         = 1;
     uint8_t  intraRefreshMode                 = 0;
     bool     intraRefresh                     = false;
-    uint8_t  qpAdjustmentForRollingI          = 0;
+    int8_t   qpAdjustmentForRollingI          = 0;
     uint8_t  qpForSegs[8]                     = {};
     bool     vp9DynamicSlice                  = false;
     uint8_t  qpPrimeYDc                       = 0;

@@ -134,8 +134,8 @@ namespace encode
 #else
             params.extSettings.emplace_back(
                 [av1BasicFeature](uint32_t *data) {
-                    uint8_t tmp0 = av1BasicFeature->m_par65Intra & 0xf;
-                    uint8_t tmp1 = av1BasicFeature->m_par65Inter & 0xf;
+                    uint32_t tmp0 = av1BasicFeature->m_par65Intra & 0xf;
+                    uint32_t tmp1 = av1BasicFeature->m_par65Inter & 0xf;
 
                     data[32] |= (tmp1 << 16);
                     data[32] |= (tmp1 << 20);

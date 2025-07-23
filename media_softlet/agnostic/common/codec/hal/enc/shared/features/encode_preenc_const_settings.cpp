@@ -913,8 +913,8 @@ MOS_STATUS EncodePreEncConstSettings::SetVdencCmd2Settings()
             par.extSettings.emplace_back(
                 [this, preEncConfig](uint32_t *data) {
 
-                uint8_t tmp0 = 0;
-                uint8_t tmp1 = 0;
+                uint32_t tmp0 = 0;
+                uint32_t tmp1 = 0;
 
                 if (preEncConfig.CodingType == I_TYPE)
                 {
