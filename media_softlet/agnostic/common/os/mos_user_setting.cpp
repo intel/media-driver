@@ -1378,6 +1378,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         0,
         true);
 
+    DeclareUserSettingKeyForDebug(  // VP PostComp Surface Copy Dump Enable
+        userSettingPtr,
+        __VPHAL_DBG_SURF_DUMP_POSTCOMP_RESOURCE_COPY,
+        MediaUserSetting::Group::Device,
+        0,
+        true);
+
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_SPLIT_SCREEN_DEMO_POSITION,

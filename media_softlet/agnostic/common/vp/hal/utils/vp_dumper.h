@@ -202,6 +202,7 @@ struct VPHAL_SURF_DUMP_SPEC
     int32_t                       iNumDumpLocs;                                 //!< Number of pipe stage dump locations
     bool                          enableAuxDump;                                //!< Enable aux data dump for compressed surface
     bool                          enablePlaneDump;                              //!< Enable surface dump by plane
+    uint32_t                      enablePostCompCopy;                           //!< Enable PostComp surface dump copy
 };
 
 //!
@@ -298,6 +299,20 @@ public:
         const char                  *psPathPrefix = nullptr,
         uint64_t                     iCounter = 0);
 
+    virtual MOS_STATUS CopyThenLockResources(
+        PMOS_INTERFACE               pOsInterface,
+        PVP_SURFACE                  pSurface,
+        PVPHAL_SURFACE              &temp2DSurfForCopy,
+        bool                         hasAuxSurf,
+        bool                         enableAuxDump,
+        PMOS_LOCK_PARAMS             pLockFlags,
+        PMOS_RESOURCE               &pLockedResource,
+        VPHAL_SURF_DUMP_SURFACE_DEF *pPlanes,
+        uint32_t                    *pdwNumPlanes,
+        uint32_t                    *pdwSize,
+        uint8_t                    *&pData,
+        const char                  *psPathPrefix = nullptr,
+        uint64_t                     iCounter     = 0);
     virtual void UnlockAndDestroyResource(
         PMOS_INTERFACE              osInterface,
         PVPHAL_SURFACE              tempSurf,

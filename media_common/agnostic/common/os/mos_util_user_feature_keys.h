@@ -392,6 +392,7 @@
 #define __VPHAL_DBG_SURF_DUMP_ENABLE_AUX_DUMP                         "enableAuxDump"
 #define __VPHAL_DBG_SURF_DUMPER_RESOURCE_LOCK                         "SurfaceDumperResourceLockError"
 #define __VPHAL_DBG_STATE_DUMP_ENABLE                                 "enableStateDump"
+#define __VPHAL_DBG_SURF_DUMP_POSTCOMP_RESOURCE_COPY                  "enablePostCompDumpCopy"
 //User feature key for Codec debug
 #define __MEDIA_USER_FEATURE_VALUE_CODECHAL_DEBUG_OUTPUT_DIRECTORY    "CodecHal Debug Output Directory"
 #define __MEDIA_USER_FEATURE_VALUE_IS_CODEC_ROW_STORE_CACHE_ENABLED   "Codec Row Store Cache Enabled"
