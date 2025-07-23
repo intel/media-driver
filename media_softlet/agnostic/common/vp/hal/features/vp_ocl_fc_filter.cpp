@@ -215,19 +215,19 @@ MOS_STATUS VpOclFcFilter::InitKrnParams(OCL_FC_KERNEL_PARAMS &krnParams, SwFilte
             case Format_YV12:
             case Format_IMC3:
                 VP_RENDER_CHK_STATUS_RETURN(GenerateFc420PL3InputParam(compParam.inputLayersParam[i], i, param));
-                krnParams.push_back(param);
+                krnParams.push_back(std::move(param));
                 break;
             case Format_RGBP:
             case Format_BGRP:
             case Format_444P:
                 VP_RENDER_CHK_STATUS_RETURN(GenerateFc444PL3InputParam(compParam.inputLayersParam[i], compParam.layerNumber, param, i));
-                krnParams.push_back(param);
+                krnParams.push_back(std::move(param));
                 break;
             case Format_422H:
             case Format_422V:
             case Format_411P:
                 VP_RENDER_CHK_STATUS_RETURN(GenerateFc422HVInputParam(compParam.inputLayersParam[i], i, param));
-                krnParams.push_back(param);
+                krnParams.push_back(std::move(param));
                 break;
             default:
                 break;
@@ -259,13 +259,13 @@ MOS_STATUS VpOclFcFilter::InitKrnParams(OCL_FC_KERNEL_PARAMS &krnParams, SwFilte
         case Format_YV12:
         case Format_IYUV:
             VP_RENDER_CHK_STATUS_RETURN(GenerateFc420PL3OutputParam(compParam.outputLayerParam, param));
-            krnParams.push_back(param);
+            krnParams.push_back(std::move(param));
             break;
         case Format_RGBP:
         case Format_BGRP:
         case Format_444P:
             VP_RENDER_CHK_STATUS_RETURN(GenerateFc444PL3OutputParam(compParam.outputLayerParam, param));
-            krnParams.push_back(param);
+            krnParams.push_back(std::move(param));
             break;
         default:
             break;
