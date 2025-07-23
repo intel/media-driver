@@ -885,8 +885,8 @@ MOS_STATUS GpuContextSpecificNext::GetCommandBuffer(
 
         // util now, we got new command buffer from CmdBufMgr, next step to fill in the input command buffer
         MOS_OS_CHK_STATUS_RETURN(cmdBuf->GetResource()->ConvertToMosResource(&comamndBuffer->OsResource));
-        comamndBuffer->pCmdBase   = (uint32_t *)cmdBuf->GetLockAddr();
-        comamndBuffer->pCmdPtr    = (uint32_t *)cmdBuf->GetLockAddr();
+        comamndBuffer->pCmdBase   = (uint32_t *)cmdBuf->GetResource()->GetLockedAddr();
+        comamndBuffer->pCmdPtr    = (uint32_t *)cmdBuf->GetResource()->GetLockedAddr();
         comamndBuffer->iOffset    = 0;
         comamndBuffer->iRemaining = cmdBuf->GetCmdBufSize();
         comamndBuffer->iCmdIndex  = m_nextFetchIndex;

@@ -139,13 +139,6 @@ public:
     GraphicsResourceNext* GetResource() { return m_graphicsResource; }
 
     //!
-    //! \brief    Get current command buffer's lock address for cpu side usage
-    //! \return   uint8_t*
-    //!           Current command buffer's lock address for cpu side usage
-    //!
-    uint8_t* GetLockAddr() { return m_lockAddr; }
-
-    //!
     //! \brief    Get last native gpu context
     //! \return   GpuContextNext*
     //!           Pointer to the last native gpu context
@@ -245,9 +238,6 @@ protected:
 
     //! \brief    Graphics resource for command buffer
     GraphicsResourceNext* m_graphicsResource = nullptr;
-
-    //! \brief    Lock address for cpu side usage
-    uint8_t*          m_lockAddr         = nullptr;
 
     //! \brief    Indicate if ready to use
     bool              m_readyToUse       = false;

@@ -86,9 +86,8 @@ MOS_STATUS CommandBufferSpecificNext::BindToGpuContext(GpuContextNext *gpuContex
 
     GraphicsResourceNext::LockParams params;
     params.m_writeRequest = true;
-    m_lockAddr = static_cast<uint8_t *>(m_graphicsResource->Lock(m_osContext, params));
-    MOS_OS_CHK_NULL_RETURN(m_lockAddr);
-
+    auto lockAddr = static_cast<uint8_t *>(m_graphicsResource->Lock(m_osContext, params));
+    MOS_OS_CHK_NULL_RETURN(lockAddr);
     m_gpuContext        = gpuContext;
     m_gpuContextHandle  = gpuContext->GetGpuContextHandle();
 
