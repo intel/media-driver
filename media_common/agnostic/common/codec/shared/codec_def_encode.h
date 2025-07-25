@@ -115,6 +115,7 @@ struct EncoderParams
     PMOS_SURFACE                    psRawSurface            = nullptr;                      //!< Raw surface
     PMOS_SURFACE                    psReconSurface          = nullptr;                      //!< reconstructed surface
     PMOS_RESOURCE                   presBitstreamBuffer     = nullptr;                      //!< Output buffer for bitstream data.
+    PMOS_RESOURCE                   presLaDataBuffer        = nullptr;                      //!< Output buffer for La data.
     PMOS_RESOURCE                   presMetadataBuffer      = nullptr;                      //!< Output buffer for meta data.
     PMOS_RESOURCE                   presMbCodeSurface       = nullptr;                      //!< PAK objects provided by framework.
     PMOS_SURFACE                    psMbSegmentMapSurface   = nullptr;                      //!< [VP9]
@@ -148,6 +149,7 @@ struct EncoderParams
     uint32_t                        uiSlcStructCaps                 = 0;                        //!< [AVC] Slice capability information, formatted as CODEC_SLICE_STRUCTS
     bool                            bMADEnabled                     = false;                    //!< MAD is enabled
     bool                            bMbQpDataEnabled                = false;                    //!< [AVC & MPEG2] Indicates that psMbQpDataSurface is present.
+    bool                            bLaDataBufferEnabled            = false;
     bool                            bMbDisableSkipMapEnabled        = false;                    //!< [AVC] Indicates that psMbDisableSkipMapSurface is present.
     bool                            bReportStatisticsEnabled        = false;                    //!< [HEVC] Indicates whether statistic reporting is enabled, disabled by default.
     bool                            bQualityImprovementEnable       = false;                    //!< [HEVC] Indicates whether quality improvement is enabled, disabled by default.

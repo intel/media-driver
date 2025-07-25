@@ -146,6 +146,12 @@ MOS_STATUS EncodeBasicFeature::Update(void *params)
     m_resMetadataBuffer    = (encodeParams->presMetadataBuffer);
     m_metaDataOffset       = encodeParams->metaDataOffset;
 
+    m_laDataBufferEnabled = encodeParams->bLaDataBufferEnabled;
+    if (encodeParams->bLaDataBufferEnabled)
+    {
+        m_LaDataBuffer = (encodeParams->presLaDataBuffer);
+    }
+    
     // Get resource details of the bitstream resource
     MOS_SURFACE bsSurface;
     MOS_ZeroMemory(&bsSurface, sizeof(bsSurface));

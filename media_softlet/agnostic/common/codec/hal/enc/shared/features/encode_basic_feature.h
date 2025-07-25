@@ -157,12 +157,14 @@ public:
     MOS_SURFACE                 m_reconSurface = {};               //!< Pointer to MOS_SURFACE of reconstructed surface
     MOS_RESOURCE                m_resBitstreamBuffer = {};         //!< Pointer to MOS_SURFACE of bitstream surface
     PMOS_RESOURCE               m_resMetadataBuffer = nullptr;
+    PMOS_RESOURCE               m_LaDataBuffer      = nullptr;
     MetaDataOffset              m_metaDataOffset = {};
 
     BSBuffer                    m_bsBuffer = {};                   //!< Bit-stream buffer
 
     uint32_t                    m_bitstreamSize = 0;               //!< Maximum amount of data to be output to presBitstreamBuffer.
     bool                        m_mbQpDataEnabled = false;         //!< [AVC & MPEG2] Indicates that psMbQpDataSurface is present.
+    bool                        m_laDataBufferEnabled = false;
     bool                        m_mbDisableSkipMapEnabled = false; //!< [AVC] Indicates that psMbDisableSkipMapSurface is present.
     MOS_SURFACE                 m_mbDisableSkipMapSurface = {};    //!< [AVC] MB disable skip map provided by framework
     MOS_SURFACE                 m_mbQpDataSurface = {};            //!< pointer to surface of Mb QP Data

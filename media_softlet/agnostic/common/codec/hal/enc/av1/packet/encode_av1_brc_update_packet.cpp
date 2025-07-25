@@ -648,7 +648,14 @@ namespace encode
         {
             params.regionParams[12].presRegion = const_cast<PMOS_RESOURCE>(&m_vdencReadBatchBufferTU7[bufIdx][currentPass]);
         }
-
+        
+        if (m_basicFeature->m_av1SeqParams->LookaheadDepth && m_basicFeature->m_laDataBufferEnabled)
+        {
+            ENCODE_CHK_NULL_RETURN(m_basicFeature->m_LaDataBuffer);
+            ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSkipResourceSync(m_basicFeature->m_LaDataBuffer));
+            params.regionParams[13].presRegion = m_basicFeature->m_LaDataBuffer;
+        }
+        
         return MOS_STATUS_SUCCESS;
     }
 
