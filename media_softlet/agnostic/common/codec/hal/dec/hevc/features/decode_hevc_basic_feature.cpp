@@ -254,8 +254,11 @@ MOS_STATUS HevcBasicFeature::ErrorDetectAndConceal()
     {
         if (m_hevcPicParams->transform_skip_enabled_flag == 0)
         {
-            m_hevcRextPicParams->log2_max_transform_skip_block_size_minus2 = 0;
-            DECODE_WARNINGMESSAGE("log2_max_transform_skip_block_size_minus2 should equal to 0 when transform_skip_enabled_flag not present\n");
+            if (m_hevcRextPicParams->log2_max_transform_skip_block_size_minus2 != 0)
+            {
+                m_hevcRextPicParams->log2_max_transform_skip_block_size_minus2 = 0;
+                DECODE_WARNINGMESSAGE("log2_max_transform_skip_block_size_minus2 should equal to 0 when transform_skip_enabled_flag not present\n");
+            }
         }
 
         if (m_hevcRextPicParams->diff_cu_chroma_qp_offset_depth > m_hevcPicParams->log2_diff_max_min_luma_coding_block_size)
