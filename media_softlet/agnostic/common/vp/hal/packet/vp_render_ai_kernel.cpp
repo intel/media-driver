@@ -532,3 +532,8 @@ uint32_t VpRenderAiKernel::GetLargeGrfMode()
         return 0;
     }
 }
+
+void VpRenderAiKernel::OcaDumpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext)
+{
+    HalOcaInterfaceNext::DumpVpKernelInfo(cmdBuffer, (MOS_CONTEXT_HANDLE)&mosContext, m_kernelId, 0, nullptr, m_kernelConfig.featureType);
+}

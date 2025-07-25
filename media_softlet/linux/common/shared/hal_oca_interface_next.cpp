@@ -311,8 +311,14 @@ void HalOcaInterfaceNext::DumpResourceInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_IN
         OnOcaError(&mosContext, MOS_STATUS_INVALID_PARAMETER, __FUNCTION__, __LINE__);
         return;
     }
-
-    status = pOcaInterface->AddResourceToDumpList(ocaBufHandle, &mosContext, res, hwCmdType, locationInCmd, offsetInRes);
+    if (hwCmdType == MOS_BINDLESS_STATELESS_SURFACE && (res.Format == Format_Buffer || res.Format == Format_RAW))
+    {
+        status = pOcaInterface->AddBufferResourceToDumpList(ocaBufHandle, &mosContext, res, hwCmdType, cmdBuffer.iOffset, offsetInRes);
+    }
+    else
+    {
+        status = pOcaInterface->AddResourceToDumpList(ocaBufHandle, &mosContext, res, hwCmdType, locationInCmd, offsetInRes);
+    }
     if (MOS_FAILED(status))
     {
         OnOcaError(&mosContext, status, __FUNCTION__, __LINE__);
@@ -381,10 +387,12 @@ void HalOcaInterfaceNext::TraceOcaSkuValue(MOS_COMMAND_BUFFER &cmdBuffer, MOS_IN
 //!         If vpKernelID == kernelCombinedFc, fcKernelCount is the kernel count for fc, otherwise, it's not used.
 //! \param  [in] fcKernelList
 //!         If vpKernelID == kernelCombinedFc, fcKernelList is the kernel list for fc, otherwise, it's not used.
+//! \param  [in] aiKernelFeatureType
+//!         Value of enum FeatureType for Ai Common Kernel.
 //! \return void
 //!         No return value. Handle all exception inside the function.
 //!
-void HalOcaInterfaceNext::DumpVpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT_HANDLE mosContext, int vpKernelID, int fcKernelCount, int *fcKernelList)
+void HalOcaInterfaceNext::DumpVpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT_HANDLE mosContext, int vpKernelID, int fcKernelCount, int *fcKernelList, int aiKernelFeatureType)
 {
     MosOcaInterface *pOcaInterface          = &MosOcaInterfaceSpecific::GetInstance();
     MOS_STATUS              status          = MOS_STATUS_SUCCESS;
@@ -419,7 +427,14 @@ void HalOcaInterfaceNext::DumpVpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CO
     header.header.headerSize                = sizeof(MOS_OCA_LOG_HEADER_VP_KERNEL_INFO);
     header.header.dataSize                  = fcKernelCount * sizeof(int);
     header.vpKernelID                       = vpKernelID;
-    header.fcKernelCount                    = fcKernelCount;
+    if (aiKernelFeatureType > 0 && vpKernelID >= kernelAiCommon && vpKernelID <= kernelAiCommonEnd)
+    {
+        header.aiKernelFeatureType = aiKernelFeatureType;
+    }
+    else
+    {
+        header.fcKernelCount = fcKernelCount;
+    }
     status = pOcaInterface->DumpDataBlock(ocaBufHandle, (PMOS_CONTEXT)mosContext, (PMOS_OCA_LOG_HEADER)&header, fcKernelList);
     if (MOS_FAILED(status))
     {

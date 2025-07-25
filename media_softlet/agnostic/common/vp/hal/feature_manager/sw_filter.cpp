@@ -2178,6 +2178,7 @@ MOS_STATUS SwFilterAiBase::Configure(VP_PIPELINE_PARAMS &params, bool isInputSur
     VP_PUBLIC_CHK_STATUS_RETURN(InitializeStageGroupIndex(m_Params.settings, m_Params.splitGroupIndex));
     VP_PUBLIC_CHK_STATUS_RETURN(InitializeNpu(m_Params.settings));
     VP_PUBLIC_CHK_STATUS_RETURN(SetPerfTag(m_Params.perfTag));
+    m_Params.featureType = m_type;
 
     return MOS_STATUS_SUCCESS;
 }

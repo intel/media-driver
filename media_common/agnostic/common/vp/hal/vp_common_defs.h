@@ -204,12 +204,15 @@ enum VpKernelIDNext
     kernelHdr3DLutCalcOcl,
     kernelHVSCalc,
 
+    //Add New Kernel ID Here
+
     // AI Common
     kernelAiCommon,
     kernelAiCommonEnd = kernelAiCommon + 0x1000,
 
     vpKernelIDNextMax
 };
+C_ASSERT(kernelAiCommonEnd == vpKernelIDNextMax - 1);
 
 //!
 //! \brief Base VP graph list

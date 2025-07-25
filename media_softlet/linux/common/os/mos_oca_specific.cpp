@@ -97,6 +97,7 @@ MOS_OCA_BUFFER_HANDLE MosOcaInterfaceSpecific::LockOcaBufAvailable(PMOS_CONTEXT 
         }
         m_ocaBufContextList[i].inUse = true;
         m_ocaBufContextList[i].logSection.resInfo.maxResInfoCount = m_config.maxResInfoCount;
+        m_ocaBufContextList[i].logSection.resInfo.maxBufferResInfoCount = m_config.maxBufferResInfoCount;
         m_indexOfNextOcaBufContext = (i + 1) % MAX_NUM_OF_OCA_BUF_CONTEXT;
         return i;
     }
@@ -109,6 +110,7 @@ MOS_OCA_BUFFER_HANDLE MosOcaInterfaceSpecific::LockOcaBufAvailable(PMOS_CONTEXT 
         }
         m_ocaBufContextList[i].inUse = true;
         m_ocaBufContextList[i].logSection.resInfo.maxResInfoCount = m_config.maxResInfoCount;
+        m_ocaBufContextList[i].logSection.resInfo.maxBufferResInfoCount = m_config.maxBufferResInfoCount;
         m_indexOfNextOcaBufContext = (i + 1) % MAX_NUM_OF_OCA_BUF_CONTEXT;
         return i;
     }
@@ -455,6 +457,92 @@ MOS_STATUS MosOcaInterfaceSpecific::AddResourceToDumpList(MOS_OCA_BUFFER_HANDLE 
     return MOS_STATUS_SUCCESS;
 }
 
+//!
+//! \brief  Add buffer resource to dump list.
+//! \param  [in] ocaBufHandle
+//!         Oca buffer handle.
+//! \param  [in] mosCtx
+//!         DDI device context.
+//! \param  [in] resource
+//!         Reference to MOS_RESOURCE.
+//! \param  [in] hwCmdType
+//!         Hw command Type.
+//! \param  [in] locationInCmd
+//!         Location in command.
+//! \param  [in] offsetInRes
+//!         Offset in resource.
+//! \return MOS_STATUS
+//!         Return MOS_STATUS_SUCCESS if successful, otherwise failed
+//!
+MOS_STATUS MosOcaInterfaceSpecific::AddBufferResourceToDumpList(MOS_OCA_BUFFER_HANDLE ocaBufHandle, PMOS_CONTEXT mosCtx, MOS_RESOURCE &resource, MOS_HW_COMMAND hwCmdType, uint32_t locationInCmd, uint32_t offsetInRes)
+{
+    uint32_t          i          = 0;
+    if (!m_isOcaEnabled || !m_isInitialized)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (!m_ocaBufContextList[ocaBufHandle].is1stLevelBBStarted)
+    {
+        MOS_OS_ASSERTMESSAGE("AddBufferResourceToDumpList is called before oca buffer initialized!");
+        MosOcaInterfaceSpecific::OnOcaError(mosCtx, MOS_STATUS_UNINITIALIZED, __FUNCTION__, __LINE__);
+        return MOS_STATUS_UNINITIALIZED;
+    }
+
+    if (nullptr == m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResInfoList)
+    {
+        MOS_OS_NORMALMESSAGE("OCA resource info dump not enabled.");
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (nullptr == resource.pGmmResInfo || Mos_ResourceIsNull(&resource))
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    if (hwCmdType >= MOS_HW_COMMAND_MAX || MOS_HW_COMMAND_MAX > 64)
+    {
+        MosOcaInterfaceSpecific::OnOcaError(mosCtx, MOS_STATUS_UNINITIALIZED, __FUNCTION__, __LINE__);
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    for (i = 0; i < m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResCount; ++i)
+    {
+        if (m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResInfoList[i].allocationHandle == resource.bo->handle)
+        {
+            m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResInfoList[i].hwCmdType     = (uint32_t)hwCmdType;
+            m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResInfoList[i].locationInCmd = locationInCmd;
+            return MOS_STATUS_SUCCESS;
+        }
+    }
+
+    if (m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResCount >= m_ocaBufContextList[ocaBufHandle].logSection.resInfo.maxBufferResInfoCount)
+    {
+        // Not reture error but record the resource count skipped.
+        ++m_ocaBufContextList[ocaBufHandle].logSection.resInfo.resCountSkipped;
+        MOS_OS_NORMALMESSAGE("The resource is skipped to be dumpped to oca buffer.");
+        return MOS_STATUS_SUCCESS;
+    }
+
+    m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResInfoList[i].gfxAddress = resource.bo->offset64;
+    m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResInfoList[i].sizeAllocation = resource.pGmmResInfo->GetSizeAllocation();
+    m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResInfoList[i].allocationHandle = resource.bo->handle;
+    m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResInfoList[i].hwCmdType       = (uint32_t)hwCmdType;
+    m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResInfoList[i].locationInCmd   = locationInCmd;
+    m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResInfoList[i].size            = (uint32_t)resource.pGmmResInfo->GetBaseWidth();
+    m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResInfoList[i].gmmFormat        = (uint32_t)resource.pGmmResInfo->GetResourceFormat();
+    m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResInfoList[i].gmmResUsageType  = (uint32_t)resource.pGmmResInfo->GetCachePolicyUsage();
+  
+    m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResInfoList[i].flags.isLocalOnly = resource.pGmmResInfo->GetResFlags().Info.LocalOnly;
+    m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResInfoList[i].flags.isNonLocalOnly  = resource.pGmmResInfo->GetResFlags().Info.NonLocalOnly;
+    m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResInfoList[i].flags.isNotLockable   = resource.pGmmResInfo->GetResFlags().Info.NotLockable;
+    m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResInfoList[i].flags.isRenderTarget  = resource.pGmmResInfo->GetResFlags().Gpu.RenderTarget;
+
+    ++m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResCount;
+
+    return MOS_STATUS_SUCCESS;
+}
+
 void MosOcaInterfaceSpecific::AddResourceInfoToLogSection(MOS_OCA_BUFFER_HANDLE ocaBufHandle, PMOS_CONTEXT mosCtx)
 {
     if (!m_ocaBufContextList[ocaBufHandle].is1stLevelBBStarted)
@@ -483,6 +571,24 @@ void MosOcaInterfaceSpecific::AddResourceInfoToLogSection(MOS_OCA_BUFFER_HANDLE 
        MosOcaInterfaceSpecific::OnOcaError(mosCtx, status, __FUNCTION__, __LINE__);
     }
     m_ocaBufContextList[ocaBufHandle].logSection.resInfo.resCount        = 0;
+
+    if (m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResCount > 0)
+    {
+        header = {};
+        header.header.type       = MOS_OCA_LOG_TYPE_BUFFER_RESOURCE_INFO;
+        header.header.headerSize = sizeof(MOS_OCA_LOG_HEADER_RESOURCE_INFO);
+        header.header.dataSize   = m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResCount * sizeof(MOS_OCA_BUFFER_RESOURCE_INFO);
+        header.resCount          = m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResCount;
+        header.resCountSkipped   = m_ocaBufContextList[ocaBufHandle].logSection.resInfo.resCountSkipped;
+
+        status = DumpDataBlock(ocaBufHandle, (PMOS_OCA_LOG_HEADER)&header, m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResInfoList);
+        if (MOS_FAILED(status))
+        {
+            MosOcaInterfaceSpecific::OnOcaError(mosCtx, status, __FUNCTION__, __LINE__);
+        }
+        m_ocaBufContextList[ocaBufHandle].logSection.resInfo.bufferResCount = 0;
+    }
+
     m_ocaBufContextList[ocaBufHandle].logSection.resInfo.resCountSkipped = 0;
     return;
 }
@@ -752,6 +858,20 @@ void MosOcaInterfaceSpecific::Initialize(PMOS_CONTEXT mosContext)
         {
             m_ocaBufContextList[i].logSection.resInfo.resInfoList = m_resInfoPool + i * m_config.maxResInfoCount;
         }
+
+        m_config.maxBufferResInfoCount = OCA_MAX_BUFFER_RESOURCE_INFO_COUNT_MAX;
+        m_bufferResInfoPool = MOS_NewArray(MOS_OCA_BUFFER_RESOURCE_INFO, m_config.maxBufferResInfoCount * MAX_NUM_OF_OCA_BUF_CONTEXT);
+        if (nullptr == m_bufferResInfoPool)
+        {
+            MOS_DeleteArray(m_resInfoPool);
+            return;
+        }
+        MosUtilities::MosZeroMemory(m_bufferResInfoPool, sizeof(MOS_OCA_BUFFER_RESOURCE_INFO) * m_config.maxBufferResInfoCount * MAX_NUM_OF_OCA_BUF_CONTEXT);
+        for (int i = 0; i < MAX_NUM_OF_OCA_BUF_CONTEXT; ++i)
+        {
+            m_ocaBufContextList[i].logSection.resInfo.bufferResInfoList = m_bufferResInfoPool + i * m_config.maxBufferResInfoCount;
+        }
+
         if (nullptr != m_ocaMutex)
         {
             return;
@@ -760,6 +880,7 @@ void MosOcaInterfaceSpecific::Initialize(PMOS_CONTEXT mosContext)
         m_ocaMutex = MosUtilities::MosCreateMutex();
         if (nullptr == m_ocaMutex)
         {
+            MOS_DeleteArray(m_bufferResInfoPool);
             MOS_DeleteArray(m_resInfoPool);
             return;
         }
@@ -767,6 +888,7 @@ void MosOcaInterfaceSpecific::Initialize(PMOS_CONTEXT mosContext)
         m_mutexForOcaBufPool = MosUtilities::MosCreateMutex();
         if (nullptr == m_mutexForOcaBufPool)
         {
+            MOS_DeleteArray(m_bufferResInfoPool);
             MOS_DeleteArray(m_resInfoPool);
             MosUtilities::MosDestroyMutex(m_ocaMutex);
             m_ocaMutex = nullptr;
@@ -831,6 +953,15 @@ void MosOcaInterfaceSpecific::Uninitialize()
             for (int i = 0; i < MAX_NUM_OF_OCA_BUF_CONTEXT; ++i)
             {
                 m_ocaBufContextList[i].logSection.resInfo.resInfoList = nullptr;
+            }
+        }
+        if(m_bufferResInfoPool != nullptr)
+        {
+            MOS_DeleteArray(m_bufferResInfoPool);
+            m_bufferResInfoPool = nullptr;
+            for (int i = 0; i < MAX_NUM_OF_OCA_BUF_CONTEXT; ++i)
+            {
+                m_ocaBufContextList[i].logSection.resInfo.bufferResInfoList = nullptr;
             }
         }
         m_hOcaMap.clear();

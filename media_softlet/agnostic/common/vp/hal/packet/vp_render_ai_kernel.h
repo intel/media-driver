@@ -51,6 +51,8 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    virtual void OcaDumpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext) override;
+
 protected:
     virtual MOS_STATUS SetupSurfaceState() override;
     virtual MOS_STATUS SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, bool bSyncFlag, bool flushL1 = false);

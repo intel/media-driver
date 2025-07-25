@@ -500,7 +500,8 @@ using PRENDER_OCL_FC_PARAMS = RENDER_OCL_FC_PARAMS *;
 
 struct AI_KERNEL_CONFIG
 {
-    VPHAL_PERFTAG            perfTag     = VPHAL_NONE;
+    VPHAL_PERFTAG perfTag     = VPHAL_NONE;
+    FeatureType   featureType = FeatureTypeInvalid;
 };
 
 struct AI_KERNEL_PARAM

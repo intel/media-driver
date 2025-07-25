@@ -107,7 +107,7 @@ MOS_STATUS VpAiFilter::SetExecuteEngineCaps(
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpAiFilter::SetPerfTag(SwFilterPipe &executingPipe, VPHAL_PERFTAG &perfTag)
+MOS_STATUS VpAiFilter::SetConfig(SwFilterPipe &executingPipe, AI_KERNEL_CONFIG &config)
 {
     SwFilterSubPipe *subPipe = executingPipe.GetSwFilterSubPipe(true, 0);
     VP_PUBLIC_CHK_NULL_RETURN(subPipe);
@@ -117,7 +117,8 @@ MOS_STATUS VpAiFilter::SetPerfTag(SwFilterPipe &executingPipe, VPHAL_PERFTAG &pe
     VP_PUBLIC_CHK_NULL_RETURN(ai)
 
     FeatureParamAi &swAiParam = ai->GetSwFilterParams();
-    perfTag                   = swAiParam.perfTag;
+    config.perfTag            = swAiParam.perfTag;
+    config.featureType        = swAiParam.featureType;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -144,7 +145,7 @@ MOS_STATUS VpAiFilter::CalculateEngineParams(VpGraphManager *graphManager)
         }
 
         VP_PUBLIC_CHK_STATUS_RETURN(InitKrnParams(m_renderAiParams->ai_kernelParams, *m_executingPipe));
-        VP_PUBLIC_CHK_STATUS_RETURN(SetPerfTag(*m_executingPipe, m_renderAiParams->ai_kernelConfig.perfTag));
+        VP_PUBLIC_CHK_STATUS_RETURN(SetConfig(*m_executingPipe, m_renderAiParams->ai_kernelConfig));
     }
     else if (m_executeCaps.bNpu)
     {

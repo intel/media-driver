@@ -227,7 +227,7 @@ public:
     //! \return void
     //!         No return value. Handle all exception inside the function.
     //!
-    static void DumpVpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT_HANDLE mosContext, int vpKernelID, int fcKernelCount, int *fcKernelList);
+    static void DumpVpKernelInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT_HANDLE mosContext, int vpKernelID, int fcKernelCount, int *fcKernelList, int aiKernelFeatureType = 0);
 
     //!
     //! \brief  Add vp kernel info to oca log section.

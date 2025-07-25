@@ -1137,6 +1137,7 @@ struct FeatureParamAi : public FeatureParam
     AI_SETTING_PIPE      settings        = {};
     AI_SPLIT_GROUP_INDEX splitGroupIndex = {};
     VPHAL_PERFTAG        perfTag         = VPHAL_NONE;
+    FeatureType          featureType     = FeatureTypeInvalid;
 };
 
 class SwFilterAiBase : public SwFilter

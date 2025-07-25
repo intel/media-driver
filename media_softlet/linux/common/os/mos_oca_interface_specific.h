@@ -236,6 +236,25 @@ public:
     virtual MOS_STATUS AddResourceToDumpList(MOS_OCA_BUFFER_HANDLE ocaBufHandle, PMOS_CONTEXT mosCtx, MOS_RESOURCE &resource, MOS_HW_COMMAND hwCmdType, uint32_t locationInCmd, uint32_t offsetInRes);
 
     //!
+    //! \brief  Add buffer resource to dump list.
+    //! \param  [in] ocaBufHandle
+    //!         Oca buffer handle.
+    //! \param  [in] mosCtx
+    //!         DDI device context.
+    //! \param  [in] resource
+    //!         Reference to MOS_RESOURCE.
+    //! \param  [in] hwCmdType
+    //!         Hw command Type.
+    //! \param  [in] locationInCmd
+    //!         Location in command.
+    //! \param  [in] offsetInRes
+    //!         Offset in resource.
+    //! \return MOS_STATUS
+    //!         Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    virtual MOS_STATUS AddBufferResourceToDumpList(MOS_OCA_BUFFER_HANDLE ocaBufHandle, PMOS_CONTEXT mosCtx, MOS_RESOURCE &resource, MOS_HW_COMMAND hwCmdType, uint32_t locationInCmd, uint32_t offsetInRes);
+
+    //!
     //! \brief  Add data block to oca log section.
     //! \param  [in] ocaBufHandle
     //!         Oca buffer handle.
@@ -401,7 +420,8 @@ private:
 
     bool                            m_isOcaEnabled                                  = false;
     bool                            m_isInitialized                                 = false;
-    MOS_OCA_RESOURCE_INFO           *m_resInfoPool                                  = nullptr;  
+    MOS_OCA_RESOURCE_INFO           *m_resInfoPool                                  = nullptr;
+    MOS_OCA_BUFFER_RESOURCE_INFO    *m_bufferResInfoPool                            = nullptr;
     MOS_OCA_BUF_CONTEXT             m_ocaBufContextList[MAX_NUM_OF_OCA_BUF_CONTEXT] = {};
     MOS_OCA_BUFFER_CONFIG           m_config;
     uint32_t                        m_indexOfNextOcaBufContext                      = 0;

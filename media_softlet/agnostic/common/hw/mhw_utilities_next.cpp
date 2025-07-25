@@ -56,6 +56,7 @@ static const std::set<MOS_HW_COMMAND> s_OCAResourceInfoType = {
     MOS_HUC_DMEM,
     MOS_HUC_VIRTUAL_ADDR,
     MOS_VDENC_PIPE_BUF_ADDR,
+    MOS_BINDLESS_STATELESS_SURFACE,
 };
 
 //!
