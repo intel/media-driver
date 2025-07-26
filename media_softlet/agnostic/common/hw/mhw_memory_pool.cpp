@@ -32,8 +32,8 @@ typedef struct _MHW_MEMORY_POOL_ENTRY
     PMHW_MEMORY_POOL_ENTRY  pPrev;              //!< Prev pool entry (doubled linked list)
     PMHW_MEMORY_POOL        pPool;              //!< Pool object
     void                    *pAllocation;        //!< Memory allocation from malloc (to be freed)
-    uint32_t                dwSize;             //!< Memory size allocated from malloc
     void                    *pObjects;           //!< Pointer to first object in this pool entry
+    uint32_t                dwSize;             //!< Memory size allocated from malloc
     uint32_t                dwCount;            //!< Number of objects in this pool allocation
 } MHW_MEMORY_POOL_ENTRY, *PMHW_MEMORY_POOL_ENTRY;
 
