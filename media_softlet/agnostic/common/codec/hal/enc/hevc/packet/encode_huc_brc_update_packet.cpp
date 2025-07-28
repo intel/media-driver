@@ -1131,7 +1131,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(HCP_PIPE_MODE_SELECT, HucBrcUpdatePkt)
     {
-        params.codecStandardSelect = CodecHal_GetStandardFromMode(m_basicFeature->m_mode) - CODECHAL_HCP_BASE;
+        params.codecStandardSelect = CODEC_STANDARD_SELECT_HEVC;
         params.bStreamOutEnabled   = true;
         params.bVdencEnabled       = true;
         params.multiEngineMode     = MHW_VDBOX_HCP_MULTI_ENGINE_MODE_FE_LEGACY;

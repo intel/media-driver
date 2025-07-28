@@ -3686,7 +3686,7 @@ MOS_STATUS CodechalEncodeMpeg2::SetCurbeBrcUpdate()
     cmd.m_curbeData.DW0.m_targetSize = (uint32_t)m_brcInitCurrentTargetBufFullInBits;
     cmd.m_curbeData.DW5.m_currFrameType = m_pictureCodingType - 1;
 
-    cmd.m_curbeData.DW5.m_brcFlag = (CodecHal_PictureIsFrame(m_picParams->m_currOriginalPic)) ? (0) : (CODECHAL_ENCODE_BRCINIT_FIELD_PIC);
+    cmd.m_curbeData.DW5.m_brcFlag = 0;
 
     if (m_seqParams->m_rateControlMethod == RATECONTROL_CBR)
     {

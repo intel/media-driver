@@ -553,12 +553,12 @@ VAStatus DdiEncodeVp9::ParsePicParams(DDI_MEDIA_CONTEXT *mediaCtx, void *ptr)
 
     VAEncPictureParameterBufferVP9 *picParam = (VAEncPictureParameterBufferVP9 *)ptr;
 
-    if ((picParam->frame_width_src == 0) && (picParam->frame_width_dst == 0))
+    if ((picParam->frame_width_src == 0) || (picParam->frame_width_dst == 0))
     {
         DDI_CODEC_ASSERTMESSAGE("DDI: frame width in VP9 PicParam is zero\n.");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
-    if ((picParam->frame_height_src == 0) && (picParam->frame_height_dst == 0))
+    if ((picParam->frame_height_src == 0) || (picParam->frame_height_dst == 0))
     {
         DDI_CODEC_ASSERTMESSAGE("DDI: frame height in VP9 PicParam is zero\n.");
         return VA_STATUS_ERROR_INVALID_PARAMETER;

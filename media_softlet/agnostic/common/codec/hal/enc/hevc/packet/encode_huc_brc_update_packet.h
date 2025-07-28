@@ -130,6 +130,13 @@ namespace encode
     };
     C_ASSERT(256 == sizeof(VdencHevcHucBrcUpdateDmem));
 
+    enum CODEC_STANDARD_SELECT
+    {
+        CODEC_STANDARD_SELECT_HEVC = 0,
+        CODEC_STANDARD_SELECT_VP9  = 1,
+        CODEC_STANDARD_SELECT_AV1  = 2,
+    };
+
 #define CODECHAL_VDENC_HEVC_MAX_SLICE_NUM   70
 
     struct VdencHevcHucBrcConstantData
