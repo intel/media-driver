@@ -379,6 +379,7 @@ bool SwFilterDnHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInpu
 
     if (SwFilterFeatureHandler::IsVeboxTypeHMode())
     {
+        VP_PUBLIC_WARNINGMESSAGE("Disable DN for veboxTypeH.");
         return false;
     }
 
@@ -481,6 +482,7 @@ bool SwFilterDiHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInpu
 
     if (SwFilterFeatureHandler::IsVeboxTypeHMode())
     {
+        VP_PUBLIC_WARNINGMESSAGE("Disable Di for veboxTypeH.");
         return false;
     }
 
@@ -556,6 +558,7 @@ bool SwFilterSteHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInp
 
     if (SwFilterFeatureHandler::IsVeboxTypeHMode())
     {
+        VP_PUBLIC_WARNINGMESSAGE("Disable Ste for veboxTypeH.");
         return false;
     }
 
@@ -616,6 +619,7 @@ bool SwFilterTccHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInp
 
     if (SwFilterFeatureHandler::IsVeboxTypeHMode())
     {
+        VP_PUBLIC_WARNINGMESSAGE("Disable Tcc for veboxTypeH.");
         return false;
     }
 
@@ -1075,6 +1079,7 @@ bool SwFilterCgcHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInp
 
     if (SwFilterFeatureHandler::IsVeboxTypeHMode())
     {
+        VP_PUBLIC_WARNINGMESSAGE("Disable Cgc for veboxTypeH.");
         return false;
     }
 

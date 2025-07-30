@@ -62,7 +62,7 @@ MOS_STATUS Policy::UpdateVpHwCapsBasedOnSku(VP_HW_CAPS &vpHwCaps)
     bool   veboxTypeH         = userFeatureControl->IsVeboxTypeHMode(); 
     if (veboxTypeH)
     {
-        VP_PUBLIC_NORMALMESSAGE("Disable vebox features for veboxTypeH.");
+        VP_PUBLIC_WARNINGMESSAGE("Disable vebox features for veboxTypeH.");
         for (int i = 0; i < Format_Count; i++)
         {
             //update caps per sku
@@ -1162,7 +1162,7 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature, bool isCamPipeWithBaye
             if (veboxTypeH)
             {
                 cscEngine->VeboxNeeded = 0;
-                VP_PUBLIC_NORMALMESSAGE("Not use vebox to do csc for veboxTypeH.");
+                VP_PUBLIC_WARNINGMESSAGE("Not use vebox to do csc for veboxTypeH.");
             }
             else
             {
