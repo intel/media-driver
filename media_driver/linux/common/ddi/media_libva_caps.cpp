@@ -44,6 +44,7 @@ typedef MediaLibvaCapsFactory<MediaLibvaCaps, DDI_MEDIA_CONTEXT> CapsFactory;
 #endif
 
 #include "set"
+#include "unordered_set"
 
 #ifndef VA_ENCRYPTION_TYPE_NONE
 #define VA_ENCRYPTION_TYPE_NONE 0x00000000
@@ -2345,14 +2346,15 @@ VAStatus MediaLibvaCaps::QueryConfigProfiles(
 {
     DDI_CHK_NULL(profileList, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
     DDI_CHK_NULL(numProfiles, "Null pointer", VA_STATUS_ERROR_INVALID_PARAMETER);
-    std::set<int32_t> profiles;
+    std::unordered_set<int32_t> profiles;
     int32_t i;
+    profiles.reserve(m_profileEntryCount);
     for (i = 0; i < m_profileEntryCount; i++)
     {
         profiles.insert((int32_t)m_profileEntryTbl[i].m_profile);
     }
 
-    std::set<int32_t>::iterator it;
+    std::unordered_set<int32_t>::iterator it;
     for (it = profiles.begin(), i = 0; it != profiles.end(); ++it, i++)
     {
         profileList[i] = (VAProfile)*it;
