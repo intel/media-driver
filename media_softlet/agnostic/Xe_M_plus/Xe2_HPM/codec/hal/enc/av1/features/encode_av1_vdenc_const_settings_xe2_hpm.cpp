@@ -458,7 +458,7 @@ MOS_STATUS EncodeAv1VdencConstSettingsXe2_Hpm::SetVdencStreaminStateSettings()
             static const std::array<
                 uint8_t,
                 NUM_TARGET_USAGE_MODES + 1>
-                numImePredictors =  {12, 12, 12, 8, 8, 8, 4, 4};
+                numImePredictors =  {8, 8, 8, 8, 8, 8, 6, 3};
 
             par.maxTuSize                = 3;  //Maximum TU Size allowed, restriction to be set to 3
             par.maxCuSize                = (cu64Align) ? 3 : 2;
