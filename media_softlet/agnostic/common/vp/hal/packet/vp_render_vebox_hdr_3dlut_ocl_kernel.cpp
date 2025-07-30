@@ -210,6 +210,7 @@ VpRenderHdr3DLutOclKernel::VpRenderHdr3DLutOclKernel(PVP_MHWINTERFACE hwInterfac
     VP_FUNC_CALL();
     m_kernelBinaryID = VP_ADV_KERNEL_BINARY_ID(kernelHdr3DLutCalcOcl);
     m_isAdvKernel    = true;
+    m_renderHal      = hwInterface ? hwInterface->m_renderHal : nullptr;
 }
 
 VpRenderHdr3DLutOclKernel::~VpRenderHdr3DLutOclKernel()
@@ -243,6 +244,8 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::Init(VpRenderKernel &kernel)
     m_kernelEnv = kernel.GetKernelExeEnv();
 
     m_curbeSize = kernel.GetCurbeSize();
+
+    m_inlineData.resize(m_kernelEnv.uInlineDataPayloadSize, 0);
 
     m_curbeResourceList.clear();
     m_inlineResourceList.clear();
@@ -357,6 +360,11 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::GetWalkerSetting(KERNEL_WALKER_PARAMS &wal
 
     VP_FUNC_CALL();
 
+    if (m_renderHal && m_renderHal->isBindlessHeapInUse)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(GetInlineData(m_inlineData.data()));
+    }
+
     walkerParam = m_walkerParam;
     walkerParam.iBindingTable = renderData.bindingTable;
     walkerParam.iMediaID      = renderData.mediaID;
@@ -407,15 +415,7 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::GetInlineData(uint8_t *inlineData)
             }
             else
             {
-                if (arg.pData != nullptr)
-                {
-                    MOS_SecureMemcpy(inlineData + arg.uOffsetInPayload, arg.uSize, arg.pData, arg.uSize);
-                    VP_RENDER_NORMALMESSAGE("Setting Inline Data KernelID %d, index %d , value %d, argKind %d", m_kernelId, arg.uIndex, *(uint32_t *)arg.pData, arg.eArgKind); 
-                }
-                else
-                {
-                    VP_RENDER_NORMALMESSAGE("KernelID %d, index %d, argKind %d is empty", m_kernelId, arg.uIndex, arg.eArgKind);
-                }
+                VP_PUBLIC_CHK_STATUS_RETURN(SetInlineDataParameter(arg, inlineData));
             }
         }
     }
@@ -442,10 +442,13 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::SetWalkerSetting(KERNEL_THREAD_SPACE &thre
     m_walkerParam.pipeControlParams.bFlushRenderTargetCache    = false;
     m_walkerParam.pipeControlParams.bInvalidateTextureCache    = false;
 
-    MOS_ZeroMemory(m_inlineData, sizeof(m_inlineData));
-    VP_PUBLIC_CHK_STATUS_RETURN(GetInlineData(m_inlineData));
-    m_walkerParam.inlineDataLength = sizeof(m_inlineData);
-    m_walkerParam.inlineData       = m_inlineData;
+    MOS_ZeroMemory(m_inlineData.data(), m_inlineData.size() * sizeof(uint8_t));
+    if (m_renderHal == nullptr || m_renderHal->isBindlessHeapInUse == false)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(GetInlineData(m_inlineData.data()));
+    }
+    m_walkerParam.inlineDataLength = m_inlineData.size();
+    m_walkerParam.inlineData       = m_inlineData.data();
 
     if (m_kernelEnv.uSimdSize != 1)
     {

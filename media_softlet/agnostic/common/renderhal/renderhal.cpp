@@ -5638,7 +5638,14 @@ MOS_STATUS RenderHal_SendMediaStates(
 
     if (pRenderHal->bComputeContextInUse)
     {
-        pRenderHal->pRenderHalPltInterface->SendTo3DStateBindingTablePoolAlloc(pRenderHal, pCmdBuffer);
+        if (!pRenderHal->isBindlessHeapInUse)
+        {
+            pRenderHal->pRenderHalPltInterface->SendTo3DStateBindingTablePoolAlloc(pRenderHal, pCmdBuffer);
+        }
+        else
+        {
+            pRenderHal->pRenderHalPltInterface->SendStateComputeMode(pRenderHal, pCmdBuffer);
+        }
     }
 
     // Send Surface States
@@ -5658,8 +5665,11 @@ MOS_STATUS RenderHal_SendMediaStates(
     }
     else
     {
-        // set CFE State
-        MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pRenderHalPltInterface->AddCfeStateCmd(pRenderHal, pCmdBuffer, pVfeStateParams));
+        if (!pRenderHal->isBindlessHeapInUse)
+        {
+            // set CFE State
+            MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pRenderHalPltInterface->AddCfeStateCmd(pRenderHal, pCmdBuffer, pVfeStateParams));
+        }
     }
 
     // Send CURBE Load

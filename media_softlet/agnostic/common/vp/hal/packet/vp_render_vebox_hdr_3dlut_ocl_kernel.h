@@ -68,10 +68,12 @@ protected:
     virtual MOS_STATUS SetKernelConfigs(KERNEL_CONFIGS &kernelConfigs) override;
     virtual void       DumpSurfaces();
 
+    PRENDERHAL_INTERFACE m_renderHal = nullptr;
+
     //kernel Arguments
     KERNEL_ARGS          m_kernelArgs  = {};
     KERNEL_WALKER_PARAMS m_walkerParam = {};
-    uint8_t              m_inlineData[32] = {};
+    std ::vector<uint8_t> m_inlineData = {};
 
     float           m_ccmMatrix[VP_CCM_MATRIX_SIZE] = {0.0};
     uint32_t        m_maxDisplayLum         = 1000;         //!< Maximum Display Luminance
