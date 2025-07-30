@@ -5771,9 +5771,10 @@ MOS_STATUS RenderHal_SendBindlessSurfaces(
         uint32_t surfaceStateIndex      = pair.first;
         uint32_t surfaceStateEntryIndex = pair.second;
 
-        SendSurfaceParams.bNeedNullPatch     = bNeedNullPatch;
-        SendSurfaceParams.pIndirectStateBase = pStateHeap->surfaceStateMgr->m_surfStateHeap->pLockedOsResourceMem;
-        SendSurfaceParams.iIndirectStateBase = 0;  // No need
+        SendSurfaceParams.bNeedNullPatch              = bNeedNullPatch;
+        SendSurfaceParams.pIndirectStateBase          = pStateHeap->surfaceStateMgr->m_surfStateHeap->pLockedOsResourceMem;
+        SendSurfaceParams.surfaceStateHeapMosResource = &pStateHeap->surfaceStateMgr->m_surfStateHeap->osResource;
+        SendSurfaceParams.iIndirectStateBase          = 0;  // No need
 
         SendSurfaceParams.pSurfaceToken       = (uint8_t *)&pStateHeap->pSurfaceEntry[surfaceStateEntryIndex].SurfaceToken;
         SendSurfaceParams.pSurfaceStateSource = (uint8_t *)pStateHeap->pSurfaceEntry[surfaceStateEntryIndex].pSurfaceState;
@@ -7219,7 +7220,8 @@ MOS_STATUS RenderHal_SendSurfaceStateEntry(
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pOsInterface);
     MHW_RENDERHAL_CHK_NULL_RETURN(pParams);
     //-----------------------------------------------
-    uint8_t *pbPtrCmdBuf;
+    uint8_t           *pbPtrCmdBuf;
+    MOS_COMMAND_BUFFER bindlessSurfaceStateHeapCmdBuffer = {};
     if (pRenderHal->isBindlessHeapInUse)
     {
         MHW_RENDERHAL_CHK_NULL_RETURN(pParams->pIndirectStateBase);
@@ -7286,6 +7288,15 @@ MOS_STATUS RenderHal_SendSurfaceStateEntry(
     PatchEntryParams.forceDwordOffset = 0;
     PatchEntryParams.cmdBufBase       = pbPtrCmdBuf;
     PatchEntryParams.presResource     = (PMOS_RESOURCE)pSurfaceStateToken->pResourceInfo;
+    if (pRenderHal->isBindlessHeapInUse)
+    {
+        MHW_RENDERHAL_CHK_NULL_RETURN(pParams->surfaceStateHeapMosResource);
+        
+        bindlessSurfaceStateHeapCmdBuffer.OsResource = *pParams->surfaceStateHeapMosResource;
+        bindlessSurfaceStateHeapCmdBuffer.pCmdBase   = (uint32_t *)pbPtrCmdBuf;
+        bindlessSurfaceStateHeapCmdBuffer.iOffset    = PatchEntryParams.uiPatchOffset;
+        PatchEntryParams.cmdBuffer                   = &bindlessSurfaceStateHeapCmdBuffer;
+    }
 
     // Set patch for surface state address
     pOsInterface->pfnSetPatchEntry(

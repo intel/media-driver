@@ -824,6 +824,7 @@ typedef struct _MHW_SURFACE_STATE_SEND_PARAMS {
     int32_t                 iIndirectStateBase;
     int32_t                 iSurfaceStateOffset;
     bool                    bNeedNullPatch;
+    PMOS_RESOURCE           surfaceStateHeapMosResource;
 } MHW_SURFACE_STATE_SEND_PARAMS, *PMHW_SURFACE_STATE_SEND_PARAMS;
 
 struct MHW_STATE_HEAP_SETTINGS
