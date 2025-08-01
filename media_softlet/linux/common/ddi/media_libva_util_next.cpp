@@ -651,9 +651,14 @@ VAStatus MediaLibvaUtilNext::CreateExternalSurface(
 
     GMM_RESCREATE_CUSTOM_PARAMS_2 gmmCustomParams;
     MOS_ZeroMemory(&gmmCustomParams, sizeof(gmmCustomParams));
+    gmmCustomParams.Usage = GMM_RESOURCE_USAGE_STAGING;
+    if ((VA_SURFACE_EXTBUF_DESC_UNCACHED & mediaSurface->pSurfDesc->uiFlags) || (VA_SURFACE_EXTBUF_DESC_WC & mediaSurface->pSurfDesc->uiFlags))
+    {
+        gmmCustomParams.Usage = GMM_RESOURCE_USAGE_UNKNOWN;
+    }
     if (VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR == mediaSurface->pSurfDesc->uiVaMemType)
     {
-        gmmCustomParams.Usage = GMM_RESOURCE_USAGE_STAGING;
+        gmmCustomParams.Usage = GMM_RESOURCE_USAGE_STAGING; //temp WA for some application wrongly use flags for user ptr
         gmmCustomParams.Type = RESOURCE_1D;
     }
 
