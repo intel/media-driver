@@ -126,6 +126,8 @@ public:
 
     virtual MOS_STATUS Update(PVP_PIPELINE_PARAMS params);
 
+    virtual MOS_STATUS UpdateOnNewPipe(SwFilterPipe *swFilterPipe, uint32_t pipeCnt);
+
     bool EnableOclFC();
 
     bool EnableOcl3DLut();

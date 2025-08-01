@@ -252,6 +252,11 @@ public:
         return m_gpuCtxOnHybridCmd;
     }
 
+    bool IsForceToRender()
+    {
+        return m_forceToRender;
+    }
+
 protected:
     MOS_STATUS CleanFeaturesFromPipe(bool isInputPipe, uint32_t index);
     MOS_STATUS CleanFeaturesFromPipe(bool isInputPipe);
@@ -277,6 +282,8 @@ protected:
     bool                                m_processedSecurePrepared = false;
     bool                                m_isExePipe = false;
     uint64_t                            m_gpuCtxOnHybridCmd = 0;
+    // this only take effect when more than 1 swFilterPipe in vp pipeline, which means each swFilterPipe need its own forceToRender flag
+    bool                                m_forceToRender = false;    
 
 MEDIA_CLASS_DEFINE_END(vp__SwFilterPipe)
 };

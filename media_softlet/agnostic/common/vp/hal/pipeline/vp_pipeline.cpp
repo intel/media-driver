@@ -622,6 +622,10 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
         VP_PUBLIC_CHK_NULL_RETURN(singlePipeCtx->GetVpResourceManager());
         VP_PUBLIC_CHK_STATUS_RETURN(m_vpInterface->SwitchResourceManager(singlePipeCtx->GetVpResourceManager()));
 
+        // For multi swFilterPipe cases, it may need to udpate userFeatureControl pipe by pipe
+        VP_PUBLIC_CHK_NULL_RETURN(m_userFeatureControl);
+        m_userFeatureControl->UpdateOnNewPipe(pipe, swFilterPipes.size());
+
         VP_PUBLIC_CHK_STATUS_RETURN(ExecuteSingleswFilterPipe(singlePipeCtx, pipe, pPacketPipe, featureManagerNext));
         // FrameCounter will be increased inside ExecuteSingleswFilterPipe, so m_vpPipeContexts[pipeIdx]->GetFrameCounter() - 1 is needed.
         MT_LOG2(MT_VP_FEATURE_GRAPH_EXECUTE_SINGLE_VPPIPELINE_END, MT_NORMAL,

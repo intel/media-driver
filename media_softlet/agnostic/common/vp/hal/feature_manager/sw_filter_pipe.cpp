@@ -296,6 +296,7 @@ MOS_STATUS SwFilterPipe::Initialize(VP_PIPELINE_PARAMS &params, FeatureRule &fea
     }
 
     UpdateSwFilterPipeType();
+    m_forceToRender = params.bForceToRender;
 
     MOS_STATUS status = ConfigFeatures(params, featureRule);
     if (MOS_FAILED(status))

@@ -83,7 +83,7 @@ MOS_STATUS VpAiFilter::Destroy()
         {
             for (auto &krnArgHandle : singleLayerKrnArgMapHandle.second)
             {
-                KRN_ARG &krnArg = krnArgHandle.second;
+                KRN_ARG &krnArg = krnArgHandle.second.krnArg;
                 MOS_FreeMemAndSetNull(krnArg.pData);
             }
             singleLayerKrnArgMapHandle.second.clear();
@@ -177,11 +177,11 @@ MOS_STATUS VpAiFilter::InitKrnParams(AI_KERNEL_PARAMS &krnParams, SwFilterPipe &
     auto            multiLayerKrnArgMapHandle = m_featureAiKrnArgMap.find(ai->GetFeatureType());
     if (multiLayerKrnArgMapHandle == m_featureAiKrnArgMap.end())
     {
-        MULTI_LAYERS_KERNEL_INDEX_ARG_MAP multiLayerKrnArgMap = {};
-        multiLayerKrnArgMapHandle                             = m_featureAiKrnArgMap.insert(std::make_pair(ai->GetFeatureType(), multiLayerKrnArgMap)).first;
+        AI_MULTI_LAYERS_KERNEL_INDEX_ARG_MAP multiLayerKrnArgMap = {};
+        multiLayerKrnArgMapHandle                                = m_featureAiKrnArgMap.insert(std::make_pair(ai->GetFeatureType(), multiLayerKrnArgMap)).first;
         VP_PUBLIC_CHK_NOT_FOUND_RETURN(multiLayerKrnArgMapHandle, &m_featureAiKrnArgMap);
     }
-    MULTI_LAYERS_KERNEL_INDEX_ARG_MAP &multiLayerKrnArgMap = multiLayerKrnArgMapHandle->second;
+    AI_MULTI_LAYERS_KERNEL_INDEX_ARG_MAP &multiLayerKrnArgMap = multiLayerKrnArgMapHandle->second;
 
     uint32_t startIndex = (swAiParam.stageIndex == 0) ? 0 : ((swAiParam.stageIndex - 1) < swAiParam.splitGroupIndex.size() ? swAiParam.splitGroupIndex.at(swAiParam.stageIndex - 1) : 0);
     uint32_t endIndex   = swAiParam.stageIndex < swAiParam.splitGroupIndex.size() ? swAiParam.splitGroupIndex.at(swAiParam.stageIndex) : swAiParam.settings.size();
@@ -195,8 +195,8 @@ MOS_STATUS VpAiFilter::InitKrnParams(AI_KERNEL_PARAMS &krnParams, SwFilterPipe &
         auto singleLayerKrnArgMapHandle = multiLayerKrnArgMap.find(layerIndex);
         if (singleLayerKrnArgMapHandle == multiLayerKrnArgMap.end())
         {
-            KERNEL_INDEX_ARG_MAP singleLayerKrnArgMap = {};
-            singleLayerKrnArgMapHandle                = multiLayerKrnArgMap.insert(std::make_pair(layerIndex, singleLayerKrnArgMap)).first;
+            AI_KERNEL_INDEX_ARG_MAP singleLayerKrnArgMap = {};
+            singleLayerKrnArgMapHandle                   = multiLayerKrnArgMap.insert(std::make_pair(layerIndex, singleLayerKrnArgMap)).first;
             VP_PUBLIC_CHK_NOT_FOUND_RETURN(singleLayerKrnArgMapHandle, &multiLayerKrnArgMap);
         }
         if (layerIndex >= swAiParam.settings.size())
@@ -221,7 +221,7 @@ MOS_STATUS VpAiFilter::InitKrnParams(AI_KERNEL_PARAMS &krnParams, SwFilterPipe &
         KERNEL_BTIS kernelBtis = handle->second.GetKernelBtis();
         KERNEL_ARGS kernelArgs = handle->second.GetKernelArgs();
 
-        KERNEL_INDEX_ARG_MAP &singleLayerKrnArgMap = singleLayerKrnArgMapHandle->second;
+        AI_KERNEL_INDEX_ARG_MAP &singleLayerKrnArgMap = singleLayerKrnArgMapHandle->second;
 
         for (auto const &kernelArg : kernelArgs)
         {
@@ -229,47 +229,62 @@ MOS_STATUS VpAiFilter::InitKrnParams(AI_KERNEL_PARAMS &krnParams, SwFilterPipe &
             auto     krnArgHandle = singleLayerKrnArgMap.find(argIndex);
             if (krnArgHandle == singleLayerKrnArgMap.end())
             {
-                KRN_ARG krnArg = {};
-                krnArgHandle   = singleLayerKrnArgMap.insert(std::make_pair(argIndex, krnArg)).first;
+                AI_KRN_ARG krnArg = {};
+                krnArgHandle      = singleLayerKrnArgMap.insert(std::make_pair(argIndex, krnArg)).first;
                 VP_PUBLIC_CHK_NOT_FOUND_RETURN(krnArgHandle, &singleLayerKrnArgMap);
             }
-            KRN_ARG &krnArg    = krnArgHandle->second;
-            krnArg.uIndex      = kernelArg.uIndex;
-            krnArg.eArgKind    = kernelArg.eArgKind;
-            krnArg.uSize       = kernelArg.uSize;
-            krnArg.addressMode = kernelArg.addressMode;
-            bool bInit         = true;
+            AI_KRN_ARG &aiKrnArg = krnArgHandle->second;
+            KRN_ARG    &krnArg   = aiKrnArg.krnArg;
+            krnArg.uIndex        = kernelArg.uIndex;
+            krnArg.eArgKind      = kernelArg.eArgKind;
+            krnArg.uSize         = kernelArg.uSize;
+            krnArg.addressMode   = kernelArg.addressMode;
+            bool bInit           = true;
 
             if (kernelArg.addressMode == AddressingModeStateless)
             {
+                if (krnArg.pData != nullptr)
+                {
+                    if (aiKrnArg.reservedSize != sizeof(SURFACE_PARAMS))
+                    {
+                        aiKrnArg.reservedSize = 0;
+                        MOS_FreeMemAndSetNull(krnArg.pData);
+                    }
+                    else
+                    {
+                        MOS_ZeroMemory(krnArg.pData, aiKrnArg.reservedSize);
+                    }
+                }
+
                 if (krnArg.pData == nullptr)
                 {
-                    krnArg.uSize = kernelArg.uSize;
-                    krnArg.pData = MOS_AllocAndZeroMemory(sizeof(SURFACE_PARAMS));
+                    aiKrnArg.reservedSize = sizeof(SURFACE_PARAMS);
+                    krnArg.pData          = MOS_AllocAndZeroMemory(aiKrnArg.reservedSize);
                     VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
-                }
-                else
-                {
-                    MOS_ZeroMemory(krnArg.pData, sizeof(SURFACE_PARAMS));
                 }
                 VP_PUBLIC_CHK_NULL_RETURN(singleLayerSetting.pfnSetStatelessSurface);
                 VP_PUBLIC_CHK_STATUS_RETURN(singleLayerSetting.pfnSetStatelessSurface(kernelArg.uIndex, executingPipe, *(PSURFACE_PARAMS)krnArg.pData, bInit));
             }
             else
-            {
-                if (krnArg.pData == nullptr)
+            {   
+                if (krnArg.pData != nullptr)
                 {
-                    if (kernelArg.uSize > 0)
+                    if (aiKrnArg.reservedSize != kernelArg.uSize)
                     {
-                        krnArg.uSize = kernelArg.uSize;
-                        krnArg.pData = MOS_AllocAndZeroMemory(kernelArg.uSize);
-                        VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
+                        aiKrnArg.reservedSize = 0;
+                        MOS_FreeMemAndSetNull(krnArg.pData);
+                    }
+                    else
+                    {
+                        MOS_ZeroMemory(krnArg.pData, aiKrnArg.reservedSize);
                     }
                 }
-                else
+
+                if (krnArg.pData == nullptr && kernelArg.uSize > 0)
                 {
-                    VP_PUBLIC_CHK_VALUE_RETURN(krnArg.uSize, kernelArg.uSize);
-                    MOS_ZeroMemory(krnArg.pData, krnArg.uSize);
+                    aiKrnArg.reservedSize = kernelArg.uSize;
+                    krnArg.pData          = MOS_AllocAndZeroMemory(kernelArg.uSize);
+                    VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
                 }
                 VP_PUBLIC_CHK_NULL_RETURN(singleLayerSetting.pfnSetKernelArg);
                 VP_PUBLIC_CHK_STATUS_RETURN(singleLayerSetting.pfnSetKernelArg(kernelArg.uIndex, executingPipe, krnArg.pData, bInit));

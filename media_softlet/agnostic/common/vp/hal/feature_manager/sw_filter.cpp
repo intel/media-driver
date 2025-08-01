@@ -836,6 +836,13 @@ MOS_STATUS SwFilterDenoise::Configure(VP_PIPELINE_PARAMS& params, bool isInputSu
 #if !EMUL
     GMM_RESOURCE_INFO* pSrcGmmResInfo    = surfInput->OsResource.pGmmResInfo;
     GMM_RESOURCE_INFO* pTargetGmmResInfo = params.pTarget[0]->OsResource.pGmmResInfo;
+    if (pTargetGmmResInfo == nullptr &&
+        params.pTarget[0]->pPipeIntermediateSurface &&
+        params.pTarget[0]->pPipeIntermediateSurface->osSurface)
+    {
+        // For Ai Pipeline, it may use multi pipe, and intermedia surface is in pPipeIntermediateSurface
+        pTargetGmmResInfo = params.pTarget[0]->pPipeIntermediateSurface->osSurface->OsResource.pGmmResInfo;
+    }
     VP_PUBLIC_CHK_NULL_RETURN(pSrcGmmResInfo);
     VP_PUBLIC_CHK_NULL_RETURN(pTargetGmmResInfo);
 

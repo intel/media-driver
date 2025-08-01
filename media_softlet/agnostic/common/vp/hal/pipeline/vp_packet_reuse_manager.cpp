@@ -663,6 +663,15 @@ MOS_STATUS VpPacketReuseManager::PreparePacketPipeReuse(SwFilterPipe *&swFilterP
     auto featureRegistered = policy.GetFeatureRegistered();
 
     isPacketPipeReused = true;
+    
+    bool hasAiSwFilter = false;
+    VP_PUBLIC_CHK_STATUS_RETURN(pipe.QuerySwAiFilter(hasAiSwFilter));
+    if (hasAiSwFilter)
+    {
+        m_reusable         = false;
+        isPacketPipeReused = false;
+        VP_PUBLIC_NORMALMESSAGE("Packet not reused for containing AI feature");
+    }
 
     for (auto feature : featureRegistered)
     {

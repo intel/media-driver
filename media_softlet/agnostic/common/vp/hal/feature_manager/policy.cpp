@@ -221,6 +221,9 @@ MOS_STATUS Policy::RegisterFeatures()
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_VeboxSfcFeatureHandlers.emplace(FeatureTypeCgcOnVebox, p);
 
+    // FeatureTypeAiOnRender and FeatureTypeAiOnNpu will not be added in sw filter pipe
+    // They will not be in registeredFeatures
+    // To get Ai SwFilter, need to use pipe.GetAiSwFilter
     p = MOS_New(PolicyAiHandler, m_hwCaps, m_vpInterface.GetGraphManager());
     VP_PUBLIC_CHK_NULL_RETURN(p);
     m_RenderFeatureHandlers.insert(std::make_pair(FeatureTypeAiOnRender, p));

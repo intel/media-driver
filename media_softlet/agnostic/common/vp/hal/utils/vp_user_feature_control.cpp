@@ -508,6 +508,29 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpUserFeatureControl::UpdateOnNewPipe(SwFilterPipe *swFilterPipe, uint32_t pipeCnt)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(swFilterPipe);
+
+    // if more than one swFilterPipe, then update the swFilterPipe config
+    if (pipeCnt > 1)
+    {
+        if (swFilterPipe->IsForceToRender())
+        {
+            m_ctrlVal.disableSfc         = true;
+            m_ctrlVal.disableVeboxOutput = true;
+            VP_PUBLIC_NORMALMESSAGE("Disable SFC and vebox output as task is forced to render.");
+        }
+        else
+        {
+            m_ctrlVal.disableSfc         = false;
+            m_ctrlVal.disableVeboxOutput = false;
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpUserFeatureControl::Update(PVP_PIPELINE_PARAMS params)
 {
     VP_PUBLIC_CHK_NULL_RETURN(params);

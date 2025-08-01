@@ -301,6 +301,7 @@ public:
     virtual ~SwFilterAiBaseHandler();
     virtual SwFilter  *CreateSwFilter();
     virtual MOS_STATUS InitializePipeIntermediateSurface(PVPHAL_SURFACE vphalSurf, bool isNpuShared = false);
+    virtual MOS_STATUS UpdatePipeIntermediateSurface(PVPHAL_SURFACE vphalSurf);
 
     // This need to be implemented by derived class
     virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType) = 0;
@@ -340,6 +341,32 @@ SwFilter *SwFilterAiBaseHandler<SwFilterClassType, Type>::CreateSwFilter()
     }
 
     return swFilter;
+}
+
+template <class SwFilterClassType, FeatureType Type>
+MOS_STATUS SwFilterAiBaseHandler<SwFilterClassType, Type>::UpdatePipeIntermediateSurface(PVPHAL_SURFACE vphalSurf)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(vphalSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(vphalSurf->pPipeIntermediateSurface);
+    PVP_SURFACE surface = vphalSurf->pPipeIntermediateSurface;
+
+    surface->ColorSpace     = vphalSurf->ColorSpace;
+    surface->ExtendedGamut  = vphalSurf->ExtendedGamut;
+    surface->Palette        = vphalSurf->Palette;
+    surface->bQueryVariance = vphalSurf->bQueryVariance;
+    surface->FrameID        = vphalSurf->FrameID;
+    surface->uFwdRefCount   = vphalSurf->uFwdRefCount;
+    surface->uBwdRefCount   = vphalSurf->uBwdRefCount;
+    surface->pFwdRef        = vphalSurf->pFwdRef;
+    surface->pBwdRef        = vphalSurf->pBwdRef;
+    surface->SurfType       = vphalSurf->SurfType;
+    surface->SampleType     = vphalSurf->SampleType;
+    surface->ChromaSiting   = vphalSurf->ChromaSiting;
+    surface->rcSrc          = vphalSurf->rcSrc;
+    surface->rcDst          = vphalSurf->rcDst;
+    surface->rcMaxSrc       = vphalSurf->rcMaxSrc;
+
+    return MOS_STATUS_SUCCESS;
 }
 
 template <class SwFilterClassType, FeatureType Type>

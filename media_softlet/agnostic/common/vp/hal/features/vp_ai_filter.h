@@ -64,7 +64,14 @@ public:
     }
 
 private:
-    using FEATURE_AI_KERNEL_ARG_MAP = std::map<FeatureType, MULTI_LAYERS_KERNEL_INDEX_ARG_MAP>;
+    struct AI_KRN_ARG
+    {
+        KRN_ARG  krnArg       = {};
+        uint32_t reservedSize = 0;
+    };
+    using AI_KERNEL_INDEX_ARG_MAP              = std::map<uint32_t,AI_KRN_ARG>;
+    using AI_MULTI_LAYERS_KERNEL_INDEX_ARG_MAP = std::map<uint32_t,AI_KERNEL_INDEX_ARG_MAP>;
+    using FEATURE_AI_KERNEL_ARG_MAP = std::map<FeatureType, AI_MULTI_LAYERS_KERNEL_INDEX_ARG_MAP>;
 
     MOS_STATUS SetConfig(SwFilterPipe &executingPipe, AI_KERNEL_CONFIG &config);
     MOS_STATUS InitKrnParams(AI_KERNEL_PARAMS &krnParams, SwFilterPipe &executingPipe);
