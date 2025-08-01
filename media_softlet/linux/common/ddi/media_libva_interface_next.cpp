@@ -3299,7 +3299,8 @@ VAStatus MediaLibvaInterfaceNext::CreateSurfaces2 (
                     expectedFourcc  = externalBufDescripor.pixel_format;
                     width            = externalBufDescripor.width;
                     height           = externalBufDescripor.height;
-                    // the following code is for backward compatible and it will be removed in the future
+                    descFlag         = externalBufDescripor.flags;
+                    // the following code is for backward compatible problem caused by incorrect use of VA_SURFACE_ATTRIB_MEM_TYPE_XXX in application layer. and it will be removed in the future
                     // new implemention should use VASurfaceAttribMemoryType attrib and set its value to VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM
                     if ((externalBufDescripor.flags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM )||
                         (externalBufDescripor.flags & VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)||
