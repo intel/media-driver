@@ -526,6 +526,24 @@ public:
         const char            *filePathPrefix);
 
     //!
+    //! \brief    Dump Bindless Surface State
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    [in] gpuNode
+    //!           Gpu node.
+    //! \param    [in] filePathPrefix
+    //!           The prefix for indirect state dump file.
+    //!
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS DumpBindlessSurfaceState(
+        MOS_STREAM_HANDLE streamState,
+        MOS_GPU_NODE      gpuNode,
+        const char       *filePathPrefix);
+
+    //!
     //! \brief    Dump Command Buffer
     //! \details  [Cmd Buffer Interface] Dump an existing cmd buffer
     //! \details  Caller: HAL only

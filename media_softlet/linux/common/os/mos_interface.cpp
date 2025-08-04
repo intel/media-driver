@@ -773,6 +773,48 @@ MOS_STATUS MosInterface::DumpIndirectStates(MOS_STREAM_HANDLE streamState, const
     return eStatus;
 }
 
+MOS_STATUS MosInterface::DumpBindlessSurfaceState(
+    MOS_STREAM_HANDLE streamState,
+    MOS_GPU_NODE      gpuNode,
+    const char       *filePathPrefix)
+{
+    MOS_OS_CHK_NULL_RETURN(filePathPrefix);
+
+    if (streamState &&
+        !streamState->bindlessSurfaceStateInfo.empty() &&
+        (MOS_GPU_NODE_COMPUTE == gpuNode || MOS_GPU_NODE_3D == gpuNode))
+    {
+        std::stringstream fileName;
+        fileName << filePathPrefix << "_bindless_surface_state.txt";
+        std::fstream fs;
+        fs.open(fileName.str(), std::ios_base::out | std::ios_base::app);
+        uint32_t dwordCount = streamState->bindlessSurfaceStateSize / 4;
+        for (uint8_t *&ptr : streamState->bindlessSurfaceStateInfo)
+        {
+            uint32_t *data = (uint32_t *)ptr;
+            for (uint32_t i = 0; i < dwordCount; ++i)
+            {
+                if (0 == i % 4)
+                {
+                    if (0 != i)
+                    {
+                        fs << std::endl;
+                    }
+                    fs << "#0    #0";
+                }
+                fs << "    " << std::hex << std::setw(8) << std::setfill('0') << data[i];
+            }
+            fs << std::endl
+               << std::endl;
+        }
+        fs.close();
+        streamState->bindlessSurfaceStateInfo.clear();
+        streamState->bindlessSurfaceStateSize = 0;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MosInterface::DumpBindingTable(
     MOS_STREAM_HANDLE     streamState,
     COMMAND_BUFFER_HANDLE cmdBuffer,
@@ -959,6 +1001,11 @@ MOS_STATUS MosInterface::DumpCommandBuffer(
             MOS_OS_CHK_STATUS_RETURN(eStatus);
         }
         if ((eStatus = DumpBindingTable(streamState, cmdBuffer, gpuNode, sFileName)) != MOS_STATUS_SUCCESS)
+        {
+            MOS_FreeMemory(pOutputBuffer);
+            return eStatus;
+        }
+        if ((eStatus = DumpBindlessSurfaceState(streamState, gpuNode, sFileName)) != MOS_STATUS_SUCCESS)
         {
             MOS_FreeMemory(pOutputBuffer);
             return eStatus;

@@ -3068,16 +3068,7 @@ MOS_STATUS RenderHal_AssignSurfaceState(
             return eStatus;
         }
         MHW_RENDERHAL_CHK_NULL_RETURN(pStateHeap->surfaceStateMgr);
-        MHW_RENDERHAL_CHK_STATUS_RETURN(pStateHeap->surfaceStateMgr->AssignSurfaceState());
-        SURFACE_STATES_HEAP_OBJ *sufStateHeap = pStateHeap->surfaceStateMgr->m_surfStateHeap;
-        MHW_RENDERHAL_CHK_NULL_RETURN(sufStateHeap);
-        MHW_RENDERHAL_CHK_NULL_RETURN(sufStateHeap->pLockedOsResourceMem);
-        MHW_RENDERHAL_CHK_VALUE_RETURN(Mos_ResourceIsNull(&sufStateHeap->osResource), false);
-        dwOffset          = sufStateHeap->uiCurState * sufStateHeap->uiInstanceSize;
-        pCurSurfaceState  = sufStateHeap->pLockedOsResourceMem + dwOffset;
-        stateHeap         = &sufStateHeap->osResource;
-        surfaceStateIndex = sufStateHeap->uiCurState;
-        MHW_RENDERHAL_CHK_STATUS_RETURN(pStateHeap->surfaceStateMgr->AssignUsedSurfaceState(pStateHeap->iCurrentSurfaceState));
+        MHW_RENDERHAL_CHK_STATUS_RETURN(pStateHeap->surfaceStateMgr->AssignSurfaceState(pStateHeap->iCurrentSurfaceState, dwOffset, pCurSurfaceState, stateHeap, surfaceStateIndex));
         // Obtain new surface entry and initialize
         iSurfaceEntry = pStateHeap->iCurrentSurfaceState;
         ++pStateHeap->iCurrentSurfaceState;
@@ -5766,7 +5757,7 @@ MOS_STATUS RenderHal_SendBindlessSurfaces(
 
     MHW_RENDERHAL_CHK_VALUE_RETURN(pStateHeap->surfaceStateMgr->m_heapStatus, SURFACE_STATE_USED_HEAP_INITIALIZED);
 
-     for (const auto &pair : pStateHeap->surfaceStateMgr->m_usedStates)
+    for (const auto &pair : pStateHeap->surfaceStateMgr->m_usedStates)
     {
         uint32_t surfaceStateIndex      = pair.first;
         uint32_t surfaceStateEntryIndex = pair.second;
@@ -5783,6 +5774,21 @@ MOS_STATUS RenderHal_SendBindlessSurfaces(
     }
 
     pStateHeap->surfaceStateMgr->m_heapStatus = SURFACE_STATE_USED_HEAP_SENT;
+
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+    if (pOsInterface->pfnAddBindlessSurfaceStateInfo)
+    {
+        std::vector<uint8_t *> dumpInfo;
+        if (pStateHeap->surfaceStateMgr->GetSurfaceStateDump(dumpInfo) == MOS_STATUS_SUCCESS)
+        {
+            pOsInterface->pfnAddBindlessSurfaceStateInfo(pOsInterface, dumpInfo, pStateHeap->surfaceStateMgr->m_surfStateHeap->uiInstanceSize);
+        }
+        else
+        {
+            MHW_RENDERHAL_ASSERTMESSAGE("Dump Bindless Surface State Fail");
+        }
+    }
+#endif
 
     return eStatus;
 }

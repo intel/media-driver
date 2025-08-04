@@ -559,6 +559,8 @@ struct MosStreamState
     bool  dumpCommandBufferAsMessages           = false;    //!< Indicates that the command buffer should be dumped via MOS normal messages
     char  sDirName[MOS_MAX_HLT_FILENAME_LEN]    = {0};      //!< Dump Directory name - maximum 260 bytes length
     std::vector<INDIRECT_STATE_INFO> indirectStateInfo                     = {};
+    std::vector<uint8_t *>           bindlessSurfaceStateInfo              = {};
+    uint32_t                         bindlessSurfaceStateSize              = 0;
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
 #if _DEBUG || _RELEASE_INTERNAL
@@ -968,6 +970,11 @@ typedef struct _MOS_INTERFACE
         uint32_t            *gfxAddressBottom,
         uint32_t            *gfxAddressTop,
         const char          *stateName);
+
+    void (*pfnAddBindlessSurfaceStateInfo)(
+        PMOS_INTERFACE          pOsInterface,
+        std::vector<uint8_t *> &bindlessSurfaceState,
+        uint32_t                surfaceStateSize);
 
     #define pfnFreeResource(pOsInterface, pResource) \
        pfnFreeResource(pOsInterface, __FUNCTION__, __FILE__, __LINE__, pResource)
