@@ -29,6 +29,15 @@ option (MEDIA_RUN_TEST_SUITE "run google test module after install" ON)
 include(${MEDIA_SOFTLET_CMAKE}/media_gen_flags.cmake)
 include(${MEDIA_SOFTLET_CMAKE}/media_feature_flags.cmake)
 
+check_include_file_cxx("execinfo.h" HAVE_EXECINFO_H)
+if(HAVE_EXECINFO_H)
+    target_compile_definitions(${LIB_NAME} PRIVATE HAVE_EXECINFO_H)
+endif()
+
+check_library_exists(execinfo backtrace "" HAVE_LIBEXECINFO)
+if(HAVE_LIBEXECINFO)
+    target_link_libraries (${LIB_NAME} PRIVATE execinfo)
+endif()
 
 if(NOT DEFINED SKIP_GMM_CHECK)
     # checking dependencies
