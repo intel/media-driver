@@ -1241,6 +1241,24 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature, bool isCamPipeWithBaye
         {
             cscEngine->VeboxNeeded = 1;
         }
+        else
+        {
+            VP_PUBLIC_NORMALMESSAGE("vebox cannot be selected. For vebox selection, cscParams->pIEFParams (%p) expected nulptr, \
+                                    veboxHwCap[format %d].inputSupported (%d) expected 1, \
+                                    (veboxHwCap[format %d].outputSupported (%d) || \
+                                    (isCamPipeWithBayerInput(%d) && IsDemosaicValidOutputFormat(cscParams->formatOutput(Format %d))(%d))) expected 1, \
+                                    veboxHwCap[Format %d].iecp (%d) expect 1, \
+                                    veboxHwCap[format %d].backEndCscSupported (%d) expect 1 \
+                                    isAlphaSettingSupportedByVebox (%d) expect 1" ,
+                                    cscParams->pIEFParams,
+                                    cscParams->formatInput, m_hwCaps.m_veboxHwEntry[cscParams->formatInput].inputSupported,
+                                    cscParams->formatOutput, m_hwCaps.m_veboxHwEntry[cscParams->formatOutput].outputSupported,
+                                    isCamPipeWithBayerInput,cscParams->formatOutput,IsDemosaicValidOutputFormat(cscParams->formatOutput),
+                                    cscParams->formatInput, m_hwCaps.m_veboxHwEntry[cscParams->formatInput].iecp,
+                                    cscParams->formatInput, m_hwCaps.m_veboxHwEntry[cscParams->formatInput].backEndCscSupported,
+                                    isAlphaSettingSupportedByVebox);
+            
+        }
     }
 
     PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
@@ -1635,11 +1653,16 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
                     if (!sfc2PassScalingNeededX && !sfc2PassScalingNeededY)
                     {
                         scalingEngine->SfcNeeded = isAlphaSettingSupportedBySfc;
+                        if (!isAlphaSettingSupportedBySfc)
+                        {
+                            VP_PUBLIC_NORMALMESSAGE("Sfc cannot be used for scaling as alpha not supported by SFC.");
+                        }
                     }
                     else
                     {
                         // Set sfcNotSupported to 1 to avoid SFC being selected without scaling filter.
                         scalingEngine->sfcNotSupported = 1;
+                        VP_PUBLIC_NORMALMESSAGE("sfcNotSupported is set to 1 for 2-pass scaling being needed.");
                     }
                 }
             }
