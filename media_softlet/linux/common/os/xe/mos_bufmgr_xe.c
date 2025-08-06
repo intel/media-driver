@@ -801,7 +801,7 @@ drm_export void mos_bo_unreference_xe(struct mos_linux_bo *bo)
     if (atomic_read(&bo_gem->ref_count) <= 0)
         return;
 
-    if (atomic_dec_and_test(&bo_gem->ref_count))
+    if (atomic_add_unless(&bo_gem->ref_count, -1, 1))
     {
         /* release memory associated with this object */
         /* Clear any left-over mappings */
@@ -811,9 +811,9 @@ drm_export void mos_bo_unreference_xe(struct mos_linux_bo *bo)
             __mos_bo_mark_mmaps_incoherent_xe(bo);
         }
 
-        DRMLISTDEL(&bo_gem->name_list);
 
-        mos_bo_free_xe(bo);
+        if (atomic_dec_and_test(&bo_gem->ref_count))
+            mos_bo_free_xe(bo);
     }
 }
 
@@ -3003,6 +3003,7 @@ mos_bo_free_xe(struct mos_linux_bo *bo)
     mos_gem_bo_wait_rendering_xe(bo);
 
     bufmgr_gem->m_lock.lock();
+    DRMLISTDEL(&bo_gem->name_list);
 
     if (!bo_gem->is_userptr)
     {
