@@ -2679,6 +2679,18 @@ MOS_STATUS Policy::InitExecuteCaps(VP_EXECUTE_CAPS &caps, VP_EngineEntry &engine
     MT_LOG7(MT_VP_HAL_POLICY_GET_OUTPIPECAPS, MT_NORMAL, MT_VP_HAL_ENGINECAPS, (int64_t)engineCapsOutputPipe.value, MT_VP_HAL_ENGINECAPS_EN, (int64_t)engineCapsOutputPipe.bEnabled, MT_VP_HAL_ENGINECAPS_VE_NEEDED, (int64_t)engineCapsOutputPipe.VeboxNeeded, MT_VP_HAL_ENGINECAPS_SFC_NEEDED, (int64_t)engineCapsOutputPipe.SfcNeeded, MT_VP_HAL_ENGINECAPS_RENDER_NEEDED, (int64_t)engineCapsOutputPipe.RenderNeeded,
         MT_VP_HAL_ENGINECAPS_FC_SUPPORT, (int64_t)engineCapsOutputPipe.fcSupported, MT_VP_HAL_ENGINECAPS_ISOLATED, (int64_t)engineCapsOutputPipe.isolated);
 
+    if (caps.bRender)
+    {
+        VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface());
+        VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface()->m_vpPlatformInterface);
+
+        if (m_vpInterface.GetHwInterface()->m_vpPlatformInterface->IsRenderDisabled())
+        {
+            VP_PUBLIC_ASSERTMESSAGE("Render needed. Rejected for render disabled!");
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_PLATFORM_NOT_SUPPORTED);
+        }
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
