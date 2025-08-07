@@ -85,7 +85,8 @@ public:
 
     MOS_STATUS AssignSurfaceState(uint32_t surfaceStateEntryIndex, uint32_t &offset, uint8_t *&curSurfaceStatePtr, PMOS_RESOURCE &stateHeap, int32_t &surfaceStateIndex);
 
-    MOS_STATUS GetSurfaceStateDump(std::vector<uint8_t *> &dump);
+    MOS_STATUS GetSurfaceStateSize(uint32_t &size);
+    MOS_STATUS GetSurfaceStateBasePtr(uint8_t *&ptr);
 
     ~SurfaceStateHeapManager();
 

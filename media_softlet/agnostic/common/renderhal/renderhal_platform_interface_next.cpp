@@ -1224,6 +1224,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendComputeWalker(
     MHW_RENDERHAL_CHK_NULL_RETURN(pCurMediaState);
 
     mhwIdEntryParams.dwKernelOffset  = pKernelEntry->dwOffset;
+    mhwIdEntryParams.kernelSize      = pKernelEntry->iSize;
     mhwIdEntryParams.dwSamplerCount  = pKernelEntry->Params.Sampler_Count;
     mhwIdEntryParams.dwSamplerOffset = pCurMediaState->dwOffset +
                                        pRenderHal->pStateHeap->dwOffsetSampler +
@@ -1570,6 +1571,7 @@ MHW_SETPAR_DECL_SRC(COMPUTE_WALKER, XRenderHal_Platform_Interface_Next)
     params.GroupStartingZ = m_gpgpuWalkerParams->GroupStartingZ;
 
     params.dwKernelOffset                = m_interfaceDescriptorParams->dwKernelOffset;
+    params.kernelSize                    = m_interfaceDescriptorParams->kernelSize;
     params.dwSamplerCount                = m_interfaceDescriptorParams->dwSamplerCount;
     params.dwSamplerOffset               = m_interfaceDescriptorParams->dwSamplerOffset;
     params.dwBindingTableOffset          = m_interfaceDescriptorParams->dwBindingTableOffset;

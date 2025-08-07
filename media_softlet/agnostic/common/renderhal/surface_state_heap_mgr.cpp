@@ -276,17 +276,16 @@ MOS_STATUS SurfaceStateHeapManager::AssignSurfaceState(uint32_t surfaceStateEntr
     return eStatus;
 }
 
-MOS_STATUS SurfaceStateHeapManager::GetSurfaceStateDump(std::vector<uint8_t *> &dump)
+MOS_STATUS SurfaceStateHeapManager::GetSurfaceStateSize(uint32_t& size)
 {
-    std::stringstream ss;
-    dump.clear();
     MHW_CHK_NULL_RETURN(m_surfStateHeap);
-    MHW_CHK_NULL_RETURN(m_surfStateHeap->pLockedOsResourceMem);
-    for (const auto &pair : m_usedStates)
-    {
-        uint32_t surfaceIndex = pair.first;
-        uint8_t *data         = m_surfStateHeap->pLockedOsResourceMem + m_surfStateHeap->uiInstanceSize * surfaceIndex;
-        dump.push_back(data);
-    }
+    size = m_surfStateHeap->uiInstanceSize;
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SurfaceStateHeapManager::GetSurfaceStateBasePtr(uint8_t*& ptr)
+{
+    MHW_CHK_NULL_RETURN(m_surfStateHeap);
+    ptr = m_surfStateHeap->pLockedOsResourceMem;
     return MOS_STATUS_SUCCESS;
 }

@@ -697,6 +697,7 @@ MOS_STATUS VpRenderKernelObj::UpdateCurbeStateHeapInfo(PMOS_RESOURCE stateHeap, 
 
     m_curbeLocation.offset    = offset;
     m_curbeLocation.stateHeap = stateHeap;
+    m_curbeLocation.statePtr  = statePtr;
 
     for (MHW_INDIRECT_STATE_RESOURCE_PARAMS &resourceParam : m_curbeResourceList)
     {
@@ -720,6 +721,12 @@ MOS_STATUS VpRenderKernelObj::SetInlineDataParameter(KRN_ARG arg, uint8_t* inlin
         params.resource                           = m_curbeLocation.stateHeap;
         params.resourceOffset                     = m_curbeLocation.offset;
         params.stateOffset                        = arg.uOffsetInPayload;
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+        params.dumpName        = "KERNEL_CURBE";
+        params.needDump        = true;
+        params.dumpSize        = m_curbeLocation.size;
+        params.resourceBasePtr = m_curbeLocation.statePtr;
+#endif
         m_inlineResourceList.push_back(params);
         VP_RENDER_NORMALMESSAGE("Setting Indirect State Data Inline Data KernelID %d, index %d , argKind %d", m_kernelId, arg.uIndex, arg.eArgKind);
     }
@@ -751,6 +758,12 @@ MOS_STATUS VpRenderKernelObj::SetBindlessSamplerToResourceList(KRN_ARG &arg, uin
     params.resource                           = samplerStateLocation.stateHeap;
     params.resourceOffset                     = samplerStateLocation.offset;
     params.stateOffset                        = arg.uOffsetInPayload;
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+    params.dumpName        = "KERNEL_SAMPLER";
+    params.needDump        = true;
+    params.dumpSize        = samplerStateLocation.size;
+    params.resourceBasePtr = samplerStateLocation.statePtr;
+#endif
     m_curbeResourceList.push_back(params);
 
     return MOS_STATUS_SUCCESS;
@@ -780,6 +793,12 @@ MOS_STATUS VpRenderKernelObj::SetBindlessSurfaceStateToResourceList(KRN_ARG &arg
     params.resource                           = surfStateLocation.stateHeap;
     params.resourceOffset                     = surfStateLocation.offset;     //this is the offset of surface state in SurfStateHep
     params.stateOffset                        = arg.uOffsetInPayload;   //this is the offset of curbe state in GSH
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+    params.dumpName        = "BINDLESS_SURFACE_STATE";
+    params.needDump        = true;
+    params.dumpSize        = surfStateLocation.size;
+    params.resourceBasePtr = surfStateLocation.statePtr;
+#endif
     m_curbeResourceList.push_back(params);
     
     return MOS_STATUS_SUCCESS;

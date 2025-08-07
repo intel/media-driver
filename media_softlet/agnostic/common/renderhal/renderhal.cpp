@@ -3039,6 +3039,8 @@ MOS_STATUS RenderHal_AssignSurfaceState(
 
     uint8_t *pCurSurfaceState;
     PMOS_RESOURCE stateHeap = nullptr;
+    uint32_t      stateSize = 0;
+    uint8_t      *statePtr  = nullptr;
     // Calculate the Offset to the Surface State
     MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pRenderHalPltInterface);
 
@@ -3049,7 +3051,8 @@ MOS_STATUS RenderHal_AssignSurfaceState(
             MHW_RENDERHAL_ASSERTMESSAGE("Unable to allocate Surface State. Exceeds Maximum.");
             return eStatus;
         }
-
+        stateSize = pRenderHal->pRenderHalPltInterface->GetSurfaceStateCmdSize();
+        statePtr  = pStateHeap->pSshBuffer;
         dwOffset = pStateHeap->iSurfaceStateOffset +
                    (pStateHeap->iCurrentSurfaceState *
                     pRenderHal->pRenderHalPltInterface->GetSurfaceStateCmdSize());  // Moves the pointer to a Currently assigned Surface State
@@ -3069,6 +3072,8 @@ MOS_STATUS RenderHal_AssignSurfaceState(
         }
         MHW_RENDERHAL_CHK_NULL_RETURN(pStateHeap->surfaceStateMgr);
         MHW_RENDERHAL_CHK_STATUS_RETURN(pStateHeap->surfaceStateMgr->AssignSurfaceState(pStateHeap->iCurrentSurfaceState, dwOffset, pCurSurfaceState, stateHeap, surfaceStateIndex));
+        MHW_RENDERHAL_CHK_STATUS_RETURN(pStateHeap->surfaceStateMgr->GetSurfaceStateSize(stateSize));
+        MHW_RENDERHAL_CHK_STATUS_RETURN(pStateHeap->surfaceStateMgr->GetSurfaceStateBasePtr(statePtr));
         // Obtain new surface entry and initialize
         iSurfaceEntry = pStateHeap->iCurrentSurfaceState;
         ++pStateHeap->iCurrentSurfaceState;
@@ -3083,13 +3088,15 @@ MOS_STATUS RenderHal_AssignSurfaceState(
     *pSurfaceEntry                      = g_cInitSurfaceStateEntry;
 
     // Setup Surface Entry parameters
-    pSurfaceEntry->iSurfStateID         = surfaceStateIndex;
-    pSurfaceEntry->Type                 = Type;
-    pSurfaceEntry->dwSurfStateOffset    = (uint32_t)-1;                         // Each platform to setup
-    pSurfaceEntry->pSurfaceState        = pCurSurfaceState;
-    pSurfaceEntry->pSurface             = (PMOS_SURFACE)MOS_AllocAndZeroMemory(sizeof(MOS_SURFACE));
-    pSurfaceEntry->stateLocation.offset = dwOffset;
+    pSurfaceEntry->iSurfStateID            = surfaceStateIndex;
+    pSurfaceEntry->Type                    = Type;
+    pSurfaceEntry->dwSurfStateOffset       = (uint32_t)-1;  // Each platform to setup
+    pSurfaceEntry->pSurfaceState           = pCurSurfaceState;
+    pSurfaceEntry->pSurface                = (PMOS_SURFACE)MOS_AllocAndZeroMemory(sizeof(MOS_SURFACE));
+    pSurfaceEntry->stateLocation.offset    = dwOffset;
     pSurfaceEntry->stateLocation.stateHeap = stateHeap;
+    pSurfaceEntry->stateLocation.size      = stateSize;
+    pSurfaceEntry->stateLocation.statePtr  = statePtr;
     if (pSurfaceEntry->pSurface == nullptr)
     {
         MHW_RENDERHAL_ASSERTMESSAGE("Allocating Surface failed!");
@@ -5775,21 +5782,6 @@ MOS_STATUS RenderHal_SendBindlessSurfaces(
 
     pStateHeap->surfaceStateMgr->m_heapStatus = SURFACE_STATE_USED_HEAP_SENT;
 
-#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
-    if (pOsInterface->pfnAddBindlessSurfaceStateInfo)
-    {
-        std::vector<uint8_t *> dumpInfo;
-        if (pStateHeap->surfaceStateMgr->GetSurfaceStateDump(dumpInfo) == MOS_STATUS_SUCCESS)
-        {
-            pOsInterface->pfnAddBindlessSurfaceStateInfo(pOsInterface, dumpInfo, pStateHeap->surfaceStateMgr->m_surfStateHeap->uiInstanceSize);
-        }
-        else
-        {
-            MHW_RENDERHAL_ASSERTMESSAGE("Dump Bindless Surface State Fail");
-        }
-    }
-#endif
-
     return eStatus;
 }
 
@@ -6098,6 +6090,7 @@ MOS_STATUS RenderHal_SetupInterfaceDescriptor(
     pParams->dwMediaIdOffset      = pMediaState->dwOffset + pStateHeap->dwOffsetMediaID;
     pParams->iMediaId             = pInterfaceDescriptorParams->iMediaID;
     pParams->dwKernelOffset       = pKernelAllocation->dwOffset;
+    pParams->kernelSize           = pKernelAllocation->iSize;
     pParams->dwSamplerOffset      = pMediaState->dwOffset + pStateHeap->dwOffsetSampler +
                                   pInterfaceDescriptorParams->iMediaID * pStateHeap->dwSizeSamplers;
     pParams->dwSamplerCount       = pKernelAllocation->Params.Sampler_Count;
@@ -6851,6 +6844,8 @@ MOS_STATUS RenderHal_SetAndGetSamplerStates(
                     MHW_RENDERHAL_CHK_VALUE_RETURN(Mos_ResourceIsNull(&pStateHeap->GshOsResource), false);
                     stateLocation.offset    = iOffsetSampler + (pRenderHal->pHwSizes->dwSizeSamplerState * i);
                     stateLocation.stateHeap = &pStateHeap->GshOsResource;
+                    stateLocation.size      = pRenderHal->pHwSizes->dwSizeSamplerState;
+                    stateLocation.statePtr  = pStateHeap->pGshBuffer;
                     eStatus      = pRenderHal->pMhwStateHeap->SetSamplerState(pPtrSampler, pSamplerStateParams);
                     break;
                 default:

@@ -440,6 +440,7 @@ typedef struct _MHW_ID_ENTRY_PARAMS
     uint32_t            dwMediaIdOffset;                //! Offset of the first Media Interface Descriptor (in DSH)
     uint32_t            iMediaId;                       //! Media Interface Descriptor #
     uint32_t            dwKernelOffset;                 //! Kernel offset (in ISH)
+    uint32_t            kernelSize;
     uint32_t            dwSamplerOffset;                //! Sampler offset (in DSH)
     uint32_t            dwSamplerCount;                 //! Sample count
     uint32_t            dwBindingTableOffset;           //! Binding table offset (in DSH)

@@ -1013,6 +1013,8 @@ struct RENDERHAL_STATE_LOCATION
 {
     PMOS_RESOURCE stateHeap = 0;
     uint32_t      offset    = 0;
+    uint32_t      size      = 0;
+    uint8_t      *statePtr  = nullptr;
 };
 using PRENDERHAL_STATE_LOCATION = RENDERHAL_STATE_LOCATION*;
 

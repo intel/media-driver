@@ -89,7 +89,7 @@ MOS_STATUS VpRenderAiKernel::Init(VpRenderKernel &kernel)
 
     m_kernelPerThreadArgInfo = kernel.GetKernelPerThreadArgInfo();
 
-    m_curbeSize = kernel.GetCurbeSize();
+    m_curbeLocation.size = kernel.GetCurbeSize();
 
     m_inlineData.resize(m_kernelEnv.uInlineDataPayloadSize);
 
@@ -221,7 +221,7 @@ MOS_STATUS VpRenderAiKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
 {
     VP_FUNC_CALL();
     m_curbeResourceList.clear();
-    curbeLength = m_curbeSize;
+    curbeLength = m_curbeLocation.size;
     
     bool isLocalIdGeneratedByRuntime = IsLocalIdGeneratedByRuntime(m_kernelEnv, m_kernelPerThreadArgInfo, m_walkerParam.threadWidth, m_walkerParam.threadHeight, m_walkerParam.threadDepth);
     if (isLocalIdGeneratedByRuntime)
@@ -298,7 +298,7 @@ MOS_STATUS VpRenderAiKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
 
     if (isLocalIdGeneratedByRuntime)
     {
-        VP_RENDER_CHK_STATUS_RETURN(SetPerThreadCurbe(pCurbe, m_curbeSize, curbeLength, m_kernelPerThreadArgInfo, m_walkerParam.threadWidth, m_walkerParam.threadHeight, m_walkerParam.threadDepth));
+        VP_RENDER_CHK_STATUS_RETURN(SetPerThreadCurbe(pCurbe, m_curbeLocation.size, curbeLength, m_kernelPerThreadArgInfo, m_walkerParam.threadWidth, m_walkerParam.threadHeight, m_walkerParam.threadDepth));
     }
 
     curbe = pCurbe;

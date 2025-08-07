@@ -461,21 +461,6 @@ MOS_STATUS Mos_GetPlatformName(
     return MOS_STATUS_SUCCESS;
 }
 
-void Mos_AddBindlessSurfaceStateInfo(
-    PMOS_INTERFACE          pOsInterface,
-    std::vector<uint8_t *> &bindlessSurfaceState,
-    uint32_t                surfaceStateSize)
-{
-    MOS_OS_CHK_NULL_NO_STATUS_RETURN(pOsInterface);
-    if (pOsInterface->apoMosEnabled)
-    {
-        MOS_OS_CHK_NULL_NO_STATUS_RETURN(pOsInterface->osStreamState);
-        pOsInterface->osStreamState->bindlessSurfaceStateInfo = std::move(bindlessSurfaceState);
-        pOsInterface->osStreamState->bindlessSurfaceStateSize = surfaceStateSize;
-    }
-    return;
-}
-
 void Mos_AddIndirectState(
     PMOS_INTERFACE      pOsInterface,
     uint32_t            stateSize,
@@ -485,16 +470,13 @@ void Mos_AddIndirectState(
     const char          *stateName)
 {
     MOS_OS_CHK_NULL_NO_STATUS_RETURN(pOsInterface);
+    MOS_OS_CHK_NULL_NO_STATUS_RETURN(pOsInterface->osStreamState);
     if (pOsInterface->apoMosEnabled)
     {
-        MOS_OS_CHK_NULL_NO_STATUS_RETURN(pOsInterface->osStreamState);
-        INDIRECT_STATE_INFO stateinfoarray = {};
-        stateinfoarray.stateSize           = stateSize;
-        stateinfoarray.indirectState       = pIndirectState;
-        stateinfoarray.gfxAddressBottom    = gfxAddressBottom;
-        stateinfoarray.gfxAddressTop       = gfxAddressTop;
-        stateinfoarray.stateName           = stateName;
-        pOsInterface->osStreamState->indirectStateInfo.push_back(stateinfoarray);
+        if (MOS_STATUS_SUCCESS != MosInterface::AddIndirectState(pOsInterface->osStreamState, stateSize, pIndirectState, gfxAddressBottom, gfxAddressTop, stateName))
+        {
+            MOS_OS_ASSERTMESSAGE("Fail to Add Indirect State to Dump List");
+        }
     }
     return;
 }
@@ -687,7 +669,6 @@ MOS_STATUS Mos_DumpCommandBufferInit(
     // Setup member function and variable.
     pOsInterface->pfnDumpCommandBuffer  = Mos_DumpCommandBuffer;
     pOsInterface->pfnAddIndirectState   = Mos_AddIndirectState;
-    pOsInterface->pfnAddBindlessSurfaceStateInfo = Mos_AddBindlessSurfaceStateInfo;
 
     // Check if command buffer dump was enabled in user feature.
     ReadUserSetting(

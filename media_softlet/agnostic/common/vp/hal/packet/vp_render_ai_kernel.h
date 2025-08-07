@@ -72,7 +72,6 @@ protected:
     KERNEL_WALKER_PARAMS         m_walkerParam         = {};
     void                        *m_curbe               = nullptr;
     uint32_t                     m_kernelIndex         = 0;
-    uint32_t                     m_curbeSize           = 0;
     int32_t                      m_linearSamplerIndex  = -1;
     int32_t                      m_nearestSamplerIndex = -1;
     std ::vector<uint8_t>        m_inlineData          = {};

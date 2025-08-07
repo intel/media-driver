@@ -243,7 +243,7 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::Init(VpRenderKernel &kernel)
 
     m_kernelEnv = kernel.GetKernelExeEnv();
 
-    m_curbeSize = kernel.GetCurbeSize();
+    m_curbeLocation.size = kernel.GetCurbeSize();
 
     m_inlineData.resize(m_kernelEnv.uInlineDataPayloadSize, 0);
 
@@ -290,7 +290,7 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::CpPrepareResources()
 MOS_STATUS VpRenderHdr3DLutOclKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
 {
     VP_FUNC_CALL();
-    curbeLength = m_curbeSize;
+    curbeLength = m_curbeLocation.size;
 
     VP_RENDER_NORMALMESSAGE("KernelID %d, Curbe Size %d\n", m_kernelId, curbeLength);
     if (curbeLength == 0)

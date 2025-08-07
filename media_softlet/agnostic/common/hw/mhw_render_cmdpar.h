@@ -64,6 +64,7 @@ struct MHW_VFE_SCOREBOARD
 struct MHW_HEAPS_RESOURCE
 {
     PMOS_RESOURCE                       presInstructionBuffer  = nullptr;
+    uint8_t                            *instructionBufferPtr   = nullptr;
     PMHW_INDIRECT_STATE_RESOURCE_PARAMS curbeResourceList      = nullptr;
     uint32_t                            curbeResourceListSize  = 0;
     PMHW_INDIRECT_STATE_RESOURCE_PARAMS inlineResourceList     = nullptr;
@@ -380,6 +381,7 @@ struct _MHW_PAR_T(COMPUTE_WALKER)
     uint32_t                  dwMediaIdOffset               = 0;       //! Offset of the first Media Interface Descriptor (in DSH)
     uint32_t                  iMediaId                      = 0;       //! Media Interface Descriptor #
     uint32_t                  dwKernelOffset                = 0;       //! Kernel offset (in ISH)
+    uint32_t                  kernelSize                    = 0;
     uint32_t                  dwSamplerOffset               = 0;       //! Sampler offset (in DSH)
     uint32_t                  dwSamplerCount                = 0;       //! Sample count
     uint32_t                  dwBindingTableOffset          = 0;       //! Binding table offset (in DSH)

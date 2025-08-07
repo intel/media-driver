@@ -81,7 +81,6 @@ protected:
     VPHAL_HDR_MODE  m_hdrMode               = VPHAL_HDR_MODE_NONE;
     uint32_t        m_hdrLutSize            = LUT65_SEG_SIZE;
     void*           m_curbe                 = nullptr;
-    uint32_t        m_curbeSize              = 0;
     KERNEL_BTIS                  m_kernelBtis                    = {};
     KRN_EXECUTE_ENV              m_kernelEnv                     = {};
     KERNEL_ARG_INDEX_SURFACE_MAP m_argIndexSurfMap  = {};

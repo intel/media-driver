@@ -526,22 +526,31 @@ public:
         const char            *filePathPrefix);
 
     //!
-    //! \brief    Dump Bindless Surface State
+    //! \brief    Add Indirect state
     //!
     //! \param    [in] streamState
     //!           Handle of Os Stream State
-    //! \param    [in] gpuNode
-    //!           Gpu node.
-    //! \param    [in] filePathPrefix
-    //!           The prefix for indirect state dump file.
+    //! \param    [in] stateSize
+    //!           Size of the state
+    //! \param    [in] pIndirectState
+    //!           ptr to the sys memory of state
+    //! \param    [in] gfxAddressBottom
+    //!           ptr which store bottom gfx address of the state
+    //! \param    [in] gfxAddressTop
+    //!           ptr which store top gfx address of the state
+    //! \param    [in] stateName
+    //!           Name of the state
     //!
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    static MOS_STATUS DumpBindlessSurfaceState(
+    static MOS_STATUS AddIndirectState(
         MOS_STREAM_HANDLE streamState,
-        MOS_GPU_NODE      gpuNode,
-        const char       *filePathPrefix);
+        uint32_t          stateSize,
+        uint32_t         *pIndirectState,
+        uint32_t         *gfxAddressBottom,
+        uint32_t         *gfxAddressTop,
+        const char       *stateName);
 
     //!
     //! \brief    Dump Command Buffer

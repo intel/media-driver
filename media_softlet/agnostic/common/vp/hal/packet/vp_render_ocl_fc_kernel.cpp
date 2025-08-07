@@ -97,7 +97,7 @@ MOS_STATUS VpRenderOclFcKernel::Init(VpRenderKernel &kernel)
 
     m_kernelEnv = kernel.GetKernelExeEnv();
 
-    m_curbeSize = kernel.GetCurbeSize();
+    m_curbeLocation.size = kernel.GetCurbeSize();
 
     m_inlineData.resize(m_kernelEnv.uInlineDataPayloadSize);
 
@@ -227,7 +227,7 @@ MOS_STATUS VpRenderOclFcKernel::SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET
 MOS_STATUS VpRenderOclFcKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
 {
     VP_FUNC_CALL();
-    curbeLength = m_curbeSize;
+    curbeLength = m_curbeLocation.size;
 
     VP_RENDER_NORMALMESSAGE("KernelID %d, Curbe Size %d\n", m_kernelId, curbeLength);
 

@@ -614,6 +614,12 @@ struct MHW_INDIRECT_STATE_RESOURCE_PARAMS
     PMOS_RESOURCE resource       = nullptr;
     uint32_t      resourceOffset = 0;
     bool          isWrite        = false;
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+    bool        needDump        = false;
+    uint32_t    dumpSize        = 0;
+    const char *dumpName        = nullptr;
+    uint8_t    *resourceBasePtr = nullptr;
+#endif
 };
 using PMHW_INDIRECT_STATE_RESOURCE_PARAMS = MHW_INDIRECT_STATE_RESOURCE_PARAMS*;
 
