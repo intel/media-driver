@@ -145,7 +145,7 @@ uint32_t CmThreadGroupSpace::GetIndexInTGsArray( void )
 }
 
 #if CM_LOG_ON
-std::string CmThreadGroupSpace::Log()
+std::string CmThreadGroupSpace::Log() const
 {
     std::ostringstream oss;
 
