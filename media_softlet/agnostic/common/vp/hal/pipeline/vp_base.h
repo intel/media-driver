@@ -84,7 +84,7 @@ struct VpSettings
     int32_t  mediaStates;
     int32_t  sameSampleThreshold;
     uint32_t disableDnDi;             //!< For validation purpose
-    uint32_t kernelUpdate;            //!< For VEBox Copy and Update kernels
+    uint32_t kernelUpdate;            //!< For VEBox Copy and Update kernels, Not needed for XE HPG+.
     uint32_t disableHdr;              //!< Disable Hdr
     uint32_t veboxParallelExecution;  //!< Control VEBox parallel execution with render engine
     bool     clearVideoViewMode;      //!< Perf Optimize for ClearVideoView DDI
