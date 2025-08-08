@@ -377,13 +377,13 @@ namespace decode
         CODEC_HEVC_SLICE_PARAMS *sliceParams                           = m_hevcSliceParams + sliceIdx;
         int8_t                  *pRefIdxMapping                        = 0;
         int                      pocCurrPic                            = 0;
-        int32_t                  pocList[CODEC_MAX_NUM_REF_FRAME_HEVC] = {};
         uint16_t                 refFieldPicFlag                       = 0;
         uint16_t                 refBottomFieldFlag                    = 0;
         CODEC_PICTURE            refPicList[2][CODEC_MAX_NUM_REF_FRAME_HEVC] = {};
 
         if (!m_hcpItf->IsHevcISlice(sliceParams->LongSliceFlags.fields.slice_type))
         {
+            int32_t pocList[CODEC_MAX_NUM_REF_FRAME_HEVC] = {};
             HevcReferenceFrames &refFrames = m_hevcBasicFeature->m_refFrames;
             DECODE_CHK_STATUS(refFrames.FixSliceRefList(*m_hevcPicParams, *sliceParams));
 
