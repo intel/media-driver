@@ -78,6 +78,7 @@ public:
         uint32_t                      featureLogOclFC     = 0;
         bool                          isLegacyFCInUse     = false;
         bool                          fallbackScalingToRender8K = false;
+        uint8_t                       interpolationFor3DLut     = 0;                      //!< 3DLUT interpolation Method
 #endif
         bool                          VeboxScalability    = false;                        //!< Vebox Scalability flag
         bool                          VPApogeios          = false;                        //!< VP Apogeios flag

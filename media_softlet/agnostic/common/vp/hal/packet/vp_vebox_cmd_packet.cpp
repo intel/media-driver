@@ -154,6 +154,7 @@ MOS_STATUS VpVeboxCmdPacket::SetupVeboxExternal3DLutforHDR(
     VP_PUBLIC_CHK_NULL_RETURN(pLUT3D);
     pLUT3D->ArbitrationPriorityControl    = 0;
     pLUT3D->Lut3dEnable                   = true;
+    pLUT3D->InterpolationMethod           = external3DLutParams->InterpolationMethod;
     pVeboxMode->ColorGamutExpansionEnable = true;
 
     pLUT3D->Lut3dSize = 0;
@@ -235,6 +236,7 @@ MOS_STATUS VpVeboxCmdPacket::SetupVebox3DLutForHDR(mhw::vebox::VEBOX_STATE_PAR &
 
     pLUT3D->ArbitrationPriorityControl = 0;
     pLUT3D->Lut3dEnable                = true;
+    pLUT3D->InterpolationMethod        = Get3DLutInterpolationMethod(VPHAL_3DLUT_INTERPOLATION_DEFAULT);
     // Config 3DLut size to 65 for HDR10 usage.
     pLUT3D->Lut3dSize = 2;
     if (pRenderData->HDR3DLUT.uiLutSize == 33)
@@ -1306,6 +1308,7 @@ MOS_STATUS VpVeboxCmdPacket::SetHdrParams(PVEBOX_HDR_PARAMS hdrParams)
         if (hdrParams->external3DLutParams)
         {
             mhwVeboxIecpParams.s3DLutParams.LUTSize = hdrParams->external3DLutParams->LutSize;
+            mhwVeboxIecpParams.s3DLutParams.InterpolationMethod = Get3DLutInterpolationMethod(hdrParams->external3DLutParams->InterpolationMethod);
             pRenderData->HDR3DLUT.external3DLutSurfResource = hdrParams->external3DLutParams->pExt3DLutSurface->OsResource;
         }
         else

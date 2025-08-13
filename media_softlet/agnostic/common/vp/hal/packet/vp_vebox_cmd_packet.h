@@ -937,6 +937,20 @@ public:
     //!
     virtual MOS_STATUS AdjustBlockStatistics();
 
+    //!
+    //! \brief    Get VeBox 3DLut interpolation method
+    //! \details  Get VeBox 3DLut interpolation method
+    //! \param    VPHAL_3DLUT_INTERPOLATION interpolationMethod
+    //!           [in] 3DLUT interpolation method
+    //! \return   MHW_3DLUT_INTERPOLATION
+    //!           Return 3DLUT interpolation method
+    //!
+    virtual MHW_3DLUT_INTERPOLATION Get3DLutInterpolationMethod(
+        VPHAL_3DLUT_INTERPOLATION       interpolationMethod)
+    {
+        return MHW_3DLUT_INTERPOLATION_TRILINEAR;
+    }
+
     virtual MOS_STATUS GNELumaConsistentCheck(
         uint32_t &dwGNELuma,
         uint32_t *pStatSlice0GNEPtr,
