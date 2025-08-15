@@ -1059,6 +1059,10 @@ VAStatus DdiDecodeFunctions::StatusReport(
                 DDI_CODEC_CHK_CONDITION(MOS_STATUS_SUCCESS != eStatus, "Get status report fail", VA_STATUS_ERROR_OPERATION_FAILED);
 
                 MOS_LINUX_BO *bo = tempNewReport.currDecodedPicRes.bo;
+                // found the bo that matches the bo we need to synchronize.
+                if (surface->bo != bo) {
+                    continue;
+                }
 
                 if ((tempNewReport.codecStatus == CODECHAL_STATUS_SUCCESSFUL)   ||
                     (tempNewReport.codecStatus == CODECHAL_STATUS_ERROR)        ||
@@ -1083,6 +1087,10 @@ VAStatus DdiDecodeFunctions::StatusReport(
                     if (j == mediaCtx->pSurfaceHeap->uiAllocatedHeapElements)
                     {
                         return VA_STATUS_ERROR_OPERATION_FAILED;
+                    }
+                    else
+                    {
+                        break;
                     }
                 }
                 else
