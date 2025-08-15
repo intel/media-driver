@@ -303,6 +303,16 @@ static bool InitPtlMediaWaExt(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_WA(waTable, Wa_16021867713, 1);
 
+    MEDIA_WR_WA(waTable, Wa_15017726119, 1);
+
+    MEDIA_WR_WA(waTable, Wa_16025947269, 1);
+
+    if (!(drvInfo->devId == 0xFD80 || drvInfo->devId == 0xFD81) //Not WCL Device
+        &&(drvInfo->devRev == 0x0))  //A0 only
+    {
+        MEDIA_WR_WA(waTable, Wa_15017562431, 1);
+    }
+
     return true;
 }
 
