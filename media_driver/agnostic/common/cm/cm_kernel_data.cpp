@@ -142,7 +142,7 @@ int32_t CmKernelData::Initialize( void )
 //| Purpose:    Get Kernel Data pointer
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmKernelData::GetCmKernel( CmKernelRT*& kernel )
+int32_t CmKernelData::GetCmKernel( CmKernelRT*& kernel ) const
 {
     kernel = m_kernel;
     return CM_SUCCESS;
@@ -162,7 +162,7 @@ int32_t CmKernelData::SetKernelDataSize(int32_t value)
 //| Purpose:    Get Kernel Data pointer
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmKernelData::GetKernelDataSize()
+int32_t CmKernelData::GetKernelDataSize() const
 {
     return m_kerneldatasize;
 }
@@ -212,7 +212,7 @@ PCM_HAL_KERNEL_PARAM CmKernelData::GetHalCmKernelData( )
 //| Purpose:    Whether the kernel data is in use
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-bool CmKernelData::IsInUse()
+bool CmKernelData::IsInUse() const
 {
     return m_isInUse;
 }
@@ -221,7 +221,7 @@ bool CmKernelData::IsInUse()
 //| Purpose:    Get Curbe Size from kernel data
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-uint32_t CmKernelData::GetKernelCurbeSize( void )
+uint32_t CmKernelData::GetKernelCurbeSize( void ) const
 {
     return m_halKernelParam.totalCurbeSize;
 }
