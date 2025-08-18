@@ -928,7 +928,7 @@ MOS_STATUS Mos_InitOsInterface(
         MediaUserSetting::Group::Device);
 #endif
 
-    if (pOsInterface->apoMosEnabled || pOsInterface->apoMosForLegacyRuntime)
+    if (pOsInterface->apoMosEnabled)
     {
         pOsInterface->osStreamState->osCpInterface = pOsInterface->osCpInterface;
     }
