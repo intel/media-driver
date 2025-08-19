@@ -53,5 +53,7 @@ MhwVdboxHucInterface::MhwVdboxHucInterface(
         AddResourceToCmd = Mhw_AddResourceToCmd_PatchList;
     }
 
+    MOS_ZeroMemory(m_cacheabilitySettings, sizeof(m_cacheabilitySettings));
+
 }
 
