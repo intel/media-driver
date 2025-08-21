@@ -141,11 +141,11 @@ MOS_STATUS VpCscFilter::CalculateEngineParams()
 
     if (FeatureTypeCscOnSfc == m_cscParams.type)
     {
-        VP_RENDER_CHK_STATUS_RETURN(CalculateSfcEngineParams());
+        VP_PUBLIC_CHK_STATUS_RETURN(CalculateSfcEngineParams());
     }
     else if (FeatureTypeCscOnVebox == m_cscParams.type)
     {
-        VP_RENDER_CHK_STATUS_RETURN(CalculateVeboxEngineParams());
+        VP_PUBLIC_CHK_STATUS_RETURN(CalculateVeboxEngineParams());
     }
     else if (FeatureTypeCscOnRender == m_cscParams.type)
     {
@@ -208,7 +208,7 @@ bool VpCscFilter::IsDitheringNeeded(MOS_FORMAT formatInput, MOS_FORMAT formatOut
     }
     if (inputBitDepth > outputBitDepth)
     {
-        VP_RENDER_NORMALMESSAGE("inputFormat = %d, inputBitDepth = %d, outputFormat = %d, outputBitDepth = %d, return true",
+        VP_PUBLIC_NORMALMESSAGE("inputFormat = %d, inputBitDepth = %d, outputFormat = %d, outputBitDepth = %d, return true",
             formatInput,
             inputBitDepth,
             formatOutput,
@@ -217,7 +217,7 @@ bool VpCscFilter::IsDitheringNeeded(MOS_FORMAT formatInput, MOS_FORMAT formatOut
     }
     else
     {
-        VP_RENDER_NORMALMESSAGE("inputFormat = %d, inputBitDepth = %d, outputFormat = %d, outputBitDepth = %d, return false",
+        VP_PUBLIC_NORMALMESSAGE("inputFormat = %d, inputBitDepth = %d, outputFormat = %d, outputBitDepth = %d, return false",
             formatInput,
             inputBitDepth,
             formatOutput,
@@ -331,10 +331,10 @@ MOS_STATUS VpCscFilter::CalculateVeboxEngineParams()
     m_veboxCSCParams->bCSCEnabled = (m_cscParams.input.colorSpace != m_cscParams.output.colorSpace || isBeCscNeededForAlphaFill);
     m_veboxCSCParams->alphaParams = m_cscParams.pAlphaParams;
 
-    VP_RENDER_CHK_STATUS_RETURN(UpdateChromaSiting(m_executeCaps));
+    VP_PUBLIC_CHK_STATUS_RETURN(UpdateChromaSiting(m_executeCaps));
 
-    VP_RENDER_CHK_STATUS_RETURN(SetVeboxCUSChromaParams(m_executeCaps));
-    VP_RENDER_CHK_STATUS_RETURN(SetVeboxCDSChromaParams(m_executeCaps));
+    VP_PUBLIC_CHK_STATUS_RETURN(SetVeboxCUSChromaParams(m_executeCaps));
+    VP_PUBLIC_CHK_STATUS_RETURN(SetVeboxCDSChromaParams(m_executeCaps));
 
     return MOS_STATUS_SUCCESS;
 }
@@ -344,10 +344,10 @@ MOS_STATUS VpCscFilter::SetSfcChromaParams(
 {
     VP_FUNC_CALL();
 
-    VP_RENDER_CHK_NULL_RETURN(m_sfcCSCParams);
+    VP_PUBLIC_CHK_NULL_RETURN(m_sfcCSCParams);
 
     // Update chroma sitting according to updated input format.
-    VP_RENDER_CHK_STATUS_RETURN(UpdateChromaSiting(vpExecuteCaps));
+    VP_PUBLIC_CHK_STATUS_RETURN(UpdateChromaSiting(vpExecuteCaps));
 
     m_sfcCSCParams->sfcSrcChromaSiting = m_cscParams.input.chromaSiting;
 
@@ -380,6 +380,15 @@ MOS_STATUS VpCscFilter::SetSfcChromaParams(
                                                         MEDIASTATE_SFC_CHROMA_DOWNSAMPLING_COEF_0_OVER_8);
 
     m_sfcCSCParams->bChromaUpSamplingEnable = IsChromaUpSamplingNeeded();
+    
+    VP_PUBLIC_NORMALMESSAGE("m_cscParams.input.chromaSiting = %d, m_cscParams.output.chromaSiting = %d, bChromaUpSamplingEnable = %d, vpExecuteCaps.bVebox = %d, b8tapChromafiltering = %d, chromaDownSamplingHorizontalCoef = %d, chromaDownSamplingVerticalCoef = %d",
+        m_cscParams.input.chromaSiting,
+        m_cscParams.output.chromaSiting,
+        m_sfcCSCParams->bChromaUpSamplingEnable,
+        vpExecuteCaps.bVebox,
+        m_sfcCSCParams->b8tapChromafiltering,
+        m_sfcCSCParams->chromaDownSamplingHorizontalCoef,
+        m_sfcCSCParams->chromaDownSamplingVerticalCoef);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -388,7 +397,7 @@ MOS_STATUS VpCscFilter::SetVeboxCUSChromaParams(VP_EXECUTE_CAPS vpExecuteCaps)
 {
     VP_FUNC_CALL();
 
-    VP_RENDER_CHK_NULL_RETURN(m_veboxCSCParams);
+    VP_PUBLIC_CHK_NULL_RETURN(m_veboxCSCParams);
 
     VPHAL_COLORPACK       srcColorPack;
     bool bNeedUpSampling = vpExecuteCaps.bIECP || m_veboxCSCParams->bCSCEnabled ||
@@ -403,6 +412,15 @@ MOS_STATUS VpCscFilter::SetVeboxCUSChromaParams(VP_EXECUTE_CAPS vpExecuteCaps)
     {
         srcColorPack = VpHalDDIUtils::GetSurfaceColorPack(m_cscParams.formatInput);
     }
+
+    VP_PUBLIC_NORMALMESSAGE("m_cscParams.input.chromaSiting = %d, bNeedUpSampling = %d, vpExecuteCaps.bIECP = %d, m_veboxCSCParams->bCSCEnabled = %d, vpExecuteCaps.b3DlutOutput = %d, vpExecuteCaps.bHDR3DLUT = %d, srcColorPack = %d",
+        m_cscParams.input.chromaSiting,
+        bNeedUpSampling,
+        vpExecuteCaps.bIECP,
+        m_veboxCSCParams->bCSCEnabled,
+        vpExecuteCaps.b3DlutOutput,
+        vpExecuteCaps.bHDR3DLUT,
+        srcColorPack);
 
     // Init CUS as disabled
     m_veboxCSCParams->bypassCUS = true;
@@ -537,7 +555,7 @@ MOS_STATUS VpCscFilter::SetVeboxCUSChromaParams(VP_EXECUTE_CAPS vpExecuteCaps)
         }
     }
 
-    VP_RENDER_NORMALMESSAGE("bypassCUS %d, chromaUpSamplingHorizontalCoef %d, chromaUpSamplingVerticalCoef %d",
+    VP_PUBLIC_NORMALMESSAGE("bypassCUS %d, chromaUpSamplingHorizontalCoef %d, chromaUpSamplingVerticalCoef %d",
         m_veboxCSCParams->bypassCUS, m_veboxCSCParams->chromaUpSamplingHorizontalCoef, m_veboxCSCParams->chromaUpSamplingVerticalCoef);
 
     return MOS_STATUS_SUCCESS;
@@ -562,6 +580,16 @@ MOS_STATUS VpCscFilter::SetVeboxCDSChromaParams(VP_EXECUTE_CAPS vpExecuteCaps)
     {
         bNeedDownSampling = vpExecuteCaps.bVebox && !vpExecuteCaps.bSFC && !vpExecuteCaps.bForceCscToRender;
     }
+
+    VP_PUBLIC_NORMALMESSAGE("bNeedDownSampling = %d, dstColorPack = %d, vpExecuteCaps.bDI = %d, m_cscParams.formatOutput = %d, vpExecuteCaps.bIECP = %d, vpExecuteCaps.bVebox = %d, vpExecuteCaps.bSFC = %d, vpExecuteCaps.bForceCscToRender = %d",
+        bNeedDownSampling,
+        dstColorPack,
+        vpExecuteCaps.bDI,
+        m_cscParams.formatOutput,
+        vpExecuteCaps.bIECP,
+        vpExecuteCaps.bVebox,
+        vpExecuteCaps.bSFC,
+        vpExecuteCaps.bForceCscToRender);
 
     // Init as CDS disabled
     m_veboxCSCParams->bypassCDS = true;
@@ -648,7 +676,7 @@ MOS_STATUS VpCscFilter::SetVeboxCDSChromaParams(VP_EXECUTE_CAPS vpExecuteCaps)
         }
     }
 
-    VP_RENDER_NORMALMESSAGE("bypassCDS %d, chromaDownSamplingHorizontalCoef %d, chromaDownSamplingVerticalCoef %d",
+    VP_PUBLIC_NORMALMESSAGE("bypassCDS %d, chromaDownSamplingHorizontalCoef %d, chromaDownSamplingVerticalCoef %d",
         m_veboxCSCParams->bypassCDS, m_veboxCSCParams->chromaDownSamplingHorizontalCoef, m_veboxCSCParams->chromaDownSamplingVerticalCoef);
 
     return MOS_STATUS_SUCCESS;
@@ -668,7 +696,8 @@ MOS_STATUS VpCscFilter::UpdateChromaSiting(VP_EXECUTE_CAPS vpExecuteCaps)
     {
         m_cscParams.input.chromaSiting = (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_CENTER);
     }
-    switch (VpHalDDIUtils::GetSurfaceColorPack(m_cscParams.formatInput))
+    VPHAL_COLORPACK srcColorPack = VpHalDDIUtils::GetSurfaceColorPack(m_cscParams.formatInput);
+    switch (srcColorPack)
     {
     case VPHAL_COLORPACK_422:
         m_cscParams.input.chromaSiting = (m_cscParams.input.chromaSiting & 0x7) | CHROMA_SITING_VERT_TOP;
@@ -680,11 +709,14 @@ MOS_STATUS VpCscFilter::UpdateChromaSiting(VP_EXECUTE_CAPS vpExecuteCaps)
         break;
     }
 
+    VP_PUBLIC_NORMALMESSAGE("srcColorPack = %d, m_cscParams.input.chromaSiting = %d", srcColorPack, m_cscParams.input.chromaSiting);
+
     if (MHW_CHROMA_SITING_NONE == m_cscParams.output.chromaSiting)
     {
         m_cscParams.output.chromaSiting = (CHROMA_SITING_HORZ_LEFT | CHROMA_SITING_VERT_CENTER);
     }
-    switch (VpHalDDIUtils::GetSurfaceColorPack(m_cscParams.formatOutput))
+    VPHAL_COLORPACK dstColorPack = VpHalDDIUtils::GetSurfaceColorPack(m_cscParams.formatOutput);
+    switch (dstColorPack)
     {
     case VPHAL_COLORPACK_422:
         m_cscParams.output.chromaSiting = (m_cscParams.output.chromaSiting & 0x7) | CHROMA_SITING_VERT_TOP;
@@ -695,7 +727,7 @@ MOS_STATUS VpCscFilter::UpdateChromaSiting(VP_EXECUTE_CAPS vpExecuteCaps)
     default:
         break;
     }
-
+    VP_PUBLIC_NORMALMESSAGE("dstColorPack = %d, m_cscParams.output.chromaSiting = %d", dstColorPack, m_cscParams.output.chromaSiting);
     return MOS_STATUS_SUCCESS;
 }
 

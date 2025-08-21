@@ -973,6 +973,7 @@ bool Policy::IsDemosaicValidOutputFormat(MOS_FORMAT format)
 
 bool IsBeCscNeededForAlphaFill(MOS_FORMAT formatInput, MOS_FORMAT formatOutput, PVPHAL_ALPHA_PARAMS compAlpha)
 {
+    VP_FUNC_CALL();
     if (nullptr == compAlpha)
     {
         VP_PUBLIC_NORMALMESSAGE("No alpha setting exists.");
@@ -1003,6 +1004,7 @@ bool IsBeCscNeededForAlphaFill(MOS_FORMAT formatInput, MOS_FORMAT formatOutput, 
 
 bool Policy::IsAlphaSettingSupportedBySfc(MOS_FORMAT formatInput, MOS_FORMAT formatOutput, PVPHAL_ALPHA_PARAMS compAlpha)
 {
+    VP_FUNC_CALL();
     if (!IS_ALPHA_FORMAT(formatOutput))
     {
         VP_PUBLIC_NORMALMESSAGE("Alpha setting can be ignored for non-alpha output format.");
@@ -3033,6 +3035,7 @@ MOS_STATUS Policy::GetInputPipeEngineCaps(SwFilterPipe& featurePipe, VP_EngineEn
 
 MOS_STATUS Policy::BypassVeboxFeatures(SwFilterSubPipe *featureSubPipe, VP_EngineEntry &engineCaps)
 {
+    VP_FUNC_CALL();
     VP_PUBLIC_CHK_NULL_RETURN(featureSubPipe);
 
     for (auto filterID : m_featurePool)
@@ -3062,6 +3065,7 @@ MOS_STATUS Policy::BypassVeboxFeatures(SwFilterSubPipe *featureSubPipe, VP_Engin
 MOS_STATUS Policy::BuildExecuteCaps(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS &caps, VP_EngineEntry &engineCapsInputPipe, VP_EngineEntry &engineCapsOutputPipe,
                                     bool &isSingleSubPipe, uint32_t &selectedPipeIndex)
 {
+    VP_FUNC_CALL();
     SwFilterSubPipe *singlePipeSelected = nullptr;
 
     caps.value = 0;
@@ -3404,6 +3408,7 @@ MOS_STATUS Policy::BuildExecuteHwFilter(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS&
 MOS_STATUS Policy::UpdateFeatureTypeWithEngine(std::vector<int> &layerIndexes, SwFilterPipe& featurePipe, VP_EXECUTE_CAPS& caps,
                                             bool isolatedFeatureSelected, bool outputPipeNeeded)
 {
+    VP_FUNC_CALL();
     int inputSurfCount = featurePipe.GetSurfaceCount(true);
     int outputSurfCount = featurePipe.GetSurfaceCount(false);
     SwFilterSubPipe* featureSubPipe = nullptr;
@@ -3425,6 +3430,7 @@ MOS_STATUS Policy::UpdateFeatureTypeWithEngine(std::vector<int> &layerIndexes, S
 
 MOS_STATUS Policy::UpdateFeatureTypeWithEngineSingleLayer(SwFilterSubPipe *featureSubPipe, VP_EXECUTE_CAPS& caps, bool isolatedFeatureSelected)
 {
+    VP_FUNC_CALL();
     bool isolatedFeatureFound = false;
     // Set feature types with engine
     for (auto filterID : m_featurePool)
@@ -3543,6 +3549,7 @@ MOS_STATUS Policy::UpdateFeatureTypeWithEngineSingleLayer(SwFilterSubPipe *featu
 
 MOS_STATUS Policy::LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilterPipe& featurePipe, bool isSingleSubPipe, uint32_t pipeIndex, VP_EXECUTE_CAPS& caps)
 {
+    VP_FUNC_CALL();
     layerIndexes.clear();
     if (isSingleSubPipe && !caps.bComposite && !caps.bRenderHdr)
     {
@@ -3607,6 +3614,7 @@ MOS_STATUS Policy::LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilte
 
 MOS_STATUS AddInputSurfaceForSingleLayer(SwFilterPipe &featurePipe, uint32_t pipeIndex, SwFilterPipe &executedFilters, uint32_t &executePipeIndex, VP_EXECUTE_CAPS& caps)
 {
+    VP_FUNC_CALL();
     // Single layer add input surface
     if (caps.value)
     {
@@ -3654,6 +3662,7 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, std::vector<int
 MOS_STATUS Policy::UpdateFeaturePipe(SwFilterPipe &featurePipe, uint32_t pipeIndex, SwFilterPipe &executedFilters, uint32_t executePipeIndex,
                                     bool isInputPipe, VP_EXECUTE_CAPS& caps)
 {
+    VP_FUNC_CALL();
     SwFilterSubPipe* featureSubPipe = featurePipe.GetSwFilterSubPipe(isInputPipe, pipeIndex);
     uint32_t featureSelected = 0;
 
@@ -3784,6 +3793,7 @@ MOS_STATUS Policy::UpdateFeaturePipeSingleLayer(SwFilterPipe &featurePipe, uint3
 
 MOS_STATUS Policy::UpdateFeatureOutputPipe(std::vector<int> &layerIndexes, SwFilterPipe &featurePipe, SwFilterPipe &executedFilters, VP_EXECUTE_CAPS& caps)
 {
+    VP_FUNC_CALL();
     if (!caps.bOutputPipeFeatureInuse)
     {
         return MOS_STATUS_SUCCESS;
@@ -4373,6 +4383,7 @@ MOS_STATUS GetVeboxOutputParams(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFo
 
 MOS_STATUS Policy::GetCscParamsOnCaps(PVP_SURFACE surfInput, PVP_SURFACE surfOutput, VP_EXECUTE_CAPS &caps, FeatureParamCsc &cscParams)
 {
+    VP_FUNC_CALL();
     if (caps.bHDR3DLUT)
     {
         cscParams.input.colorSpace   = surfInput->ColorSpace;
@@ -4439,6 +4450,7 @@ MOS_STATUS Policy::GetCscParamsOnCaps(PVP_SURFACE surfInput, PVP_SURFACE surfOut
 
 MOS_STATUS Policy::GetDnParamsOnCaps(PVP_SURFACE surfInput, PVP_SURFACE surfOutput, VP_EXECUTE_CAPS &caps, FeatureParamDenoise &dnParams)
 {
+    VP_FUNC_CALL();
     dnParams.formatInput     = surfInput->osSurface->Format;
     dnParams.heightInput     = surfInput->osSurface->dwHeight;
     dnParams.formatOutput    = Format_NV12;
