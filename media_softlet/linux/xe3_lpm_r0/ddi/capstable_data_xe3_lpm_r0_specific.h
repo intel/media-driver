@@ -73,6 +73,9 @@
 
 #define IP_VERSION_XE3_LPM 0x1600
 const PlatformInfo plt_Xe3_Lpm_r0 = {IP_VERSION_XE3_LPM, 0};
+#define IP_VERSION_XE3_LPM_EXT 0x1601
+const PlatformInfo plt_Xe3_Lpm_ext_r0 = {IP_VERSION_XE3_LPM_EXT, 0};
+
 
 static const std::map<const uint32_t, const VAImageFormat*> imgtbl_Xe3_lpm_r0
 {
@@ -426,9 +429,73 @@ static const ProfileMap profileMap_Xe3_Lpm_r0
 #endif
 };
 
+//!
+//! \brief  ProfileMap for Xe3_Lpm_ext_r0
+//!
+//! \brief  Definion for ProfileMap
+//!
+static const ProfileMap profileMap_Xe3_Lpm_ext_r0
+{
+    {VAProfileNone, &entrypointMap_VAProfileNone_Xe3_lpm_r0},
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) || defined(_HEVC_DECODE_SUPPORTED)
+    {VAProfileHEVCSccMain444_10, &entrypointMap_VAProfileHEVCSccMain444_10_Xe3_Lpm_r0},
+    {VAProfileHEVCSccMain444, &entrypointMap_VAProfileHEVCSccMain444_Xe3_Lpm_r0},
+    {VAProfileHEVCSccMain10, &entrypointMap_VAProfileHEVCSccMain10_Xe3_Lpm_r0},
+    {VAProfileHEVCSccMain, &entrypointMap_VAProfileHEVCSccMain_Xe3_Lpm_r0},
+    {VAProfileHEVCMain444_10, &entrypointMap_VAProfileHEVCMain444_10_Xe3_Lpm_r0},
+    {VAProfileHEVCMain444, &entrypointMap_VAProfileHEVCMain444_Xe3_Lpm_r0},
+    {VAProfileHEVCMain10, &entrypointMap_VAProfileHEVCMain10_Xe3_Lpm_r0},
+    {VAProfileHEVCMain, &entrypointMap_VAProfileHEVCMain_Xe3_Lpm_r0},
+#endif
+
+#if defined(_HEVC_DECODE_SUPPORTED)
+    {VAProfileHEVCMain12, &entrypointMap_VAProfileHEVCMain12_Xe3_Lpm_r0},
+    {VAProfileHEVCMain422_10, &entrypointMap_VAProfileHEVCMain422_10_Xe3_Lpm_r0},
+    {VAProfileHEVCMain422_12, &entrypointMap_VAProfileHEVCMain422_12_Xe3_Lpm_r0},
+    {VAProfileHEVCMain444_12, &entrypointMap_VAProfileHEVCMain444_12_Xe3_Lpm_r0},
+#endif
+
+#if defined(_AVC_ENCODE_VDENC_SUPPORTED) || defined(_AVC_DECODE_SUPPORTED)
+    {VAProfileH264Main, &entrypointMap_VAProfileH264Main_Xe3_Lpm_r0},
+    {VAProfileH264High, &entrypointMap_VAProfileH264High_Xe3_Lpm_r0},
+    {VAProfileH264ConstrainedBaseline, &entrypointMap_VAProfileH264ConstrainedBaseline_Xe3_Lpm_r0},
+#endif
+
+#if defined(_JPEG_ENCODE_SUPPORTED) || defined(_JPEG_DECODE_SUPPORTED)
+    {VAProfileJPEGBaseline, &entrypointMap_VAProfileJPEGBaseline_Xe3_Lpm_r0},
+#endif
+
+#if defined(_AV1_ENCODE_VDENC_SUPPORTED) || defined(_AV1_DECODE_SUPPORTED)
+    {VAProfileAV1Profile0, &entrypointMap_VAProfileAV1Profile0_Xe3_Lpm_r0},
+    {VAProfileAV1Profile1, &entrypointMap_VAProfileAV1Profile1_Xe3_Lpm_r0},
+#endif
+
+#if defined(_VP9_ENCODE_VDENC_SUPPORTED) || defined(_VP9_DECODE_SUPPORTED)
+    {VAProfileVP9Profile3, &entrypointMap_VAProfileVP9Profile3_Xe3_Lpm_r0},
+    {VAProfileVP9Profile2, &entrypointMap_VAProfileVP9Profile2_Xe3_Lpm_r0},
+    {VAProfileVP9Profile1, &entrypointMap_VAProfileVP9Profile1_Xe3_Lpm_r0},
+    {VAProfileVP9Profile0, &entrypointMap_VAProfileVP9Profile0_Xe3_Lpm_r0},
+#endif
+
+#if defined(_MPEG2_DECODE_SUPPORTED)
+    {VAProfileMPEG2Simple, &entrypointMap_VAProfileMPEG2Simple_Xe3_Lpm_r0},
+    {VAProfileMPEG2Main,   &entrypointMap_VAProfileMPEG2Main_Xe3_Lpm_r0},
+#endif
+
+#if defined(_VP8_DECODE_SUPPORTED)
+    {VAProfileVP8Version0_3, &entrypointMap_VAProfileVP8Version0_3_Xe3_Lpm_r0},
+#endif
+};
+
 static const CapsData capsData_Xe3_Lpm_r0
 {
   &profileMap_Xe3_Lpm_r0,
+  &imgtbl_Xe3_lpm_r0
+};
+
+static const CapsData capsData_Xe3_Lpm_ext_r0
+{
+  &profileMap_Xe3_Lpm_ext_r0,
   &imgtbl_Xe3_lpm_r0
 };
 

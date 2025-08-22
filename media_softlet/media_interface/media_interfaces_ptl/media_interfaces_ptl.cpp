@@ -531,13 +531,21 @@ MOS_STATUS RenderHalInterfacesXe3_Lpg::Initialize()
 }
 
 #define IP_VERSION_XE3_LPM 0x1600
+#define IP_VERSION_XE3_LPM_EXT 0x1601
 
 static bool ptlRegisteredHwInfo =
     MediaFactory<uint32_t, MediaInterfacesHwInfoDevice>::Register<MediaInterfacesHwInfoDeviceXe3_Lpm>((uint32_t)IGFX_PTL);
 
 MOS_STATUS MediaInterfacesHwInfoDeviceXe3_Lpm::Initialize(PLATFORM platform)
 {
+#if defined(LINUX)
+    if (platform.usDeviceID == 0xFD80 || platform.usDeviceID == 0xFD81)
+        m_hwInfo.SetDeviceInfo(IP_VERSION_XE3_LPM_EXT, platform.usRevId);//WCL
+    else
+        m_hwInfo.SetDeviceInfo(IP_VERSION_XE3_LPM, platform.usRevId); //PTL
+#else
     m_hwInfo.SetDeviceInfo(IP_VERSION_XE3_LPM, platform.usRevId);
+#endif
     return MOS_STATUS_SUCCESS;
 }
 
