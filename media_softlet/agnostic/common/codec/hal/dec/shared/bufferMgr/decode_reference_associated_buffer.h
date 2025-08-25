@@ -114,6 +114,7 @@ public:
         DECODE_ASSERT(m_availableBuffers.empty());
         DECODE_ASSERT(m_activeBuffers.empty());
 
+        m_availableBuffers.reserve(initialAllocNum);
         for (uint32_t i = 0; i < initialAllocNum; i++)
         {
             BufferType *buffer = m_bufferOp.Allocate();
