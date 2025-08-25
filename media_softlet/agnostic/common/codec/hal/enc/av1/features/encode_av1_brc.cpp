@@ -343,6 +343,7 @@ namespace encode
             dmem->UPD_EnableCDEFUpdate = 0;
             dmem->UPD_EnableLFUpdate   = 0;
         }
+        dmem->UPD_QMatrixEnabled = m_basicFeature->m_av1PicParams->wQMatrixFlags.fields.using_qmatrix;
 
         return MOS_STATUS_SUCCESS;
     }
@@ -606,6 +607,8 @@ namespace encode
         {
             dmem->INIT_OvershootCBR_pct = (uint16_t)(seqParams->MaxBitRatePerSlidingWindow * 100 / seqParams->TargetBitRate[0]);
         }
+        dmem->INIT_GopPicSize = seqParams->GopPicSize;
+
         return MOS_STATUS_SUCCESS;
     }
 
