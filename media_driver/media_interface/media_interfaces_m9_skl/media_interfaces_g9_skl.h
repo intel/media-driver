@@ -94,8 +94,6 @@
 
 #ifdef _AVC_ENCODE_VME_SUPPORTED
 #include "codechal_encode_avc_g9_skl.h"
-#include "codechal_fei_avc_g9_skl.h"
-#include "codechal_fei_avc_g9.h"
 #endif
 #ifdef _AVC_ENCODE_VDENC_SUPPORTED
 #include "codechal_vdenc_avc_g9_skl.h"
@@ -200,7 +198,6 @@ public:
 
 #ifdef _AVC_ENCODE_VME_SUPPORTED
     using AvcEnc   = CodechalEncodeAvcEncG9Skl;
-    using AvcFei   = CodechalEncodeAvcEncFeiG9Skl;
 #endif
 #ifdef _AVC_ENCODE_VDENC_SUPPORTED
     using AvcVdenc = CodechalVdencAvcStateG9Skl;
