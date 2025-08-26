@@ -187,7 +187,7 @@ public:
         return false;
     }
 
-    MOS_STATUS SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight, bool isEncoder, uint32_t codecMode) override
+    MOS_STATUS SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight, bool isEncoder, uint32_t codecMode, bool isTee) override
     {
         MHW_FUNCTION_ENTER;
         MHW_MI_CHK_NULL(this->m_osItf);
@@ -195,6 +195,11 @@ public:
             this->m_osItf->umdMediaResetEnable == false)
         {
             return MOS_STATUS_SUCCESS;
+        }
+
+        if (isTee)
+        {
+            return MOS_STATUS_INVALID_PARAMETER;
         }
 
         if (isEncoder)

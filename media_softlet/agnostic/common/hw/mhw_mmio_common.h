@@ -81,6 +81,7 @@ static constexpr uint32_t  WATCHDOG_COUNT_THRESTHOLD_OFFSET_VECS                
 
 static constexpr uint32_t  WATCHDOG_COUNT_CTRL_OFFSET_TEECS                                            = 0x11A178;
 static constexpr uint32_t  WATCHDOG_COUNT_THRESTHOLD_OFFSET_TEECS                                      = 0x11A17C;
+static constexpr uint32_t  WATCHDOG_TEE_DEFAULT_WATCHDOG_THRESHOLD_IN_MS                               = 200;
 
 //Semaphore Token
 static constexpr uint32_t   MMIO_SEMAPHORE_TOKEN_RCS                                                   = 0x022b4;

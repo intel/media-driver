@@ -202,7 +202,7 @@ public:
         return false;
     }
 
-    MOS_STATUS SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight, bool isEncoder, uint32_t codecMode) override
+    MOS_STATUS SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight, bool isEncoder, uint32_t codecMode, bool isTee) override
     {
         MHW_FUNCTION_ENTER;
         MHW_MI_CHK_NULL(this->m_osItf);
@@ -212,7 +212,11 @@ public:
             return MOS_STATUS_SUCCESS;
         }
 
-        if (isEncoder)
+        if (isTee)
+        {
+            MediaResetParam.watchdogCountThreshold = WATCHDOG_TEE_DEFAULT_WATCHDOG_THRESHOLD_IN_MS;
+        }
+        else if(isEncoder)
         {
             if ((frameWidth * frameHeight) >= (7680 * 4320))
             {
