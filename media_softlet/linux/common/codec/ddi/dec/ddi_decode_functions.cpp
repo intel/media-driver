@@ -1080,10 +1080,6 @@ VAStatus DdiDecodeFunctions::StatusReport(
                         }
                     }
 
-                    if (j == mediaCtx->pSurfaceHeap->uiAllocatedHeapElements)
-                    {
-                        return VA_STATUS_ERROR_OPERATION_FAILED;
-                    }
                 }
                 else
                 {
