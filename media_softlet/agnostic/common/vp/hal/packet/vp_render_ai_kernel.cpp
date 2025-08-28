@@ -233,7 +233,9 @@ MOS_STATUS VpRenderAiKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
 
     if (curbeLength == 0)
     {
-        return MOS_STATUS_INVALID_PARAMETER;
+        VP_RENDER_NORMALMESSAGE("Skip Allocate Curbe for its Size is 0");
+        curbe = nullptr;
+        return MOS_STATUS_SUCCESS;
     }
 
     uint8_t *pCurbe = (uint8_t *)MOS_AllocAndZeroMemory(curbeLength);
@@ -410,9 +412,55 @@ MOS_STATUS VpRenderAiKernel::SetupSurfaceState()
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpRenderAiKernel::GetInlineData(uint8_t *inlineData)
+{
+    for (auto &handle : m_kernelArgs)
+    {
+        KRN_ARG &arg = handle.second;
+        if (arg.eArgKind == ARG_KIND_INLINE)
+        {
+            if (arg.addressMode == AddressingModeStateless)
+            {
+                if (arg.pData != nullptr)
+                {
+                    VP_PUBLIC_CHK_NULL_RETURN(m_surfaceGroup);
+                    SURFACE_PARAMS surfParam = *((SURFACE_PARAMS *)arg.pData);
+                    auto           it        = m_surfaceGroup->find(surfParam.surfType);
+                    VP_PUBLIC_CHK_NOT_FOUND_RETURN(it, m_surfaceGroup);
+                    PVP_SURFACE surface = it->second;
+                    VP_PUBLIC_CHK_NULL_RETURN(surface);
+                    VP_PUBLIC_CHK_NULL_RETURN(surface->osSurface);
+
+                    MHW_INDIRECT_STATE_RESOURCE_PARAMS params = {};
+                    params.isWrite                            = surfParam.isOutput;
+                    params.resource                           = &surface->osSurface->OsResource;
+                    params.stateOffset                        = arg.uOffsetInPayload;
+                    m_inlineResourceList.push_back(params);
+                    VP_RENDER_NORMALMESSAGE("Setting Stateless Inline Data Statelss Surface KernelID %d, index %d , surfType %d, argKind %d", m_kernelId, arg.uIndex, *(uint32_t *)arg.pData, arg.eArgKind);
+                }
+                else
+                {
+                    VP_RENDER_ASSERTMESSAGE("KernelID %d, index %d, argKind %d Stateless Surface is empty", m_kernelId, arg.uIndex, arg.eArgKind);
+                }
+            }
+            else
+            {
+                VP_PUBLIC_CHK_STATUS_RETURN(SetInlineDataParameter(arg, inlineData));
+            }
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpRenderAiKernel::GetWalkerSetting(KERNEL_WALKER_PARAMS &walkerParam, KERNEL_PACKET_RENDER_DATA &renderData)
 {
     VP_FUNC_CALL();
+
+    if (m_renderHal && m_renderHal->isBindlessHeapInUse)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(GetInlineData(m_inlineData.data()));
+    }
 
     walkerParam = m_walkerParam;
 
@@ -454,21 +502,9 @@ MOS_STATUS VpRenderAiKernel::SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, 
     m_walkerParam.pipeControlParams.bFlushRenderTargetCache    = false;
     m_walkerParam.pipeControlParams.bInvalidateTextureCache    = false;
 
-    for (auto &handle : m_kernelArgs)
+    if (m_renderHal == nullptr || m_renderHal->isBindlessHeapInUse == false)
     {
-        KRN_ARG &arg = handle.second;
-        if (arg.eArgKind == ARG_KIND_INLINE)
-        {
-            if (arg.pData != nullptr)
-            {
-                MOS_SecureMemcpy(m_inlineData.data() + arg.uOffsetInPayload, arg.uSize, arg.pData, arg.uSize);
-                VP_RENDER_NORMALMESSAGE("Setting Inline Data KernelName %s, index %d , value %d, argKind %d", m_kernelName.c_str(), arg.uIndex, *(uint32_t *)arg.pData, arg.eArgKind);
-            }
-            else
-            {
-                VP_RENDER_NORMALMESSAGE("KernelName %s, index %d, argKind %d is empty", m_kernelName.c_str(), arg.uIndex, arg.eArgKind);
-            }
-        }
+        VP_PUBLIC_CHK_STATUS_RETURN(GetInlineData(m_inlineData.data()));
     }
     m_walkerParam.inlineDataLength = m_inlineData.size();
     m_walkerParam.inlineData       = m_inlineData.data();
@@ -476,9 +512,10 @@ MOS_STATUS VpRenderAiKernel::SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, 
     m_walkerParam.slmSize    = m_kernelEnv.uiSlmSize;
     m_walkerParam.hasBarrier = (m_kernelEnv.uBarrierCount > 0);
 
-    if (m_kernelEnv.uSimdSize != 1)
+    m_walkerParam.isEmitInlineParameter = m_kernelEnv.uInlineDataPayloadSize > 0;
+
+    if (m_kernelEnv.uSimdSize != 1 && m_kernelPerThreadArgInfo.localIdSize > 0)
     {
-        m_walkerParam.isEmitInlineParameter = true;
         if (m_kernelEnv.bHasDPAS)
         {
             m_walkerParam.isGenerateLocalID = false;

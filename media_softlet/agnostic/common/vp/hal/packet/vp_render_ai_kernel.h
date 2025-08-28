@@ -58,6 +58,7 @@ protected:
     virtual MOS_STATUS SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, bool bSyncFlag, bool flushL1 = false);
     virtual MOS_STATUS SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET_SHARED_CONTEXT *sharedContext);
     virtual MOS_STATUS GetKernelSurfaceParam(bool isBTI, SURFACE_PARAMS &surfParam, KERNEL_SURFACE_STATE_PARAM &kernelSurfaceParam);
+    virtual MOS_STATUS GetInlineData(uint8_t *inlineData);
 
     PRENDERHAL_INTERFACE m_renderHal = nullptr;
 

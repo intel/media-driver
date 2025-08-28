@@ -1273,14 +1273,25 @@ MOS_STATUS VpResourceManager::AssignFcResources(VP_EXECUTE_CAPS &caps, std::vect
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpResourceManager::AssignAiNpuResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, SwFilterPipe &executedFilters, VP_SURFACE_SETTING &surfSetting)
+MOS_STATUS VpResourceManager::AssignAiNpuResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, std::vector<VP_SURFACE *> &pastSurfaces, std::vector<VP_SURFACE *> &futureSurfaces, SwFilterPipe &executedFilters, VP_SURFACE_SETTING &surfSetting)
 {
     VP_FUNC_CALL();
 
     SwFilterSubPipe *subPipe = executedFilters.GetSwFilterSubPipe(true, 0);
     VP_PUBLIC_CHK_NULL_RETURN(subPipe);
     VP_PUBLIC_CHK_VALUE_RETURN(inputSurfaces.empty(), false);
-    surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeAiInput0), inputSurfaces[0]));
+    for (uint32_t i = 0; i < inputSurfaces.size(); ++i)
+    {
+        surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeAiInput0 + i), inputSurfaces.at(i)));
+        if (pastSurfaces.size() > i && pastSurfaces.at(i))
+        {
+            surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeAiPastInput0 + i), pastSurfaces.at(i)));
+        }
+        if (futureSurfaces.size() > i && futureSurfaces.at(i))
+        {
+            surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeAiFutureInput0 + i), futureSurfaces.at(i)));
+        }
+    }
     surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeAiTarget0), outputSurface));
     SwFilterAiBase *ai = nullptr;
     VP_PUBLIC_CHK_STATUS_RETURN(subPipe->GetAiSwFilter(ai));
@@ -1325,7 +1336,7 @@ MOS_STATUS VpResourceManager::AssignAiNpuResource(VP_EXECUTE_CAPS &caps, std::ve
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpResourceManager::AssignAiKernelResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, SwFilterPipe &executedFilters, VP_SURFACE_SETTING &surfSetting)
+MOS_STATUS VpResourceManager::AssignAiKernelResource(VP_EXECUTE_CAPS &caps, std::vector<VP_SURFACE *> &inputSurfaces, VP_SURFACE *outputSurface, std::vector<VP_SURFACE *> &pastSurfaces, std::vector<VP_SURFACE *> &futureSurfaces, SwFilterPipe &executedFilters, VP_SURFACE_SETTING &surfSetting)
 {
     VP_FUNC_CALL();
     bool allocated = false;
@@ -1333,7 +1344,18 @@ MOS_STATUS VpResourceManager::AssignAiKernelResource(VP_EXECUTE_CAPS &caps, std:
     SwFilterSubPipe *subPipe = executedFilters.GetSwFilterSubPipe(true, 0);
     VP_PUBLIC_CHK_NULL_RETURN(subPipe);
     VP_PUBLIC_CHK_VALUE_RETURN(inputSurfaces.empty(), false);
-    surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeAiInput0), inputSurfaces[0]));
+    for (uint32_t i = 0; i < inputSurfaces.size(); ++i)
+    {
+        surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeAiInput0 + i), inputSurfaces.at(i)));
+        if (pastSurfaces.size() > i && pastSurfaces.at(i))
+        {
+            surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeAiPastInput0 + i), pastSurfaces.at(i)));
+        }
+        if (futureSurfaces.size() > i && futureSurfaces.at(i))
+        {
+            surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeAiFutureInput0 + i), futureSurfaces.at(i)));
+        }
+    }
     surfSetting.surfGroup.insert(std::make_pair((SurfaceType)(SurfaceTypeAiTarget0), outputSurface));
     SwFilterAiBase *ai = nullptr;
     VP_PUBLIC_CHK_STATUS_RETURN(subPipe->GetAiSwFilter(ai));
@@ -1413,8 +1435,8 @@ MOS_STATUS VpResourceManager::AssignRenderResource(VP_EXECUTE_CAPS &caps, std::v
     else if (caps.bAiPath)
     {
         //Npu Resource need to be used as render input/out intermediate surface, so also need to be allocated in render path
-        VP_PUBLIC_CHK_STATUS_RETURN(AssignAiNpuResource(caps, inputSurfaces, outputSurface, executedFilters, surfSetting));
-        VP_PUBLIC_CHK_STATUS_RETURN(AssignAiKernelResource(caps, inputSurfaces, outputSurface, executedFilters, surfSetting));
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignAiNpuResource(caps, inputSurfaces, outputSurface, pastSurfaces, futureSurfaces, executedFilters, surfSetting));
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignAiKernelResource(caps, inputSurfaces, outputSurface, pastSurfaces, futureSurfaces, executedFilters, surfSetting));
     }
     else
     {
@@ -1434,7 +1456,7 @@ MOS_STATUS VpResourceManager::AssignNpuResource(VP_EXECUTE_CAPS &caps, std::vect
 
     if (caps.bAiPath)
     {
-        VP_PUBLIC_CHK_STATUS_RETURN(AssignAiNpuResource(caps, inputSurfaces, outputSurface, executedFilters, surfSetting));
+        VP_PUBLIC_CHK_STATUS_RETURN(AssignAiNpuResource(caps, inputSurfaces, outputSurface, pastSurfaces, futureSurfaces, executedFilters, surfSetting));
     }
 
     return MOS_STATUS_SUCCESS;

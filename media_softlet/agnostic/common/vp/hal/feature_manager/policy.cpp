@@ -3612,7 +3612,7 @@ MOS_STATUS Policy::LayerSelectForProcess(std::vector<int> &layerIndexes, SwFilte
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS AddInputSurfaceForSingleLayer(SwFilterPipe &featurePipe, uint32_t pipeIndex, SwFilterPipe &executedFilters, uint32_t &executePipeIndex, VP_EXECUTE_CAPS& caps)
+MOS_STATUS Policy::AddInputSurfaceForSingleLayer(SwFilterPipe &featurePipe, uint32_t pipeIndex, SwFilterPipe &executedFilters, uint32_t &executePipeIndex, VP_EXECUTE_CAPS& caps)
 {
     VP_FUNC_CALL();
     // Single layer add input surface
@@ -3622,11 +3622,34 @@ MOS_STATUS AddInputSurfaceForSingleLayer(SwFilterPipe &featurePipe, uint32_t pip
         VP_SURFACE *surfInput = featurePipe.GetSurface(true, pipeIndex);
         if (surfInput)
         {
+            PVP_SURFACE pastRefSurface   = nullptr;
+            PVP_SURFACE futureRefSurface = nullptr;
             // surface should be added before swFilters, since empty feature pipe will be allocated accordingly when surface being added.
             executePipeIndex = executedFilters.GetSurfaceCount(true);
             VP_PUBLIC_CHK_STATUS_RETURN(executedFilters.AddSurface(surfInput, true, executePipeIndex));
-            VP_SURFACE *pastRefSurface = featurePipe.RemovePastSurface(pipeIndex);
-            VP_SURFACE *futureRefSurface = featurePipe.RemoveFutureSurface(pipeIndex);
+            if (caps.bAiPath)
+            {
+                // For AI path, past/future ref surfaces may be used during multi passes.
+                // So copy the past/future surfaces into execute pipe instead of move them into execute pipe
+                // If common pipe also need this logic in the future, remove the "if (caps.bAiPath)" and combine the code
+                VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface());
+                VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface()->m_osInterface);
+                PVP_SURFACE tmpPastSurface   = featurePipe.GetPastSurface(pipeIndex);
+                PVP_SURFACE tmpFutureSurface = featurePipe.GetFutureSurface(pipeIndex);
+                if (nullptr != tmpPastSurface && 0 != tmpPastSurface->GetAllocationHandle(m_vpInterface.GetHwInterface()->m_osInterface))
+                {
+                    pastRefSurface = m_vpInterface.GetAllocator().AllocateVpSurface(*tmpPastSurface);
+                }
+                if (nullptr != tmpFutureSurface && 0 != tmpFutureSurface->GetAllocationHandle(m_vpInterface.GetHwInterface()->m_osInterface))
+                {
+                    futureRefSurface = m_vpInterface.GetAllocator().AllocateVpSurface(*tmpFutureSurface);
+                }
+            }
+            else
+            {
+                pastRefSurface = featurePipe.RemovePastSurface(pipeIndex);
+                futureRefSurface = featurePipe.RemoveFutureSurface(pipeIndex);
+            }
             executedFilters.SetPastSurface(executePipeIndex, pastRefSurface);
             executedFilters.SetFutureSurface(executePipeIndex, futureRefSurface);
             executedFilters.SetLinkedLayerIndex(executePipeIndex, pipeIndex);

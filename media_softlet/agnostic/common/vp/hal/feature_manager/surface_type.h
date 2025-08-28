@@ -126,10 +126,15 @@ enum SurfaceType
 
     // AI Kernel Common
     SurfaceTypeAiInput0                  = SurfaceTpyeHdrEnd + 0x100,
+    SurfaceTypeAiInputMax                = SurfaceTypeAiInput0 + SURFACETYPE_SIZE8,
     SurfaceTypeAiTarget0                 = SurfaceTpyeHdrEnd + 0x200,
-    SurfaceTypeAiEnd                     = SurfaceTpyeHdrEnd + 0x200,
+    SurfaceTypeAiPastInput0              = SurfaceTpyeHdrEnd + 0x300,
+    SurfaceTypeAiPastInputMax            = SurfaceTypeAiPastInput0 + SURFACETYPE_SIZE8,
+    SurfaceTypeAiFutureInput0            = SurfaceTpyeHdrEnd + 0x400,
+    SurfaceTypeAiFutureInputMax          = SurfaceTypeAiFutureInput0 + SURFACETYPE_SIZE8,
+    SurfaceTypeAiEnd                     = SurfaceTpyeHdrEnd + 0x500,
 
-    NumberOfSurfaceTypeBase              = SurfaceTypeAiEnd + 0x900,
+    NumberOfSurfaceTypeBase              = SurfaceTypeAiEnd + 0x100,
 
 #ifdef _MEDIA_RESERVED
     #include "surface_type_ext.h"

@@ -129,12 +129,15 @@ struct KRN_EXECUTE_ENV
     uint32_t uiSlmSize;
     bool     bRequireDisableEufusion;
     bool     bHasDPAS;
+    uint32_t uiRequiredWorkGroupSize[3];
 };
 
 struct KRN_PER_THREAD_ARG_INFO
 {
     uint32_t packedLocalIdOffset = 0;
     uint32_t packedLocalIdSize   = 0;
+    uint32_t localIdOffset       = 0;
+    uint32_t localIdSize         = 0;
 };
 
 using SurfaceIndex = uint32_t;
