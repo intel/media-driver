@@ -37,9 +37,7 @@
 #include "encode_av1_vdenc_lpla_enc.h"
 #include "encode_av1_pipeline.h"
 #include "encode_av1_tile_xe2_hpm.h"
-#if _MEDIA_RESERVED
-#include "encode_av1_feature_ext.h"
-#endif  // !(_MEDIA_RESERVED)
+#include "encode_av1_rounding_table.h"
 
 namespace encode
 {
@@ -77,10 +75,9 @@ MOS_STATUS EncodeAv1VdencFeatureManagerXe2_Hpm::CreateFeatures(void *constSettin
     Av1EncodeAqm *encAqm = MOS_New(Av1EncodeAqm, this, m_allocator, m_hwInterface, constSettings);
     ENCODE_CHK_STATUS_RETURN(RegisterFeatures(Av1FeatureIDs::av1Aqm, encAqm, { Av1Pipeline::encodePreEncPacket }));
 
-#if _MEDIA_RESERVED
-    Av1ReservedFeature1* av1ReservedFeature1 = MOS_New(Av1ReservedFeature1, this, m_hwInterface, constSettings);
-    ENCODE_CHK_STATUS_RETURN(RegisterFeatures(Av1FeatureIDs::av1ReservedFeatureID2, av1ReservedFeature1, {Av1Pipeline::encodePreEncPacket}));
-#endif  // _MEDIA_RESERVED
+    Av1EncodeRoundingTable *encRoundingTable = MOS_New(Av1EncodeRoundingTable, this, m_hwInterface, constSettings);
+    MEDIA_CHK_NULL_RETURN(encRoundingTable);
+    ENCODE_CHK_STATUS_RETURN(RegisterFeatures(Av1FeatureIDs::av1LookupTableRounding, encRoundingTable, { Av1Pipeline::encodePreEncPacket }));
 
     Av1VdencPreEnc* av1Preenc = MOS_New(Av1VdencPreEnc, this, m_allocator, m_hwInterface, m_trackedBuf, m_recycleResource, constSettings);
     ENCODE_CHK_STATUS_RETURN(RegisterFeatures(FeatureIDs::preEncFeature, av1Preenc, { Av1Pipeline::encodePreEncPacket }, LIST_TYPE::ALLOW_LIST));

@@ -35,7 +35,7 @@ MOS_STATUS Av1BasicFeatureXe2_Hpm::Update(void *params)
     ENCODE_FUNC_CALL();
     ENCODE_CHK_NULL_RETURN(params);
     ENCODE_CHK_STATUS_RETURN(Av1BasicFeatureXe_Lpm_Plus_Base::Update(params));
-    if (m_roundingMethod == RoundingMethod::fixedRounding && m_av1SeqParams && m_av1SeqParams->ScenarioInfo == ESCENARIO_VIDEOCONFERENCE && m_av1SeqParams->GopRefDist == 1)
+    if (m_roundingMethod == RoundingMethod::fixedRounding)
     {
         m_roundingMethod = RoundingMethod::lookUpTableRounding;
     }
