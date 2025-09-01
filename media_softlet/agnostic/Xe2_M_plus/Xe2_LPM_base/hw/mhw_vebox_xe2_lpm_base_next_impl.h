@@ -2981,6 +2981,11 @@ public:
         // Setup Surface State
         auto& par = MHW_GETPAR_F(VEBOX_SURFACE_STATE)();
         par = {};
+        if (dwSurfaceWidth < 1 || dwSurfaceHeight < 1)
+        {
+            MHW_ASSERTMESSAGE("dwSurfaceWidth = %d, dwSurfaceHeight = %d should not less than 1", dwSurfaceWidth, dwSurfaceHeight);
+            return;
+        }
         par.SurfaceIdentification = bIsOutputSurface;
         par.SurfaceFormat         = dwFormat;
         par.Width                 = dwSurfaceWidth - 1;

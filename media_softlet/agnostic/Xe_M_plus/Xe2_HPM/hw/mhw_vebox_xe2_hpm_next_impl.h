@@ -3050,10 +3050,15 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
         // Setup Surface State
         auto& par = MHW_GETPAR_F(VEBOX_SURFACE_STATE)();
         par = {};
-        par.SurfaceIdentification = bIsOutputSurface;
-        par.SurfaceFormat         = dwFormat;
+        if (dwSurfaceWidth < 1 || dwSurfaceHeight < 1)
+        {
+            MHW_ASSERTMESSAGE("dwSurfaceWidth = %d, dwSurfaceHeight = %d should not less than 1", dwSurfaceWidth, dwSurfaceHeight);
+            return;
+        }
         par.Width                 = dwSurfaceWidth - 1;
         par.Height                = dwSurfaceHeight - 1;
+        par.SurfaceIdentification = bIsOutputSurface;
+        par.SurfaceFormat         = dwFormat;
         par.HalfPitchForChroma    = bHalfPitchForChroma;
         par.InterleaveChroma      = bInterleaveChroma;
         par.BayerInputAlignment   = bBayerInputAlignment;

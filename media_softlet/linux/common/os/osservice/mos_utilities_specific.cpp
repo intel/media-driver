@@ -1894,7 +1894,6 @@ int32_t MosUtilities::MosUserFeatureWaitForSingleObject(
             semop(semid, operation, 1);
             pCallback(Context, 0);
         }
-        exit(0);
     }
     else
     {

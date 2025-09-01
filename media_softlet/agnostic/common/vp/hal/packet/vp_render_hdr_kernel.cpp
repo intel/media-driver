@@ -826,6 +826,11 @@ MOS_STATUS VpRenderHdrKernel::VpHal_HdrCalcYuvToRgbMatrix(
     VpHal_HdrGetYuvRangeAndOffset(src, &Y_o, &Y_e, &C_z, &C_e);
 
     // after + (3x3)(3x3)
+    if (Y_e == 0.0f || C_e == 0.0f)
+    {
+        VP_RENDER_ASSERTMESSAGE("Y_e = %f and C_e = %f, should not be zero.", Y_e, C_e);
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
     pOutMatrix[0]  = pTransferMatrix[0] * R_e / Y_e;
     pOutMatrix[4]  = pTransferMatrix[4] * R_e / Y_e;
     pOutMatrix[8]  = pTransferMatrix[8] * R_e / Y_e;
@@ -989,6 +994,11 @@ MOS_STATUS VpRenderHdrKernel::VpHal_HdrCalcRgbToYuvMatrix(
     VpHal_HdrGetRgbRangeAndOffset(src, &R_o, &R_e);
     VpHal_HdrGetYuvRangeAndOffset(dst, &Y_o, &Y_e, &C_z, &C_e);
 
+    if (R_e == 0.0f )
+    {
+        VP_RENDER_ASSERTMESSAGE("R_e = %f  should not be zero.", R_e);
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
     // multiplication of + onwards
     pOutMatrix[0]  = pTransferMatrix[0] * Y_e / R_e;
     pOutMatrix[1]  = pTransferMatrix[1] * Y_e / R_e;
