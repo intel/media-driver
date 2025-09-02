@@ -60,7 +60,7 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS Render(
-        PCVPHAL_RENDER_PARAMS   pcRenderParams) = 0;
+        PCVPHAL_RENDER_PARAMS pcRenderParams) override;
 
     //!
     //! \brief    Allocate VP Resources
@@ -73,7 +73,7 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
     virtual MOS_STATUS Allocate(
-        const VpSettings *pVpHalSettings) = 0;
+        const VpSettings *pVpHalSettings) override;
 
     //!
     //! \brief    Get Status Report
@@ -86,7 +86,7 @@ public:
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     virtual MOS_STATUS GetStatusReport(
         PQUERY_STATUS_REPORT_APP  pQueryReport,
-        uint16_t                  numStatus) = 0;
+        uint16_t                 numStatus) override;
 
     //!
     //! \brief    Get feature reporting
@@ -94,7 +94,7 @@ public:
     //! \return   VphalFeatureReport*
     //!           Pointer to VPHAL_FEATURE_REPOR: rendering features reported
     //!
-    virtual VphalFeatureReport*       GetRenderFeatureReport() = 0;
+    virtual VphalFeatureReport *GetRenderFeatureReport() override;
 
     //!
     //! \brief  Finish the execution for each frame
@@ -104,13 +104,15 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS Execute(PVP_PIPELINE_PARAMS params) = 0;
+    virtual MOS_STATUS Execute(PVP_PIPELINE_PARAMS params);
 
     virtual void Destroy();
     virtual bool IsOclFCEnabled()
     {
         return m_vpPipeline->IsOclFCEnabled();
     }
+
+    virtual MOS_STATUS RegisterCacheSettings() override;
 
 protected:
     //!

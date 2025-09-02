@@ -236,10 +236,8 @@ public:
         return MOS_STATUS_UNIMPLEMENTED;
     }
     virtual MOS_STATUS        InitVpRenderHwCaps();
-    virtual VPFeatureManager *CreateFeatureChecker(_VP_MHWINTERFACE *hwInterface)
-    {
-        return nullptr;
-    }
+    virtual VPFeatureManager *CreateFeatureChecker(_VP_MHWINTERFACE *hwInterface);
+
     virtual VpCmdPacket *CreateVeboxPacket(MediaTask * task, _VP_MHWINTERFACE *hwInterface, VpAllocator *&allocator, VPMediaMemComp *mmc)
     {
         return nullptr;
