@@ -786,20 +786,26 @@ bool SwFilterHdrHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInp
         // Check if input/output gamma is same(TBD)
         // Check if input/output color space is same
         bool bColorSpaceConversion = true;
+
         if (IS_COLOR_SPACE_BT2020(pRenderTarget->ColorSpace) &&
             IS_COLOR_SPACE_BT2020(pSrc->ColorSpace))
         {
             bColorSpaceConversion = false;
         }
-        if ((pRenderTarget->ColorSpace == CSpace_sRGB || pRenderTarget->ColorSpace == CSpace_stRGB) &&
-            (pSrc->ColorSpace == CSpace_BT709 || pSrc->ColorSpace == CSpace_BT709_FullRange))
+        else if ((pRenderTarget->ColorSpace == CSpace_sRGB || pRenderTarget->ColorSpace == CSpace_stRGB) &&
+                (pSrc->ColorSpace == CSpace_BT709 || pSrc->ColorSpace == CSpace_BT709_FullRange))
         {
             bColorSpaceConversion = false;
         }
-        if ((pRenderTarget->ColorSpace == CSpace_sRGB || pRenderTarget->ColorSpace == CSpace_stRGB) &&
+        else if ((pRenderTarget->ColorSpace == CSpace_sRGB || pRenderTarget->ColorSpace == CSpace_stRGB) &&
             (pSrc->ColorSpace == CSpace_BT601 || pSrc->ColorSpace == CSpace_BT601_FullRange))
         {
             bColorSpaceConversion = false;
+        }
+        else if (IS_RGB32_FORMAT(pSrc->Format))
+        {
+            bColorSpaceConversion = false;
+            // HDR pipe cannot be used for ARGB8 input.
         }
         bFP16HdrProcessing = bColorSpaceConversion;
     }

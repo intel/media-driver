@@ -846,6 +846,23 @@ public:
             }
             else
             {
+                // Program CCM as identity matrix
+                pIecpState->CcmState.DW0.ColorCorrectionMatrixEnable = false;
+                pIecpState->CcmState.DW1.C0                          = 0x400000;
+                pIecpState->CcmState.DW0.C1                          = 0;
+                pIecpState->CcmState.DW3.C2                          = 0;
+                pIecpState->CcmState.DW2.C3                          = 0;
+                pIecpState->CcmState.DW5.C4                          = 0x400000;
+                pIecpState->CcmState.DW4.C5                          = 0;
+                pIecpState->CcmState.DW7.C6                          = 0;
+                pIecpState->CcmState.DW6.C7                          = 0;
+                pIecpState->CcmState.DW8.C8                          = 0x400000;
+                pIecpState->CcmState.DW9.OffsetInR                   = 0;
+                pIecpState->CcmState.DW10.OffsetInG                  = 0;
+                pIecpState->CcmState.DW11.OffsetInB                  = 0;
+                pIecpState->CcmState.DW12.OffsetOutR                 = 0;
+                pIecpState->CcmState.DW13.OffsetOutG                 = 0;
+                pIecpState->CcmState.DW14.OffsetOutB                 = 0;
                 MHW_ASSERTMESSAGE("Unsupported Input Color Space!");
             }
         }
