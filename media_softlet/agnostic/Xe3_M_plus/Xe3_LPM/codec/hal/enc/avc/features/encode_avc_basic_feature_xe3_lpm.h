@@ -44,7 +44,10 @@ public:
 
     virtual ~AvcBasicFeatureXe3_Lpm() {}
 
+    virtual void UpdateMinMaxQp() override;
+
     MHW_SETPAR_DECL_HDR(VDENC_PIPE_MODE_SELECT);
+    MHW_SETPAR_DECL_HDR(VDENC_AVC_IMG_STATE);
 
 MEDIA_CLASS_DEFINE_END(encode__AvcBasicFeatureXe3_Lpm)
 };

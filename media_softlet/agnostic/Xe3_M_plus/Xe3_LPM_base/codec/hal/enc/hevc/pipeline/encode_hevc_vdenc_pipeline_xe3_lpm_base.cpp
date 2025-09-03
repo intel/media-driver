@@ -30,7 +30,7 @@
 #include "encode_hevc_vdenc_packet_xe3_lpm_base.h"
 #include "encode_huc_la_init_packet.h"
 #include "encode_huc_la_update_packet.h"
-#include "encode_huc_brc_init_packet.h"
+#include "encode_huc_brc_init_packet_xe3_lpm_base.h"
 #include "encode_huc_brc_update_packet.h"
 #include "encode_pak_integrate_packet.h"
 #include "encode_status_report_defs.h"
@@ -79,7 +79,7 @@ MOS_STATUS HevcVdencPipelineXe3_Lpm_Base::Init(void *settings)
     ENCODE_CHK_STATUS_RETURN(RegisterPacket(HucLaUpdate, laUpdatepkt));
     ENCODE_CHK_STATUS_RETURN(laUpdatepkt->Init());
 
-    HucBrcInitPkt *brcInitpkt = MOS_New(HucBrcInitPkt, this, task, m_hwInterface);
+    HucBrcInitPkt *brcInitpkt = MOS_New(HucBrcInitPktXe3_Lpm_Base, this, task, m_hwInterface);
     ENCODE_CHK_STATUS_RETURN(RegisterPacket(HucBrcInit, brcInitpkt));
     ENCODE_CHK_STATUS_RETURN(brcInitpkt->Init());
 

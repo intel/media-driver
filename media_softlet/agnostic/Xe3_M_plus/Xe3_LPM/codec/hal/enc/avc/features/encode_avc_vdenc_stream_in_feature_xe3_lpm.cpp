@@ -25,7 +25,7 @@
 //!
 
 #include "encode_avc_vdenc_stream_in_feature_xe3_lpm.h"
-#include "encode_avc_brc.h"
+#include "encode_avc_brc_xe3_lpm.h"
 #include "media_avc_feature_defs.h"
 
 namespace encode
@@ -49,7 +49,7 @@ MHW_SETPAR_DECL_SRC(VDENC_AVC_IMG_STATE, AvcVdencStreamInFeatureXe3_Lpm)
 {
     auto picParams = m_basicFeature->m_picParam;
 
-    auto brcFeature = dynamic_cast<AvcEncodeBRC*>(m_featureManager->GetFeature(AvcFeatureIDs::avcBrcFeature));
+    auto brcFeature = dynamic_cast<AvcEncodeBRCXe3_Lpm*>(m_featureManager->GetFeature(AvcFeatureIDs::avcBrcFeature));
     ENCODE_CHK_NULL_RETURN(brcFeature);
 
     params.roiEnable             = m_enabled && picParams->EnableRollingIntraRefresh == ROLLING_I_DISABLED &&

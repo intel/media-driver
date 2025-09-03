@@ -21,6 +21,7 @@
 if ("${AVC_Encode_VDEnc_Supported}" STREQUAL "yes")
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/encode_avc_basic_feature_xe3_lpm.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/encode_avc_brc_xe3_lpm.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_avc_vdenc_feature_manager_xe3_lpm.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_avc_vdenc_const_settings_xe3_lpm.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_avc_vdenc_stream_in_feature_xe3_lpm.cpp
@@ -29,6 +30,7 @@ set(TMP_SOURCES_
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/encode_avc_vdenc_const_settings_xe3_lpm_open.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_avc_basic_feature_xe3_lpm.h
+    ${CMAKE_CURRENT_LIST_DIR}/encode_avc_brc_xe3_lpm.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_avc_vdenc_feature_manager_xe3_lpm.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_avc_vdenc_const_settings_xe3_lpm.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_avc_vdenc_stream_in_feature_xe3_lpm.h

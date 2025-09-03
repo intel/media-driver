@@ -23,10 +23,12 @@
 if("${HEVC_Encode_VDEnc_Supported}" STREQUAL "yes")
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_packet_xe3_lpm_base.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/encode_huc_brc_init_packet_xe3_lpm_base.cpp
 )
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_packet_xe3_lpm_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/encode_huc_brc_init_packet_xe3_lpm_base.h
 )
 
 set(SOFTLET_ENCODE_HEVC_HEADERS_

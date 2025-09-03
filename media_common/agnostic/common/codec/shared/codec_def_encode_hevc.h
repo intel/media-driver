@@ -35,6 +35,7 @@
 #define CODEC_NUM_REF_FRAME_HEVC_WP         3       // number of reference frames used for weighted prediction
 #define CODEC_HEVC_MAX_QP                   51
 #define CODEC_HEVC_MIN_QP_LP                10
+#define CODEC_HEVC_MIN_QP1                  1
 #define HEVC_NUM_MAX_TILE_ROW               22
 #define HEVC_NUM_MAX_TILE_COLUMN            20
 #define CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6  600

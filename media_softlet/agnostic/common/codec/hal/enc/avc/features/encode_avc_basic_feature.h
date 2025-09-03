@@ -244,7 +244,7 @@ protected:
     MOS_STATUS SetSequenceStructs();
     MOS_STATUS SetPictureStructs();
     MOS_STATUS UpdateSeiParameters(EncoderParams* params);
-    void UpdateMinMaxQp();
+    virtual void UpdateMinMaxQp();
     int32_t GetMaxMBPS(uint8_t levelIdc);
     MOS_STATUS SetSliceStructs();
     void CheckResolutionChange();

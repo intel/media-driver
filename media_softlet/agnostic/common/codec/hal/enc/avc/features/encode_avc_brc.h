@@ -170,7 +170,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SetDmemForInit(void *params);
+    virtual MOS_STATUS SetDmemForInit(void *params);
 
     //!
     //! \brief  Set Dmem buffer for brc update

@@ -31,7 +31,7 @@
 #include "encode_avc_vdenc_cqp_roi_feature.h"
 #include "encode_avc_vdenc_brc_roi_feature.h"
 #include "encode_avc_vdenc_weighted_prediction.h"
-#include "encode_avc_brc.h"
+#include "encode_avc_brc_xe3_lpm.h"
 #include "encode_avc_trellis.h"
 #include "encode_avc_rounding.h"
 #include "media_avc_feature_defs.h"
@@ -71,7 +71,7 @@ MOS_STATUS EncodeAvcVdencFeatureManagerXe3_Lpm::CreateFeatures(void *constSettin
     AvcEncodeRounding *rounding = MOS_New(AvcEncodeRounding, this, m_allocator, m_hwInterface, constSettings);
     ENCODE_CHK_STATUS_RETURN(RegisterFeatures(AvcFeatureIDs::avcRoundingFeature, rounding, {AvcVdencPipeline::encodePreEncPacket}));
 
-    AvcEncodeBRC *brc = MOS_New(AvcEncodeBRC, this, m_allocator, m_hwInterface, constSettings);
+    AvcEncodeBRC *brc = MOS_New(AvcEncodeBRCXe3_Lpm, this, m_allocator, m_hwInterface, constSettings);
     ENCODE_CHK_STATUS_RETURN(RegisterFeatures(AvcFeatureIDs::avcBrcFeature, brc, {AvcVdencPipeline::encodePreEncPacket}));
 
     AvcVdencRoiInterface::SupportedModes supportedRoiModes;

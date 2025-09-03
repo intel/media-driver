@@ -20,36 +20,33 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     encode_hevc_basic_feature_xe3_lpm_base.cpp
-//! \brief    Defines the common interface for encode hevc Xe3_LPM base parameter
+//! \file     encode_avc_brc_xe3_lpm.h
+//! \brief    Defines the common interface for encode avc Xe3_LPM brc
 //!
+#ifndef __ENCODE_AVC_BRC_XE3_LPM_H__
+#define __ENCODE_AVC_BRC_XE3_LPM_H__
 
-#include "encode_hevc_basic_feature_xe3_lpm_base.h"
+#include "encode_avc_brc.h"
 
 namespace encode
 {
 
-MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, HevcBasicFeatureXe3_Lpm_Base)
+class AvcEncodeBRCXe3_Lpm : public AvcEncodeBRC
 {
-    ENCODE_CHK_STATUS_RETURN(HevcBasicFeature::MHW_SETPAR_F(VDENC_PIPE_MODE_SELECT)(params));
+public:
+    AvcEncodeBRCXe3_Lpm(MediaFeatureManager *featureManager,
+        EncodeAllocator                     *allocator,
+        CodechalHwInterfaceNext             *hwInterface,
+        void                                *constSettings) 
+        : AvcEncodeBRC(featureManager, allocator, hwInterface, constSettings) {}
 
-    params.chromaPrefetchDisable = m_chromaPrefetchDisable;
+    virtual ~AvcEncodeBRCXe3_Lpm() = default;
 
-    params.verticalShift32Minus1 = 0;
-    params.numVerticalReqMinus1  = 11;
-    return MOS_STATUS_SUCCESS;
-}
+    virtual MOS_STATUS SetDmemForInit(void *params) override;
 
-MHW_SETPAR_DECL_SRC(VDENC_CMD2, HevcBasicFeatureXe3_Lpm_Base)
-{
-    ENCODE_CHK_STATUS_RETURN(HevcBasicFeature::MHW_SETPAR_F(VDENC_CMD2)(params));
-
-    if (m_hevcSeqParams->RateControlMethod == RATECONTROL_VBR)
-    {
-        params.minQp = m_hevcPicParams->BRCMinQp < CODEC_HEVC_MIN_QP1 ? CODEC_HEVC_MIN_QP1 : m_hevcPicParams->BRCMinQp;
-    }
-
-    return MOS_STATUS_SUCCESS;
-}
+MEDIA_CLASS_DEFINE_END(encode__AvcEncodeBRCXe3_Lpm)
+};
 
 }  // namespace encode
+
+#endif  // !__ENCODE_AVC_BRC_XE3_LPM_H__

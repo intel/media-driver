@@ -37,6 +37,7 @@
 
 #define CODEC_AVC_MAX_QP 51
 #define CODEC_AVC_MIN_QP_LP 10
+#define CODEC_AVC_MIN_QP1 1
 
 #define CODEC_AVC_NUM_WP_FRAME              8
 #define CODEC_AVC_MAX_FORWARD_WP_FRAME      6

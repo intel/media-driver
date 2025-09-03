@@ -29,6 +29,52 @@
 
 namespace encode
 {
+void AvcBasicFeatureXe3_Lpm::UpdateMinMaxQp()
+{
+    ENCODE_FUNC_CALL();
+
+    if (m_seqParam->RateControlMethod != RATECONTROL_VBR)
+    {
+        return AvcBasicFeature::UpdateMinMaxQp();
+    }
+
+    m_minMaxQpControlEnabled = true;
+    if (m_picParam->CodingType == I_TYPE)
+    {
+        m_iMaxQp = MOS_MIN(MOS_MAX(m_picParam->ucMaximumQP, CODEC_AVC_MIN_QP1), CODEC_AVC_MAX_QP);        // Clamp maxQP to [CODEC_AVC_MIN_QP1, CODEC_AVC_MAX_QP]
+        m_iMinQp = MOS_MIN(MOS_MAX(m_picParam->ucMinimumQP, CODEC_AVC_MIN_QP1), m_iMaxQp);  // Clamp minQP to [CODEC_AVC_MIN_QP1, maxQP] to make sure minQP <= maxQP
+        if (!m_pFrameMinMaxQpControl)
+        {
+            m_pMinQp = m_iMinQp;
+            m_pMaxQp = m_iMaxQp;
+        }
+        if (!m_bFrameMinMaxQpControl)
+        {
+            m_bMinQp = m_iMinQp;
+            m_bMaxQp = m_iMaxQp;
+        }
+    }
+    else if (m_picParam->CodingType == P_TYPE)
+    {
+        m_pFrameMinMaxQpControl = true;
+        m_pMaxQp                = MOS_MIN(MOS_MAX(m_picParam->ucMaximumQP, CODEC_AVC_MIN_QP1), CODEC_AVC_MAX_QP);        // Clamp maxQP to [CODEC_AVC_MIN_QP1, CODEC_AVC_MAX_QP]
+        m_pMinQp                = MOS_MIN(MOS_MAX(m_picParam->ucMinimumQP, CODEC_AVC_MIN_QP1), m_pMaxQp);  // Clamp minQP to [CODEC_AVC_MIN_QP1, maxQP] to make sure minQP <= maxQP
+        if (!m_bFrameMinMaxQpControl)
+        {
+            m_bMinQp = m_pMinQp;
+            m_bMaxQp = m_pMaxQp;
+        }
+    }
+    else  // B_TYPE
+    {
+        m_bFrameMinMaxQpControl = true;
+        m_bMaxQp                = MOS_MIN(MOS_MAX(m_picParam->ucMaximumQP, CODEC_AVC_MIN_QP1), CODEC_AVC_MAX_QP);        // Clamp maxQP to [CODEC_AVC_MIN_QP1, CODEC_AVC_MAX_QP]
+        m_bMinQp                = MOS_MIN(MOS_MAX(m_picParam->ucMinimumQP, CODEC_AVC_MIN_QP1), m_bMaxQp);  // Clamp minQP to [CODEC_AVC_MIN_QP1, maxQP] to make sure minQP <= maxQP
+    }
+    // Zero out the QP values, so we don't update the AVCState settings until new values are sent in MiscParamsRC
+    m_picParam->ucMinimumQP = 0;
+    m_picParam->ucMaximumQP = 0;
+}
 
 MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, AvcBasicFeatureXe3_Lpm)
 {
@@ -43,6 +89,19 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, AvcBasicFeatureXe3_Lpm)
     params.verticalShift32Minus1   = 0;
     params.numVerticalReqMinus1    = 11;
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MHW_SETPAR_DECL_SRC(VDENC_AVC_IMG_STATE, AvcBasicFeatureXe3_Lpm)
+{
+    ENCODE_FUNC_CALL();
+
+    if (m_seqParam->RateControlMethod == RATECONTROL_VBR)
+    {
+        params.minQp = CODEC_AVC_MIN_QP1; // set init minQp to CODEC_AVC_MIN_QP1
+    }
+    
+    AvcBasicFeature::MHW_SETPAR_F(VDENC_AVC_IMG_STATE)(params);
     return MOS_STATUS_SUCCESS;
 }
 

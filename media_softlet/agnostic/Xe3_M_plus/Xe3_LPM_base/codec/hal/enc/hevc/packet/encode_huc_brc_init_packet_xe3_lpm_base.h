@@ -20,36 +20,27 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     encode_hevc_basic_feature_xe3_lpm_base.cpp
-//! \brief    Defines the common interface for encode hevc Xe3_LPM base parameter
+//! \file     encode_huc_brc_init_packet_xe3_lpm_base.h
+//! \brief    Defines the implementation of huc init packet Xe3 LPM Base
 //!
 
-#include "encode_hevc_basic_feature_xe3_lpm_base.h"
+#ifndef __ENCODE_HUC_BRC_INIT_XE3_LPM_BASE_H__
+#define __ENCODE_HUC_BRC_INIT_XE3_LPM_BASE_H__
+
+#include "encode_huc_brc_init_packet.h"
 
 namespace encode
 {
-
-MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, HevcBasicFeatureXe3_Lpm_Base)
+class HucBrcInitPktXe3_Lpm_Base : public HucBrcInitPkt
 {
-    ENCODE_CHK_STATUS_RETURN(HevcBasicFeature::MHW_SETPAR_F(VDENC_PIPE_MODE_SELECT)(params));
+public:
+    HucBrcInitPktXe3_Lpm_Base(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext *hwInterface) : HucBrcInitPkt(pipeline, task, hwInterface) {}
 
-    params.chromaPrefetchDisable = m_chromaPrefetchDisable;
+    virtual MOS_STATUS SetDmemBuffer() const override;
 
-    params.verticalShift32Minus1 = 0;
-    params.numVerticalReqMinus1  = 11;
-    return MOS_STATUS_SUCCESS;
+MEDIA_CLASS_DEFINE_END(encode__HucBrcInitPktXe3_Lpm_Base)
+};
+
 }
 
-MHW_SETPAR_DECL_SRC(VDENC_CMD2, HevcBasicFeatureXe3_Lpm_Base)
-{
-    ENCODE_CHK_STATUS_RETURN(HevcBasicFeature::MHW_SETPAR_F(VDENC_CMD2)(params));
-
-    if (m_hevcSeqParams->RateControlMethod == RATECONTROL_VBR)
-    {
-        params.minQp = m_hevcPicParams->BRCMinQp < CODEC_HEVC_MIN_QP1 ? CODEC_HEVC_MIN_QP1 : m_hevcPicParams->BRCMinQp;
-    }
-
-    return MOS_STATUS_SUCCESS;
-}
-
-}  // namespace encode
+#endif  //__ENCODE_HUC_BRC_INIT_XE3_LPM_BASE_H__
