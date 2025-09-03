@@ -295,6 +295,17 @@ public:
     }
 
     //!
+    //! \brief    Get aqm interface
+    //! \details  Get aqm interface in codechal hw interface next
+    //!
+    //! \return    pointer to new aqm interface
+    //!
+    inline std::shared_ptr<mhw::vdbox::aqm::Itf> GetAqmInterfaceNext()
+    {
+        return m_aqmItf;
+    }
+
+    //!
     //! \brief    Get Os interface
     //! \details  Get Os interface in codechal hw interface
     //!
@@ -1004,6 +1015,7 @@ protected:
     std::shared_ptr<mhw::render::Itf>        m_renderItf   = nullptr;      //!< Pointer to render interface
     std::shared_ptr<MediaSfcInterface>       m_mediaSfcItf = nullptr;      //!< Pointer to Media sfc interface
     std::shared_ptr<mhw::vdbox::vvcp::Itf>   m_vvcpItf     = nullptr;
+    std::shared_ptr<mhw::vdbox::aqm::Itf>    m_aqmItf      = nullptr;
     // States
     PMOS_INTERFACE       m_osInterface;  //!< Pointer to OS interface
 

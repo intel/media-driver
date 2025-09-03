@@ -44,6 +44,7 @@ CodechalHwInterfaceNext::CodechalHwInterfaceNext(
     m_mfxItf   = mhwInterfacesNext->m_mfxItf;
     m_renderItf = mhwInterfacesNext->m_renderItf;
     m_vvcpItf  = mhwInterfacesNext->m_vvcpItf;
+    m_aqmItf    = mhwInterfacesNext->m_aqmItf;
 
     CODEC_HW_ASSERT(osInterface);
     m_osInterface = osInterface;
