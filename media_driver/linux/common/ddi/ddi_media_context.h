@@ -100,6 +100,9 @@ struct DDI_MEDIA_CONTEXT
     MEDIA_MUTEX_T       ProtMutex      = {};
     MEDIA_MUTEX_T       CmMutex        = {};
     MEDIA_MUTEX_T       MfeMutex       = {};
+//todo: #if VA_CHECK_VERSION(1, 9, 0)
+    MEDIA_MUTEX_T       SyncFenceMutex = {};
+//#endif
 
     // GT system Info
     MEDIA_SYSTEM_INFO  *pGtSystemInfo           = nullptr;
