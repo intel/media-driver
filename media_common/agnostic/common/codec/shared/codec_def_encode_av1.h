@@ -254,7 +254,9 @@ typedef struct _CODEC_AV1_ENCODE_SEQUENCE_PARAMS
             uint32_t    HierarchicalFlag        : 1; 
             uint32_t    RGBInputStudioRange     : 1;    // [0, 1]
             uint32_t    ConvertedYUVStudioRange : 1;    // [0, 1]
-            uint32_t    Reserved0               : 24;
+            uint32_t    EnableFastPass          : 1;    // [0, 1]
+            uint32_t    LADsRatio               : 2;    // [0..2]
+            uint32_t    Reserved0               : 21;
         } fields;
         uint32_t    value;
     } SeqFlags;

@@ -343,7 +343,8 @@ namespace encode
             dmem->UPD_EnableCDEFUpdate = 0;
             dmem->UPD_EnableLFUpdate   = 0;
         }
-        dmem->UPD_QMatrixEnabled = m_basicFeature->m_av1PicParams->wQMatrixFlags.fields.using_qmatrix;
+        dmem->UPD_QMatrixEnabled = picParams->wQMatrixFlags.fields.using_qmatrix;
+        dmem->UPD_LADsRatio      = seqParams->SeqFlags.fields.LADsRatio;
 
         return MOS_STATUS_SUCCESS;
     }

@@ -146,7 +146,8 @@ namespace encode
         uint8_t     UPD_AdaptiveTUEnabled;
         uint8_t     UPD_EnableDeltaQP;
         uint8_t     UPD_QMatrixEnabled;
-        uint8_t     RSVD8[59];
+        uint8_t     UPD_LADsRatio;
+        uint8_t     RSVD8[58];
     };
 
     typedef struct _HUC_MODE_COST
