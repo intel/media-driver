@@ -248,7 +248,7 @@ protected:
     //! \brief    VDENC Compute BRC Init QP..
     //! \return   initQP
     //!
-    int32_t ComputeBRCInitQP();
+    int32_t ComputeBRCInitQP(uint16_t framesFieldsPer100Sec);
 
     MOS_STATUS DeltaQPUpdate(uint8_t qpModulationStrength, bool bIsLastPass);
 

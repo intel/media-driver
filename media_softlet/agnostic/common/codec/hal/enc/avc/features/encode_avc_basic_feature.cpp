@@ -450,9 +450,28 @@ MOS_STATUS AvcBasicFeature::SetPictureStructs()
         m_lastPicInSeq = m_lastPicInStream = 0;
     }
 
-    m_frameFieldHeight     = m_frameHeight;
-    m_frameFieldHeightInMb = m_picHeightInMb;
-    m_firstField           = 1;
+    // see implementation in CodechalEncodeAvcBase::SetPictureStructs()
+    if (picParams->FieldCodingFlag == 1)
+    {
+        m_frameFieldHeight     = ((m_frameHeight + 1) >> 1);
+        m_frameFieldHeightInMb = ((m_picHeightInMb + 1) >> 1);
+        
+        if (CodecHal_PictureIsFrame(prevPic) || prevIdx != currIdx ||
+            ((prevPic.PicFlags != currPic.PicFlags) && !(slcParams->pic_order_cnt_lsb & 1)))
+        {
+            m_firstField = 1;
+        }
+        else
+        {
+            m_firstField = 0;
+        }
+    }
+    else
+    {
+        m_frameFieldHeight     = m_frameHeight;
+        m_frameFieldHeightInMb = m_picHeightInMb;
+        m_firstField = 1;
+    }
 
     seqParams->mb_adaptive_frame_field_flag = 0;
     m_mbaffEnabled                          = 0;
@@ -465,9 +484,9 @@ MOS_STATUS AvcBasicFeature::SetPictureStructs()
     }
     m_prevTargetFrameSize = picParams->TargetFrameSize;
 
-    if (picParams->FieldCodingFlag || picParams->FieldFrameCodingFlag)
+    if (picParams->FieldFrameCodingFlag)
     {
-        ENCODE_ASSERTMESSAGE("VDEnc does not support interlaced picture\n");
+        ENCODE_ASSERTMESSAGE("VDEnc does not support Field-Frame coding\n");
         eStatus = MOS_STATUS_INVALID_PARAMETER;
         return eStatus;
     }
@@ -973,7 +992,19 @@ MOS_STATUS AvcBasicFeature::GetTrackedBuffers()
     ENCODE_CHK_NULL_RETURN(m_allocator);
 
     auto currRefList = m_ref->GetCurrRefList();
-    ENCODE_CHK_STATUS_RETURN(m_trackedBuf->Acquire(currRefList, false));
+
+    // when encoding fields only Acquire the first field, or else encoder will hang
+    if (CodecHal_PictureIsTopField(m_currOriginalPic) || CodecHal_PictureIsBottomField(m_currOriginalPic))
+    {
+        if (m_firstField)
+        {
+            ENCODE_CHK_STATUS_RETURN(m_trackedBuf->Acquire(currRefList, false));
+        }
+    }
+    else
+    {
+        ENCODE_CHK_STATUS_RETURN(m_trackedBuf->Acquire(currRefList, false));
+    }
 
     m_resMbCodeBuffer = m_trackedBuf->GetBuffer(BufferType::mbCodedBuffer, m_trackedBuf->GetCurrIndex());
     ENCODE_CHK_NULL_RETURN(m_resMbCodeBuffer);
@@ -1297,6 +1328,19 @@ MHW_SETPAR_DECL_SRC(VDENC_AVC_IMG_STATE, AvcBasicFeature)
 
     params.pictureHeightMinusOne = m_picHeightInMb - 1;
     params.pictureWidth          = m_picWidthInMb;
+
+    if (m_picParam->FieldCodingFlag) {
+        params.plAdaptFrameField = 1;
+        params.currFrmFldPic = 1;
+        if (m_picParam->CurrOriginalPic.PicFlags == PICTURE_TOP_FIELD)
+            params.curPicType = 2;
+        else
+            params.curPicType = 3;
+    } else {
+        params.plAdaptFrameField = 0;
+        params.currFrmFldPic = 0;
+        params.curPicType = 0;
+    }
 
     ENCODE_CHK_STATUS_RETURN(m_ref->MHW_SETPAR_F(VDENC_AVC_IMG_STATE)(params));
 
