@@ -1164,6 +1164,12 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, AvcBasicFeature)
     params.VdencPipeModeSelectPar1 = par1table[m_seqParam->TargetUsage - 1];
     params.VdencPipeModeSelectPar0 = 1;
 
+    if (m_seqParam->EnableStreamingBufferLLC || m_seqParam->EnableStreamingBufferDDR)
+    {
+        params.streamingBufferConfig = 1; // STREAMING_BUFFER_64
+        params.captureMode           = 2; // CAPTURE_MODE_PARALLEFROMCAMERAPIPE
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 

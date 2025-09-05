@@ -120,7 +120,7 @@ public:
     bool IsAvcPSlice(uint8_t sliceType) const;
     bool IsAvcBSlice(uint8_t sliceType) const;
 
-    MHW_SETPAR_DECL_HDR(VDENC_PIPE_MODE_SELECT);
+    virtual MHW_SETPAR_DECL_HDR(VDENC_PIPE_MODE_SELECT);
 
     MHW_SETPAR_DECL_HDR(VDENC_SRC_SURFACE_STATE);
 
