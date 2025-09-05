@@ -537,7 +537,7 @@ MOS_STATUS VpRenderHdr3DLutKernelCM::GetCurbeState(void *&curbe, uint32_t &curbe
 {
     VP_FUNC_CALL();
     curbeLength = 0;
-    for (auto arg : m_kernelArgs)
+    for (const auto &arg : m_kernelArgs)
     {
         curbeLength += arg.uSize;
     }
