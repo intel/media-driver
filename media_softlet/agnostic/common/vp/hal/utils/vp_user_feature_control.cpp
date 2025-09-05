@@ -34,7 +34,13 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatfor
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
     uint32_t compBypassMode = VPHAL_COMP_BYPASS_ENABLED;    // Vebox Comp Bypass is on by default
-    auto skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
+    MEDIA_FEATURE_TABLE* skuTable = nullptr;
+
+    if (m_osInterface->pfnGetSkuTable)
+    {
+        skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
+    }
+
 
     m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
     // Read user feature key to get the Composition Bypass mode
@@ -472,10 +478,13 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
     else
 #endif
     {
-        auto *waTable = m_osInterface->pfnGetWaTable(m_osInterface);
-        VP_PUBLIC_CHK_NULL_RETURN(waTable);
-        // Default value
-        m_ctrlValDefault.enableSFCLinearOutputByTileConvert = MEDIA_IS_WA(waTable, Wa_15016458807);
+        if (m_osInterface->pfnGetWaTable)
+        {
+            auto waTable = m_osInterface->pfnGetWaTable(m_osInterface);
+            VP_PUBLIC_CHK_NULL_RETURN(waTable);
+            // Default value
+            m_ctrlValDefault.enableSFCLinearOutputByTileConvert = MEDIA_IS_WA(waTable, Wa_15016458807);
+        }
     }
     VP_PUBLIC_NORMALMESSAGE("enableSFCLinearOutputByTileConvert value is set as %d.", m_ctrlValDefault.enableSFCLinearOutputByTileConvert);
 
@@ -498,9 +507,12 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
         // Do not set fallbackScalingToRender8K if render is disabled. This is for internal vesfc usage (e.g., 8k preenc) that should not fallback to render.
         if (m_vpPlatformInterface && !m_vpPlatformInterface->IsRenderDisabled())
         {
-            auto *waTable = m_osInterface->pfnGetWaTable(m_osInterface);
-            VP_PUBLIC_CHK_NULL_RETURN(waTable);
-            m_ctrlValDefault.fallbackScalingToRender8K = MEDIA_IS_WA(waTable, Wa_16025683853);
+            if (m_osInterface->pfnGetWaTable)
+            {
+                auto *waTable = m_osInterface->pfnGetWaTable(m_osInterface);
+                VP_PUBLIC_CHK_NULL_RETURN(waTable);
+                m_ctrlValDefault.fallbackScalingToRender8K = MEDIA_IS_WA(waTable, Wa_16025683853);
+            }
         }
     }
     VP_PUBLIC_NORMALMESSAGE("fallbackScalingToRender8K %d", m_ctrlValDefault.fallbackScalingToRender8K);

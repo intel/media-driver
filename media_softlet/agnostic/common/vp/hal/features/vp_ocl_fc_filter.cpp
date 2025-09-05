@@ -1913,6 +1913,7 @@ MOS_STATUS VpOclFcFilter::SetupSingleFcCommonStatefulSurface(uint32_t uIndex, bo
         {
             surfaceParam.surfType   = compParam.outputLayerParam.needIntermediaSurface ? SurfaceTypeFcIntermediaOutput : SurfaceTypeFcTarget0;
             surfaceParam.planeIndex = 1;
+            surfaceParam.isOutput   = 1;
         }
         break;
     default:

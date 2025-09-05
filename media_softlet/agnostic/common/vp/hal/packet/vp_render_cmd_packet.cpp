@@ -549,8 +549,12 @@ MOS_STATUS VpRenderCmdPacket::InitSurfMemCacheControl(VP_EXECUTE_CAPS packetCaps
 
     pSettings->bCompositing = packetCaps.bComposite;
     pSettings->bDnDi = true;
-    pSettings->bLace = MEDIA_IS_SKU(m_hwInterface->m_skuTable, FtrLace);
-    pSettings->bHdr  = MEDIA_IS_SKU(m_hwInterface->m_skuTable, FtrHDR);
+
+    if (m_hwInterface->m_skuTable)
+    {
+        pSettings->bLace = MEDIA_IS_SKU(m_hwInterface->m_skuTable, FtrLace);
+        pSettings->bHdr  = MEDIA_IS_SKU(m_hwInterface->m_skuTable, FtrHDR);
+    }
 
     VP_RENDER_CHK_STATUS_RETURN(InitFcMemCacheControl(pSettings));
 

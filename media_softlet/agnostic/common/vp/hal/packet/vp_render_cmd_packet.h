@@ -55,7 +55,7 @@ public:
 
     virtual MOS_STATUS SubmitWithMultiKernel(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket);
 
-    MOS_STATUS PacketInit(
+    virtual MOS_STATUS PacketInit(
         VP_SURFACE* inputSurface,
         VP_SURFACE* outputSurface,
         VP_SURFACE* previousSurface,

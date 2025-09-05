@@ -92,9 +92,11 @@ public:
 
         return MOS_STATUS_SUCCESS;
     }
-protected:
 
-    MOS_STATUS GetKernelInfo(std::string kernalName, uint32_t kuid, uint32_t &size, void *&kernel);
+    virtual MOS_STATUS GetKernelInfo(std::string kernalName, uint32_t kuid, uint32_t &size, void *&kernel);
+
+    virtual MOS_STATUS GetVpRenderKernel(std::string kernalName, VpRenderKernel &vpKernel);
+protected:
 
     MOS_STATUS FindAndInitKernelObj(VpRenderKernelObj* kernelObj);
 
