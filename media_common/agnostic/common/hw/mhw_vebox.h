@@ -399,18 +399,18 @@ typedef struct _MHW_LACE_PARAMS
 typedef struct _MHW_COLORPIPE_PARAMS
 {
     uint32_t            bActive;                    //!< Active or not
+    uint32_t            dwAceLevel;
+    uint32_t            dwAceStrength;
+    MHW_STE_PARAMS      SteParams;
+    MHW_STD_PARAMS      StdParams;
+    MHW_LACE_PARAMS     LaceParams;
+    MHW_TCC_PARAMS      TccParams;
     bool                bEnableACE;
     bool                bEnableSTE;
     bool                bEnableSTD;                 // vebox STD alone enabled or not
     bool                bEnableTCC;
     bool                bAceLevelChanged;
-    uint32_t            dwAceLevel;
-    uint32_t            dwAceStrength;
     bool                bEnableLACE;
-    MHW_STE_PARAMS      SteParams;
-    MHW_STD_PARAMS      StdParams;
-    MHW_TCC_PARAMS      TccParams;
-    MHW_LACE_PARAMS     LaceParams;
 } MHW_COLORPIPE_PARAMS, *PMHW_COLORPIPE_PARAMS;
 
 //!
@@ -625,10 +625,10 @@ typedef struct _MHW_CAPPIPE_PARAMS
 //!
 typedef struct _MHW_3DLUT_PARAMS
 {
+    uint8_t                 *pLUT;                      //!< Pointer to the LUT value
     uint32_t                bActive;                    //!< Active or not
     uint32_t                LUTSize;                    //!< Size (one dimensions) of the LUT
     uint32_t                LUTLength;                  //!< Length of the LUT, in unit of bit
-    uint8_t                 *pLUT;                      //!< Pointer to the LUT value
     MHW_3DLUT_INTERPOLATION InterpolationMethod;        //!< Vebox 3DLut interpolation method
 } MHW_3DLUT_PARAMS, *PMHW_3DLUT_PARAMS;
 
