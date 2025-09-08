@@ -73,6 +73,8 @@ CodechalHwInterfaceNext::CodechalHwInterfaceNext(
 
     m_disableScalability = disableScalability;
     m_userSettingPtr     = osInterface->pfnGetUserSettingInstance(osInterface);
+
+    InitMemoryObjectCacheSettings();
 }
 
 CodechalHwInterfaceNext::~CodechalHwInterfaceNext()
@@ -179,6 +181,18 @@ MOS_STATUS CodechalHwInterfaceNext::InitCacheabilityControlSettings(
 
     CODEC_HW_FUNCTION_ENTER;
 
+    CODEC_HW_CHK_STATUS_RETURN(InitMemoryObjectCacheSettings());
+    CODEC_HW_CHK_STATUS_RETURN(InitL3CacheSettings());
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterfaceNext::InitMemoryObjectCacheSettings()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODEC_HW_FUNCTION_ENTER;
+
     CODEC_HW_CHK_NULL_RETURN(m_osInterface);
 
     for (uint32_t i = MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC + 1; i < MOS_CODEC_RESOURCE_USAGE_END_CODEC; i++)
@@ -188,22 +202,6 @@ MOS_STATUS CodechalHwInterfaceNext::InitCacheabilityControlSettings(
     }
 
     SetCacheabilitySettings(m_cacheabilitySettings);
-
-    bool l3CachingEnabled = !m_osInterface->bSimIsActive;
-
-    if (m_checkBankCount)
-    {
-        CODEC_HW_CHK_NULL_RETURN(m_osInterface);
-        auto gtSysInfo = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
-        CODEC_HW_CHK_NULL_RETURN(gtSysInfo);
-
-        l3CachingEnabled = (gtSysInfo->L3BankCount != 0 || gtSysInfo->L3CacheSizeInKb != 0);
-    }
-
-    if (l3CachingEnabled)
-    {
-        InitL3CacheSettings();
-    }
 
     return eStatus;
 }
@@ -402,6 +400,11 @@ MOS_STATUS CodechalHwInterfaceNext::SetCacheabilitySettings(
     {
         CODEC_HW_CHK_STATUS_RETURN(m_vvcpItf->SetCacheabilitySettings(cacheabilitySettings));
     }
+    if (m_hucItf)
+    {
+        CODEC_HW_CHK_STATUS_RETURN(m_hucItf->SetCacheabilitySettings(cacheabilitySettings));
+    }
+
 
     return eStatus;
 }
@@ -1112,24 +1115,53 @@ MOS_STATUS CodechalHwInterfaceNext::InitL3CacheSettings()
 {
     CODEC_HW_FUNCTION_ENTER;
 
-    // Get default L3 cache settings
-    CODEC_HW_CHK_STATUS_RETURN(m_renderItf->EnableL3Caching(nullptr));
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODEC_HW_CHK_NULL_RETURN(m_osInterface);
+
+    for (uint32_t i = MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC + 1; i < MOS_CODEC_RESOURCE_USAGE_END_CODEC; i++)
+    {
+        CODEC_HW_CHK_STATUS_RETURN(CachePolicyGetMemoryObject(
+            (MOS_HW_RESOURCE_DEF)i));
+    }
+
+    SetCacheabilitySettings(m_cacheabilitySettings);
+
+    bool l3CachingEnabled = !m_osInterface->bSimIsActive;
+
+    if (m_checkBankCount)
+    {
+        CODEC_HW_CHK_NULL_RETURN(m_osInterface);
+        auto gtSysInfo = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
+        CODEC_HW_CHK_NULL_RETURN(gtSysInfo);
+
+        l3CachingEnabled = (gtSysInfo->L3BankCount != 0 || gtSysInfo->L3CacheSizeInKb != 0);
+    }
+
+    if (l3CachingEnabled)
+    {
+        if (m_renderItf)
+        {
+            // Get default L3 cache settings
+            CODEC_HW_CHK_STATUS_RETURN(m_renderItf->EnableL3Caching(nullptr));
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    // Override default L3 cache settings
-    auto l3CacheConfig =
-        m_renderItf->GetL3CacheConfig();
-    mhw::render::MHW_RENDER_ENGINE_L3_CACHE_SETTINGS l3Overrides = {};
-    l3Overrides.dwTcCntlReg =
-        static_cast<mhw::render::MHW_RENDER_ENGINE_L3_CACHE_CONFIG *>(l3CacheConfig)->dwL3CacheTcCntlReg_Setting;
-    l3Overrides.dwAllocReg =
-        static_cast<mhw::render::MHW_RENDER_ENGINE_L3_CACHE_CONFIG *>(l3CacheConfig)->dwL3CacheAllocReg_Setting;
-    CODEC_HW_CHK_STATUS_RETURN(InitL3ControlUserFeatureSettings(
-        l3CacheConfig,
-        &l3Overrides));
-    CODEC_HW_CHK_STATUS_RETURN(m_renderItf->EnableL3Caching(
-        &l3Overrides));
+            // Override default L3 cache settings
+            auto l3CacheConfig =
+                m_renderItf->GetL3CacheConfig();
+            mhw::render::MHW_RENDER_ENGINE_L3_CACHE_SETTINGS l3Overrides = {};
+            l3Overrides.dwTcCntlReg =
+                static_cast<mhw::render::MHW_RENDER_ENGINE_L3_CACHE_CONFIG *>(l3CacheConfig)->dwL3CacheTcCntlReg_Setting;
+            l3Overrides.dwAllocReg =
+                static_cast<mhw::render::MHW_RENDER_ENGINE_L3_CACHE_CONFIG *>(l3CacheConfig)->dwL3CacheAllocReg_Setting;
+            CODEC_HW_CHK_STATUS_RETURN(InitL3ControlUserFeatureSettings(
+                l3CacheConfig,
+                &l3Overrides));
+            CODEC_HW_CHK_STATUS_RETURN(m_renderItf->EnableL3Caching(
+                &l3Overrides));
 #endif  // (_DEBUG || _RELEASE_INTERNAL)
+        }
+    }
 
     return MOS_STATUS_SUCCESS;
 }

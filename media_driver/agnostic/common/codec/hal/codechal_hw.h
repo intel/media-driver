@@ -831,6 +831,15 @@ public:
         CODECHAL_FUNCTION codecFunction);
 
     //!
+    //! \brief    Init MemoryObject Cache Settings
+    //! \details  Init MemoryObject Cache Settings in codechal hw interface
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS InitMemoryObjectCacheSettings();
+
+    //!
     //! \brief    Init L3 Cache Settings
     //!
     //! \return   MOS_STATUS

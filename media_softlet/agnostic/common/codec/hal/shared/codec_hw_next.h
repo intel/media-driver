@@ -364,6 +364,16 @@ public:
     MOS_STATUS InitCacheabilityControlSettings(
         CODECHAL_FUNCTION codecFunction);
 
+
+    //!
+    //! \brief    Init MemoryObject Cache Settings
+    //! \details  Init MemoryObject Cache Settings in codechal hw interface
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS InitMemoryObjectCacheSettings();
+
     //!
     //! \brief    Get memory object of GMM Cacheability control settings
     //! \details  Internal function to get memory object of GMM Cacheability control settings

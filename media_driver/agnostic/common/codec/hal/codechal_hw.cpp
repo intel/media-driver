@@ -75,6 +75,8 @@ CodechalHwInterface::CodechalHwInterface(
     MOS_ZeroMemory(&m_dummyStreamIn, sizeof(m_dummyStreamIn));
     MOS_ZeroMemory(&m_dummyStreamOut, sizeof(m_dummyStreamOut));
     MOS_ZeroMemory(&m_conditionalBbEndDummy, sizeof(m_conditionalBbEndDummy));
+
+    InitMemoryObjectCacheSettings();
 }
 
 CodechalHwInterface *CodechalHwInterface::Create(
@@ -143,6 +145,18 @@ MOS_STATUS CodechalHwInterface::InitCacheabilityControlSettings(
 
     CODECHAL_HW_FUNCTION_ENTER;
 
+    CODECHAL_HW_CHK_STATUS_RETURN(InitMemoryObjectCacheSettings());
+    CODECHAL_HW_CHK_STATUS_RETURN(InitL3CacheSettings());
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterface::InitMemoryObjectCacheSettings()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
     CODECHAL_HW_CHK_NULL_RETURN(m_osInterface);
 
     for (uint32_t i = MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC + 1; i < MOS_CODEC_RESOURCE_USAGE_END_CODEC; i++)
@@ -152,6 +166,17 @@ MOS_STATUS CodechalHwInterface::InitCacheabilityControlSettings(
     }
 
     SetCacheabilitySettings(m_cacheabilitySettings);
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterface::InitL3CacheSettings()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODECHAL_HW_FUNCTION_ENTER;
+
+    CODECHAL_HW_CHK_NULL_RETURN(m_osInterface);
 
     // This code needs to be removed
     PMHW_MEMORY_OBJECT_CONTROL_PARAMS cacheabilitySettings = &m_cacheabilitySettings[0];
@@ -177,29 +202,24 @@ MOS_STATUS CodechalHwInterface::InitCacheabilityControlSettings(
 
     if (l3CachingEnabled)
     {
-        InitL3CacheSettings();
-    }
-
-    return eStatus;
-}
-
-MOS_STATUS CodechalHwInterface::InitL3CacheSettings()
-{
-
-        // Get default L3 cache settings
-        CODECHAL_HW_CHK_STATUS_RETURN(m_renderInterface->EnableL3Caching(nullptr));
+        if (m_renderInterface)
+        {
+            // Get default L3 cache settings
+            CODECHAL_HW_CHK_STATUS_RETURN(m_renderInterface->EnableL3Caching(nullptr));
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-        // Override default L3 cache settings
-        auto l3CacheConfig =
-            m_renderInterface->GetL3CacheConfig();
-        MHW_RENDER_ENGINE_L3_CACHE_SETTINGS l3Overrides;
-        CODECHAL_HW_CHK_STATUS_RETURN(InitL3ControlUserFeatureSettings(
-            l3CacheConfig,
-            &l3Overrides));
-        CODECHAL_HW_CHK_STATUS_RETURN(m_renderInterface->EnableL3Caching(
-            &l3Overrides));
-#endif // (_DEBUG || _RELEASE_INTERNAL)
+            // Override default L3 cache settings
+            auto l3CacheConfig =
+                m_renderInterface->GetL3CacheConfig();
+            MHW_RENDER_ENGINE_L3_CACHE_SETTINGS l3Overrides;
+            CODECHAL_HW_CHK_STATUS_RETURN(InitL3ControlUserFeatureSettings(
+                l3CacheConfig,
+                &l3Overrides));
+            CODECHAL_HW_CHK_STATUS_RETURN(m_renderInterface->EnableL3Caching(
+                &l3Overrides));
+#endif  // (_DEBUG || _RELEASE_INTERNAL)
+        }
+    }
 
     return MOS_STATUS_SUCCESS;
 }
