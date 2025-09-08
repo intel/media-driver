@@ -1642,7 +1642,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG12::AddMfxAvcDirectmodeCmd(
             m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_DIRECTMV_BUFFER_CODEC].Value;
     }
 
-    bool dmvPresent[CODEC_MAX_NUM_REF_FRAME] = { false };
+    bool dmvPresent[CODEC_AVC_NUM_REF_DMV_BUFFERS] = { false };
     for (auto i = 0; i < CODEC_MAX_NUM_REF_FRAME; i++)
     {
         if (params->pAvcPicIdx[i].bValid)

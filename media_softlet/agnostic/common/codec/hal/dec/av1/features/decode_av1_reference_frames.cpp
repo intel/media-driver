@@ -235,10 +235,6 @@ namespace decode
         DECODE_FUNC_CALL();
 
         // override internal reference list with anchor_frame_list passed from APP
-        if (picParams.m_anchorFrameNum > CODECHAL_MAX_DPB_NUM_LST_AV1)
-        {
-            return MOS_STATUS_INVALID_PARAMETER;
-        }
         for (auto i = 0; i < picParams.m_anchorFrameNum; i++)
         {
             DECODE_CHK_STATUS(m_allocator->GetSurfaceInfo(&picParams.m_anchorFrameList[i]));

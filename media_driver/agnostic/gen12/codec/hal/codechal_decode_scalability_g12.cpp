@@ -1367,7 +1367,7 @@ MOS_STATUS CodecHalDecodeScalability_SetSfcState(
         {
             const uint32_t one_by_sf_fraction_precision = 19;
             const uint32_t beta_precision = 5;
-            uint32_t xPhaseShift = MOS_CLAMP_MIN_MAX(MOS_F_ROUND((((double)srcRegion->m_width / dstRegion->m_width - 1.0) / 2.0) * 524288.0F), -(1 << (4 + 19)), ((1 << (4 + 19)) - 1));
+            double xPhaseShift = MOS_CLAMP_MIN_MAX(MOS_F_ROUND((((double)srcRegion->m_width / dstRegion->m_width - 1.0) / 2.0) * 524288.0F), -(1 << (4 + 19)), ((1 << (4 + 19)) - 1));
 
             double tempDestCntx = (((double)scalabilityState->dstXLandingCount * (double)oneBySf) + xPhaseShift);
             if (tempDestCntx < 0)

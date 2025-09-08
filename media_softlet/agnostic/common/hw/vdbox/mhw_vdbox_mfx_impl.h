@@ -970,7 +970,7 @@ protected:
             InitMocsParams(resourceParams, &cmd.DirectMvBufferAttributes.DW0.Value, 1, 6);
         }
 
-        bool dmvPresent[CODEC_MAX_NUM_REF_FRAME] = { false };
+        bool dmvPresent[CODEC_AVC_NUM_REF_DMV_BUFFERS] = { false };
         for (auto i = 0; i < CODEC_MAX_NUM_REF_FRAME; i++)
         {
             if (params.pAvcPicIdx[i].bValid)
