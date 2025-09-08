@@ -392,7 +392,7 @@ struct _MHW_PAR_T(VDENC_AVC_IMG_STATE)
     uint8_t  intraRefreshMbSizeMinusOne             = 0;
     uint8_t  intraRefreshEnableRollingIEnable       = 0;
     uint8_t  intraRefreshMode                       = 0;
-    uint8_t  qpAdjustmentForRollingI                = 0;
+    int8_t   qpAdjustmentForRollingI                = 0;
     uint8_t  roiQpAdjustmentForZone0                = 0;
     uint8_t  roiQpAdjustmentForZone1                = 0;
     uint8_t  roiQpAdjustmentForZone2                = 0;
