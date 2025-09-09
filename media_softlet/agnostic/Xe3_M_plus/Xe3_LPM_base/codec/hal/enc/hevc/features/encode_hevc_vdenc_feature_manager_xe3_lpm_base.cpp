@@ -34,6 +34,7 @@
 #if _KERNEL_RESERVED
 #include "encode_hevc_vdenc_saliency.h"
 #endif
+#include "encode_vdenc_hevc_height_padding.h"
 
 namespace encode
 {
@@ -99,6 +100,10 @@ MOS_STATUS EncodeHevcVdencFeatureManagerXe3_Lpm_Base::CreateFeatures(void *const
     HevcVdencSaliency *hevcSaliency = MOS_New(HevcVdencSaliency, this, m_allocator, m_hwInterface, constSettings);
     ENCODE_CHK_STATUS_RETURN(RegisterFeatures(FeatureIDs::saliencyFeature, hevcSaliency, {HevcPipeline::encodePreEncPacket}));
 #endif
+
+    HevcVdencHeightPadding *hevcHeightPadding = MOS_New(HevcVdencHeightPadding, this, m_allocator, m_hwInterface, constSettings);
+    ENCODE_CHK_STATUS_RETURN(RegisterFeatures(HevcFeatureIDs::hevcVdencHeightPaddingFeature, hevcHeightPadding));
+
     return MOS_STATUS_SUCCESS;
 }
 

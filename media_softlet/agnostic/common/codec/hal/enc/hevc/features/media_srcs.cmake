@@ -38,6 +38,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_preenc.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_aqm.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_vdenc_hevc_fastpass.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/encode_vdenc_hevc_height_padding.cpp
 )
 
 set(TMP_HEADERS_
@@ -58,6 +59,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_preenc.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_aqm.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_vdenc_hevc_fastpass.h
+    ${CMAKE_CURRENT_LIST_DIR}/encode_vdenc_hevc_height_padding.h
 )
 
 set(SOFTLET_ENCODE_HEVC_HEADERS_

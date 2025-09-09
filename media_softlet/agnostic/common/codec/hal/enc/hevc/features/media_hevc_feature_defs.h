@@ -46,6 +46,7 @@ struct HevcFeatureIDs : public FeatureIDs
         hevcVdencFastPassFeature,
         hevcAqm,
         hevcSaliencyFeature,
+        hevcVdencHeightPaddingFeature,
     };
 };
 
