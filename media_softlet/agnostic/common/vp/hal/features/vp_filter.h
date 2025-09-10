@@ -187,7 +187,7 @@ struct _SFC_CSC_PARAMS
 struct _SFC_ROT_MIR_PARAMS
 {
     VPHAL_ROTATION                  rotationMode;                               // Rotation mode -- 0, 90, 180 or 270
-    uint32_t                        mirrorType;                               // Mirror Type -- vert/horiz
+    int32_t                         mirrorType;                                 // Mirror Type -- vert/horiz
     bool                            bMirrorEnable;                              // Mirror mode -- enable/disable
 };
 
