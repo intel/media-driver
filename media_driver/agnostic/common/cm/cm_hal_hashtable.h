@@ -55,13 +55,13 @@ class CmHashTable
 {
 public:
     MOS_STATUS Init();
-    void Free();
+    void Free() const;
     MOS_STATUS Register(int32_t UniqID, int32_t CacheID, void  *pData);
     void*      Search(int32_t UniqID, int32_t CacheID, uint16_t &wSearchIndex);
     void*      Unregister(int32_t UniqID, int32_t CacheID);
 
 private:
-    uint16_t   SimpleHash(int32_t value);
+    static uint16_t SimpleHash(int32_t value);
     MOS_STATUS Extend();
     CM_HAL_COALESCED_HASH_TABLE m_hashTable;
 };
