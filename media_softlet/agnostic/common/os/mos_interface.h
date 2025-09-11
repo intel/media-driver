@@ -61,23 +61,6 @@ typedef struct _MOS_VIRTUALENGINE_SET_PARAMS  MOS_VIRTUALENGINE_SET_PARAMS, *PMO
 typedef struct _MOS_VIRTUALENGINE_INIT_PARAMS MOS_VIRTUALENGINE_INIT_PARAMS, *PMOS_VIRTUALENGINE_INIT_PARAMS;
 typedef struct _MOS_CMD_BUF_ATTRI_VE MOS_CMD_BUF_ATTRI_VE, *PMOS_CMD_BUF_ATTRI_VE;
 typedef struct _MHW_VDBOX_GPUNODE_LIMIT *PMHW_VDBOX_GPUNODE_LIMIT;
-#if !EMUL
-inline bool IsGMMMapped(GMM_CLIENT_CONTEXT *gmmClientContext, PADAPTER_INFO adapterInfo, GMM_RESOURCE_FLAG& flags)
-{
-    if (gmmClientContext                            &&
-        adapterInfo->SkuTable.FtrE2ECompression     &&
-        !adapterInfo->SkuTable.FtrFlatPhysCCS       &&
-        !adapterInfo->WaTable.WaAuxTable64KGranular &&
-        flags.Info.MediaCompressed)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-#endif
 class MosInterface
 {
 protected:
