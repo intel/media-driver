@@ -517,6 +517,11 @@ typedef union _MHW_MEMORY_OBJECT_CONTROL_PARAMS
         uint32_t : 25;
     } Gen9, Gen10, Gen11, Gen12, Gen12_5, Gen12_7;
     uint32_t       Value;
+
+    _MHW_MEMORY_OBJECT_CONTROL_PARAMS()
+    {
+        Value = 0;
+    }
 } MHW_MEMORY_OBJECT_CONTROL_PARAMS, * PMHW_MEMORY_OBJECT_CONTROL_PARAMS;
 
 typedef struct _MHW_RENDER_PWR_CLK_STATE_PARAMS
