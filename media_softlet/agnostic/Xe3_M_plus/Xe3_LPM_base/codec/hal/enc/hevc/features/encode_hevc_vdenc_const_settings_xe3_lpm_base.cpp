@@ -505,6 +505,25 @@ MOS_STATUS EncodeHevcVdencConstSettingsXe3_Lpm_Base::SetVdencCmd1Settings()
             return MOS_STATUS_SUCCESS;
         });
 
+    // CAE tuning for VC
+    setting->vdencCmd1Settings.emplace_back(
+        VDENC_CMD1_LAMBDA() {
+            if (m_hevcSeqParams->TargetUsage == 6 &&
+                m_hevcSeqParams->RateControlMethod == RATECONTROL_CQP &&
+                m_hevcSeqParams->ScenarioInfo == ESCENARIO_VIDEOCONFERENCE &&
+                (m_hevcPicParams->CodingType == P_TYPE || m_hevcPicParams->CodingType == B_TYPE))
+            {
+                    par.vdencCmd1Par4[9]  = 231;
+                    par.vdencCmd1Par10[0] = 15;
+                    par.vdencCmd1Par11[0] = 20;
+                    par.vdencCmd1Par15[0] = 36;
+                    par.vdencCmd1Par16    = 227;
+                    par.vdencCmd1Par86    = 62;
+            }
+
+            return MOS_STATUS_SUCCESS;
+        });
+
     return MOS_STATUS_SUCCESS;
 }
 
