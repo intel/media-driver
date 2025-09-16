@@ -88,8 +88,7 @@ static ProfileSurfaceAttribInfo surfaceAttribInfo_VAEntrypointVideoProc_VAProfil
             VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR |
             VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM |
             VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME |
-            VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2 
-
+            VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2
         }}},
     {VASurfaceAttribExternalBufferDescriptor, VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypePointer, {0}}}
 };

@@ -287,7 +287,13 @@ static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCMain_VAEntrypoint
   {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_NV12}}},
   {VASurfaceAttribMaxWidth,    VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_WIDTH}}},
   {VASurfaceAttribMaxHeight,   VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_HEIGHT}}},
-  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_SURFACE_ATTRIB_MEM_TYPE_VA | VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2}}}
+  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {
+#if VA_CHECK_VERSION(1, 21, 0)
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3 |
+#endif
+        VA_SURFACE_ATTRIB_MEM_TYPE_VA | 
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2
+    }}}
 };
 
 static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCSccMain_VAEntrypointVLD_Xe3_Lpm_r0 =
@@ -295,7 +301,13 @@ static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCSccMain_VAEntrypo
   {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_NV12}}},
   {VASurfaceAttribMaxWidth,    VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_WIDTH}}},
   {VASurfaceAttribMaxHeight,   VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_HEIGHT}}},
-  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_SURFACE_ATTRIB_MEM_TYPE_VA | VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2}}}
+  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {
+#if VA_CHECK_VERSION(1, 21, 0)
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3 |
+#endif
+        VA_SURFACE_ATTRIB_MEM_TYPE_VA | 
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2
+    }}}
 };
 
 static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCMain10_VAEntrypointVLD_Xe3_Lpm_r0 =
@@ -303,7 +315,13 @@ static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCMain10_VAEntrypoi
   {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_P010}}},
   {VASurfaceAttribMaxWidth,    VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_WIDTH}}},
   {VASurfaceAttribMaxHeight,   VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_HEIGHT}}},
-  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_SURFACE_ATTRIB_MEM_TYPE_VA | VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2}}}
+  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {
+#if VA_CHECK_VERSION(1, 21, 0)
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3 |
+#endif
+        VA_SURFACE_ATTRIB_MEM_TYPE_VA | 
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2
+    }}}
 };
 
 static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCMain12_VAEntrypointVLD_Xe3_Lpm_r0 =
@@ -312,7 +330,13 @@ static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCMain12_VAEntrypoi
   {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_P016}}},
   {VASurfaceAttribMaxWidth,    VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_WIDTH}}},
   {VASurfaceAttribMaxHeight,   VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_HEIGHT}}},
-  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_SURFACE_ATTRIB_MEM_TYPE_VA | VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2}}}
+  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {
+#if VA_CHECK_VERSION(1, 21, 0)
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3 |
+#endif
+        VA_SURFACE_ATTRIB_MEM_TYPE_VA | 
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2
+    }}}
 };
 
 static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCMain422_10_VAEntrypointVLD_Xe3_Lpm_r0 =
@@ -321,7 +345,13 @@ static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCMain422_10_VAEntr
   {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_Y210}}},
   {VASurfaceAttribMaxWidth,    VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_WIDTH}}},
   {VASurfaceAttribMaxHeight,   VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_HEIGHT}}},
-  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_SURFACE_ATTRIB_MEM_TYPE_VA | VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2}}}
+  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {
+#if VA_CHECK_VERSION(1, 21, 0)
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3 |
+#endif
+        VA_SURFACE_ATTRIB_MEM_TYPE_VA | 
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2
+    }}}
 };
 
 static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCMain422_12_VAEntrypointVLD_Xe3_Lpm_r0 =
@@ -333,7 +363,13 @@ static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCMain422_12_VAEntr
   {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_P012}}},
   {VASurfaceAttribMaxWidth,    VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_WIDTH}}},
   {VASurfaceAttribMaxHeight,   VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_HEIGHT}}},
-  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_SURFACE_ATTRIB_MEM_TYPE_VA | VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2}}}
+  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {
+#if VA_CHECK_VERSION(1, 21, 0)
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3 |
+#endif
+        VA_SURFACE_ATTRIB_MEM_TYPE_VA | 
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2
+    }}}
 };
 
 static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCMain444_VAEntrypointVLD_Xe3_Lpm_r0 =
@@ -344,7 +380,13 @@ static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCMain444_VAEntrypo
 #endif
   {VASurfaceAttribMaxWidth,    VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_WIDTH}}},
   {VASurfaceAttribMaxHeight,   VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_HEIGHT}}},
-  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_SURFACE_ATTRIB_MEM_TYPE_VA | VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2}}}
+  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {
+#if VA_CHECK_VERSION(1, 21, 0)
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3 |
+#endif
+        VA_SURFACE_ATTRIB_MEM_TYPE_VA | 
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2
+    }}}
 };
 
 static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCMain444_10_VAEntrypointVLD_Xe3_Lpm_r0 =
@@ -352,7 +394,13 @@ static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCMain444_10_VAEntr
   {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_Y410}}},
   {VASurfaceAttribMaxWidth,    VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_WIDTH}}},
   {VASurfaceAttribMaxHeight,   VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_HEIGHT}}},
-  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_SURFACE_ATTRIB_MEM_TYPE_VA | VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2}}}
+  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {
+#if VA_CHECK_VERSION(1, 21, 0)
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3 |
+#endif
+        VA_SURFACE_ATTRIB_MEM_TYPE_VA | 
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2
+    }}}
 };
 
 static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCMain444_12_VAEntrypointVLD_Xe3_Lpm_r0 =
@@ -365,7 +413,13 @@ static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCMain444_12_VAEntr
   {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_P012}}},
   {VASurfaceAttribMaxWidth,    VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_WIDTH}}},
   {VASurfaceAttribMaxHeight,   VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_HEIGHT}}},
-  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_SURFACE_ATTRIB_MEM_TYPE_VA | VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2}}}
+  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {
+#if VA_CHECK_VERSION(1, 21, 0)
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3 |
+#endif
+        VA_SURFACE_ATTRIB_MEM_TYPE_VA | 
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2
+    }}}
 };
 
 static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCSccMain10_VAEntrypointVLD_Xe3_Lpm_r0 =
@@ -373,7 +427,13 @@ static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCSccMain10_VAEntry
   {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_P010}}},
   {VASurfaceAttribMaxWidth,    VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_WIDTH}}},
   {VASurfaceAttribMaxHeight,   VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_HEIGHT}}},
-  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_SURFACE_ATTRIB_MEM_TYPE_VA | VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2}}}
+  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {
+#if VA_CHECK_VERSION(1, 21, 0)
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3 |
+#endif
+        VA_SURFACE_ATTRIB_MEM_TYPE_VA | 
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2
+    }}}
 };
 
 static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCSccMain444_VAEntrypointVLD_Xe3_Lpm_r0 =
@@ -388,7 +448,13 @@ static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCSccMain444_VAEntr
   {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_NV12}}},
   {VASurfaceAttribMaxWidth,    VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_WIDTH}}},
   {VASurfaceAttribMaxHeight,   VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_HEIGHT}}},
-  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_SURFACE_ATTRIB_MEM_TYPE_VA | VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2}}}
+  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {
+#if VA_CHECK_VERSION(1, 21, 0)
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3 |
+#endif
+        VA_SURFACE_ATTRIB_MEM_TYPE_VA | 
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2
+    }}}
 };
 
 static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCSccMain444_10_VAEntrypointVLD_Xe3_Lpm_r0 =
@@ -400,7 +466,13 @@ static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileHEVCSccMain444_10_VAE
   {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_Y410}}},
   {VASurfaceAttribMaxWidth,    VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_WIDTH}}},
   {VASurfaceAttribMaxHeight,   VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_HEIGHT}}},
-  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_SURFACE_ATTRIB_MEM_TYPE_VA | VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2}}}
+  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {
+#if VA_CHECK_VERSION(1, 21, 0)
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3 |
+#endif
+        VA_SURFACE_ATTRIB_MEM_TYPE_VA | 
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2
+    }}}
 };
 
 //!

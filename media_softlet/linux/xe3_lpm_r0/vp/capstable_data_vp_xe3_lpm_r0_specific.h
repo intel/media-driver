@@ -73,11 +73,17 @@ static ProfileSurfaceAttribInfo surfaceAttribInfo_VAEntrypointVideoProc_VAProfil
 #else
     {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {0}}},
 #endif
-    {VASurfaceAttribMemoryType, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_SURFACE_ATTRIB_MEM_TYPE_VA |
-                                                                                                                    VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR |
-                                                                                                                    VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM |
-                                                                                                                    VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME |
-                                                                                                                    VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2}}},
+    {VASurfaceAttribMemoryType, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, 
+        {VAGenericValueTypeInteger, {
+#if VA_CHECK_VERSION(1, 21, 0)
+            VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3 |
+#endif
+            VA_SURFACE_ATTRIB_MEM_TYPE_VA |
+            VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR |
+            VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM |
+            VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME |
+            VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2
+        }}},
     {VASurfaceAttribExternalBufferDescriptor, VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypePointer, {0}}}
 };
 
