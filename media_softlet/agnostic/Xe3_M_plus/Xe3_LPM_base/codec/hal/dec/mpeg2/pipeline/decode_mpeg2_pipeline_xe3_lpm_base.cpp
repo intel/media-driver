@@ -193,6 +193,11 @@ namespace decode
             inputParameters.currDecodedPicRes          = m_basicFeature->m_destSurface.OsResource;
             inputParameters.numUsedVdbox               = m_numVdbox;
 
+            CODECHAL_DEBUG_TOOL(
+                if (m_streamout != nullptr) {
+                    DECODE_CHK_STATUS(m_streamout->InitStatusReportParam(inputParameters));
+                });
+
             m_statusReport->Init(&inputParameters);
         }
 

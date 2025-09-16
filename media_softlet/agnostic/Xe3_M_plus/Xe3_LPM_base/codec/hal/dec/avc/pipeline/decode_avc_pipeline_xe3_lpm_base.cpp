@@ -219,6 +219,11 @@ MOS_STATUS AvcPipelineXe3_Lpm_Base::Prepare(void *params)
             inputParameters.currDecodedPicRes          = m_basicFeature->m_destSurface.OsResource;
             inputParameters.numUsedVdbox               = m_numVdbox;
 
+            CODECHAL_DEBUG_TOOL(
+                if (m_streamout != nullptr) {
+                    DECODE_CHK_STATUS(m_streamout->InitStatusReportParam(inputParameters));
+                });
+
 #ifdef _DECODE_PROCESSING_SUPPORTED
             CODECHAL_DEBUG_TOOL(
                 DecodeDownSamplingFeature* downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature*>(
