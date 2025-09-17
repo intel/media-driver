@@ -30,9 +30,7 @@
 #include "encode_av1_brc.h"
 #include "encode_av1_vdenc_packet.h"
 #include "encode_av1_vdenc_lpla_enc.h"
-#if _MEDIA_RESERVED
 #include "encode_av1_scc.h"
-#endif
 
 namespace encode
 {
@@ -173,8 +171,16 @@ namespace encode
         {
             auto original_TU              = m_basicFeature->m_targetUsage;
             m_basicFeature->m_targetUsage = m_basicFeature->m_av1SeqParams->TargetUsage = 7;
+
+            auto sccFeature = dynamic_cast<Av1Scc *>(m_featureManager->GetFeature(Av1FeatureIDs::av1Scc));
+            ENCODE_CHK_NULL_RETURN(sccFeature);
+            bool original_Palette = sccFeature->IsPaletteEnabled();
+            sccFeature->SetPalette(false);
+            m_basicFeature->m_av1PicParams->PicFlags.fields.PaletteModeEnable           = 0;
             ENCODE_CHK_STATUS_RETURN(ConstructBatchBufferHuCBRC(&m_vdencReadBatchBufferTU7[m_pipeline->m_currRecycledBufIdx][m_pipeline->GetCurrentPass()]));
             m_basicFeature->m_targetUsage = m_basicFeature->m_av1SeqParams->TargetUsage = original_TU;
+            sccFeature->SetPalette(original_Palette);
+            m_basicFeature->m_av1PicParams->PicFlags.fields.PaletteModeEnable = original_Palette;
         }        
 
         ENCODE_CHK_STATUS_RETURN(ConstructPakInsertHucBRC(&m_vdencPakInsertBatchBuffer[m_pipeline->m_currRecycledBufIdx]));
@@ -296,7 +302,7 @@ namespace encode
         ENCODE_CHK_STATUS_RETURN(AddAvpPicStateBaseOnTile(constructedCmdBuf, slbData));
 
         /*----Group5----*/
-        if (m_basicFeature->m_av1PicParams->PicFlags.fields.PaletteModeEnable)
+        if (m_basicFeature->m_av1PicParams->PicFlags.fields.PaletteModeEnable || m_basicFeature->m_av1PicParams->AdaptiveTUEnabled)
         {
             slbData.vdencTileSliceStateOffset = (uint16_t)constructedCmdBuf.iOffset;
             ENCODE_CHK_STATUS_RETURN(AddVdencTileSliceBaseOnTile(constructedCmdBuf, slbData));

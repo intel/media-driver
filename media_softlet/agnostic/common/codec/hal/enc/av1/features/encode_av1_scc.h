@@ -73,6 +73,9 @@ public:
 
     MOS_STATUS Update(void *params) override;
 
+    bool IsPaletteEnabled() { return m_enablePalette; }
+    void SetPalette(bool paletteEnabled) { m_enablePalette = paletteEnabled; }
+
     virtual ~Av1Scc();
 
     MHW_SETPAR_DECL_HDR(VDENC_HEVC_VP9_TILE_SLICE_STATE);
