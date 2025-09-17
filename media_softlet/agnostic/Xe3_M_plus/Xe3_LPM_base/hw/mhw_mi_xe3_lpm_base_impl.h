@@ -257,6 +257,10 @@ public:
 
         GetWatchdogThreshold(this->m_osItf);
 
+        // Add debug message with all input parameters and calculated threshold
+        MHW_VERBOSEMESSAGE("MediaReset Threshold calculation: width=%d, height=%d, isEncoder=%d, codecMode=%d, threshold=%d",
+            frameWidth, frameHeight, isEncoder, codecMode, MediaResetParam.watchdogCountThreshold);
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -351,7 +355,9 @@ public:
         par.dwRegister = MediaResetParam.watchdogCountThresholdOffset;
         MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer);
 
-        MHW_VERBOSEMESSAGE("MediaReset Threshold is %d", MediaResetParam.watchdogCountThreshold * (this->m_osItf->bSimIsActive ? 2 : 1));
+        MHW_VERBOSEMESSAGE("MediaReset Threshold is %d, register=0x%x", 
+            MediaResetParam.watchdogCountThreshold * (this->m_osItf->bSimIsActive ? 2 : 1),
+            par.dwRegister);
 
         //Start Watchdog Timer
         auto& par1 = MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
