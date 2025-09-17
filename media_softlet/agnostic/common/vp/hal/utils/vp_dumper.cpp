@@ -1285,23 +1285,38 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
                 // which is designed to avoid splitting two cache lines
                 if (pSurface->Format == Format_R8G8B8)
                 {
-                    int dummyBytesPerLine = planes[j].dwWidth / 63;
-                    int resPixel          = planes[j].dwWidth - 63 * dummyBytesPerLine;
-                    for (int p = 0; p < dummyBytesPerLine; p++)
+                    // Check if FtrSFCRGB24OutNoPadding is enabled
+                    auto *skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
+                    if (skuTable && MEDIA_IS_SKU(skuTable, FtrSFCRGB24OutNoPadding))
                     {
+                        // Bypass dummyBytesPerLine processing when flag is enabled
                         MOS_SecureMemcpy(
-                            &pTmpDst[p * 63],
-                            63,
-                            &pTmpSrc[p * 64],
-                            63);
+                            pTmpDst,
+                            planes[j].dwWidth,
+                            pTmpSrc,
+                            planes[j].dwWidth);
                     }
-                    if (resPixel > 0)
+                    else
                     {
-                        MOS_SecureMemcpy(
-                            &pTmpDst[dummyBytesPerLine * 63],
-                            resPixel,
-                            &pTmpSrc[dummyBytesPerLine * 64],
-                            resPixel);
+                        // Original processing logic
+                        int dummyBytesPerLine = planes[j].dwWidth / 63;
+                        int resPixel          = planes[j].dwWidth - 63 * dummyBytesPerLine;
+                        for (int p = 0; p < dummyBytesPerLine; p++)
+                        {
+                            MOS_SecureMemcpy(
+                                &pTmpDst[p * 63],
+                                63,
+                                &pTmpSrc[p * 64],
+                                63);
+                        }
+                        if (resPixel > 0)
+                        {
+                            MOS_SecureMemcpy(
+                                &pTmpDst[dummyBytesPerLine * 63],
+                                resPixel,
+                                &pTmpSrc[dummyBytesPerLine * 64],
+                                resPixel);
+                        }
                     }
                 }
                 else
@@ -1311,7 +1326,6 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
                         planes[j].dwWidth,
                         pTmpSrc,
                         planes[j].dwWidth);
-
                 }
                 pTmpSrc += planes[j].dwPitch;
                 pTmpDst += planes[j].dwWidth;
