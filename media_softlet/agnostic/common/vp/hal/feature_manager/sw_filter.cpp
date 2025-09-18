@@ -2264,7 +2264,7 @@ MOS_STATUS SwFilterAiBase::InitializeNpu(AI_SETTING_PIPE &settingPipe)
         VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface()->m_osInterface->npuInterface);
         VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface()->m_osInterface->npuInterface->pfnInit);
         VP_PUBLIC_CHK_STATUS_RETURN(m_vpInterface.GetHwInterface()->m_osInterface->npuInterface->pfnInit(m_vpInterface.GetHwInterface()->m_osInterface->npuInterface));
-        m_gpuContxtOnHybridCmd = (1llu << static_cast<uint64_t>(MOS_GPU_CONTEXT_COMPUTE));
+        m_gpuContxtOnHybridCmd = (1llu << static_cast<uint64_t>(MOS_GPU_CONTEXT_COMPUTE) | 1llu << static_cast<uint64_t>(MOS_GPU_CONTEXT_RENDER));
     }
 
     return MOS_STATUS_SUCCESS;
@@ -2329,6 +2329,9 @@ SwFilter *SwFilterAiBase::Clone()
     swFilter->m_Params.type            = m_Params.type;
     swFilter->m_Params.splitGroupIndex = m_Params.splitGroupIndex;
     swFilter->m_Params.stageIndex      = m_Params.stageIndex;
+    swFilter->m_Params.featureType     = FeatureType(m_Params.featureType & FEATURE_TYPE_MASK);
+    swFilter->m_Params.perfTag         = m_Params.perfTag;
+    MOS_SecureMemcpy(swFilter->m_Params.extensionParam, sizeof(swFilter->m_Params.extensionParam), m_Params.extensionParam, sizeof(m_Params.extensionParam));
     for (const auto& setting : m_Params.settings)
     {
         if (setting)

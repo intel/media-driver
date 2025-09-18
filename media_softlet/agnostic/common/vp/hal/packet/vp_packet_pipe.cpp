@@ -288,7 +288,7 @@ MOS_STATUS PacketPipe::SwitchContext(PacketType type, MediaScalability *&scalabi
     case VP_PIPELINE_PACKET_RENDER:
         {
             VP_PUBLIC_NORMALMESSAGE("Switch to Render Context");
-            VP_PUBLIC_CHK_STATUS_RETURN(mediaContext->SwitchContext(RenderGenericFunc, &scalPars, &scalability));
+            VP_PUBLIC_CHK_STATUS_RETURN(mediaContext->SwitchContext(RenderGenericFunc, &scalPars, &scalability, gpuCtxOnHybridCmd));
             VP_PUBLIC_CHK_NULL_RETURN(scalability);
             break;
         }

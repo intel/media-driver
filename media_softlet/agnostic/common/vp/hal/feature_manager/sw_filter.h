@@ -1129,15 +1129,17 @@ protected:
 MEDIA_CLASS_DEFINE_END(vp__SwFilterCgc)
 };
 
-
+#define AI_FEATURE_PARAM_EXTENSION_SIZE_MAX 32
 
 struct FeatureParamAi : public FeatureParam
 {
-    uint32_t             stageIndex      = 0;
-    AI_SETTING_PIPE      settings        = {};
-    AI_SPLIT_GROUP_INDEX splitGroupIndex = {};
-    VPHAL_PERFTAG        perfTag         = VPHAL_NONE;
-    FeatureType          featureType     = FeatureTypeInvalid;
+    uint32_t             stageIndex                                          = 0;
+    AI_SETTING_PIPE      settings                                            = {};
+    AI_SPLIT_GROUP_INDEX splitGroupIndex                                     = {};
+    VPHAL_PERFTAG        perfTag                                             = VPHAL_NONE;
+    FeatureType          featureType                                         = FeatureTypeInvalid;
+
+    uint8_t extensionParam[AI_FEATURE_PARAM_EXTENSION_SIZE_MAX] = {};
 };
 
 class SwFilterAiBase : public SwFilter

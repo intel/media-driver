@@ -555,6 +555,10 @@ MOS_STATUS VpUserFeatureControl::Update(PVP_PIPELINE_PARAMS params)
         m_ctrlVal.disableVeboxOutput = true;
         VP_PUBLIC_NORMALMESSAGE("Disable SFC and vebox output as task is forced to render.");
     }
+    if (params->renderCommandStreamType == VPHAL_RENDER_COMMAND_STREAM_RCS)
+    {
+        m_ctrlVal.computeContextEnabled = false;
+    }
 
     return MOS_STATUS_SUCCESS;
 }

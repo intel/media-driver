@@ -1032,6 +1032,18 @@ typedef enum _VPHAL_SPLIT_SCREEN_DEMO_POSITION
 } VPHAL_SPLIT_SCREEN_DEMO_POSITION;
 
 //!
+//! Structure VPHAL_RENDER_COMMAND_STREAM_TYPE
+//! \brief RCS or CCS
+//!
+typedef enum _VPHAL_RENDER_COMMAND_STREAM_TYPE
+{
+    VPHAL_RENDER_COMMAND_STREAM_DEFAULT = 0,
+    VPHAL_RENDER_COMMAND_STREAM_CCS     = 1,
+    VPHAL_RENDER_COMMAND_STREAM_RCS     = 2
+    
+} VPHAL_RENDER_COMMAND_STREAM_TYPE;
+
+//!
 //! Structure VPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS
 //! \brief Split-Screen Demo Mode Parameters
 //!
@@ -1099,6 +1111,7 @@ struct VPHAL_RENDER_PARAMS
     bool bOptimizeCpuTiming = false;  //!< Optimize Cpu Timing
 
     bool bForceToRender = false;  // Force to render to perform scaling.
+    VPHAL_RENDER_COMMAND_STREAM_TYPE renderCommandStreamType = VPHAL_RENDER_COMMAND_STREAM_DEFAULT;  // CCS or RCS to Use
 
     HANDLE gpuAppTaskEvent;  //!< GPU App task event
 

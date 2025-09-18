@@ -1325,8 +1325,8 @@ MOS_STATUS VpResourceManager::AssignAiNpuResource(VP_EXECUTE_CAPS &caps, std::ve
                 PVP_SURFACE surface = m_allocator.AllocateVpSurface();
                 VP_PUBLIC_CHK_NULL_RETURN(surface);
                 handle = m_aiNpuCopiedSurface.insert(std::make_pair(intermediateSurfaceHandle.first, surface)).first;
-                VP_PUBLIC_CHK_NOT_FOUND_RETURN(handle, &m_aiIntermediateSurface);
-                VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.CopyVpSurface(*handle->second, *intermediateSurfaceHandle.second));
+                VP_PUBLIC_CHK_NOT_FOUND_RETURN(handle, &m_aiNpuCopiedSurface);
+                VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.CopyVpSurface(*handle-> second, *intermediateSurfaceHandle.second));
             }
             VP_PUBLIC_CHK_NULL_RETURN(handle->second);
             surfSetting.surfGroup.insert(std::make_pair(handle->first, handle->second));
