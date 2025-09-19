@@ -285,7 +285,7 @@ static bool InitPtlMediaWaExt(struct GfxDeviceInfo *devInfo,
 
     /*software wa to disable calculate the UV offset by gmmlib
       CPU blt call will add/remove padding on the platform*/
-    MEDIA_WR_WA(waTable, WaDisableGmmLibOffsetInDeriveImage, 1);
+    MEDIA_WR_WA(waTable, WaDisableGmmLibOffsetInDeriveImage, 0);
 
     /* Turn off MMC for codec, need to remove once turn it on */
     MEDIA_WR_WA(waTable, WaDisableCodecMmc, 0);
