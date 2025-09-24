@@ -106,62 +106,100 @@ typedef struct _MHW_BATCH_BUFFER MHW_BATCH_BUFFER, * PMHW_BATCH_BUFFER;
 //------------------------------------------------------------------------------
 // Macros specific to MOS_CODEC_SUBCOMP_HW sub-comp
 //------------------------------------------------------------------------------
+#ifndef MHW_ASSERT
 #define MHW_ASSERT(_expr)                                                       \
     MOS_ASSERT(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _expr)
+#endif
 
+#ifndef MHW_ASSERTMESSAGE
 #define MHW_ASSERTMESSAGE(_message, ...)                                        \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _message, ##__VA_ARGS__)
+#endif
 
+#ifndef MHW_WARNINGMESSAGE
 #define MHW_WARNINGMESSAGE(_message, ...)                                       \
     MOS_WARNINGMESSAGE(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _message, ##__VA_ARGS__)
+#endif
 
+#ifndef MHW_NORMALMESSAGE
 #define MHW_NORMALMESSAGE(_message, ...)                                        \
     MOS_NORMALMESSAGE(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _message, ##__VA_ARGS__)
+#endif
 
+#ifndef MHW_VERBOSEMESSAGE
 #define MHW_VERBOSEMESSAGE(_message, ...)                                       \
     MOS_VERBOSEMESSAGE(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _message, ##__VA_ARGS__)
+#endif
 
+#ifndef MHW_FUNCTION_ENTER
 #define MHW_FUNCTION_ENTER                                                      \
     MOS_FUNCTION_ENTER(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL)
+#endif
 
+#ifndef MHW_FUNCTION_EXIT
 #define MHW_FUNCTION_EXIT                                                      \
     MOS_FUNCTION_EXIT(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, eStatus)
+#endif
 
+#ifndef MHW_CHK_STATUS
 #define MHW_CHK_STATUS(_stmt)                                                   \
     MOS_CHK_STATUS(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _stmt)
+#endif
 
+#ifndef MHW_CHK_STATUS_RETURN
 #define MHW_CHK_STATUS_RETURN(_stmt)                                            \
     MOS_CHK_STATUS_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _stmt)
+#endif
 
+#ifndef MHW_CHK_STATUS_MESSAGE
 #define MHW_CHK_STATUS_MESSAGE(_stmt, _message, ...)                        \
     MOS_CHK_STATUS_MESSAGE(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _stmt, _message, ##__VA_ARGS__)
+#endif
 
+#ifndef MHW_CHK_NULL
 #define MHW_CHK_NULL(_ptr)                                                      \
     MOS_CHK_NULL(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _ptr)
+#endif
 
+#ifndef MHW_CHK_NULL_NO_STATUS
 #define MHW_CHK_NULL_NO_STATUS(_ptr)                                            \
     MOS_CHK_NULL_NO_STATUS(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _ptr)
+#endif
 
+#ifndef MHW_CHK_NULL_NO_STATUS_RETURN
 #define MHW_CHK_NULL_NO_STATUS_RETURN(_ptr) \
     MOS_CHK_NULL_NO_STATUS_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _ptr)
+#endif
 
+#ifndef MHW_CHK_COND
 #define MHW_CHK_COND(_condition,  _message, ...)                                \
     MOS_CHK_COND_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, (_condition),  (_message),  ##__VA_ARGS__)
+#endif
 
+#ifndef MHW_CHK_NULL_RETURN
 #define MHW_CHK_NULL_RETURN(_ptr)                                                      \
     MOS_CHK_NULL_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _ptr)
+#endif
 
+#ifndef MHW_CHK_STATUS_RETURN
 #define MHW_CHK_STATUS_RETURN(_stmt)                                                   \
     MOS_CHK_STATUS_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _stmt)
+#endif
 
+#ifndef MHW_MI_CHK_STATUS
 #define MHW_MI_CHK_STATUS(_stmt)                                               \
     MOS_CHK_STATUS_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _stmt)
+#endif
 
+#ifndef MHW_MI_CHK_STATUS_MESSAGE
 #define MHW_MI_CHK_STATUS_MESSAGE(_stmt, _message, ...)                        \
     MOS_CHK_STATUS_MESSAGE_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _stmt, _message, ##__VA_ARGS__)
+#endif
 
+#ifndef MHW_MI_CHK_NULL
 #define MHW_MI_CHK_NULL(_ptr)                                                  \
     MOS_CHK_NULL_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _ptr)
+#endif
 
 enum GFX_OPCODE
 {
