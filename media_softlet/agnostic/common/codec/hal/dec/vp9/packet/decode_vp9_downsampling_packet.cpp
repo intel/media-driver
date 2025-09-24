@@ -226,7 +226,7 @@ MOS_STATUS Vp9DownSamplingPkt::InitSfcScalabDstParams(
         constexpr int32_t phaseShiftMin = -(1 << (4 + 19));
         constexpr int32_t phaseShiftMax = (1 << (4 + 19)) - 1;
         int32_t xPhaseShift = MOS_F_ROUND((double(inputSurfaceRegion.m_width) / outputSurfaceRegion.m_width - 1.0) / 2.0 * 524288.0F);
-        uint32_t xPhaseShiftClamped = MOS_CLAMP_MIN_MAX(xPhaseShift, phaseShiftMin, phaseShiftMax);
+        double  xPhaseShiftClamped = MOS_CLAMP_MIN_MAX(xPhaseShift, phaseShiftMin, phaseShiftMax);
         uint64_t oneBySf = uint64_t(double(uint64_t(inputSurfaceRegion.m_width) * 524288 / outputSurfaceRegion.m_width));
 
         while (true)

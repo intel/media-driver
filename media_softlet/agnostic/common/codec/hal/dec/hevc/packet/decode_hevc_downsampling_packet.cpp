@@ -286,8 +286,16 @@ MOS_STATUS HevcDownSamplingPkt::InitSfcScalabDstParams(
 
             if (xLandingPoint >= double(tileEndX - tileOffsetX))
             {
-                dstEndX = m_dstXLandingCount - 1;
-                break;
+                if(m_dstXLandingCount >= 1)
+                {
+                    dstEndX = m_dstXLandingCount - 1;
+                    break;
+                }
+                else
+                {
+                    DECODE_ASSERTMESSAGE("Invalid m_dstXLandingCount in this condition"); //m_dstXLandingCount - 1 should not < 0 at this condition
+                    return MOS_STATUS_INVALID_PARAMETER;
+                }
             }
             else
             {

@@ -1379,8 +1379,16 @@ MOS_STATUS CodecHalDecodeScalability_SetSfcState(
 
         if (xLandingPoint >= (double)(tileEndX - xOffset))
         {
-            dstEndX = scalabilityState->dstXLandingCount - 1;
-            break;
+            if(scalabilityState->dstXLandingCount >= 1)
+            {
+                dstEndX = scalabilityState->dstXLandingCount - 1;
+                break;
+            }
+            else
+            {
+                CODECHAL_DECODE_ASSERTMESSAGE("Invalid dstXLandingCount in this condition"); //scalabilityState->dstXLandingCount- 1 should not < 0 at this condition
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
         }
         else
         {
