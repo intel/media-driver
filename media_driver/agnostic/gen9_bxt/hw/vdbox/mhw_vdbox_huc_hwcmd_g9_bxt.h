@@ -32,10 +32,11 @@
 #define __MHW_VDBOX_HUC_HWCMD_G9_BXT_H__
 
 #pragma once
-#pragma pack(1)
-
 #include <cstdint>
 #include <cstddef>
+
+
+#pragma pack(1)
 
 class mhw_vdbox_huc_g9_bxt
 {

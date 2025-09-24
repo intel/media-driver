@@ -31,10 +31,11 @@ OTHER DEALINGS IN THE SOFTWARE.
 #define __MHW_VDBOX_VDENC_HWCMD_G12_X_H__
 
 #pragma once
-#pragma pack(1)
-
 #include <cstdint>
 #include <cstddef>
+
+
+#pragma pack(1)
 
 class mhw_vdbox_vdenc_g12_X
 {

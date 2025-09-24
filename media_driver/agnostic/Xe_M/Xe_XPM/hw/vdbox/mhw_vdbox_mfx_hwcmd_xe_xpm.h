@@ -31,10 +31,11 @@
 #define __MHW_VDBOX_MFX_HWCMD_XE_XPM_H__
 
 #pragma once
-#pragma pack(1)
-
 #include <cstdint>
 #include <cstddef>
+
+
+#pragma pack(1)
 
 class mhw_vdbox_mfx_xe_xpm
 {

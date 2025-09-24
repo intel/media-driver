@@ -29,10 +29,11 @@
 #define __MHW_MI_HWCMD_G9_X_H__
 
 #pragma once
-#pragma pack(1)
 
 #include <cstdint>
 #include <cstddef>
+
+#pragma pack(1)
 
 class mhw_mi_g9_X
 {

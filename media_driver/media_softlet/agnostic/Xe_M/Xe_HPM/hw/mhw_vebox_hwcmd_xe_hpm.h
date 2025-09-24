@@ -31,12 +31,13 @@
 #define __MHW_VEBOX_HWCMD_XE_HPM_H__
 
 #pragma once
-#pragma pack(1)
-
 #include <cstdint>
 #include <cstddef>
 #include "mhw_hwcmd.h"
 #include "media_class_trace.h"
+
+
+#pragma pack(1)
 
 #pragma once
 #pragma pack(1)
