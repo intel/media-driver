@@ -32,11 +32,12 @@
 #define __MHW_STATE_HEAP_HWCMD_XE2_HPG_H__
 
 #pragma once
-#pragma pack(1)
-
 #include <cstdint>
 #include <cstddef>
 #include "media_class_trace.h"
+
+
+#pragma pack(1)
 
 class mhw_state_heap_xe2_hpg
 {

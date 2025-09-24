@@ -32,10 +32,11 @@
 #define __MHW_AVP_HWCMD_G12_H__
 
 #pragma once
-#pragma pack(1)
-
 #include <cstdint>
 #include <cstddef>
+
+
+#pragma pack(1)
 
 class mhw_vdbox_avp_g12_X
 {

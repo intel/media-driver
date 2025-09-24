@@ -33,9 +33,10 @@
 #define __MHW_VDBOX_VDENC_HWCMD_XE2_HPM_H__
 
 #pragma once
+#include "mhw_hwcmd.h"
+
 #pragma pack(1)
 
-#include "mhw_hwcmd.h"
 #ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_vdenc_hwcmd_ext.h"
 #endif

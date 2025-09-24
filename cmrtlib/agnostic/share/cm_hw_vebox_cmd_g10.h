@@ -20,10 +20,11 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 #pragma once
-#pragma pack(1)
 
 #include <cstdint>
 #include <cstddef>
+
+#pragma pack(1)
 
 class CmHwVeboxCmdG10
 {
