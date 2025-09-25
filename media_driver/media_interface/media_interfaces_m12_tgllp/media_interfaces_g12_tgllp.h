@@ -154,8 +154,6 @@
 class MhwInterfacesG12Tgllp : public MhwInterfaces
 {
 public:
-    MhwVdboxAvpInterface *m_avpInterface = nullptr;
-
     using Mi = MhwMiInterfaceG12;
     using Cp = MhwCpInterface;
     using Render = MhwRenderInterfaceG12;

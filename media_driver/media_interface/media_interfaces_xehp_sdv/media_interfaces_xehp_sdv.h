@@ -154,8 +154,6 @@
 class MhwInterfacesXehp_Sdv : public MhwInterfaces
 {
 public:
-    MhwVdboxAvpInterface *m_avpInterface = nullptr;
-
     using Mi        = MhwMiInterfaceG12;
     using Cp        = MhwCpInterface;
     using Render    = MhwRenderInterfaceXe_Hp;

@@ -31,6 +31,7 @@
 #include "igfxfmid.h"
 #include "mos_utilities.h"
 #include "mos_os.h"
+#include "mhw_vdbox_avp_interface.h"
 
 // forward declarations
 class MhwCpInterface;
@@ -102,6 +103,7 @@ public:
     MhwVdboxVdencInterface *m_vdencInterface = nullptr;
     MhwBltInterface *m_bltInterface = nullptr;
     PMOS_INTERFACE m_osInterface = nullptr;
+    MhwVdboxAvpInterface  *m_avpInterface = nullptr;
 
     //!
     //! \brief    Calls the factory function to initialize all requested interfaces.

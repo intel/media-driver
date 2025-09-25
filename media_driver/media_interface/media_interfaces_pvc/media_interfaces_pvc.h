@@ -141,8 +141,6 @@
 class MhwInterfacesPvc : public MhwInterfaces
 {
 public:
-    MhwVdboxAvpInterface *m_avpInterface = nullptr;
-
     using Mi        = MhwMiInterfaceXe_Xpm_Base;
     using Cp        = MhwCpInterface;
     using Render    = MhwRenderInterfaceXe_Hpc;
