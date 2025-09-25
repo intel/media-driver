@@ -1088,8 +1088,7 @@ __mos_context_restore_xe(struct mos_bufmgr *bufmgr,
     ret = mos_query_engines_count_xe(bufmgr, &nengine);
     MOS_DRM_CHK_STATUS_MESSAGE_RETURN(ret,
                 "query engine count of restore failed, return error(%d)", ret)
-    struct drm_xe_engine_class_instance *engine_map = nullptr;
-    engine_map = (struct drm_xe_engine_class_instance *)MOS_AllocAndZeroMemory(nengine * sizeof(struct drm_xe_engine_class_instance));
+    struct drm_xe_engine_class_instance engine_map[nengine];
     ret = mos_query_engines_xe(bufmgr,
                 context->engine_class,
                 context->engine_caps,
@@ -1121,7 +1120,7 @@ __mos_context_restore_xe(struct mos_bufmgr *bufmgr,
     //restore
     context->ctx.ctx_id = create.exec_queue_id;
     context->reset_count += 1;
-    MOS_SafeFreeMemory(engine_map);
+
     return MOS_XE_SUCCESS;
 }
 
@@ -2485,8 +2484,7 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
     struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *) bo[0]->bufmgr;
     MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr_gem, -EINVAL)
 
-    uint64_t *batch_addrs = (uint64_t*)MOS_AllocAndZeroMemory(num_bo * sizeof(uint64_t));
-
+    uint64_t batch_addrs[num_bo];
 
     std::vector<mos_xe_exec_bo> exec_list;
     for (int i = 0; i < num_bo; i++)
@@ -2520,7 +2518,6 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
         {
             MOS_DRM_ASSERTMESSAGE("Failed to initial context timeline dep");
             bufmgr_gem->m_lock.unlock();
-            MOS_SafeFreeMemory(batch_addrs);
             return -ENOMEM;
         }
     }
@@ -2622,7 +2619,7 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
     {
         mos_sync_syncobj_destroy(bufmgr_gem->fd, temp_syncobj);
     }
-    MOS_SafeFreeMemory(batch_addrs);
+
     //Note: keep exec return value for final return value.
     return ret;
 }
