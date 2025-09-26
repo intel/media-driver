@@ -205,7 +205,6 @@ MOS_STATUS AvcDecodeSlcPkt::AddCmd_AVC_BSD_OBJECT(MOS_COMMAND_BUFFER &cmdBuffer,
     DECODE_FUNC_CALL();
     auto &parSlice    = m_mfxItf->MHW_GETPAR_F(MFX_AVC_SLICE_STATE)();
     auto sliceParams  = m_avcSliceParams + slcIdx;
-    MEDIA_FEATURE_TABLE *skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
     m_LastsliceFlag   = parSlice.isLastSlice;
     if (parSlice.shortFormatInUse)
     {
@@ -216,7 +215,7 @@ MOS_STATUS AvcDecodeSlcPkt::AddCmd_AVC_BSD_OBJECT(MOS_COMMAND_BUFFER &cmdBuffer,
         }
         else
         {
-            if (MEDIA_IS_SKU(skuTable, FtrAVCd4ByteNALStartCodeSupport))
+            if (m_avcBasicFeature && m_avcBasicFeature->m_hwStartCodeSupportEnabled)
             {
                 m_IndirectBsdDataLength       = parSlice.Length;
                 m_IndirectBsdDataStartAddress = sliceParams->slice_data_offset;
@@ -226,8 +225,8 @@ MOS_STATUS AvcDecodeSlcPkt::AddCmd_AVC_BSD_OBJECT(MOS_COMMAND_BUFFER &cmdBuffer,
                 m_IndirectBsdDataLength       = parSlice.Length + 1 - m_osInterface->dwNumNalUnitBytesIncluded;
                 m_IndirectBsdDataStartAddress = sliceParams->slice_data_offset - 1 + m_osInterface->dwNumNalUnitBytesIncluded;
             }
-            DECODE_VERBOSEMESSAGE("AVCd4ByteNALStartCodeSupport %d, slice_data_offset %d, parSlice Length %d, IndirectBsdDataStartAddress %d, IndirectBsdDataLength %d",
-                MEDIA_IS_SKU(skuTable, FtrAVCd4ByteNALStartCodeSupport),
+            DECODE_VERBOSEMESSAGE("HwStartCodeSupportEnabled %d, slice_data_offset %d, parSlice Length %d, IndirectBsdDataStartAddress %d, IndirectBsdDataLength %d",
+                (m_avcBasicFeature ? m_avcBasicFeature->m_hwStartCodeSupportEnabled : false),
                 sliceParams->slice_data_offset,
                 parSlice.Length,
                 m_IndirectBsdDataStartAddress,
@@ -424,7 +423,6 @@ MOS_STATUS AvcDecodeSlcPkt::AddCmd_AVC_SLICE_Addr(MOS_COMMAND_BUFFER &cmdBuffer,
     SET_AVC_SLICE_STATE(cmdBuffer, slcIdx);
     auto &parSlice           = m_mfxItf->MHW_GETPAR_F(MFX_AVC_SLICE_STATE)();
     auto &parSliceAddr       = m_mfxItf->MHW_GETPAR_F(MFD_AVC_SLICEADDR)();
-    MEDIA_FEATURE_TABLE *skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
     parSliceAddr.decodeInUse = true;
     if (parSlice.fullFrameData)
     {
@@ -433,7 +431,7 @@ MOS_STATUS AvcDecodeSlcPkt::AddCmd_AVC_SLICE_Addr(MOS_COMMAND_BUFFER &cmdBuffer,
     }
     else
     {
-        if (MEDIA_IS_SKU(skuTable, FtrAVCd4ByteNALStartCodeSupport))
+        if (m_avcBasicFeature && m_avcBasicFeature->m_hwStartCodeSupportEnabled)
         {
             parSliceAddr.IndirectBsdDataLength       = parSlice.nextLength;
             parSliceAddr.IndirectBsdDataStartAddress = parSlice.nextOffset;
@@ -443,8 +441,8 @@ MOS_STATUS AvcDecodeSlcPkt::AddCmd_AVC_SLICE_Addr(MOS_COMMAND_BUFFER &cmdBuffer,
             parSliceAddr.IndirectBsdDataLength       = parSlice.nextLength + 1 - m_osInterface->dwNumNalUnitBytesIncluded;
             parSliceAddr.IndirectBsdDataStartAddress = parSlice.nextOffset - 1 + m_osInterface->dwNumNalUnitBytesIncluded;
         }
-        DECODE_VERBOSEMESSAGE("AVCd4ByteNALStartCodeSupport %d, parSlice nextOffset %d, parSlice nextLength %d, IndirectBsdDataStartAddress %d, IndirectBsdDataLength %d",
-            MEDIA_IS_SKU(skuTable, FtrAVCd4ByteNALStartCodeSupport),
+        DECODE_VERBOSEMESSAGE("HwStartCodeSupportEnabled %d, parSlice nextOffset %d, parSlice nextLength %d, IndirectBsdDataStartAddress %d, IndirectBsdDataLength %d",
+            (m_avcBasicFeature ? m_avcBasicFeature->m_hwStartCodeSupportEnabled : false),
             parSlice.nextOffset,
             parSlice.nextLength,
             parSliceAddr.IndirectBsdDataStartAddress,

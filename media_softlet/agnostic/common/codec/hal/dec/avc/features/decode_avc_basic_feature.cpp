@@ -54,6 +54,34 @@ namespace decode {
         DECODE_CHK_STATUS(m_refFrames.Init(this, *m_allocator));
         DECODE_CHK_STATUS(m_mvBuffers.Init(m_hwInterface, *m_allocator, *this, CODEC_AVC_NUM_INIT_DMV_BUFFERS));
 
+        // Initialize m_hwStartCodeSupportEnabled based on hardware capability and user feature setting
+        if (m_osInterface != nullptr)
+        {
+            MEDIA_FEATURE_TABLE *skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
+            if (skuTable != nullptr && MEDIA_IS_SKU(skuTable, FtrAVCd4ByteNALStartCodeSupport))
+            {
+                // Hardware supports the feature, enable by default
+                m_hwStartCodeSupportEnabled = true;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+                // Check user feature setting to potentially disable the feature
+                MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+                MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+                MOS_UserFeature_ReadValue_ID(
+                    nullptr,
+                    __MEDIA_USER_FEATURE_VALUE_DECODE_AVC_HW_STARTCODE_SUPPORT_DISABLE_ID,
+                    &userFeatureData,
+                    (MOS_CONTEXT_HANDLE) nullptr);
+
+                // If feature key is set to 1 (disable), override to false
+                if (userFeatureData.bData)
+                {
+                    m_hwStartCodeSupportEnabled = false;
+                }
+#endif
+            }
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 

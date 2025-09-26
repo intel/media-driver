@@ -168,6 +168,8 @@ public:
     std::vector<uint32_t>           m_refFrameIndexList;                      //!< Reference frame index list
     RefrenceAssociatedBuffer<MOS_BUFFER, AvcMvBufferOpInf, AvcBasicFeature> m_mvBuffers; //!< Reference associated buffers
 
+    bool m_hwStartCodeSupportEnabled = false;  //!< Controls AVC hardware start code support based on both hardware capability and user feature setting
+
 protected:
     virtual MOS_STATUS SetRequiredBitstreamSize(uint32_t requiredSize) override;
     MOS_STATUS SetPictureStructs();
