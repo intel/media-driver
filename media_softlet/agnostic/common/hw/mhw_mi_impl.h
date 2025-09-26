@@ -367,6 +367,13 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+#ifdef _MEDIA_RESERVED
+    _MHW_SETCMD_OVERRIDE_DECL(MI_SEMAPHORE_WAIT_64)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+#endif
+
     _MHW_SETCMD_OVERRIDE_DECL(PIPE_CONTROL)
     {
         _MHW_SETCMD_CALLBASE(PIPE_CONTROL);

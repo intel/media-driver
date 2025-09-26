@@ -394,4 +394,8 @@ namespace mi
 }  // namespace mi
 }  // namespace mhw
 
+#ifdef _MEDIA_RESERVED
+#include "mhw_mi_cmdpar_ext.h"
+#endif
+
 #endif  // __MHW_MI_CMDPAR_H__
