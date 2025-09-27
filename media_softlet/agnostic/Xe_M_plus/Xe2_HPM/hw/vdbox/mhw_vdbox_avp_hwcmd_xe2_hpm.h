@@ -33,12 +33,13 @@
 #define __MHW_VDBOX_AVP_HWCMD_XE2_HPM_H__
 
 #pragma once
-#pragma pack(1)
-
 #include "mhw_hwcmd.h"
 #include <cstdint>
 #include <cstddef>
 #include "media_class_trace.h"
+
+
+#pragma pack(1)
 
 #ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_avp_hwcmd_ext.h"

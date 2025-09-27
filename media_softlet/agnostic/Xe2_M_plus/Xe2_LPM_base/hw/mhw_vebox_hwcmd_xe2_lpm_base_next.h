@@ -34,11 +34,12 @@
 #define __MHW_VEBOX_HWCMD_XE2_LPM_BASE_NEXT_H__
 
 #pragma once
-#pragma pack(1)
-
 #include <cstdint>
 #include <cstddef>
 #include "media_class_trace.h"
+
+
+#pragma pack(1)
 
 namespace mhw
 {
