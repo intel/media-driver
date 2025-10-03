@@ -411,6 +411,64 @@ int32_t AvcReferenceFrames::GetBiWeight(
     return biWeight;
 }
 
+#if USE_CODECHAL_DEBUG_TOOL
+MOS_STATUS AvcReferenceFrames::DumpReferences(CodechalDebugInterface &debugInterface)
+{
+    ENCODE_FUNC_CALL();
+
+    if (m_pictureCodingType == I_TYPE)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    for (uint8_t refIdx = 0; refIdx <= m_basicFeature->m_sliceParams->num_ref_idx_l0_active_minus1; refIdx++)
+    {
+        auto refPic = m_basicFeature->m_sliceParams->RefPicList[LIST_0][refIdx];
+        if (!CodecHal_PictureIsInvalid(refPic) && m_picIdx[refPic.FrameIdx].bValid)
+        {
+            auto refPicIdx = m_picIdx[refPic.FrameIdx].ucPicIdx;
+            ENCODE_CHK_STATUS_RETURN(debugInterface.DumpYUVSurface(
+                &m_refList[refPicIdx]->sRefReconBuffer,
+                CodechalDbgAttr::attrReferenceSurfaces,
+                ("RefSurfL0" + std::to_string((int)refIdx)).c_str()));
+
+            uint8_t scaledIdx        = m_refList[refPicIdx]->ucScalingIdx;
+            auto    vdenc4xDsSurface = m_basicFeature->m_trackedBuf->GetSurface(BufferType::ds4xSurface, scaledIdx);
+            ENCODE_CHK_STATUS_RETURN(debugInterface.DumpYUVSurface(
+                vdenc4xDsSurface,
+                CodechalDbgAttr::attrReferenceSurfaces,
+                ("4xDsRefSurfL0" + std::to_string((int)refIdx)).c_str()));
+        }
+    }
+
+    if (m_pictureCodingType == B_TYPE)
+    {
+        for (uint8_t refIdx = 0; refIdx <= m_basicFeature->m_sliceParams->num_ref_idx_l1_active_minus1; refIdx++)
+        {
+            auto refPic = m_basicFeature->m_sliceParams->RefPicList[LIST_1][refIdx];
+
+            if (!CodecHal_PictureIsInvalid(refPic) && m_picIdx[refPic.FrameIdx].bValid)
+            {
+                auto refPicIdx = m_picIdx[refPic.FrameIdx].ucPicIdx;
+                ENCODE_CHK_STATUS_RETURN(debugInterface.DumpYUVSurface(
+                    &m_refList[refPicIdx]->sRefReconBuffer,
+                    CodechalDbgAttr::attrReferenceSurfaces,
+                    ("RefSurfL1" + std::to_string((int)refIdx)).c_str()));
+
+                uint8_t scaledIdx        = m_refList[refPicIdx]->ucScalingIdx;
+                auto    vdenc4xDsSurface = m_basicFeature->m_trackedBuf->GetSurface(BufferType::ds4xSurface, scaledIdx);
+                ENCODE_CHK_STATUS_RETURN(debugInterface.DumpYUVSurface(
+                    vdenc4xDsSurface,
+                    CodechalDbgAttr::attrReferenceSurfaces,
+                    ("4xDsRefSurfL1" + std::to_string((int)refIdx)).c_str()));
+            }
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+#endif
+
 MOS_STATUS AvcReferenceFrames::SetFrameStoreIds(uint8_t frameIdx)
 {
     uint8_t invalidFrame = (m_basicFeature->m_mode == CODECHAL_DECODE_MODE_AVCVLD) ? 0x7f : 0x1f;

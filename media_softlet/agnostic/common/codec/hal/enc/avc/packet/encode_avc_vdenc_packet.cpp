@@ -192,6 +192,10 @@ namespace encode {
 
         ENCODE_CHK_STATUS_RETURN(Mos_Solo_PostProcessEncode(m_osInterface, &m_basicFeature->m_resBitstreamBuffer, &m_basicFeature->m_reconSurface));
 
+#if USE_CODECHAL_DEBUG_TOOL
+        ENCODE_CHK_STATUS_RETURN(DumpReferences());
+#endif
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -2674,6 +2678,18 @@ namespace encode {
                 0,
                 CODECHAL_NUM_MEDIA_STATES));
         }
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS AvcVdencPkt::DumpReferences()
+    {
+        ENCODE_FUNC_CALL();
+
+        auto *debugInterface = m_pipeline->GetDebugInterface();
+        ENCODE_CHK_NULL_RETURN(debugInterface);
+
+        ENCODE_CHK_STATUS_RETURN(m_basicFeature->m_ref->DumpReferences(*debugInterface));
+
         return MOS_STATUS_SUCCESS;
     }
 

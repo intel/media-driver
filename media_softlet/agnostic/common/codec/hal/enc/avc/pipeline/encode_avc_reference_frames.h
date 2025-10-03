@@ -31,6 +31,7 @@
 #include "encode_allocator.h"
 #include "mhw_vdbox_vdenc_itf.h"
 #include "mhw_vdbox_mfx_itf.h"
+#include "codechal_debug.h"
 
 namespace encode
 {
@@ -126,6 +127,10 @@ public:
     MHW_SETPAR_DECL_HDR(VDENC_AVC_IMG_STATE);
 
     MHW_SETPAR_DECL_HDR(MFX_PIPE_BUF_ADDR_STATE);
+
+#if USE_CODECHAL_DEBUG_TOOL
+    MOS_STATUS DumpReferences(CodechalDebugInterface &debugInterface);
+#endif
 
 protected:
 

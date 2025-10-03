@@ -449,6 +449,8 @@ protected:
 
     virtual MOS_STATUS DumpEncodeImgStats(
         PMOS_COMMAND_BUFFER cmdbuffer);
+
+    MOS_STATUS DumpReferences();
 #endif
 
     AvcVdencPipeline         *m_pipeline        = nullptr;
