@@ -29,10 +29,11 @@
 #define __MHW_VDBOX_MFX_HWCMD_G8_BDW_H__
 
 #pragma once
-#pragma pack(1)
-
 #include <cstdint>
 #include <cstddef>
+
+
+#pragma pack(1)
 
 class mhw_vdbox_mfx_g8_bdw
 {

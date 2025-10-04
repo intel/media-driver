@@ -32,12 +32,13 @@
 #define __MHW_VDBOX_HUC_HWCMD_XE2_LPM_H__
 
 #pragma once
-#pragma pack(1)
-
 #include "mhw_hwcmd.h"
 #include <cstdint>
 #include <cstddef>
 #include "media_class_trace.h"
+
+
+#pragma pack(1)
 
 namespace mhw
 {

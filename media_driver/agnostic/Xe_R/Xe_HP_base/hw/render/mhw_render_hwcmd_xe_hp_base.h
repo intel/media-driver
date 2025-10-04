@@ -35,10 +35,11 @@
 #define __MHW_RENDER_HWCMD_XE_HP_BASE_H__
 
 #pragma once
-#pragma pack(1)
-
 #include <cstdint>
 #include <cstddef>
+
+
+#pragma pack(1)
 
 class mhw_render_xe_xpm_base
 {

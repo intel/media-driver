@@ -35,10 +35,11 @@
 #define __MHW_MI_HWCMD_XE_XPM_H__
 
 #pragma once
-#pragma pack(1)
-
 #include <cstdint>
 #include <cstddef>
+
+
+#pragma pack(1)
 
 class mhw_mi_xe_xpm
 {
