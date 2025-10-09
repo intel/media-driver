@@ -886,7 +886,16 @@ namespace decode
         params.bitDepthChromaMinus8 = m_hevcPicParams->bit_depth_chroma_minus8;
         params.bitDepthLumaMinus8   = m_hevcPicParams->bit_depth_luma_minus8;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+        bool crcOutputEnable = false;
+        if (m_hevcPipeline != nullptr)
+        {
+            crcOutputEnable = m_hevcPipeline->GetCRCOutputEnable();
+        }
+        params.requestCRC = m_hevcPicParams->RequestCRC || crcOutputEnable;
+#else
         params.requestCRC = m_hevcPicParams->RequestCRC;
+#endif
 
         // Force to false due to definition in xe_lpm_plus
         params.sseEnable                    = false;

@@ -3260,5 +3260,14 @@ MOS_USER_FEATURE_VALUE MosUtilities::m_mosUserFeatureDescFields[__MOS_USER_FEATU
             MOS_USER_FEATURE_VALUE_TYPE_UINT32,
             "0",
             "Disable Decode AVC HW start code support. (0: Enable decode AVC HW start code support. 1: Disable decode AVC HW start code support)"),
+        MOS_DECLARE_UF_KEY_DBGONLY(__MEDIA_USER_FEATURE_VALUE_VDBOX_CRC_OUTPUT_ENABLE_ID,
+            "CRC Output Enable",
+            __MEDIA_USER_FEATURE_SUBKEY_INTERNAL,
+            __MEDIA_USER_FEATURE_SUBKEY_REPORT,
+            "Codec",
+            MOS_USER_FEATURE_TYPE_USER,
+            MOS_USER_FEATURE_VALUE_TYPE_UINT32,
+            "0",
+            "Enable Vdbox CRC Output"),
 #endif
 };

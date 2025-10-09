@@ -97,6 +97,8 @@ public:
     DeclareDecodePacketId(hevcSliceSubPacketId);
     DeclareDecodePacketId(hevcTileSubPacketId);
     DeclareDecodePacketId(hevcDecodeAqmId);
+    DeclareDecodePacketId(hevcDebugPacketId);
+    DeclareDecodePacketId(hevcDebugSubPacketId);
 
 protected:
     //!

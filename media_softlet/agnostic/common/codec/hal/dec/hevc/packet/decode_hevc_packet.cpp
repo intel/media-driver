@@ -29,6 +29,7 @@
 #include "decode_marker_packet.h"
 #if (_DEBUG || _RELEASE_INTERNAL)
 #include "decode_nullhw_proxy_test_packet.h"
+#include "decode_hevc_debug_packet.h"
 #endif
 namespace decode {
 
@@ -58,6 +59,17 @@ MOS_STATUS HevcDecodePkt::Init()
     }
 #endif
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Initialize debug packet
+    DecodeSubPacket* subPacket = m_hevcPipeline->GetSubPacket(
+        DecodePacketId(m_hevcPipeline, hevcDebugSubPacketId));
+    m_debugPkt = dynamic_cast<HevcDecodeDebugPkt*>(subPacket);
+    if (m_debugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_debugPkt->Init());
+    }
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -71,6 +83,15 @@ MOS_STATUS HevcDecodePkt::Destroy()
         DECODE_CHK_STATUS(nullhwProxy->Destory());
     }
 #endif
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        // Destroy debug packet
+        if (m_debugPkt != nullptr)
+        {
+            DECODE_CHK_STATUS(m_debugPkt->Destroy());
+        }
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -180,6 +201,14 @@ MOS_STATUS HevcDecodePkt::Completed(void *mfxStatus, void *rcsStatus, void *stat
 
     DECODE_VERBOSEMESSAGE("Index = %d", statusReportData->currDecodedPic.FrameIdx);
     DECODE_VERBOSEMESSAGE("FrameCrc = 0x%x", statusReportData->frameCrc);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Call debug packet completion handling for HCP debug functionality
+    if (m_debugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_debugPkt->Completed());
+    }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -292,6 +321,14 @@ MOS_STATUS HevcDecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* c
     MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
     DECODE_CHK_NULL(perfProfiler);
     DECODE_CHK_STATUS(perfProfiler->AddPerfCollectEndCmd((void*)m_hevcPipeline, m_osInterface, m_miItf, cmdBuffer));
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Execute debug packet for HCP debug functionality
+    if (m_debugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_debugPkt->Execute(*cmdBuffer));
+    }
+#endif
 
     // Add Mi flush here to ensure end status tag flushed to memory earlier than completed count
     DECODE_CHK_STATUS(MiFlush(*cmdBuffer));

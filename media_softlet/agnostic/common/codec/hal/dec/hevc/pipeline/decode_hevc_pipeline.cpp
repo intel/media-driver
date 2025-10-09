@@ -34,6 +34,7 @@
 #include "decode_hevc_feature_manager.h"
 #include "decode_hevc_downsampling_packet.h"
 #include "media_debug_fast_dump.h"
+#include "decode_hevc_debug_packet.h"
 
 namespace decode {
 
@@ -170,6 +171,14 @@ MOS_STATUS HevcPipeline::CreateSubPackets(DecodeSubPacketManager& subPacketManag
     DECODE_CHK_NULL(downSamplingPkt);
     DECODE_CHK_STATUS(subPacketManager.Register(
                         DecodePacketId(this, downSamplingSubPacketId), *downSamplingPkt));
+#endif
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Create debug packet
+    HevcDecodeDebugPkt *debugPkt = MOS_New(HevcDecodeDebugPkt, this, m_hwInterface);
+    DECODE_CHK_NULL(debugPkt);
+    DECODE_CHK_STATUS(subPacketManager.Register(
+                        DecodePacketId(this, hevcDebugSubPacketId), *debugPkt));
 #endif
 
     return MOS_STATUS_SUCCESS;
