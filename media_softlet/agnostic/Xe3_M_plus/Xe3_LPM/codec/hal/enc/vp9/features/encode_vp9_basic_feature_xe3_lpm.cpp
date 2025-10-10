@@ -40,4 +40,15 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, Vp9BasicFeatureXe3_Lpm)
     return MOS_STATUS_SUCCESS;
 }
 
+MHW_SETPAR_DECL_SRC(VDENC_CMD2, Vp9BasicFeatureXe3_Lpm)
+{
+    ENCODE_CHK_STATUS_RETURN(Vp9BasicFeature::MHW_SETPAR_F(VDENC_CMD2)(params));
+    
+    // DW2
+    params.temporalMvp = false;
+    // DW17
+    params.temporalMvEnableForIntegerSearch = params.temporalMvp; // TemporalMVEnableForIntegerSearch
+    return MOS_STATUS_SUCCESS;
+}
+
 }  // namespace encode
