@@ -1328,7 +1328,8 @@ MOS_STATUS CodecHalDecodeScalability_SetSfcState(
     if (tileColumnIndex == 0)
     {
         scalabilityState->fistValidTileIndex = 0;
-        scalabilityState->lastValidTileIndex = tileColumnCount - 1;
+        CODECHAL_DECODE_CHK_COND_RETURN(tileColumnCount == 0,"tileColumnCount minmum value should be 1");
+        scalabilityState->lastValidTileIndex = tileColumnCount - 1;                
         scalabilityState->dstXLandingCount = 0;
     }
 
