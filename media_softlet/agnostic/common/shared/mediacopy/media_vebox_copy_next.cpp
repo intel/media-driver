@@ -590,6 +590,10 @@ void VeboxCopyStateNext::AdjustSurfaceFormat(MOS_SURFACE &surface)
         surface.dwWidth = MOS_ALIGN_CEIL(surface.dwWidth, 2);
         surface.dwWidth /= 2;
     }
+    if (surface.Format == Format_R16UN)
+    {
+        surface.Format = Format_Y16U;
+    }
 }
 
 MOS_STATUS VeboxCopyStateNext::CreateGpuContext(
