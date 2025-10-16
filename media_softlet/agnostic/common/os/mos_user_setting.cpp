@@ -1434,6 +1434,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         39497,
         true); //"Device ID of mock device, default is 0x9A49"
 
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_PIPE,
+        MediaUserSetting::Group::Device,
+        0,
+        true);  //"The pipe number of mock device, default is 1"
+
     //Tile resource info report
     DeclareUserSettingKeyForDebug(
         userSettingPtr,

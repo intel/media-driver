@@ -39,6 +39,7 @@ bool  MosMockAdaptor::m_enabled = false;
 PRODUCT_FAMILY MosMockAdaptor::m_productFamily = {};
 std::string MosMockAdaptor::m_stepping = {};
 uint16_t MosMockAdaptor::m_deviceId = 0;
+uint16_t MosMockAdaptor::m_numOfVdbox = 1;
 MosMockAdaptor *MosMockAdaptor::m_mocAdaptor = nullptr;
 
 MosMockAdaptor::MosMockAdaptor()
@@ -87,6 +88,14 @@ MOS_STATUS MosMockAdaptor::RegkeyRead(PMOS_CONTEXT osContext)
         __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_DEVICE,
         MediaUserSetting::Group::Device);
     m_deviceId = (uint16_t)value;
+
+    value = 0;
+    ReadUserSettingForDebug(
+        userSettingPtr,
+        value,
+        __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_PIPE,
+        MediaUserSetting::Group::Device);
+    m_numOfVdbox = (uint16_t)value;
 
     return eStatus;
 }
@@ -161,6 +170,8 @@ MOS_STATUS MosMockAdaptor::InitContext(
         MOS_OS_ASSERTMESSAGE("Unsupported platform!");
         eStatus = MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     }
+
+    m_pGtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled = m_numOfVdbox;
 
     return eStatus;
 }

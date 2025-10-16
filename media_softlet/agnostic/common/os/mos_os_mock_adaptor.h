@@ -143,6 +143,7 @@ protected:
     static PRODUCT_FAMILY m_productFamily;
     static std::string m_stepping;
     static uint16_t m_deviceId;
+    static uint16_t m_numOfVdbox;
     static MosMockAdaptor *m_mocAdaptor;
 
 MEDIA_CLASS_DEFINE_END(MosMockAdaptor)

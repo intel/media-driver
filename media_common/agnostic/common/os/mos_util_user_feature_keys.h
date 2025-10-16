@@ -430,6 +430,7 @@
 #define __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_PLATFORM                         "MockAdaptor Platform"
 #define __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_STEPPING                         "MockAdaptor Stepping"
 #define __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_DEVICE                           "MockAdaptor Device ID"
+#define __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_PIPE                             "MockAdaptor Pipe"
 
 //User feature key for enable Perf Utility Tool
 #define __MEDIA_USER_FEATURE_VALUE_PERF_UTILITY_TOOL_ENABLE          "Perf Utility Tool Enable"
