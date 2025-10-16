@@ -469,7 +469,7 @@ MOS_STATUS Av1VdencPktXe3_Lpm_Base::AddOneTileCommands(
         SETPAR_AND_ADDCMD(VDENC_CMD1, m_vdencItf, tempCmdBuffer);
     }
 
-    if (brcFeature->IsBRCEnabled() && (m_basicFeature->m_av1PicParams->PicFlags.fields.PaletteModeEnable || m_basicFeature->m_av1PicParams->AdaptiveTUEnabled))
+    if (brcFeature->IsBRCEnabled() && m_basicFeature->m_av1PicParams->PicFlags.fields.PaletteModeEnable)
     {
         uint32_t tileIdx = 0;
         RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetTileIdx, tileIdx);
