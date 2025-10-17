@@ -622,18 +622,25 @@ protected:
         }
         else
         {
-            if (cfg.weightVECopy == 100) //Force VE-Copy
-            {
-                m_copyMethod = [=] {
-                    return MCPY_METHOD_BALANCE;
+            const auto weightRenderCopy = static_cast<double>(cfg.weightRenderCopy);
+            const auto weightVECopy     = static_cast<double>(cfg.weightVECopy);
+            const auto weightBLTCopy    = static_cast<double>(cfg.weightBLTCopy);
+
+            m_copyMethod = [=] {
+                const MCPY_METHOD methods[] = {
+                    MCPY_METHOD_PERFORMANCE,
+                    MCPY_METHOD_BALANCE,
+                    MCPY_METHOD_POWERSAVING,
                 };
-            }
-            else
-            {
-                m_copyMethod = [] {
-                    return MCPY_METHOD_DEFAULT;
-                };
-            }
+                std::random_device           rd;
+                std::mt19937                 gen(rd());
+                std::discrete_distribution<> distribution({
+                    weightRenderCopy,
+                    weightVECopy,
+                    weightBLTCopy,
+                });
+                return methods[distribution(gen)];
+            };
         }
     }
 

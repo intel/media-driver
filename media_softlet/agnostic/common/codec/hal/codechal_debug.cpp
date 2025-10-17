@@ -3543,22 +3543,19 @@ MOS_STATUS CodechalDebugInterface::SetFastDumpConfig(MediaCopyWrapper *mediaCopy
     }
     else
     {
-        cfg.allowDataLoss = false;
+        cfg.allowDataLoss = m_configMgr->AttrIsEnabled(MediaDbgAttr::attrFastDumpAllowDataLoss);
         cfg.informOnError = false;
 
-        MediaUserSetting::Value outValue{};
-        ReadUserSettingForDebug(
-            m_userSettingPtr,
-            outValue,
-            "Enable VECopy For Surface Dump",
-            MediaUserSetting::Group::Sequence);
-
-        if (outValue.Get<bool>())
+        // E.g., when FastDumpRenderCpyEn:1, FastDumpVeCpyEn:0, FastDumpBltCpyEn:0, only use render copy
+        //       when FastDumpRenderCpyEn:1, FastDumpVeCpyEn:1, FastDumpBltCpyEn:0, randomly use render and VE copy
+        //       when FastDumpRenderCpyEn:1, FastDumpVeCpyEn:1, FastDumpBltCpyEn:1, randomly use render, VE and BLT copy
+        //       when FastDumpRenderCpyEn:0, FastDumpVeCpyEn:0, FastDumpBltCpyEn:0, use FastDump default copy method, which is VE copy
+        if (m_configMgr->AttrIsEnabled(MediaDbgAttr::attrFastDumpRenderCpyEn) || m_configMgr->AttrIsEnabled(MediaDbgAttr::attrFastDumpVeCpyEn)
+            || m_configMgr->AttrIsEnabled(MediaDbgAttr::attrFastDumpBltCpyEn))
         {
-            // use VE copy
-            cfg.weightRenderCopy = 0;
-            cfg.weightVECopy     = 100;
-            cfg.weightBLTCopy    = 0;
+            cfg.weightRenderCopy = m_configMgr->AttrIsEnabled(MediaDbgAttr::attrFastDumpRenderCpyEn) ? 100 : 0;
+            cfg.weightVECopy     = m_configMgr->AttrIsEnabled(MediaDbgAttr::attrFastDumpVeCpyEn) ? 100 : 0;
+            cfg.weightBLTCopy    = m_configMgr->AttrIsEnabled(MediaDbgAttr::attrFastDumpBltCpyEn) ? 100 : 0;
         }
     }
 

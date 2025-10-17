@@ -83,9 +83,9 @@ public:
         RangedUint8<>     maxDeprioritizedMem = 75;  // max percentage of deprioritized memory can be used for fast dump, 0% - 100%
 
         // media copy configurations
-        RangedUint8<> weightRenderCopy = 100;  // weight for render copy, 0 - 100
-        RangedUint8<> weightVECopy     = 80;   // weight for VE copy, 0 - 100
-        RangedUint8<> weightBLTCopy    = 20;   // weight for BLT copy, 0 - 100
+        RangedUint8<> weightRenderCopy = 0;    // weight for render copy, 0 - 100
+        RangedUint8<> weightVECopy     = 100;  // weight for VE copy, 0 - 100
+        RangedUint8<> weightBLTCopy    = 0;    // weight for BLT copy, 0 - 100
                                                // when weightRenderCopy, weightVECopy and weightBLTCopy are all 0, use default copy method,
                                                // otherwise randomly select 1 of the 3 methods based on their weights, e.g., the chance of
                                                // selecting render copy is weightRenderCopy/(weightRenderCopy+weightVECopy+weightBLTCopy)
