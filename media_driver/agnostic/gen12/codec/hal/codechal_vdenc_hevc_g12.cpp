@@ -4565,9 +4565,8 @@ MOS_STATUS CodechalVdencHevcStateG12::SetDmemHuCBrcInitReset()
     {
         hucVdencBrcInitDmem->GopP_U16 = intraPeriod/m_hevcSeqParams->GopRefDist;
         hucVdencBrcInitDmem->GopB_U16 = hucVdencBrcInitDmem->GopP_U16;
-        hucVdencBrcInitDmem->GopB1_U16 = ((hucVdencBrcInitDmem->GopP_U16 + hucVdencBrcInitDmem->GopB_U16) == intraPeriod) ? 0 : hucVdencBrcInitDmem->GopB_U16 * 2;
-        hucVdencBrcInitDmem->GopB2_U16 = intraPeriod - hucVdencBrcInitDmem->GopP_U16 - hucVdencBrcInitDmem->GopB_U16 - hucVdencBrcInitDmem->GopB1_U16;
-
+        hucVdencBrcInitDmem->GopB1_U16 = ((hucVdencBrcInitDmem->GopP_U16 + hucVdencBrcInitDmem->GopB_U16) >= intraPeriod) ? 0 : hucVdencBrcInitDmem->GopB_U16 * 2;
+        hucVdencBrcInitDmem->GopB2_U16 = ((hucVdencBrcInitDmem->GopP_U16 + hucVdencBrcInitDmem->GopB_U16 + hucVdencBrcInitDmem->GopB1_U16) >= intraPeriod) ? 0 : intraPeriod - hucVdencBrcInitDmem->GopP_U16 - hucVdencBrcInitDmem->GopB_U16 - hucVdencBrcInitDmem->GopB1_U16;
         hucVdencBrcInitDmem->MaxBRCLevel_U8 = hucVdencBrcInitDmem->GopB1_U16 == 0 ? HEVC_BRC_FRAME_TYPE_B : (hucVdencBrcInitDmem->GopB2_U16 == 0 ? HEVC_BRC_FRAME_TYPE_B1 : HEVC_BRC_FRAME_TYPE_B2);
         hucVdencBrcInitDmem->BRCPyramidEnable_U8 = 1;
     }
