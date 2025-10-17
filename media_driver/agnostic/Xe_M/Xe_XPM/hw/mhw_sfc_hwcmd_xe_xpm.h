@@ -34,10 +34,11 @@
 #define __MHW_SFC_HWCMD_XE_XPM_H__
 
 #pragma once
-#pragma pack(1)
-
 #include <cstdint>
 #include <cstddef>
+
+
+#pragma pack(1)
 
 class mhw_sfc_xe_xpm
 {
