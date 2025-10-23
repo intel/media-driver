@@ -235,6 +235,19 @@ namespace decode
 
         DECODE_CHK_STATUS(DecodePipeline::CreateSubPackets(subPacketManager, codecSettings));
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+        // Create debug packet
+        AvcDecodeDebugPkt *debugPkt = MOS_New(AvcDecodeDebugPkt, this, m_hwInterface);
+        DECODE_CHK_NULL(debugPkt);
+        MOS_STATUS status = subPacketManager.Register(
+                            DecodePacketId(this, avcDebugSubPacketId), *debugPkt);
+        if (status != MOS_STATUS_SUCCESS)
+        {
+            MOS_Delete(debugPkt);
+            return status;
+        }
+#endif
+
         return MOS_STATUS_SUCCESS;
     }
 
