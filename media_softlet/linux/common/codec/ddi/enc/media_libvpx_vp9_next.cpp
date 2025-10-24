@@ -449,7 +449,18 @@ bool Vp9WriteUncompressHeader(encode::DDI_ENCODE_CONTEXT *ddiEncContext,
         min_log2_tile_cols = get_min_log2_tile_cols(sb_cols);
         max_log2_tile_cols = get_max_log2_tile_cols(sb_cols);
 
+        if (picParam->log2_tile_columns < min_log2_tile_cols)
+        {
+            // This is boundary checking for log2_tile_columns. We should not hit this
+            // If user passes right log2_tile_columns.
+            // Making log2_tile_columns as min_log2_tile_cols to avoid negative col_data.
+            DDI_CODEC_ASSERTMESSAGE("log2_tile_columns (%d) < min_log2_tile_cols (%d), adjusting to minimum. \n",
+                            picParam->log2_tile_columns, min_log2_tile_cols);
+            picParam->log2_tile_columns = min_log2_tile_cols;
+        }
+
         col_data = picParam->log2_tile_columns - min_log2_tile_cols;
+
         while (col_data--)
         {
             vp9_wb_write_bit(wb, 1);
