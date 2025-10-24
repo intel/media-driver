@@ -165,6 +165,9 @@ public:
     //!
     bool IsSameRefList() const { return m_sameRefList; };
 
+#if USE_CODECHAL_DEBUG_TOOL
+    MOS_STATUS DumpReferences(CodechalDebugInterface &debugInterface);
+#endif
     MHW_SETPAR_DECL_HDR(VDENC_PIPE_BUF_ADDR_STATE);
 
     MHW_SETPAR_DECL_HDR(HCP_PIPE_BUF_ADDR_STATE);
