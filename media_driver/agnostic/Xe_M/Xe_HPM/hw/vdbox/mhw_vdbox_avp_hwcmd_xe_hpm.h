@@ -41,10 +41,11 @@
 #endif
 
 #pragma once
-#pragma pack(1)
-
 #include <cstdint>
 #include <cstddef>
+
+
+#pragma pack(1)
 
 namespace mhw
 {
