@@ -209,6 +209,11 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_XE2_HPG::SetSurfaceStateEntry(
     // Set L1 Cache control
     pSurfaceState->DW5.L1CacheControl = pParams->L1CacheConfig;
 
+    if (pParams->MipTailStartLOD & MHW_MIP_TAIL_START_LOD_ENABLED_MASK)
+    {
+        pSurfaceState->DW5.MipTailStartLod = pParams->MipTailStartLOD & (~MHW_MIP_TAIL_START_LOD_ENABLED_MASK);
+    }
+
     // R8B8G8A8 is designed to represent media AYUV format.
     // But from Gen10+ 3D sampler doesn't support R8B8G8A8 format any more.
     // Use R8G8B8A8 + Channel Select to fake it.

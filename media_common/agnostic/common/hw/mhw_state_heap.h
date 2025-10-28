@@ -83,6 +83,8 @@ typedef struct MHW_BLOCK_MANAGER *PMHW_BLOCK_MANAGER;
 
 #define MHW_INVALID_SYNC_TAG            0xFFFFFFFF
 
+#define MHW_MIP_TAIL_START_LOD_ENABLED_MASK 0x8000
+
 enum MW_RENDER_ENGINE_ADDRESS_SHIFT
 {
     MHW_STATE_HEAP_SURFACE_STATE_SHIFT = 0
@@ -377,6 +379,8 @@ typedef struct _MHW_SURFACE_STATE_PARAMS {
     uint32_t    dwLocationInCmd;       // [out] Offset in command for patching
     MOS_TILE_MODE_GMM TileModeGMM;     // Tile Type from GMM Definition
     bool        bGMMTileEnabled;       //!<  GMM defined tile mode flag
+
+    uint32_t    MipTailStartLOD;
 } MHW_SURFACE_STATE_PARAMS, *PMHW_SURFACE_STATE_PARAMS;
 
 struct _MHW_STATE_HEAP

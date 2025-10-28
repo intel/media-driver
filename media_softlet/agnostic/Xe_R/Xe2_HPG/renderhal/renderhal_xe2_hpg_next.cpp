@@ -368,7 +368,11 @@ MOS_STATUS XRenderHal_Interface_Xe2_Hpg_Next::SetupSurfaceState(
             {
                 if (pSurfaceEntry->dwFormat == MHW_GFX3DSTATE_SURFACEFORMAT_R16G16B16A16_FLOAT)
                 {
-                    SurfStateParams.iXOffset /= 2;
+                    if (SurfStateParams.iXOffset > 0 && pSurface->MipTailStartLOD < 15)
+                    {
+                        SurfStateParams.iXOffset = 0;
+                        SurfStateParams.MipTailStartLOD = MHW_MIP_TAIL_START_LOD_ENABLED_MASK | pSurface->MipTailStartLOD;
+                    }
                 }
             }
 

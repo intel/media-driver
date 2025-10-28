@@ -2019,6 +2019,8 @@ MOS_STATUS MosInterface::GetResourceInfo(
     }
     details.Format   = resource->Format;
 
+    details.MipTailStartLOD = gmmResourceInfo->GetMipTailStartLodSurfaceState();
+
     // Get planes
     MosUtilities::MosZeroMemory(reqInfo, sizeof(reqInfo));
     gmmChannel = GMM_DISPLAY_BASE;

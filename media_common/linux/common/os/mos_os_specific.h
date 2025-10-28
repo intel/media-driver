@@ -495,6 +495,9 @@ struct MOS_SURFACE
 #if (_DEBUG || _RELEASE_INTERNAL)
     uint32_t oldCacheSetting;
 #endif
+
+    //Mip Tail related info
+    uint32_t MipTailStartLOD;
 };
 typedef MOS_SURFACE *PMOS_SURFACE;
 
