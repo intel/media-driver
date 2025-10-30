@@ -27,6 +27,9 @@
 #include "decode_status_report_defs.h"
 #include "decode_predication_packet.h"
 #include "decode_marker_packet.h"
+#if (_DEBUG || _RELEASE_INTERNAL)
+#include "decode_av1_debug_packet.h"
+#endif
 
 namespace decode {
 
@@ -64,6 +67,20 @@ MOS_STATUS Av1DecodePkt::Init()
         m_pictureStatesSize, 1, CODEC_NUM_AV1_SECOND_BB, true, lockableVideoMem);
     DECODE_CHK_NULL(m_secondLevelBBArray);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Initialize debug packet
+    DecodeSubPacket* debugSubPacket = m_av1Pipeline->GetSubPacket(DecodePacketId(m_av1Pipeline, av1DebugSubPacketId));
+    if (debugSubPacket != nullptr)
+    {
+        Av1DecodeDebugPkt* debugPkt = dynamic_cast<Av1DecodeDebugPkt*>(debugSubPacket);
+        if (debugPkt != nullptr)
+        {
+            m_av1DebugPkt = debugPkt;
+            DECODE_CHK_STATUS(m_av1DebugPkt->Init());
+        }
+    }
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -84,6 +101,14 @@ MOS_STATUS Av1DecodePkt::Destroy()
     {
         DECODE_CHK_STATUS(m_allocator->Destroy(m_secondLevelBBArray));
     }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Destroy debug packet
+    if (m_av1DebugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_av1DebugPkt->Destroy());
+    }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -187,6 +212,14 @@ MOS_STATUS Av1DecodePkt::Completed(void *mfxStatus, void *rcsStatus, void *statu
     DecodeStatusReportData *statusReportData = (DecodeStatusReportData *)statusReport;
     DECODE_VERBOSEMESSAGE("Current Frame Index = %d", statusReportData->currDecodedPic.FrameIdx);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Complete debug packet operations
+    if (m_av1DebugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_av1DebugPkt->Completed());
+    }
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -283,6 +316,14 @@ MOS_STATUS Av1DecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cm
 
     // Add Mi flush here to ensure end status tag flushed to memory earlier than completed count
     DECODE_CHK_STATUS(MiFlush(*cmdBuffer));
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Execute debug packet
+    if (m_av1DebugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_av1DebugPkt->Execute(*cmdBuffer));
+    }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }

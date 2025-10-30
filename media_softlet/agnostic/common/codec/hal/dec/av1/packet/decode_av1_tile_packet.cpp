@@ -253,6 +253,15 @@ namespace decode
 
         m_av1BasicFeature->m_frameCompletedFlag = par.lastTileOfFrame;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+        bool crcOutputEnable = false;
+        if (m_av1Pipeline != nullptr)
+        {
+            crcOutputEnable = m_av1Pipeline->GetCRCOutputEnable();
+        }
+        par.enableAvpDebugMode = crcOutputEnable;
+#endif
+
         DECODE_CHK_STATUS(m_avpItf->MHW_ADDCMD_F(AVP_TILE_CODING)(&cmdBuffer));
 
         return MOS_STATUS_SUCCESS;

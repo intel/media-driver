@@ -29,6 +29,9 @@
 #include "decode_av1_feature_manager.h"
 #include "decode_huc_packet_creator_base.h"
 #include "media_debug_fast_dump.h"
+#if (_DEBUG || _RELEASE_INTERNAL)
+#include "decode_av1_debug_packet.h"
+#endif
 
 namespace decode {
 
@@ -153,6 +156,19 @@ MOS_STATUS Av1Pipeline::CreateSubPackets(DecodeSubPacketManager &subPacketManage
     DECODE_FUNC_CALL();
 
     DECODE_CHK_STATUS(DecodePipeline::CreateSubPackets(subPacketManager, codecSettings));
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Create debug packet
+    Av1DecodeDebugPkt *debugPkt = MOS_New(Av1DecodeDebugPkt, this, m_hwInterface);
+    DECODE_CHK_NULL(debugPkt);
+    MOS_STATUS status = subPacketManager.Register(
+                        DecodePacketId(this, av1DebugSubPacketId), *debugPkt);
+    if (status != MOS_STATUS_SUCCESS)
+    {
+        MOS_Delete(debugPkt);
+        return status;
+    }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }

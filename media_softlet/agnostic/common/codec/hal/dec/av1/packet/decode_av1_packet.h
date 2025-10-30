@@ -38,6 +38,8 @@
 namespace decode
 {
 
+class Av1DecodeDebugPkt;
+
 class Av1DecodePkt : public CmdPacket, public MediaStatusReportObserver
 {
 public:
@@ -172,6 +174,9 @@ protected:
     MOS_COMMAND_BUFFER    m_picCmdBuffer;
     PMHW_BATCH_BUFFER     m_batchBuf = nullptr;
     std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf = nullptr;
+
+private:
+    Av1DecodeDebugPkt    *m_av1DebugPkt = nullptr;  //!< AV1 debug packet for debug functionality
 
 MEDIA_CLASS_DEFINE_END(decode__Av1DecodePkt)
 };

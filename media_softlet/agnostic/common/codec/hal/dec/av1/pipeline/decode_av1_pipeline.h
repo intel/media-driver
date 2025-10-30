@@ -63,6 +63,7 @@ public:
     DeclareDecodePacketId(av1PictureSubPacketId);
     DeclareDecodePacketId(av1TileSubPacketId);
     DeclareDecodePacketId(av1DecodeAqmId);
+    DeclareDecodePacketId(av1DebugSubPacketId);
 
 protected:
     //!
