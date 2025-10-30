@@ -32,6 +32,9 @@
 #include "decode_vp9_feature_manager.h"
 #include "decode_vp9_buffer_update.h"
 #include "media_debug_fast_dump.h"
+#if (_DEBUG || _RELEASE_INTERNAL)
+#include "decode_vp9_debug_packet.h"
+#endif
 
 namespace decode
 {
@@ -171,6 +174,19 @@ MOS_STATUS Vp9Pipeline::CreateSubPackets(DecodeSubPacketManager &subPacketManage
     DECODE_FUNC_CALL();
 
     DECODE_CHK_STATUS(DecodePipeline::CreateSubPackets(subPacketManager, codecSettings));
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Create VP9 debug packet
+    Vp9DecodeDebugPkt *debugPkt = MOS_New(Vp9DecodeDebugPkt, this, m_hwInterface);
+    DECODE_CHK_NULL(debugPkt);
+    MOS_STATUS status = subPacketManager.Register(
+                        DecodePacketId(this, vp9DebugSubPacketId), *debugPkt);
+    if (status != MOS_STATUS_SUCCESS)
+    {
+        MOS_Delete(debugPkt);
+        return status;
+    }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
