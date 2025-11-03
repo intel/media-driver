@@ -426,19 +426,19 @@ MOS_STATUS AvcDecodeSlcPkt::AddCmd_AVC_SLICE_Addr(MOS_COMMAND_BUFFER &cmdBuffer,
     parSliceAddr.decodeInUse = true;
     if (parSlice.fullFrameData)
     {
-        parSliceAddr.IndirectBsdDataLength       = parSlice.nextLength;
+        parSliceAddr.IndirectBsdDataLength       = MOS_MIN(parSlice.nextLength, CODEC_AVC_SLICE_MIN_NUM_BYTES_LOAD);
         parSliceAddr.IndirectBsdDataStartAddress = parSlice.nextOffset;
     }
     else
     {
         if (m_avcBasicFeature && m_avcBasicFeature->m_hwStartCodeSupportEnabled)
         {
-            parSliceAddr.IndirectBsdDataLength       = parSlice.nextLength;
+            parSliceAddr.IndirectBsdDataLength       = MOS_MIN(parSlice.nextLength, CODEC_AVC_SLICE_MIN_NUM_BYTES_LOAD);
             parSliceAddr.IndirectBsdDataStartAddress = parSlice.nextOffset;
         }
         else
         {
-            parSliceAddr.IndirectBsdDataLength       = parSlice.nextLength + 1 - m_osInterface->dwNumNalUnitBytesIncluded;
+            parSliceAddr.IndirectBsdDataLength       = MOS_MIN(parSlice.nextLength + 1 - m_osInterface->dwNumNalUnitBytesIncluded, CODEC_AVC_SLICE_MIN_NUM_BYTES_LOAD);
             parSliceAddr.IndirectBsdDataStartAddress = parSlice.nextOffset - 1 + m_osInterface->dwNumNalUnitBytesIncluded;
         }
         DECODE_VERBOSEMESSAGE("HwStartCodeSupportEnabled %d, parSlice nextOffset %d, parSlice nextLength %d, IndirectBsdDataStartAddress %d, IndirectBsdDataLength %d",
