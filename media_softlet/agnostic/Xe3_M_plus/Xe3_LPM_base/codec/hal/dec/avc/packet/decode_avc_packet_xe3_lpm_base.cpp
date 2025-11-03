@@ -38,7 +38,7 @@ namespace decode
 
 MOS_STATUS AvcDecodePktXe3_Lpm_Base::Init()
 {
-    AvcDecodePkt::Init();
+    DECODE_CHK_STATUS(AvcDecodePkt::Init());
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     DecodeSubPacket *subPacket = m_avcPipeline->GetSubPacket(DecodePacketId(m_avcPipeline, avcDecodeAqmId));
