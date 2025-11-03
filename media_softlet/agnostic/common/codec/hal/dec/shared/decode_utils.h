@@ -100,6 +100,11 @@ public:
     {
         return m_mutex;
     }
+
+    //forbidden mutex transfer
+    Mutex(const Mutex&) = delete;
+    Mutex& operator=(const Mutex&) = delete;
+
 protected:
     PMOS_MUTEX m_mutex;
 MEDIA_CLASS_DEFINE_END(decode__Mutex)
