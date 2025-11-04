@@ -127,6 +127,8 @@ static const char *attrSubpicParams           = "SubpicParams";
 static const char *attrSliceStruct            = "SliceStruct";
 static const char *attrRplStruct              = "RplStruct";
 
+static const char *attrMvDumpOfTest           = "MvDumpOfTest"; //For Of test purpose only
+
 // MD5 attributes
 static const char *attrMD5HashEnable    = "MD5HasEnable";
 static const char *attrMD5FlushInterval = "MD5FlushInterval";
