@@ -597,7 +597,7 @@ public:
         uint32_t &commandBufferSize,
         uint32_t &requestedPatchListSize) override;
 
-    uint32_t GetSliceBatchOffset(uint32_t sliceNum);
+    virtual uint32_t GetSliceBatchOffset(uint32_t sliceNum);
 
     //!
     //! \brief  Get Packet Name
