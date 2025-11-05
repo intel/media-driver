@@ -64,6 +64,17 @@ MOS_STATUS Vp9DecodePkt::Init()
     m_allocator = m_vp9Pipeline->GetDecodeAllocator();
     DECODE_CHK_NULL(m_allocator);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Initialize debug packet
+    DecodeSubPacket* subPacket = m_vp9Pipeline->GetSubPacket(
+        DecodePacketId(m_vp9Pipeline, vp9DebugSubPacketId));
+    m_debugPkt = dynamic_cast<Vp9DecodeDebugPkt*>(subPacket);
+    if (m_debugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_debugPkt->Init());
+    }
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -83,6 +94,14 @@ MOS_STATUS Vp9DecodePkt::Prepare()
 
 MOS_STATUS Vp9DecodePkt::Destroy()
 {
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Destroy debug packet
+    if (m_debugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_debugPkt->Destroy());
+    }
+#endif
+
     m_statusReport->UnregistObserver(this);
     return MOS_STATUS_SUCCESS;
 }
@@ -179,6 +198,14 @@ MOS_STATUS Vp9DecodePkt::Completed(void *mfxStatus, void *rcsStatus, void *statu
 
     DECODE_VERBOSEMESSAGE("Index = %d", statusReportData->currDecodedPic.FrameIdx);
     DECODE_VERBOSEMESSAGE("FrameCrc = 0x%x", statusReportData->frameCrc);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Call debug packet completion handling for HCP debug functionality
+    if (m_debugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_debugPkt->Completed());
+    }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -277,6 +304,13 @@ MOS_STATUS Vp9DecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cm
     DECODE_FUNC_CALL();
     DECODE_CHK_NULL(cmdBuffer);
     DECODE_CHK_STATUS(ReadHcpStatus(m_statusReport, *cmdBuffer));
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Execute debug packet for HCP debug functionality
+    if (m_debugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_debugPkt->Execute(*cmdBuffer, m_statusReport));
+    }
+#endif
     DECODE_CHK_STATUS(MediaPacket::EndStatusReportNext(srType, cmdBuffer));
 
     MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
