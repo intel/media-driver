@@ -468,6 +468,9 @@ namespace encode
             m_bLastPicFlagFirstIn = false;
         }
 
+        m_skipAnalysisKernelCall = m_hevcSeqParams->FullPassCodecType == 1 && m_basicFeature->m_laDataBufferEnabled
+                                   && !m_lookaheadAdaptiveI && !m_hevcSeqParams->GopFlags.fields.AdaptiveGop;
+
         return eStatus;
     }
 
@@ -933,7 +936,7 @@ namespace encode
 
     bool VdencLplaAnalysis::IsLaAnalysisRequired()
     {
-        return m_enabled;
+        return m_enabled && !m_skipAnalysisKernelCall;
     }
 
     bool VdencLplaAnalysis::IsLaRecordsEmpty()
