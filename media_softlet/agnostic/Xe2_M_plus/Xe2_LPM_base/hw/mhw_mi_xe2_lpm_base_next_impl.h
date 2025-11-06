@@ -1103,6 +1103,7 @@ public:
         params.CompareOperation  = (mhw::mi::MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION)MHW_MI_SAD_GREATER_THAN_OR_EQUAL_SDD;
         params.dwResourceOffset  = 0;
         params.bRegisterPollMode = false;
+        params.waitTokenNumber   = static_cast<uint32_t>(fenceTokenValue);
         status                   = MHW_ADDCMD_F(MI_SEMAPHORE_WAIT)(cmdbuffer, batchBuffer);
         MHW_CHK_STATUS_RETURN(status);
 

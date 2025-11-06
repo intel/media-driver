@@ -153,6 +153,8 @@
 
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_MEDIA_CCS                       "Enable Media CCS"
 
+#define __MEDIA_USER_FEATURE_VALUE_FORCE_DISALBE_64BIT_TOKEN              "Force Disable 64Bit Token"
+
 #endif // (_DEBUG || _RELEASE_INTERNAL)
 
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED

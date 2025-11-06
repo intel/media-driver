@@ -363,6 +363,7 @@ public:
         cmd.DW0.WaitMode           = params.bPollingWaitMode;
         cmd.DW0.CompareOperation   = params.CompareOperation;
         cmd.DW1.SemaphoreDataDword = params.dwSemaphoreData;
+        cmd.DW4.WaitTokenNumber    = params.waitTokenNumber;
 
         return MOS_STATUS_SUCCESS;
     }

@@ -180,6 +180,7 @@ namespace mi
         bool                        bPollingWaitMode   = false;
         uint32_t                    dwCompareOperation = 0;
         uint32_t                    dwSemaphoreData    = 0;
+        uint32_t                    waitTokenNumber    = 0;
         bool                        b64bCompareEnableWithGPR = 0;
         MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION CompareOperation = {};
     };

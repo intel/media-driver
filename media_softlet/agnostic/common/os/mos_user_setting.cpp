@@ -1532,6 +1532,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         MediaUserSetting::Group::Sequence,
         uint32_t(0), // 0 chroma prefetch enabled, 1 chroma prefetch disabled ;
         false);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_FORCE_DISALBE_64BIT_TOKEN,
+        MediaUserSetting::Group::Device,
+        0,
+        false);
     return MOS_STATUS_SUCCESS;
 }
 
