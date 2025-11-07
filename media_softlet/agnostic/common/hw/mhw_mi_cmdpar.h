@@ -187,7 +187,11 @@ namespace mi
 
     struct _MHW_PAR_T(MI_SEMAPHORE_SIGNAL)
     {
-        bool                        b64bSignalingEnable = 0;            //Semaphore Wait/Signal with 64 bit Token value
+        bool                        b64bSignalingEnable         = 0;            //Semaphore Wait/Signal with 64 bit Token value
+        uint32_t                    dwLength                    = 0;
+        uint32_t                    swSemaphoreTokenInfo        = 0;
+        uint32_t                    semaphoreTokenLowerDword    = 0;
+        uint32_t                    semaphoreTokenUpperDword    = 0;
     };
 
     struct _MHW_PAR_T(PIPE_CONTROL)
