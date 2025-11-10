@@ -188,9 +188,9 @@ typedef struct _CM_CREATEVMESURFACE_PARAM
 
 typedef struct _CM_CREATESAMPLER_PARAM
 {
-    CM_SAMPLER_STATE        sampleState;                // [in]
     void                    *samplerHandle;           // [out]
     void                    *samplerIndexHandle;      // [out]
+    CM_SAMPLER_STATE        sampleState;                // [in]
     int32_t                 returnValue;               // [out]
 }CM_CREATESAMPLER_PARAM, *PCM_CREATESAMPLER_PARAM;
 
