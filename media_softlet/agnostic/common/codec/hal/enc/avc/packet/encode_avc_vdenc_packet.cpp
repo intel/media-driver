@@ -443,6 +443,17 @@ namespace encode {
             SETPAR_AND_ADDCMD(MFX_AVC_DIRECTMODE_STATE, m_mfxItf, &cmdBuffer);
         }
 
+        // Log previous frame resolution for OCA debugging
+        if (m_osInterface && m_osInterface->pOsContext)
+        {
+            char ocaLogMsg[256] = {};
+            MOS_SecureStringPrint(ocaLogMsg, sizeof(ocaLogMsg), sizeof(ocaLogMsg),
+                "AVC Encode - Previous Frame Resolution: Height=%d, Width=%d",
+                m_basicFeature->m_prevFrameHeight, m_basicFeature->m_prevFrameWidth);
+            HalOcaInterfaceNext::TraceMessage(cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, 
+                ocaLogMsg, sizeof(ocaLogMsg));
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 

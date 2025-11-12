@@ -616,6 +616,9 @@ void AvcBasicFeature::CheckResolutionChange()
         m_frame_mbs_only_flag        = frame_mbs_only_flag;
         m_frame_cropping_flag      = frame_cropping_flag;
         m_resolutionChanged = true;
+        // Initialize previous resolution to 0 for first frame
+        m_prevFrameHeight = 0;
+        m_prevFrameWidth  = 0;
     }
     else
     {
@@ -624,6 +627,9 @@ void AvcBasicFeature::CheckResolutionChange()
             (m_oriFrameWidth && (m_oriFrameWidth != frameWidth)))
         {
             m_resolutionChanged = true;
+            // Save current as previous before update
+            m_prevFrameHeight = m_oriFrameHeight;
+            m_prevFrameWidth = m_oriFrameWidth;
             m_oriFrameHeight = frameHeight;
             m_oriFrameWidth = frameWidth;
             m_frame_crop_bottom_offset = frame_crop_bottom_offset;
