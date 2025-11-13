@@ -72,6 +72,8 @@ public:
     //!
     HucMmioRegisters* GetMmioRegisters(MHW_VDBOX_NODE_IND index) override
     {
+        MHW_FUNCTION_ENTER;
+
         if (index < MHW_VDBOX_NODE_MAX)
         {
             return &m_mmioRegisters[index];
@@ -86,6 +88,8 @@ public:
 private:
     void InitMmioRegisters()
     {
+        MHW_FUNCTION_ENTER;
+
         HucMmioRegisters *mmioRegisters = &m_mmioRegisters[MHW_VDBOX_NODE_1];
 
         mmioRegisters->hucUKernelHdrInfoRegOffset = HUC_UKERNEL_HDR_INFO_REG_OFFSET_NODE_1_INIT;

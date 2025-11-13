@@ -120,6 +120,7 @@ public:
 
     bool IsBufferRowstoreCacheEnabled(VvcpBufferType bufferType) override
     {
+        MHW_FUNCTION_ENTER;
 
         bool rowstoreCacheEnabled = false;
         switch (bufferType)

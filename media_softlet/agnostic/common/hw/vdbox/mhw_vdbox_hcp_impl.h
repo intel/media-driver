@@ -407,6 +407,8 @@ public:
 
     const HcpMmioRegisters *GetMmioRegisters(const MHW_VDBOX_NODE_IND index) const override
     {
+        MHW_FUNCTION_ENTER;
+
         if (index < MHW_VDBOX_NODE_MAX)
         {
             return &m_mmioRegisters[index];
@@ -737,6 +739,8 @@ private:
 
     void InitMmioRegisters()
     {
+        MHW_FUNCTION_ENTER;
+
         HcpMmioRegisters *mmioRegisters = &m_mmioRegisters[MHW_VDBOX_NODE_1];
 
         mmioRegisters->watchdogCountCtrlOffset                           = WATCHDOG_COUNT_CTRL_OFFSET_INIT;

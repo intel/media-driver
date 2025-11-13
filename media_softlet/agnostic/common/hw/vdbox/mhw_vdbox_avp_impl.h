@@ -214,6 +214,8 @@ public:
 
     bool IsBufferRowstoreCacheEnabled(AvpBufferType bufferType) override
     {
+        MHW_FUNCTION_ENTER;
+
         bool rowstoreCacheEnabled = false;
         switch (bufferType)
         {
@@ -259,6 +261,8 @@ public:
 
     AvpMmioRegisters* GetMmioRegisters(MHW_VDBOX_NODE_IND index) override
     {
+        MHW_FUNCTION_ENTER;
+
         if (index < MHW_VDBOX_NODE_MAX)
         {
             return (&m_mmioRegisters[index]);
@@ -276,6 +280,8 @@ private:
 
     void InitMmioRegisters()
     {
+        MHW_FUNCTION_ENTER;
+
         AvpMmioRegisters *mmioRegisters = &m_mmioRegisters[MHW_VDBOX_NODE_1];
 
         mmioRegisters->avpAv1BitstreamByteCountTileRegOffset         = AVP_AVP_BITSTREAM_BYTECOUNT_TILE_WITH_HEADER_AWM_REG0;
