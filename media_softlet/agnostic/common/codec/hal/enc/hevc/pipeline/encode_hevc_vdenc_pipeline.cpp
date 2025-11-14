@@ -287,6 +287,7 @@ MOS_STATUS HevcVdencPipeline::ExecuteSaliencyPackets()
         {
             ENCODE_CHK_STATUS_RETURN(ActivatePacket(hevcSaliencyPacket, true, 0, 0));
             m_activePacketList.back().frameTrackingRequested = false;
+            m_activePacketList.back().skipOcaBBStartInCmdTask = true;
             ENCODE_CHK_STATUS_RETURN(ExecuteActivePackets());
         }
 

@@ -44,6 +44,7 @@ struct PacketProperty
     bool               immediateSubmit = false;
     bool               frameTrackingRequested = true;
     StateParams        stateProperty;
+    bool               skipOcaBBStartInCmdTask = false;
 };
 
 class MediaTask

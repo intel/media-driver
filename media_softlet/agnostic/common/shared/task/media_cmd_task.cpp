@@ -156,7 +156,7 @@ MOS_STATUS CmdTask::Submit(bool immediateSubmit, MediaScalability *scalability, 
             packetPhase = MediaPacket::firstPacket;
         }
 
-        if (isFirstPacket || !prop.stateProperty.singleTaskPhaseSupported)
+        if (!prop.skipOcaBBStartInCmdTask && (isFirstPacket || !prop.stateProperty.singleTaskPhaseSupported))
         {
             scalability->Oca1stLevelBBStart(cmdBuffer);
         }
