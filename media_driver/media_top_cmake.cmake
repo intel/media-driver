@@ -693,5 +693,5 @@ bs_set_post_target()
 
 if(MEDIA_RUN_TEST_SUITE AND ENABLE_KERNELS AND ENABLE_NONFREE_KERNELS AND "${CMAKE_BUILD_TYPE}" STREQUAL "ReleaseInternal")
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/linux/ult)
-    include(${MEDIA_EXT}/media_softlet/ult/ult_top_cmake.cmake OPTIONAL)
+    include(${MEDIA_SOFTLET_EXT}/proprietary/ult/ult_top_cmake.cmake OPTIONAL)
 endif()
