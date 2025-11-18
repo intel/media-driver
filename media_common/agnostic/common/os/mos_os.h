@@ -333,6 +333,7 @@ typedef struct _MOS_GFXRES_FLAGS
     int32_t         bFlipChain;
     int32_t         bSVM;
     int32_t         bCacheable;
+    int32_t         bSubAllocation;                                             //!< [in] true: Resource is a sub-allocation. Only used for volume 3DLUT buffer.
 } MOS_GFXRES_FLAGS, *PMOS_GFXRES_FLAGS;
 
 //!
