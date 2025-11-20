@@ -303,7 +303,7 @@ MOS_STATUS HevcVdencPipeline::ExecuteSaliencyPackets()
             ENCODE_CHK_STATUS_RETURN(m_mediaCopyWrapper->MediaCopy(
                 &saliencyFeature->m_saliencyKernelPar.pCurrRawSurf->OsResource,
                 &saliencyFeature->m_saliencyKernelPar.pLastSceneSurf->OsResource,
-                MCPY_METHOD_PERFORMANCE));
+                MCPY_METHOD_DEFAULT));
         }
 
         //Switch back to VDEnc
