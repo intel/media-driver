@@ -354,6 +354,7 @@ namespace encode
         uint32_t &tileEndLcuY,
         uint32_t &tileStreaminOffset)
     {
+        ENCODE_FUNC_CALL();
         MOS_STATUS eStatus = MOS_STATUS_INVALID_PARAMETER;
 
         for (uint32_t i = 0; i < m_numTiles; i++)
@@ -672,6 +673,7 @@ namespace encode
 
     MOS_STATUS HevcEncodeTile::GetTileInfo(HevcTileInfo *hevcTileInfo) const
     {
+        ENCODE_FUNC_CALL();
         ENCODE_CHK_NULL_RETURN(hevcTileInfo);
 
         if (m_enabled)
@@ -697,6 +699,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, HevcEncodeTile)
     {
+        ENCODE_FUNC_CALL();
         if (m_enabled)
         {
             params.tileBasedReplayMode = m_enableTileReplay;
@@ -730,6 +733,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(VDENC_WALKER_STATE, HevcEncodeTile)
     {
+        ENCODE_FUNC_CALL();
         auto hevcBasicFeature = dynamic_cast<HevcBasicFeature *>(m_basicFeature);
         ENCODE_CHK_NULL_RETURN(hevcBasicFeature);
         auto picParams = hevcBasicFeature->m_hevcPicParams;
@@ -884,6 +888,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(VDENC_HEVC_VP9_TILE_SLICE_STATE, HevcEncodeTile)
     {
+        ENCODE_FUNC_CALL();
         auto hevcBasicFeature = dynamic_cast<HevcBasicFeature *>(m_basicFeature);
         ENCODE_CHK_NULL_RETURN(hevcBasicFeature);
         auto picParams = hevcBasicFeature->m_hevcPicParams;

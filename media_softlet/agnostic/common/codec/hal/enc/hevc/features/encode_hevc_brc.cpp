@@ -889,6 +889,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, HEVCEncodeBRC)
     {
+        ENCODE_FUNC_CALL();
         params.frameStatisticsStreamOut |= m_hevcVDEncAcqpEnabled || m_vdencBrcEnabled;
 
         return MOS_STATUS_SUCCESS;
@@ -896,6 +897,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(VDENC_CMD2, HEVCEncodeBRC)
     {
+        ENCODE_FUNC_CALL();
         auto basicFeature = dynamic_cast<HevcBasicFeature *>(m_basicFeature);
         ENCODE_CHK_NULL_RETURN(basicFeature);
 

@@ -40,6 +40,7 @@ HevcVdencPipeline::HevcVdencPipeline(
     CodechalDebugInterface *debugInterface)
     : HevcPipeline(hwInterface, debugInterface)
 {
+    ENCODE_FUNC_CALL();
 }
 
 MOS_STATUS HevcVdencPipeline::Initialize(void *settings)
@@ -73,6 +74,7 @@ MOS_STATUS HevcVdencPipeline::UserFeatureReport()
 
 MOS_STATUS HevcVdencPipeline::Prepare(void *params)
 {
+    ENCODE_FUNC_CALL();
     EncoderParams *encodeParams = (EncoderParams *)params;
 
     ENCODE_CHK_NULL_RETURN(encodeParams);

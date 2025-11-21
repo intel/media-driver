@@ -83,6 +83,7 @@ namespace encode
 
     MOS_STATUS Av1Scc::MakeCdfTrackedBufferLockable()
     {
+        ENCODE_FUNC_CALL();
         MOS_ALLOC_GFXRES_PARAMS allocParams;
         MOS_ZeroMemory(&allocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
         allocParams.Type               = MOS_GFXRES_BUFFER;
@@ -100,6 +101,7 @@ namespace encode
 
     MOS_STATUS Av1Scc::ResetMvProbsToDefault()
     {
+        ENCODE_FUNC_CALL();
         PMOS_RESOURCE cdfTrackedBuf = m_basicFeature->m_trackedBuf->GetBuffer(BufferType::bwdAdaptCdfBuffer, 0);
         ENCODE_CHK_NULL_RETURN(cdfTrackedBuf);
 
@@ -213,6 +215,7 @@ namespace encode
 
     MOS_STATUS Av1Scc::UpdateIBCStatusForCurrentTile()
     {
+        ENCODE_FUNC_CALL();
         uint32_t wSB64 = MOS_ROUNDUP_DIVIDE(m_basicFeature->m_frameWidth, 64);
 
         auto tileFeature = dynamic_cast<Av1EncodeTile *>(m_featureManager->GetFeature(Av1FeatureIDs::encodeTile));
@@ -231,6 +234,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(VDENC_HEVC_VP9_TILE_SLICE_STATE, Av1Scc)
     {
+        ENCODE_FUNC_CALL();
         bool m_is10Bit = m_basicFeature->m_is10Bit;
         uint16_t qp    = (m_basicFeature->m_av1PicParams->base_qindex) / 4;
 
@@ -291,6 +295,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(VDENC_CMD2, Av1Scc)
     {
+        ENCODE_FUNC_CALL();
         if (m_IBCEnabledForCurrentTile)
         {
             params.frameIdxL0Ref0 = 0;
@@ -353,6 +358,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(VDENC_CMD1, Av1Scc)
     {
+        ENCODE_FUNC_CALL();
         auto setting = static_cast<Av1VdencFeatureSettings*>(m_constSettings);
         ENCODE_CHK_NULL_RETURN(setting);
 
@@ -389,6 +395,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, Av1Scc)
     {
+        ENCODE_FUNC_CALL();
         if (m_enableIBC)
         {
             params.refs[0]         = &m_intrabcReconSurface->OsResource;
@@ -403,6 +410,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(AVP_PIC_STATE, Av1Scc)
     {
+        ENCODE_FUNC_CALL();
         if (m_enableIBC || m_enablePalette)
         {
             params.allowScreenContentTools = true;
@@ -420,6 +428,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(AVP_PIPE_BUF_ADDR_STATE, Av1Scc)
     {
+        ENCODE_FUNC_CALL();
         if (m_enableIBC)
         {
             params.intrabcDecodedOutputFrameBuffer = &m_intrabcReconSurface->OsResource;
@@ -430,6 +439,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(AVP_SURFACE_STATE, Av1Scc)
     {
+        ENCODE_FUNC_CALL();
         MOS_MEMCOMP_STATE mmcState = {};
         if (m_enableIBC && params.surfaceStateId == intrabcDecodedFrame)
         {

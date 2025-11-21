@@ -45,6 +45,7 @@ Av1EncodeAqm::Av1EncodeAqm(MediaFeatureManager *featureManager,
 
 MOS_STATUS Av1EncodeAqm::Update(void *params)
 {
+    ENCODE_FUNC_CALL();
     auto basicFeature   = dynamic_cast<Av1BasicFeature *>(m_basicFeature);
     ENCODE_CHK_NULL_RETURN(basicFeature);
 
@@ -90,6 +91,7 @@ MOS_STATUS Av1EncodeAqm::Update(void *params)
 
 MHW_SETPAR_DECL_SRC(AQM_PIC_STATE, Av1EncodeAqm)
 {
+    ENCODE_FUNC_CALL();
     ENCODE_CHK_STATUS_RETURN(EncodeAqmFeature::MHW_SETPAR_F(AQM_PIC_STATE)(params));
 
     params.lcuSize   = LCU_SIZE_64X64;
@@ -100,6 +102,7 @@ MHW_SETPAR_DECL_SRC(AQM_PIC_STATE, Av1EncodeAqm)
 
 MHW_SETPAR_DECL_SRC(AVP_PIC_STATE, Av1EncodeAqm)
 {
+    ENCODE_FUNC_CALL();
 
     params.VdaqmEnable = m_enabled;
 
@@ -108,6 +111,7 @@ MHW_SETPAR_DECL_SRC(AVP_PIC_STATE, Av1EncodeAqm)
 
 MHW_SETPAR_DECL_SRC(AQM_TILE_CODING, Av1EncodeAqm)
 {
+    ENCODE_FUNC_CALL();
     auto encFeatureManager = dynamic_cast<EncodeAv1VdencFeatureManager *>(m_featureManager);
     ENCODE_CHK_NULL_RETURN(encFeatureManager);
 
@@ -131,6 +135,7 @@ MHW_SETPAR_DECL_SRC(AQM_TILE_CODING, Av1EncodeAqm)
 
 MHW_SETPAR_DECL_SRC(AQM_SLICE_STATE, Av1EncodeAqm)
 {
+    ENCODE_FUNC_CALL();
     auto encFeatureManager = dynamic_cast<EncodeAv1VdencFeatureManager *>(m_featureManager);
     ENCODE_CHK_NULL_RETURN(encFeatureManager);
 
@@ -166,6 +171,7 @@ MHW_SETPAR_DECL_SRC(VD_PIPELINE_FLUSH, Av1EncodeAqm)
 
 MHW_SETPAR_DECL_SRC(AQM_PIPE_BUF_ADDR_STATE, Av1EncodeAqm)
 {
+    ENCODE_FUNC_CALL();
     auto aqmFeature     = dynamic_cast<Av1EncodeAqm*>(m_featureManager->GetFeature(Av1FeatureIDs::av1Aqm));
     ENCODE_CHK_NULL_RETURN(aqmFeature);
 
@@ -212,6 +218,7 @@ MHW_SETPAR_DECL_SRC(AQM_PIPE_BUF_ADDR_STATE, Av1EncodeAqm)
 
 MHW_SETPAR_DECL_SRC(AQM_SURFACE_STATE, Av1EncodeAqm)
 {
+    ENCODE_FUNC_CALL();
     auto basicFeature = dynamic_cast<Av1BasicFeature*>(m_basicFeature);
     ENCODE_CHK_NULL_RETURN(basicFeature);
 

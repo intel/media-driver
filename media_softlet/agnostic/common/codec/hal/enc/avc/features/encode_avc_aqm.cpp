@@ -48,6 +48,7 @@ AvcEncodeAqm::AvcEncodeAqm(MediaFeatureManager *featureManager,
 
 MOS_STATUS AvcEncodeAqm::Update(void* params)
 {
+    ENCODE_FUNC_CALL();
     auto basicFeature = dynamic_cast<AvcBasicFeature*>(m_basicFeature);
     ENCODE_CHK_NULL_RETURN(basicFeature);
 

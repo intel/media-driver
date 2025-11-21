@@ -723,6 +723,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(HUC_DMEM_STATE, Av1Brc)
     {
+        ENCODE_FUNC_CALL();
         ENCODE_CHK_NULL_RETURN(params.hucDataSource);
 
         switch (params.function)
@@ -768,6 +769,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(HUC_VIRTUAL_ADDR_STATE, Av1Brc)
     {
+        ENCODE_FUNC_CALL();
         if (params.function == BRC_UPDATE)
         {
             const PMOS_RESOURCE brcConstDataBuffer = params.regionParams[5].presRegion;
@@ -785,6 +787,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, Av1Brc)
     {
+        ENCODE_FUNC_CALL();
         if (m_brcEnabled)
         {
             params.frameStatisticsStreamOut = true;

@@ -77,6 +77,7 @@ Av1FastPass::Av1FastPass(MediaFeatureManager *featureManager,
 
     MOS_STATUS Av1FastPass::Update(void *params)
     {
+        ENCODE_FUNC_CALL();
         ENCODE_CHK_NULL_RETURN(m_basicFeature);
         PCODEC_AV1_ENCODE_PICTURE_PARAMS av1PicParams = m_basicFeature->m_av1PicParams;
         ENCODE_CHK_NULL_RETURN(av1PicParams);
@@ -110,6 +111,7 @@ Av1FastPass::Av1FastPass(MediaFeatureManager *featureManager,
 
     MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, Av1FastPass)
     {
+        ENCODE_FUNC_CALL();
         if (m_enabled)
         {
             params.fastPassEn    = m_enabled;

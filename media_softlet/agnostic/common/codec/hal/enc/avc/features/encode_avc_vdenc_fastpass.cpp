@@ -78,6 +78,7 @@ AvcVdencFastPass::AvcVdencFastPass(
 
 MOS_STATUS AvcVdencFastPass::Update(void *params)
 {
+    ENCODE_FUNC_CALL();
     if (!m_enabled)
     {
         return MOS_STATUS_SUCCESS;
