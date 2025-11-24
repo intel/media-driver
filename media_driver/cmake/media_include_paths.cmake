@@ -30,6 +30,9 @@ include_directories(${BS_DIR_INC}/umKmInc)
 # external components' header path which media depends on now
 include_directories(${BS_DIR_SKUWA})
 include_directories(${BS_DIR_GMMLIB}/inc)
+include_directories(${BS_DIR_GMMLIBSTAGING}/inc)
+include_directories(${BS_DIR_GMMLIB2}/public/include)
+include_directories(${BS_DIR_GMMLIB2}/interface)
 include_directories(${BS_DIR_SOURCE}/huc/inc)
 endif()
 
