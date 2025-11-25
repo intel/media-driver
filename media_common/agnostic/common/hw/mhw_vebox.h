@@ -185,7 +185,8 @@ typedef struct _MHW_VEBOX_MODE
     uint32_t    EotfPrecision                       : 1;
     uint32_t    BypassCcm                           : 1;
     uint32_t    BypassOetf                          : 1;
-    uint32_t                                        : 3; // Reserved
+    uint32_t    Eotf16LayoutMode                    : 1;  // EOTF16 layout mode: 0=ARGB legacy, 1=RGBA new
+    uint32_t                                        : 2; // Reserved
 } MHW_VEBOX_MODE, *PMHW_VEBOX_MODE;
 
 typedef enum _MHW_VEBOX_ADDRESS_SHIFT
@@ -213,8 +214,9 @@ typedef struct _MHW_VEBOX_3D_LUT
     uint32_t    Lut3dEnable                                 : 1;
     uint32_t    Lut3dSize                                   : 2;
     uint32_t    ChannelMappingSwapForLut3D                  : 1;
+    uint32_t    Lut3DLoopingOrder                           : 1;  // 0=legacy B-major, 1=R-major
     uint32_t    InterpolationMethod                         : 1;
-    uint32_t                                                : 25; // Reserved
+    uint32_t                                                : 24; // Reserved (reduced from 25)
 } MHW_VEBOX_3D_LUT, *PMHW_VEBOX_3D_LUT;
 
 typedef struct _MHW_VEBOX_FP16_INPUT
@@ -632,7 +634,6 @@ typedef struct _MHW_3DLUT_PARAMS
     MHW_3DLUT_INTERPOLATION InterpolationMethod;        //!< Vebox 3DLut interpolation method
 } MHW_3DLUT_PARAMS, *PMHW_3DLUT_PARAMS;
 
-//!
 //! \brief  VEBOX HDR PARAMS
 //! \details For CCM settings, move 1DLut to here later
 typedef struct _MHW_1DLUT_PARAMS
@@ -642,6 +643,7 @@ typedef struct _MHW_1DLUT_PARAMS
     uint32_t LUTSize;
     int32_t *pCCM;
     uint32_t CCMSize;
+    uint32_t eotf16LayoutMode;  // EOTF16 layout mode: 0=ARGB legacy (Y/Z/W), 1=RGBA new (X/Y/Z)
 } MHW_1DLUT_PARAMS, *PMHW_1DLUT_PARAMS;
 
 //!
