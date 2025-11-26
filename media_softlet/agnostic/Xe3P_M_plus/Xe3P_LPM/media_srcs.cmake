@@ -1,4 +1,4 @@
-# Copyright (c) 2024-2025, Intel Corporation
+# Copyright (c) 2025, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,21 +18,4 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(common)
-media_include_subdirectory(Xe_R)
-if(Xe_M_plus)
-    media_include_subdirectory(Xe_M_plus)
-endif()
-if(Xe2_M_plus)
-    media_include_subdirectory(Xe2_M_plus)
-endif()
-
-if(PTL)
-    media_include_subdirectory(Xe3_M_plus)
-endif()
-
-if(NVL)
-    media_include_subdirectory(Xe3P_M_plus)
-endif()
-
-include(${MEDIA_SOFTLET_EXT}/agnostic/media_srcs_ext.cmake OPTIONAL)
+media_include_subdirectory(hw)
