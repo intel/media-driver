@@ -860,6 +860,13 @@ MOS_STATUS VpPipeline::UpdateVeboxNumberforScalability()
         m_forceMultiplePipe = MOS_SCALABILITY_ENABLE_MODE_DEFAULT;
     }
 
+    VP_PUBLIC_CHK_NULL_RETURN(m_skuTable);
+    if (MEDIA_IS_SKU(m_skuTable, FtrEngineGroupScheduling))
+    {
+        VP_PUBLIC_NORMALMESSAGE("FtrEngineGroupScheduling is set. Disable Scalability!");
+        disableScalability = true;
+    }
+
     if (disableScalability == true)
     {
         m_numVebox = 1;

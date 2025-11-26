@@ -291,6 +291,18 @@ MOS_STATUS CodechalInterfacesXe2_Hpm::Initialize(
         disableScalability = true;
 #endif
 #endif
+    auto skuTable = osInterface->pfnGetSkuTable(osInterface);
+    if (!skuTable)
+    {
+        CODECHAL_PUBLIC_ASSERTMESSAGE("SkuTable is not valid!");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    if (MEDIA_IS_SKU(skuTable,FtrEngineGroupScheduling))
+    {
+        CODECHAL_PUBLIC_NORMALMESSAGE("FtrEngineGroupScheduling is set. Disable Scalability!");
+        disableScalability = true;
+    }
 
     CodechalHwInterfaceNext *hwInterface = MOS_New(Hw, osInterface, CodecFunction, mhwInterfaces, disableScalability);
 
