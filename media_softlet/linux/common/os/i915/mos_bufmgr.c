@@ -1020,7 +1020,7 @@ mos_gem_bo_alloc_internal(struct mos_bufmgr *bufmgr,
     struct mos_bufmgr_gem *bufmgr_gem = (struct mos_bufmgr_gem *) bufmgr;
     struct mos_bo_gem *bo_gem;
     unsigned int page_size = getpagesize();
-    static bool support_pat_index = true;
+    static bool support_pat_index = false;
     int ret;
     struct mos_gem_bo_bucket *bucket;
     bool alloc_from_cache;
@@ -1945,12 +1945,13 @@ drm_export int mos_gem_bo_map(struct mos_linux_bo *bo, int write_enable)
 #endif
         return 0;
     }
+#if 0    
     /* If cpu cacheable is false, it means bo is Non-Coherent. */
     if (!bo_gem->cpu_cacheable)
     {
         return mos_gem_bo_map_wc(bo);
     }
-
+#endif
     pthread_mutex_lock(&bufmgr_gem->lock);
 
     if (bufmgr_gem->has_mmap_offset) {
