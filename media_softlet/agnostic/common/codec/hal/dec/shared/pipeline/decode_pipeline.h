@@ -329,6 +329,16 @@ public:
     {
         return m_crcoutputEnable;
     }
+
+    //!
+    //! \brief  Get Vdbox command counter override value
+    //! \return uint32_t
+    //!         command counter override value
+    //!
+    uint32_t GetVdboxCommandCounterOverride()
+    {
+        return m_vdboxCommandCounterOverride;
+    }
 #endif
 
 protected:
@@ -538,6 +548,7 @@ protected:
     uint32_t                m_statusCheckCount = 0;     //!< count for status check
     uint32_t                m_delayMiliseconds = 0;     //!< miliseconds delay after each frame
     uint32_t                m_crcoutputEnable  = 0;     //!< crc output enable
+    uint32_t                m_vdboxCommandCounterOverride = 0;  //!< vdbox command counter override
 #endif
 
     PMOS_SURFACE            m_tempOutputSurf = nullptr;

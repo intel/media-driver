@@ -192,6 +192,14 @@ MOS_STATUS DecodePipeline::Initialize(void *settings)
         &userFeatureData,
         m_osInterface->pOsContext);
     m_crcoutputEnable = userFeatureData.i32Data ? true : false;
+
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_VDBOX_COMMAND_COUNTER_OVERRIDE_ID,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+    m_vdboxCommandCounterOverride = userFeatureData.i32Data;
 #endif
 
     m_decodecp = Create_DecodeCpInterface(codecSettings, m_hwInterface->GetCpInterface(), m_hwInterface->GetOsInterface());

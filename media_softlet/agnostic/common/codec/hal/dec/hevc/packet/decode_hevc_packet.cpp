@@ -206,7 +206,7 @@ MOS_STATUS HevcDecodePkt::Completed(void *mfxStatus, void *rcsStatus, void *stat
     // Call debug packet completion handling for HCP debug functionality
     if (m_debugPkt != nullptr)
     {
-        DECODE_CHK_STATUS(m_debugPkt->Completed());
+        DECODE_CHK_STATUS(m_debugPkt->Completed(mfxStatus));
     }
 #endif
 
@@ -304,6 +304,11 @@ MOS_STATUS HevcDecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER*
         DECODE_CHK_NULL(nullhwProxy);
         nullhwProxy->AddNullHwProxyCmd(m_hevcPipeline, m_osInterface, cmdBuffer);
     }
+    // Add command counter commands for debug
+    if (m_debugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_debugPkt->AddCommandCounterCmds(*cmdBuffer, m_statusReport));
+    }
 #endif
 
     DECODE_CHK_STATUS(MediaPacket::StartStatusReportNext(srType, cmdBuffer));
@@ -326,7 +331,7 @@ MOS_STATUS HevcDecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* c
     // Execute debug packet for HCP debug functionality
     if (m_debugPkt != nullptr)
     {
-        DECODE_CHK_STATUS(m_debugPkt->Execute(*cmdBuffer));
+        DECODE_CHK_STATUS(m_debugPkt->Execute(*cmdBuffer, m_statusReport));
     }
 #endif
 

@@ -69,6 +69,7 @@ enum DecodeStatusReportType
     HucErrorStatusMask,
 
     statusReportRcs,
+    statusReportCmdCounter,
     statusReportMaxNum
 };
 
@@ -112,6 +113,8 @@ struct DecodeStatusMfx
     uint64_t                m_hucErrorStatus2 = 0;
     //! \brief Huc error for HEVC Fix Function, DWORD0: mask value, DWORD1: reg value
     uint64_t                m_hucErrorStatus = 0;
+    //! \brief Value of MMIO Command Counter register
+    uint32_t                m_mmioCmdCounterReg = 0;
 };
 
 struct DecodeStatusRcs

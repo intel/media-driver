@@ -252,14 +252,15 @@ namespace decode {
         m_statusBufAddr[CsEngineIdOffset_5].offset   = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioCsEngineIdReg[5]);
         m_statusBufAddr[CsEngineIdOffset_6].offset   = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioCsEngineIdReg[6]);
         m_statusBufAddr[CsEngineIdOffset_7].offset   = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioCsEngineIdReg[7]);
-        m_statusBufAddr[HucErrorStatus2Mask].offset  = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_hucErrorStatus2);
-        m_statusBufAddr[HucErrorStatus2Reg].offset   = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_hucErrorStatus2) + sizeof(uint32_t);
-        m_statusBufAddr[HucErrorStatusMask].offset   = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_hucErrorStatus);
-        m_statusBufAddr[HucErrorStatusReg].offset    = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_hucErrorStatus) + sizeof(uint32_t);
+    m_statusBufAddr[HucErrorStatus2Mask].offset  = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_hucErrorStatus2);
+    m_statusBufAddr[HucErrorStatus2Reg].offset   = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_hucErrorStatus2) + sizeof(uint32_t);
+    m_statusBufAddr[HucErrorStatusMask].offset   = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_hucErrorStatus);
+    m_statusBufAddr[HucErrorStatusReg].offset    = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_hucErrorStatus) + sizeof(uint32_t);
+    m_statusBufAddr[statusReportCmdCounter].offset = mfxStatusOffset + CODECHAL_OFFSETOF(DecodeStatusMfx, m_mmioCmdCounterReg);
 
-        const uint32_t rcsStatusOffset = 0;
-        m_statusBufAddr[statusReportRcs].offset      = rcsStatusOffset + CODECHAL_OFFSETOF(DecodeStatusRcs, status);
-    }
+    const uint32_t rcsStatusOffset = 0;
+    m_statusBufAddr[statusReportRcs].offset      = rcsStatusOffset + CODECHAL_OFFSETOF(DecodeStatusRcs, status);
+}
 
     MOS_STATUS DecodeStatusReport::UpdateCodecStatus(
         DecodeStatusReportData* statusReportData,
