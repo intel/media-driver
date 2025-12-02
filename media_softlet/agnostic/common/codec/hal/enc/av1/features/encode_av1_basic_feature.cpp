@@ -871,7 +871,6 @@ MHW_SETPAR_DECL_SRC(VDENC_CMD2, Av1BasicFeature)
     params.qpPrimeYDc  = (uint8_t)CodecHal_Clip3(0, 255, m_av1PicParams->base_qindex + m_av1PicParams->y_dc_delta_q);
     params.qpPrimeYAc  = (uint8_t)m_av1PicParams->base_qindex;
     params.tiling      = m_av1PicParams->tile_cols > 1 || m_av1PicParams->tile_rows > 1;
-    params.temporalMvp = false;
 
     ENCODE_CHK_STATUS_RETURN(m_ref.MHW_SETPAR_F(VDENC_CMD2)(params));
     ENCODE_CHK_STATUS_RETURN(m_streamIn.MHW_SETPAR_F(VDENC_CMD2)(params));

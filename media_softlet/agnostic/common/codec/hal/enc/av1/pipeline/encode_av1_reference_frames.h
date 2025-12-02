@@ -240,6 +240,45 @@ protected:
 
     int32_t GetRelativeDist(int32_t a, int32_t b) const;
 
+    // Common POC Handling Functions
+    //!
+    //! \brief  Populate reference frame POC values and calculate savedOrderHints
+    //! \details This function populates reference frame POCs and calculates 
+    //!          savedOrderHints[7][7] internally, storing results in m_savedOrderHints
+    //!          member variable for motion field projection.
+    //! \param  [out] refsPOCList
+    //!         Array to store POC values for all reference frames
+    //! \return void
+    //!
+    void PopulateReferenceFramePOCs(int32_t (&refsPOCList)[7]);
+
+    // Motion Field Projection Logic
+    //!
+    //! \brief  Calculate active reference bitmask for motion field projection
+    //! \return uint8_t
+    //!         Bitmask indicating which references are active (max 3 bits set)
+    //!
+    uint8_t CalculateActiveRefBitmask();
+
+    //!
+    //! \brief  Validate if reference frame is suitable for motion field projection
+    //! \param  [in] refIdx
+    //!         Reference frame index
+    //! \param  [in] refOrderHint
+    //!         Order hint of the reference frame
+    //! \return bool
+    //!         true if reference is valid for motion field projection
+    //!
+    bool ValidateMotionFieldReference(uint8_t refIdx, uint8_t refOrderHint);
+
+    // Collocated MV Buffer Management
+    //!
+    //! \brief  Get current frame's collocated MV buffer for AVP output
+    //! \return PMOS_RESOURCE
+    //!         Pointer to current frame's colMV buffer
+    //!
+    PMOS_RESOURCE GetCurrentColMVBuffer();
+
     //!
     //! \brief  Get FWD and BWD reference number
     //! \return MOS_STATUS
@@ -281,6 +320,10 @@ protected:
     BufferType m_enc8xRefBufType     = BufferType::ds8xSurface;
     uint32_t   m_refWidth            = 0;
     uint32_t   m_refHeight           = 0;
+
+    // Temporal MV member variables
+    uint8_t    m_activeRefBitmaskMfProj = 0;  //!< Active reference bitmask for motion field projection
+    uint8_t    m_savedOrderHints[7][7] = {};  //!< Saved order hints for reference-of-reference frames [ref][ref_of_ref]
 
     union
     {

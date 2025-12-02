@@ -578,6 +578,30 @@ struct _MHW_PAR_T(VDENC_CMD2)
     uint8_t  minQp                            = 0;
     uint8_t  maxQp                            = 255;
     bool     temporalMvEnableForIntegerSearch = false;
+
+    // Temporal MV parameters for AV1 encoder
+    // HAL layer MUST validate these values before assignment
+    
+    // Sequence order hint bits minus 1 (DW67 bits 2:0)
+    // HAL layer MUST validate this value is within [0..7] range before assignment
+    // Valid range: 0-7 (3 bits), used to generate bitmask for computing relative distance between order hints
+    uint8_t  sequenceOrderHintBitsMinus1      = 0;
+    
+    // Active reference bitmask for motion field projection (DW74 bits 31:24)
+    // HAL layer MUST validate max 3 bits set and only at valid positions (0,1,2,4,6,7) before assignment
+    // Valid bit positions: 0(LAST), 1(LAST2), 2(LAST3), 4(BWDREF), 6(ALTREF2), 7(ALTREF)
+    // Priority order for merging: LAST, BWDREF, ALTREF2, ALTREF, LAST2
+    // Bit positions 3 and 5 are reserved and must not be set
+    uint8_t  activeRefBitmaskMfProj           = 0;
+    
+    // Saved order hints array for motion field projection (DW73-85)
+    // HAL layer MUST validate each element is within [0..255] range before assignment
+    // Format: [reference frame index 0-6][7 reference indices of that reference frame]
+    // Each element represents time steps for motion field projection
+    // Index mapping: 0=LAST, 1=LAST2, 2=LAST3, 3=GOLDEN, 4=BWDREF, 5=ALTREF2, 6=ALTREF
+    uint8_t  savedOrderHints[7][7]            = {};
+    uint8_t  refOrderHints[8]                 = {};
+
     uint16_t intraRefreshPos                  = 0;
     uint8_t  intraRefreshMbSizeMinus1         = 1;
     uint8_t  intraRefreshMode                 = 0;

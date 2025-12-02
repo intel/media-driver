@@ -31,6 +31,7 @@
 #include "codec_def_encode_av1.h"
 #include "codechal_debug.h"
 #include "encode_av1_vdenc_pipeline.h"
+#include "mhw_utilities_next.h"  // Include for MHW_ARRAY_SIZE macro
 
 namespace encode
 {
@@ -155,6 +156,7 @@ MOS_STATUS Av1ReferenceFrames::Update()
 
     // needs to confirm later if this should come from App
     m_currRefList->bUsedAsRef = true;
+    m_currRefList->bIsIntra = AV1_KEY_OR_INRA_FRAME(picParams->PicFlags.fields.frame_type);
     m_currRefList->sRefReconBuffer = m_basicFeature->m_reconSurface;
     m_currRefList->sRefRawBuffer = m_basicFeature->m_rawSurface;
     m_currRefList->RefPic = picParams->CurrOriginalPic;
@@ -197,8 +199,6 @@ MOS_STATUS Av1ReferenceFrames::Update()
         }
     }
 
-
-
     // Save the RefFrameList for current frame
     uint8_t ii = 0;
     for (auto i = 0; i < CODEC_AV1_NUM_REF_FRAMES; i++)
@@ -218,6 +218,23 @@ MOS_STATUS Av1ReferenceFrames::Update()
     }
     m_basicFeature->GetSurfaceMmcInfo(m_firstValidRefPic, m_refMmcState[intraFrame], compressionFormat);
     m_refCompressionFormat = MmcEnabled(m_refMmcState[intraFrame])? compressionFormat : m_refCompressionFormat;
+
+    // Populate reference frame POCs and savedOrderHints
+    // This must be called after reference frame setup is complete to ensure m_savedOrderHints is populated before use
+    int32_t refsPOCList[7] = {0};
+    PopulateReferenceFramePOCs(refsPOCList);
+
+    // Calculate active reference bitmask for motion field projection
+    // This is calculated once during reference frame setup for better code organization
+    if (picParams->PicFlags.fields.use_ref_frame_mvs && m_enable_order_hint)
+    {
+        m_activeRefBitmaskMfProj = CalculateActiveRefBitmask();
+    }
+    else
+    {
+        m_activeRefBitmaskMfProj = 0;
+    }
+
     return MOS_STATUS_SUCCESS;
 
 }
@@ -292,7 +309,7 @@ MOS_STATUS Av1ReferenceFrames::SetupCurrRefPic()
     uint32_t compressionFormat = 0;
     for (auto i = 0; i < av1NumInterRefFrames; i++)
     {
-        if (m_refFrameFlags & (AV1_ENCODE_GET_REF_FALG(i)))
+        if ((m_refFrameFlags & (AV1_ENCODE_GET_REF_FALG(i))) || picParams->PicFlags.fields.use_ref_frame_mvs)
         {
             auto index = picParams->ref_frame_idx[i];
             auto frameIdx = picParams->RefFrameList[index].FrameIdx;
@@ -670,6 +687,341 @@ int32_t Av1ReferenceFrames::GetFrameDisplayOrder()
     return displayOrder;
 }
 
+// Common POC Handling Functions Implementation
+void Av1ReferenceFrames::PopulateReferenceFramePOCs(int32_t (&refsPOCList)[7])
+{
+    ENCODE_FUNC_CALL();
+
+    auto picParams = m_basicFeature->m_av1PicParams;
+    ENCODE_CHK_NULL_NO_STATUS_RETURN(picParams);
+    ENCODE_CHK_NULL_NO_STATUS_RETURN(m_currRefList);
+    
+    // Initialize all POCs and savedOrderHints to 0
+    MOS_ZeroMemory(refsPOCList, sizeof(refsPOCList));
+    MOS_ZeroMemory(m_savedOrderHints, sizeof(m_savedOrderHints));
+    
+    // Validate that reference frames are set up
+    if (m_refFrameFlags == 0)
+    {
+        // No reference frames available, nothing to populate
+        return;
+    }
+    
+    // Calculate current order hint for POC calculation
+    int32_t currentOrderHint = m_currRefList->m_orderHint;
+    
+    // Populate POC for each reference frame and calculate savedOrderHints
+    for (auto i = 0; i < av1NumInterRefFrames; i++)
+    {
+        // Bounds check
+        if (i >= 7)
+        {
+            break;
+        }
+        
+        if (picParams->RefFrameList[i].PicFlags != PICTURE_INVALID)
+        {
+            auto frameIdx = picParams->RefFrameList[i].FrameIdx;
+            
+            // Validate frameIdx bounds
+            if (frameIdx >= CODEC_NUM_REF_BUFFERS)
+            {
+                continue;
+            }
+            
+            // Validate m_refList[frameIdx] is not null
+            if (m_refList[frameIdx] == nullptr)
+            {
+                continue;
+            }
+            
+            auto dist = GetRelativeDist(m_refList[frameIdx]->m_orderHint, m_currRefList->m_orderHint);
+            refsPOCList[i] = currentOrderHint + dist;
+            
+            // Populate savedOrderHints for this reference frame
+            if (m_refFrameFlags & (AV1_ENCODE_GET_REF_FALG(i)))
+            {
+                auto index = picParams->ref_frame_idx[i];
+                
+                // Validate index bounds
+                if (index >= 7)
+                {
+                    continue;
+                }
+                
+                auto refFrameIdx = picParams->RefFrameList[index].FrameIdx;
+                
+                // Validate refFrameIdx bounds
+                if (refFrameIdx >= CODEC_NUM_REF_BUFFERS)
+                {
+                    continue;
+                }
+                
+                // Validate m_refList[refFrameIdx] is not null
+                if (m_refList[refFrameIdx] == nullptr)
+                {
+                    continue;
+                }
+                
+                // Copy the reference frame's stored order hints
+                for (auto j = 0; j < 7; j++)
+                {
+                    m_savedOrderHints[i][j] = m_refList[refFrameIdx]->m_refOrderHint[j];
+                }
+            }
+        }
+    }
+}
+
+// Motion Field Projection Logic Implementation
+uint8_t Av1ReferenceFrames::CalculateActiveRefBitmask()
+{
+    ENCODE_FUNC_CALL();
+
+    auto picParams = m_basicFeature->m_av1PicParams;
+    
+    uint8_t activeBitmask = 0;
+    int32_t refStamp = 2;  // Max 3 references (av1MfmvStackSize - 1)
+    uint8_t currentOrderHint = m_currRefList->m_orderHint;
+    
+    // Priority 1: LAST_FRAME (ref=0) - Special handling
+    if (m_refFrameFlags & AV1_ENCODE_GET_REF_FALG(0))
+    {
+        uint8_t refPicIndex = picParams->ref_frame_idx[0];
+        
+        // Validate refPicIndex bounds
+        if (refPicIndex >= CODEC_AV1_NUM_REF_FRAMES)
+        {
+            ENCODE_NORMALMESSAGE("Invalid refPicIndex %d for LAST_FRAME", refPicIndex);
+        }
+        else if (!CodecHal_PictureIsInvalid(picParams->RefFrameList[refPicIndex]))
+        {
+            uint8_t refFrameIdx = picParams->RefFrameList[refPicIndex].FrameIdx;
+            
+            // Validate refFrameIdx bounds
+            if (refFrameIdx >= CODEC_NUM_REF_BUFFERS || m_refList[refFrameIdx] == nullptr)
+            {
+                ENCODE_NORMALMESSAGE("Invalid refFrameIdx %d for LAST_FRAME", refFrameIdx);
+            }
+            else
+            {
+                uint8_t refOrderHint = m_refList[refFrameIdx]->m_orderHint;
+            
+                // Check if ALTREF's order hint differs from GOLDEN's
+                uint8_t altrefOrderHint = 0;
+                uint8_t goldenOrderHint = 0;
+
+                altrefOrderHint = m_refList[refFrameIdx]->m_refOrderHint[altRefFrame - lastFrame];
+
+                if (m_refFrameFlags & AV1_ENCODE_GET_REF_FALG(3))  // GOLDEN_FRAME
+                {
+                    uint8_t goldenPicIdx = picParams->ref_frame_idx[3];
+                    if (goldenPicIdx < CODEC_AV1_NUM_REF_FRAMES && 
+                        !CodecHal_PictureIsInvalid(picParams->RefFrameList[goldenPicIdx]))
+                    {
+                        uint8_t goldenFrameIdx = picParams->RefFrameList[goldenPicIdx].FrameIdx;
+                        if (goldenFrameIdx < CODEC_NUM_REF_BUFFERS && m_refList[goldenFrameIdx] != nullptr)
+                        {
+                            goldenOrderHint = m_refList[goldenFrameIdx]->m_orderHint;
+                        }
+                    }
+                }
+                
+                if (altrefOrderHint != goldenOrderHint && ValidateMotionFieldReference(0, refOrderHint))
+                {
+                    activeBitmask |= (1 << 0);
+                    refStamp--;
+                }
+            }
+        }
+    }
+    
+    // Priority 2: BWD_REF_FRAME (ref=4)
+    if (refStamp >= 0)
+    {
+        uint8_t refPicIndex = picParams->ref_frame_idx[4];
+        if (refPicIndex < CODEC_AV1_NUM_REF_FRAMES && 
+            !CodecHal_PictureIsInvalid(picParams->RefFrameList[refPicIndex]))
+        {
+            uint8_t refFrameIdx = picParams->RefFrameList[refPicIndex].FrameIdx;
+            if (refFrameIdx < CODEC_NUM_REF_BUFFERS && m_refList[refFrameIdx] != nullptr)
+            {
+                uint8_t refOrderHint = m_refList[refFrameIdx]->m_orderHint;
+            
+                if (GetRelativeDist(refOrderHint, currentOrderHint) > 0 && 
+                    ValidateMotionFieldReference(4, refOrderHint))
+                {
+                    activeBitmask |= (1 << (bwdRefFrame - 1));
+                    refStamp--;
+                }
+            }
+        }
+    }
+    
+    // Priority 3: ALTREF2_FRAME (ref=5)
+    if (refStamp >= 0)
+    {
+        uint8_t refPicIndex = picParams->ref_frame_idx[5];
+        if (refPicIndex < CODEC_AV1_NUM_REF_FRAMES && 
+            !CodecHal_PictureIsInvalid(picParams->RefFrameList[refPicIndex]))
+        {
+            uint8_t refFrameIdx = picParams->RefFrameList[refPicIndex].FrameIdx;
+            if (refFrameIdx < CODEC_NUM_REF_BUFFERS && m_refList[refFrameIdx] != nullptr)
+            {
+                uint8_t refOrderHint = m_refList[refFrameIdx]->m_orderHint;
+                
+                if (GetRelativeDist(refOrderHint, currentOrderHint) > 0 && 
+                    ValidateMotionFieldReference(5, refOrderHint))
+                {
+                    activeBitmask |= (1 << (altRef2Frame - 1));
+                    refStamp--;
+                }
+            }
+        }
+    }
+    
+    // Priority 4: ALTREF_FRAME (ref=6)
+    if (refStamp >= 0)
+    {
+        uint8_t refPicIndex = picParams->ref_frame_idx[6];
+        if (refPicIndex < CODEC_AV1_NUM_REF_FRAMES && 
+            !CodecHal_PictureIsInvalid(picParams->RefFrameList[refPicIndex]))
+        {
+            uint8_t refFrameIdx = picParams->RefFrameList[refPicIndex].FrameIdx;
+            if (refFrameIdx < CODEC_NUM_REF_BUFFERS && m_refList[refFrameIdx] != nullptr)
+            {
+                uint8_t refOrderHint = m_refList[refFrameIdx]->m_orderHint;
+                
+                if (GetRelativeDist(refOrderHint, currentOrderHint) > 0 && 
+                    ValidateMotionFieldReference(6, refOrderHint))
+                {
+                    activeBitmask |= (1 << (altRefFrame -1));
+                    refStamp--;
+                }
+            }
+        }
+    }
+    
+    // Priority 5: LAST2_FRAME
+    if (refStamp >= 0)
+    {
+        uint8_t refPicIndex = picParams->ref_frame_idx[1];
+        if (refPicIndex < CODEC_AV1_NUM_REF_FRAMES && 
+            !CodecHal_PictureIsInvalid(picParams->RefFrameList[refPicIndex]))
+        {
+            uint8_t refFrameIdx = picParams->RefFrameList[refPicIndex].FrameIdx;
+            if (refFrameIdx < CODEC_NUM_REF_BUFFERS && m_refList[refFrameIdx] != nullptr)
+            {
+                uint8_t refOrderHint = m_refList[refFrameIdx]->m_orderHint;
+                
+                if (ValidateMotionFieldReference(1, refOrderHint))
+                {
+                    activeBitmask |= (1 << (last2Frame - 1));  // LAST2 also uses bit 0
+                    refStamp--;
+                }
+            }
+        }
+    }
+    
+    return activeBitmask;
+}
+
+bool Av1ReferenceFrames::ValidateMotionFieldReference(uint8_t refIdx, uint8_t refOrderHint)
+{
+    ENCODE_FUNC_CALL();
+
+    auto picParams = m_basicFeature->m_av1PicParams;
+    if (picParams == nullptr)
+    {
+        ENCODE_NORMALMESSAGE("Invalid (nullptr) Pointer: picParams");
+        return false;
+    }
+    if (m_currRefList == nullptr)
+    {
+        ENCODE_NORMALMESSAGE("Invalid (nullptr) Pointer: m_currRefList");
+        return false;
+    }
+    
+    // Validate refIdx bounds
+    if (refIdx >= 7)
+    {
+        ENCODE_NORMALMESSAGE("Invalid refIdx %d in ValidateMotionFieldReference", (int)refIdx);
+        return false;
+    }
+    
+    // Get reference frame index
+    uint8_t refPicIndex = picParams->ref_frame_idx[refIdx];
+    
+    // Validate refPicIndex bounds
+    if (refPicIndex >= CODEC_AV1_NUM_REF_FRAMES)
+    {
+        ENCODE_NORMALMESSAGE("Invalid refPicIndex %d for refIdx %d", refPicIndex, refIdx);
+        return false;
+    }
+    
+    if (CodecHal_PictureIsInvalid(picParams->RefFrameList[refPicIndex]))
+    {
+        return false;
+    }
+    
+    uint8_t refFrameIdx = picParams->RefFrameList[refPicIndex].FrameIdx;
+    
+    // Validate refFrameIdx bounds
+    if (refFrameIdx >= CODEC_NUM_REF_BUFFERS)
+    {
+        ENCODE_NORMALMESSAGE("Invalid refFrameIdx %d for refIdx %d", refFrameIdx, refIdx);
+        return false;
+    }
+    
+    // Validate m_refList[refFrameIdx] is not null
+    if (m_refList[refFrameIdx] == nullptr)
+    {
+        ENCODE_NORMALMESSAGE("Null m_refList[%d] for refIdx %d", refFrameIdx, refIdx);
+        return false;
+    }
+    
+    // Check 1: Reference frame type is not intra-only or key frame
+    if (m_refList[refFrameIdx]->bIsIntra)
+    {
+        return false;
+    }
+    
+    // Check 2: Dimensions match current frame
+    if (m_refList[refFrameIdx]->m_miCols != m_currRefList->m_miCols ||
+        m_refList[refFrameIdx]->m_miRows != m_currRefList->m_miRows)
+    {
+        return false;
+    }
+    
+    return true;
+}
+
+// Collocated MV Buffer Management Implementation
+PMOS_RESOURCE Av1ReferenceFrames::GetCurrentColMVBuffer()
+{
+    ENCODE_FUNC_CALL();
+
+    auto trackedBuf = m_basicFeature->m_trackedBuf;
+    if (trackedBuf == nullptr)
+    {
+        ENCODE_ASSERTMESSAGE("Tracked buffer is null");
+        return nullptr;
+    }
+    
+    // Get current slot index for the current frame
+    uint8_t currSlotIndex = trackedBuf->GetCurrIndex();
+    
+    // Get the colMV buffer for current frame output
+    PMOS_RESOURCE buffer = trackedBuf->GetBuffer(BufferType::mvTemporalBuffer, currSlotIndex);
+    
+    if (buffer == nullptr)
+    {
+        ENCODE_ASSERTMESSAGE("Failed to get current colMV buffer");
+    }
+    
+    return buffer;
+}
+
 bool Av1ReferenceFrames::CheckSegmentForPrimeFrame()
 {
     ENCODE_FUNC_CALL();
@@ -768,6 +1120,84 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, Av1ReferenceFrames)
         params.colMvTempBuffer[0] = trackedBuf->GetBuffer(BufferType::mvTemporalBuffer, idxForTempMV);
     }
 
+    // Assign 5 temporal MV buffers for VDENC when temporal MV is enabled
+    if (picParams->PicFlags.fields.use_ref_frame_mvs && m_enable_order_hint && m_activeRefBitmaskMfProj)
+    {
+        params.colMvTempBuffer[0] = nullptr;
+        // mapping for 5 temporal buffers:
+        // refIndices[0] = LAST_FRAME (ref index 0)    → colMvTempBuffer[1]
+        // refIndices[1] = BWD_FRAME (ref index 4)     → colMvTempBuffer[5]
+        // refIndices[2] = ALTREF2_FRAME (ref index 5) → colMvTempBuffer[6]
+        // refIndices[3] = ALTREF_FRAME (ref index 6)  → colMvTempBuffer[7]
+        // refIndices[4] = LAST2_FRAME (ref index 1)   → colMvTempBuffer[2]
+        
+        uint8_t refIndices[5] = {0, 4, 5, 6, 1};  // LAST, BWD, ALTREF2, ALTREF, LAST2
+        uint8_t colMvIndices[5] = {1, 5, 6, 7, 2};  // Corresponding colMvTempBuffer indices
+        
+        for (auto i = 0; i < 5; i++)
+        {
+            uint8_t refIdx = refIndices[i];
+            
+            // Validate refIdx bounds
+            if (refIdx >= 7 || ((m_activeRefBitmaskMfProj & (1<< refIdx)) == 0))
+            {
+                ENCODE_NORMALMESSAGE("Invalid refIdx %d in temporal buffer assignment", refIdx);
+                continue;
+            }
+            
+                uint8_t refPicIndex = picParams->ref_frame_idx[refIdx];
+                
+                // Validate refPicIndex bounds
+                if (refPicIndex >= CODEC_AV1_NUM_REF_FRAMES)
+                {
+                    ENCODE_NORMALMESSAGE("Invalid refPicIndex %d for refIdx %d", refPicIndex, refIdx);
+                    continue;
+                }
+                
+                if (!CodecHal_PictureIsInvalid(picParams->RefFrameList[refPicIndex]))
+                {
+                    uint8_t frameIdx = picParams->RefFrameList[refPicIndex].FrameIdx;
+                    
+                    // Validate frameIdx bounds
+                    if (frameIdx >= CODEC_NUM_REF_BUFFERS)
+                    {
+                        ENCODE_NORMALMESSAGE("Invalid frameIdx %d for refIdx %d", frameIdx, refIdx);
+                        continue;
+                    }
+                    
+                    // Validate m_refList[frameIdx] is not null
+                    if (m_refList[frameIdx] == nullptr)
+                    {
+                        ENCODE_NORMALMESSAGE("Null m_refList[%d] for refIdx %d", frameIdx, refIdx);
+                        continue;
+                    }
+                    
+                    uint8_t scalingIdx = m_refList[frameIdx]->ucScalingIdx;
+                    
+                    // Get the temporal MV buffer for this reference
+                    PMOS_RESOURCE buffer = trackedBuf->GetBuffer(BufferType::mvTemporalBuffer, scalingIdx);
+                    
+                    if (buffer != nullptr)
+                    {
+                        // Add bounds checking before accessing colMvTempBuffer array
+                        if (colMvIndices[i] < MHW_ARRAY_SIZE(params.colMvTempBuffer))
+                        {
+                            params.colMvTempBuffer[colMvIndices[i]] = buffer;
+                        }
+                        else
+                        {
+                            ENCODE_ASSERTMESSAGE("colMvIndices[%d] = %d exceeds colMvTempBuffer bounds", i, colMvIndices[i]);
+                            return MOS_STATUS_INVALID_PARAMETER;
+                        }
+                    }
+                    else
+                    {
+                        ENCODE_NORMALMESSAGE("Temporal buffer for ref %d is null, hardware will handle", refIdx);
+                    }
+                }
+            }
+    }
+
     params.lowDelayB = m_lowDelay;
 
     return MOS_STATUS_SUCCESS;
@@ -813,8 +1243,16 @@ MHW_SETPAR_DECL_SRC(VDENC_CMD2, Av1ReferenceFrames)
         uint8_t ref_frame_ctrl_l1 = RefFrameL0L1(ref_frame_ctrl1);
 
         auto fwdRef = 0;
+        if (picParams->PicFlags.fields.use_ref_frame_mvs)
+        {
+            params.refOrderHints[0] = m_currRefList->m_orderHint;
+        }
         for (uint8_t i = 0; i < av1NumInterRefFrames; i++)
         {
+            if (picParams->PicFlags.fields.use_ref_frame_mvs)
+            {
+                params.refOrderHints[i + lastFrame] = m_currRefList->m_refOrderHint[i];
+            }
             // Function GetFwdBwdRefNum has already ensured that forward reference number is <= 2 and backward reference number is <= 1
             if ((ref_frame_ctrl_l0 & AV1_ENCODE_GET_REF_FALG(i)) &&
                 !(m_refFrameBiasFlagsForRefManagement.value & AV1_ENCODE_GET_REF_FALG(i)))
@@ -843,6 +1281,32 @@ MHW_SETPAR_DECL_SRC(VDENC_CMD2, Av1ReferenceFrames)
     params.frameIdxL0Ref1 = frameIdxForL0L1[1];
     params.frameIdxL0Ref2 = frameIdxForL0L1[2];
     params.frameIdxL1Ref0 = frameIdxForL0L1[3];
+
+    // Populate temporal MV parameters when enabled
+    if (picParams->PicFlags.fields.use_ref_frame_mvs && m_enable_order_hint)
+    {
+        // Enable temporal MVP feature (DW2 bit 22)
+        params.temporalMvp = true;
+        
+        // Set sequence order hint bits (DW67 bits 2:0)
+        params.sequenceOrderHintBitsMinus1 = m_orderHintBitsMinus1;
+        
+        // Populate reference-of-reference order hints (DW73-85) from member variable
+        MOS_SecureMemcpy(params.savedOrderHints, sizeof(params.savedOrderHints), 
+                         m_savedOrderHints, sizeof(m_savedOrderHints));
+        
+        // Use pre-calculated active reference bitmask for motion field projection (DW74 bits 31:24)
+        // This value was calculated in Update() function during reference frame setup
+        params.activeRefBitmaskMfProj = m_activeRefBitmaskMfProj;
+    }
+    else
+    {
+        // Disable temporal MVP when not enabled
+        params.temporalMvp = false;
+        params.sequenceOrderHintBitsMinus1 = 0;
+        params.activeRefBitmaskMfProj = 0;
+        MOS_ZeroMemory(params.savedOrderHints, sizeof(params.savedOrderHints));
+    }
 
     if (params.pictureType == AV1_P_FRAME)
     {
@@ -931,7 +1395,20 @@ MHW_SETPAR_DECL_SRC(AVP_PIC_STATE, Av1ReferenceFrames)
 {
     ENCODE_FUNC_CALL();
 
+    auto picParams = m_basicFeature->m_av1PicParams;
+    ENCODE_CHK_NULL_RETURN(picParams);
+
     params.postCdefReconPixelStreamoutEn = m_encUsePostCdefAsRef ? true : false;
+
+    // Set temporal MV feature switch for AVP
+    if (picParams->PicFlags.fields.use_ref_frame_mvs && m_enable_order_hint)
+    {
+        params.useReferenceFrameMvSet = true;
+    }
+    else
+    {
+        params.useReferenceFrameMvSet = false;
+    }
 
     params.refFrameRes[intraFrame]    = CAT2SHORTS(m_currRefList->m_frameWidth - 1, m_currRefList->m_frameHeight - 1);
     params.refScaleFactor[intraFrame] = CAT2SHORTS(m_av1ScalingFactor, m_av1ScalingFactor);
@@ -967,8 +1444,6 @@ MHW_SETPAR_DECL_SRC(AVP_PIC_STATE, Av1ReferenceFrames)
         }
     }
 
-    const auto picParams = m_basicFeature->m_av1PicParams;
-    ENCODE_CHK_NULL_RETURN(picParams);
     int skipModeFrame[2] = {0};
 
     if ((picParams->PicFlags.fields.frame_type != keyFrame) && !m_lowDelay)
@@ -1059,9 +1534,10 @@ MHW_SETPAR_DECL_SRC(AVP_PIPE_BUF_ADDR_STATE, Av1ReferenceFrames)
     if (!AV1_KEY_OR_INRA_FRAME(picParams->PicFlags.fields.frame_type))
     {
         //set for INTRA_FRAME
-        params.refs[0]            = &currRawOrRecon->OsResource;
+        params.refs[0]             = &currRawOrRecon->OsResource;
         uint8_t currSlotIndex      = m_basicFeature->m_trackedBuf->GetCurrIndex();
-        params.colMvTempBuffer[0] = m_basicFeature->m_trackedBuf->GetBuffer(BufferType::mvTemporalBuffer, currSlotIndex);
+        params.curMvTempBuffer     = m_basicFeature->m_trackedBuf->GetBuffer(BufferType::mvTemporalBuffer, currSlotIndex);
+        params.colMvTempBuffer[0]  = params.curMvTempBuffer;
 
         //set for reference frames and collated temoral buffer
         for (uint8_t i = 0; i < av1NumInterRefFrames; i++)
@@ -1137,18 +1613,12 @@ MHW_SETPAR_DECL_SRC(AVP_INTER_PRED_STATE, Av1ReferenceFrames)
 
     ENCODE_CHK_NULL_RETURN(picParams);
 
-    for (auto ref = 0; ref < av1NumInterRefFrames; ref++)
-    {
-        if (m_refFrameFlags & (AV1_ENCODE_GET_REF_FALG(ref)))
-        {
-            auto index       = picParams->ref_frame_idx[ref];
-            auto refFrameIdx = picParams->RefFrameList[index].FrameIdx;
-            for (auto i = 0; i < 7; i++)
-            {
-                params.savedRefOrderHints[ref][i] = m_refList[refFrameIdx]->m_refOrderHint[i];
-            }
-        }
-    }
+    // Use common POC handling function to populate savedRefOrderHints
+    // This ensures consistency with VDENC implementation and eliminates code duplication
+    MOS_SecureMemcpy(params.savedRefOrderHints, sizeof(params.savedRefOrderHints),
+                     m_savedOrderHints, sizeof(m_savedOrderHints));
+
+    params.refMaskMfProj = m_activeRefBitmaskMfProj;
 
     return MOS_STATUS_SUCCESS;
 }
