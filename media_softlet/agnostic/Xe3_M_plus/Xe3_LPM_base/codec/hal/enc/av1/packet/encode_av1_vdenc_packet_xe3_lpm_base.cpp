@@ -97,8 +97,13 @@ MOS_STATUS Av1VdencPktXe3_Lpm_Base::AllocateResources()
         return MOS_STATUS_UNKNOWN;
     }
 
-    allocParams.dwBytes = (m_basicFeature->m_bitDepth == 8) ? avpBufSizeParam.width * 2 * av1SuperBlockWidth * CODECHAL_CACHELINE_SIZE
-                                                            : avpBufSizeParam.width * 4 * av1SuperBlockWidth * CODECHAL_CACHELINE_SIZE;  // Number of Cachelines per SB;
+    // Calculate cachelines per superblock based on chroma format and bit depth
+    // YUV444: 3 cachelines (8-bit) or 6 cachelines (10-bit)
+    // Other formats (420, 422, Mono): 2 cachelines (8-bit) or 4 cachelines (10-bit)
+    uint32_t cachelinesPerSB = (m_basicFeature->m_chromaFormat == AVP_CHROMA_FORMAT_YUV444)
+        ? ((m_basicFeature->m_bitDepth == 8) ? 3 : 6)
+        : ((m_basicFeature->m_bitDepth == 8) ? 2 : 4);
+    allocParams.dwBytes = avpBufSizeParam.width * cachelinesPerSB * av1SuperBlockWidth * CODECHAL_CACHELINE_SIZE;
     allocParams.pBufName               = "m_resMfdIntraRowStoreScratchBuffer";
     allocParams.ResUsageType           = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
     m_basicFeature->m_resMfdIntraRowStoreScratchBuffer = m_allocator->AllocateResource(allocParams, false);
