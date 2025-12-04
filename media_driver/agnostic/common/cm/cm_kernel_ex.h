@@ -145,7 +145,7 @@ protected:
 
     bool IsSurface(uint16_t kind);
 
-    CM_ARG_KIND ToArgKind(CMRT_UMD::CmSurface *surface);
+    static CM_ARG_KIND ToArgKind(CMRT_UMD::CmSurface *surface);
 
     inline bool ArgArraySupported(uint16_t kind) {return IsSurface(kind) || kind == ARG_KIND_SAMPLER; }
 
