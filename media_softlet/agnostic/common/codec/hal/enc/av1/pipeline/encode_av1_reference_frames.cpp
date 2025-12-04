@@ -556,7 +556,7 @@ std::vector<PMOS_SURFACE> Av1ReferenceFrames::GetEncRefSurface() const
 
     auto idxList = GetRefScalingIdx();
     std::vector<PMOS_SURFACE> ret;
-
+    ret.reserve(idxList.size());
     for (auto idx : idxList)
     {
         ret.push_back(m_basicFeature->m_trackedBuf->GetSurface(m_encRefBufType, idx));
@@ -569,7 +569,7 @@ std::vector<PMOS_SURFACE> Av1ReferenceFrames::GetEnc4xRefSurface() const
 {
     auto idxList = GetRefScalingIdx();
     std::vector<PMOS_SURFACE> ret;
-
+    ret.reserve(idxList.size());
     for (auto idx : idxList)
     {
         ret.push_back(m_basicFeature->m_trackedBuf->GetSurface(m_enc4xRefBufType, idx));
@@ -582,7 +582,7 @@ std::vector<PMOS_SURFACE> Av1ReferenceFrames::GetEnc8xRefSurface() const
 {
     auto idxList = GetRefScalingIdx();
     std::vector<PMOS_SURFACE> ret;
-
+    ret.reserve(idxList.size());
     for (auto idx : idxList)
     {
         ret.push_back(m_basicFeature->m_trackedBuf->GetSurface(m_enc8xRefBufType, idx));
