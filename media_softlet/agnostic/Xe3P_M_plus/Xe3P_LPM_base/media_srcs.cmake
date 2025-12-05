@@ -19,3 +19,5 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(hw)
+media_include_subdirectory(vp)
+media_include_subdirectory(shared)
