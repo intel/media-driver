@@ -1075,6 +1075,7 @@ MOS_STATUS CodechalHwInterfaceNext::SetRowstoreCachingOffsets(
         else if (rowstoreParams->Mode == CODECHAL_ENCODE_MODE_AV1)
         {
             par.mode = mhw::vdbox::vdenc::RowStorePar::AV1;
+            par.frameWidth = rowstoreParams->dwPicWidth;
         }
         CODEC_HW_CHK_STATUS_RETURN(m_vdencItf->SetRowstoreCachingOffsets(par));
     }

@@ -56,6 +56,31 @@ public:
         return cmd_t::VDENC_CMD2_CMD::byteSize;
     }
 
+    MOS_STATUS SetRowstoreCachingOffsets(const RowStorePar &par) override
+    {
+        MHW_FUNCTION_ENTER;
+        base_t::SetRowstoreCachingOffsets(par);
+        
+        switch (par.mode)
+        {
+        case RowStorePar::AV1: {
+            if (this->m_rowStoreCache.vdenc.supported)
+            {
+                if (par.frameWidth > 2048)
+                {
+                    this->m_rowStoreCache.vdenc.enabled = false;
+                }
+            }
+            break;
+        }
+        default: {
+            break;
+        }
+        }
+        
+        return MOS_STATUS_SUCCESS;
+    }
+
 protected:
     using base_t = vdenc::Impl<cmd_t>;
 
