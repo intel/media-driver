@@ -63,6 +63,32 @@ namespace encode
             params.vdencCmd2Par100 = 0;
         }
 
+        // Palette ON + IBC OFF tuning for TU6/TU7 using vdencCmd2Par settings
+        if (m_enablePalette && !m_enableIBC && (m_basicFeature->m_targetUsage == 6 || m_basicFeature->m_targetUsage == 7))
+        {
+            const auto frame_type = static_cast<Av1FrameType>(m_basicFeature->m_av1PicParams->PicFlags.fields.frame_type);
+
+            if (AV1_KEY_OR_INRA_FRAME(frame_type))
+            {
+                // Key frame vdencCmd2Par settings
+                params.vdencCmd2Par149 = 3;
+                params.vdencCmd2Par138 = 3;
+                params.vdencCmd2Par150 = 3;
+                params.vdencCmd2Par153 = 4;
+                params.vdencCmd2Par139 = 3;
+                params.vdencCmd2Par147 = 1;
+            }
+            else
+            {
+                // Non-key frame vdencCmd2Par settings
+                params.vdencCmd2Par153 = 0;
+            }
+
+            // All frames vdencCmd2Par settings
+            params.vdencCmd2Par146 = 1;
+            params.vdencCmd2Par100 = 3;
+        }
+
         if (m_IBCEnabledForCurrentTile)
         {
             if ((m_basicFeature->m_targetUsage == 2 || m_basicFeature->m_targetUsage == 1) && (params.vdencCmd2Par135[1] == vdencCmd2Par135Value1))
@@ -88,7 +114,29 @@ namespace encode
 
             if ((m_basicFeature->m_targetUsage == 7 || m_basicFeature->m_targetUsage == 6) && (m_enablePalette || m_enableIBC))
             {
-                data[54] &= 0xfffffff1;
+                data[54] &= 0xffffffE3;
+            }
+
+            // Palette ON + IBC OFF tuning for TU6/TU7 using data array bit manipulation
+            if (m_enablePalette && !m_enableIBC && (m_basicFeature->m_targetUsage == 6 || m_basicFeature->m_targetUsage == 7))
+            {
+                const auto frame_type = static_cast<Av1FrameType>(m_basicFeature->m_av1PicParams->PicFlags.fields.frame_type);
+
+                if (AV1_KEY_OR_INRA_FRAME(frame_type))
+                {
+                    // Key frame vdencCmd2Par settings in DW62 and DW63
+                    data[62] = (data[62] & 0xF00F000F) | 0x03403330;
+                    data[63] = (data[63] & 0xF3FFFFFF) | 0x04000000;
+                }
+                else
+                {
+                    // Non-key frame vdencCmd2Par settings in DW62
+                    data[62] = (data[62] & 0xFF0FFFFF);
+                }
+
+                // All frames vdencCmd2Par settings in DW63 and DW54
+                data[63] = (data[63] & 0xCFFFFFFF) | 0x10000000;
+                data[54] = (data[54] & 0xFFFFFFE3) | 0xC;
             }
 
             if (m_IBCEnabledForCurrentTile)
