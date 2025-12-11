@@ -59,7 +59,7 @@ else ()
 endif ()
 
 add_executable(devult ${SOURCES})
-target_link_libraries(devult libgtest libdl.so)
+target_link_libraries(devult libgtest ${CMAKE_DL_LIBS})
 target_include_directories(devult BEFORE PRIVATE
     ${SOFTLET_MOS_PREPEND_INCLUDE_DIRS_}
     ${MOS_PUBLIC_INCLUDE_DIRS_}     ${SOFTLET_MOS_PUBLIC_INCLUDE_DIRS_}
@@ -68,6 +68,7 @@ target_include_directories(devult BEFORE PRIVATE
     ${COMMON_CP_DIRECTORIES_}
     ${SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_} ${SOFTLET_MHW_PRIVATE_INCLUDE_DIRS_}
 )
+
 if (DEFINED BYPASS_MEDIA_ULT AND "${BYPASS_MEDIA_ULT}" STREQUAL "yes")
     # must explictly pass along BYPASS_MEDIA_ULT as yes then could bypass the running of media ult
     message("-- media -- BYPASS_MEDIA_ULT = ${BYPASS_MEDIA_ULT}")
