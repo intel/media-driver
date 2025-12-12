@@ -713,12 +713,6 @@ void Av1ReferenceFrames::PopulateReferenceFramePOCs(int32_t (&refsPOCList)[7])
     // Populate POC for each reference frame and calculate savedOrderHints
     for (auto i = 0; i < av1NumInterRefFrames; i++)
     {
-        // Bounds check
-        if (i >= 7)
-        {
-            break;
-        }
-        
         if (picParams->RefFrameList[i].PicFlags != PICTURE_INVALID)
         {
             auto frameIdx = picParams->RefFrameList[i].FrameIdx;
