@@ -46,6 +46,20 @@ if(NOT DEFINED SKIP_GMM_CHECK)
     endif()
 endif(NOT DEFINED SKIP_GMM_CHECK)
 
+if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^loongarch")
+find_path(SIMDE_INCLUDE_DIR
+        NAMES simde/simde-common.h  # A key SIMDE header
+        PATHS /usr/include /usr/local/include  # Default paths
+        DOC "Path to SIMDE headers"
+    )
+    if(SIMDE_INCLUDE_DIR)
+        include_directories(${SIMDE_INCLUDE_DIR})
+        message(STATUS "Found SIMDE: ${SIMDE_INCLUDE_DIR}")
+    else()
+        message(FATAL_ERROR "SIMDE not found. Install it or set SIMDE_INCLUDE_DIR manually.")
+    endif()
+endif()
+
 message("-- media -- PLATFORM = ${PLATFORM}")
 message("-- media -- ARCH = ${ARCH}")
 message("-- media -- CMAKE_CURRENT_LIST_DIR = ${CMAKE_CURRENT_LIST_DIR}")
@@ -248,8 +262,11 @@ set_source_files_properties(${CP_COMMON_SHARED_SOURCES_} PROPERTIES LANGUAGE "CX
 set_source_files_properties(${CP_COMMON_NEXT_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${CP_SOURCES_} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${SOFTLET_DDI_SOURCES_} PROPERTIES LANGUAGE "CXX")
+
+if(NOT ${CMAKE_SYSTEM_PROCESSOR} MATCHES "^loongarch")
 set_source_files_properties(${SOURCES_SSE2} PROPERTIES LANGUAGE "CXX")
 set_source_files_properties(${SOURCES_SSE4} PROPERTIES LANGUAGE "CXX")
+endif()
 
 # MHW settings
 set(SOFTLET_MHW_PRIVATE_INCLUDE_DIRS_
@@ -421,6 +438,7 @@ set (VP_PRIVATE_INCLUDE_DIRS_
     ${VP_PRIVATE_INCLUDE_DIRS_}
     ${SOFTLET_VP_PRIVATE_INCLUDE_DIRS_})
 
+if(NOT ${CMAKE_SYSTEM_PROCESSOR} MATCHES "^loongarch")
 add_library(${LIB_NAME}_SSE2 OBJECT ${SOURCES_SSE2})
 target_compile_options(${LIB_NAME}_SSE2 PRIVATE -msse2)
 target_include_directories(${LIB_NAME}_SSE2 BEFORE PRIVATE ${SOFTLET_MOS_PREPEND_INCLUDE_DIRS_} ${MOS_PUBLIC_INCLUDE_DIRS_} ${SOFTLET_MOS_PUBLIC_INCLUDE_DIRS_} ${COMMON_PRIVATE_INCLUDE_DIRS_} ${SOFTLET_MHW_PRIVATE_INCLUDE_DIRS_} ${SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_})
@@ -428,6 +446,7 @@ target_include_directories(${LIB_NAME}_SSE2 BEFORE PRIVATE ${SOFTLET_MOS_PREPEND
 add_library(${LIB_NAME}_SSE4 OBJECT ${SOURCES_SSE4})
 target_compile_options(${LIB_NAME}_SSE4 PRIVATE -msse4.1)
 target_include_directories(${LIB_NAME}_SSE4 BEFORE PRIVATE ${SOFTLET_MOS_PREPEND_INCLUDE_DIRS_} ${MOS_PUBLIC_INCLUDE_DIRS_} ${SOFTLET_MOS_PUBLIC_INCLUDE_DIRS_} ${COMMON_PRIVATE_INCLUDE_DIRS_} ${SOFTLET_MHW_PRIVATE_INCLUDE_DIRS_} ${SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_})
+endif()
 
 add_library(${LIB_NAME}_COMMON OBJECT ${COMMON_SOURCES_} ${SOFTLET_DDI_SOURCES_})
 set_property(TARGET ${LIB_NAME}_COMMON PROPERTY POSITION_INDEPENDENT_CODE 1)
@@ -603,6 +622,17 @@ target_include_directories(${LIB_NAME}_mos_softlet BEFORE PRIVATE
 ############## MOS LIB END ########################################
 
 ############## Media Driver Static and Shared Lib #################
+if( ${CMAKE_SYSTEM_PROCESSOR} MATCHES "^loongarch")
+add_library(${LIB_NAME} SHARED
+    $<TARGET_OBJECTS:${LIB_NAME}_mos>
+    $<TARGET_OBJECTS:${LIB_NAME}_COMMON>
+    $<TARGET_OBJECTS:${LIB_NAME}_CODEC>
+    $<TARGET_OBJECTS:${LIB_NAME}_VP>
+    $<TARGET_OBJECTS:${LIB_NAME}_CP>
+    $<TARGET_OBJECTS:${LIB_NAME}_SOFTLET_VP>
+    $<TARGET_OBJECTS:${LIB_NAME}_SOFTLET_CODEC>
+    $<TARGET_OBJECTS:${LIB_NAME}_SOFTLET_COMMON>)
+else()
 add_library(${LIB_NAME} SHARED
     $<TARGET_OBJECTS:${LIB_NAME}_mos>
     $<TARGET_OBJECTS:${LIB_NAME}_COMMON>
@@ -614,8 +644,20 @@ add_library(${LIB_NAME} SHARED
     $<TARGET_OBJECTS:${LIB_NAME}_SOFTLET_VP>
     $<TARGET_OBJECTS:${LIB_NAME}_SOFTLET_CODEC>
     $<TARGET_OBJECTS:${LIB_NAME}_SOFTLET_COMMON>)
+endif()
 
 
+if( ${CMAKE_SYSTEM_PROCESSOR} MATCHES "^loongarch")
+add_library(${LIB_NAME_STATIC} STATIC
+    $<TARGET_OBJECTS:${LIB_NAME}_mos>
+    $<TARGET_OBJECTS:${LIB_NAME}_COMMON>
+    $<TARGET_OBJECTS:${LIB_NAME}_CODEC>
+    $<TARGET_OBJECTS:${LIB_NAME}_VP>
+    $<TARGET_OBJECTS:${LIB_NAME}_CP>
+    $<TARGET_OBJECTS:${LIB_NAME}_SOFTLET_VP>
+    $<TARGET_OBJECTS:${LIB_NAME}_SOFTLET_CODEC>
+    $<TARGET_OBJECTS:${LIB_NAME}_SOFTLET_COMMON>)
+else()
 add_library(${LIB_NAME_STATIC} STATIC
     $<TARGET_OBJECTS:${LIB_NAME}_mos>
     $<TARGET_OBJECTS:${LIB_NAME}_COMMON>
@@ -627,6 +669,7 @@ add_library(${LIB_NAME_STATIC} STATIC
     $<TARGET_OBJECTS:${LIB_NAME}_SOFTLET_VP>
     $<TARGET_OBJECTS:${LIB_NAME}_SOFTLET_CODEC>
     $<TARGET_OBJECTS:${LIB_NAME}_SOFTLET_COMMON>)
+endif()
 
 set_target_properties(${LIB_NAME_STATIC} PROPERTIES OUTPUT_NAME ${LIB_NAME})
 

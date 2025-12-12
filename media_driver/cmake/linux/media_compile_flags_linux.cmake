@@ -54,8 +54,6 @@ set(MEDIA_COMPILER_FLAGS_COMMON
 
     # Enable c++14 features
     -std=c++14
-    # -m32 or -m64
-    -m${ARCH}
 
     # Global defines
     -DLINUX=1
@@ -65,6 +63,13 @@ set(MEDIA_COMPILER_FLAGS_COMMON
     -DINTEL_NOT_PUBLIC
     -g
 )
+
+if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "^loongarch")
+    list(APPEND MEDIA_COMPILER_FLAGS_COMMON "-Wno-overloaded-virtual")
+else()
+    # -m32 or -m64
+    list(APPEND MEDIA_COMPILER_FLAGS_COMMON "-m${ARCH}")
+endif()
 
 if(MEDIA_BUILD_HARDENING)
     set(MEDIA_COMPILER_FLAGS_COMMON

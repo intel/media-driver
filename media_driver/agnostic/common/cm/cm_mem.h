@@ -25,9 +25,15 @@
 //!
 #pragma once
 
+#if defined(__loongarch64)
+#define SIMDE_X86_SSE2_ENABLE_NATIVE_ALIASES
+#include <simde/x86/sse2.h>
+#else
 #include <mmintrin.h>
 #include <xmmintrin.h>
 #include <emmintrin.h>
+#endif
+
 #include "cm_debug.h"
 #include "mos_utilities.h"
 
@@ -43,7 +49,11 @@ enum CPU_INSTRUCTION_LEVEL
     NUM_CPU_INSTRUCTION_LEVELS
 };
 
+#if defined(__loongarch64)
+typedef __m128i             DQWORD;         // 128-bits,   16-bytes
+#else
 typedef __m128              DQWORD;         // 128-bits,   16-bytes
+#endif
 typedef uint32_t            PREFETCH[8];    //             32-bytes
 typedef uint32_t            CACHELINE[8];   //             32-bytes
 typedef uint16_t            DHWORD[32];     // 512-bits,   64-bytes
@@ -230,9 +240,12 @@ inline CPU_INSTRUCTION_LEVEL GetCpuInstructionLevel( void )
     int cpuInfo[4];
     memset( cpuInfo, 0, 4*sizeof(int) );
 
+#if !defined(__loongarch64)
     GetCPUID(cpuInfo, 1);
+#endif
 
     CPU_INSTRUCTION_LEVEL cpuInstructionLevel = CPU_INSTRUCTION_LEVEL_UNKNOWN;
+#if !defined(__loongarch64)
     if( (cpuInfo[2] & BIT(19)) && TestSSE4_1() )
     {
         cpuInstructionLevel = CPU_INSTRUCTION_LEVEL_SSE4_1;
@@ -253,6 +266,7 @@ inline CPU_INSTRUCTION_LEVEL GetCpuInstructionLevel( void )
     {
         cpuInstructionLevel = CPU_INSTRUCTION_LEVEL_MMX;
     }
+#endif
 
     return cpuInstructionLevel;
 }
