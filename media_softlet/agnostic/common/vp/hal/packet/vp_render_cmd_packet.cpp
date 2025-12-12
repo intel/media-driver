@@ -261,14 +261,29 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
             // reset render Data for current kernel
             MOS_ZeroMemory(&m_renderData, sizeof(KERNEL_PACKET_RENDER_DATA));
 
-            if (m_submissionMode != SINGLE_KERNEL_ONLY)
+            
+            if (!m_renderHal->isBindlessHeapInUse &&
+                m_hwInterface->m_vpPlatformInterface->GetKernelConfig() &&
+                m_hwInterface->m_vpPlatformInterface->GetKernelConfig()->GetRenderEnlargeOverwriteParams().needOverwrite)
             {
-                m_isMultiBindingTables = true;
+                // State Heap Setting has been overridden on this platform to require more kernels in one BB.
+                // This leads to a smaller Binding Table Size and larger Binding Table number because the BB size is not sufficient for both enlargements.
+                // For legacy single kernel mode kernels, they may need the default(Bigger) Binding Table Size because incontinuous use of Binding Tables during kernel design.
+                // So reallocate SSH.
+                bool allocated = false;
+                VP_RENDER_CHK_NULL_RETURN(m_renderHal->pfnReAllocateStateHeapsforAdvFeatureWithSshResize);
+                VP_RENDER_CHK_STATUS_RETURN(m_renderHal->pfnReAllocateStateHeapsforAdvFeatureWithSshResize(m_renderHal, false, allocated));
+                if (allocated && m_renderHal->pStateHeap)
+                {
+                    MHW_STATE_BASE_ADDR_PARAMS *pStateBaseParams = &m_renderHal->StateBaseAddressParams;
+                    pStateBaseParams->presGeneralState           = &m_renderHal->pStateHeap->GshOsResource;
+                    pStateBaseParams->presDynamicState           = &m_renderHal->pStateHeap->GshOsResource;
+                    pStateBaseParams->presIndirectObjectBuffer   = &m_renderHal->pStateHeap->GshOsResource;
+                    pStateBaseParams->presInstructionBuffer      = &m_renderHal->pStateHeap->IshOsResource;
+                }
             }
-            else
-            {
-                m_isMultiBindingTables = false;
-            }
+
+            m_isMultiBindingTables = false;
 
             VP_RENDER_CHK_STATUS_RETURN(RenderEngineSetup());
 
@@ -2369,6 +2384,16 @@ MOS_STATUS VpRenderCmdPacket::SetHdrParams(PRENDER_HDR_PARAMS params)
     kernelParams.kernelThreadSpace.uHeight = params->threadHeight;
     kernelParams.syncFlag                  = true;
     m_renderKernelParams.push_back(kernelParams);
+
+    if (m_renderHal && !m_renderHal->isBindlessHeapInUse &&
+        m_hwInterface && m_hwInterface->m_vpPlatformInterface &&
+        m_hwInterface->m_vpPlatformInterface->GetKernelConfig() &&
+        m_hwInterface->m_vpPlatformInterface->GetKernelConfig()->GetRenderEnlargeOverwriteParams().needOverwrite)
+    {
+        m_submissionMode            = SINGLE_KERNEL_ONLY;
+        m_isMultiBindingTables      = false;
+        m_isLargeSurfaceStateNeeded = false;
+    }
 
     return MOS_STATUS_SUCCESS;
 

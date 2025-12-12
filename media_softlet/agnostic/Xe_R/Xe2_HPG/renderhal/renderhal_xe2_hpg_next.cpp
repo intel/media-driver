@@ -161,6 +161,7 @@ void XRenderHal_Interface_Xe2_Hpg_Next::InitStateHeapSettings(
     MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
     // Set State Heap settings for hpg_base
     pRenderHal->StateHeapSettings              = g_cRenderHal_State_Heap_Settings_xe2_hpg;
+    pRenderHal->defaultStateHeapSettings       = g_cRenderHal_State_Heap_Settings_xe2_hpg;
     pRenderHal->enlargeStateHeapSettingsForAdv = g_cRenderHal_Enlarge_State_Heap_Settings_Adv_xe2_hpg;
 }
 

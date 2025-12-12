@@ -1578,8 +1578,9 @@ MOS_STATUS RenderHal_AllocateStateHeaps(
     return eStatus;
 }
 
-MOS_STATUS RenderHal_ReAllocateStateHeapsforAdvFeatureWithSshEnlarged(
+MOS_STATUS RenderHal_ReAllocateStateHeapsforAdvFeatureWithSshResize(
     PRENDERHAL_INTERFACE           pRenderHal,
+    bool                           enlarged,
     bool                           &bAllocated)
 {
     PMOS_INTERFACE                 pOsInterface     = nullptr;
@@ -1614,11 +1615,31 @@ MOS_STATUS RenderHal_ReAllocateStateHeapsforAdvFeatureWithSshEnlarged(
         return MOS_STATUS_SUCCESS;
     }
 
-    if ((pSettings->iBindingTables == pRenderHal->enlargeStateHeapSettingsForAdv.iBindingTables) &&
-        (pSettings->iSurfaceStates == pRenderHal->enlargeStateHeapSettingsForAdv.iSurfaceStates) &&
-        (pSettings->iSurfacesPerBT == pRenderHal->enlargeStateHeapSettingsForAdv.iSurfacesPerBT))
+    if (enlarged)
     {
-        return MOS_STATUS_SUCCESS;
+        // switch to enlarged SSH
+        if ((pSettings->iBindingTables == pRenderHal->enlargeStateHeapSettingsForAdv.iBindingTables) &&
+            (pSettings->iSurfaceStates == pRenderHal->enlargeStateHeapSettingsForAdv.iSurfaceStates) &&
+            (pSettings->iSurfacesPerBT == pRenderHal->enlargeStateHeapSettingsForAdv.iSurfacesPerBT))
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+    }
+    else
+    {
+        // switch to default SSH
+        if ((pSettings->iBindingTables == pRenderHal->defaultStateHeapSettings.iBindingTables) &&
+            (pSettings->iSurfaceStates == pRenderHal->defaultStateHeapSettings.iSurfaceStates) &&
+            (pSettings->iSurfacesPerBT == pRenderHal->defaultStateHeapSettings.iSurfacesPerBT))
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+        else if (pRenderHal->defaultStateHeapSettings.iBindingTables == 0 ||
+                 pRenderHal->defaultStateHeapSettings.iSurfaceStates == 0 ||
+                 pRenderHal->defaultStateHeapSettings.iSurfacesPerBT == 0)
+        {
+            MHW_RENDERHAL_CHK_STATUS_RETURN(MOS_STATUS_PLATFORM_NOT_SUPPORTED);
+        }
     }
 
     pOsInterface  = pRenderHal->pOsInterface;
@@ -1640,10 +1661,19 @@ MOS_STATUS RenderHal_ReAllocateStateHeapsforAdvFeatureWithSshEnlarged(
         entry->pSurface = nullptr;
     }
 
-    // Enlarge the binding table size and surface state size
-    pSettings->iBindingTables = pRenderHal->enlargeStateHeapSettingsForAdv.iBindingTables;
-    pSettings->iSurfaceStates = pRenderHal->enlargeStateHeapSettingsForAdv.iSurfaceStates;
-    pSettings->iSurfacesPerBT = pRenderHal->enlargeStateHeapSettingsForAdv.iSurfacesPerBT;
+    // Resize the binding table size and surface state size
+    if (enlarged)
+    {
+        pSettings->iBindingTables = pRenderHal->enlargeStateHeapSettingsForAdv.iBindingTables;
+        pSettings->iSurfaceStates = pRenderHal->enlargeStateHeapSettingsForAdv.iSurfaceStates;
+        pSettings->iSurfacesPerBT = pRenderHal->enlargeStateHeapSettingsForAdv.iSurfacesPerBT;
+    }
+    else
+    {
+        pSettings->iBindingTables = pRenderHal->defaultStateHeapSettings.iBindingTables;
+        pSettings->iSurfaceStates = pRenderHal->defaultStateHeapSettings.iSurfaceStates;
+        pSettings->iSurfacesPerBT = pRenderHal->defaultStateHeapSettings.iSurfacesPerBT;
+    }
 
     mediaStateSize = pRenderHal->pRenderHalPltInterface->GetRenderHalMediaStateSize();
     stateHeapSize  = pRenderHal->pRenderHalPltInterface->GetRenderHalStateHeapSize();
@@ -1693,9 +1723,9 @@ MOS_STATUS RenderHal_ReAllocateStateHeapsforAdvFeatureWithSshEnlarged(
 
     dwSizeMediaState = pStateHeap->dwSizeMediaState;
 
-    // Reset current media state
-    pStateHeap->iCurMediaState  = 0;
-    pStateHeap->iNextMediaState = 0;
+    // NOTE: Do not reset media state (iCurMediaState/iNextMediaState)
+    // Only SSH is reallocated while state index keeps incrementing.
+    // AssignMediaState checks last-1 ready state - reset would block first frame.
 
     dwSizeGSH = pStateHeap->dwSizeSync;
 
@@ -1779,15 +1809,29 @@ MOS_STATUS RenderHal_ReAllocateStateHeapsforAdvFeatureWithAllHeapsEnlarged(
 
     //------------------------------------------------
     // Enlarge the binding table size and surface state size
-    if ((pRenderhalSettings->iBindingTables  == pParams->iBindingTables) &&
-        (pRenderhalSettings->iSurfaceStates  == pParams->iSurfaceStates) &&
-        (pRenderhalSettings->iKernelCount    == pParams->iKernelCount) &&
+    if ((pRenderhalSettings->iKernelCount    == pParams->iKernelCount) &&
         (pRenderhalSettings->iCurbeSize      == pParams->iCurbeSize) &&
         (pRenderhalSettings->iKernelHeapSize == pParams->iKernelHeapSize) &&
-        (pRenderhalSettings->iSurfacesPerBT  == pParams->iSurfacesPerBT) &&
         (pRenderhalSettings->iMediaIDs       == pParams->iMediaIDs))
     {
-        return MOS_STATUS_SUCCESS;
+        if ((pRenderhalSettings->iBindingTables == pParams->iBindingTables) &&
+            (pRenderhalSettings->iSurfaceStates == pParams->iSurfaceStates) &&
+            (pRenderhalSettings->iSurfacesPerBT == pParams->iSurfacesPerBT))
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+        else
+        {
+            // Only need to reallocate SSH
+            // When entering this path, it means all heaps have already been enlarged first,
+            // and then SSH has been resized back to its default size.
+            // Now we need to resize all heaps back to their enlarged size.
+            // To prevent the heap link from continuously growing, only resize SSH (system memory) to the enlarged size,
+            // since ISH and GSH will never resize back to their default size, so there's no need to enlarge all heaps.
+            MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pfnReAllocateStateHeapsforAdvFeatureWithSshResize);
+            MHW_RENDERHAL_CHK_STATUS_RETURN(pRenderHal->pfnReAllocateStateHeapsforAdvFeatureWithSshResize(pRenderHal, true, bAllocated));
+            return MOS_STATUS_SUCCESS;
+        }
     }
 
     // Free State Heaps(RenderHal_FreeStateHeaps):
@@ -7516,7 +7560,7 @@ MOS_STATUS RenderHal_InitInterface(
     // Allocate/Destroy state heaps
     pRenderHal->pfnAllocateStateHeaps                = RenderHal_AllocateStateHeaps;
     pRenderHal->pfnFreeStateHeaps                    = RenderHal_FreeStateHeaps;
-    pRenderHal->pfnReAllocateStateHeapsforAdvFeatureWithSshEnlarged      = RenderHal_ReAllocateStateHeapsforAdvFeatureWithSshEnlarged;
+    pRenderHal->pfnReAllocateStateHeapsforAdvFeatureWithSshResize        = RenderHal_ReAllocateStateHeapsforAdvFeatureWithSshResize;
     pRenderHal->pfnReAllocateStateHeapsforAdvFeatureWithAllHeapsEnlarged = RenderHal_ReAllocateStateHeapsforAdvFeatureWithAllHeapsEnlarged;
     pRenderHal->pfnOverwriteEnlargedHeapParams                           = RenderHal_OverwriteEnlargedHeapParams;
 
