@@ -18,7 +18,29 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(hw)
-media_include_subdirectory(vp)
-media_include_subdirectory(shared)
-media_include_subdirectory(codec)
+set(TMP_MMC_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/codec_mem_compression_xe3p_lpm_base.cpp
+)
+
+set(TMP_MMC_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/codec_mem_compression_xe3p_lpm_base.h
+)
+
+set(SOFTLET_CODEC_COMMON_SOURCES_
+    ${SOFTLET_CODEC_COMMON_SOURCES_}
+    ${TMP_MMC_SOURCES_}
+)
+
+set(SOFTLET_CODEC_COMMON_HEADERS_
+    ${SOFTLET_CODEC_COMMON_HEADERS_}
+    ${TMP_MMC_HEADERS_}
+)
+
+source_group(CodecHalNext\\Xe3P_M\\shared\\mmc FILES ${TMP_MMC_SOURCES_} ${TMP_MMC_HEADERS_})
+
+set(TMP_MMC_SOURCES_ "")
+set(TMP_MMC_HEADERS_ "")
+set(SOFTLET_CODEC_COMMON_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_CODEC_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

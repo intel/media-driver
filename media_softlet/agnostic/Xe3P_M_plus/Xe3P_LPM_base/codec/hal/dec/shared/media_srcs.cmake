@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Intel Corporation
+# Copyright (c) 2023-2024, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,7 +18,21 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(hw)
-media_include_subdirectory(vp)
-media_include_subdirectory(shared)
-media_include_subdirectory(codec)
+set(SOFTLET_DECODE_COMMON_SOURCES_
+    ${SOFTLET_DECODE_COMMON_SOURCES_}
+    ${CMAKE_CURRENT_LIST_DIR}/decode_mem_compression_xe3p_lpm_base.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_huc_packet_creator_xe3p_lpm_base.cpp
+)
+
+set(SOFTLET_DECODE_COMMON_HEADERS_
+    ${SOFTLET_DECODE_COMMON_HEADERS_}
+    ${CMAKE_CURRENT_LIST_DIR}/decode_mem_compression_xe3p_lpm_base.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_huc_packet_creator_xe3p_lpm_base.h
+)
+
+source_group( CodecHalNext\\Xe3P_M_plus\\Decode FILES ${SOFTLET_DECODE_COMMON_SOURCES_} ${SOFTLET_DECODE_COMMON_HEADERS_})
+
+set(SOFTLET_DECODE_COMMON_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_DECODE_COMMON_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

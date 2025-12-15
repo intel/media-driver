@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Intel Corporation
+# Copyright (c) 2023, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,7 +18,23 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(hw)
-media_include_subdirectory(vp)
-media_include_subdirectory(shared)
-media_include_subdirectory(codec)
+if(${HEVC_Decode_Supported} STREQUAL "yes")
+set(SOFTLET_DECODE_HEVC_SOURCES_
+    ${SOFTLET_DECODE_HEVC_SOURCES_}
+    ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_mem_compression_xe3p_lpm_base.cpp
+)
+
+set(SOFTLET_DECODE_HEVC_HEADERS_
+    ${SOFTLET_DECODE_HEVC_HEADERS_}
+    ${CMAKE_CURRENT_LIST_DIR}/decode_hevc_mem_compression_xe3p_lpm_base.h
+)
+
+source_group( CodecHalNext\\Xe3P_LPM_base\\Decode FILES ${SOFTLET_DECODE_HEVC_SOURCES_} ${SOFTLET_DECODE_HEVC_HEADERS_})
+
+endif()
+
+
+set(SOFTLET_DECODE_HEVC_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_DECODE_HEVC_PRIVATE_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

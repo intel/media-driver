@@ -18,7 +18,12 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(hw)
-media_include_subdirectory(vp)
 media_include_subdirectory(shared)
-media_include_subdirectory(codec)
+media_include_subdirectory(hevc)
+media_include_subdirectory(avc)
+media_include_subdirectory(vp9)
+media_include_subdirectory(vp8)
+media_include_subdirectory(av1)
+media_include_subdirectory(mpeg2)
+media_include_subdirectory(jpeg)
+media_include_subdirectory(vvc)
