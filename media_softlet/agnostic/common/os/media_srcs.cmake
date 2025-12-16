@@ -18,7 +18,6 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(private)
 media_include_subdirectory(user_setting)
 media_include_subdirectory(share)
 media_include_subdirectory(levelzero)

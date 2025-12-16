@@ -31,7 +31,6 @@ media_include_subdirectory(xe)
 if(ENABLE_PRODUCTION_KMD)
     media_include_subdirectory(i915_production)
 endif()
-media_include_subdirectory(private)
 
 if(ENABLE_PRODUCTION_KMD)
     media_include_subdirectory(i915_production)
