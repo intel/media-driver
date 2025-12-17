@@ -2285,25 +2285,65 @@ MOS_STATUS VpResourceManager::Allocate3DLut(VP_EXECUTE_CAPS& caps)
 
     if (caps.bHDR3DLUT || caps.b3DLutCalc)
     {
-        // HDR
-        uint32_t lutWidth = 0;
-        uint32_t lutHeight = 0;
-        size = Get3DLutSize(caps.bHdr33lutsize, lutWidth, lutHeight);
-        VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
-            m_vebox3DLookUpTables,
-            "Vebox3DLutTableSurface",
-            Format_Buffer,
-            MOS_GFXRES_BUFFER,
-            MOS_TILE_LINEAR,
-            size,
-            1,
-            false,
-            MOS_MMC_DISABLED,
-            isAllocated,
-            false,
-            IsDeferredResourceDestroyNeeded(),
-            MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER));
-
+#if (_DEBUG || _RELEASE_INTERNAL)
+        // 3D LUT new layout feature - only available in debug and release-internal builds
+        // Check if 3DLUT new layout feature is enabled
+        bool useNewLayout = m_vpUserFeatureControl && m_vpUserFeatureControl->Is3DLutNewLayoutEnabled();
+        
+        // Determine LUT segment size based on caps
+        uint32_t lutSegSize = caps.bHdr33lutsize ? LUT33_SEG_SIZE : LUT65_SEG_SIZE;
+        
+        if (useNewLayout)
+        {
+            // New layout: Create volume surface with cubic dimensions
+            VP_PUBLIC_NORMALMESSAGE("Allocating 3DLUT as volume surface with dimensions %dx%dx%d", 
+                lutSegSize, lutSegSize, lutSegSize);
+            
+            VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
+                m_vebox3DLookUpTables,
+                "Vebox3DLutTableSurface",
+                Format_A16B16G16R16,
+                MOS_GFXRES_VOLUME,
+                MOS_TILE_LINEAR,
+                lutSegSize,
+                lutSegSize,
+                false,
+                MOS_MMC_DISABLED,
+                isAllocated,
+                false,
+                IsDeferredResourceDestroyNeeded(),
+                MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER,
+                MOS_TILE_UNSET_GMM,
+                MOS_MEMPOOL_VIDEOMEMORY,
+                false,
+                nullptr,
+                lutSegSize));
+        }
+        else
+#endif
+        {
+            // Existing buffer logic: Create buffer surface (always compiled as default fallback)
+            uint32_t lutWidth = 0;
+            uint32_t lutHeight = 0;
+            size = Get3DLutSize(caps.bHdr33lutsize, lutWidth, lutHeight);
+            
+            VP_PUBLIC_NORMALMESSAGE("Allocating 3DLUT as buffer surface with size %d bytes", size);
+            
+            VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
+                m_vebox3DLookUpTables,
+                "Vebox3DLutTableSurface",
+                Format_Buffer,
+                MOS_GFXRES_BUFFER,
+                MOS_TILE_LINEAR,
+                size,
+                1,
+                false,
+                MOS_MMC_DISABLED,
+                isAllocated,
+                false,
+                IsDeferredResourceDestroyNeeded(),
+                MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER));
+        }
     }
 
     return MOS_STATUS_SUCCESS;

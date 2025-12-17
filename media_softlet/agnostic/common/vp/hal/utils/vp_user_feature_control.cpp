@@ -292,6 +292,28 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatfor
         m_ctrlValDefault.splitFramePortions = splitFramePortions;
     }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    std::string lut3DFilePath = "";
+    status = ReadUserSetting(
+        m_userSettingPtr,
+        lut3DFilePath,
+        __VPHAL_3DLUT_FILE_PATH,
+        MediaUserSetting::Group::Sequence,
+        std::string(""),  // Default empty string
+        true);  // Use custom value
+    if (MOS_SUCCEEDED(status) && !lut3DFilePath.empty())
+    {
+        m_ctrlValDefault.lut3DFilePath = lut3DFilePath;
+        m_ctrlValDefault.enable3DLutNewLayout = true;
+        VP_PUBLIC_NORMALMESSAGE("3DLUT new layout enabled with file: %s", lut3DFilePath.c_str());
+    }
+    else
+    {
+        m_ctrlValDefault.enable3DLutNewLayout = false;
+        m_ctrlValDefault.lut3DFilePath = "";
+    }
+#endif
+
     //check vebox type 
     if (skuTable && (MEDIA_IS_SKU(skuTable, FtrVeboxTypeH)))
     {

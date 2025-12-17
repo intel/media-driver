@@ -1002,6 +1002,14 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
     allocParams.Flags.bNotLockable = isNotLockable;
     allocParams.pSystemMemory      = systemMemory;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Set SubAllocation flag for Volume resources (3DLUT surfaces)
+    if (allocParams.Type == MOS_GFXRES_VOLUME)
+    {
+        allocParams.Flags.bSubAllocation = true;
+    }
+#endif
+
     surface = AllocateVpSurface(allocParams, zeroOnAllocate);
     VP_PUBLIC_CHK_NULL_RETURN(surface);
     VP_PUBLIC_CHK_NULL_RETURN(surface->osSurface);

@@ -59,7 +59,9 @@ public:
         uint32_t force3DLutInterpolation    = 0;
         uint32_t enabledSFCNv12P010LinearOutput = 0;
         uint32_t enabledSFCRGBPRGB24Output  = 0;
-        bool     enableIFNCC                    = false;
+        bool     enableIFNCC                = false;
+        bool     enable3DLutNewLayout       = false;  // Enable 3DLUT new layout feature
+        std::string lut3DFilePath           = "";     // File path for 3DLUT data
 #endif
         VP_CTRL enableOcl3DLut              = VP_CTRL_DEFAULT;
         VP_CTRL forceOclFC                  = VP_CTRL_DEFAULT;
@@ -114,6 +116,15 @@ public:
     bool DisableOclFcFp()
     {
         return m_ctrlVal.bDisableOclFcFp;
+    }
+    bool Is3DLutNewLayoutEnabled()
+    {
+        return m_ctrlVal.enable3DLutNewLayout;
+    }
+
+    std::string Get3DLutFilePath()
+    {
+        return m_ctrlVal.lut3DFilePath;
     }
 #endif
 
