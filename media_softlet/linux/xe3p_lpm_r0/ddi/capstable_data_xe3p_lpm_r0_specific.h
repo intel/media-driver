@@ -57,9 +57,6 @@
 #if defined(_JPEG_DECODE_SUPPORTED)
 #include "capstable_data_jpeg_decode_xe3p_lpm_r0_specific.h"
 #endif
-#if defined(_MPEG2_DECODE_SUPPORTED)
-#include "capstable_data_mpeg2_decode_xe3p_lpm_r0_specific.h"
-#endif
 #if defined(_VP8_DECODE_SUPPORTED)
 #include "capstable_data_vp8_decode_xe3p_lpm_r0_specific.h"
 #endif
@@ -329,20 +326,6 @@ static const EntrypointMap entrypointMap_VAProfileVP9Profile3_Xe3p_Lpm_r0
 #endif
 };
 
-static const EntrypointMap entrypointMap_VAProfileMPEG2Simple_Xe3p_Lpm_r0
-{
-#if defined(_MPEG2_DECODE_SUPPORTED)
-    {VAEntrypointVLD, &entrypointMap_VAProfileMPEG2SimpleDec_Data_Xe3p_Lpm_r0},
-#endif
-};
-
-static const EntrypointMap entrypointMap_VAProfileMPEG2Main_Xe3p_Lpm_r0
-{
-#if defined(_MPEG2_DECODE_SUPPORTED)
-    {VAEntrypointVLD, &entrypointMap_VAProfileMPEG2MainDec_Data_Xe3p_Lpm_r0},
-#endif
-};
-
 static const EntrypointMap entrypointMap_VAProfileVP8Version0_3_Xe3p_Lpm_r0
 {
 #if defined(_VP8_DECODE_SUPPORTED)
@@ -410,11 +393,6 @@ static const ProfileMap profileMap_Xe3p_Lpm_r0
     {VAProfileVP9Profile2, &entrypointMap_VAProfileVP9Profile2_Xe3p_Lpm_r0},
     {VAProfileVP9Profile1, &entrypointMap_VAProfileVP9Profile1_Xe3p_Lpm_r0},
     {VAProfileVP9Profile0, &entrypointMap_VAProfileVP9Profile0_Xe3p_Lpm_r0},
-#endif
-
-#if defined(_MPEG2_DECODE_SUPPORTED)
-    {VAProfileMPEG2Simple, &entrypointMap_VAProfileMPEG2Simple_Xe3p_Lpm_r0},
-    {VAProfileMPEG2Main,   &entrypointMap_VAProfileMPEG2Main_Xe3p_Lpm_r0},
 #endif
 
 #if defined(_VP8_DECODE_SUPPORTED)
