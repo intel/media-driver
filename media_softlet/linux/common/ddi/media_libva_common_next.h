@@ -344,22 +344,7 @@ typedef struct _DDI_X11_FUNC_TABLE
 }DDI_X11_FUNC_TABLE, *PDDI_X11_FUNC_TABLE;
 #endif
 
-#ifdef MEDIA_SOFTLET
-
-#include "media_interfaces_hwinfo.h"
-class MediaLibvaCapsNext;
-class OsContext;
-class GpuContextMgr;
-#include "ddi_media_functions.h"
-#include "ddi_media_context.h"
-
-typedef struct DDI_MEDIA_CONTEXT *PDDI_MEDIA_CONTEXT;
-
-#else // MEDIA_SOFTLET
-
 #include "media_libva_common.h"
-
-#endif // MEDIA_SOFTLET
 
 static __inline PDDI_MEDIA_CONTEXT GetMediaContext (VADriverContextP ctx)
 {
