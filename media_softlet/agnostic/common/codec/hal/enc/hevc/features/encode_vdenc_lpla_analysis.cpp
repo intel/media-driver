@@ -371,12 +371,12 @@ namespace encode
         allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
 
         // Buffer to store VDEnc frame statistics for lookahead BRC
-        m_brcLooaheadStatsBufferSize        = m_numLaDataEntry * sizeof(VdencHevcLaStats);
+        m_brcLooaheadStatsBufferSize        = m_numLaDataEntry * sizeof(VdencHevcLaStatsForLAKernel);
         allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(m_brcLooaheadStatsBufferSize, CODECHAL_PAGE_SIZE);
         allocParamsForBufferLinear.pBufName = "VDENC Lookahead Statistics Buffer";
         m_vdencLaStatsBuffer                = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
 
-        VdencHevcLaStats *lookaheadInfo = (VdencHevcLaStats *)m_allocator->LockResourceForWrite(m_vdencLaStatsBuffer);
+        VdencHevcLaStatsForLAKernel *lookaheadInfo = (VdencHevcLaStatsForLAKernel *)m_allocator->LockResourceForWrite(m_vdencLaStatsBuffer);
         ENCODE_CHK_NULL_RETURN(lookaheadInfo);
         MOS_ZeroMemory(lookaheadInfo, allocParamsForBufferLinear.dwBytes);
         m_allocator->UnLock(m_vdencLaStatsBuffer);
@@ -606,7 +606,7 @@ namespace encode
 
         uint8_t index = 0;
         ENCODE_CHK_STATUS_RETURN(GetLaStatsStoreIdx(index));
-        uint32_t offset = sizeof(VdencHevcLaStats) * index;        
+        uint32_t offset = sizeof(VdencHevcLaStatsForLAKernel) * index;        
         if (m_useDSData)
         {
             auto &storeFrameByteCount            = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
@@ -643,15 +643,29 @@ namespace encode
         //store stats in la buffer allocated by VPL
         if (m_basicFeature->m_laDataBufferEnabled)
         {
+            offset = sizeof(VdencHevcLaStatsForBRCKernel) * index;
             StoreLookaheadData(cmdBuffer, m_encodeParams->presLaDataBuffer, offset, vdboxIndex);
 
-            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
             auto &storeFrameNum            = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
             storeFrameNum                  = {};
             storeFrameNum.pOsResource      = m_encodeParams->presLaDataBuffer;
-            storeFrameNum.dwResourceOffset = offset + CODECHAL_OFFSETOF(VdencHevcLaStats, frameNumber);
+            storeFrameNum.dwResourceOffset = offset + CODECHAL_OFFSETOF(VdencHevcLaStatsForBRCKernel, frameNumber);
             storeFrameNum.dwValue          = m_basicFeature->m_frameNum;
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(&cmdBuffer));
+
+            // Copy rhoDomainStats array (76 elements)
+            auto &miCpyMemMemParams = m_miItf->MHW_GETPAR_F(MI_COPY_MEM_MEM)();
+            for (uint32_t i = 0; i < 76; i++)
+            {
+                miCpyMemMemParams = {};
+                miCpyMemMemParams.presSrc = m_basicFeature->m_recycleBuf->GetBuffer(FrameStatStreamOutBuffer, 0);
+                miCpyMemMemParams.dwSrcOffset = (64 + i) * 4;
+                miCpyMemMemParams.presDst = m_encodeParams->presLaDataBuffer;
+                miCpyMemMemParams.dwDstOffset = offset + CODECHAL_OFFSETOF(VdencHevcLaStatsForBRCKernel, rhoDomainStats[i]);
+                ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(&cmdBuffer));
+            }
+
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
         }
 
         return eStatus;
@@ -758,6 +772,14 @@ namespace encode
         miCpyMemMemParams.dwSrcOffset = 4;
         miCpyMemMemParams.presDst     = resource;
         miCpyMemMemParams.dwDstOffset = offset + CODECHAL_OFFSETOF(VdencHevcLaStats, intraCuCount);
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(&cmdBuffer));
+
+        // Copy SAD field
+        miCpyMemMemParams = {};
+        miCpyMemMemParams.presSrc = m_basicFeature->m_recycleBuf->GetBuffer(VdencStatsBuffer, 0);
+        miCpyMemMemParams.dwSrcOffset = 0;
+        miCpyMemMemParams.presDst = resource;
+        miCpyMemMemParams.dwDstOffset = offset + CODECHAL_OFFSETOF(VdencHevcLaStats, sad);
         ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(&cmdBuffer));
 
         return eStatus;
