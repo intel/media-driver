@@ -26,6 +26,7 @@
 
 #include "encode_avc_brc_xe3_lpm.h"
 #include "encode_avc_huc_brc_init_packet.h"
+#include "codec_def_encode_avc.h"
 
 namespace encode
 {
@@ -41,7 +42,7 @@ MOS_STATUS AvcEncodeBRCXe3_Lpm::SetDmemForInit(void *params)
     }
 
     ENCODE_CHK_NULL_RETURN(params);
-    auto hucVdencBrcInitDmem =(VdencAvcHucBrcInitDmem*)params;
+    auto hucVdencBrcInitDmem = (VdencAvcHucBrcInitDmem*)params;
 
     if (m_basicFeature->m_minMaxQpControlEnabled)
     {
@@ -50,7 +51,7 @@ MOS_STATUS AvcEncodeBRCXe3_Lpm::SetDmemForInit(void *params)
     }
     else
     {
-        hucVdencBrcInitDmem->INIT_MinQP_U16 = CODEC_AVC_MIN_QP1;
+        hucVdencBrcInitDmem->INIT_MinQP_U16 = CODEC_AVC_MIN_QP5;
         hucVdencBrcInitDmem->INIT_MaxQP_U16 = CODEC_AVC_MAX_QP;
     }
 

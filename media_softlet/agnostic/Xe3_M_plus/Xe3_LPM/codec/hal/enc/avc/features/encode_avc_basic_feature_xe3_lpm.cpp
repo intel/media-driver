@@ -25,6 +25,7 @@
 //!
 
 #include "encode_avc_basic_feature_xe3_lpm.h"
+#include "codec_def_encode_avc.h"
 #include "mhw_vdbox_vdenc_hwcmd_xe3_lpm.h"
 
 namespace encode
@@ -41,8 +42,8 @@ void AvcBasicFeatureXe3_Lpm::UpdateMinMaxQp()
     m_minMaxQpControlEnabled = true;
     if (m_picParam->CodingType == I_TYPE)
     {
-        m_iMaxQp = MOS_MIN(MOS_MAX(m_picParam->ucMaximumQP, CODEC_AVC_MIN_QP1), CODEC_AVC_MAX_QP);        // Clamp maxQP to [CODEC_AVC_MIN_QP1, CODEC_AVC_MAX_QP]
-        m_iMinQp = MOS_MIN(MOS_MAX(m_picParam->ucMinimumQP, CODEC_AVC_MIN_QP1), m_iMaxQp);  // Clamp minQP to [CODEC_AVC_MIN_QP1, maxQP] to make sure minQP <= maxQP
+        m_iMaxQp = MOS_MIN(MOS_MAX(m_picParam->ucMaximumQP, CODEC_AVC_MIN_QP5), CODEC_AVC_MAX_QP);        // Clamp maxQP to [CODEC_AVC_MIN_QP5, CODEC_AVC_MAX_QP]
+        m_iMinQp = MOS_MIN(MOS_MAX(m_picParam->ucMinimumQP, CODEC_AVC_MIN_QP5), m_iMaxQp);  // Clamp minQP to [CODEC_AVC_MIN_QP5, maxQP] to make sure minQP <= maxQP
         if (!m_pFrameMinMaxQpControl)
         {
             m_pMinQp = m_iMinQp;
@@ -57,8 +58,8 @@ void AvcBasicFeatureXe3_Lpm::UpdateMinMaxQp()
     else if (m_picParam->CodingType == P_TYPE)
     {
         m_pFrameMinMaxQpControl = true;
-        m_pMaxQp                = MOS_MIN(MOS_MAX(m_picParam->ucMaximumQP, CODEC_AVC_MIN_QP1), CODEC_AVC_MAX_QP);        // Clamp maxQP to [CODEC_AVC_MIN_QP1, CODEC_AVC_MAX_QP]
-        m_pMinQp                = MOS_MIN(MOS_MAX(m_picParam->ucMinimumQP, CODEC_AVC_MIN_QP1), m_pMaxQp);  // Clamp minQP to [CODEC_AVC_MIN_QP1, maxQP] to make sure minQP <= maxQP
+        m_pMaxQp                = MOS_MIN(MOS_MAX(m_picParam->ucMaximumQP, CODEC_AVC_MIN_QP5), CODEC_AVC_MAX_QP);        // Clamp maxQP to [CODEC_AVC_MIN_QP5, CODEC_AVC_MAX_QP]
+        m_pMinQp                = MOS_MIN(MOS_MAX(m_picParam->ucMinimumQP, CODEC_AVC_MIN_QP5), m_pMaxQp);  // Clamp minQP to [CODEC_AVC_MIN_QP5, maxQP] to make sure minQP <= maxQP
         if (!m_bFrameMinMaxQpControl)
         {
             m_bMinQp = m_pMinQp;
@@ -68,8 +69,8 @@ void AvcBasicFeatureXe3_Lpm::UpdateMinMaxQp()
     else  // B_TYPE
     {
         m_bFrameMinMaxQpControl = true;
-        m_bMaxQp                = MOS_MIN(MOS_MAX(m_picParam->ucMaximumQP, CODEC_AVC_MIN_QP1), CODEC_AVC_MAX_QP);        // Clamp maxQP to [CODEC_AVC_MIN_QP1, CODEC_AVC_MAX_QP]
-        m_bMinQp                = MOS_MIN(MOS_MAX(m_picParam->ucMinimumQP, CODEC_AVC_MIN_QP1), m_bMaxQp);  // Clamp minQP to [CODEC_AVC_MIN_QP1, maxQP] to make sure minQP <= maxQP
+        m_bMaxQp                = MOS_MIN(MOS_MAX(m_picParam->ucMaximumQP, CODEC_AVC_MIN_QP5), CODEC_AVC_MAX_QP);        // Clamp maxQP to [CODEC_AVC_MIN_QP5, CODEC_AVC_MAX_QP]
+        m_bMinQp                = MOS_MIN(MOS_MAX(m_picParam->ucMinimumQP, CODEC_AVC_MIN_QP5), m_bMaxQp);  // Clamp minQP to [CODEC_AVC_MIN_QP5, maxQP] to make sure minQP <= maxQP
     }
     // Zero out the QP values, so we don't update the AVCState settings until new values are sent in MiscParamsRC
     m_picParam->ucMinimumQP = 0;
@@ -92,7 +93,7 @@ MHW_SETPAR_DECL_SRC(VDENC_AVC_IMG_STATE, AvcBasicFeatureXe3_Lpm)
 
     if (m_seqParam->RateControlMethod == RATECONTROL_VBR)
     {
-        params.minQp = CODEC_AVC_MIN_QP1; // set init minQp to CODEC_AVC_MIN_QP1
+        params.minQp = CODEC_AVC_MIN_QP5; // set init minQp to CODEC_AVC_MIN_QP5
     }
     
     AvcBasicFeature::MHW_SETPAR_F(VDENC_AVC_IMG_STATE)(params);
