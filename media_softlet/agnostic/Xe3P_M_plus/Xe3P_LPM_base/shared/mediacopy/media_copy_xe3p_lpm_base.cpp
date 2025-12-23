@@ -49,12 +49,19 @@ MOS_STATUS MediaCopyStateXe3P_Lpm_Base::Initialize(PMOS_INTERFACE  osInterface, 
 
     MCPY_CHK_STATUS_RETURN(MediaCopyBaseState::Initialize(osInterface));
 
-    // blt copy init
-    if (nullptr == m_bltCopy)
+    if (!MEDIA_IS_SKU(pSkuTable, FtrMainCopyRemoved))
     {
-        m_bltCopy = MOS_New(BltStateXe3P_Lpm_Base, m_osInterface, m_mhwInterfaces);
-        MCPY_CHK_NULL_RETURN(m_bltCopy);
-        MCPY_CHK_STATUS_RETURN(m_bltCopy->Initialize());
+        // blt copy init
+        if (nullptr == m_bltCopy)
+        {
+            m_bltCopy = MOS_New(BltStateXe3P_Lpm_Base, m_osInterface, m_mhwInterfaces);
+            MCPY_CHK_NULL_RETURN(m_bltCopy);
+            MCPY_CHK_STATUS_RETURN(m_bltCopy->Initialize());
+        }
+    }
+    else
+    {
+        MCPY_NORMALMESSAGE(" Blt copy don't support due to no Main Copy Engine ");
     }
 
     // vebox init
@@ -88,6 +95,12 @@ MOS_STATUS MediaCopyStateXe3P_Lpm_Base::FeatureSupport(PMOS_RESOURCE src,
     caps.engineVebox  = true;
     caps.engineBlt    = true;
     caps.engineRender = false;
+
+    if (m_osInterface &&
+        MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrMainCopyRemoved))
+    {
+        caps.engineBlt = false;
+    }
 
     return MOS_STATUS_SUCCESS;
 }
