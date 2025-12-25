@@ -192,6 +192,7 @@ struct _VP_EXECUTE_CAPS
             uint64_t bDV            : 1;
             uint64_t b3DlutOutput   : 1;
             uint64_t bHdr33lutsize  : 1;
+            uint64_t bLutCompound   : 1;  // Vebox LUT Compound (CSC + 1DLUT + 3DLUT) needed
             uint64_t bCappipe       : 1;
             uint64_t bLgca          : 1;
             uint64_t bFDFB          : 1;
