@@ -182,7 +182,8 @@ namespace decode
         
         // Reference Frame
         if (m_av1PicParams->m_picInfoFlags.m_fields.m_frameType != keyFrame && 
-            m_av1PicParams->m_picInfoFlags.m_fields.m_frameType != intraOnlyFrame)
+            m_av1PicParams->m_picInfoFlags.m_fields.m_frameType != intraOnlyFrame &&
+            !m_osInterface->pfnIsMismatchOrderProgrammingSupported())
         {
             for (int i = 0; i < 8; i++)
             {
