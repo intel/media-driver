@@ -772,19 +772,6 @@ typedef struct _MHW_VEBOX_GAMUT_PARAMS
 
 } MHW_VEBOX_GAMUT_PARAMS, *PMHW_VEBOX_GAMUT_PARAMS;
 
-typedef struct _MHW_VEBOX_LUTCOMPOUND_PARAMS
-{
-    bool         lutCompoundEnabled;  // LUT Compound Enabled
-    bool         enable1DLUT;         // Enable 1D LUT processing
-    bool         enable3DLUT;         // Enable 3D LUT processing
-    bool         enableCSC;           // Enable CSC processing
-    uint32_t     interpolationMode;   // 3D LUT interpolation mode (0: Nearest, 1: Linear)
-    uint32_t     dimension3DLUT;      // 3D LUT cube dimension (17, 33, 45, 65)
-    float        cscMatrix[4][3];     // Color Space Conversion matrix
-    MOS_RESOURCE lut1DRes;            // 1D LUT resource
-    MOS_RESOURCE lut3DRes;            // 3D LUT resource
-} MHW_VEBOX_LUTCOMPOUND_PARAMS, *PMHW_VEBOX_LUTCOMPOUND_PARAMS;
-
 //!
 //! \brief  Structure to handle VEBOX_DI_IECP_CMD Command
 //!
