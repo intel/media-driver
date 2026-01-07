@@ -199,3 +199,9 @@ static bool nvlDeviceD744 = DeviceInfoFactory<GfxDeviceInfo>::
 
 static bool nvlDeviceD745 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0xD745, &nvlXe3GInfo);
+
+static bool nvlDeviceD74A = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0xD74A, &nvlXe3GInfo);
+
+static bool nvlDeviceD74B = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0xD74B, &nvlXe3GInfo);
