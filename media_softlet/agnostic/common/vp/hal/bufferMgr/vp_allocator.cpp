@@ -456,6 +456,55 @@ VP_SURFACE *VpAllocator::AllocateVpSurface()
     return surf;
 }
 
+VP_SURFACE *VpAllocator::AllocateVpSurface(MOS_RESOURCE &resource)
+{
+    VP_FUNC_CALL();
+    if (Mos_ResourceIsNull(&resource))
+    {
+        return nullptr;
+    }
+
+    VP_SURFACE *surf = MOS_New(VP_SURFACE);
+
+    if (nullptr == surf)
+    {
+        return nullptr;
+    }
+
+    surf->osSurface = MOS_New(MOS_SURFACE);
+    if (nullptr == surf->osSurface)
+    {
+        MOS_Delete(surf);
+        return nullptr;
+    }
+
+    surf->isResourceOwner = false;
+    surf->Clean();
+
+    // Initialize the mos surface in vp surface structure.
+    MOS_SURFACE &osSurface = *surf->osSurface;
+    MOS_ZeroMemory(&osSurface, sizeof(MOS_SURFACE));
+
+    // Set input parameters dwArraySlice, dwMipSlice and S3dChannel if needed later.
+    osSurface.Format     = Format_Invalid;
+    osSurface.OsResource = resource;
+
+    if (MOS_FAILED(m_allocator->GetSurfaceInfo(&osSurface.OsResource, &osSurface)))
+    {
+        MOS_Delete(surf->osSurface);
+        MOS_Delete(surf);
+        return nullptr;
+    }
+
+    if (MOS_FAILED(SetMmcFlags(osSurface)))
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Set mmc flags failed during AllocateVpSurface!");
+        DestroyVpSurface(surf);
+        return nullptr;
+    }
+    return surf;
+}
+
 // Copy surface info from src to dst. dst shares the resource of src.
 MOS_STATUS VpAllocator::CopyVpSurface(VP_SURFACE &dst, VP_SURFACE &src)
 {

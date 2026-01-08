@@ -174,6 +174,8 @@ public:
     //!
     VP_SURFACE *AllocateVpSurface();
 
+    VP_SURFACE *AllocateVpSurface(MOS_RESOURCE &resource);
+
     //!
     //! \brief  Copy vp surface from src to dst
     //! \param  [in] dst
