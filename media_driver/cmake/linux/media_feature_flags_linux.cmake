@@ -179,6 +179,9 @@ endif()
 
 if(NOT ENABLE_NONFREE_KERNELS)
     add_definitions(-D_FULL_OPEN_SOURCE)
+    add_definitions(-DBUILD_DETAILS="")
+else()
+    add_definitions(-DBUILD_DETAILS="non-free")
 endif()
 
 include(${MEDIA_EXT_CMAKE}/ext/linux/media_feature_flags_linux_ext.cmake OPTIONAL)
