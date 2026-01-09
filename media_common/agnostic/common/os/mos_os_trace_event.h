@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2023, Intel Corporation
+* Copyright (c) 2015-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -665,6 +665,7 @@ typedef enum _MT_LOG_ID
     MT_CP_FUNC_FAIL,
     MT_CP_CENC_STATUS_CHECK,
     MT_CP_CENC_DECODE_CREATE,
+    MT_CP_CMD_QUEUE_INIT,
     MT_CP_MHW_ID_BASE = 0x01004000,
     MT_CP_MHW_INTERFACE_CREATE_FAIL,
     MT_CP_MHW_ALLOCATION_FAIL,
