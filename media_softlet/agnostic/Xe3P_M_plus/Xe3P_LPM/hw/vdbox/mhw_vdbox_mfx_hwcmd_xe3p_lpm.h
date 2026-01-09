@@ -3998,7 +3998,7 @@ public:
                 uint32_t                 Framewidthinmbsminus170PictureWidthInMacroblocks : __CODEGEN_BITFIELD( 0,  7)    ; //!< FrameWidthInMBsMinus1[7:0] (Picture Width in Macroblocks) 
                 uint32_t                 Reserved104                                      : __CODEGEN_BITFIELD( 8, 15)    ; //!< Reserved
                 uint32_t                 Frameheightinmbsminus170PictureHeightInMacroblocks : __CODEGEN_BITFIELD(16, 23)    ; //!< FrameHeightInMBsMinus1[7:0] (Picture Height in Macroblocks) 
-                uint32_t                 OldbpquantEncoderThisFieldShouldBeSetToZero      : __CODEGEN_BITFIELD(24, 28)    ; //!< OldbPQuant (encoder this field should be set to zero)
+                uint32_t                 MFX_MPEG2_PIC_STATE_CMD_DW3_BIT24_28             : __CODEGEN_BITFIELD(24, 28)    ; //!< OldbPQuant (encoder this field should be set to zero)
                 uint32_t                 Reserved125                                      : __CODEGEN_BITFIELD(29, 30)    ; //!< Reserved
                 uint32_t                 SliceConcealmentDisableBit                       : __CODEGEN_BITFIELD(31, 31)    ; //!< SLICE_CONCEALMENT_DISABLE_BIT
             };
