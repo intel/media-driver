@@ -38,12 +38,12 @@
 #if defined(_AV1_ENCODE_VDENC_SUPPORTED)
 #include "capstable_data_av1_encode_xe3p_lpm_r0_specific.h"
 #endif
+#endif
 #if defined(_VP9_ENCODE_VDENC_SUPPORTED)
 #include "capstable_data_vp9_encode_xe3p_lpm_r0_specific.h"
 #endif 
 #if defined(_JPEG_ENCODE_SUPPORTED)
 #include "capstable_data_jpeg_encode_xe3p_lpm_r0_specific.h"
-#endif
 #endif
 #if defined(_HEVC_DECODE_SUPPORTED)
 #include "capstable_data_hevc_decode_xe3p_lpm_r0_specific.h"
