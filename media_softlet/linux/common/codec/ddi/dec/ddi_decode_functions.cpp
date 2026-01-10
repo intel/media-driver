@@ -1383,11 +1383,7 @@ bool DdiDecodeFunctions::ReleaseBsBuffer(DDI_CODEC_COM_BUFFER_MGR *bufMgr, DDI_M
         }
         return false;
     }
-    else
-    {
-        if (bufMgr->dwNumSliceData)
-            bufMgr->dwNumSliceData--;
-    }
+
     return true;
 }
 
