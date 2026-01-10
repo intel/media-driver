@@ -352,6 +352,13 @@ VAStatus MediaLibvaUtilNext::GenerateGmmParamsForNoneCompressionExternalSurface(
     // Init NotCompressed flag as true to default Create as uncompressed surface on Xe2 Compression.
     gmmCustomParams.Flags.Info.NotCompressed = 1;
 
+    if (VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME == mediaSurface->pSurfDesc->uiVaMemType ||
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2 == mediaSurface->pSurfDesc->uiVaMemType ||
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3 == mediaSurface->pSurfDesc->uiVaMemType)
+    {
+        gmmCustomParams.Flags.Info.Cacheable = true;
+    }
+
     switch (mediaSurface->pSurfDesc->uiPlanes)
     {
         case 1:
