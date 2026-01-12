@@ -4757,7 +4757,11 @@ PRENDERHAL_MEDIA_STATE RenderHal_AssignMediaState(
         // Timeout
         if (dwWaitMs == 0)
         {
-            MHW_RENDERHAL_ASSERTMESSAGE("Timeout for waiting free media state.");
+            MHW_RENDERHAL_ASSERTMESSAGE("Timeout for waiting free media state. pSync[0]=%u, dwWaitTag=%u, iNextMediaState=%d, iCurMediaState=%d",
+                pStateHeap->pSync ? pStateHeap->pSync[0] : UINT32_MAX,
+                dwWaitTag,
+                pStateHeap->iNextMediaState,
+                pStateHeap->iCurMediaState);
             pStateHeap->pCurMediaState = pCurMediaState = nullptr;
             return pCurMediaState;
         }

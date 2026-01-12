@@ -170,7 +170,7 @@ using MosFormatArray = std::vector<MOS_FORMAT>;
 #define VP_RENDER_ASSERT(_expr)                                                   \
     MOS_ASSERT(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_RENDER, _expr)
 
-#if !(_DEBUG || _RELEASE_INTERNAL)
+#if (_DEBUG || _RELEASE_INTERNAL)
 #define VP_RENDER_ASSERTMESSAGE(_message, ...)                                    \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_RENDER, _message, ##__VA_ARGS__)
 #else
