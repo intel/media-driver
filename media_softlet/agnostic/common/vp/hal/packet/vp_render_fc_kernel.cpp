@@ -2726,7 +2726,7 @@ MOS_STATUS VpRenderFcKernel::UpdateCompParams()
             VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_NULL_POINTER);
         }
 
-        if (0 == layer.surfaceEntries[0]->dwWidth || 0 == layer.surfaceEntries[0]->dwWidth)
+        if (0 == layer.surfaceEntries[0]->dwWidth || 0 == layer.surfaceEntries[0]->dwHeight)
         {
             VP_RENDER_ASSERTMESSAGE("width or height in surface entry is 0!");
             VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
