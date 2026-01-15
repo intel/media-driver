@@ -113,8 +113,6 @@ struct HcpMmioRegisters
     uint32_t hcpDecStatusRegOffset;
     uint32_t hcpCabacStatusRegOffset;
     uint32_t hcpFrameCrcRegOffset;
-    uint32_t hcpCommandCounterRegOffset;
-    uint32_t hcpCommandCounterOverrideRegOffset;
 };
 
 struct HcpBufferSizePar

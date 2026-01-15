@@ -764,8 +764,6 @@ private:
         mmioRegisters->hcpDecStatusRegOffset                             = HCP_DEC_STATUS_REG_OFFSET_INIT;
         mmioRegisters->hcpCabacStatusRegOffset                           = HCP_CABAC_STATUS_REG_OFFSET_INIT;
         mmioRegisters->hcpFrameCrcRegOffset                              = HCP_FRAME_CRC_REG_OFFSET_INIT;
-        mmioRegisters->hcpCommandCounterRegOffset                        = HCP_COMMAND_COUNTER_REG_OFFSET_INIT;
-        mmioRegisters->hcpCommandCounterOverrideRegOffset                = HCP_COMMAND_COUNTER_OVERRIDE_REG_OFFSET_INIT;
 
         m_mmioRegisters[MHW_VDBOX_NODE_2] = m_mmioRegisters[MHW_VDBOX_NODE_1];
     }
