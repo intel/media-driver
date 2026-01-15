@@ -132,7 +132,7 @@ namespace decode
         //!
         virtual MOS_STATUS DumpOutput(const DecodeStatusReportData& reportData) override;
 #endif
-    private:
+    protected:
         Av1DecodePktXe3P_Lpm_Base *m_av1DecodePkt = nullptr;
 
     MEDIA_CLASS_DEFINE_END(decode__Av1PipelineXe3P_Lpm_Base)

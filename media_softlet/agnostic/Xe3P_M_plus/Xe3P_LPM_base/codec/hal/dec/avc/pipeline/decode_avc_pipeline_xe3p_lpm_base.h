@@ -125,7 +125,7 @@ protected:
     MOS_STATUS DumpParams(AvcBasicFeature &basicFeature);
 #endif
 
-private:
+protected:
     AvcDecodePktXe3P_Lpm_Base* m_avcDecodePkt = nullptr;
 
 MEDIA_CLASS_DEFINE_END(decode__AvcPipelineXe3P_Lpm_Base)
