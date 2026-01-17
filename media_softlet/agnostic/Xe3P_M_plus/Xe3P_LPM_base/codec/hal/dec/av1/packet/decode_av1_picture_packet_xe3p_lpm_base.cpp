@@ -26,8 +26,10 @@
 #include "decode_av1_picture_packet_xe3p_lpm_base.h"
 #include "mhw_vdbox_xe3p_lpm_base.h"
 #include "decode_common_feature_defs.h"
+#include "mhw_vdbox_avp_hwcmd_xe3p_lpm.h"
 
 using namespace mhw::vdbox::xe3p_lpm_base;
+using namespace mhw::vdbox::avp::xe3p_lpm_base::xe3p_lpm;
 
 namespace decode
 {
@@ -543,11 +545,11 @@ namespace decode
         if (m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingX == 0 && m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingY == 0)
         {
             // 4:4:4
-            params.chromaFormat = mhw::vdbox::avp::SEQUENCE_CHROMA_SUBSAMPLING_FORMAT_444;
+            params.chromaFormat = Cmd::AVP_PIC_STATE_CMD::SEQUENCE_CHROMA_SUBSAMPLING_FORMAT_444;
         }
         else if (m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingX == 1 && m_av1PicParams->m_seqInfoFlags.m_fields.m_subsamplingY == 0)
         {
-            params.chromaFormat = mhw::vdbox::avp::SEQUENCE_CHROMA_SUBSAMPLING_FORMAT_422;
+            params.chromaFormat = Cmd::AVP_PIC_STATE_CMD::SEQUENCE_CHROMA_SUBSAMPLING_FORMAT_422;
         }
 
         return MOS_STATUS_SUCCESS;

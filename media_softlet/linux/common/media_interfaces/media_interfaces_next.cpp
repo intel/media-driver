@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -40,6 +40,7 @@
 #include "media_interfaces_mmd_next.h"
 #include "media_interfaces_mhw_next.h"
 #include "media_interfaces_codechal_next.h"
+#include "media_interfaces_huc_kernel_source.h"
 
 template class MediaFactory<uint32_t, VphalDevice>;
 template class MediaFactory<uint32_t, RenderHalDevice>;
@@ -47,6 +48,7 @@ template class MediaFactory<uint32_t, CodechalDeviceNext>;
 template class MediaFactory<uint32_t, MhwInterfacesNext>;
 template class MediaFactory<uint32_t, McpyDeviceNext>;
 template class MediaFactory<uint32_t, MmdDeviceNext>;
+template class MediaFactory<uint32_t, HucKernelSourceDevice>;
 
 typedef MediaFactory<uint32_t, VphalDevice> VphalFactory;
 typedef MediaFactory<uint32_t, RenderHalDevice> RenderHalFactory;
@@ -54,6 +56,7 @@ typedef MediaFactory<uint32_t, CodechalDeviceNext> CodechalFactoryNext;
 typedef MediaFactory<uint32_t, MhwInterfacesNext> MhwFactoryNext;
 typedef MediaFactory<uint32_t, McpyDeviceNext> McpyFactoryNext;
 typedef MediaFactory<uint32_t, MmdDeviceNext> MmdFactoryNext;
+typedef MediaFactory<uint32_t, HucKernelSourceDevice> HucKernelSourceFactory;
 
 VpBase *VphalDevice::CreateFactoryNext(
     PMOS_INTERFACE     osInterface,
@@ -531,4 +534,35 @@ MhwInterfacesNext* MmdDeviceNext::CreateMhwInterface(PMOS_INTERFACE osInterface)
 
 
     return mhw;
+}
+
+HucKernelSource *HucKernelSourceDevice::CreateFactory(
+    PMOS_INTERFACE osInterface)
+{
+    if (osInterface == nullptr)
+    {
+        CODECHAL_PUBLIC_ASSERTMESSAGE("Invalid(null) osInterface!");
+        return nullptr;
+    }
+
+    PLATFORM platform = {};
+    osInterface->pfnGetPlatform(osInterface, &platform);
+    HucKernelSourceDevice *device = HucKernelSourceFactory::Create(platform.eProductFamily);
+    if (device == nullptr)
+    {
+        CODECHAL_PUBLIC_ASSERTMESSAGE("HucKernelSource device creation failed!");
+        return nullptr;
+    }
+
+    device->Initialize();
+    if (device->m_hucKernelSource == nullptr)
+    {
+        CODECHAL_PUBLIC_ASSERTMESSAGE("HucKernelSource creation failed!");
+        MOS_Delete(device);
+        return nullptr;
+    }
+
+    HucKernelSource *hucKrnelSrc = device->m_hucKernelSource;
+    MOS_Delete(device);
+    return hucKrnelSrc;
 }

@@ -30,7 +30,6 @@
 
 #include "mhw_vdbox_vvcp_impl_xe3p_lpm_base.h"
 #include "mhw_mi_hwcmd_xe3p_lpm.h"
-#include "mhw_vdbox_vdenc_hwcmd_xe3p_lpm.h"
 #include "mhw_vdbox_vvcp_hwcmd_xe3p_lpm.h"
 
 namespace mhw

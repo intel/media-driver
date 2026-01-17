@@ -33,6 +33,10 @@
 #include "mhw_impl.h"
 #include "mhw_mmio_xe3p_lpm_base.h"
 
+#ifdef _MEDIA_RESERVED
+#include "mhw_mi_xe3p_lpm_base_impl_ext.h"
+#endif
+
 namespace mhw
 {
 namespace mi
@@ -590,47 +594,16 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+#ifdef _MEDIA_RESERVED
     _MHW_SETCMD_OVERRIDE_DECL(MI_SEMAPHORE_WAIT_64)
     {
         _MHW_SETCMD_CALLBASE(MI_SEMAPHORE_WAIT_64);
-        if (params.presSemaphoreMem)
-        {
-            MHW_MI_CHK_NULL(this->m_currentCmdBuf);
-            MHW_RESOURCE_PARAMS resourceParams = {};
-            resourceParams.presResource        = params.presSemaphoreMem;
-            resourceParams.dwOffset            = params.resourceOffset;
-            resourceParams.pdwCmd              = cmd.DW3_4.Value;
-            resourceParams.dwLocationInCmd     = _MHW_CMD_DW_LOCATION(DW3_4.Value);
 
-            resourceParams.dwLsbNum      = MHW_COMMON_MI_GENERAL_SHIFT;
-            resourceParams.HwCommandType = MOS_MI_SEMAPHORE_WAIT;
-
-            MHW_MI_CHK_STATUS(this->AddResourceToCmd(
-                this->m_osItf,
-                this->m_currentCmdBuf,
-                &resourceParams));
-        }
-        else if (params.gpuVirtualAddress != 0)
-        {
-            cmd.DW3_4.SemaphoreAddress = (params.gpuVirtualAddress) >> MHW_COMMON_MI_GENERAL_SHIFT;
-        }
-        else
-        {
-            MHW_ASSERTMESSAGE("Invalid parameter, both resource and gpuva zero.");
-            return MOS_STATUS_INVALID_PARAMETER;
-        }
-
-        cmd.DW0.MemoryType         = this->IsGlobalGttInUse();
-        cmd.DW0.CompareOperation   = params.compareOperation;
-        cmd.DW1_2.SemaphoreDataDword = params.semaphoreData;
-
-        cmd.DW0.RegisterPollMode         = params.registerPollMode;
-        cmd.DW0._64BCompareDisable       = params.is64BCompareDisable;
-        cmd.DW5_6.SemaphoreToken         = params.semaphoreToken;
+        __MHW_MI_WRAPPER_EXT(MI_SEMAPHORE_WAIT_64_IMPL_XE3P_LPM_BASE_EXT)
 
         return MOS_STATUS_SUCCESS;
     }
-
+#endif
     _MHW_SETCMD_OVERRIDE_DECL(PIPE_CONTROL)
     {
         _MHW_SETCMD_CALLBASE(PIPE_CONTROL);
@@ -1109,23 +1082,7 @@ public:
      {
          MOS_STATUS status = MOS_STATUS_SUCCESS;
 
-         //MI_SEMAPHORE_WAIT
-         bool     isSemaphore64Inuse = MEDIA_IS_SKU(this->m_osItf->pfnGetSkuTable(this->m_osItf), FtrHwSemaphore64);
-         if (isSemaphore64Inuse)
-         {
-             auto &params             = this->MHW_GETPAR_F(MI_SEMAPHORE_WAIT_64)();
-             params                   = {};
-             params.gpuVirtualAddress = gpuVirtualAddress;
-             params.semaphoreData     = waitValue;
-             params.compareOperation  = MHW_MI_SAD_GREATER_THAN_OR_EQUAL_SDD;
-             params.resourceOffset  = 0;
-             params.registerPollMode  = 0;
-             params.is64BCompareDisable = true;
-             params.semaphoreToken    = fenceTokenValue;
-             status                   = this->MHW_ADDCMD_F(MI_SEMAPHORE_WAIT_64)(cmdbuffer, batchBuffer);
-             MHW_CHK_STATUS_RETURN(status);
-         }
-         else
+        __MHW_MI_WRAPPER_EXT(ADD_WAIT_IN_SYNC_BB_XE3P_LPM_BASE_EXT)
          {
              // set fence token value to token register
              auto &miLoadRegImmParams      = this->MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();

@@ -76,7 +76,7 @@ public:
 
     Vp9PakIntegratePktXe3p_Lpm_Base(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext *hwInterface) : Vp9PakIntegratePkt(pipeline, task, hwInterface), EncodeHucPPGTTPkt(hwInterface)
     {
-        m_itfExt = std::dynamic_pointer_cast<mhw::vdbox::huc::ItfExt>(m_hucItf);
+        m_itfPPGTT = std::dynamic_pointer_cast<mhw::vdbox::huc::ItfPPGTT>(m_hucItf);
     }
 
     virtual ~Vp9PakIntegratePktXe3p_Lpm_Base()
@@ -97,7 +97,7 @@ protected:
     virtual MOS_STATUS AllocateResources() override;
     virtual MOS_STATUS SetDmemBuffer() const override;
 
-    std::shared_ptr<mhw::vdbox::huc::ItfExt> m_itfExt          = nullptr;
+    std::shared_ptr<mhw::vdbox::huc::ItfPPGTT> m_itfPPGTT      = nullptr;
     bool                                     m_isPPGTT         = false;
     HucKernelSource                         *m_hucKernelSource = nullptr;
     static constexpr uint32_t                m_pakIntDmemOffsetsSize = 216;  // First six offsets are set to 0xFF as unavailable. See details in HucPakIntDmemXehp struct.

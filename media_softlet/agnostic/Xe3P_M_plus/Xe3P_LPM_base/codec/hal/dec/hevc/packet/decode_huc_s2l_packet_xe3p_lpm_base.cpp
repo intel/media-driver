@@ -47,11 +47,11 @@ namespace decode {
 
         if (m_isPpgttMode)
         {
-            std::shared_ptr<mhw::vdbox::huc::ItfExt> itf =
-                std::dynamic_pointer_cast<mhw::vdbox::huc::ItfExt>(m_hucItf);
+            std::shared_ptr<mhw::vdbox::huc::ItfPPGTT> itf =
+                std::dynamic_pointer_cast<mhw::vdbox::huc::ItfPPGTT>(m_hucItf);
             DECODE_CHK_COND(!itf, "cannot convert huc itf to Huc ext itf!");
             m_pictureStatesSize += itf->MHW_GETSIZE_F(HUC_IMEM_ADDR)();
-            m_picturePatchListSize += PATCH_LIST_COMMAND(mhw::vdbox::huc::ItfExt::HUC_IMEM_ADDR_CMD);
+            m_picturePatchListSize += PATCH_LIST_COMMAND(mhw::vdbox::huc::ItfPPGTT::HUC_IMEM_ADDR_CMD);
         }
 
         return MOS_STATUS_SUCCESS;
@@ -189,8 +189,8 @@ namespace decode {
 
         if (m_isPpgttMode)
         {
-            std::shared_ptr<mhw::vdbox::huc::ItfExt> itf =
-                std::dynamic_pointer_cast<mhw::vdbox::huc::ItfExt>(m_hucItf);
+            std::shared_ptr<mhw::vdbox::huc::ItfPPGTT> itf =
+                std::dynamic_pointer_cast<mhw::vdbox::huc::ItfPPGTT>(m_hucItf);
             DECODE_CHK_COND(!itf, "cannot convert huc itf to Huc ext itf!");
 
             SETPAR_AND_ADDCMD(HUC_IMEM_ADDR, itf, &cmdBuffer);

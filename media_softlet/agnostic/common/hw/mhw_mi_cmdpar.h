@@ -32,6 +32,11 @@
 #include "mhw_state_heap.h"
 #include "mhw_mmio_common.h"
 
+#ifdef _MEDIA_RESERVED
+#define __MHW_MI_WRAPPER_EXT(STUFF) STUFF
+#else
+#define __MHW_MI_WRAPPER_EXT(STUFF)
+#endif
 namespace mhw
 {
 namespace mi

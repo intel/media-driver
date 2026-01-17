@@ -122,7 +122,14 @@ if(LNL)
     option(XE2_LPM_SUPPORT "Enable XE2_LPM support" ON)
 endif()
 
-if(LNL OR BMG)
+# NVL linux build enable.
+option(NVL "Enable NVL support" ON)
+if(NVL)
+    option(XE3P_LPM_SUPPORT "Enable XE3P_LPM support" ON)
+    add_definitions(-DIGFX_NVL_SUPPORTED)
+endif()
+
+if(LNL OR BMG OR NVL)
     option(XE2_HPG "Enable XE2_HPG support" ON)
 endif()
 

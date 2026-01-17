@@ -28,7 +28,6 @@
 
 #include "codec_hw_next.h"
 #include "mhw_vdbox_vvcp_itf.h"
-#include "media_interfaces_mhw_next_ext.h"
 
 #define CODECHAL_NUM_MEDIA_STATES_XE3P_LPM_BASE (CODECHAL_NUM_MEDIA_STATES + 4)
 

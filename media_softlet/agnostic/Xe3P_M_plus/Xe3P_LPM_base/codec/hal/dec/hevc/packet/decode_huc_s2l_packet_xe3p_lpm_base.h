@@ -29,7 +29,7 @@
 
 #include "decode_huc_s2l_packet.h"
 #include "codec_hw_xe3p_lpm_base.h"
-#include "mhw_vdbox_huc_itf_ext.h"
+#include "mhw_vdbox_huc_ppgtt_itf.h"
 #include "huc_kernel_source.h"
 
 namespace decode
@@ -72,7 +72,7 @@ namespace decode
         HucHevcS2lSliceBss SliceBss[CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6];
     };
 
-    class HucS2lPktXe3P_Lpm_Base : public HucS2lPkt, public mhw::vdbox::huc::ItfExt::ParSetting
+    class HucS2lPktXe3P_Lpm_Base : public HucS2lPkt, public mhw::vdbox::huc::ItfPPGTT::ParSetting
     {
     public:
         HucS2lPktXe3P_Lpm_Base(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext *hwInterface)

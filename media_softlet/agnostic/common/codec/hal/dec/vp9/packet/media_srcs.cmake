@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2022, Intel Corporation
+# Copyright (c) 2020-2026, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,7 @@ if(${VP9_Decode_Supported} STREQUAL "yes")
 set(SOFTLET_DECODE_VP9_SOURCES_
     ${SOFTLET_DECODE_VP9_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_huc_prob_update_packet.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_huc_prob_update_packet_ppgtt.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_packet_back_end.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_packet_front_end.cpp
@@ -35,6 +36,7 @@ set(SOFTLET_DECODE_VP9_SOURCES_
 set(SOFTLET_DECODE_VP9_HEADERS_
     ${SOFTLET_DECODE_VP9_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_huc_prob_update_packet.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_huc_prob_update_packet_ppgtt.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_packet_back_end.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_packet_front_end.h

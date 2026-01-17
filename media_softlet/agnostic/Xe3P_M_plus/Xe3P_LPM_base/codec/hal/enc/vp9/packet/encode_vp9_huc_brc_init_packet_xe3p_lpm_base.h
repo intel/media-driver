@@ -42,7 +42,7 @@ public:
     Vp9HucBrcInitPktXe3p_Lpm_Base(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext *hwInterface)
         : Vp9HucBrcInitPkt(pipeline, task, hwInterface), EncodeHucPPGTTPkt(hwInterface)
     {
-        m_itfExt = std::dynamic_pointer_cast<mhw::vdbox::huc::ItfExt>(m_hucItf);
+        m_itfPPGTT = std::dynamic_pointer_cast<mhw::vdbox::huc::ItfPPGTT>(m_hucItf);
     }
 
     virtual ~Vp9HucBrcInitPktXe3p_Lpm_Base()
@@ -61,7 +61,7 @@ public:
 protected:
     virtual MOS_STATUS AllocateResources() override;
 
-    std::shared_ptr<mhw::vdbox::huc::ItfExt> m_itfExt          = nullptr;
+    std::shared_ptr<mhw::vdbox::huc::ItfPPGTT> m_itfPPGTT      = nullptr;
     bool                                     m_isPPGTT         = false;
     HucKernelSource                         *m_hucKernelSource = nullptr;
 

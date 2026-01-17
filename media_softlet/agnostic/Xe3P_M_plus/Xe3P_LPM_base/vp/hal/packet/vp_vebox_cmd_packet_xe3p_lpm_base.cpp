@@ -28,7 +28,9 @@
 #include "vp_vebox_cmd_packet_xe3p_lpm_base.h"
 #include "vp_platform_interface.h"
 #include "vp_utils.h"
+#ifdef _MEDIA_RESERVED
 #include "vp_cmodel_algorithm.h"
+#endif
 #include "mhw_mmio_xe3p_lpm_base.h"
 
 const uint32_t   dwDenoiseASDThreshold[NOISEFACTOR_MAX + 1] = {
@@ -653,9 +655,10 @@ MOS_STATUS VpVeboxCmdPacketXe3P_Lpm_Base::SetupVeboxFP16State(mhw::vebox::VEBOX_
     pVeboxMode->Hdr1DLutEnable            = true;
     pVeboxMode->Hdr1K1DLut                = false;  // 1k1dlut is EOTF16, when FP16 enable should use EOTF32.
     pVeboxMode->ColorGamutExpansionEnable = false;  // When FP16 enable, GEC shoulse disable and enable HDR.
-
+#ifdef _MEDIA_RESERVED
     VP_PUBLIC_CHK_STATUS_RETURN(VpCmodelAlgorithm::GenerateOETF2084LUT(
         fp16Params->OETFLutX, fp16Params->OETFLutY, 256, 32, 16, 1));
+#endif
     VP_RENDER_CHK_STATUS_RETURN(AddFP16State(fp16Params));
     VP_RENDER_CHK_STATUS_RETURN(m_veboxItf->SetDisableHistogram(&pRenderData->GetIECPParams()));
 

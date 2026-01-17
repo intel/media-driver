@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2023-2024, Intel Corporation
+* Copyright (c) 2024-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -20,47 +20,63 @@
 * OTHER DEALINGS IN THE SOFTWARE.
 */
 //!
-//! \file     decode_vvc_s2l_packet_xe3p_lpm_base.h
-//! \brief    Defines the implementation of VVC decode S2L packet
+//! \file     decode_huc_prob_update_packet_ppgtt.h
+//! \brief    Defines the implementation of huc prob update ppgtt packet for VP9 decode
 //!
 
-#ifndef __DECODE_VVC_S2L_PACKET_XE3P_LPM_BASE_H__
-#define __DECODE_VVC_S2L_PACKET_XE3P_LPM_BASE_H__
+#ifndef __DECODE_HUC_PROB_UPDATE_PACKET_PPGTT_H__
+#define __DECODE_HUC_PROB_UPDATE_PACKET_PPGTT_H__
 
-#include "decode_vvc_s2l_packet.h"
+#include "decode_huc_prob_update_packet.h"
 #include "mhw_vdbox_huc_ppgtt_itf.h"
 #include "huc_kernel_source.h"
 
 namespace decode
 {
-class VvcDecodeS2LPktXe3P_Lpm_Base : public VvcDecodeS2LPkt, public mhw::vdbox::huc::ItfPPGTT::ParSetting
+
+class HucVp9ProbUpdatePktPpgtt : public HucVp9ProbUpdatePkt, public mhw::vdbox::huc::ItfPPGTT::ParSetting
 {
 public:
+    HucVp9ProbUpdatePktPpgtt(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext *hwInterface)
+        : HucVp9ProbUpdatePkt(pipeline, task, hwInterface){}
 
-    VvcDecodeS2LPktXe3P_Lpm_Base(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext *hwInterface) 
-        : VvcDecodeS2LPkt(pipeline, task, hwInterface)
+    virtual ~HucVp9ProbUpdatePktPpgtt();
+
+    //!
+    //! \brief  Initialize the media packet, allocate required resources
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS Init() override;
+
+    //!
+    //! \brief  Get Packet Name
+    //! \return std::string
+    //!
+    virtual std::string GetPacketName() override
     {
+        return "VP9_PROB_UPDATE_PPGTT";
     }
 
-    virtual MOS_STATUS Init() override;
-    virtual MOS_STATUS Execute(MOS_COMMAND_BUFFER &cmdBuffer, bool prologNeeded) override;
-    virtual MOS_STATUS PackPictureLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer) override;
+protected:
+
     virtual MOS_STATUS AllocateResources() override;
-    virtual MOS_STATUS Destroy() override;
+
+    virtual MOS_STATUS PackPictureLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer);
 
     virtual MOS_STATUS AddCmd_HUC_IMEM_STATE(MOS_COMMAND_BUFFER &cmdBuffer) override;
-    virtual uint32_t   GetSliceBatchOffset(uint32_t sliceNum) override;
 
     virtual MHW_SETPAR_DECL_HDR(HUC_IMEM_ADDR);
 
-protected:
     HucKernelSource *m_hucKernelSource = nullptr;
+
     MOS_BUFFER *m_kernelBinBuffer = nullptr;
 
     bool m_isPpgttMode = false;
 
-    MEDIA_CLASS_DEFINE_END(decode__VvcDecodeS2LPktXe3P_Lpm_Base)
+    MEDIA_CLASS_DEFINE_END(decode__HucVp9ProbUpdatePktPpgtt)
 };
 
 }  // namespace decode
-#endif  // !__DECODE_VVC_S2L_PACKET_XE3P_LPM_BASE_H__
+#endif
+

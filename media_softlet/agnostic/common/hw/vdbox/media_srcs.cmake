@@ -1,4 +1,4 @@
-# Copyright (c) 2020-2024, Intel Corporation
+# Copyright (c) 2020-2026, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,9 @@ set(TMP_SOFTLET_MHW_VDBOX_HUC_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_huc_cmdpar.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_huc_impl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_huc_itf.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_huc_ppgtt_cmdpar.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_huc_ppgtt_impl.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_huc_ppgtt_itf.h
 )
 
 set(TMP_SOFTLET_MHW_VDBOX_VDENC_HEADERS_

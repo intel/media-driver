@@ -47,7 +47,7 @@ MOS_STATUS Vp9HucBrcInitPktXe3p_Lpm_Base::Execute(PMOS_COMMAND_BUFFER cmdBuffer,
 {
     ENCODE_FUNC_CALL();
     HUC_CHK_NULL_RETURN(cmdBuffer);
-    ENCODE_CHK_NULL_RETURN(m_itfExt);
+    ENCODE_CHK_NULL_RETURN(m_itfPPGTT);
 
 #if _SW_BRC
     HUC_CHK_STATUS_RETURN(InitSwBrc(function));
@@ -82,7 +82,7 @@ MOS_STATUS Vp9HucBrcInitPktXe3p_Lpm_Base::Execute(PMOS_COMMAND_BUFFER cmdBuffer,
 
     if (m_isPPGTT)
     {
-        SETPAR_AND_ADDCMD(HUC_IMEM_ADDR, m_itfExt, cmdBuffer);
+        SETPAR_AND_ADDCMD(HUC_IMEM_ADDR, m_itfPPGTT, cmdBuffer);
     }
     ENCODE_CHK_STATUS_RETURN(AddAllCmds_HUC_IMEM_STATE(cmdBuffer));
     ENCODE_CHK_STATUS_RETURN(AddAllCmds_HUC_PIPE_MODE_SELECT(cmdBuffer));
@@ -120,9 +120,9 @@ MOS_STATUS Vp9HucBrcInitPktXe3p_Lpm_Base::CalculateCommandSize(uint32_t &command
 
     if (m_isPPGTT)
     {
-        ENCODE_CHK_NULL_RETURN(m_itfExt);
-        commandBufferSize += m_itfExt->MHW_GETSIZE_F(HUC_IMEM_ADDR)();
-        requestedPatchListSize += PATCH_LIST_COMMAND(mhw::vdbox::huc::ItfExt::HUC_IMEM_ADDR_CMD);
+        ENCODE_CHK_NULL_RETURN(m_itfPPGTT);
+        commandBufferSize += m_itfPPGTT->MHW_GETSIZE_F(HUC_IMEM_ADDR)();
+        requestedPatchListSize += PATCH_LIST_COMMAND(mhw::vdbox::huc::ItfPPGTT::HUC_IMEM_ADDR_CMD);
         commandBufferSize = MOS_ALIGN_CEIL(commandBufferSize, CODECHAL_PAGE_SIZE);
     }
 
