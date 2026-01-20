@@ -48,24 +48,6 @@ public:
         MHW_FUNCTION_ENTER;
     }
 
-    uint32_t GetFastTilingMode(BLT_TILE_TYPE TileType) override
-    {
-        MHW_FUNCTION_ENTER;
-        switch (TileType)
-        {
-        case BLT_NOT_TILED:
-            return Cmd::XY_FAST_COPY_BLT_CMD::DESTINATION_TILING_METHOD_LINEAR_TILINGDISABLED;
-        case BLT_TILED_Y:
-        case BLT_TILED_4:
-            return Cmd::XY_FAST_COPY_BLT_CMD::DESTINATION_TILING_METHOD_TILE_Y;
-        case BLT_TILED_64:
-            return Cmd::XY_FAST_COPY_BLT_CMD::DESTINATION_TILING_METHOD_64KBTILING;
-        default:
-            MHW_ASSERTMESSAGE("BLT: Can't support GMM TileType %d.", TileType);
-        }
-        return Cmd::XY_FAST_COPY_BLT_CMD::DESTINATION_TILING_METHOD_LINEAR_TILINGDISABLED;
-    }
-
     _MHW_SETCMD_OVERRIDE_DECL(XY_BLOCK_COPY_BLT)
     {
         MHW_FUNCTION_ENTER;
