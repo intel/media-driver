@@ -864,6 +864,15 @@ namespace encode
 
         MHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams;
 
+        // Determine semaphore wait command size based on hardware capability
+        uint32_t semaphoreWaitSize = 0;
+#ifdef _MEDIA_RESERVED
+        bool isSemaphore64Supported = MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrHwSemaphore64);
+        semaphoreWaitSize = isSemaphore64Supported ? m_miItf->MHW_GETSIZE_F(MI_SEMAPHORE_WAIT_64)() : m_miItf->MHW_GETSIZE_F(MI_SEMAPHORE_WAIT)();
+#else
+        semaphoreWaitSize = m_miItf->MHW_GETSIZE_F(MI_SEMAPHORE_WAIT)();
+#endif
+
         hcpCommandsSize =
             m_vdencItf->MHW_GETSIZE_F(VD_PIPELINE_FLUSH)() +
             m_miItf->MHW_GETSIZE_F(MI_FLUSH_DW)() +
@@ -896,9 +905,9 @@ namespace encode
             m_miItf->MHW_GETSIZE_F(MI_LOAD_REGISTER_MEM)() +        // 1 for RC6 WA
             2 * m_hcpItf->MHW_GETSIZE_F(HCP_PAK_INSERT_OBJECT)() +  // Two PAK insert object commands are for headers before the slice header and the header for the end of stream
             4 * m_miItf->MHW_GETSIZE_F(MI_STORE_DATA_IMM)() +       // two (BRC+reference frame) for clean-up HW semaphore memory and another two for signal it
-            17 * m_miItf->MHW_GETSIZE_F(MI_SEMAPHORE_WAIT)() +      // Use HW wait command for each reference and one wait for current semaphore object
-            m_miItf->MHW_GETSIZE_F(MI_SEMAPHORE_WAIT)() +           // Use HW wait command for each BRC pass
-            +m_miItf->MHW_GETSIZE_F(MI_SEMAPHORE_WAIT)()            // Use HW wait command for each VDBOX
+            17 * semaphoreWaitSize +      // Use HW wait command for each reference and one wait for current semaphore object
+            semaphoreWaitSize +           // Use HW wait command for each BRC pass
+            semaphoreWaitSize             // Use HW wait command for each VDBOX
             + 2 * m_miItf->MHW_GETSIZE_F(MI_STORE_DATA_IMM)()       // One is for reset and another one for set per VDBOX
             + 8 * m_miItf->MHW_GETSIZE_F(MI_COPY_MEM_MEM)()         // Need to copy SSE statistics/ Slice Size overflow into memory
             ;

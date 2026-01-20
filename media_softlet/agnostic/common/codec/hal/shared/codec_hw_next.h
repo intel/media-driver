@@ -841,14 +841,37 @@ public:
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
         CODEC_HW_CHK_NULL_RETURN(m_miItf);
-        auto &params            = m_miItf->MHW_GETPAR_F(MI_SEMAPHORE_WAIT)();
-        params                  = {};
-        params.presSemaphoreMem = semaMem;
-        params.bPollingWaitMode = true;
-        params.dwSemaphoreData  = semaData;
-        params.CompareOperation = (mhw::mi::MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION) opCode;
-        params.dwResourceOffset = semaMemOffset;
-        eStatus                 = m_miItf->MHW_ADDCMD_F(MI_SEMAPHORE_WAIT)(cmdBuffer);
+
+        // Check if 64-bit hardware semaphore is supported
+        bool isSemaphore64Supported = MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrHwSemaphore64);
+
+#ifdef _MEDIA_RESERVED
+        if (isSemaphore64Supported)
+        {
+            // Use MI_SEMAPHORE_WAIT_64 for 64-bit semaphore support
+            auto &params = m_miItf->MHW_GETPAR_F(MI_SEMAPHORE_WAIT_64)();
+            params = {};
+            
+            // Initialize parameters using helper macro
+            // This macro hardcodes semaphoreToken to 0 and sets other parameters
+            INIT_MHW_MI_SEMAPHORE_WAIT_64_PARAMS(params, semaMem, semaData, opCode, semaMemOffset);
+            
+            eStatus = m_miItf->MHW_ADDCMD_F(MI_SEMAPHORE_WAIT_64)(cmdBuffer);
+        }
+        else
+#endif
+        {
+            // Fallback to MI_SEMAPHORE_WAIT for platforms without 64-bit support
+            // or when _MEDIA_RESERVED is not defined
+            auto &params            = m_miItf->MHW_GETPAR_F(MI_SEMAPHORE_WAIT)();
+            params                  = {};
+            params.presSemaphoreMem = semaMem;
+            params.bPollingWaitMode = true;
+            params.dwSemaphoreData  = semaData;
+            params.CompareOperation = (mhw::mi::MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION) opCode;
+            params.dwResourceOffset = semaMemOffset;
+            eStatus                 = m_miItf->MHW_ADDCMD_F(MI_SEMAPHORE_WAIT)(cmdBuffer);
+        }
 
         return eStatus;
     }
