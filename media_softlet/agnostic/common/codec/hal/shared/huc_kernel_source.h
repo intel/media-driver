@@ -87,7 +87,10 @@ public:
         av1BrcUpdateKernelId      = 19,
         vvcS2lKernelId            = 20,
         avcPxpBrcInitKernelId     = 21,
-        avcPxpBrcUpdateKernelId   = 22
+        avcPxpBrcUpdateKernelId   = 22,
+        av1SlbbUpdateKernelId     = 23,  // AV1 SLBB update kernel
+        avcSlbbUpdateKernelId     = 24,  // AVC SLBB update kernel
+        hevcSlbbUpdateKernelId    = 25   // HEVC SLBB update kernel
     };
 
     //!

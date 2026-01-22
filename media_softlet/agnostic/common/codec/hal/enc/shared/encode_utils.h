@@ -26,6 +26,7 @@
 #include "mos_utilities.h"
 
 #define _SW_BRC             _MEDIA_RESERVED && (_DEBUG || _RELEASE_INTERNAL)
+#define _SW_HUC             _MEDIA_RESERVED && (_DEBUG || _RELEASE_INTERNAL)
 #define _KERNEL_RESERVED    _MEDIA_RESERVED && ENABLE_KERNELS
 
 enum HuCFunction
@@ -38,7 +39,8 @@ enum HuCFunction
     LA_RESET,
     LA_UPDATE,
     PAK_INTEGRATE,
-    HPU_VP9
+    HPU_VP9,
+    SLBB_UPDATE
 };
 
 //------------------------------------------------------------------------------

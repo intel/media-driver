@@ -62,7 +62,8 @@ public:
         HucLaUpdate,
         hevcVdencPacket422,
         EncodeCheckHucLoad,
-        hevcSaliencyPacket
+        hevcSaliencyPacket,
+        HucSLBBUpdate
 #if ((_DEBUG || _RELEASE_INTERNAL) && _MEDIA_RESERVED)
         ,
         hevcVdencMvdumpPacket

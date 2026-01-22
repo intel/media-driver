@@ -169,6 +169,18 @@ MOS_STATUS EncodePipeline::InitUserSetting(MediaUserSettingSharedPtr userSetting
         MediaUserSetting::Group::Sequence,
         "",
         false);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "SLBB SW Simulation",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        false);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "SLBB SW Simulation Modules Path",
+        MediaUserSetting::Group::Sequence,
+        "",
+        false);
     DeclareUserSettingKey(
         userSettingPtr,
         "TCBRC Quality Boost Mode",

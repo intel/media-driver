@@ -58,7 +58,8 @@ public:
     {
         HucBrcInit = CONSTRUCTPACKETID(PACKET_COMPONENT_ENCODE, PACKET_SUBCOMPONENT_AVC, 0),
         HucBrcUpdate,
-        VdencPacket
+        VdencPacket,
+        HucSLBBUpdate
     };
 
 protected:
