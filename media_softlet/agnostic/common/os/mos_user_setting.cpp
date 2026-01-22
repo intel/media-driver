@@ -1546,6 +1546,21 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         MediaUserSetting::Group::Device,
         0,
         false);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_REPORT_VEBOX_SCALABILITY_IN_USE,
+        MediaUserSetting::Group::Device,
+        0,
+        true);  //"Report Vebox scalability in use status (Default 0: not in use)"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_REPORT_VDBOX_SCALABILITY_IN_USE,
+        MediaUserSetting::Group::Device,
+        0,
+        true);  //"Report Vdbox scalability in use status (Default 0: not in use)"
+
     return MOS_STATUS_SUCCESS;
 }
 

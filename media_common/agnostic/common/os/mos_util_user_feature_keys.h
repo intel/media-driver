@@ -156,6 +156,8 @@
 #define __MEDIA_USER_FEATURE_VALUE_FORCE_ENGINE_GROUP_SCHEDULING          "Force Engine Group Scheduling"
 
 #define __MEDIA_USER_FEATURE_VALUE_FORCE_DISALBE_64BIT_TOKEN              "Force Disable 64Bit Token"
+#define __MEDIA_USER_FEATURE_VALUE_REPORT_VEBOX_SCALABILITY_IN_USE        "Report Vebox Scalability In Use"
+#define __MEDIA_USER_FEATURE_VALUE_REPORT_VDBOX_SCALABILITY_IN_USE        "Report Vdbox Scalability In Use"
 
 #endif // (_DEBUG || _RELEASE_INTERNAL)
 

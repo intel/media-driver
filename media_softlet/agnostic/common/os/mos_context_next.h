@@ -145,6 +145,58 @@ public:
     bool GetNullHwIsEnabled() { return m_nullHwIsEnabled; }
 
     //!
+    //! \brief  Set Vebox scalability enabled state reported flag
+    //! \param  [in] isReported
+    //!         Flag to indicate if Vebox scalability enabled state has been reported
+    //!
+    void SetEnableVeboxScalabilityReported(bool isReported) { m_veboxScalabilityEnableReported = isReported; }
+
+    //!
+    //! \brief  Return Vebox scalability enabled state reported flag
+    //! \return true if Vebox scalability enabled state has been reported, false otherwise
+    //!
+    bool GetEnableVeboxScalabilityReported() { return m_veboxScalabilityEnableReported; }
+
+    //!
+    //! \brief  Set Vebox scalability disabled state reported flag
+    //! \param  [in] isReported
+    //!         Flag to indicate if Vebox scalability disabled state has been reported
+    //!
+    void SetDisableVeboxScalabilityReported(bool isReported) { m_veboxScalabilityDisableReported = isReported; }
+
+    //!
+    //! \brief  Return Vebox scalability disabled state reported flag
+    //! \return true if Vebox scalability disabled state has been reported, false otherwise
+    //!
+    bool GetDisableVeboxScalabilityReported() { return m_veboxScalabilityDisableReported; }
+
+    //!
+    //! \brief  Set Vdbox scalability enabled state reported flag
+    //! \param  [in] isReported
+    //!         Flag to indicate if Vdbox scalability enabled state has been reported
+    //!
+    void SetEnableVdboxScalabilityReported(bool isReported) { m_vdboxScalabilityEnableReported = isReported; }
+
+    //!
+    //! \brief  Return Vdbox scalability enabled state reported flag
+    //! \return true if Vdbox scalability enabled state has been reported, false otherwise
+    //!
+    bool GetEnableVdboxScalabilityReported() { return m_vdboxScalabilityEnableReported; }
+
+    //!
+    //! \brief  Set Vdbox scalability disabled state reported flag
+    //! \param  [in] isReported
+    //!         Flag to indicate if Vdbox scalability disabled state has been reported
+    //!
+    void SetDisableVdboxScalabilityReported(bool isReported) { m_vdboxScalabilityDisableReported = isReported; }
+
+    //!
+    //! \brief  Return Vdbox scalability disabled state reported flag
+    //! \return true if Vdbox scalability disabled state has been reported, false otherwise
+    //!
+    bool GetDisableVdboxScalabilityReported() { return m_vdboxScalabilityDisableReported; }
+
+    //!
     //! \brief  Get GPU context manager of the device
     //! \return GPU context manager
     //!
@@ -321,6 +373,18 @@ protected:
 
     //! \brief   Flag to indicate if NoGfxMemory is needed
     bool                            m_noGfxMemoryNeeded = false;
+
+    //! \brief  Flag to indicate if Vebox BatchBuffer scalability enabled state has been reported
+    bool                            m_veboxScalabilityEnableReported = false;
+
+    //! \brief  Flag to indicate if Vdbox BatchBuffer scalability enabled state has been reported
+    bool                            m_vdboxScalabilityEnableReported = false;
+
+    //! \brief  Flag to indicate if Vebox BatchBuffer scalability disabled state has been reported
+    bool                            m_veboxScalabilityDisableReported = false;
+
+    //! \brief  Flag to indicate if Vdbox BatchBuffer scalability disabled state has been reported
+    bool                            m_vdboxScalabilityDisableReported = false;
 
     //! \brief  the ptr to mos decompression module
 #if !EMUL
