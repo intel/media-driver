@@ -93,6 +93,18 @@ MOS_STATUS Vp9Pipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingPtr
         MediaUserSetting::Group::Sequence,
         int32_t(0),
         false);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "VP9 Command Counter",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        true);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "VP9 CRC Value",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        true);
 #endif
     return MOS_STATUS_SUCCESS;
 }

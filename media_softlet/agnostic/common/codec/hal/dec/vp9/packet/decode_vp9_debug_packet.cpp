@@ -77,12 +77,25 @@ MOS_STATUS Vp9DecodeDebugPkt::Execute(MOS_COMMAND_BUFFER& cmdBuffer, MediaStatus
 {
     DECODE_FUNC_CALL();
 
+    DECODE_CHK_NULL(statusReport);
+
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Vp9DecodeDebugPkt::Completed()
+MOS_STATUS Vp9DecodeDebugPkt::Completed(void *mfxStatus)
 {
     DECODE_FUNC_CALL();
+
+    DECODE_CHK_NULL(mfxStatus);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Vp9DecodeDebugPkt::AddCommandCounterCmds(MOS_COMMAND_BUFFER& cmdBuffer, MediaStatusReport *statusReport)
+{
+    DECODE_FUNC_CALL();
+
+    DECODE_CHK_NULL(statusReport);
 
     return MOS_STATUS_SUCCESS;
 }

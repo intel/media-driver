@@ -203,7 +203,7 @@ MOS_STATUS Vp9DecodePkt::Completed(void *mfxStatus, void *rcsStatus, void *statu
     // Call debug packet completion handling for HCP debug functionality
     if (m_debugPkt != nullptr)
     {
-        DECODE_CHK_STATUS(m_debugPkt->Completed());
+        DECODE_CHK_STATUS(m_debugPkt->Completed(mfxStatus));
     }
 #endif
 
@@ -294,6 +294,11 @@ MOS_STATUS Vp9DecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* 
     {
         DECODE_CHK_NULL(m_phase);
         StoreEngineId(cmdBuffer, decode::DecodeStatusReportType::CsEngineIdOffset_0, m_phase->GetPipe());
+    }
+    // Add command counter commands for debug
+    if (m_debugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_debugPkt->AddCommandCounterCmds(*cmdBuffer, m_statusReport));
     }
 #endif
     return MOS_STATUS_SUCCESS;
