@@ -96,10 +96,23 @@ public:
 
     //!
     //! \brief  Complete debug operations after decode
+    //! \param  [in] mfxStatus
+    //!         Pointer to status buffer which for MFX
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    virtual MOS_STATUS Completed();
+    virtual MOS_STATUS Completed(void *mfxStatus);
+
+    //!
+    //! \brief  Add command counter commands
+    //! \param  [in] cmdBuffer
+    //!         Command buffer
+    //! \param  [in] statusReport
+    //!         Status report pointer
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS AddCommandCounterCmds(MOS_COMMAND_BUFFER& cmdBuffer, MediaStatusReport *statusReport);
 
 protected:
     std::shared_ptr<mhw::mi::Itf> m_miItf = nullptr;

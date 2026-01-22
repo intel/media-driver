@@ -84,7 +84,14 @@ MOS_STATUS AvcDecodeDebugPkt::Execute(MOS_COMMAND_BUFFER& cmdBuffer, MediaStatus
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS AvcDecodeDebugPkt::Completed()
+MOS_STATUS AvcDecodeDebugPkt::Completed(void *mfxStatus)
+{
+    DECODE_FUNC_CALL();
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS AvcDecodeDebugPkt::AddCommandCounterCmds(MOS_COMMAND_BUFFER& cmdBuffer, MediaStatusReport *statusReport)
 {
     DECODE_FUNC_CALL();
 
