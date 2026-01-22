@@ -64,6 +64,11 @@ public:
     DeclareDecodePacketId(av1TileSubPacketId);
     DeclareDecodePacketId(av1DecodeAqmId);
     DeclareDecodePacketId(av1DebugSubPacketId);
+    //!
+    //! \brief  Declare Regkeys in the scope of av1 decode
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    virtual MOS_STATUS InitUserSetting(MediaUserSettingSharedPtr userSettingPtr) override;
 
 protected:
     //!

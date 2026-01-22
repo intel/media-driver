@@ -216,7 +216,7 @@ MOS_STATUS Av1DecodePkt::Completed(void *mfxStatus, void *rcsStatus, void *statu
     // Complete debug packet operations
     if (m_av1DebugPkt != nullptr)
     {
-        DECODE_CHK_STATUS(m_av1DebugPkt->Completed());
+        DECODE_CHK_STATUS(m_av1DebugPkt->Completed(mfxStatus));
     }
 #endif
 
@@ -297,6 +297,11 @@ MOS_STATUS Av1DecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* 
     {
         StoreEngineId(cmdBuffer, decode::DecodeStatusReportType::CsEngineIdOffset_0);
     }
+    // Add command counter commands for debug
+    if (m_av1DebugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_av1DebugPkt->AddCommandCounterCmds(*cmdBuffer, m_statusReport));
+    }
 #endif
     return MOS_STATUS_SUCCESS;
 }
@@ -314,16 +319,16 @@ MOS_STATUS Av1DecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cm
     DECODE_CHK_STATUS(perfProfiler->AddPerfCollectEndCmd(
         (void*)m_av1Pipeline, m_osInterface, m_miItf, cmdBuffer));
 
-    // Add Mi flush here to ensure end status tag flushed to memory earlier than completed count
-    DECODE_CHK_STATUS(MiFlush(*cmdBuffer));
-
 #if (_DEBUG || _RELEASE_INTERNAL)
-    // Execute debug packet
+    // Execute debug packet BEFORE MiFlush
     if (m_av1DebugPkt != nullptr)
     {
-        DECODE_CHK_STATUS(m_av1DebugPkt->Execute(*cmdBuffer));
+        DECODE_CHK_STATUS(m_av1DebugPkt->Execute(*cmdBuffer, m_statusReport));
     }
 #endif
+
+    // Add Mi flush here to ensure end status tag flushed to memory earlier than completed count
+    DECODE_CHK_STATUS(MiFlush(*cmdBuffer));
 
     return MOS_STATUS_SUCCESS;
 }
