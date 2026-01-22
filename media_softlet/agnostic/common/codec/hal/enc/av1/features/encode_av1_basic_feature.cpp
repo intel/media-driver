@@ -311,6 +311,11 @@ MOS_STATUS Av1BasicFeature::UpdateTrackedBufferParameters()
     ENCODE_CHK_STATUS_RETURN(m_trackedBuf->RegisterParam(encode::BufferType::bwdAdaptCdfBuffer, allocParams));
 
     uint32_t sizeOfMvTemporalbuffer = CODECHAL_CACHELINE_SIZE * ((m_isSb128x128) ? 16 : 4) * totalSbPerFrame;
+    // Double buffer size for extended temporal MV prediction with bidirectional data flow
+    if (m_osInterface->bSimIsActive)
+    {
+        sizeOfMvTemporalbuffer = sizeOfMvTemporalbuffer * 2;
+    }
     if (sizeOfMvTemporalbuffer > 0)
     {
         allocParams.dwBytes  = sizeOfMvTemporalbuffer;

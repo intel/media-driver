@@ -731,43 +731,49 @@ void Av1ReferenceFrames::PopulateReferenceFramePOCs(int32_t (&refsPOCList)[7])
             
             auto dist = GetRelativeDist(m_refList[frameIdx]->m_orderHint, m_currRefList->m_orderHint);
             refsPOCList[i] = currentOrderHint + dist;
+        }
             
-            // Populate savedOrderHints for this reference frame
-            if (m_refFrameFlags & (AV1_ENCODE_GET_REF_FALG(i)))
+        // Populate savedOrderHints for this reference frame
+        if (m_refFrameFlags & (AV1_ENCODE_GET_REF_FALG(i)))
+        {
+            auto index = picParams->ref_frame_idx[i];
+            
+            // Validate index bounds
+            if (index >= 7)
             {
-                auto index = picParams->ref_frame_idx[i];
-                
-                // Validate index bounds
-                if (index >= 7)
-                {
-                    continue;
-                }
-                
-                auto refFrameIdx = picParams->RefFrameList[index].FrameIdx;
-                
-                // Validate refFrameIdx bounds
-                if (refFrameIdx >= CODEC_NUM_REF_BUFFERS)
-                {
-                    continue;
-                }
-                
-                // Validate m_refList[refFrameIdx] is not null
-                if (m_refList[refFrameIdx] == nullptr)
-                {
-                    continue;
-                }
-                
-                // Copy the reference frame's stored order hints
-                for (auto j = 0; j < 7; j++)
-                {
-                    m_savedOrderHints[i][j] = m_refList[refFrameIdx]->m_refOrderHint[j];
-                }
+                continue;
+            }
+            
+            auto refFrameIdx = picParams->RefFrameList[index].FrameIdx;
+            
+            // Validate refFrameIdx bounds
+            if (refFrameIdx >= CODEC_NUM_REF_BUFFERS)
+            {
+                continue;
+            }
+            
+            // Validate m_refList[refFrameIdx] is not null
+            if (m_refList[refFrameIdx] == nullptr)
+            {
+                continue;
+            }
+            
+            // Copy the reference frame's stored order hints
+            for (auto j = 0; j < 7; j++)
+            {
+                m_savedOrderHints[i][j] = m_refList[refFrameIdx]->m_refOrderHint[j];
             }
         }
     }
 }
 
 // Motion Field Projection Logic Implementation
+/**
+ * @brief Calculate active reference bitmask for temporal MV projection
+ * @details Unconditionally decrements refStamp for LAST_FRAME to maintain
+ *          consistent temporal tracking regardless of activeBitmask status
+ * @return uint8_t Active reference bitmask with max 3 references
+ */
 uint8_t Av1ReferenceFrames::CalculateActiveRefBitmask()
 {
     ENCODE_FUNC_CALL();
@@ -807,25 +813,25 @@ uint8_t Av1ReferenceFrames::CalculateActiveRefBitmask()
 
                 altrefOrderHint = m_refList[refFrameIdx]->m_refOrderHint[altRefFrame - lastFrame];
 
-                if (m_refFrameFlags & AV1_ENCODE_GET_REF_FALG(3))  // GOLDEN_FRAME
+                // Always calculate goldenOrderHint regardless of m_refFrameFlags for consistent temporal tracking
+                uint8_t goldenPicIdx = picParams->ref_frame_idx[3];
+                if (goldenPicIdx < CODEC_AV1_NUM_REF_FRAMES && 
+                    !CodecHal_PictureIsInvalid(picParams->RefFrameList[goldenPicIdx]))
                 {
-                    uint8_t goldenPicIdx = picParams->ref_frame_idx[3];
-                    if (goldenPicIdx < CODEC_AV1_NUM_REF_FRAMES && 
-                        !CodecHal_PictureIsInvalid(picParams->RefFrameList[goldenPicIdx]))
+                    uint8_t goldenFrameIdx = picParams->RefFrameList[goldenPicIdx].FrameIdx;
+                    if (goldenFrameIdx < CODEC_NUM_REF_BUFFERS && m_refList[goldenFrameIdx] != nullptr)
                     {
-                        uint8_t goldenFrameIdx = picParams->RefFrameList[goldenPicIdx].FrameIdx;
-                        if (goldenFrameIdx < CODEC_NUM_REF_BUFFERS && m_refList[goldenFrameIdx] != nullptr)
-                        {
-                            goldenOrderHint = m_refList[goldenFrameIdx]->m_orderHint;
-                        }
+                        goldenOrderHint = m_refList[goldenFrameIdx]->m_orderHint;
                     }
                 }
                 
                 if (altrefOrderHint != goldenOrderHint && ValidateMotionFieldReference(0, refOrderHint))
                 {
                     activeBitmask |= (1 << 0);
-                    refStamp--;
                 }
+                // Always decrement refStamp for LAST_FRAME regardless of activeBitmask
+                // Unconditional refStamp decrement for consistent temporal reference tracking
+                refStamp--;
             }
         }
     }
