@@ -44,8 +44,8 @@ Copyright (c) 2026, Intel Corporation
 #ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_aqm_impl_xe3p_lpm.h"
 #include "mhw_vdbox_vdenc_impl_xe3p_lpm.h"
-#include "huc_kernel_source_xe3p_lpm_base.h"
 #endif
+#include "huc_kernel_source_xe3p_lpm_base.h"
 
 // VP9 Encode WA: Use VDEnc from xe_lpm_plus instead of xe3p_lpm.
 #include "mhw_vdbox_vdenc_impl_xe_lpm_plus.h"
@@ -557,8 +557,6 @@ static bool nvlXe3GRegisteredHucKernelSource =
 
 MOS_STATUS HucKernelSourceDeviceXe3P_Lpm::Initialize()
 {
-#ifdef _MEDIA_RESERVED
     m_hucKernelSource = &HucKernelSourceXe3P_Lpm_Base::GetInstance();
-#endif
     return MOS_STATUS_SUCCESS;
 }
