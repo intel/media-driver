@@ -354,10 +354,10 @@ MOS_STATUS CodechalHwInterfaceNext::GetVdencPictureSecondLevelCommandsSize(
 
     if (standard == CODECHAL_VP9)
     {
-        commandSz += m_hcpItf->GetHcpVp9PicStateCommandSize();
-        commandSz += m_hcpItf->GetHcpVp9SegmentStateCommandSize() * 8;
-        commandSz += m_vdencItf->GetCmd1CommandSize();
-        commandSz += m_vdencItf->GetCmd2CommandSize();
+        commandSz += m_hcpItf->MHW_GETSIZE_F(HCP_VP9_PIC_STATE)();
+        commandSz += m_hcpItf->MHW_GETSIZE_F(HCP_VP9_SEGMENT_STATE)() * 8;
+        commandSz += m_vdencItf->MHW_GETSIZE_F(VDENC_CMD1)();
+        commandSz += m_vdencItf->MHW_GETSIZE_F(VDENC_CMD2)();
         commandSz += m_sizeOfCmdBatchBufferEnd;
         commandSz += (MOS_ALIGN_CEIL(commandSz, 64) - commandSz); // padding for alignment on 64 
     }

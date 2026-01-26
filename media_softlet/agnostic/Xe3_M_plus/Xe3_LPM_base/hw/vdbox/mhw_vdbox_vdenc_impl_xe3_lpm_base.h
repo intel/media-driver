@@ -46,16 +46,6 @@ template <typename cmd_t>
 class BaseImpl : public vdenc::Impl<cmd_t>
 {
 public:
-    virtual uint32_t GetCmd1CommandSize() override
-    {
-        return cmd_t::VDENC_CMD1_CMD::byteSize;
-    }
-
-    virtual uint32_t GetCmd2CommandSize() override
-    {
-        return cmd_t::VDENC_CMD2_CMD::byteSize;
-    }
-
     MOS_STATUS SetRowstoreCachingOffsets(const RowStorePar &par) override
     {
         MHW_FUNCTION_ENTER;

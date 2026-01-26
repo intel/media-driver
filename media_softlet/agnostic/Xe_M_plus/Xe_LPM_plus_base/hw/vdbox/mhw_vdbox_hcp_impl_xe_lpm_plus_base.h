@@ -48,16 +48,6 @@ template <typename cmd_t>
 class BaseImpl : public hcp::Impl<cmd_t>
 {
 public:
-    uint32_t GetHcpVp9PicStateCommandSize()
-    {
-        return cmd_t::HCP_VP9_PIC_STATE_CMD::byteSize;
-    }
-
-    uint32_t GetHcpVp9SegmentStateCommandSize()
-    {
-        return cmd_t::HCP_VP9_SEGMENT_STATE_CMD::byteSize;
-    }
-
     MOS_STATUS GetHcpStateCommandSize(
         uint32_t                        mode,
         uint32_t *                      commandsSize,

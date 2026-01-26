@@ -41,17 +41,6 @@ namespace xe3p_lpm_base
 template <typename cmd_t>
 class BaseImpl : public hcp::Impl<cmd_t>
 {
-public:
-    uint32_t GetHcpVp9PicStateCommandSize()
-    {
-        return cmd_t::HCP_VP9_PIC_STATE_CMD::byteSize;
-    }
-
-    uint32_t GetHcpVp9SegmentStateCommandSize()
-    {
-        return cmd_t::HCP_VP9_SEGMENT_STATE_CMD::byteSize;
-    }
-
 protected:
     using base_t = hcp::Impl<cmd_t>;
 
