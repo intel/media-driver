@@ -47,6 +47,10 @@ public:
             m_miItf    = std::static_pointer_cast<mhw::mi::Itf>(m_hwInterface->GetMiInterfaceNext());
 #ifdef _DECODE_PROCESSING_SUPPORTED
             m_aqmPkt = dynamic_cast<Av1DecodeAqmPktXe3LpmBase *>(m_av1Pipeline->GetSubPacket(DecodePacketId(m_av1Pipeline, av1DecodeAqmId)));
+            if (m_aqmPkt == nullptr)
+            {
+                DECODE_ASSERTMESSAGE("Failed to retrieve AQM packet instance. Ensure AQM packet is registered before tile packet initialization.");
+            }
 #endif
         }
     }

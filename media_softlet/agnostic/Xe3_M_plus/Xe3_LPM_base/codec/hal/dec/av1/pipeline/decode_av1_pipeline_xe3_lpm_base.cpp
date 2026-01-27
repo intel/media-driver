@@ -323,10 +323,6 @@ namespace decode
         DECODE_CHK_STATUS(subPacketManager.Register(
                             DecodePacketId(this, av1PictureSubPacketId), *pictureDecodePkt));
 
-        Av1DecodeTilePktXe3_Lpm_Base *tileDecodePkt = MOS_New(Av1DecodeTilePktXe3_Lpm_Base, this, m_hwInterface);
-        DECODE_CHK_NULL(tileDecodePkt);
-        DECODE_CHK_STATUS(subPacketManager.Register(
-                            DecodePacketId(this, av1TileSubPacketId), *tileDecodePkt));
 #ifdef _DECODE_PROCESSING_SUPPORTED
         Av1DownSamplingPktXe3_Lpm_Base *downSamplingPkt = MOS_New(Av1DownSamplingPktXe3_Lpm_Base, this, m_hwInterface);
         DECODE_CHK_NULL(downSamplingPkt);
@@ -338,6 +334,12 @@ namespace decode
         DECODE_CHK_STATUS(subPacketManager.Register(
             DecodePacketId(this, av1DecodeAqmId), *aqmDecodePkt));
 #endif
+
+        Av1DecodeTilePktXe3_Lpm_Base *tileDecodePkt = MOS_New(Av1DecodeTilePktXe3_Lpm_Base, this, m_hwInterface);
+        DECODE_CHK_NULL(tileDecodePkt);
+        DECODE_CHK_STATUS(subPacketManager.Register(
+                            DecodePacketId(this, av1TileSubPacketId), *tileDecodePkt));
+
         return MOS_STATUS_SUCCESS;
     }
 
