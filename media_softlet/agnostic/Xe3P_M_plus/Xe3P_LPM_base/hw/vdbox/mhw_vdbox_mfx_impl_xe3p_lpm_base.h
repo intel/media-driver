@@ -46,12 +46,6 @@ template <typename cmd_t>
 class BaseImpl : public mfx::Impl<cmd_t>
 {
 public:
-    MOS_STATUS GetMfxPrimitiveCommandsDataSize(
-        uint32_t  mode,
-        uint32_t *commandsSize,
-        uint32_t *patchListSize,
-        bool      isModeSpecific) { return MOS_STATUS_UNIMPLEMENTED; }
-
     MOS_STATUS GetRowstoreCachingAddrs(PMHW_VDBOX_ROWSTORE_PARAMS rowstoreParams) override
     {
         MHW_FUNCTION_ENTER;
