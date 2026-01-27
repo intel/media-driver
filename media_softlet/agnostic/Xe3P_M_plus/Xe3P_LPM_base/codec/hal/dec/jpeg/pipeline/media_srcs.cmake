@@ -1,4 +1,4 @@
-# Copyright (c) 2023, Intel Corporation
+# Copyright (c) 2023-2026, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,7 +18,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-if(${AVC_Decode_Supported} STREQUAL "yes")
+if(${JPEG_Decode_Supported} STREQUAL "yes")
 set(SOFTLET_DECODE_JPEG_SOURCES_
     ${SOFTLET_DECODE_JPEG_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_jpeg_pipeline_xe3p_lpm_base.cpp
