@@ -278,10 +278,8 @@ PMOS_BUFFER DecodeDownSamplingFeature::AllocateHistogramBuffer(uint8_t frameInde
             }
 
             m_histogramBufferList[frameIndex] = histogramBuffer;
-
-            return m_histogramBufferList[frameIndex];
         }
-        break;
+        return m_histogramBufferList[frameIndex];
     case HistogramU:
         if (m_histogramBufferUList[frameIndex] == nullptr)
         {
@@ -300,10 +298,8 @@ PMOS_BUFFER DecodeDownSamplingFeature::AllocateHistogramBuffer(uint8_t frameInde
             }
 
             m_histogramBufferUList[frameIndex] = histogramBufferU;
-
-            return m_histogramBufferUList[frameIndex];
         }
-        break;
+        return m_histogramBufferUList[frameIndex];
     case HistogramV:
         if (m_histogramBufferVList[frameIndex] == nullptr)
         {
@@ -322,10 +318,8 @@ PMOS_BUFFER DecodeDownSamplingFeature::AllocateHistogramBuffer(uint8_t frameInde
             }
 
             m_histogramBufferVList[frameIndex] = histogramBufferV;
-
-            return m_histogramBufferVList[frameIndex];
         }
-        break;
+        return m_histogramBufferVList[frameIndex];
     case HistogramStatistics:
         if (m_histogramBufferStatisticsSummaryList[frameIndex] == nullptr)
         {
@@ -344,10 +338,8 @@ PMOS_BUFFER DecodeDownSamplingFeature::AllocateHistogramBuffer(uint8_t frameInde
             }
 
             m_histogramBufferStatisticsSummaryList[frameIndex] = histogramBufferStatistics;
-
-            return m_histogramBufferStatisticsSummaryList[frameIndex];
         }
-        break;
+        return m_histogramBufferStatisticsSummaryList[frameIndex];
     case HistogramStreamIn:
         if (m_histogramBufferMetaDataStreamInList[frameIndex] == nullptr)
         {
@@ -366,10 +358,8 @@ PMOS_BUFFER DecodeDownSamplingFeature::AllocateHistogramBuffer(uint8_t frameInde
             }
 
             m_histogramBufferMetaDataStreamInList[frameIndex] = histogramBufferStreamIn;
-
-            return m_histogramBufferMetaDataStreamInList[frameIndex];
         }
-        break;
+        return m_histogramBufferMetaDataStreamInList[frameIndex];
     case HistogramStreamOut:
         if (m_histogramBufferMetaDataStreamOutList[frameIndex] == nullptr)
         {
@@ -388,10 +378,8 @@ PMOS_BUFFER DecodeDownSamplingFeature::AllocateHistogramBuffer(uint8_t frameInde
             }
 
             m_histogramBufferMetaDataStreamOutList[frameIndex] = histogramBufferStreamOut;
-
-            return m_histogramBufferMetaDataStreamOutList[frameIndex];
         }
-        break;
+        return m_histogramBufferMetaDataStreamOutList[frameIndex];
     default:
         DECODE_ASSERTMESSAGE("Failed to allocate hsitogram buffer due to invalid buffer type %d !", bufferType);
         break;
