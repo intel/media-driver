@@ -3255,19 +3255,18 @@ MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFE
         PCODEC_HEVC_ENCODE_PICTURE_PARAMS hevcPicParams = (CODEC_HEVC_ENCODE_PICTURE_PARAMS *)m_hevcPicParams;
         PCODEC_HEVC_ENCODE_SLICE_PARAMS   hevcSlcParams = (CODEC_HEVC_ENCODE_SLICE_PARAMS *)&m_hevcSliceParams[currSlcIdx];
 
-        CODEC_PICTURE currPic                                     = {};
         CODEC_PICTURE refPicList[2][CODEC_MAX_NUM_REF_FRAME_HEVC] = {};
         void **       hevcRefList                                 = nullptr;
         int32_t       pocCurrPic                                  = 0;
         int8_t *      pRefIdxMapping                              = nullptr;
-        int32_t       pocList[CODEC_MAX_NUM_REF_FRAME_HEVC]       = {};
 
         if (hevcSlcParams->slice_type != encodeHevcISlice)
         {
-            currPic                                    = hevcPicParams->CurrReconstructedPic;
-            params.ucList                              = LIST_0;
-            params.numRefIdxLRefpiclistnumActiveMinus1 = hevcSlcParams->num_ref_idx_l0_active_minus1;
-            eStatus                                    = MOS_SecureMemcpy(&refPicList, sizeof(refPicList), &hevcSlcParams->RefPicList, sizeof(hevcSlcParams->RefPicList));
+            int32_t pocList[CODEC_MAX_NUM_REF_FRAME_HEVC] = {};
+            CODEC_PICTURE currPic                         = hevcPicParams->CurrReconstructedPic;
+            params.ucList                                 = LIST_0;
+            params.numRefIdxLRefpiclistnumActiveMinus1    = hevcSlcParams->num_ref_idx_l0_active_minus1;
+            eStatus                                       = MOS_SecureMemcpy(&refPicList, sizeof(refPicList), &hevcSlcParams->RefPicList, sizeof(hevcSlcParams->RefPicList));
             if (eStatus != MOS_STATUS_SUCCESS)
             {
                 ENCODE_ASSERTMESSAGE("Failed to copy memory.");
