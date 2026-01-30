@@ -40,6 +40,7 @@ namespace decode
 {
 class VvcPipeline;
 class VvcDecodePicPkt;
+class VvcDecodeDebugPkt;
 class VvcDecodePkt : public CmdPacket, public MediaStatusReportObserver
 {
 public:
@@ -208,6 +209,11 @@ protected:
     DecodeMemComp                   *m_mmcState             = nullptr;
     VvcDecodePicPkt                 *m_picturePkt           = nullptr;
     VvcDecodeSlicePkt               *m_slicePkt             = nullptr;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    VvcDecodeDebugPkt               *m_debugPkt             = nullptr;  //!< Pointer to debug packet for command counter override
+    uint32_t                        m_debugStatesSize       = 0;        //!< Debug packet command buffer size
+    uint32_t                        m_debugPatchListSize    = 0;        //!< Debug packet patch list size
+#endif
     bool                            m_isFirstSliceInFrame   = true;
     bool                            m_isLastSliceInFrame    = false;
     const CodecVvcPicParams         *m_vvcPicParams         = nullptr;  //!< Pointer to picture parameter

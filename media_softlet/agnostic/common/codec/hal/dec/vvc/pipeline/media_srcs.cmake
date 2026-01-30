@@ -22,6 +22,7 @@ if(${VVC_Decode_Supported} STREQUAL "yes")
 set(SOFTLET_DECODE_VVC_SOURCES_
     ${SOFTLET_DECODE_VVC_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_vvc_pipeline.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_vvc_user_setting.cpp
 )
 
 set(SOFTLET_DECODE_VVC_HEADERS_

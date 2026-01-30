@@ -27,6 +27,7 @@
 #include "decode_vvc_packet.h"
 #include "decode_vvc_s2l_packet_register_xe3p_lpm_base.h"
 #include "decode_vvc_slice_packet_xe3p_lpm_base.h"
+#include "decode_vvc_debug_packet.h"
 
 namespace decode
 {
@@ -156,6 +157,14 @@ MOS_STATUS VvcPipelineXe3P_Lpm_Base::CreateSubPackets(DecodeSubPacketManager &su
         DECODE_CHK_STATUS(subPacketManager.Register(
             DecodePacketId(this, vvcCpSubPacketId), *cpSubPkt));
     }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    VvcDecodeDebugPkt *debugPkt = MOS_New(VvcDecodeDebugPkt, this, m_hwInterface);
+    DECODE_CHK_NULL(debugPkt);
+    DECODE_CHK_STATUS(subPacketManager.Register(
+        DecodePacketId(this, vvcDebugSubPacketId), *debugPkt));
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

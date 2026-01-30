@@ -55,15 +55,6 @@ namespace vdbox
 namespace vvcp
 {
 
-//!
-//! \struct   MmioRegistersVvcp
-//! \brief    MMIO registers VVCP
-//!
-struct MmioRegistersVvcp
-{
-    //TODO: Enalbe VVC new mechanism for MMIO
-};
-
 class Itf
 {
 public:
@@ -175,20 +166,6 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS SetAlfApsDataBuffer(uint32_t *buffer, CodecVvcAlfData *alfApsArray, uint8_t activeAlfMask) = 0;
-
-    //!
-    //! \brief    Get mmio registers
-    //!
-    //! \param    [in] index
-    //!           mmio registers index
-    //!
-    //! \return   [out] MmioRegistersVvcp*
-    //!           VVC mmio registers
-    //!
-    //virtual MmioRegistersVvcp* GetMmioRegisters(MHW_VDBOX_NODE_IND index)
-    //{
-    //    // TODO: new mechanism for VVC MMIO.
-    //};
 
     //!
     //! \brief    Determines if the slice is P slice

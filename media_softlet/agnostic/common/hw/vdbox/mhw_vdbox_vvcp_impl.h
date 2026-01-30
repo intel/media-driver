@@ -346,7 +346,6 @@ protected:
         m_cpItf = cpItf;
 
         InitRowstoreUserFeatureSettings();
-        InitMmioRegisters();
     }
 
     virtual ~Impl()
@@ -392,7 +391,6 @@ protected:
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC] = {};  //!< Cacheability settings
 private:
 
-    MmioRegistersVvcp                m_mmioRegisters[MHW_VDBOX_NODE_MAX]                        = {};     //!< VVCP mmio registers
     bool                             m_rowstoreCachingSupported                                 = false;  //!< Flag to indicate if row store cache is supported
 
     void InitRowstoreUserFeatureSettings()
@@ -594,11 +592,6 @@ private:
             }
 #endif  // _DEBUG || _RELEASE_INTERNAL
         }
-    }
-
-    void InitMmioRegisters()
-    {
-        // TODO: Enalbe VVC new mechanism for MMIO
     }
 
 protected:

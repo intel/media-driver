@@ -84,6 +84,7 @@ namespace decode
         DeclareDecodePacketId(vvcPictureSubPacketId);
         DeclareDecodePacketId(vvcSliceSubPacketId);
         DeclareDecodePacketId(vvcCpSubPacketId);
+        DeclareDecodePacketId(vvcDebugSubPacketId);
 
     protected:
         virtual MOS_STATUS Initialize(void *settings) override;
@@ -95,6 +96,15 @@ namespace decode
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
         virtual MOS_STATUS UserFeatureReport() override;
+
+        //!
+        //! \brief  Initialize user setting
+        //! \param  [in] userSettingPtr
+        //!         Pointer to media user setting instance
+        //! \return MOS_STATUS
+        //!         MOS_STATUS_SUCCESS if success, else fail reason
+        //!
+        virtual MOS_STATUS InitUserSetting(MediaUserSettingSharedPtr userSettingPtr) override;
 
         //!
         //! \brief  Create sub packets
