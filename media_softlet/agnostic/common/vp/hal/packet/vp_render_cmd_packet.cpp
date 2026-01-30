@@ -825,6 +825,41 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                     VP_RENDER_NORMALMESSAGE("Using Binded Index Surface. KernelID %d, SurfType %d, bti %d", m_kernel->GetKernelId(), type, bti);
                 }
             }
+            // Bindless heap path - parameter validations performed inside block
+            else if (m_renderHal->isBindlessHeapInUse)
+            {
+                // Safety check: validate bindedKernel is false for unbinded kernel path
+                if (kernelSurfaceParam->surfaceOverwriteParams.bindedKernel)
+                {
+                    VP_RENDER_ASSERTMESSAGE("bindedKernel is true in bindless heap unbinded kernel path. KernelID %d, SurfType %d", m_kernel->GetKernelId(), type);
+                    VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+                }
+                
+                // Buffer resources require updatedSurfaceParams
+                if (kernelSurfaceParam->surfaceOverwriteParams.bufferResource && kernelSurfaceParam->surfaceOverwriteParams.updatedSurfaceParams)
+                {
+                    index = SetBufferForHwAccess(
+                        &renderHalSurface.OsSurface,
+                        &renderHalSurface,
+                        &renderSurfaceParams,
+                        bWrite,
+                        stateLocations);
+                    VP_RENDER_CHK_STATUS_RETURN(m_kernel->UpdateCurbeBindingIndex(type, index));
+                    VP_RENDER_NORMALMESSAGE("Using Bindless Heap with UnBinded Buffer. KernelID %d, SurfType %d, bti %d", m_kernel->GetKernelId(), type, index);
+                }
+                // Surface resources do not require updatedSurfaceParams
+                else
+                {
+                    index = SetSurfaceForHwAccess(
+                        &renderHalSurface.OsSurface,
+                        &renderHalSurface,
+                        &renderSurfaceParams,
+                        bWrite,
+                        stateLocations);
+                    VP_RENDER_CHK_STATUS_RETURN(m_kernel->UpdateCurbeBindingIndex(type, index));
+                    VP_RENDER_NORMALMESSAGE("Using Bindless Heap with UnBinded Surface. KernelID %d, SurfType %d, bti %d", m_kernel->GetKernelId(), type, index);
+                }
+            }
             else
             {
                 if ((kernelSurfaceParam->surfaceOverwriteParams.updatedSurfaceParams  &&
