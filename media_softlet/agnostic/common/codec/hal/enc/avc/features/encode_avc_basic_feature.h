@@ -248,6 +248,13 @@ protected:
     MOS_STATUS SetPictureStructs();
     MOS_STATUS UpdateSeiParameters(EncoderParams* params);
     virtual void UpdateMinMaxQp();
+    
+    //!
+    //! \brief    Get the minimum AVC QP value for the current platform
+    //! \return   uint8_t Minimum QP value (default: CODEC_AVC_MIN_QP10)
+    //!
+    virtual uint8_t GetMinAvcQp();
+    
     int32_t GetMaxMBPS(uint8_t levelIdc);
     MOS_STATUS SetSliceStructs();
     void CheckResolutionChange();

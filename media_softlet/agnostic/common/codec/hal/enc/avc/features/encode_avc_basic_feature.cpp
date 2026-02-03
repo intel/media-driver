@@ -824,15 +824,23 @@ MOS_STATUS AvcBasicFeature::UpdateSeiParameters(EncoderParams* params)
     return eStatus;
 }
 
+uint8_t AvcBasicFeature::GetMinAvcQp()
+{
+    ENCODE_FUNC_CALL();
+    return CODEC_AVC_MIN_QP10;  // Default minimum QP for base class (value: 10)
+}
+
 void AvcBasicFeature::UpdateMinMaxQp()
 {
     ENCODE_FUNC_CALL();
 
+    uint8_t minAvcQp = GetMinAvcQp();  // Get platform-specific minimum QP
+
     m_minMaxQpControlEnabled = true;
     if (m_picParam->CodingType == I_TYPE)
     {
-        m_iMaxQp = MOS_MIN(MOS_MAX(m_picParam->ucMaximumQP, 10), 51);        // Clamp maxQP to [10, 51]
-        m_iMinQp = MOS_MIN(MOS_MAX(m_picParam->ucMinimumQP, 10), m_iMaxQp);  // Clamp minQP to [10, maxQP] to make sure minQP <= maxQP
+        m_iMaxQp = MOS_MIN(MOS_MAX(m_picParam->ucMaximumQP, minAvcQp), CODEC_AVC_MAX_QP);        // Clamp maxQP to [minAvcQp, CODEC_AVC_MAX_QP]
+        m_iMinQp = MOS_MIN(MOS_MAX(m_picParam->ucMinimumQP, minAvcQp), m_iMaxQp);  // Clamp minQP to [minAvcQp, maxQP] to make sure minQP <= maxQP
         if (!m_pFrameMinMaxQpControl)
         {
             m_pMinQp = m_iMinQp;
@@ -847,8 +855,8 @@ void AvcBasicFeature::UpdateMinMaxQp()
     else if (m_picParam->CodingType == P_TYPE)
     {
         m_pFrameMinMaxQpControl = true;
-        m_pMaxQp                = MOS_MIN(MOS_MAX(m_picParam->ucMaximumQP, 10), 51);        // Clamp maxQP to [10, 51]
-        m_pMinQp                = MOS_MIN(MOS_MAX(m_picParam->ucMinimumQP, 10), m_pMaxQp);  // Clamp minQP to [10, maxQP] to make sure minQP <= maxQP
+        m_pMaxQp                = MOS_MIN(MOS_MAX(m_picParam->ucMaximumQP, minAvcQp), CODEC_AVC_MAX_QP);        // Clamp maxQP to [minAvcQp, CODEC_AVC_MAX_QP]
+        m_pMinQp                = MOS_MIN(MOS_MAX(m_picParam->ucMinimumQP, minAvcQp), m_pMaxQp);  // Clamp minQP to [minAvcQp, maxQP] to make sure minQP <= maxQP
         if (!m_bFrameMinMaxQpControl)
         {
             m_bMinQp = m_pMinQp;
@@ -858,8 +866,8 @@ void AvcBasicFeature::UpdateMinMaxQp()
     else  // B_TYPE
     {
         m_bFrameMinMaxQpControl = true;
-        m_bMaxQp                = MOS_MIN(MOS_MAX(m_picParam->ucMaximumQP, 10), 51);        // Clamp maxQP to [10, 51]
-        m_bMinQp                = MOS_MIN(MOS_MAX(m_picParam->ucMinimumQP, 10), m_bMaxQp);  // Clamp minQP to [10, maxQP] to make sure minQP <= maxQP
+        m_bMaxQp                = MOS_MIN(MOS_MAX(m_picParam->ucMaximumQP, minAvcQp), CODEC_AVC_MAX_QP);        // Clamp maxQP to [minAvcQp, CODEC_AVC_MAX_QP]
+        m_bMinQp                = MOS_MIN(MOS_MAX(m_picParam->ucMinimumQP, minAvcQp), m_bMaxQp);  // Clamp minQP to [minAvcQp, maxQP] to make sure minQP <= maxQP
     }
     // Zero out the QP values, so we don't update the AVCState settings until new values are sent in MiscParamsRC
     m_picParam->ucMinimumQP = 0;
