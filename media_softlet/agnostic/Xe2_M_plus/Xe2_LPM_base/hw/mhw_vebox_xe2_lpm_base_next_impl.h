@@ -881,7 +881,7 @@ public:
         return eStatus;
     }
 
-    MOS_STATUS Add1DLutState(void *&surface, PMHW_1DLUT_PARAMS p1DLutParams)
+    MOS_STATUS Add1DLutState(void *surface, PMHW_1DLUT_PARAMS p1DLutParams)
     {
         mhw::vebox::xe2_lpm_base_next::Cmd::VEBOX_SHAPER_1K_LOOKUP_CMD *pShaper1KLut = ((mhw::vebox::xe2_lpm_base_next::Cmd::VEBOX_SHAPER_1K_LOOKUP_STATE_CMD *)surface)->VEBOXSHAPER1KLOOKUP;
 

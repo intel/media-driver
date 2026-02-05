@@ -741,7 +741,7 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Add1DLutState(void *&surface, PMHW_1DLUT_PARAMS p1DLutParams)
+    MOS_STATUS Add1DLutState(void *surface, PMHW_1DLUT_PARAMS p1DLutParams)
     {
         MHW_VEBOX_HEAP                                                 *pVeboxHeap     = nullptr;
         uint32_t                                                        uiOffset       = 0;

@@ -878,10 +878,10 @@ public:
             }
         }
 
-        return eStatus;
+        return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Add1DLutState(void *&surface, PMHW_1DLUT_PARAMS p1DLutParams)
+    MOS_STATUS Add1DLutState(void *surface, PMHW_1DLUT_PARAMS p1DLutParams)
     {
         mhw::vebox::xe3_lpm_base::Cmd::VEBOX_SHAPER_1K_LOOKUP_CMD *pShaper1KLut = ((mhw::vebox::xe3_lpm_base::Cmd::VEBOX_SHAPER_1K_LOOKUP_STATE_CMD *)surface)->VEBOXSHAPER1KLOOKUP;
         MHW_CHK_NULL_RETURN(pShaper1KLut);

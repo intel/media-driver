@@ -612,20 +612,9 @@ MOS_STATUS VpVeboxCmdPacketXe3P_Lpm_Base::SetupHDRUnifiedForHDR(mhw::vebox::VEBO
 MOS_STATUS VpVeboxCmdPacketXe3P_Lpm_Base::Add1DLutState(PVP_SURFACE &surface, PMHW_1DLUT_PARAMS p1DLutParams)
 {
     VP_FUNC_CALL();
-    VP_RENDER_CHK_NULL_RETURN(surface);
-    void *sur = (void *)m_allocator->LockResourceForWrite(&surface->osSurface->OsResource);
-    VP_PUBLIC_CHK_NULL_RETURN(sur);
-    VpVeboxRenderData *pRenderData = GetLastExecRenderData();
     VP_PUBLIC_CHK_NULL_RETURN(m_veboxItf);
-    VP_PUBLIC_CHK_NULL_RETURN(pRenderData);
-
-    if (m_veboxItf)
-    {
-        m_veboxItf->Add1DLutState(sur, p1DLutParams);
-        VP_RENDER_NORMALMESSAGE("1K1DLut EOTF16 Surface is inited for HDR");
-    }
-
-    VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->UnLock(&surface->osSurface->OsResource));
+    m_veboxItf->Add1DLutState(nullptr, p1DLutParams);
+    VP_RENDER_NORMALMESSAGE("HDR State EOTF16 1DLut is inited.");
     return MOS_STATUS_SUCCESS;
 }
 
