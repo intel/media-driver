@@ -504,7 +504,7 @@ bool SwFilterDiHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInpu
     }
     else
     {
-        VP_PUBLIC_ASSERTMESSAGE("DI: pDeinterlaceParams != NULL and SampleType = SAMPLE_PROGRESSIVE, driver disable DI");
+        VP_PUBLIC_NORMALMESSAGE("DI: pDeinterlaceParams != NULL and SampleType = SAMPLE_PROGRESSIVE, driver disable DI");
     }
     return false;
 }
