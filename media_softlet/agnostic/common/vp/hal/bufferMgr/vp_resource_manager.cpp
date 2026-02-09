@@ -2197,7 +2197,9 @@ MOS_STATUS VpResourceManager::AllocateVeboxResource(VP_EXECUTE_CAPS& caps, VP_SU
         bAllocated,
         false,
         IsDeferredResourceDestroyNeeded(),
-        MOS_HW_RESOURCE_USAGE_VP_INTERNAL_WRITE_FF));
+        MOS_HW_RESOURCE_USAGE_VP_INTERNAL_WRITE_FF,
+        MOS_TILE_UNSET_GMM,
+        (caps.bDI ? MOS_MEMPOOL_SYSTEMMEMORY : MOS_MEMPOOL_VIDEOMEMORY)));
 
     m_isHistogramReallocated = bAllocated;
 
