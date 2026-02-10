@@ -332,6 +332,8 @@ public:
     //!           offset of semMem
     //! \param    [in,out] cmdBuffer
     //!           command buffer
+    //! \param    [in] value
+    //!           value to store
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
@@ -339,7 +341,71 @@ public:
     virtual MOS_STATUS AddMiStoreDataImmCmd(
         PMOS_RESOURCE               resource,
         uint32_t                    offset,
-        PMOS_COMMAND_BUFFER         cmdBuffer);
+        PMOS_COMMAND_BUFFER         cmdBuffer,
+        uint32_t                    value = 0);
+
+    //!
+    //! \brief  Send MI_ATOMIC command (override from base class)
+    //! \param  [in] resource
+    //!         Resource to perform atomic operation on
+    //! \param  [in] offset
+    //!         Offset within the resource
+    //! \param  [in] immData
+    //!         Immediate data for atomic operation
+    //! \param  [in] opCode
+    //!         Atomic operation code
+    //! \param  [in] cmdBuffer
+    //!         Pointer to command buffer
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SendMiAtomicCmd(
+        PMOS_RESOURCE               resource,
+        uint32_t                    offset,
+        uint32_t                    immData,
+        MHW_COMMON_MI_ATOMIC_OPCODE opCode,
+        PMOS_COMMAND_BUFFER         cmdBuffer) override;
+
+    //!
+    //! \brief  Send MI_SEMAPHORE_WAIT command (override from base class)
+    //! \param  [in] semaMem
+    //!         Semaphore memory resource
+    //! \param  [in] offset
+    //!         Offset within the semaphore memory
+    //! \param  [in] semaData
+    //!         Semaphore data to compare
+    //! \param  [in] opCode
+    //!         Comparison operation code
+    //! \param  [in] cmdBuffer
+    //!         Pointer to command buffer
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SendMiSemaphoreWaitCmd(
+        PMOS_RESOURCE                             semaMem,
+        uint32_t                                  offset,
+        uint32_t                                  semaData,
+        MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION opCode,
+        PMOS_COMMAND_BUFFER                       cmdBuffer) override;
+
+    //!
+    //! \brief  Send MI_STORE_DATA_IMM command (override from base class)
+    //! \param  [in] resource
+    //!         Resource to store data to
+    //! \param  [in] offset
+    //!         Offset within the resource
+    //! \param  [in] value
+    //!         Immediate value to store
+    //! \param  [in] cmdBuffer
+    //!         Pointer to command buffer
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SendMiStoreDataImmCmd(
+        PMOS_RESOURCE       resource,
+        uint32_t            offset,
+        uint32_t            value,
+        PMOS_COMMAND_BUFFER cmdBuffer) override;
 
     static MOS_STATUS CreateMultiPipe(void *hwInterface, MediaContext *mediaContext, uint8_t componentType);
 

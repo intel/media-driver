@@ -328,6 +328,8 @@ MOS_STATUS VpScalabilityMultiPipe::AddMiFlushDwCmd(
 //!           offset of resource
 //! \param    [in,out] cmdBuffer
 //!           command buffer
+//! \param    [in] value
+//!           Immediate data value to store
 //!
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success, else fail reason
@@ -335,7 +337,8 @@ MOS_STATUS VpScalabilityMultiPipe::AddMiFlushDwCmd(
 MOS_STATUS VpScalabilityMultiPipe::AddMiStoreDataImmCmd(
     PMOS_RESOURCE               resource,
     uint32_t                    offset,
-    PMOS_COMMAND_BUFFER         cmdBuffer)
+    PMOS_COMMAND_BUFFER         cmdBuffer,
+    uint32_t                    value)
 {
     VP_FUNC_CALL();
 
@@ -354,7 +357,7 @@ MOS_STATUS VpScalabilityMultiPipe::AddMiStoreDataImmCmd(
         params                   = {};
         params.pOsResource       = resource;
         params.dwResourceOffset  = offset;
-        params.dwValue           = 0;
+        params.dwValue           = value;
         eStatus                  = m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer);
     }
     else
@@ -362,7 +365,7 @@ MOS_STATUS VpScalabilityMultiPipe::AddMiStoreDataImmCmd(
         MHW_MI_STORE_DATA_PARAMS dataParams = {};
         dataParams.pOsResource      = resource;
         dataParams.dwResourceOffset = offset;
-        dataParams.dwValue          = 0;
+        dataParams.dwValue          = value;
 
         // Reset current pipe semaphore
         SCALABILITY_CHK_STATUS_RETURN(pMhwMiInterface->AddMiStoreDataImmCmd(

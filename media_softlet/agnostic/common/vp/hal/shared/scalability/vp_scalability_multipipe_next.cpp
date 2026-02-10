@@ -108,6 +108,9 @@ MOS_STATUS VpScalabilityMultiPipeNext::AllocateSemaphore()
     m_semaphoreAllPipesIndex = 0;
     m_semaphoreAllPipesPhase = 0;
 
+    VP_PUBLIC_NORMALMESSAGE("VP: Allocating NativeFence counters");
+    SCALABILITY_CHK_STATUS_RETURN(AllocateNativeFenceCounters());
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -225,7 +228,7 @@ MOS_STATUS VpScalabilityMultiPipeNext::Destroy()
 {
     VP_FUNC_CALL();
     SCALABILITY_FUNCTION_ENTER;
-    SCALABILITY_CHK_STATUS_RETURN(MediaScalability::Destroy());
+    SCALABILITY_CHK_STATUS_RETURN(MediaScalabilityMultiPipe::Destroy());
     if (m_gpuCtxCreateOption)
     {
         MOS_Delete(m_gpuCtxCreateOption);
@@ -665,6 +668,15 @@ MOS_STATUS VpScalabilityMultiPipeNext::SyncPipe(uint32_t syncType, uint32_t sema
 
     SCALABILITY_FUNCTION_ENTER;
 
+    // Check if NativeFence is enabled
+    if (MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrNativeFence))
+    {
+        SCALABILITY_VERBOSEMESSAGE("VpScalabilityMultiPipeNext::SyncPipe - NativeFence enabled, using barrier sync");
+        return SyncPipesWithNativeFence(cmdBuffer);
+    }
+
+    // Legacy sync logic when NativeFence is disabled
+    SCALABILITY_VERBOSEMESSAGE("VpScalabilityMultiPipeNext::SyncPipe - NativeFence disabled, using legacy sync");
     if (syncType == syncAllPipes)
     {
         return SyncAllPipes(cmdBuffer);
@@ -891,6 +903,8 @@ MOS_STATUS VpScalabilityMultiPipeNext::AddMiFlushDwCmd(
 //!           offset of resource
 //! \param    [in,out] cmdBuffer
 //!           command buffer
+//! \param    [in] value
+//!           value to store
 //!
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success, else fail reason
@@ -898,7 +912,8 @@ MOS_STATUS VpScalabilityMultiPipeNext::AddMiFlushDwCmd(
 MOS_STATUS VpScalabilityMultiPipeNext::AddMiStoreDataImmCmd(
     PMOS_RESOURCE               resource,
     uint32_t                    offset,
-    PMOS_COMMAND_BUFFER         cmdBuffer)
+    PMOS_COMMAND_BUFFER         cmdBuffer,
+    uint32_t                    value)
 {
     VP_FUNC_CALL();
 
@@ -912,10 +927,45 @@ MOS_STATUS VpScalabilityMultiPipeNext::AddMiStoreDataImmCmd(
     params                   = {};
     params.pOsResource       = resource;
     params.dwResourceOffset  = offset;
-    params.dwValue           = 0;
+    params.dwValue           = value;
     eStatus                  = m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(cmdBuffer);
 
     return eStatus;
+}
+
+MOS_STATUS VpScalabilityMultiPipeNext::SendMiAtomicCmd(
+    PMOS_RESOURCE               resource,
+    uint32_t                    offset,
+    uint32_t                    immData,
+    MHW_COMMON_MI_ATOMIC_OPCODE opCode,
+    PMOS_COMMAND_BUFFER         cmdBuffer)
+{
+    VP_FUNC_CALL();
+    // Delegate to existing VP implementation
+    return SendMiAtomicDwordCmd(resource, offset, immData, opCode, cmdBuffer);
+}
+
+MOS_STATUS VpScalabilityMultiPipeNext::SendMiSemaphoreWaitCmd(
+    PMOS_RESOURCE                             semaMem,
+    uint32_t                                  offset,
+    uint32_t                                  semaData,
+    MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION opCode,
+    PMOS_COMMAND_BUFFER                       cmdBuffer)
+{
+    VP_FUNC_CALL();
+    // Delegate to existing VP implementation
+    return SendHwSemaphoreWaitCmd(semaMem, offset, semaData, opCode, cmdBuffer);
+}
+
+MOS_STATUS VpScalabilityMultiPipeNext::SendMiStoreDataImmCmd(
+    PMOS_RESOURCE       resource,
+    uint32_t            offset,
+    uint32_t            value,
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    VP_FUNC_CALL();
+    // Delegate to existing VP implementation (now accepts value parameter)
+    return AddMiStoreDataImmCmd(resource, offset, cmdBuffer, value);
 }
 
 MOS_STATUS VpScalabilityMultiPipeNext::CreateMultiPipe(void *hwInterface, MediaContext *mediaContext, uint8_t componentType)

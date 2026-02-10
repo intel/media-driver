@@ -153,6 +153,8 @@ public:
     //!           offset of resource
     //! \param    [in,out] cmdBuffer
     //!           command buffer
+    //! \param    [in] value
+    //!           Immediate data value to store
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
@@ -160,7 +162,8 @@ public:
     virtual MOS_STATUS AddMiStoreDataImmCmd(
         PMOS_RESOURCE               resource,
         uint32_t                    offset,
-        PMOS_COMMAND_BUFFER         cmdBuffer) override;
+        PMOS_COMMAND_BUFFER         cmdBuffer,
+        uint32_t                    value = 0) override;
 
     //!
     //! \brief   Initialize the media scalability
