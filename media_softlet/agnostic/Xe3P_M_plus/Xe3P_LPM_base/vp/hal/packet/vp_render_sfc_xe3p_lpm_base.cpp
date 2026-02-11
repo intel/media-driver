@@ -104,104 +104,108 @@ MOS_STATUS SfcRenderXe3P_Lpm_Base::SetupSfcState(
         }
 
         VP_RENDER_NORMALMESSAGE("SFC input cspace %d", m_renderData.SfcInputCspace);
-        if (IS_COLOR_SPACE_BT2020(m_renderData.SfcInputCspace))
+        if (m_CurrentCSpaceForIndirectState != m_renderData.SfcInputCspace)
         {
-            // st2084 to linear
-            VP_RENDER_CHK_STATUS_RETURN(Gen2084EOTFLUT_1K(m_EOTF, EOTF_LUT_SIZE));  //generage 1K EOTF Lut
-            VP_RENDER_NORMALMESSAGE("Generate 1 K EOTF Lut for st2084 to linear convert.");
-        }
-        else
-        {
-            // gamma2.2 to linear
-            VP_RENDER_CHK_STATUS_RETURN(GenG22EOTFLUT_1K(m_EOTF, EOTF_LUT_SIZE));  //generage 1K EOTF Lut
-            VP_RENDER_NORMALMESSAGE("Generate 1 K EOTF Lut for gamma2.2 to linear convert.");
-        }
+            m_CurrentCSpaceForIndirectState = m_renderData.SfcInputCspace;
+            if (IS_COLOR_SPACE_BT2020(m_renderData.SfcInputCspace))
+            {
+                // st2084 to linear
+                VP_RENDER_CHK_STATUS_RETURN(Gen2084EOTFLUT_1K(m_EOTF, EOTF_LUT_SIZE));  //generage 1K EOTF Lut
+                VP_RENDER_NORMALMESSAGE("Generate 1 K EOTF Lut for st2084 to linear convert.");
+            }
+            else
+            {
+                // gamma2.2 to linear
+                VP_RENDER_CHK_STATUS_RETURN(GenG22EOTFLUT_1K(m_EOTF, EOTF_LUT_SIZE));  //generage 1K EOTF Lut
+                VP_RENDER_NORMALMESSAGE("Generate 1 K EOTF Lut for gamma2.2 to linear convert.");
+            }
 
-        for (i = 0; i < EOTF_LUT_SIZE * 4 && numpoint < EOTF_LUT_SIZE; i = i + 4)
-        {
-            m_IndirectStateLut[i]     = 0;
-            m_IndirectStateLut[i + 1] = m_IndirectStateLut[i + 2] = m_IndirectStateLut[i + 3] = m_EOTF[numpoint];  //reserved[0:31], R[32:63], G[64:95], B[96:127]
-            numpoint++;
-        }
+            for (i = 0; i < EOTF_LUT_SIZE * 4 && numpoint < EOTF_LUT_SIZE; i = i + 4)
+            {
+                m_IndirectStateLut[i]     = 0;
+                m_IndirectStateLut[i + 1] = m_IndirectStateLut[i + 2] = m_IndirectStateLut[i + 3] = m_EOTF[numpoint];  //reserved[0:31], R[32:63], G[64:95], B[96:127]
+                numpoint++;
+            }
 
-        //CCM struct is VEBOX_CCM_STATE_CMD, S4.22
-        if (IS_COLOR_SPACE_BT2020(m_renderData.SfcInputCspace))
-        {
-            VP_RENDER_NORMALMESSAGE("CCM Covert bt2020 to bt709.");
-            m_IndirectStateLut[i] = (uint32_t)(1.660490254890140 * uCoeffValue);
-            i++;
-            m_IndirectStateLut[i] = (uint32_t)(-0.587638564717282 * uCoeffValue);
-            i++;
-            m_IndirectStateLut[i] = (uint32_t)(-0.072851975229213 * uCoeffValue);
-            i++;
-            m_IndirectStateLut[i] = (uint32_t)(-0.124550248621850 * uCoeffValue);
-            i++;
-            m_IndirectStateLut[i] = (uint32_t)(1.132898753013895 * uCoeffValue);
-            i++;
-            m_IndirectStateLut[i] = (uint32_t)(-0.008347895599309 * uCoeffValue);
-            i++;
-            m_IndirectStateLut[i] = (uint32_t)(-0.018151059958635 * uCoeffValue);
-            i++;
-            m_IndirectStateLut[i] = (uint32_t)(-0.100578696221493 * uCoeffValue);
-            i++;
-            m_IndirectStateLut[i] = (uint32_t)(1.118729865913540 * uCoeffValue);
-            i++;
-            m_IndirectStateLut[i] = 0;
-            i++;
-            m_IndirectStateLut[i] = 0;
-            i++;
-            m_IndirectStateLut[i] = 0;
-            i++;
-            m_IndirectStateLut[i] = 0;
-            i++;
-            m_IndirectStateLut[i] = 0;
-            i++;
-            m_IndirectStateLut[i] = 0;
-        }
-        else
-        {
-            VP_RENDER_NORMALMESSAGE("CCM Covert identity.");
-            m_IndirectStateLut[i] = (uint32_t)(1.0 * uCoeffValue);
-            i++;
-            m_IndirectStateLut[i] = (uint32_t)(0   * uCoeffValue);
-            i++;
-            m_IndirectStateLut[i] = (uint32_t)(0   * uCoeffValue);
-            i++;
-            m_IndirectStateLut[i] = (uint32_t)(0   * uCoeffValue);
-            i++;
-            m_IndirectStateLut[i] = (uint32_t)(1.0 * uCoeffValue);
-            i++;
-            m_IndirectStateLut[i] = (uint32_t)(0   * uCoeffValue);
-            i++;
-            m_IndirectStateLut[i] = (uint32_t)(0   * uCoeffValue);
-            i++;
-            m_IndirectStateLut[i] = (uint32_t)(0   * uCoeffValue);
-            i++;
-            m_IndirectStateLut[i] = (uint32_t)(1.0 * uCoeffValue);
-            i++;
-            m_IndirectStateLut[i] = 0;
-            i++;
-            m_IndirectStateLut[i] = 0;
-            i++;
-            m_IndirectStateLut[i] = 0;
-            i++;
-            m_IndirectStateLut[i] = 0;
-            i++;
-            m_IndirectStateLut[i] = 0;
-            i++;
-            m_IndirectStateLut[i] = 0;
-        }
+             //CCM struct is VEBOX_CCM_STATE_CMD, S4.22
+            if (IS_COLOR_SPACE_BT2020(m_renderData.SfcInputCspace))
+            {
+                VP_RENDER_NORMALMESSAGE("CCM Covert bt2020 to bt709.");
+                m_IndirectStateLut[i] = (uint32_t)(1.660490254890140 * uCoeffValue);
+                i++;
+                m_IndirectStateLut[i] = (uint32_t)(-0.587638564717282 * uCoeffValue);
+                i++;
+                m_IndirectStateLut[i] = (uint32_t)(-0.072851975229213 * uCoeffValue);
+                i++;
+                m_IndirectStateLut[i] = (uint32_t)(-0.124550248621850 * uCoeffValue);
+                i++;
+                m_IndirectStateLut[i] = (uint32_t)(1.132898753013895 * uCoeffValue);
+                i++;
+                m_IndirectStateLut[i] = (uint32_t)(-0.008347895599309 * uCoeffValue);
+                i++;
+                m_IndirectStateLut[i] = (uint32_t)(-0.018151059958635 * uCoeffValue);
+                i++;
+                m_IndirectStateLut[i] = (uint32_t)(-0.100578696221493 * uCoeffValue);
+                i++;
+                m_IndirectStateLut[i] = (uint32_t)(1.118729865913540 * uCoeffValue);
+                i++;
+                m_IndirectStateLut[i] = 0;
+                i++;
+                m_IndirectStateLut[i] = 0;
+                i++;
+                m_IndirectStateLut[i] = 0;
+                i++;
+                m_IndirectStateLut[i] = 0;
+                i++;
+                m_IndirectStateLut[i] = 0;
+                i++;
+                m_IndirectStateLut[i] = 0;
+            }
+            else
+            {
+                VP_RENDER_NORMALMESSAGE("CCM Covert identity.");
+                m_IndirectStateLut[i] = (uint32_t)(1.0 * uCoeffValue);
+                i++;
+                m_IndirectStateLut[i] = (uint32_t)(0 * uCoeffValue);
+                i++;
+                m_IndirectStateLut[i] = (uint32_t)(0 * uCoeffValue);
+                i++;
+                m_IndirectStateLut[i] = (uint32_t)(0 * uCoeffValue);
+                i++;
+                m_IndirectStateLut[i] = (uint32_t)(1.0 * uCoeffValue);
+                i++;
+                m_IndirectStateLut[i] = (uint32_t)(0 * uCoeffValue);
+                i++;
+                m_IndirectStateLut[i] = (uint32_t)(0 * uCoeffValue);
+                i++;
+                m_IndirectStateLut[i] = (uint32_t)(0 * uCoeffValue);
+                i++;
+                m_IndirectStateLut[i] = (uint32_t)(1.0 * uCoeffValue);
+                i++;
+                m_IndirectStateLut[i] = 0;
+                i++;
+                m_IndirectStateLut[i] = 0;
+                i++;
+                m_IndirectStateLut[i] = 0;
+                i++;
+                m_IndirectStateLut[i] = 0;
+                i++;
+                m_IndirectStateLut[i] = 0;
+                i++;
+                m_IndirectStateLut[i] = 0;
+            }
 
-        uint8_t *indirectStateBuffer = (uint8_t *)m_allocator->LockResourceForWrite(&m_sfcIndirectState->osSurface->OsResource);
-        if (indirectStateBuffer)
-        {
-            MOS_SecureMemcpy(
-                indirectStateBuffer,
-                m_sizeOfSfcIndirectState,
-                m_IndirectStateLut,
-                m_sizeOfSfcIndirectState);
+            uint8_t *indirectStateBuffer = (uint8_t *)m_allocator->LockResourceForWrite(&m_sfcIndirectState->osSurface->OsResource);
+            if (indirectStateBuffer)
+            {
+                MOS_SecureMemcpy(
+                    indirectStateBuffer,
+                    m_sizeOfSfcIndirectState,
+                    m_IndirectStateLut,
+                    m_sizeOfSfcIndirectState);
+            }
+            VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->UnLock(&m_sfcIndirectState->osSurface->OsResource));
         }
-        VP_PUBLIC_CHK_STATUS_RETURN(m_allocator->UnLock(&m_sfcIndirectState->osSurface->OsResource));
     }
 
     return eStatus;

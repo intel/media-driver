@@ -123,6 +123,7 @@ protected:
     uint32_t    m_sizeOfSfcIndirectState = (SIZE_OF_EOTF + SIZE_OF_CCM) * sizeof(uint32_t);
     uint32_t   *m_EOTF = nullptr;
     uint32_t   *m_IndirectStateLut = nullptr;
+    MEDIA_CSPACE m_CurrentCSpaceForIndirectState = CSpace_None;
 
 MEDIA_CLASS_DEFINE_END(vp__SfcRenderXe3P_Lpm_Base)
 };
