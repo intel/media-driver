@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -19,15 +19,16 @@
 * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 * OTHER DEALINGS IN THE SOFTWARE.
 */
+
 //!
-//! \file     decode_vp9_buffer_update.h
-//! \brief    Defines the interface for vp9 buffer update
-//! \details  Defines the interface to handle the vp9 buffer update for
-//!           segment id buffer and probability buffer.
+//! \file     decode_vp9_buffer_update_post.h
+//! \brief    Defines the interface for vp9 decode post-processing buffer update sub pipeline
+//! \details  Defines the interface to handle the post-decode buffer update operations
+//!           for VP9 decode pipeline when mismatch order programming is enabled
 //!
 
-#ifndef __DECODE_VP9_BUFFER_UPDATE_H__
-#define __DECODE_VP9_BUFFER_UPDATE_H__
+#ifndef __DECODE_VP9_BUFFER_UPDATE_POST_H__
+#define __DECODE_VP9_BUFFER_UPDATE_POST_H__
 
 #include "decode_packet_id.h"
 #include "decode_resource_array.h"
@@ -35,26 +36,25 @@
 #include "codec_def_decode.h"
 #include "media_feature_manager.h"
 #include "decode_vp9_pipeline.h"
-#include "decode_huc_packet_creator_base.h" 
+#include "decode_huc_packet_creator_base.h"
 
 namespace decode {
 
-class DecodeVp9BufferUpdate : public DecodeSubPipeline
+class DecodeVp9BufferUpdatePost : public DecodeSubPipeline
 {
 public:
     //!
-    //! \brief  Decode input bitstream constructor
+    //! \brief  Decode VP9 buffer update post constructor
     //!
-    DecodeVp9BufferUpdate(Vp9Pipeline* pipeline, MediaTask* task, uint8_t numVdbox);
+    DecodeVp9BufferUpdatePost(Vp9Pipeline* pipeline, MediaTask* task, uint8_t numVdbox);
 
     //!
-    //! \brief  Decode input bitstream destructor
+    //! \brief  Decode VP9 buffer update post destructor
     //!
-    virtual ~DecodeVp9BufferUpdate();
+    virtual ~DecodeVp9BufferUpdatePost();
 
     //!
-    //! \brief  Initialize the bitstream context
-    //!
+    //! \brief  Initialize the buffer update post sub pipeline
     //! \param  [in] settings
     //!         Reference to the Codechal settings
     //! \return MOS_STATUS
@@ -78,11 +78,9 @@ public:
     //!
     MediaFunction GetMediaFunction() override;
 
-    DeclareDecodePacketId(HucVp9ProbUpdatePktId);
-   
 protected:
     //!
-    //! \brief  Reset the bitstream context for each frame
+    //! \brief  Reset the buffer update post context for each frame
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
@@ -93,39 +91,20 @@ protected:
     //!
     virtual void InitScalabilityPars(PMOS_INTERFACE osInterface) override;
 
-    //!
-    //! \brief  Allocate segment id and probability init buffer
-    //! \param  [in] allocSize
-    //!         Allocate size for segment id init buffer
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS AllocateSegmentInitBuffer(uint32_t allocSize);
-
-    //!
-    //! \brief  Allocate probability default buffers for key and non-key frames
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS AllocateProbDefaultBuffer();
-
-    MOS_STATUS ProbBufFullUpdatewithDrv();
-    MOS_STATUS ProbBufferPartialUpdatewithDrv();
-    MOS_STATUS ContextBufferInit(uint8_t *ctxBuffer, bool setToKey);
+    MOS_STATUS AllocateTempBuffer();
     MOS_STATUS CtxBufDiffInit(uint8_t *ctxBuffer, bool setToKey);
 
 protected:
     Vp9BasicFeature  *m_basicFeature   = nullptr; //!< Vp9 basic feature
     DecodeAllocator  *m_allocator      = nullptr; //!< Resource allocator
+    HucCopyPktItf    *m_probbufferResetPostPkt = nullptr;  //!< Segment id reset packet
+    PMOS_BUFFER       m_tempDefaultProbBuffer  = nullptr;
+    PMOS_BUFFER       m_tempFrameTypeKeyBuffer = nullptr;
+    PMOS_BUFFER       m_tempFrameTypeNonKeyBuffer = nullptr;
 
-    HucCopyPktItf     *m_sgementbufferResetPkt = nullptr;  //!< Segment id reset packet
-    PMOS_BUFFER        m_segmentInitBuffer     = nullptr; //!< Segment id init buffer
-    PMOS_BUFFER        m_tempVp9ResetFullKeyDefaultProbBuffer = nullptr; //!< Temporary buffer for key frame default probability values
-    PMOS_BUFFER        m_tempVp9ResetFullNonKeyDefaultProbBuffer = nullptr; //!< Temporary buffer for non-key frame default probability values
-
-MEDIA_CLASS_DEFINE_END(decode__DecodeVp9BufferUpdate)
+MEDIA_CLASS_DEFINE_END(decode__DecodeVp9BufferUpdatePost)
 };
 
-}
+}  // namespace decode
 
-#endif
+#endif  // !__DECODE_VP9_BUFFER_UPDATE_POST_H__

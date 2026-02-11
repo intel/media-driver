@@ -103,7 +103,8 @@ public:
     PMOS_BUFFER m_resVp9SegmentIdBuffer;  //!< Handle of VP9 Segment ID surface
 
     PMOS_BUFFER m_resVp9ProbBuffer[CODEC_VP9_NUM_CONTEXTS + 1]  = {};
-    PMOS_BUFFER m_resVp9MvTemporalBuffer[CODECHAL_VP9_NUM_MV_BUFFERS] = {};  //!< Handle of VP9 MV Temporal buffer
+    PMOS_BUFFER m_resVp9MvTemporalBuffer[CODECHAL_DECODE_VP9_MAX_NUM_REF_FRAME + 1] = {};  //!< Handle of VP9 MV Temporal buffer
+    PMOS_BUFFER m_resVp9FrameStatusBuffer;                                           //!< Handle of VP9 MV Temporal buffer
     uint8_t     m_curMvTempBufIdx = 0;                                               //!< Current mv temporal buffer index
     uint8_t     m_colMvTempBufIdx = 0;                                               //!< Colocated mv temporal buffer index
 
@@ -136,7 +137,8 @@ public:
             uint8_t KeyFrame : 1;       //!< [0..1]
             uint8_t IntraOnly : 1;      //!< [0..1]
             uint8_t Display : 1;        //!< [0..1]
-            uint8_t ReservedField : 5;  //!< [0]
+            uint8_t VkFrameType : 1;    // [0..1]
+            uint8_t ReservedField : 4;  //!< [0]
         } fields;
         uint8_t value;
     } m_prevFrameParams;  //!< Previous frame parameters

@@ -74,6 +74,11 @@ namespace decode
         MOS_STATUS CalculatePictureStateCommandSize();
 
         MOS_STATUS AddAllCmds_HCP_PIPE_MODE_SELECT(MOS_COMMAND_BUFFER &cmdBuffer);
+
+        MOS_STATUS Init2ndLevelCmdBuffer(MHW_BATCH_BUFFER &batchBuffer, uint8_t *batchBufBase);
+
+        MOS_STATUS Pack2ndLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer, bool bLastIsKeyFrame);
+
         MHW_SETPAR_DECL_HDR(HCP_PIPE_MODE_SELECT);
         MHW_SETPAR_DECL_HDR(HCP_PIPE_BUF_ADDR_STATE);
         MHW_SETPAR_DECL_HDR(HCP_VP9_PIC_STATE);

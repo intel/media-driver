@@ -45,6 +45,15 @@ DecodeVp9BufferUpdate::~DecodeVp9BufferUpdate()
     if (m_allocator != nullptr)
     {
         m_allocator->Destroy(m_segmentInitBuffer);
+
+        if (m_tempVp9ResetFullKeyDefaultProbBuffer)
+        {
+            m_allocator->Destroy(m_tempVp9ResetFullKeyDefaultProbBuffer);
+        }
+        if (m_tempVp9ResetFullNonKeyDefaultProbBuffer)
+        {
+            m_allocator->Destroy(m_tempVp9ResetFullNonKeyDefaultProbBuffer);
+        }
     }
 }
 
@@ -82,6 +91,11 @@ MOS_STATUS DecodeVp9BufferUpdate::Init(CodechalSetting &settings)
     DECODE_CHK_STATUS(RegisterPacket(DecodePacketId(this, HucVp9ProbUpdatePktId), *probUpdatePkt));
     DECODE_CHK_STATUS(probUpdatePkt->Init());
 
+    if (m_basicFeature->m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+    {
+        DECODE_CHK_STATUS(AllocateProbDefaultBuffer());
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -91,7 +105,9 @@ MOS_STATUS DecodeVp9BufferUpdate::Prepare(DecodePipelineParams &params)
     {
         DECODE_CHK_STATUS(Begin());
 
-        if (m_basicFeature->m_resetSegIdBuffer)
+        if ((m_basicFeature->m_resetSegIdBuffer && !m_basicFeature->m_osInterface->pfnIsMismatchOrderProgrammingSupported()) ||
+            ((!m_basicFeature->m_vp9PicParams->PicFlags.fields.frame_type || m_basicFeature->m_vp9PicParams->PicFlags.fields.intra_only) &&
+                m_basicFeature->m_osInterface->pfnIsMismatchOrderProgrammingSupported()))
         {
             DECODE_CHK_NULL(m_basicFeature->m_resVp9SegmentIdBuffer);
             uint32_t allocSize = m_basicFeature->m_resVp9SegmentIdBuffer->size;
@@ -196,13 +212,33 @@ MOS_STATUS DecodeVp9BufferUpdate ::ProbBufferPartialUpdatewithDrv()
         {
             if (m_basicFeature->m_probUpdateFlags.bResetFull)
             {
-                DECODE_CHK_STATUS(ContextBufferInit(
-                    data, (m_basicFeature->m_probUpdateFlags.bResetKeyDefault ? true : false)));
+                if (m_basicFeature->m_osInterface->pfnIsMismatchOrderProgrammingSupported() &&
+                   (!m_basicFeature->m_vp9PicParams->PicFlags.fields.frame_type || m_basicFeature->m_vp9PicParams->PicFlags.fields.intra_only))
+                {
+                    HucCopyPktItf::HucCopyParams copyParams;
+                    copyParams.srcBuffer = m_basicFeature->m_probUpdateFlags.bResetKeyDefault ?
+                        (&m_tempVp9ResetFullKeyDefaultProbBuffer->OsResource) : (&m_tempVp9ResetFullNonKeyDefaultProbBuffer->OsResource);
+                    copyParams.srcOffset  = 0;
+                    copyParams.destBuffer = &(m_basicFeature->m_resVp9ProbBuffer[m_basicFeature->m_frameCtxIdx]->OsResource);
+                    copyParams.destOffset = 0;
+                    copyParams.copyLength = CODEC_VP9_SEG_PROB_OFFSET;
+                    m_sgementbufferResetPkt->PushCopyParams(copyParams);
+
+                    DECODE_CHK_STATUS(ActivatePacket(DecodePacketId(m_pipeline, hucCopyPacketId), true, 0, 0));
+                }
+                else
+                {
+                    DECODE_CHK_STATUS(ContextBufferInit(
+                        data, (m_basicFeature->m_probUpdateFlags.bResetKeyDefault ? true : false)));
+                }
             }
             else
             {
-                DECODE_CHK_STATUS(CtxBufDiffInit(
-                    data, (m_basicFeature->m_probUpdateFlags.bResetKeyDefault ? true : false)));
+                 if (!m_basicFeature->m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+                {
+                    DECODE_CHK_STATUS(CtxBufDiffInit(
+                      data, (m_basicFeature->m_probUpdateFlags.bResetKeyDefault ? true : false)));
+                }
             }
         }
 
@@ -614,8 +650,46 @@ MOS_STATUS DecodeVp9BufferUpdate::AllocateSegmentInitBuffer(uint32_t allocSize)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS DecodeVp9BufferUpdate::AllocateProbDefaultBuffer()
+{
+    DECODE_CHK_NULL(m_allocator);
+
+    // Allocate and initialize key frame default probability buffer
+    m_tempVp9ResetFullKeyDefaultProbBuffer = m_allocator->AllocateBuffer(
+        MOS_ALIGN_CEIL(CODEC_VP9_PROB_MAX_NUM_ELEM, CODECHAL_PAGE_SIZE), "tempVp9ResetFullKeyDefaultProbBuffer",
+        resourceInternalRead, lockableVideoMem);
+    DECODE_CHK_NULL(m_tempVp9ResetFullKeyDefaultProbBuffer);
+
+    {
+        ResourceAutoLock resLock(m_allocator, &(m_tempVp9ResetFullKeyDefaultProbBuffer->OsResource));
+        auto data = (uint8_t *)resLock.LockResourceForWrite();
+        DECODE_CHK_NULL(data);
+        DECODE_CHK_STATUS(ContextBufferInit(data, true));
+    }
+
+    // Allocate and initialize non-key frame default probability buffer
+    m_tempVp9ResetFullNonKeyDefaultProbBuffer = m_allocator->AllocateBuffer(
+        MOS_ALIGN_CEIL(CODEC_VP9_PROB_MAX_NUM_ELEM, CODECHAL_PAGE_SIZE), "tempVp9ResetFullNonKeyDefaultProbBuffer",
+        resourceInternalRead, lockableVideoMem);
+    DECODE_CHK_NULL(m_tempVp9ResetFullNonKeyDefaultProbBuffer);
+
+    {
+        ResourceAutoLock resLock(m_allocator, &(m_tempVp9ResetFullNonKeyDefaultProbBuffer->OsResource));
+        auto data = (uint8_t *)resLock.LockResourceForWrite();
+        DECODE_CHK_NULL(data);
+        DECODE_CHK_STATUS(ContextBufferInit(data, false));
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MediaFunction DecodeVp9BufferUpdate::GetMediaFunction()
 {
+    // WA for Vulkan, currently only support one MOS_GPU_CONTEXT_VIDEO.
+    if (m_basicFeature->m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+    {
+        return VdboxDecodeFunc;
+    }
     return VdboxDecodeWaFunc;
 }
 

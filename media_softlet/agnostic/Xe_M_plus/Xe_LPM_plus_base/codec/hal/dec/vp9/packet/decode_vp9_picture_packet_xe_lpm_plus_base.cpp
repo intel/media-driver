@@ -30,6 +30,7 @@
 #include "codec_hw_xe_lpm_plus_base.h"
 #include "mhw_vdbox_hcp_hwcmd_xe_lpm_plus.h"
 #include "mhw_mi_hwcmd_xe_lpm_plus_base_next.h"
+#include "decode_resource_auto_lock.h"
 
 using namespace mhw::vdbox::xe_lpm_plus_base;
 
@@ -69,6 +70,84 @@ namespace decode
         SETPAR_AND_ADDCMD(HCP_PIPE_BUF_ADDR_STATE, m_hcpItf, &cmdBuffer);
         SETPAR_AND_ADDCMD(HCP_IND_OBJ_BASE_ADDR_STATE, m_hcpItf, &cmdBuffer);
         DECODE_CHK_STATUS(AddAllCmds_HCP_VP9_SEGMENT_STATE(cmdBuffer));
+
+        if (!m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+        {
+            SETPAR_AND_ADDCMD(HCP_VP9_PIC_STATE, m_hcpItf, &cmdBuffer);
+        }
+        else
+        {
+            // prepare 2nd level chained BB for two frame types
+            {
+                m_batchBufferForKeyFrame = m_secondLevelBBArray->Fetch();
+                if (m_batchBufferForKeyFrame != nullptr)
+                {
+                    ResourceAutoLock resLock(m_allocator, &m_batchBufferForKeyFrame->OsResource);
+                    uint8_t         *batchBufBase = (uint8_t *)resLock.LockResourceForWrite();
+                    DECODE_CHK_NULL(batchBufBase);
+                    DECODE_CHK_STATUS(Init2ndLevelCmdBuffer(*m_batchBufferForKeyFrame, batchBufBase));
+
+                    m_picStateCmdBuffer.cmdBuf1stLvl                        = &cmdBuffer;
+                    m_vp9BasicFeature->m_prevFrameParams.fields.VkFrameType = 1;
+                    DECODE_CHK_STATUS(Pack2ndLevelCmds(m_picStateCmdBuffer, false));
+                    DECODE_CHK_STATUS(m_miItf->AddMiBatchBufferEnd(&m_picStateCmdBuffer, nullptr));
+                }
+                DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_BATCH_BUFFER_START(&cmdBuffer, m_batchBufferForKeyFrame));
+            }
+
+            {
+                m_batchBufferForNonKeyFrame = m_secondLevelBBArray->Fetch();
+                if (m_batchBufferForNonKeyFrame != nullptr)
+                {
+                    ResourceAutoLock resLock(m_allocator, &m_batchBufferForNonKeyFrame->OsResource);
+                    uint8_t         *batchBufBase = (uint8_t *)resLock.LockResourceForWrite();
+                    DECODE_CHK_NULL(batchBufBase);
+                    DECODE_CHK_STATUS(Init2ndLevelCmdBuffer(*m_batchBufferForNonKeyFrame, batchBufBase));
+
+                    m_picStateCmdBuffer.cmdBuf1stLvl = &cmdBuffer;
+                    m_vp9BasicFeature->m_prevFrameParams.fields.VkFrameType = 0;
+                    DECODE_CHK_STATUS(Pack2ndLevelCmds(m_picStateCmdBuffer, true));
+                    DECODE_CHK_STATUS(m_miItf->AddMiBatchBufferEnd(&m_picStateCmdBuffer, nullptr));
+                }
+                DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_BATCH_BUFFER_START(&cmdBuffer, m_batchBufferForNonKeyFrame));
+            }
+        }
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS Vp9DecodePicPktXe_Lpm_Plus_Base::Init2ndLevelCmdBuffer(MHW_BATCH_BUFFER &batchBuffer, uint8_t *batchBufBase)
+    {
+        DECODE_FUNC_CALL();
+
+        auto &cmdBuffer = m_picStateCmdBuffer;
+        MOS_ZeroMemory(&cmdBuffer, sizeof(MOS_COMMAND_BUFFER));
+        cmdBuffer.pCmdBase   = (uint32_t *)batchBufBase;
+        cmdBuffer.pCmdPtr    = cmdBuffer.pCmdBase;
+        cmdBuffer.iRemaining = batchBuffer.iSize;
+        cmdBuffer.OsResource = batchBuffer.OsResource;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS Vp9DecodePicPktXe_Lpm_Plus_Base::Pack2ndLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer, bool bLastIsKeyFrame)
+    {
+        DECODE_FUNC_CALL();
+
+        CodechalHwInterfaceXe_Lpm_Plus_Base *hwInterface = dynamic_cast<CodechalHwInterfaceXe_Lpm_Plus_Base *>(m_hwInterface);
+        DECODE_CHK_NULL(hwInterface);
+
+        uint32_t compareOperation = mhw::mi::xe_lpm_plus_base_next::Cmd::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::COMPARE_OPERATION::COMPARE_OPERATION_MADEQUALIDD;
+
+        if (bLastIsKeyFrame)
+        {
+            DECODE_CHK_STATUS(hwInterface->SendCondBbEndCmd(
+                &m_vp9BasicFeature->m_resVp9FrameStatusBuffer->OsResource, 0, 1, true, true, compareOperation, &cmdBuffer));
+        }
+        else
+        {
+            DECODE_CHK_STATUS(hwInterface->SendCondBbEndCmd(
+                &m_vp9BasicFeature->m_resVp9FrameStatusBuffer->OsResource, 0, 0, true, true, compareOperation, &cmdBuffer));
+        }
         SETPAR_AND_ADDCMD(HCP_VP9_PIC_STATE, m_hcpItf, &cmdBuffer);
 
         return MOS_STATUS_SUCCESS;

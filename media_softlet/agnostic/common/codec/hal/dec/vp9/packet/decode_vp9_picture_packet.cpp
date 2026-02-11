@@ -62,6 +62,13 @@ MOS_STATUS Vp9DecodePicPkt::FreeResources()
         m_allocator->Destroy(m_resIntraPredLeftReconColStoreBuffer);
         m_allocator->Destroy(m_resCABACSyntaxStreamOutBuffer);
         m_allocator->Destroy(m_resCABACStreamOutSizeBuffer);
+
+        // Cleanup 2nd level batch buffer array for mismatch order programming
+        if (m_osInterface->pfnIsMismatchOrderProgrammingSupported() && m_secondLevelBBArray != nullptr)
+        {
+            m_allocator->Destroy(m_secondLevelBBArray);
+            m_secondLevelBBArray = nullptr;
+        }
     }
 
     return MOS_STATUS_SUCCESS;
@@ -93,6 +100,22 @@ MOS_STATUS Vp9DecodePicPkt::Init()
     // DECODE_CHK_STATUS(m_statusReport->RegistObserver(this));
 
     DECODE_CHK_STATUS(AllocateFixedResources());
+
+    // Allocate 2nd level batch buffer array for mismatch order programming
+    if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+    {
+        // Calculate picture state size for 2nd level batch buffer
+        uint32_t picStateSize = 0;
+        picStateSize += m_miItf->MHW_GETSIZE_F(MI_CONDITIONAL_BATCH_BUFFER_END)();
+        picStateSize += m_hcpItf->MHW_GETSIZE_F(HCP_VP9_PIC_STATE)();
+
+        if (m_secondLevelBBArray == nullptr)
+        {
+            m_secondLevelBBArray = m_allocator->AllocateBatchBufferArray(
+                picStateSize, 1, 32, true, lockableVideoMem);
+            DECODE_CHK_NULL(m_secondLevelBBArray);
+        }
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -608,7 +631,11 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, Vp9DecodePicPkt)
     {
         params.presCurMvTempBuffer = &(m_vp9BasicFeature->m_resVp9MvTemporalBuffer[m_vp9BasicFeature->m_curMvTempBufIdx]->OsResource);
 
-        if (!m_vp9BasicFeature->m_prevFrameParams.fields.KeyFrame && !m_vp9PicParams->PicFlags.fields.intra_only)
+        if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+        {
+            params.presColMvTempBuffer[0] = &(m_vp9BasicFeature->m_resVp9MvTemporalBuffer[m_vp9BasicFeature->m_colMvTempBufIdx]->OsResource);
+        }
+        else if (!m_vp9BasicFeature->m_prevFrameParams.fields.KeyFrame && !m_vp9PicParams->PicFlags.fields.intra_only)
         {
             params.presColMvTempBuffer[0] = &(m_vp9BasicFeature->m_resVp9MvTemporalBuffer[m_vp9BasicFeature->m_colMvTempBufIdx]->OsResource);
         }
@@ -769,6 +796,17 @@ MHW_SETPAR_DECL_SRC(HCP_VP9_PIC_STATE, Vp9DecodePicPkt)
         uint32_t altRefFrameWidth  = vp9RefList[altRefPicIndex]->dwFrameWidth;
         uint32_t altRefFrameHeight = vp9RefList[altRefPicIndex]->dwFrameHeight;
 
+        // Mismatch order cannot retrieve correct reference frame size from refList, retrieve directly from picture params
+        if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+        {
+            lastRefFrameWidth = m_vp9PicParams->LastFrameWidthMinus1 ? m_vp9PicParams->LastFrameWidthMinus1 + 1 : lastRefFrameWidth;
+            lastRefFrameHeight = m_vp9PicParams->LastFrameHeightMinus1 ? m_vp9PicParams->LastFrameHeightMinus1 + 1 : lastRefFrameHeight;
+            goldenRefFrameWidth = m_vp9PicParams->GoldenFrameWidthMinus1 ? m_vp9PicParams->GoldenFrameWidthMinus1 + 1 : goldenRefFrameWidth;
+            goldenRefFrameHeight = m_vp9PicParams->GoldenFrameHeightMinus1 ? m_vp9PicParams->GoldenFrameHeightMinus1 + 1 : goldenRefFrameHeight;
+            altRefFrameWidth = m_vp9PicParams->AltFrameWidthMinus1 ? m_vp9PicParams->AltFrameWidthMinus1 + 1 : altRefFrameWidth;
+            altRefFrameHeight = m_vp9PicParams->AltFrameHeightMinus1 ? m_vp9PicParams->AltFrameHeightMinus1 + 1 : altRefFrameHeight;
+        }
+
         params.allowHiPrecisionMv         = m_vp9PicParams->PicFlags.fields.allow_high_precision_mv;
         params.mcompFilterType            = m_vp9PicParams->PicFlags.fields.mcomp_filter_type;
         params.segmentationTemporalUpdate = params.segmentationUpdateMap && m_vp9PicParams->PicFlags.fields.segmentation_temporal_update;
@@ -778,20 +816,33 @@ MHW_SETPAR_DECL_SRC(HCP_VP9_PIC_STATE, Vp9DecodePicPkt)
                                     (m_vp9PicParams->PicFlags.fields.AltRefSignBias << 2);
 
         params.lastFrameType = !prevFramePar.fields.KeyFrame;
-
-        // Reset UsePrevInFindMvReferences to zero if last picture has a different size,
-        // Current picture is error-resilient mode, Last picture was intra_only or keyframe,
-        // Last picture was not a displayed picture.
-        params.usePrevInFindMvReferences =
-            !(m_vp9PicParams->PicFlags.fields.error_resilient_mode ||
-            prevFramePar.fields.KeyFrame  ||
-            prevFramePar.fields.IntraOnly ||
-            !prevFramePar.fields.Display);
-
-        // Reset UsePrevInFindMvReferences in case of resolution change on inter frames
-        if (isScaling)
+        if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
         {
-            params.usePrevInFindMvReferences = 0;
+            params.lastFrameType = !prevFramePar.fields.VkFrameType;
+        }
+
+        // For mismatch order mode, use picture parameter directly for usePrevInFindMvReferences
+        if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+        {
+            params.usePrevInFindMvReferences =
+                m_vp9PicParams->PicFlags.fields.usePrevInFindMvReferences;
+        }
+        else
+        {
+            // Reset UsePrevInFindMvReferences to zero if last picture has a different size,
+            // Current picture is error-resilient mode, Last picture was intra_only or keyframe,
+            // Last picture was not a displayed picture.
+            params.usePrevInFindMvReferences =
+                !(m_vp9PicParams->PicFlags.fields.error_resilient_mode ||
+                prevFramePar.fields.KeyFrame  ||
+                prevFramePar.fields.IntraOnly ||
+                !prevFramePar.fields.Display);
+
+            // Reset UsePrevInFindMvReferences in case of resolution change on inter frames
+            if (isScaling)
+            {
+                params.usePrevInFindMvReferences = 0;
+            }
         }
 
         params.horizontalScaleFactorForLast    = (lastRefFrameWidth * m_vp9ScalingFactor) / curFrameWidth;
@@ -816,8 +867,13 @@ MHW_SETPAR_DECL_SRC(HCP_BSD_OBJECT, Vp9DecodePicPkt)
     DECODE_FUNC_CALL();
 
     params.bsdDataLength      = m_vp9PicParams->BSBytesInBuffer - m_vp9PicParams->UncompressedHeaderLengthInBytes;
-    params.bsdDataStartOffset = m_vp9PicParams->UncompressedHeaderLengthInBytes; // already defined in HEVC patch
-
+    if(m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+    {
+        params.bsdDataStartOffset = m_vp9PicParams->UncompressedHeaderLengthInBytes + m_vp9PicParams->UncompressedHeaderOffset;
+    }
+    else{
+         params.bsdDataStartOffset = m_vp9PicParams->UncompressedHeaderLengthInBytes;
+    }
     return MOS_STATUS_SUCCESS;
 }
 

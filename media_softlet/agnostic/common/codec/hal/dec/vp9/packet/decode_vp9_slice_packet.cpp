@@ -69,8 +69,15 @@ namespace decode
         params = {};
 
         params.bsdDataLength      = m_vp9PicParams->BSBytesInBuffer - m_vp9PicParams->UncompressedHeaderLengthInBytes;
-        params.bsdDataStartOffset = m_vp9PicParams->UncompressedHeaderLengthInBytes;
-
+        // Calculate bitstream data start offset by adding uncompressed header length and offset
+        // This accounts for any additional offset in the bitstream buffer
+        if(m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+        {
+            params.bsdDataStartOffset = m_vp9PicParams->UncompressedHeaderLengthInBytes + m_vp9PicParams->UncompressedHeaderOffset;
+        }
+        else{
+            params.bsdDataStartOffset = m_vp9PicParams->UncompressedHeaderLengthInBytes;
+        }
         return MOS_STATUS_SUCCESS;
     }
 

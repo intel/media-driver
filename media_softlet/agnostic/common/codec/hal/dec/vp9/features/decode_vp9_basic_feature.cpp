@@ -78,6 +78,31 @@ Vp9BasicFeature::~Vp9BasicFeature()
         {
             m_allocator->Destroy(m_resVp9SegmentIdBuffer);
         }
+
+        if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+        {
+            if (!m_allocator->ResourceIsNull(&m_resVp9SegmentIdBuffer->OsResource))
+            {
+                m_allocator->Destroy(m_resVp9FrameStatusBuffer);
+            }
+
+            for(uint8_t i = 0; i < CODECHAL_DECODE_VP9_MAX_NUM_REF_FRAME+1; i++)
+            {
+                if (!m_allocator->ResourceIsNull(&m_resVp9MvTemporalBuffer[i]->OsResource))
+                {
+                    m_allocator->Destroy(m_resVp9MvTemporalBuffer[i]);
+                }
+            }
+        }
+        else{
+            for(uint8_t i = 0; i < CODECHAL_VP9_NUM_MV_BUFFERS; i++)
+            {
+                if (!m_allocator->ResourceIsNull(&m_resVp9MvTemporalBuffer[i]->OsResource))
+                {
+                    m_allocator->Destroy(m_resVp9MvTemporalBuffer[i]);
+                }
+            }
+        }
     }
 }
 
@@ -102,6 +127,23 @@ MOS_STATUS Vp9BasicFeature::Init(void *setting)
     DECODE_CHK_STATUS(m_refFrames.Init(this, *m_allocator));
 
     InitDefaultProbBufferTable();
+
+    // Allocate frame status buffer for mismatch order mode
+    if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+    {
+        m_resVp9FrameStatusBuffer = m_allocator->AllocateBuffer(
+            1,                              // dwBytes 
+            "Vp9FrameStatusBuffer",         // pBufName
+            resourceInternalReadWriteCache, // ResUsageType
+            lockableVideoMem);              // MemType
+        DECODE_CHK_NULL(m_resVp9FrameStatusBuffer);
+
+        // Lock the buffer for write and initialize to 0 (non-key frame)
+        ResourceAutoLock resLock(m_allocator, &m_resVp9FrameStatusBuffer->OsResource);
+        auto             data = (uint8_t *)resLock.LockResourceForWrite();
+        DECODE_CHK_NULL(data);
+        MOS_ZeroMemory(data, 1);
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -424,6 +466,7 @@ MOS_STATUS Vp9BasicFeature::AllocateVP9MVBuffer()
     uint32_t widthInSb   = MOS_ROUNDUP_DIVIDE(m_width, CODEC_VP9_SUPER_BLOCK_WIDTH);
     uint32_t heightInSb  = MOS_ROUNDUP_DIVIDE(m_height, CODEC_VP9_SUPER_BLOCK_HEIGHT);
     uint8_t  maxBitDepth = 8 + m_vp9DepthIndicator * 2;
+    uint8_t  mvBufferNum = CODECHAL_VP9_NUM_MV_BUFFERS;  // Default to 2 buffers
 
     mhw::vdbox::hcp::HcpBufferSizePar hcpBufSizeParam;
     MOS_ZeroMemory(&hcpBufSizeParam, sizeof(hcpBufSizeParam));
@@ -440,7 +483,16 @@ MOS_STATUS Vp9BasicFeature::AllocateVP9MVBuffer()
         DECODE_ASSERTMESSAGE("Failed to MvBuffer size.");
     }
 
-    for (uint8_t i = 0; i < CODECHAL_VP9_NUM_MV_BUFFERS; i++)
+    // Allocate MV temporal buffers based on platform capability:
+    // - Standard platforms: 2 buffers (ping-pong)
+    // - Mismatch order programming platforms: 9 buffers (one per reference frame + current)
+    // Check if platform supports mismatch order programming
+    if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+    {
+        mvBufferNum = CODECHAL_DECODE_VP9_MAX_NUM_REF_FRAME + 1;  // Use 9 buffers (8 ref frames + 1)
+    }
+
+    for (uint8_t i = 0; i < mvBufferNum; i++)
     {
         if (m_resVp9MvTemporalBuffer[i] == nullptr)
         {

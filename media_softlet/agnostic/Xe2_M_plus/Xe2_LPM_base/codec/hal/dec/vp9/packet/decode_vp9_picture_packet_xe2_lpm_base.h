@@ -61,6 +61,28 @@ class Vp9DecodePicPktXe2_Lpm_Base : public Vp9DecodePicPkt
         //!
         MOS_STATUS ValidateCabacStreamOutSize(MOS_COMMAND_BUFFER &cmdBuffer);
 
+        //!
+        //! \brief  Initialize the 2nd level command buffer structure
+        //! \param  [in] batchBuffer
+        //!         Batch buffer structure to initialize
+        //! \param  [in] batchBufBase
+        //!         CPU pointer to batch buffer memory
+        //! \return MOS_STATUS
+        //!         MOS_STATUS_SUCCESS if success, else fail reason
+        //!
+        MOS_STATUS Init2ndLevelCmdBuffer(MHW_BATCH_BUFFER &batchBuffer, uint8_t *batchBufBase);
+
+        //!
+        //! \brief  Pack HCP commands into 2nd level batch buffer
+        //! \param  [in] cmdBuffer
+        //!         The 2nd level command buffer to pack commands into
+        //! \param  [in] bIsKeyFrame
+        //!         Indicates if constructing for key frame (true) or non-key frame (false)
+        //! \return MOS_STATUS
+        //!         MOS_STATUS_SUCCESS if success, else fail reason
+        //!
+        MOS_STATUS Pack2ndLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer, bool bLastIsKeyFrame);
+
     protected:
         virtual MOS_STATUS VdInit(MOS_COMMAND_BUFFER &cmdBuffer);
 

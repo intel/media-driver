@@ -207,6 +207,11 @@ namespace decode
         PMOS_BUFFER m_resCABACSyntaxStreamOutBuffer                = nullptr;  //!< Handle of CABAC syntax stream out buffer
         PMOS_BUFFER m_resCABACStreamOutSizeBuffer                  = nullptr;  //!< Handle of CABAC stream out size buffer
         
+        BatchBufferArray  *m_secondLevelBBArray        = nullptr;  //!< Array of second-level batch buffers for mismatch order programming
+        PMHW_BATCH_BUFFER  m_batchBufferForKeyFrame    = nullptr;  //!< Batch buffer for key frame picture state
+        PMHW_BATCH_BUFFER  m_batchBufferForNonKeyFrame = nullptr;  //!< Batch buffer for non-key frame picture state
+        MOS_COMMAND_BUFFER m_picStateCmdBuffer         = {};       //!< Command buffer for picture state commands in second-level batch buffer
+        
         mutable uint8_t m_curHcpSurfStateId            = 0;
         PMOS_SURFACE    psSurface                      = nullptr;; // 2D surface parameters
         static const uint32_t m_vp9ScalingFactor       = (1 << 14);
@@ -225,7 +230,8 @@ namespace decode
                 uint8_t KeyFrame : 1;       // [0..1]
                 uint8_t IntraOnly : 1;      // [0..1]
                 uint8_t Display : 1;        // [0..1]
-                uint8_t ReservedField : 5;  // [0]
+                uint8_t VkFrameType : 1;    // [0..1] - Indicates if frame is from Vulkan decode path
+                uint8_t ReservedField : 4;  // [0]
             } fields;
             uint8_t value;
         } PrevFrameParams;
