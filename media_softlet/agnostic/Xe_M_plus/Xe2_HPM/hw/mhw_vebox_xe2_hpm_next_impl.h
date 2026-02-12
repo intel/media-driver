@@ -35,6 +35,7 @@
 #include "mhw_vebox_itf.h"
 #include "mhw_impl.h"
 #include "mos_solo_generic.h"
+#include "mhw_vebox_common_impl.h"
 
 namespace mhw
 {
@@ -3232,7 +3233,7 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
 
     _MHW_SETCMD_OVERRIDE_DECL(VEBOX_STATE)
     {
-       MHW_FUNCTION_ENTER;
+        MHW_FUNCTION_ENTER;
 
         _MHW_SETCMD_CALLBASE(VEBOX_STATE);
 
@@ -3240,12 +3241,8 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
         PMOS_INTERFACE                         pOsInterface;
         PMOS_CONTEXT                           pOsContext = nullptr;
         PMOS_RESOURCE                          pVeboxParamResource = nullptr;
-        PMOS_RESOURCE                          pVeboxHeapResource = nullptr;
-        MHW_VEBOX_HEAP* pVeboxHeap;
+        MHW_VEBOX_HEAP*                        pVeboxHeap;
         uint32_t                               uiInstanceBaseAddr = 0;
-        MHW_RESOURCE_PARAMS                    ResourceParams = {};
-        MOS_ALLOC_GFXRES_PARAMS                AllocParamsForBufferLinear = {};
-        uint32_t                               *pIndirectState            = nullptr;
 
         MHW_CHK_NULL_RETURN(this->m_osItf);
         MHW_CHK_NULL_RETURN(this->m_osItf->pOsContext);
@@ -3267,375 +3264,68 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
             }
             else
             {
-                pVeboxHeapResource = params.bUseVeboxHeapKernelResource ? &pVeboxHeap->KernelResource : &pVeboxHeap->DriverResource;
-
                 // Calculate the instance base address
                 uiInstanceBaseAddr = pVeboxHeap->uiInstanceSize * pVeboxHeap->uiCurState;
             }
 
-            TraceIndirectStateInfo(*this->m_currentCmdBuf, *pOsContext, params.bCmBuffer, params.bUseVeboxHeapKernelResource);
+            mhw::vebox::common::TraceIndirectStateInfo(*this->m_currentCmdBuf, *pOsContext, params.bCmBuffer, params.bUseVeboxHeapKernelResource);
 
-            MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-            if (params.bCmBuffer)
-            {
-                ResourceParams.presResource = pVeboxParamResource;
-                ResourceParams.dwOffset = pVeboxHeap->uiDndiStateOffset;
-            }
-            else
-            {
-                ResourceParams.presResource = pVeboxHeapResource;
-                ResourceParams.dwOffset = pVeboxHeap->uiDndiStateOffset + uiInstanceBaseAddr;
-            }
-            ResourceParams.pdwCmd = &(cmd.DW2.Value);
-            ResourceParams.dwLocationInCmd = 2;
-            ResourceParams.HwCommandType = MOS_VEBOX_STATE;
+            MHW_CHK_STATUS_RETURN(mhw::vebox::common::SetupVeboxDndiState<mhw::vebox::xe2_hpm_next::Cmd>(
+                cmd, pOsInterface, this->m_currentCmdBuf, pVeboxHeap,
+                uiInstanceBaseAddr, params.bCmBuffer, pVeboxParamResource,
+                pOsContext, m_veboxSettings.uiDndiStateSize, AddResourceToCmd));
 
-            MHW_CHK_STATUS_RETURN(AddResourceToCmd(
-                pOsInterface,
-                this->m_currentCmdBuf,
-                &ResourceParams));
-#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
-            if (*ResourceParams.pdwCmd != 0 || *(ResourceParams.pdwCmd + 1) != 0)
-            {
-                // add DNDI indirect state dump
-                pIndirectState = (uint32_t *)(pVeboxHeap->pLockedDriverResourceMem + ResourceParams.dwOffset);
-                pOsInterface->pfnAddIndirectState(pOsInterface,
-                    sizeof(mhw::vebox::xe2_hpm_next::Cmd::VEBOX_DNDI_STATE_CMD),
-                    pIndirectState,
-                    ResourceParams.pdwCmd,
-                    ResourceParams.pdwCmd + 1,
-                    "VEBOX_DNDI_STATE_CMD");
-            }
-#endif
-            HalOcaInterfaceNext::OnIndirectState(*this->m_currentCmdBuf, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiDndiStateSize);
+            MHW_CHK_STATUS_RETURN(mhw::vebox::common::SetupVeboxIecpState<mhw::vebox::xe2_hpm_next::Cmd>(
+                cmd, pOsInterface, this->m_currentCmdBuf, pVeboxHeap,
+                uiInstanceBaseAddr, params.bCmBuffer, pVeboxParamResource,
+                pOsContext, m_veboxSettings.uiIecpStateSize, AddResourceToCmd));
 
-            MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-            if (params.bCmBuffer)
-            {
-                ResourceParams.presResource = pVeboxParamResource;
-                ResourceParams.dwOffset = pVeboxHeap->uiIecpStateOffset;
-            }
-            else
-            {
-                ResourceParams.presResource = pVeboxHeapResource;
-                ResourceParams.dwOffset = pVeboxHeap->uiIecpStateOffset + uiInstanceBaseAddr;
-            }
-            ResourceParams.pdwCmd = &(cmd.DW4.Value);
-            ResourceParams.dwLocationInCmd = 4;
-            ResourceParams.HwCommandType = MOS_VEBOX_STATE;
-            ResourceParams.dwSharedMocsOffset = 1 - ResourceParams.dwLocationInCmd;
+            MHW_CHK_STATUS_RETURN(mhw::vebox::common::SetupVeboxHdrGamutState<mhw::vebox::xe2_hpm_next::Cmd>(
+                cmd, pOsInterface, this->m_currentCmdBuf, pVeboxHeap,
+                uiInstanceBaseAddr, params.bCmBuffer, pVeboxParamResource,
+                params.VeboxMode.Hdr1DLutEnable, pOsContext,
+                params.VeboxMode.Hdr1DLutEnable ? m_veboxSettings.uiHdrStateSize : m_veboxSettings.uiGamutStateSize,
+                AddResourceToCmd));
 
-            MHW_CHK_STATUS_RETURN(AddResourceToCmd(
-                pOsInterface,
-                this->m_currentCmdBuf,
-                &ResourceParams));
-#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
-            if (*ResourceParams.pdwCmd != 0 || *(ResourceParams.pdwCmd + 1) != 0)
-            {
-                // add IECP indirect state dump
-                pIndirectState = (uint32_t *)(pVeboxHeap->pLockedDriverResourceMem + ResourceParams.dwOffset);
-                pOsInterface->pfnAddIndirectState(pOsInterface,
-                    sizeof(mhw::vebox::xe2_hpm_next::Cmd::VEBOX_IECP_STATE_CMD),
-                    pIndirectState,
-                    ResourceParams.pdwCmd,
-                    ResourceParams.pdwCmd + 1,
-                    "VEBOX_IECP_STATE_CMD");
-            }
-#endif
+            MHW_CHK_STATUS_RETURN(mhw::vebox::common::SetupVeboxVertexTable<mhw::vebox::xe2_hpm_next::Cmd>(
+                cmd, pOsInterface, this->m_currentCmdBuf, pVeboxHeap,
+                uiInstanceBaseAddr, params.bCmBuffer, pVeboxParamResource,
+                pOsContext, m_veboxSettings.uiVertexTableSize, AddResourceToCmd));
 
-            HalOcaInterfaceNext::OnIndirectState(*this->m_currentCmdBuf, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiIecpStateSize);
+            MHW_CHK_STATUS_RETURN(mhw::vebox::common::SetupVeboxCapturePipe<mhw::vebox::xe2_hpm_next::Cmd>(
+                cmd, pOsInterface, this->m_currentCmdBuf, pVeboxHeap,
+                uiInstanceBaseAddr, params.bCmBuffer, pVeboxParamResource,
+                pOsContext, m_veboxSettings.uiCapturePipeStateSize, AddResourceToCmd));
 
-            // Gamut Expansion, HDR and Forward Gamma Correction are mutually exclusive.
-            if (params.VeboxMode.Hdr1DLutEnable)
-            {
-                // If HDR is enabled, this points to a buffer containing the HDR state.
-                MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-                if (params.bCmBuffer)
-                {
-                    ResourceParams.presResource = pVeboxParamResource;
-                    ResourceParams.dwOffset = pVeboxHeap->uiHdrStateOffset;
-                }
-                else
-                {
-                    ResourceParams.presResource = pVeboxHeapResource;
-                    ResourceParams.dwOffset = pVeboxHeap->uiHdrStateOffset + uiInstanceBaseAddr;
-                }
-                ResourceParams.pdwCmd = &(cmd.DW6.Value);
-                ResourceParams.dwLocationInCmd = 6;
-                ResourceParams.HwCommandType = MOS_VEBOX_STATE;
-                ResourceParams.dwSharedMocsOffset = 1 - ResourceParams.dwLocationInCmd;
+            MHW_CHK_STATUS_RETURN(mhw::vebox::common::SetupVeboxLaceLut<mhw::vebox::xe2_hpm_next::Cmd>(
+                cmd, pOsInterface, this->m_currentCmdBuf, params.pLaceLookUpTables, AddResourceToCmd));
 
-                MHW_CHK_STATUS_RETURN(AddResourceToCmd(
-                    pOsInterface,
-                    this->m_currentCmdBuf,
-                    &ResourceParams));
-#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
-                if (*ResourceParams.pdwCmd != 0 || *(ResourceParams.pdwCmd + 1) != 0)
-                {
-                    // add HDR indirect state dump
-                    pIndirectState = (uint32_t *)(pVeboxHeap->pLockedDriverResourceMem + ResourceParams.dwOffset);
-                    pOsInterface->pfnAddIndirectState(pOsInterface,
-                        sizeof(mhw::vebox::xe2_hpm_next::Cmd::VEBOX_HDR_STATE_CMD),
-                        pIndirectState,
-                        ResourceParams.pdwCmd,
-                        ResourceParams.pdwCmd + 1,
-                        "VEBOX_HDR_STATE_CMD");
-                }
-#endif
-                HalOcaInterfaceNext::OnIndirectState(*this->m_currentCmdBuf, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiHdrStateSize);
-            }
-            else
-            {
-                // If Gamut Expansion is enabled, this points to a buffer containing the Gamut Expansion Gamma Correction state.
-                MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-                if (params.bCmBuffer)
-                {
-                    ResourceParams.presResource = pVeboxParamResource;
-                    ResourceParams.dwOffset = pVeboxHeap->uiGamutStateOffset;
-                }
-                else
-                {
-                    ResourceParams.presResource = pVeboxHeapResource;
-                    ResourceParams.dwOffset = pVeboxHeap->uiGamutStateOffset + uiInstanceBaseAddr;
-                }
-                ResourceParams.pdwCmd = &(cmd.DW6.Value);
-                ResourceParams.dwLocationInCmd = 6;
-                ResourceParams.HwCommandType = MOS_VEBOX_STATE;
-                ResourceParams.dwSharedMocsOffset = 1 - ResourceParams.dwLocationInCmd;
+            MHW_CHK_STATUS_RETURN(mhw::vebox::common::SetupVeboxGammaCorrection<mhw::vebox::xe2_hpm_next::Cmd>(
+                cmd, pOsInterface, this->m_currentCmdBuf, pVeboxHeap,
+                uiInstanceBaseAddr, params.bCmBuffer, pVeboxParamResource,
+                pOsContext, m_veboxSettings.uiGammaCorrectionStateSize, AddResourceToCmd));
 
-                MHW_CHK_STATUS_RETURN(AddResourceToCmd(
-                    pOsInterface,
-                    this->m_currentCmdBuf,
-                    &ResourceParams));
-#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
-                if (*ResourceParams.pdwCmd != 0 || *(ResourceParams.pdwCmd + 1) != 0)
-                {
-                    // add Gamut Expansion Gamma Correctionindirect state dump
-                    pIndirectState = (uint32_t *)(pVeboxHeap->pLockedDriverResourceMem + ResourceParams.dwOffset);
-                    pOsInterface->pfnAddIndirectState(pOsInterface,
-                        sizeof(mhw::vebox::xe2_hpm_next::Cmd::Gamut_Expansion_Gamma_Correction_CMD),
-                        pIndirectState,
-                        ResourceParams.pdwCmd,
-                        ResourceParams.pdwCmd + 1,
-                        "Gamut_Expansion_Gamma_Correction_CMD");
-                }
-#endif
-
-                HalOcaInterfaceNext::OnIndirectState(*this->m_currentCmdBuf, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiGamutStateSize);
-            }
-
-            MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-            if (params.bCmBuffer)
-            {
-                ResourceParams.presResource = pVeboxParamResource;
-                ResourceParams.dwOffset = pVeboxHeap->uiVertexTableOffset;
-            }
-            else
-            {
-                ResourceParams.presResource = pVeboxHeapResource;
-                ResourceParams.dwOffset = pVeboxHeap->uiVertexTableOffset + uiInstanceBaseAddr;
-            }
-            ResourceParams.pdwCmd = &(cmd.DW8.Value);
-            ResourceParams.dwLocationInCmd = 8;
-            ResourceParams.HwCommandType = MOS_VEBOX_STATE;
-            ResourceParams.dwSharedMocsOffset = 1 - ResourceParams.dwLocationInCmd;
-
-            MHW_CHK_STATUS_RETURN(AddResourceToCmd(
-                pOsInterface,
-                this->m_currentCmdBuf,
-                &ResourceParams));
-#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
-            if (*ResourceParams.pdwCmd != 0 || *(ResourceParams.pdwCmd + 1) != 0)
-            {
-                // add Vertex Table state dump
-                pIndirectState = (uint32_t *)(pVeboxHeap->pLockedDriverResourceMem + ResourceParams.dwOffset);
-                pOsInterface->pfnAddIndirectState(pOsInterface,
-                    sizeof(mhw::vebox::xe2_hpm_next::Cmd::VEBOX_VERTEX_TABLE_CMD),
-                    pIndirectState,
-                    ResourceParams.pdwCmd,
-                    ResourceParams.pdwCmd + 1,
-                    "VEBOX_VERTEX_TABLE_CMD");
-            }
-#endif
-            HalOcaInterfaceNext::OnIndirectState(*this->m_currentCmdBuf, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiVertexTableSize);
-
-            MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-            if (params.bCmBuffer)
-            {
-                ResourceParams.presResource = pVeboxParamResource;
-                ResourceParams.dwOffset = pVeboxHeap->uiCapturePipeStateOffset;
-            }
-            else
-            {
-                ResourceParams.presResource = pVeboxHeapResource;
-                ResourceParams.dwOffset = pVeboxHeap->uiCapturePipeStateOffset + uiInstanceBaseAddr;
-            }
-
-            ResourceParams.pdwCmd = &(cmd.DW10.Value);
-            ResourceParams.dwLocationInCmd = 10;
-            ResourceParams.HwCommandType = MOS_VEBOX_STATE;
-            ResourceParams.dwSharedMocsOffset = 1 - ResourceParams.dwLocationInCmd;
-
-            MHW_CHK_STATUS_RETURN(AddResourceToCmd(
-                pOsInterface,
-                this->m_currentCmdBuf,
-                &ResourceParams));
-#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
-            if (*ResourceParams.pdwCmd != 0 || *(ResourceParams.pdwCmd + 1) != 0)
-            {
-                // add CAPTURE PIPE STATE CMD state dump
-                pIndirectState = (uint32_t *)(pVeboxHeap->pLockedDriverResourceMem + ResourceParams.dwOffset);
-                pOsInterface->pfnAddIndirectState(pOsInterface,
-                    sizeof(mhw::vebox::xe2_hpm_next::Cmd::VEBOX_CAPTURE_PIPE_STATE_CMD),
-                    pIndirectState,
-                    ResourceParams.pdwCmd,
-                    ResourceParams.pdwCmd + 1,
-                    "VEBOX_CAPTURE_PIPE_STATE_CMD");
-            }
-#endif
-            HalOcaInterfaceNext::OnIndirectState(*this->m_currentCmdBuf, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiCapturePipeStateSize);
-
-            if (params.pLaceLookUpTables)
-            {
-                MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-                ResourceParams.presResource = params.pLaceLookUpTables;
-                ResourceParams.dwOffset = 0;
-                ResourceParams.pdwCmd = &(cmd.DW12.Value);
-                ResourceParams.dwLocationInCmd = 12;
-                ResourceParams.HwCommandType = MOS_VEBOX_STATE;
-                ResourceParams.dwSharedMocsOffset = 1 - ResourceParams.dwLocationInCmd;
-
-                MHW_CHK_STATUS_RETURN(AddResourceToCmd(
-                    pOsInterface,
-                    this->m_currentCmdBuf,
-                    &ResourceParams));
-            }
-
-            MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-            if (params.bCmBuffer)
-            {
-                ResourceParams.presResource = pVeboxParamResource;
-                ResourceParams.dwOffset = pVeboxHeap->uiGammaCorrectionStateOffset;
-            }
-            else
-            {
-                ResourceParams.presResource = pVeboxHeapResource;
-                ResourceParams.dwOffset = pVeboxHeap->uiGammaCorrectionStateOffset + uiInstanceBaseAddr;
-            }
-            ResourceParams.pdwCmd = &(cmd.DW14_15.Value[0]);
-            ResourceParams.dwLocationInCmd = 14;
-            ResourceParams.HwCommandType = MOS_VEBOX_STATE;
-            ResourceParams.dwSharedMocsOffset = 1 - ResourceParams.dwLocationInCmd;
-
-            MHW_CHK_STATUS_RETURN(AddResourceToCmd(
-                pOsInterface,
-                this->m_currentCmdBuf,
-                &ResourceParams));
-#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
-            if (*ResourceParams.pdwCmd != 0 || *(ResourceParams.pdwCmd + 1) != 0)
-            {
-                // add Gamma Correction state dump
-                pIndirectState = (uint32_t *)(pVeboxHeap->pLockedDriverResourceMem + ResourceParams.dwOffset);
-                pOsInterface->pfnAddIndirectState(pOsInterface,
-                    sizeof(PMHW_FORWARD_GAMMA_SEG),
-                    pIndirectState,
-                    ResourceParams.pdwCmd,
-                    ResourceParams.pdwCmd + 1,
-                    "PMHW_FORWARD_GAMMA_SEG");
-            }
-#endif
-            HalOcaInterfaceNext::OnIndirectState(*this->m_currentCmdBuf, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, m_veboxSettings.uiGammaCorrectionStateSize);
-
-            if (params.pVebox3DLookUpTables)
-            {
-                MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-                ResourceParams.presResource = params.pVebox3DLookUpTables;
-                ResourceParams.dwOffset = 0;
-                ResourceParams.pdwCmd = &(cmd.DW16.Value);
-                ResourceParams.dwLocationInCmd = 16;
-                ResourceParams.HwCommandType = MOS_VEBOX_STATE;
-                ResourceParams.dwSharedMocsOffset = 1 - ResourceParams.dwLocationInCmd;
-
-                MHW_CHK_STATUS_RETURN(AddResourceToCmd(
-                    pOsInterface,
-                    this->m_currentCmdBuf,
-                    &ResourceParams));
-            }
+            MHW_CHK_STATUS_RETURN(mhw::vebox::common::SetupVebox3DLut<mhw::vebox::xe2_hpm_next::Cmd>(
+                cmd, pOsInterface, this->m_currentCmdBuf, params.pVebox3DLookUpTables, AddResourceToCmd));
         }
         else
         {
-            // Allocate Resource to avoid Page Fault issue since HW will access it
-            if (Mos_ResourceIsNull(params.DummyIecpResource))
-            {
-                AllocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
-                AllocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
-                AllocParamsForBufferLinear.Format = Format_Buffer;
-                AllocParamsForBufferLinear.dwBytes = m_veboxSettings.uiIecpStateSize;
-                AllocParamsForBufferLinear.pBufName = "DummyIecpResource";
-                AllocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF;
-
-                MHW_CHK_STATUS_RETURN(pOsInterface->pfnAllocateResource(
-                    pOsInterface,
-                    &AllocParamsForBufferLinear,
-                    params.DummyIecpResource));
-            }
-
-            MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
-            ResourceParams.presResource = params.DummyIecpResource;
-            ResourceParams.dwOffset = 0;
-            ResourceParams.pdwCmd = &(cmd.DW4.Value);
-            ResourceParams.dwLocationInCmd = 4;
-            ResourceParams.HwCommandType = MOS_VEBOX_STATE;
-            ResourceParams.dwSharedMocsOffset = 1 - ResourceParams.dwLocationInCmd;
-
-            MHW_CHK_STATUS_RETURN(AddResourceToCmd(
-                pOsInterface,
-                this->m_currentCmdBuf,
-                &ResourceParams));
-
-            HalOcaInterfaceNext::OnIndirectState(*this->m_currentCmdBuf, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, 0, true, 0);
+            MHW_CHK_STATUS_RETURN(mhw::vebox::common::SetupDummyIecpResource<mhw::vebox::xe2_hpm_next::Cmd>(
+                cmd, pOsInterface, this->m_currentCmdBuf, params.DummyIecpResource,
+                m_veboxSettings.uiIecpStateSize, pOsContext, AddResourceToCmd));
         }
 
-        cmd.DW1.ColorGamutExpansionEnable = params.VeboxMode.ColorGamutExpansionEnable;
-        cmd.DW1.ColorGamutCompressionEnable = params.VeboxMode.ColorGamutCompressionEnable;
-        cmd.DW1.GlobalIecpEnable = params.VeboxMode.GlobalIECPEnable;
-        cmd.DW1.DnEnable = params.VeboxMode.DNEnable;
-        cmd.DW1.DiEnable = params.VeboxMode.DIEnable;
-        cmd.DW1.DnDiFirstFrame = params.VeboxMode.DNDIFirstFrame;
-        cmd.DW1.DiOutputFrames = params.VeboxMode.DIOutputFrames;
-        cmd.DW1.DemosaicEnable = params.VeboxMode.DemosaicEnable;
-        cmd.DW1.VignetteEnable = params.VeboxMode.VignetteEnable;
-        cmd.DW1.AlphaPlaneEnable = params.VeboxMode.AlphaPlaneEnable;
-        cmd.DW1.HotPixelFilteringEnable = params.VeboxMode.HotPixelFilteringEnable;
-        cmd.DW1.LaceCorrectionEnable = params.VeboxMode.LACECorrectionEnable;
-        cmd.DW1.DisableEncoderStatistics = params.VeboxMode.DisableEncoderStatistics;
-        cmd.DW1.DisableTemporalDenoiseFilter = params.VeboxMode.DisableTemporalDenoiseFilter;
-        cmd.DW1.SinglePipeEnable = params.VeboxMode.SinglePipeIECPEnable;
-        cmd.DW1.ScalarMode = params.VeboxMode.ScalarMode;
-        cmd.DW1.ForwardGammaCorrectionEnable = params.VeboxMode.ForwardGammaCorrectionEnable;
-        cmd.DW1.HdrEnable = params.VeboxMode.Hdr1DLutEnable;
-        cmd.DW1.Fp16ModeEnable = params.VeboxMode.Fp16ModeEnable;
-        cmd.DW1.StateSurfaceControlBits = (pOsInterface->pfnCachePolicyGetMemoryObject(
-            MOS_MP_RESOURCE_USAGE_DEFAULT,
-            pOsInterface->pfnGetGmmClientContext(pOsInterface))).DwordValue;
+        // Platform-specific cache policy: xe2_hpm uses MOS_MP_RESOURCE_USAGE_DEFAULT
+        mhw::vebox::common::SetupVeboxModeControls<mhw::vebox::xe2_hpm_next::Cmd, decltype(params)>(
+            cmd, params, pOsInterface, MOS_MP_RESOURCE_USAGE_DEFAULT);
 
-        cmd.DW17.EncDataControlFor3DLUT = 0;
-        cmd.DW17.Lut3DMemoryLayoutControl = 0;  // Legacy layout
-        cmd.DW17.ChannelMappingSwapForLut3D = params.LUT3D.ChannelMappingSwapForLut3D;  // B->Y, G->U, R->V for DV Perf
-
-        cmd.DW17.ArbitrationPriorityControlForLut3D = params.LUT3D.ArbitrationPriorityControl;
-        // In GmmCachePolicyExt.h, Gen9/Gen10/Gen11/Gen12/MTL+ has the same definition for MEMORY_OBJECT_CONTROL_STATE.
-        // In MHW_MEMORY_OBJECT_CONTROL_PARAMS, we only defined Gen9 which intended to use for Gen9 later, so reuse Gen9 index.
-        cmd.DW17.Lut3DMocsTable = params.Vebox3DLookUpTablesSurfCtrl.Gen9.Index;
+        mhw::vebox::common::SetupVebox3DLutControlsLegacy<mhw::vebox::xe2_hpm_next::Cmd, decltype(params)>(
+            cmd, params);
         cmd.DW18.Lut3DEnable = params.LUT3D.Lut3dEnable;
         cmd.DW18.Lut3DSize = params.LUT3D.Lut3dSize;
 
-        cmd.DW18.ChromaUpsamplingCoSitedHorizontalOffset = params.ChromaSampling.ChromaUpsamplingCoSitedHorizontalOffset;
-        cmd.DW18.ChromaUpsamplingCoSitedVerticalOffset = params.ChromaSampling.ChromaUpsamplingCoSitedVerticalOffset;
-        cmd.DW18.ChromaDownsamplingCoSitedHorizontalOffset = params.ChromaSampling.ChromaDownsamplingCoSitedHorizontalOffset;
-        cmd.DW18.ChromaDownsamplingCoSitedVerticalOffset = params.ChromaSampling.ChromaDownsamplingCoSitedVerticalOffset;
-        cmd.DW18.BypassChromaUpsampling = params.ChromaSampling.BypassChromaUpsampling;
-        cmd.DW18.BypassChromaDownsampling = params.ChromaSampling.BypassChromaDownsampling;
+        mhw::vebox::common::SetupVeboxChromaSampling<mhw::vebox::xe2_hpm_next::Cmd, decltype(params)>(
+            cmd, params);
         cmd.DW18._1DLutSize = params.VeboxMode.Hdr1K1DLut;
 
         return eStatus;
