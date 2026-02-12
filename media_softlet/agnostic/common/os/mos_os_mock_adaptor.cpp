@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -35,7 +35,6 @@
 #define TGL_B0_REV_ID 0x01
 #define TGL_C0_REV_ID 0x02
 
-bool  MosMockAdaptor::m_enabled = false;
 PRODUCT_FAMILY MosMockAdaptor::m_productFamily = {};
 std::string MosMockAdaptor::m_stepping = {};
 uint16_t MosMockAdaptor::m_deviceId = 0;
@@ -120,9 +119,7 @@ MOS_STATUS MosMockAdaptor::Init(
     nullHwEnabled = (value) ? true : false;
     osDeviceContext->SetNullHwIsEnabled(nullHwEnabled);
 
-    if (nullHwEnabled && !m_enabled) {
-        m_enabled = true;
-
+    if (nullHwEnabled) {
         MOS_OS_CHK_STATUS_RETURN(RegkeyRead(osContext));
 
         m_mocAdaptor = MOS_New(MosMockAdaptorSpecific);
@@ -141,8 +138,6 @@ MOS_STATUS MosMockAdaptor::Destroy()
         MOS_Delete(m_mocAdaptor);
         m_mocAdaptor = nullptr;
     }
-
-    m_enabled = false;
 
     return MOS_STATUS_SUCCESS;
 }
