@@ -74,11 +74,15 @@ Copyright (c) 2026, Intel Corporation
 #include "decode_vvc_pipeline_adapter_xe3p_lpm_base.h"
 #endif
 
-#ifdef _MEDIA_RESERVED
 #ifdef _JPEG_ENCODE_SUPPORTED
 #include "encode_jpeg_pipeline_adapter_xe3p_lpm_base.h"
 #endif
 
+#ifdef _VP9_ENCODE_VDENC_SUPPORTED
+#include "encode_vp9_vdenc_pipeline_adapter_xe3p_lpm_base.h"
+#endif
+
+#ifdef _MEDIA_RESERVED
 #ifdef _HEVC_ENCODE_VDENC_SUPPORTED
 #include "encode_hevc_vdenc_pipeline_adapter_xe3p_lpm_base.h"
 #endif
@@ -89,10 +93,6 @@ Copyright (c) 2026, Intel Corporation
 
 #ifdef _AVC_ENCODE_VDENC_SUPPORTED
 #include "encode_avc_vdenc_pipeline_adapter_xe3p_lpm.h"
-#endif
-
-#ifdef _VP9_ENCODE_VDENC_SUPPORTED
-#include "encode_vp9_vdenc_pipeline_adapter_xe3p_lpm_base.h"
 #endif
 #endif
 class MhwInterfacesNvl_Xe3G : virtual public MhwInterfacesNext

@@ -457,7 +457,7 @@ MOS_STATUS CodechalInterfacesXe3P_Lpm::Initialize(
         }
         else
 #endif
-#if defined(_VP9_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_VP9_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_VP9)
         {
             m_codechalDevice = MOS_New(EncodeVp9VdencPipelineAdapterXe3p_Lpm_Base, hwInterface, debugInterface);
@@ -470,7 +470,7 @@ MOS_STATUS CodechalInterfacesXe3P_Lpm::Initialize(
         }
         else
 #endif
-#if defined(_JPEG_ENCODE_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_JPEG_ENCODE_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_JPEG)
         {
             m_codechalDevice = MOS_New(EncodeJpegPipelineAdapterXe3P_Lpm_Base, hwInterface, debugInterface);
