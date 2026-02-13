@@ -280,11 +280,7 @@ static bool DdiMedia_ReleaseBsBuffer(
         }
         return false;
     }
-    else
-    {
-        if (bufMgr->dwNumSliceData)
-            bufMgr->dwNumSliceData--;
-    }
+
     return true;
 }
 
