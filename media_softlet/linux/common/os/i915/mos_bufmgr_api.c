@@ -1224,6 +1224,48 @@ mos_bufmgr_realloc_cache(struct mos_bufmgr *bufmgr, uint8_t alloc_mode)
 }
 
 int
+mos_set_fences(struct mos_bufmgr *bufmgr, struct mos_exec_fences *exec_fences)
+{
+    if(!bufmgr)
+    {
+        MOS_OS_CRITICALMESSAGE("Input null ptr\n");
+        return -EINVAL;
+    }
+
+    if (bufmgr->set_fences)
+    {
+        return bufmgr->set_fences(bufmgr, exec_fences);
+    }
+    else
+    {
+        MOS_OS_CRITICALMESSAGE("Unsupported\n");
+        return -EPERM;
+    }
+
+}
+
+int
+mos_get_fence(struct mos_bufmgr *bufmgr, int32_t *fence_out)
+{
+    if(!bufmgr)
+    {
+        MOS_OS_CRITICALMESSAGE("Input null ptr\n");
+        return -EINVAL;
+    }
+
+    if (bufmgr->get_fence)
+    {
+        return bufmgr->get_fence(bufmgr, fence_out);
+    }
+    else
+    {
+        MOS_OS_CRITICALMESSAGE("Unsupported\n");
+        return -EPERM;
+    }
+
+}
+
+int
 mos_query_engines_count(struct mos_bufmgr *bufmgr,
                       unsigned int *nengine)
 {
