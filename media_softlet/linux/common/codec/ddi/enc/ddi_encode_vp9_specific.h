@@ -357,6 +357,8 @@ private:
 
     bool isSegParamsChanged = false;
 
+    bool m_isPreviousFrameKey = false;
+
     MEDIA_CLASS_DEFINE_END(encode__DdiEncodeVp9)
 };
 
