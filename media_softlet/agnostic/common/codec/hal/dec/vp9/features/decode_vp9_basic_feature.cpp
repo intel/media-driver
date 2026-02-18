@@ -47,6 +47,7 @@ Vp9BasicFeature::Vp9BasicFeature(DecodeAllocator *allocator, void *hwInterface, 
     }
 
     MOS_ZeroMemory(&m_resVp9SegmentIdBuffer, sizeof(m_resVp9SegmentIdBuffer));
+    MOS_ZeroMemory(&m_resVp9FrameStatusBuffer, sizeof(m_resVp9FrameStatusBuffer));
     MOS_ZeroMemory(&m_resVp9MvTemporalBuffer, sizeof(m_resVp9MvTemporalBuffer));
 
     MOS_ZeroMemory(&m_interProbSaved, sizeof(m_interProbSaved));
