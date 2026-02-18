@@ -2730,6 +2730,7 @@ VAStatus DdiMedia_CreateSurfaces2(
 #endif
 
     int32_t  memTypeFlag      = VA_SURFACE_ATTRIB_MEM_TYPE_VA;
+    uint32_t memType          = MOS_MEMPOOL_VIDEOMEMORY;
     int32_t  descFlag         = 0;
     uint32_t surfaceUsageHint = VA_SURFACE_ATTRIB_USAGE_HINT_GENERIC;
     bool     surfDescProvided = false;
@@ -2826,6 +2827,19 @@ VAStatus DdiMedia_CreateSurfaces2(
                 }
 
                 break;
+#if VA_CHECK_VERSION(1,17,0)
+            case VASurfaceAttribValueMemoryRegion:
+                DDI_ASSERT(attrib_list[i].value.type == VAGenericValueTypeInteger);
+                if(attrib_list[i].value.value.i & 0x1)
+                {
+                    memType = MOS_MEMPOOL_SYSTEMMEMORY;
+                }
+                else if(attrib_list[i].value.value.i & 0x2)
+                {
+                    memType = MOS_MEMPOOL_DEVICEMEMORY;
+                }
+                break;
+#endif
             default:
                 DDI_ASSERTMESSAGE("Unsupported type.");
                 break;
@@ -2917,7 +2931,7 @@ VAStatus DdiMedia_CreateSurfaces2(
                 }
             }
         }
-        VASurfaceID vaSurfaceID = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaCtx, mediaFmt, width, height, surfDesc, surfaceUsageHint, MOS_MEMPOOL_VIDEOMEMORY);
+        VASurfaceID vaSurfaceID = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaCtx, mediaFmt, width, height, surfDesc, surfaceUsageHint, memType);
         if (VA_INVALID_ID != vaSurfaceID)
         {
             surfaces[i] = vaSurfaceID;
