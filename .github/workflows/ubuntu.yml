@@ -81,6 +81,75 @@ jobs:
         make VERBOSE=1 -j$(nproc)
         sudo make install
 
+  gcc-14:
+    runs-on: ubuntu-24.04
+    env:
+      CC: /usr/bin/gcc-14
+      CXX: /usr/bin/g++-14
+      ASM: /usr/bin/gcc-14
+    steps:
+    - name: checkout media-driver
+      uses: actions/checkout@v4
+      with:
+        path: media
+    - name: checkout libva
+      uses: actions/checkout@v4
+      with:
+        repository: intel/libva
+        path: libva
+    - name: checkout gmmlib
+      uses: actions/checkout@v4
+      with:
+        repository: intel/gmmlib
+        path: gmmlib
+    - name: install prerequisites
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          automake \
+          cmake \
+          gcc-14 \
+          g++-14 \
+          libtool \
+          libdrm-dev \
+          libx11-dev \
+          libx11-xcb-dev \
+          libxcb-dri3-dev \
+          libxext-dev \
+          libxfixes-dev \
+          libwayland-dev \
+          ninja-build \
+          pkg-config \
+          make
+    - name: print tools versions
+      run: |
+        cmake --version
+        $CC --version
+        $CXX --version
+    - name: build libva
+      run: |
+        cd libva
+        ./autogen.sh --prefix=/usr --libdir=/usr/lib/x86_64-linux-gnu
+        make -j$(nproc)
+        sudo make install
+    - name: build gmmlib
+      run: |
+        cd gmmlib
+        mkdir build && cd build
+        cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=/usr/lib/x86_64-linux-gnu ..
+        make VERBOSE=1 -j$(nproc)
+        sudo make install
+    - name: build media-driver
+      run: |
+        cd media
+        mkdir build && cd build
+        cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBDIR=/usr/lib/x86_64-linux-gnu \
+          -DCMAKE_C_FLAGS_RELEASE="$_CFLAGS" \
+          -DCMAKE_CXX_FLAGS_RELEASE="$_CFLAGS" \
+          ..
+        make VERBOSE=1 -j$(nproc)
+        sudo make install
+
   gcc-11:
     runs-on: ubuntu-22.04
     env:
