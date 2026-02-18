@@ -38,11 +38,11 @@ public:
     CmDynamicArray();
     ~CmDynamicArray( void );
 
-    void*    GetElement( const uint32_t index ) ;
+    void*    GetElement( const uint32_t index ) const;
     bool    SetElement( const uint32_t index, const void* element );
 
-    uint32_t GetSize( void ) ;
-    uint32_t GetMaxSize( void ) ;
+    uint32_t GetSize( void ) const;
+    uint32_t GetMaxSize( void ) const;
 
     void    Delete( void );
 
@@ -56,7 +56,7 @@ protected:
     void    CreateArray( const uint32_t size );
     void    DeleteArray( void );
 
-    bool    IsValidIndex( const uint32_t index ) ;
+    bool    IsValidIndex( const uint32_t index ) const;
 
     void**   m_arrayBuffer;
 

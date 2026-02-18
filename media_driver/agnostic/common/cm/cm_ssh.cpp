@@ -480,7 +480,7 @@ int CmSSH::AddScratchSpace(CmScratchSpace *scratch)
     return surfStateOffset;
 }
 
-int CmSSH::GetBindingTableOffset(int btIndex)
+int CmSSH::GetBindingTableOffset(int btIndex) const
 {
     if (btIndex == -1)
     {
@@ -493,7 +493,7 @@ int CmSSH::GetBindingTableOffset(int btIndex)
     return m_btStart + m_btStartPerKernel[btIndex]*m_btEntrySize;
 }
 
-int CmSSH::EstimateBTSize(int maxBteNum, std::map<int, CmSurfaceState *> &reservedBteIndex)
+int CmSSH::EstimateBTSize(int maxBteNum, std::map<int, CmSurfaceState *> &reservedBteIndex) const
 {
     int estimatedSize = maxBteNum + m_normalBteStart;
     if (reservedBteIndex.empty())
@@ -520,7 +520,7 @@ int CmSSH::EstimateBTSize(int maxBteNum, std::map<int, CmSurfaceState *> &reserv
     return estimatedSize;
 }
 
-MOS_STATUS CmSSH::PrepareResourcesForCp()
+MOS_STATUS CmSSH::PrepareResourcesForCp() const
 {
     if (m_resCount > 0 && m_renderhal->pOsInterface->osCpInterface)
     {
@@ -537,7 +537,7 @@ using namespace std;
 #define PLATFORM_DIR_SEPERATOR   "\\"
 #endif
 
-void CmSSH::DumpSSH()
+void CmSSH::DumpSSH() const
 {
 #if MDF_SURFACE_STATE_DUMP
     if (m_cmhal->dumpSurfaceState)
