@@ -155,6 +155,19 @@ void DdiMedia_MediaBufferToMosResource(DDI_MEDIA_BUFFER *mediaBuffer, MOS_RESOUR
 void* DdiMedia_GetContextFromContextID (VADriverContextP ctx, VAContextID vaCtxID, uint32_t *ctxType);
 
 //!
+//! \brief  Get surface element from VA surface ID
+//!
+//! \param  [in] mediaCtx
+//!     Pointer to ddi media context
+//! \param  [in] surfaceID
+//!     VA surface ID
+//!
+//! \return PDDI_MEDIA_SURFACE_HEAP_ELEMENT
+//!     Pointer to ddi media surface element
+//!
+PDDI_MEDIA_SURFACE_HEAP_ELEMENT DdiMedia_GetSurfaceElementFromVASurfaceID (PDDI_MEDIA_CONTEXT mediaCtx, VASurfaceID surfaceID);
+
+//!
 //! \brief  Get surface from VA surface ID
 //!
 //! \param  [in] mediaCtx
@@ -201,6 +214,19 @@ PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithVariant(PDDI_MEDIA_SURFACE surface
 //!     VA Surface ID
 //!
 VASurfaceID DdiMedia_GetVASurfaceIDFromSurface(PDDI_MEDIA_SURFACE surface);
+
+//!
+//! \brief  Get buffer element from VA buffer ID
+//!
+//! \param  [in] mediaCtx
+//!     Pointer to ddi media context
+//! \param  [in] bufferID
+//!     VA buffer ID
+//!
+//! \return PDDI_MEDIA_BUFFER_HEAP_ELEMENT
+//!     Pointer to ddi media buffer element
+//!
+PDDI_MEDIA_BUFFER_HEAP_ELEMENT DdiMedia_GetBufferElementFromVABufferID (PDDI_MEDIA_CONTEXT mediaCtx, VABufferID bufferID);
 
 //!
 //! \brief  Get buffer from VA buffer ID

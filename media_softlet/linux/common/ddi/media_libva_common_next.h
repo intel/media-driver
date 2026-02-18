@@ -34,6 +34,8 @@
 #include "GmmLib.h"
 #include "mos_bufmgr_api.h"
 #include "mos_defs_specific.h"
+//#include <mutex>
+#include <shared_mutex>
 
 #define DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT       127
 #define DDI_MEDIA_MAX_INSTANCE_NUMBER              0x0FFFFFFF
@@ -258,6 +260,7 @@ typedef struct _DDI_MEDIA_SURFACE
 
     uint32_t                uiVariantFlag;
     int                     memType;
+    std::shared_timed_mutex            *lock = nullptr;;
 } DDI_MEDIA_SURFACE, *PDDI_MEDIA_SURFACE;
 
 typedef struct _DDI_MEDIA_BUFFER
@@ -289,6 +292,7 @@ typedef struct _DDI_MEDIA_BUFFER
     PDDI_MEDIA_SURFACE     pSurface          = nullptr;
     GMM_RESOURCE_INFO     *pGmmResourceInfo  = nullptr; // GMM resource descriptor
     PDDI_MEDIA_CONTEXT     pMediaCtx         = nullptr; // Media driver Context
+    std::shared_timed_mutex            *lock = nullptr;;
 } DDI_MEDIA_BUFFER, *PDDI_MEDIA_BUFFER;
 
 typedef struct _DDI_MEDIA_SURFACE_HEAP_ELEMENT
@@ -327,6 +331,8 @@ typedef struct _DDI_MEDIA_HEAP
     uint32_t           uiHeapElementSize;
     uint32_t           uiAllocatedHeapElements;
     void               *pFirstFreeHeapElement;
+    //std::shared_timed_mutex lock;
+    std::shared_timed_mutex            *lock = nullptr;;
 }DDI_MEDIA_HEAP, *PDDI_MEDIA_HEAP;
 
 #ifndef ANDROID
