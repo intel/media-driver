@@ -49,6 +49,20 @@ public:
     DecodeVp9BufferUpdatePost(Vp9Pipeline* pipeline, MediaTask* task, uint8_t numVdbox);
 
     //!
+    //! \brief  Deleted copy constructor to prevent copying
+    //! \details This class manages resources through raw pointers that are freed in the destructor.
+    //!          Copying would lead to double-free errors, so copy operations are explicitly deleted.
+    //!
+    DecodeVp9BufferUpdatePost(const DecodeVp9BufferUpdatePost&) = delete;
+
+    //!
+    //! \brief  Deleted copy assignment operator to prevent copying
+    //! \details This class manages resources through raw pointers that are freed in the destructor.
+    //!          Copying would lead to double-free errors, so copy operations are explicitly deleted.
+    //!
+    DecodeVp9BufferUpdatePost& operator=(const DecodeVp9BufferUpdatePost&) = delete;
+
+    //!
     //! \brief  Decode VP9 buffer update post destructor
     //!
     virtual ~DecodeVp9BufferUpdatePost();
