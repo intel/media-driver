@@ -877,6 +877,230 @@ inline MOS_STATUS TraceIndirectStateInfo(
     return MOS_STATUS_SUCCESS;
 }
 
+//!
+//! \brief    Helper function for VEBOX surface format determination
+//! \details  Extracts surface format determination logic shared across all platforms.
+//!           This helper function encapsulates both the primary format switch (handling
+//!           25+ surface formats including YUV, RGB, Bayer patterns) and the secondary
+//!           Bayer input alignment switch. Each platform's SetVeboxSurfaces can call
+//!           this helper function and only handle platform-specific differences.
+//! \param    [in] VeboxSurfaceState
+//!           Reference to VEBOX_SURFACE_STATE command structure (used for format constants)
+//! \param    [in] pSurfaceParam
+//!           Pointer to surface parameters containing format and bit depth information
+//! \param    [in] bIsOutputSurface
+//!           Flag indicating whether this is an output surface
+//! \param    [out] dwFormat
+//!           Reference to format value to be set
+//! \param    [out] bInterleaveChroma
+//!           Reference to interleave chroma flag to be set
+//! \param    [out] wUYOffset
+//!           Reference to U/Y offset value to be set
+//! \param    [out] bBayerOffset
+//!           Reference to Bayer pattern offset to be set
+//! \param    [out] bBayerStride
+//!           Reference to Bayer pattern stride to be set
+//! \param    [out] bBayerInputAlignment
+//!           Reference to Bayer input alignment to be set
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetVeboxSurfaceFormat(
+    typename cmd_t::VEBOX_SURFACE_STATE_CMD& VeboxSurfaceState,
+    PMHW_VEBOX_SURFACE_PARAMS pSurfaceParam,
+    bool bIsOutputSurface,
+    uint32_t& dwFormat,
+    bool& bInterleaveChroma,
+    uint16_t& wUYOffset,
+    uint8_t& bBayerOffset,
+    uint8_t& bBayerStride,
+    uint8_t& bBayerInputAlignment)
+{
+    // Primary format switch - determine surface format based on input format
+    switch (pSurfaceParam->Format)
+    {
+    case Format_NV12:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PLANAR4208;
+        bInterleaveChroma = true;
+        wUYOffset = (uint16_t)pSurfaceParam->dwUYoffset;
+        break;
+
+    case Format_YUYV:
+    case Format_YUY2:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_YCRCBNORMAL;
+        break;
+
+    case Format_UYVY:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_YCRCBSWAPY;
+        break;
+
+    case Format_AYUV:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PACKED444A8;
+        break;
+
+    case Format_Y416:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PACKED44416;
+        break;
+
+    case Format_Y410:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PACKED44410;
+        break;
+
+    case Format_YVYU:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_YCRCBSWAPUV;
+        break;
+
+    case Format_VYUY:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_YCRCBSWAPUVY;
+        break;
+
+    case Format_A8B8G8R8:
+    case Format_X8B8G8R8:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_R8G8B8A8UNORMR8G8B8A8UNORMSRGB;
+        break;
+
+    case Format_A16B16G16R16:
+    case Format_A16R16G16B16:
+    case Format_A16B16G16R16F:
+    case Format_A16R16G16B16F:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_R16G16B16A16;
+        break;
+
+    case Format_L8:
+    case Format_P8:
+    case Format_Y8:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_Y8UNORM;
+        break;
+
+    case Format_IRW0:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_BAYERPATTERN;
+        bBayerOffset = VeboxSurfaceState.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISBLUE;
+        bBayerStride = VeboxSurfaceState.BAYER_PATTERN_FORMAT_16_BITINPUTATA16_BITSTRIDE;
+        break;
+
+    case Format_IRW1:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_BAYERPATTERN;
+        bBayerOffset = VeboxSurfaceState.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISRED;
+        bBayerStride = VeboxSurfaceState.BAYER_PATTERN_FORMAT_16_BITINPUTATA16_BITSTRIDE;
+        break;
+
+    case Format_IRW2:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_BAYERPATTERN;
+        bBayerOffset = VeboxSurfaceState.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISGREEN_PIXELATX1_Y0ISRED;
+        bBayerStride = VeboxSurfaceState.BAYER_PATTERN_FORMAT_16_BITINPUTATA16_BITSTRIDE;
+        break;
+
+    case Format_IRW3:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_BAYERPATTERN;
+        bBayerOffset = VeboxSurfaceState.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISGREEN_PIXELATX1_Y0ISBLUE;
+        bBayerStride = VeboxSurfaceState.BAYER_PATTERN_FORMAT_16_BITINPUTATA16_BITSTRIDE;
+        break;
+
+    case Format_IRW4:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_BAYERPATTERN;
+        bBayerOffset = VeboxSurfaceState.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISBLUE;
+        bBayerStride = VeboxSurfaceState.BAYER_PATTERN_FORMAT_8_BITINPUTATA8_BITSTRIDE;
+        break;
+
+    case Format_IRW5:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_BAYERPATTERN;
+        bBayerOffset = VeboxSurfaceState.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISRED;
+        bBayerStride = VeboxSurfaceState.BAYER_PATTERN_FORMAT_8_BITINPUTATA8_BITSTRIDE;
+        break;
+
+    case Format_IRW6:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_BAYERPATTERN;
+        bBayerOffset = VeboxSurfaceState.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISGREEN_PIXELATX1_Y0ISRED;
+        bBayerStride = VeboxSurfaceState.BAYER_PATTERN_FORMAT_8_BITINPUTATA8_BITSTRIDE;
+        break;
+
+    case Format_IRW7:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_BAYERPATTERN;
+        bBayerOffset = VeboxSurfaceState.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISGREEN_PIXELATX1_Y0ISBLUE;
+        bBayerStride = VeboxSurfaceState.BAYER_PATTERN_FORMAT_8_BITINPUTATA8_BITSTRIDE;
+        break;
+
+    case Format_P010:
+    case Format_P016:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PLANAR42016;
+        bInterleaveChroma = true;
+        wUYOffset = (uint16_t)pSurfaceParam->dwUYoffset;
+        break;
+
+    case Format_A8R8G8B8:
+    case Format_X8R8G8B8:
+        // Platform-specific logic: output surface uses different format
+        if (bIsOutputSurface)
+        {
+            dwFormat = VeboxSurfaceState.SURFACE_FORMAT_B8G8R8A8UNORM;
+        }
+        else
+        {
+            dwFormat = VeboxSurfaceState.SURFACE_FORMAT_R8G8B8A8UNORMR8G8B8A8UNORMSRGB;
+        }
+        break;
+
+    case Format_R10G10B10A2:
+    case Format_B10G10R10A2:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_R10G10B10A2UNORMR10G10B10A2UNORMSRGB;
+        break;
+
+    case Format_Y216:
+    case Format_Y210:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PACKED42216;
+        break;
+
+    case Format_P216:
+    case Format_P210:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PLANAR42216;
+        wUYOffset = (uint16_t)pSurfaceParam->dwUYoffset;
+        break;
+
+    case Format_Y16S:
+    case Format_Y16U:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_Y16UNORM;
+        break;
+
+    default:
+        MHW_ASSERTMESSAGE("Unsupported format.");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    // Secondary Bayer input alignment switch - only for input surfaces
+    if (!bIsOutputSurface)
+    {
+        // Camera pipe will use 10/12/14 for LSB, 0 for MSB. For other pipelines,
+        // dwBitDepth is inherited from pSrc->dwDepth which may not be among (0,10,12,14).
+        // For such cases should use MSB as default value.
+        switch (pSurfaceParam->dwBitDepth)
+        {
+        case 10:
+            bBayerInputAlignment = VeboxSurfaceState.BAYER_INPUT_ALIGNMENT_10BITLSBALIGNEDDATA;
+            break;
+
+        case 12:
+            bBayerInputAlignment = VeboxSurfaceState.BAYER_INPUT_ALIGNMENT_12BITLSBALIGNEDDATA;
+            break;
+
+        case 14:
+            bBayerInputAlignment = VeboxSurfaceState.BAYER_INPUT_ALIGNMENT_14BITLSBALIGNEDDATA;
+            break;
+
+        case 0:
+        default:
+            bBayerInputAlignment = VeboxSurfaceState.BAYER_INPUT_ALIGNMENT_MSBALIGNEDDATA;
+            break;
+        }
+    }
+    else
+    {
+        bBayerInputAlignment = VeboxSurfaceState.BAYER_INPUT_ALIGNMENT_MSBALIGNEDDATA;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 }  // namespace common
 }  // namespace vebox
 }  // namespace mhw
