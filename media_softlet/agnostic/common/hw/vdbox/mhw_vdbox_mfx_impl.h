@@ -40,6 +40,7 @@
 #define AVC_IP_ROWSTORE_BASEADDRESS           512
 #define AVC_IP_ROWSTORE_BASEADDRESS_MBAFF     1024
 #define AVC_VLF_ROWSTORE_BASEADDRESS          768
+#define AVC_VLF_ROWSTORE_BASEADDRESS_MBAFF    1280
 #define VP8_IP_ROWSTORE_BASEADDRESS           256
 #define VP8_VLF_ROWSTORE_BASEADDRESS          512
 
@@ -73,10 +74,10 @@ public:
 
         MHW_MI_CHK_NULL(rowstoreParams);
 
-        bool avc          = rowstoreParams->Mode == CODECHAL_DECODE_MODE_AVCVLD || rowstoreParams->Mode == CODECHAL_ENCODE_MODE_AVC;
-        bool vp8          = rowstoreParams->Mode == CODECHAL_DECODE_MODE_VP8VLD || rowstoreParams->Mode == CODECHAL_ENCODE_MODE_VP8;
-        bool widthLE4K    = rowstoreParams->dwPicWidth <= MHW_VDBOX_PICWIDTH_4K;
-        bool mbaffOrField = rowstoreParams->bMbaff || !rowstoreParams->bIsFrame;
+        bool avc = IsAvcMode(rowstoreParams);
+        bool vp8 = IsVp8Mode(rowstoreParams);
+        bool widthLE4K = IsPictureWidthLE4K(rowstoreParams);
+        bool mbaffOrField = IsMbaffOrField(rowstoreParams);
 
         //BSD row store cache
         m_bsdMpcRowstoreCache.enabled   = m_bsdMpcRowstoreCache.supported && widthLE4K && (avc || vp8);
@@ -99,9 +100,8 @@ public:
             m_intraRowstoreCache.dwAddress = 0;
         }
 
-        //VLF row store cache
-        m_deblockingFilterRowstoreCache.enabled   = m_deblockingFilterRowstoreCache.supported && widthLE4K && ((avc && !mbaffOrField) || vp8);
-        m_deblockingFilterRowstoreCache.dwAddress = m_deblockingFilterRowstoreCache.enabled ? (avc ? AVC_VLF_ROWSTORE_BASEADDRESS : VP8_VLF_ROWSTORE_BASEADDRESS) : 0;
+        //VLF row store cache - platform-aware configuration
+        ConfigureVlfRowstoreCache(rowstoreParams);
 
         return MOS_STATUS_SUCCESS;
     }
@@ -409,6 +409,74 @@ public:
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_directMvBufferForWriteCtrl;
 
 protected:
+    bool IsAvcMode(PMHW_VDBOX_ROWSTORE_PARAMS rowstoreParams) const
+    {
+        return rowstoreParams->Mode == CODECHAL_DECODE_MODE_AVCVLD || 
+               rowstoreParams->Mode == CODECHAL_ENCODE_MODE_AVC;
+    }
+
+    bool IsVp8Mode(PMHW_VDBOX_ROWSTORE_PARAMS rowstoreParams) const
+    {
+        return rowstoreParams->Mode == CODECHAL_DECODE_MODE_VP8VLD || 
+               rowstoreParams->Mode == CODECHAL_ENCODE_MODE_VP8;
+    }
+
+    bool IsPictureWidthLE4K(PMHW_VDBOX_ROWSTORE_PARAMS rowstoreParams) const
+    {
+        return rowstoreParams->dwPicWidth <= MHW_VDBOX_PICWIDTH_4K;
+    }
+
+    bool IsMbaffOrField(PMHW_VDBOX_ROWSTORE_PARAMS rowstoreParams) const
+    {
+        return rowstoreParams->bMbaff || !rowstoreParams->bIsFrame;
+    }
+
+    virtual bool GetVlfRowstoreCacheMbaffSupport() const
+    {
+        return false; // Base implementation: no MBAFF support for VLF cache
+    }
+
+    void ConfigureVlfRowstoreCache(PMHW_VDBOX_ROWSTORE_PARAMS rowstoreParams)
+    {
+        bool avc = IsAvcMode(rowstoreParams);
+        bool vp8 = IsVp8Mode(rowstoreParams);
+        bool widthLE4K = IsPictureWidthLE4K(rowstoreParams);
+        bool mbaffOrField = IsMbaffOrField(rowstoreParams);
+        bool supportMbaff = GetVlfRowstoreCacheMbaffSupport();
+
+        // Enable VLF cache based on platform support
+        if (supportMbaff)
+        {
+            // xe3+ platforms: Enable VLF for AVC or VP8, including MBAFF
+            m_deblockingFilterRowstoreCache.enabled = 
+                m_deblockingFilterRowstoreCache.supported && widthLE4K && (avc || vp8);
+        }
+        else
+        {
+            // Base/older platforms: Enable VLF for AVC (non-MBAFF) or VP8
+            m_deblockingFilterRowstoreCache.enabled = 
+                m_deblockingFilterRowstoreCache.supported && widthLE4K && ((avc && !mbaffOrField) || vp8);
+        }
+
+        // Configure VLF address based on enablement and codec/format
+        if (m_deblockingFilterRowstoreCache.enabled)
+        {
+            if (avc)
+            {
+                m_deblockingFilterRowstoreCache.dwAddress = 
+                    mbaffOrField ? AVC_VLF_ROWSTORE_BASEADDRESS_MBAFF : AVC_VLF_ROWSTORE_BASEADDRESS;
+            }
+            else // VP8
+            {
+                m_deblockingFilterRowstoreCache.dwAddress = VP8_VLF_ROWSTORE_BASEADDRESS;
+            }
+        }
+        else
+        {
+            m_deblockingFilterRowstoreCache.dwAddress = 0;
+        }
+    }
+
     using base_t = Itf;
     MhwCpInterface *m_cpItf = nullptr;
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC] = {};

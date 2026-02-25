@@ -30,8 +30,6 @@
 
 #include "mhw_vdbox_mfx_impl.h"
 
-#define AVC_VLF_ROWSTORE_BASEADDRESS_MBAFF 1280
-
 namespace mhw
 {
 namespace vdbox
@@ -45,36 +43,11 @@ namespace xe3p_lpm_base
 template <typename cmd_t>
 class BaseImpl : public mfx::Impl<cmd_t>
 {
-public:
-    MOS_STATUS GetRowstoreCachingAddrs(PMHW_VDBOX_ROWSTORE_PARAMS rowstoreParams) override
-    {
-        MHW_FUNCTION_ENTER;
-
-        MHW_MI_CHK_NULL(rowstoreParams);
-        mfx::Impl<cmd_t>::GetRowstoreCachingAddrs(rowstoreParams);
-
-        // VLF rowstore cache update for AVC Mbaff on Xe3
-        bool avc          = rowstoreParams->Mode == CODECHAL_DECODE_MODE_AVCVLD || rowstoreParams->Mode == CODECHAL_ENCODE_MODE_AVC;
-        bool vp8          = rowstoreParams->Mode == CODECHAL_DECODE_MODE_VP8VLD || rowstoreParams->Mode == CODECHAL_ENCODE_MODE_VP8;
-        bool widthLE4K    = rowstoreParams->dwPicWidth <= MHW_VDBOX_PICWIDTH_4K;
-        bool mbaffOrField = rowstoreParams->bMbaff || !rowstoreParams->bIsFrame;
-
-        Itf::m_deblockingFilterRowstoreCache.enabled = Itf::m_deblockingFilterRowstoreCache.supported && widthLE4K && (avc || vp8);
-        if (Itf::m_deblockingFilterRowstoreCache.enabled)
-        {
-            Itf::m_deblockingFilterRowstoreCache.dwAddress = avc ? (mbaffOrField ? AVC_VLF_ROWSTORE_BASEADDRESS_MBAFF
-                                                                            : AVC_VLF_ROWSTORE_BASEADDRESS)
-                                                                            : VP8_VLF_ROWSTORE_BASEADDRESS;
-        }
-        else
-        {
-            Itf::m_deblockingFilterRowstoreCache.dwAddress = 0;
-        }
-
-        return MOS_STATUS_SUCCESS;
-    }
-
 protected:
+    bool GetVlfRowstoreCacheMbaffSupport() const override
+    {
+        return true; // Xe3P_LPM platforms support VLF rowstore cache with MBAFF
+    }
     using base_t = mfx::Impl<cmd_t>;
 
     BaseImpl(PMOS_INTERFACE osItf, MhwCpInterface *cpItf) : base_t(osItf, cpItf){};
