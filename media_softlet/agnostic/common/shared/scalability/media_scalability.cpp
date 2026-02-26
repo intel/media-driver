@@ -141,6 +141,8 @@ MOS_STATUS MediaScalability::VerifySpaceAvailable(uint32_t requestedSize, uint32
 
 MOS_STATUS MediaScalability::Destroy()
 {
+    SCALABILITY_CHK_NULL_RETURN(m_osInterface);
+    
     if (m_osInterface->apoMosEnabled)
     {
         if (m_veState)
