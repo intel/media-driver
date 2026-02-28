@@ -1833,7 +1833,7 @@ inline MOS_STATUS SetBT2020CSC(
 //!
 //! \brief    Helper function for setting up 1DLUT Processing
 //! \details  Configures 1DLUT processing with AYUV channel processing for platforms that support it.
-//!           For platforms that don't support full processing (xe2_lpm_base, xe3_lpm_base), only
+//!           For platforms that don't support full processing, only
 //!           logs a message. For other platforms, sets up gamut state and populates GE_Values
 //!           from 1DLUT data with identity matrix.
 //! \param    [in,out] pGamutState
@@ -1845,7 +1845,7 @@ inline MOS_STATUS SetBT2020CSC(
 //! \param    [out] pVeboxGEGammaCorrection
 //!           Pointer to gamma correction structure
 //! \param    [in] enableFullProcessing
-//!           Flag to enable full AYUV processing (false for xe2_lpm_base/xe3_lpm_base)
+//!           Flag to enable full AYUV processing
 //! \return   MOS_STATUS
 //!           MOS_STATUS_SUCCESS if success, else fail reason
 //!
@@ -1861,7 +1861,7 @@ inline MOS_STATUS Set1DLUTProcessing(
     
     if (!enableFullProcessing)
     {
-        // xe2_lpm_base and xe3_lpm_base only log for 1DLUT
+        // Platforms that don't support full processing only log for 1DLUT
         MHW_NORMALMESSAGE("Use VEBOX_SHAPER_1K_LOOKUP_STATE for 1DLUT (4x 1DLUT but Gamut State only has 1DLUT)!");
         return MOS_STATUS_SUCCESS;
     }
@@ -1902,6 +1902,225 @@ inline MOS_STATUS Set1DLUTProcessing(
     MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1024, usGE_Values, sizeof(uint16_t) * 8 * 256);
     
     return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for programming CCM as identity matrix
+//! \details  Sets the Color Correction Matrix to identity (diagonal 0x400000, off-diagonal 0)
+//!           with all offsets zeroed. Used when no color correction is needed.
+//! \param    [in,out] pIecpState
+//!           Pointer to IECP state structure containing CcmState
+//! \param    [in] ccmEnable
+//!           Value to set for ColorCorrectionMatrixEnable flag
+//! \return   void
+//!
+template <typename IecpState_t>
+inline void SetCcmIdentityMatrix(IecpState_t* pIecpState, bool ccmEnable)
+{
+    pIecpState->CcmState.DW0.ColorCorrectionMatrixEnable = ccmEnable;
+    pIecpState->CcmState.DW1.C0                          = 0x400000;
+    pIecpState->CcmState.DW0.C1                          = 0;
+    pIecpState->CcmState.DW3.C2                          = 0;
+    pIecpState->CcmState.DW2.C3                          = 0;
+    pIecpState->CcmState.DW5.C4                          = 0x400000;
+    pIecpState->CcmState.DW4.C5                          = 0;
+    pIecpState->CcmState.DW7.C6                          = 0;
+    pIecpState->CcmState.DW6.C7                          = 0;
+    pIecpState->CcmState.DW8.C8                          = 0x400000;
+    pIecpState->CcmState.DW9.OffsetInR                   = 0;
+    pIecpState->CcmState.DW10.OffsetInG                  = 0;
+    pIecpState->CcmState.DW11.OffsetInB                  = 0;
+    pIecpState->CcmState.DW12.OffsetOutR                 = 0;
+    pIecpState->CcmState.DW13.OffsetOutG                 = 0;
+    pIecpState->CcmState.DW14.OffsetOutB                 = 0;
+}
+
+//!
+//! \brief    Helper function for programming CCM based on color space
+//! \details  Programs the Color Correction Matrix coefficients for BT709 or BT2020
+//!           color spaces. For other color spaces, optionally programs identity matrix
+//!           and always asserts with an error message.
+//! \param    [in,out] pIecpState
+//!           Pointer to IECP state structure containing CcmState
+//! \param    [in] colorSpace
+//!           Input color space (MHW_CSpace_BT709, MHW_CSpace_BT709_FullRange,
+//!           MHW_CSpace_BT2020, MHW_CSpace_BT2020_FullRange, or other)
+//! \param    [in] programFallbackIdentity
+//!           If true, programs identity matrix for unsupported color spaces before asserting.
+//!           If false, only asserts without programming
+//! \return   void
+//!
+template <typename IecpState_t>
+inline void SetCcmColorSpace(IecpState_t* pIecpState, MHW_CSPACE colorSpace, bool programFallbackIdentity = true)
+{
+    // Always disable CCM enable for color space programming
+    pIecpState->CcmState.DW0.ColorCorrectionMatrixEnable = false;
+
+    if ((colorSpace == MHW_CSpace_BT709) || (colorSpace == MHW_CSpace_BT709_FullRange))
+    {
+        // BT709 CCM coefficients
+        pIecpState->CcmState.DW1.C0          = 0x00009937;
+        pIecpState->CcmState.DW0.C1          = 0x000115f6;
+        pIecpState->CcmState.DW3.C2          = 0;
+        pIecpState->CcmState.DW2.C3          = 0x00009937;
+        pIecpState->CcmState.DW5.C4          = 0x07ffe3f1;
+        pIecpState->CcmState.DW4.C5          = 0x07ffb9e0;
+        pIecpState->CcmState.DW7.C6          = 0x00009937;
+        pIecpState->CcmState.DW6.C7          = 0;
+        pIecpState->CcmState.DW8.C8          = 0x0000ebe6;
+        // Limited range BT709 has non-zero input offsets; full range has zero offsets
+        pIecpState->CcmState.DW9.OffsetInR   = (colorSpace == MHW_CSpace_BT709) ? 0xf8000000 : 0;
+        pIecpState->CcmState.DW10.OffsetInG  = (colorSpace == MHW_CSpace_BT709) ? 0xc0000000 : 0;
+        pIecpState->CcmState.DW11.OffsetInB  = (colorSpace == MHW_CSpace_BT709) ? 0xc0000000 : 0;
+        pIecpState->CcmState.DW12.OffsetOutR = 0;
+        pIecpState->CcmState.DW13.OffsetOutG = 0;
+        pIecpState->CcmState.DW14.OffsetOutB = 0;
+    }
+    else if ((colorSpace == MHW_CSpace_BT2020) || (colorSpace == MHW_CSpace_BT2020_FullRange))
+    {
+        // BT2020 CCM coefficients
+        pIecpState->CcmState.DW1.C0          = 0x00009937;
+        pIecpState->CcmState.DW0.C1          = 0x000119d4;
+        pIecpState->CcmState.DW3.C2          = 0;
+        pIecpState->CcmState.DW2.C3          = 0x00009937;
+        pIecpState->CcmState.DW5.C4          = 0x07ffe75a;
+        pIecpState->CcmState.DW4.C5          = 0x07ffaa6a;
+        pIecpState->CcmState.DW7.C6          = 0x00009937;
+        pIecpState->CcmState.DW6.C7          = 0;
+        pIecpState->CcmState.DW8.C8          = 0x0000dce4;
+        // Limited range BT2020 has non-zero input offsets; full range has zero offsets
+        pIecpState->CcmState.DW9.OffsetInR   = (colorSpace == MHW_CSpace_BT2020) ? 0xf8000000 : 0;
+        pIecpState->CcmState.DW10.OffsetInG  = (colorSpace == MHW_CSpace_BT2020) ? 0xc0000000 : 0;
+        pIecpState->CcmState.DW11.OffsetInB  = (colorSpace == MHW_CSpace_BT2020) ? 0xc0000000 : 0;
+        pIecpState->CcmState.DW12.OffsetOutR = 0;
+        pIecpState->CcmState.DW13.OffsetOutG = 0;
+        pIecpState->CcmState.DW14.OffsetOutB = 0;
+    }
+    else
+    {
+        // Unsupported color space: optionally program identity matrix, then assert
+        if (programFallbackIdentity)
+        {
+            SetCcmIdentityMatrix(pIecpState, false);
+        }
+        MHW_ASSERTMESSAGE("Unsupported Input Color Space!");
+    }
+}
+
+//!
+//! \brief    Helper function for programming identity forward gamma LUT
+//! \details  Programs the forward gamma LUT with identity mapping (256*i for each entry).
+//!           Handles two special-entry modes: dual (entries 254 and 255) or single (entry 255 only).
+//! \param    [in,out] pForwardGamma
+//!           Pointer to array of forward gamma correction state entries
+//! \param    [in] loopBound
+//!           Number of entries to fill with identity (254 for dual-special-entry mode,
+//!           255 for single-special-entry mode)
+//! \param    [in] dualSpecialEntries
+//!           If true, entries 254 and 255 are both special.
+//!           If false, only entry 255 is special.
+//! \return   void
+//!
+template <typename FwdGamma_t>
+inline void SetForwardGammaIdentity(FwdGamma_t* pForwardGamma, uint32_t loopBound, bool dualSpecialEntries)
+{
+    // Fill identity entries from 0 to loopBound (exclusive)
+    for (uint32_t i = 0; i < loopBound; i++)
+    {
+        pForwardGamma[i].DW0.PointValueForForwardGammaLut        = 256 * i;
+        pForwardGamma[i].DW1.ForwardRChannelGammaCorrectionValue = 256 * i;
+        pForwardGamma[i].DW2.ForwardGChannelGammaCorrectionValue = 256 * i;
+        pForwardGamma[i].DW3.ForwardBChannelGammaCorrectionValue = 256 * i;
+    }
+
+    if (dualSpecialEntries)
+    {
+        // Dual special entries: entry 254 is all 0xffff, entry 255 point is 0xffffffff
+        pForwardGamma[254].DW0.PointValueForForwardGammaLut        = 0xffff;
+        pForwardGamma[254].DW1.ForwardRChannelGammaCorrectionValue = 0xffff;
+        pForwardGamma[254].DW2.ForwardGChannelGammaCorrectionValue = 0xffff;
+        pForwardGamma[254].DW3.ForwardBChannelGammaCorrectionValue = 0xffff;
+
+        pForwardGamma[255].DW0.PointValueForForwardGammaLut        = 0xffffffff;
+    }
+    else
+    {
+        // Single special entry: entry 255 point is 0xffff
+        pForwardGamma[255].DW0.PointValueForForwardGammaLut        = 0xffff;
+    }
+
+    // Entry 255 channel values are always 0xffff
+    pForwardGamma[255].DW1.ForwardRChannelGammaCorrectionValue = 0xffff;
+    pForwardGamma[255].DW2.ForwardGChannelGammaCorrectionValue = 0xffff;
+    pForwardGamma[255].DW3.ForwardBChannelGammaCorrectionValue = 0xffff;
+}
+
+//!
+//! \brief    Helper function for programming inverse gamma from API-provided 1D LUT
+//! \details  Programs the inverse gamma LUT entries from the API-provided 1D LUT data
+//!           for the active range, and zeros out the remaining entries up to fullSize.
+//! \param    [in,out] pInverseGamma
+//!           Pointer to array of inverse gamma correction state entries
+//! \param    [in] p1DLut
+//!           Pointer to 1D LUT data (4 uint16_t values per entry: index, R, G, B)
+//! \param    [in] lutSize
+//!           Number of active LUT entries to program from p1DLut
+//! \param    [in] fullSize
+//!           Total number of inverse gamma entries in hardware (4096 for older platforms,
+//!           1024 for newer platforms)
+//! \return   void
+//!
+template <typename InvGamma_t>
+inline void SetInverseGammaFromLut(InvGamma_t* pInverseGamma, uint16_t* p1DLut, uint32_t lutSize, uint32_t fullSize)
+{
+    // Program active LUT entries from API-provided data
+    for (uint32_t i = 0; i < lutSize; i++)
+    {
+        pInverseGamma[i].DW0.Value                               = 0;
+        pInverseGamma[i].DW1.InverseRChannelGammaCorrectionValue = (uint32_t)(p1DLut[4 * i + 1]);  // 32-bit precision
+        pInverseGamma[i].DW2.InverseGChannelGammaCorrectionValue = (uint32_t)(p1DLut[4 * i + 2]);  // 32-bit precision
+        pInverseGamma[i].DW3.InverseBChannelGammaCorrectionValue = (uint32_t)(p1DLut[4 * i + 3]);  // 32-bit precision
+    }
+
+    // Zero out remaining entries beyond the active LUT range
+    for (uint32_t i = lutSize; i < fullSize; i++)
+    {
+        pInverseGamma[i].DW0.Value                               = 0;
+        pInverseGamma[i].DW1.InverseRChannelGammaCorrectionValue = 0;
+        pInverseGamma[i].DW2.InverseGChannelGammaCorrectionValue = 0;
+        pInverseGamma[i].DW3.InverseBChannelGammaCorrectionValue = 0;
+    }
+}
+
+//!
+//! \brief    Helper function for programming identity inverse gamma LUT
+//! \details  Programs the inverse gamma LUT with identity mapping using linear interpolation
+//!           from 0 to maxValLutOut. The last entry is always set to maxValLutOut exactly.
+//! \param    [in,out] pInverseGamma
+//!           Pointer to array of inverse gamma correction state entries
+//! \param    [in] nLutInBitDepth
+//!           Bit depth of the LUT input (e.g., 12 for 4096-entry LUT, 10 for 1024-entry LUT)
+//! \param    [in] totalEntries
+//!           Total number of entries to program (e.g., 4096 or 1024)
+//! \return   void
+//!
+template <typename InvGamma_t>
+inline void SetInverseGammaIdentity(InvGamma_t* pInverseGamma, uint32_t nLutInBitDepth, uint32_t totalEntries)
+{
+    uint64_t maxValLutIn  = (((uint64_t)1) << nLutInBitDepth) - 1;
+    uint64_t maxValLutOut = (((uint64_t)1) << 32) - 1;
+    uint32_t lastEntry    = totalEntries - 1;
+
+    for (uint32_t i = 0; i < totalEntries; i++)
+    {
+        float    x               = (float)i / (float)maxValLutIn;
+        uint32_t nCorrectedValue = (i < lastEntry) ? (uint32_t)(x * (float)maxValLutOut + 0.5f) : (uint32_t)maxValLutOut;
+
+        pInverseGamma[i].DW0.Value                               = 0;
+        pInverseGamma[i].DW1.InverseRChannelGammaCorrectionValue = nCorrectedValue;
+        pInverseGamma[i].DW2.InverseGChannelGammaCorrectionValue = nCorrectedValue;
+        pInverseGamma[i].DW3.InverseBChannelGammaCorrectionValue = nCorrectedValue;
+    }
 }
 
 }  // namespace common

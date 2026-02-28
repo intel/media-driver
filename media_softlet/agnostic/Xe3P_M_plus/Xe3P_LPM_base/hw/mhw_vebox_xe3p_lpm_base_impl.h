@@ -861,124 +861,30 @@ public:
         if (pVeboxIecpParams->s1DLutParams.bActive || pVeboxIecpParams->s3DLutParams.bActive)
         {
             // HW provides 1K 1DLUT inverse gamma
-            typename cmd_t::VEBOX_HDR_STATE_EOTF16_CMD  *pVeboxHdrState = (typename cmd_t::VEBOX_HDR_STATE_EOTF16_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
+            typename cmd_t::VEBOX_HDR_STATE_EOTF16_CMD *pVeboxHdrState = (typename cmd_t::VEBOX_HDR_STATE_EOTF16_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
                                                            pVeboxHeap->uiHdrStateOffset +
                                                            uiOffset);
             MHW_CHK_NULL_RETURN(pVeboxHdrState);
 
             pVeboxHdrState->DW3104.ToneMappingEnable = false;
 
+            // Program identity forward gamma LUT (loop bound 255, single special entry at 255)
             typename cmd_t::VEBOX_HDR_FWD_GAMMA_CORRECTION_STATE_CMD *pForwardGamma = pVeboxHdrState->ForwardGammaLUTvalue;
-            for (uint32_t i = 0; i < 255; i++)
-            {
-                pForwardGamma[i].DW0.PointValueForForwardGammaLut        = 256 * i;
-                pForwardGamma[i].DW1.ForwardRChannelGammaCorrectionValue = 256 * i;
-                pForwardGamma[i].DW2.ForwardGChannelGammaCorrectionValue = 256 * i;
-                pForwardGamma[i].DW3.ForwardBChannelGammaCorrectionValue = 256 * i;
-            }
-
-            pForwardGamma[255].DW0.PointValueForForwardGammaLut        = 0xffff;
-            pForwardGamma[255].DW1.ForwardRChannelGammaCorrectionValue = 0xffff;
-            pForwardGamma[255].DW2.ForwardGChannelGammaCorrectionValue = 0xffff;
-            pForwardGamma[255].DW3.ForwardBChannelGammaCorrectionValue = 0xffff;
+            mhw::vebox::common::SetForwardGammaIdentity(pForwardGamma, 255u, false);
 
             // Program CCM as identity matrix
-            pIecpState->CcmState.DW0.ColorCorrectionMatrixEnable = false;
-            pIecpState->CcmState.DW1.C0                          = 0x400000;
-            pIecpState->CcmState.DW0.C1                          = 0;
-            pIecpState->CcmState.DW3.C2                          = 0;
-            pIecpState->CcmState.DW2.C3                          = 0;
-            pIecpState->CcmState.DW5.C4                          = 0x400000;
-            pIecpState->CcmState.DW4.C5                          = 0;
-            pIecpState->CcmState.DW7.C6                          = 0;
-            pIecpState->CcmState.DW6.C7                          = 0;
-            pIecpState->CcmState.DW8.C8                          = 0x400000;
-            pIecpState->CcmState.DW9.OffsetInR                   = 0;
-            pIecpState->CcmState.DW10.OffsetInG                  = 0;
-            pIecpState->CcmState.DW11.OffsetInB                  = 0;
-            pIecpState->CcmState.DW12.OffsetOutR                 = 0;
-            pIecpState->CcmState.DW13.OffsetOutG                 = 0;
-            pIecpState->CcmState.DW14.OffsetOutB                 = 0;
+            mhw::vebox::common::SetCcmIdentityMatrix(pIecpState, false);
         }
         else if (pVeboxIecpParams->bCcmCscEnable)
         {
-            uint32_t nLutInBitDepth  = 10;
-            uint32_t nLutOutBitDepth = 32;
-            uint64_t maxValLutIn     = (((uint64_t)1) << nLutInBitDepth) - 1;
-            uint64_t maxValLutOut    = (((uint64_t)1) << nLutOutBitDepth) - 1;
-
             // HW provides 1K 1DLUT inverse gamma and fill in with identity
             typename cmd_t::VEBOX_HDR_INV_EOTF32_GAMMA_CORRECTION_STATE_CMD *pInverseGamma = pVeboxHdrState->PRGBCorrectedValue;
-            for (uint32_t i = 0; i < 1024; i++)
-            {
-                float    x                                               = (float)(i) / maxValLutIn;
-                uint32_t nCorrectedValue                                 = (i < 1023) ? (uint32_t)(x * maxValLutOut + 0.5) : (uint32_t)(maxValLutOut);
-                pInverseGamma[i].DW0.Value                               = 0;
-                pInverseGamma[i].DW1.InverseRChannelGammaCorrectionValue = nCorrectedValue;
-                pInverseGamma[i].DW2.InverseGChannelGammaCorrectionValue = nCorrectedValue;
-                pInverseGamma[i].DW3.InverseBChannelGammaCorrectionValue = nCorrectedValue;
-            }
-            pVeboxHdrState->DW5152.ToneMappingEnable             = false;
-            pIecpState->CcmState.DW0.ColorCorrectionMatrixEnable = false;
-            if ((pVeboxIecpParams->ColorSpace == MHW_CSpace_BT709) ||
-                (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT709_FullRange))
-            {
-                pIecpState->CcmState.DW1.C0          = 0x00009937;
-                pIecpState->CcmState.DW0.C1          = 0x000115f6;
-                pIecpState->CcmState.DW3.C2          = 0;
-                pIecpState->CcmState.DW2.C3          = 0x00009937;
-                pIecpState->CcmState.DW5.C4          = 0x07ffe3f1;
-                pIecpState->CcmState.DW4.C5          = 0x07ffb9e0;
-                pIecpState->CcmState.DW7.C6          = 0x00009937;
-                pIecpState->CcmState.DW6.C7          = 0;
-                pIecpState->CcmState.DW8.C8          = 0x0000ebe6;
-                pIecpState->CcmState.DW9.OffsetInR   = (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT709) ? 0xf8000000 : 0;
-                pIecpState->CcmState.DW10.OffsetInG  = (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT709) ? 0xc0000000 : 0;
-                pIecpState->CcmState.DW11.OffsetInB  = (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT709) ? 0xc0000000 : 0;
-                pIecpState->CcmState.DW12.OffsetOutR = 0;
-                pIecpState->CcmState.DW13.OffsetOutG = 0;
-                pIecpState->CcmState.DW14.OffsetOutB = 0;
-            }
-            else if ((pVeboxIecpParams->ColorSpace == MHW_CSpace_BT2020) ||
-                     (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT2020_FullRange))
-            {
-                pIecpState->CcmState.DW1.C0          = 0x00009937;
-                pIecpState->CcmState.DW0.C1          = 0x000119d4;
-                pIecpState->CcmState.DW3.C2          = 0;
-                pIecpState->CcmState.DW2.C3          = 0x00009937;
-                pIecpState->CcmState.DW5.C4          = 0x07ffe75a;
-                pIecpState->CcmState.DW4.C5          = 0x07ffaa6a;
-                pIecpState->CcmState.DW7.C6          = 0x00009937;
-                pIecpState->CcmState.DW6.C7          = 0;
-                pIecpState->CcmState.DW8.C8          = 0x0000dce4;
-                pIecpState->CcmState.DW9.OffsetInR   = (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT2020) ? 0xf8000000 : 0;
-                pIecpState->CcmState.DW10.OffsetInG  = (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT2020) ? 0xc0000000 : 0;
-                pIecpState->CcmState.DW11.OffsetInB  = (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT2020) ? 0xc0000000 : 0;
-                pIecpState->CcmState.DW12.OffsetOutR = 0;
-                pIecpState->CcmState.DW13.OffsetOutG = 0;
-                pIecpState->CcmState.DW14.OffsetOutB = 0;
-            }
-            else
-            {
-                // Program CCM as identity matrix
-                pIecpState->CcmState.DW0.ColorCorrectionMatrixEnable = false;
-                pIecpState->CcmState.DW1.C0                          = 0x400000;
-                pIecpState->CcmState.DW0.C1                          = 0;
-                pIecpState->CcmState.DW3.C2                          = 0;
-                pIecpState->CcmState.DW2.C3                          = 0;
-                pIecpState->CcmState.DW5.C4                          = 0x400000;
-                pIecpState->CcmState.DW4.C5                          = 0;
-                pIecpState->CcmState.DW7.C6                          = 0;
-                pIecpState->CcmState.DW6.C7                          = 0;
-                pIecpState->CcmState.DW8.C8                          = 0x400000;
-                pIecpState->CcmState.DW9.OffsetInR                   = 0;
-                pIecpState->CcmState.DW10.OffsetInG                  = 0;
-                pIecpState->CcmState.DW11.OffsetInB                  = 0;
-                pIecpState->CcmState.DW12.OffsetOutR                 = 0;
-                pIecpState->CcmState.DW13.OffsetOutG                 = 0;
-                pIecpState->CcmState.DW14.OffsetOutB                 = 0;
-                MHW_ASSERTMESSAGE("Unsupported Input Color Space!");
-            }
+            mhw::vebox::common::SetInverseGammaIdentity(pInverseGamma, 10u, 1024u);
+
+            pVeboxHdrState->DW5152.ToneMappingEnable = false;
+
+            // Program CCM based on color space (xe3p passes true for fallback identity matrix)
+            mhw::vebox::common::SetCcmColorSpace(pIecpState, pVeboxIecpParams->ColorSpace, true);
         }
         return eStatus;
     }
