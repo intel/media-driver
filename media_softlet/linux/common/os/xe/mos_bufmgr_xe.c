@@ -233,6 +233,7 @@ typedef struct mos_xe_bufmgr_gem {
 
     //Note: DON't put these fields in xe_device
     bool     has_vram;
+    bool     has_small_bar;
     uint8_t  va_bits;
     /** bitmask of all memory regions */
     uint64_t mem_regions_mask;
@@ -720,6 +721,39 @@ bool __mos_has_vram_xe(struct mos_bufmgr *bufmgr)
     bool has_vram = ((config->info[DRM_XE_QUERY_CONFIG_FLAGS] & DRM_XE_QUERY_CONFIG_FLAG_HAS_VRAM) > 0);
     bufmgr_gem->has_vram = has_vram;
     return has_vram;
+}
+
+static bool __mos_has_small_bar_xe(struct mos_bufmgr *bufmgr)
+{
+    MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr, false)
+    struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bufmgr;
+    struct mos_xe_device *dev = &bufmgr_gem->xe_device;
+    int fd = bufmgr_gem->fd;
+
+    if (!bufmgr_gem->has_vram)
+    {
+        bufmgr_gem->has_small_bar = false;
+        return false;
+    }
+
+    MOS_DRM_CHK_XE_DEV(dev, mem_regions, __mos_query_mem_regions_xe, false)
+
+    struct drm_xe_query_mem_regions *mem_regions = dev->mem_regions;
+    for (int i = 0; i < mem_regions->num_mem_regions; i++)
+    {
+        if (mem_regions->mem_regions[i].mem_class == DRM_XE_MEM_REGION_CLASS_VRAM &&
+            mem_regions->mem_regions[i].cpu_visible_size < mem_regions->mem_regions[i].total_size)
+        {
+            bufmgr_gem->has_small_bar = true;
+            MOS_DRM_NORMALMESSAGE("Small BAR detected: VRAM total %llu, CPU visible %llu",
+                (unsigned long long)mem_regions->mem_regions[i].total_size,
+                (unsigned long long)mem_regions->mem_regions[i].cpu_visible_size);
+            return true;
+        }
+    }
+
+    bufmgr_gem->has_small_bar = false;
+    return false;
 }
 
 uint8_t __mos_query_va_bits_xe(struct mos_bufmgr *bufmgr)
@@ -1337,6 +1371,19 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
     {
         //Note: memory_region is related to gt_id for multi-tiles gpu, take gt_id into consideration in case of multi-tiles
         create.placement = bufmgr_gem->mem_regions_mask & (~0x1);
+
+        if (bufmgr_gem->has_small_bar)
+        {
+            /**
+             * On small BAR systems, only a portion of VRAM is CPU accessible.
+             * Set NEEDS_VISIBLE_VRAM to ensure the allocation lands in the
+             * CPU visible part of VRAM. Also add system memory as a fallback
+             * placement so the kernel can spill if CPU visible VRAM is full.
+             * On full BAR systems this flag is a noop.
+             */
+            create.flags |= DRM_XE_GEM_CREATE_FLAG_NEEDS_VISIBLE_VRAM;
+            create.placement |= bufmgr_gem->mem_regions_mask & 0x1;
+        }
     }
     else
     {
@@ -3677,6 +3724,7 @@ mos_bufmgr_gem_init_xe(int fd, int batch_size)
     bufmgr_gem->vm_id = __mos_vm_create_xe(&bufmgr_gem->bufmgr);
     __mos_query_mem_regions_instance_mask_xe(&bufmgr_gem->bufmgr);
     __mos_has_vram_xe(&bufmgr_gem->bufmgr);
+    __mos_has_small_bar_xe(&bufmgr_gem->bufmgr);
     __mos_get_default_alignment_xe(&bufmgr_gem->bufmgr);
 
     DRMLISTADD(&bufmgr_gem->managers, &bufmgr_list);
