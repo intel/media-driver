@@ -1101,6 +1101,809 @@ inline MOS_STATUS SetVeboxSurfaceFormat(
     return MOS_STATUS_SUCCESS;
 }
 
+//!
+//! \brief    Helper function for setting up CSC coefficients for BT601 color space
+//! \details  Configures CSC transformation coefficients for BT601 color space.
+//!           Supports two modes: Color Balance (YUV to RGB with 16-bit precision)
+//!           and Gamut Expansion (YUV to RGB with 10-bit precision).
+//! \param    [in,out] pCscState
+//!           Pointer to CSC state structure to be configured
+//! \param    [in] isColorBalance
+//!           Mode selector: true for Color Balance mode, false for Gamut Expansion mode
+//! \return   void
+//!
+template <typename CSCStateType>
+inline void SetupCSCCoefficients_BT601(CSCStateType* pCscState, bool isColorBalance)
+{
+    pCscState->DW0.TransformEnable = true;
+    
+    if (isColorBalance)
+    {
+        // Color Balance mode: 16-bit precision coefficients
+        pCscState->DW0.C0          = 76309;
+        pCscState->DW1.C1          = 0;
+        pCscState->DW2.C2          = 104597;
+        pCscState->DW3.C3          = 76309;
+        pCscState->DW4.C4          = MOS_BITFIELD_VALUE((uint32_t)-25675, 19);
+        pCscState->DW5.C5          = MOS_BITFIELD_VALUE((uint32_t)-53279, 19);
+        pCscState->DW6.C6          = 76309;
+        pCscState->DW7.C7          = 132201;
+        pCscState->DW8.C8          = 0;
+        pCscState->DW9.OffsetIn1   = MOS_BITFIELD_VALUE((uint32_t)-2048, 16);
+        pCscState->DW9.OffsetOut1  = 0;
+        pCscState->DW10.OffsetIn2  = MOS_BITFIELD_VALUE((uint32_t)-16384, 16);
+        pCscState->DW10.OffsetOut2 = 0;
+        pCscState->DW11.OffsetIn3  = MOS_BITFIELD_VALUE((uint32_t)-16384, 16);
+        pCscState->DW11.OffsetOut3 = 0;
+    }
+    else
+    {
+        // Gamut Expansion mode: 10-bit precision coefficients
+        pCscState->DW0.C0          = 1192;
+        pCscState->DW1.C1          = MOS_BITFIELD_VALUE((uint32_t)-2, 19);
+        pCscState->DW2.C2          = 1634;
+        pCscState->DW3.C3          = 1192;
+        pCscState->DW4.C4          = MOS_BITFIELD_VALUE((uint32_t)-401, 19);
+        pCscState->DW5.C5          = MOS_BITFIELD_VALUE((uint32_t)-833, 19);
+        pCscState->DW6.C6          = 1192;
+        pCscState->DW7.C7          = 2066;
+        pCscState->DW8.C8          = MOS_BITFIELD_VALUE((uint32_t)-1, 19);
+        pCscState->DW9.OffsetIn1   = MOS_BITFIELD_VALUE((uint32_t)-64, 16);
+        pCscState->DW9.OffsetOut1  = 0;
+        pCscState->DW10.OffsetIn2  = MOS_BITFIELD_VALUE((uint32_t)-512, 16);
+        pCscState->DW10.OffsetOut2 = 0;
+        pCscState->DW11.OffsetIn3  = MOS_BITFIELD_VALUE((uint32_t)-512, 16);
+        pCscState->DW11.OffsetOut3 = 0;
+    }
+}
+
+//!
+//! \brief    Helper function for setting up CSC coefficients for BT709 color space
+//! \details  Configures CSC transformation coefficients for BT709 color space.
+//!           Supports two modes: Color Balance (YUV to RGB with 16-bit precision)
+//!           and Gamut Expansion (YUV to RGB with 10-bit precision).
+//! \param    [in,out] pCscState
+//!           Pointer to CSC state structure to be configured
+//! \param    [in] isColorBalance
+//!           Mode selector: true for Color Balance mode, false for Gamut Expansion mode
+//! \return   void
+//!
+template <typename CSCStateType>
+inline void SetupCSCCoefficients_BT709(CSCStateType* pCscState, bool isColorBalance)
+{
+    pCscState->DW0.TransformEnable = true;
+    
+    if (isColorBalance)
+    {
+        // Color Balance mode: 16-bit precision coefficients
+        pCscState->DW0.C0          = 76309;
+        pCscState->DW1.C1          = 0;
+        pCscState->DW2.C2          = 117489;
+        pCscState->DW3.C3          = 76309;
+        pCscState->DW4.C4          = MOS_BITFIELD_VALUE((uint32_t)-13975, 19);
+        pCscState->DW5.C5          = MOS_BITFIELD_VALUE((uint32_t)-34925, 19);
+        pCscState->DW6.C6          = 76309;
+        pCscState->DW7.C7          = 138438;
+        pCscState->DW8.C8          = 0;
+        pCscState->DW9.OffsetIn1   = MOS_BITFIELD_VALUE((uint32_t)-2048, 16);
+        pCscState->DW9.OffsetOut1  = 0;
+        pCscState->DW10.OffsetIn2  = MOS_BITFIELD_VALUE((uint32_t)-16384, 16);
+        pCscState->DW10.OffsetOut2 = 0;
+        pCscState->DW11.OffsetIn3  = MOS_BITFIELD_VALUE((uint32_t)-16384, 16);
+        pCscState->DW11.OffsetOut3 = 0;
+    }
+    else
+    {
+        // Gamut Expansion mode: 10-bit precision coefficients
+        pCscState->DW0.C0          = 1192;
+        pCscState->DW1.C1          = MOS_BITFIELD_VALUE((uint32_t)-1, 19);
+        pCscState->DW2.C2          = 1835;
+        pCscState->DW3.C3          = 1192;
+        pCscState->DW4.C4          = MOS_BITFIELD_VALUE((uint32_t)-218, 19);
+        pCscState->DW5.C5          = MOS_BITFIELD_VALUE((uint32_t)-537, 19);
+        pCscState->DW6.C6          = 1192;
+        pCscState->DW7.C7          = 2164;
+        pCscState->DW8.C8          = 1;
+        pCscState->DW9.OffsetIn1   = MOS_BITFIELD_VALUE((uint32_t)-64, 16);
+        pCscState->DW9.OffsetOut1  = 0;
+        pCscState->DW10.OffsetIn2  = MOS_BITFIELD_VALUE((uint32_t)-512, 16);
+        pCscState->DW10.OffsetOut2 = 0;
+        pCscState->DW11.OffsetIn3  = MOS_BITFIELD_VALUE((uint32_t)-512, 16);
+        pCscState->DW11.OffsetOut3 = 0;
+    }
+}
+
+//!
+//! \brief    Helper function for populating GE_Values array with identity mapping
+//! \details  Fills the GE_Values array with identity transformation (257*i for all channels).
+//!           This is used when no gamma correction is needed (both input and output gamma are 1.0).
+//! \param    [out] usGE_Values
+//!           2D array [256][8] to be populated with identity values
+//! \return   void
+//!
+inline void PopulateGEValues_Identity(uint16_t usGE_Values[256][8])
+{
+    for (uint32_t i = 0; i < 256; i++)
+    {
+        usGE_Values[i][0] = 257 * i;
+        usGE_Values[i][1] = 257 * i;
+        usGE_Values[i][2] = 257 * i;
+        usGE_Values[i][3] = 257 * i;
+        usGE_Values[i][4] = 257 * i;
+        usGE_Values[i][5] = 257 * i;
+        usGE_Values[i][6] = 257 * i;
+        usGE_Values[i][7] = 257 * i;
+    }
+}
+
+//!
+//! \brief    Helper function for populating GE_Values array with gamma correction
+//! \details  Fills the GE_Values array using power function-based gamma correction.
+//!           Applies inverse gamma to channels 1-3 and forward gamma to channels 5-7.
+//!           If both gamma values are 1.0 (identity), calls PopulateGEValues_Identity instead.
+//! \param    [out] usGE_Values
+//!           2D array [256][8] to be populated with gamma-corrected values
+//! \param    [in] dInverseGamma
+//!           Inverse gamma value (typically 1.0, 2.2, or 2.6)
+//! \param    [in] dForwardGamma
+//!           Forward gamma value (typically 1.0, 2.2, or 2.6)
+//! \param    [in] isIdentity
+//!           Flag indicating if both gamma values are 1.0 (identity transformation)
+//! \return   void
+//!
+inline void PopulateGEValues_Gamma(uint16_t usGE_Values[256][8], double dInverseGamma, double dForwardGamma, bool isIdentity)
+{
+    if (isIdentity)
+    {
+        PopulateGEValues_Identity(usGE_Values);
+        return;
+    }
+    
+    // Note: Loop only goes to 254, not 255
+    for (uint32_t i = 0; i < 255; i++)
+    {
+        usGE_Values[i][0] = 256 * i;
+        usGE_Values[i][1] = (uint16_t)MOS_F_ROUND(pow((double)((double)i / 256), dInverseGamma) * 65536);
+        usGE_Values[i][2] = usGE_Values[i][1];
+        usGE_Values[i][3] = usGE_Values[i][1];
+        
+        usGE_Values[i][4] = 256 * i;
+        usGE_Values[i][5] = (uint16_t)MOS_F_ROUND(pow((double)((double)i / 256), 1 / dForwardGamma) * 65536);
+        usGE_Values[i][6] = usGE_Values[i][5];
+        usGE_Values[i][7] = usGE_Values[i][5];
+    }
+}
+
+//!
+//! \brief    Helper function for populating GE_Values array from BT2020 global LUTs
+//! \details  Fills the GE_Values array using pre-defined BT2020 inverse and forward
+//!           pixel value and gamma LUT arrays. Used for BT2020 color space conversion.
+//! \param    [out] usGE_Values
+//!           2D array [256][8] to be populated with BT2020 LUT values
+//! \return   void
+//!
+inline void PopulateGEValues_BT2020(uint16_t usGE_Values[256][8])
+{
+    for (uint32_t i = 0; i < 256; i++)
+    {
+        usGE_Values[i][0] = (uint16_t)g_Vebox_BT2020_Inverse_Pixel_Value[i];
+        usGE_Values[i][1] = (uint16_t)g_Vebox_BT2020_Inverse_Gamma_LUT[i];
+        usGE_Values[i][2] = (uint16_t)g_Vebox_BT2020_Inverse_Gamma_LUT[i];
+        usGE_Values[i][3] = (uint16_t)g_Vebox_BT2020_Inverse_Gamma_LUT[i];
+        
+        usGE_Values[i][4] = (uint16_t)g_Vebox_BT2020_Forward_Pixel_Value[i];
+        usGE_Values[i][5] = (uint16_t)g_Vebox_BT2020_Forward_Gamma_LUT[i];
+        usGE_Values[i][6] = (uint16_t)g_Vebox_BT2020_Forward_Gamma_LUT[i];
+        usGE_Values[i][7] = (uint16_t)g_Vebox_BT2020_Forward_Gamma_LUT[i];
+    }
+}
+
+//!
+//! \brief    Helper function for populating GE_Values array from 1DLUT with AYUV processing
+//! \details  Fills the GE_Values array using 1DLUT data for AYUV channel processing.
+//!           Channels 0-3 use identity mapping, channels 4-7 use 1DLUT values.
+//!           Special handling for boundary values (i==0 and i==255).
+//! \param    [out] usGE_Values
+//!           2D array [256][8] to be populated with 1DLUT AYUV values
+//! \param    [in] pForwardGamma
+//!           Pointer to forward gamma LUT data (4 values per entry: in_val, Y, U, V)
+//! \param    [in] LUTSize
+//!           Size of the LUT (typically 256)
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+inline MOS_STATUS PopulateGEValues_1DLUT_AYUV(uint16_t usGE_Values[256][8], const uint16_t* pForwardGamma, uint32_t LUTSize)
+{
+    MHW_CHK_NULL_RETURN(pForwardGamma);
+    
+    for (uint32_t i = 0; i < LUTSize; i++)
+    {
+        // Channels 0-3: Identity mapping
+        usGE_Values[i][0] = 257 * i;
+        usGE_Values[i][1] = 257 * i;
+        usGE_Values[i][2] = 257 * i;
+        usGE_Values[i][3] = 257 * i;
+        
+        // Channels 4-7: 1DLUT AYUV values
+        uint32_t nIndex = 4 * i;
+        uint16_t in_val = pForwardGamma[nIndex];
+        uint16_t vchan1_y = pForwardGamma[nIndex + 1];
+        uint16_t vchan2_u = pForwardGamma[nIndex + 2];
+        uint16_t vchan3_v = pForwardGamma[nIndex + 3];
+        
+        // Special handling for boundary values
+        usGE_Values[i][4] = (i == 0) ? 0 : ((i == 255) ? 0xffff : in_val);
+        usGE_Values[i][5] = vchan1_y;
+        usGE_Values[i][6] = vchan2_u;
+        usGE_Values[i][7] = vchan3_v;
+    }
+    
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for setting up Gamut Compression
+//! \details  Configures gamut compression settings based on compression mode (Basic or Advanced).
+//!           For Basic mode, sets up scaling factor if specified. For Advanced mode, sets up
+//!           full range mapping parameters (D1Out, DOutDefault, DInDefault, D1In).
+//!           Calls SetVertexTableCallback to set up vertex table for the specified color space.
+//! \param    [in,out] pGamutState
+//!           Pointer to VEBOX_GAMUT_CONTROL_STATE_CMD structure
+//! \param    [in] gamutCmd
+//!           Reference to VEBOX_GAMUT_CONTROL_STATE_CMD for constant values
+//! \param    [in] pVeboxGamutParams
+//!           Pointer to gamut parameters
+//! \param    [in] SetVertexTableCallback
+//!           Callback function to set vertex table for the color space
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetGamutCompression(
+    typename cmd_t::VEBOX_GAMUT_CONTROL_STATE_CMD* pGamutState,
+    const typename cmd_t::VEBOX_GAMUT_CONTROL_STATE_CMD& gamutCmd,
+    PMHW_VEBOX_GAMUT_PARAMS pVeboxGamutParams)
+{
+    MHW_CHK_NULL_RETURN(pGamutState);
+    MHW_CHK_NULL_RETURN(pVeboxGamutParams);
+    
+    if (pVeboxGamutParams->GCompMode == MHW_GAMUT_MODE_BASIC)
+    {
+        pGamutState->DW15.Fullrangemappingenable = false;
+        
+        if (pVeboxGamutParams->GCompBasicMode == gamutCmd.GCC_BASICMODESELECTION_SCALINGFACTOR)
+        {
+            pGamutState->DW17.GccBasicmodeselection = gamutCmd.GCC_BASICMODESELECTION_SCALINGFACTOR;
+            pGamutState->DW17.Basicmodescalingfactor = pVeboxGamutParams->iBasicModeScalingFactor;
+        }
+    }
+    else if (pVeboxGamutParams->GCompMode == MHW_GAMUT_MODE_ADVANCED)
+    {
+        pGamutState->DW15.Fullrangemappingenable = true;
+        pGamutState->DW15.D1Out = pVeboxGamutParams->iDout;
+        pGamutState->DW15.DOutDefault = pVeboxGamutParams->iDoutDefault;
+        pGamutState->DW15.DInDefault = pVeboxGamutParams->iDinDefault;
+        pGamutState->DW16.D1In = pVeboxGamutParams->iDin;
+    }
+    else
+    {
+        MHW_ASSERTMESSAGE("Invalid GAMUT MODE");
+    }
+    
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for setting up Color Balance
+//! \details  Configures color balance by setting up CSC coefficients for YUV to RGB conversion
+//!           based on the color space (BT601 or BT709). Sets up gamut state with global mode
+//!           enabled and copies the color correction matrix. Populates GE_Values array with
+//!           identity mapping and copies to gamma correction structure.
+//! \param    [in,out] pIecpState
+//!           Pointer to VEBOX_IECP_STATE_CMD structure
+//! \param    [in] pVeboxGamutParams
+//!           Pointer to gamut parameters
+//! \param    [out] usGE_Values
+//!           2D array [256][8] for GE values
+//! \param    [out] pVeboxGEGammaCorrection
+//!           Pointer to gamma correction structure
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetColorBalance(
+    typename cmd_t::VEBOX_IECP_STATE_CMD* pIecpState,
+    PMHW_VEBOX_GAMUT_PARAMS pVeboxGamutParams,
+    uint16_t usGE_Values[256][8],
+    void* pVeboxGEGammaCorrection)
+{
+    MHW_CHK_NULL_RETURN(pIecpState);
+    MHW_CHK_NULL_RETURN(pVeboxGamutParams);
+    MHW_CHK_NULL_RETURN(pVeboxGEGammaCorrection);
+    
+    // Setup CSC coefficients based on color space (Color Balance mode)
+    if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT601 ||
+        pVeboxGamutParams->ColorSpace == MHW_CSpace_xvYCC601 ||
+        pVeboxGamutParams->ColorSpace == MHW_CSpace_BT601_FullRange)
+    {
+        SetupCSCCoefficients_BT601(&pIecpState->CscState, true);
+    }
+    else if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT709 ||
+             pVeboxGamutParams->ColorSpace == MHW_CSpace_xvYCC709 ||
+             pVeboxGamutParams->ColorSpace == MHW_CSpace_BT709_FullRange)
+    {
+        SetupCSCCoefficients_BT709(&pIecpState->CscState, true);
+    }
+    else
+    {
+        MHW_ASSERTMESSAGE("Unknown primary");
+    }
+    
+    // Setup gamut state - properly access from pIecpState
+    auto pGamutState = &pIecpState->GamutState;
+    MHW_CHK_NULL_RETURN(pGamutState);
+    pGamutState->DW0.GlobalModeEnable = true;
+    pGamutState->DW1.CmW = 1023;
+    
+    // Copy color correction matrix
+    pGamutState->DW1.C0 = pVeboxGamutParams->Matrix[0][0];
+    pGamutState->DW0.C1 = pVeboxGamutParams->Matrix[0][1];
+    pGamutState->DW3.C2 = pVeboxGamutParams->Matrix[0][2];
+    pGamutState->DW2.C3 = pVeboxGamutParams->Matrix[1][0];
+    pGamutState->DW5.C4 = pVeboxGamutParams->Matrix[1][1];
+    pGamutState->DW4.C5 = pVeboxGamutParams->Matrix[1][2];
+    pGamutState->DW7.C6 = pVeboxGamutParams->Matrix[2][0];
+    pGamutState->DW6.C7 = pVeboxGamutParams->Matrix[2][1];
+    pGamutState->DW8.C8 = pVeboxGamutParams->Matrix[2][2];
+    
+    // Set all offsets to 0
+    pGamutState->DW9.OffsetInR = 0;
+    pGamutState->DW10.OffsetInG = 0;
+    pGamutState->DW11.OffsetInB = 0;
+    pGamutState->DW12.OffsetOutR = 0;
+    pGamutState->DW13.OffsetOutG = 0;
+    pGamutState->DW14.OffsetOutB = 0;
+    
+    // Populate GE_Values with identity mapping
+    PopulateGEValues_Identity(usGE_Values);
+    
+    // Copy to gamma correction structure (1024 DWords = 256 entries * 8 uint16_t / 2)
+    MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1024, usGE_Values, sizeof(uint16_t) * 8 * 256);
+    
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for setting up Gamut Expansion
+//! \details  Configures gamut expansion by setting up CSC coefficients for YUV to RGB conversion
+//!           based on the color space (BT601 or BT709). Handles both Basic and Advanced gamut
+//!           expansion modes. Copies the color correction matrix to gamut state.
+//! \param    [in,out] pIecpState
+//!           Pointer to VEBOX_IECP_STATE_CMD structure
+//! \param    [in] pVeboxGamutParams
+//!           Pointer to gamut parameters
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetGamutExpansion(
+    typename cmd_t::VEBOX_IECP_STATE_CMD* pIecpState,
+    PMHW_VEBOX_GAMUT_PARAMS pVeboxGamutParams)
+{
+    MHW_CHK_NULL_RETURN(pIecpState);
+    MHW_CHK_NULL_RETURN(pVeboxGamutParams);
+    
+    // Setup CSC coefficients based on color space (Gamut Expansion mode)
+    if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT601 ||
+        pVeboxGamutParams->ColorSpace == MHW_CSpace_xvYCC601 ||
+        pVeboxGamutParams->ColorSpace == MHW_CSpace_BT601_FullRange)
+    {
+        SetupCSCCoefficients_BT601(&pIecpState->CscState, false);
+    }
+    else if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT709 ||
+             pVeboxGamutParams->ColorSpace == MHW_CSpace_xvYCC709 ||
+             pVeboxGamutParams->ColorSpace == MHW_CSpace_BT709_FullRange)
+    {
+        SetupCSCCoefficients_BT709(&pIecpState->CscState, false);
+    }
+    else
+    {
+        MHW_ASSERTMESSAGE("Unknown primary");
+    }
+    
+    // Setup gamut state based on expansion mode - properly access from pIecpState
+    auto pGamutState = &pIecpState->GamutState;
+    MHW_CHK_NULL_RETURN(pGamutState);
+    if (pVeboxGamutParams->GExpMode == MHW_GAMUT_MODE_BASIC)
+    {
+        pGamutState->DW0.GlobalModeEnable = true;
+        pGamutState->DW1.CmW = 1023;
+    }
+    else if (pVeboxGamutParams->GExpMode == MHW_GAMUT_MODE_ADVANCED)
+    {
+        pGamutState->DW0.GlobalModeEnable = false;
+    }
+    else
+    {
+        MHW_ASSERTMESSAGE("Invalid GAMUT MODE");
+    }
+    
+    // Copy color correction matrix
+    pGamutState->DW1.C0 = pVeboxGamutParams->Matrix[0][0];
+    pGamutState->DW0.C1 = pVeboxGamutParams->Matrix[0][1];
+    pGamutState->DW3.C2 = pVeboxGamutParams->Matrix[0][2];
+    pGamutState->DW2.C3 = pVeboxGamutParams->Matrix[1][0];
+    pGamutState->DW5.C4 = pVeboxGamutParams->Matrix[1][1];
+    pGamutState->DW4.C5 = pVeboxGamutParams->Matrix[1][2];
+    pGamutState->DW7.C6 = pVeboxGamutParams->Matrix[2][0];
+    pGamutState->DW6.C7 = pVeboxGamutParams->Matrix[2][1];
+    pGamutState->DW8.C8 = pVeboxGamutParams->Matrix[2][2];
+    
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for setting up Gamma Correction
+//! \details  Configures gamma correction by setting up CSC coefficients for YUV to RGB conversion
+//!           based on the color space. For BT2020, calls BT2020YUVToRGBCallback. Sets up color
+//!           correction matrix (CCM) for BT2020->BT709/BT601 conversion if needed. Populates
+//!           GE_Values array using power function-based gamma correction or identity mapping.
+//! \param    [in,out] pIecpState
+//!           Pointer to VEBOX_IECP_STATE_CMD structure
+//! \param    [in] pVeboxGamutParams
+//!           Pointer to gamut parameters
+//! \param    [out] usGE_Values
+//!           2D array [256][8] for GE values
+//! \param    [out] pVeboxGEGammaCorrection
+//!           Pointer to gamma correction structure
+//! \param    [in] pVeboxInterface
+//!           Pointer to VEBOX interface
+//! \param    [in] pVeboxHeap
+//!           Pointer to VEBOX heap
+//! \param    [in] pVeboxIecpParams
+//!           Pointer to IECP parameters
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t, typename T>
+inline MOS_STATUS SetGammaCorrection(
+    typename cmd_t::VEBOX_IECP_STATE_CMD* pIecpState,
+    PMHW_VEBOX_GAMUT_PARAMS pVeboxGamutParams,
+    uint16_t usGE_Values[256][8],
+    void* pVeboxGEGammaCorrection,
+    T* pVeboxInterface,
+    MHW_VEBOX_HEAP* pVeboxHeap,
+    PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams)
+{
+    MHW_CHK_NULL_RETURN(pIecpState);
+    MHW_CHK_NULL_RETURN(pVeboxGamutParams);
+    MHW_CHK_NULL_RETURN(pVeboxGEGammaCorrection);
+    MHW_CHK_NULL_RETURN(pVeboxInterface);
+    
+    // Setup CSC coefficients based on color space (Color Balance mode for gamma correction)
+    if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT601 ||
+        pVeboxGamutParams->ColorSpace == MHW_CSpace_xvYCC601 ||
+        pVeboxGamutParams->ColorSpace == MHW_CSpace_BT601_FullRange)
+    {
+        SetupCSCCoefficients_BT601(&pIecpState->CscState, true);
+    }
+    else if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT709 ||
+             pVeboxGamutParams->ColorSpace == MHW_CSpace_xvYCC709 ||
+             pVeboxGamutParams->ColorSpace == MHW_CSpace_BT709_FullRange)
+    {
+        SetupCSCCoefficients_BT709(&pIecpState->CscState, true);
+    }
+    else if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT2020 ||
+             pVeboxGamutParams->ColorSpace == MHW_CSpace_BT2020_FullRange)
+    {
+        pVeboxInterface->VeboxInterface_BT2020YUVToRGB(pVeboxHeap, pVeboxIecpParams, pVeboxGamutParams);
+    }
+    else
+    {
+        MHW_ASSERTMESSAGE("Unknown primary");
+    }
+    
+    // CCM is needed for CSC (BT2020->BT709/BT601 with different gamma)
+    bool bEnableCCM = (pVeboxGamutParams->InputGammaValue != pVeboxGamutParams->OutputGammaValue);
+    
+    // Setup gamut state - properly access from pIecpState
+    auto pGamutState = &pIecpState->GamutState;
+    MHW_CHK_NULL_RETURN(pGamutState);
+    pGamutState->DW0.GlobalModeEnable = true;
+    pGamutState->DW1.CmW = 1023;
+    
+    if ((pVeboxGamutParams->ColorSpace == MHW_CSpace_BT2020) && bEnableCCM)
+    {
+        if (pVeboxGamutParams->dstColorSpace == MHW_CSpace_BT709)
+        {
+            // BT2020->BT709 CCM matrix
+            pGamutState->DW1.C0 = 108190;
+            pGamutState->DW0.C1 = MOS_BITFIELD_VALUE((uint32_t)-38288, 21);
+            pGamutState->DW3.C2 = MOS_BITFIELD_VALUE((uint32_t)-4747, 21);
+            pGamutState->DW2.C3 = MOS_BITFIELD_VALUE((uint32_t)-7967, 21);
+            pGamutState->DW5.C4 = 74174;
+            pGamutState->DW4.C5 = MOS_BITFIELD_VALUE((uint32_t)-557, 21);
+            pGamutState->DW7.C6 = MOS_BITFIELD_VALUE((uint32_t)-1198, 21);
+            pGamutState->DW6.C7 = MOS_BITFIELD_VALUE((uint32_t)-6587, 21);
+            pGamutState->DW8.C8 = 73321;
+        }
+        else
+        {
+            // BT2020->BT601 CCM matrix
+            pGamutState->DW1.C0 = 116420;
+            pGamutState->DW0.C1 = MOS_BITFIELD_VALUE((uint32_t)-45094, 21);
+            pGamutState->DW3.C2 = MOS_BITFIELD_VALUE((uint32_t)-5785, 21);
+            pGamutState->DW2.C3 = MOS_BITFIELD_VALUE((uint32_t)-10586, 21);
+            pGamutState->DW5.C4 = 77814;
+            pGamutState->DW4.C5 = MOS_BITFIELD_VALUE((uint32_t)-1705, 21);
+            pGamutState->DW7.C6 = MOS_BITFIELD_VALUE((uint32_t)-1036, 21);
+            pGamutState->DW6.C7 = MOS_BITFIELD_VALUE((uint32_t)-6284, 21);
+            pGamutState->DW8.C8 = 72864;
+        }
+    }
+    else
+    {
+        // Identity matrix
+        pGamutState->DW1.C0 = 65536;
+        pGamutState->DW0.C1 = 0;
+        pGamutState->DW3.C2 = 0;
+        pGamutState->DW2.C3 = 0;
+        pGamutState->DW5.C4 = 65536;
+        pGamutState->DW4.C5 = 0;
+        pGamutState->DW7.C6 = 0;
+        pGamutState->DW6.C7 = 0;
+        pGamutState->DW8.C8 = 65536;
+        pGamutState->DW9.OffsetInR = 0;
+        pGamutState->DW10.OffsetInG = 0;
+        pGamutState->DW11.OffsetInB = 0;
+        pGamutState->DW12.OffsetOutR = 0;
+        pGamutState->DW13.OffsetOutG = 0;
+        pGamutState->DW14.OffsetOutB = 0;
+    }
+    
+    // Map gamma values
+    double dInverseGamma = 1.0;
+    if (pVeboxGamutParams->InputGammaValue == MHW_GAMMA_1P0)
+    {
+        dInverseGamma = 1.0;
+    }
+    else if (pVeboxGamutParams->InputGammaValue == MHW_GAMMA_2P2)
+    {
+        dInverseGamma = 2.2;
+    }
+    else if (pVeboxGamutParams->InputGammaValue == MHW_GAMMA_2P6)
+    {
+        dInverseGamma = 2.6;
+    }
+    else
+    {
+        MHW_ASSERTMESSAGE("Invalid InputGammaValue");
+    }
+    
+    double dForwardGamma = 1.0;
+    if (pVeboxGamutParams->OutputGammaValue == MHW_GAMMA_1P0)
+    {
+        dForwardGamma = 1.0;
+    }
+    else if (pVeboxGamutParams->OutputGammaValue == MHW_GAMMA_2P2)
+    {
+        dForwardGamma = 2.2;
+    }
+    else if (pVeboxGamutParams->OutputGammaValue == MHW_GAMMA_2P6)
+    {
+        dForwardGamma = 2.6;
+    }
+    else
+    {
+        MHW_ASSERTMESSAGE("Invalid OutputGammaValue");
+    }
+    
+    // Populate GE_Values with gamma correction
+    bool isIdentity = (pVeboxGamutParams->InputGammaValue == MHW_GAMMA_1P0) && 
+                      (pVeboxGamutParams->OutputGammaValue == MHW_GAMMA_1P0);
+    PopulateGEValues_Gamma(usGE_Values, dInverseGamma, dForwardGamma, isIdentity);
+    
+    // Copy to gamma correction structure
+    if (isIdentity)
+    {
+        MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1024, usGE_Values, sizeof(uint16_t) * 8 * 256);
+    }
+    else
+    {
+        MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1020, usGE_Values, sizeof(uint16_t) * 8 * 255);
+    }
+    
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for setting up BT2020 CSC
+//! \details  Configures BT2020 color space conversion with global tone mapping LUTs.
+//!           If 1DLUT is active, sets up CCM from 1DLUT parameters and returns early.
+//!           Otherwise, sets up BT2020->BT709/BT601 CCM matrix, populates GE_Values
+//!           from BT2020 global LUTs, and calls BT2020YUVToRGBCallback.
+//! \param    [in,out] pIecpState
+//!           Pointer to VEBOX_IECP_STATE_CMD structure
+//! \param    [in] pVeboxIecpParams
+//!           Pointer to IECP parameters
+//! \param    [in] pVeboxGamutParams
+//!           Pointer to gamut parameters
+//! \param    [out] usGE_Values
+//!           2D array [256][8] for GE values
+//! \param    [out] pVeboxGEGammaCorrection
+//!           Pointer to gamma correction structure
+//! \param    [in] pVeboxInterface
+//!           Pointer to VEBOX interface
+//! \param    [in] pVeboxHeap
+//!           Pointer to VEBOX heap
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t, typename T>
+inline MOS_STATUS SetBT2020CSC(
+    typename cmd_t::VEBOX_IECP_STATE_CMD* pIecpState,
+    PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams,
+    PMHW_VEBOX_GAMUT_PARAMS pVeboxGamutParams,
+    uint16_t usGE_Values[256][8],
+    void* pVeboxGEGammaCorrection,
+    T* pVeboxInterface,
+    MHW_VEBOX_HEAP* pVeboxHeap)
+{
+    MHW_CHK_NULL_RETURN(pIecpState);
+    MHW_CHK_NULL_RETURN(pVeboxIecpParams);
+    MHW_CHK_NULL_RETURN(pVeboxGamutParams);
+    MHW_CHK_NULL_RETURN(pVeboxGEGammaCorrection);
+    MHW_CHK_NULL_RETURN(pVeboxInterface);
+    
+    // Check if 1DLUT is active
+    if (pVeboxIecpParams->s1DLutParams.bActive)
+    {
+        // CCM setting if 1DLUT VEBOX HDR enabled
+        auto p1DLutParams = &pVeboxIecpParams->s1DLutParams;
+        
+        pIecpState->CcmState.DW1.C0 = p1DLutParams->pCCM[0];
+        pIecpState->CcmState.DW0.C1 = MOS_BITFIELD_VALUE((uint32_t)p1DLutParams->pCCM[1], 27);
+        pIecpState->CcmState.DW3.C2 = MOS_BITFIELD_VALUE((uint32_t)p1DLutParams->pCCM[2], 27);
+        pIecpState->CcmState.DW2.C3 = MOS_BITFIELD_VALUE((uint32_t)p1DLutParams->pCCM[3], 27);
+        pIecpState->CcmState.DW5.C4 = p1DLutParams->pCCM[4];
+        pIecpState->CcmState.DW4.C5 = MOS_BITFIELD_VALUE((uint32_t)p1DLutParams->pCCM[5], 27);
+        pIecpState->CcmState.DW7.C6 = MOS_BITFIELD_VALUE((uint32_t)p1DLutParams->pCCM[6], 27);
+        pIecpState->CcmState.DW6.C7 = MOS_BITFIELD_VALUE((uint32_t)p1DLutParams->pCCM[7], 27);
+        pIecpState->CcmState.DW8.C8 = p1DLutParams->pCCM[8];
+        pIecpState->CcmState.DW9.OffsetInR = p1DLutParams->pCCM[9];
+        pIecpState->CcmState.DW10.OffsetInG = p1DLutParams->pCCM[10];
+        pIecpState->CcmState.DW11.OffsetInB = p1DLutParams->pCCM[11];
+        pIecpState->CcmState.DW12.OffsetOutR = p1DLutParams->pCCM[12];
+        pIecpState->CcmState.DW13.OffsetOutG = p1DLutParams->pCCM[13];
+        pIecpState->CcmState.DW14.OffsetOutB = p1DLutParams->pCCM[14];
+        
+        auto pGamutState = &pIecpState->GamutState;
+        pGamutState->DW0.GlobalModeEnable = false;
+        
+        // Still need to set CSC params here
+        pVeboxInterface->VeboxInterface_BT2020YUVToRGB(pVeboxHeap, pVeboxIecpParams, pVeboxGamutParams);
+        
+        return MOS_STATUS_SUCCESS;
+    }
+    
+    // Setup gamut state for BT2020 CSC
+    auto pGamutState = &pIecpState->GamutState;
+    pGamutState->DW0.GlobalModeEnable = true;
+    pGamutState->DW1.CmW = 1023;  // Colorimetric accurate image
+    
+    if (pVeboxGamutParams->dstColorSpace == MHW_CSpace_BT601)
+    {
+        // BT2020->BT601 CCM matrix
+        pGamutState->DW1.C0 = 116420;
+        pGamutState->DW0.C1 = MOS_BITFIELD_VALUE((uint32_t)-45094, 21);
+        pGamutState->DW3.C2 = MOS_BITFIELD_VALUE((uint32_t)-5785, 21);
+        pGamutState->DW2.C3 = MOS_BITFIELD_VALUE((uint32_t)-10586, 21);
+        pGamutState->DW5.C4 = 77814;
+        pGamutState->DW4.C5 = MOS_BITFIELD_VALUE((uint32_t)-1705, 21);
+        pGamutState->DW7.C6 = MOS_BITFIELD_VALUE((uint32_t)-1036, 21);
+        pGamutState->DW6.C7 = MOS_BITFIELD_VALUE((uint32_t)-6284, 21);
+        pGamutState->DW8.C8 = 72864;
+    }
+    else  // BT709, sRGB has same chromaticity CIE 1931
+    {
+        // BT2020->BT709 CCM matrix
+        pGamutState->DW1.C0 = 108190;
+        pGamutState->DW0.C1 = MOS_BITFIELD_VALUE((uint32_t)-38288, 21);
+        pGamutState->DW3.C2 = MOS_BITFIELD_VALUE((uint32_t)-4747, 21);
+        pGamutState->DW2.C3 = MOS_BITFIELD_VALUE((uint32_t)-7967, 21);
+        pGamutState->DW5.C4 = 74174;
+        pGamutState->DW4.C5 = MOS_BITFIELD_VALUE((uint32_t)-557, 21);
+        pGamutState->DW7.C6 = MOS_BITFIELD_VALUE((uint32_t)-1198, 21);
+        pGamutState->DW6.C7 = MOS_BITFIELD_VALUE((uint32_t)-6587, 21);
+        pGamutState->DW8.C8 = 73321;
+    }
+    
+    // Populate GE_Values from BT2020 global LUTs
+    PopulateGEValues_BT2020(usGE_Values);
+    
+    // Copy to gamma correction structure (1024 DWords)
+    MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1024, usGE_Values, sizeof(uint16_t) * 8 * 256);
+    
+    // Back end CSC setting, need to convert BT2020 YUV input to RGB before GE
+    pVeboxInterface->VeboxInterface_BT2020YUVToRGB(pVeboxHeap, pVeboxIecpParams, pVeboxGamutParams);
+    
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for setting up 1DLUT Processing
+//! \details  Configures 1DLUT processing with AYUV channel processing for platforms that support it.
+//!           For platforms that don't support full processing (xe2_lpm_base, xe3_lpm_base), only
+//!           logs a message. For other platforms, sets up gamut state and populates GE_Values
+//!           from 1DLUT data with identity matrix.
+//! \param    [in,out] pGamutState
+//!           Pointer to VEBOX_GAMUT_CONTROL_STATE_CMD structure
+//! \param    [in] pVeboxIecpParams
+//!           Pointer to IECP parameters
+//! \param    [out] usGE_Values
+//!           2D array [256][8] for GE values
+//! \param    [out] pVeboxGEGammaCorrection
+//!           Pointer to gamma correction structure
+//! \param    [in] enableFullProcessing
+//!           Flag to enable full AYUV processing (false for xe2_lpm_base/xe3_lpm_base)
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS Set1DLUTProcessing(
+    typename cmd_t::VEBOX_GAMUT_CONTROL_STATE_CMD* pGamutState,
+    PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams,
+    uint16_t usGE_Values[256][8],
+    void* pVeboxGEGammaCorrection,
+    bool enableFullProcessing)
+{
+    MHW_CHK_NULL_RETURN(pVeboxIecpParams);
+    
+    if (!enableFullProcessing)
+    {
+        // xe2_lpm_base and xe3_lpm_base only log for 1DLUT
+        MHW_NORMALMESSAGE("Use VEBOX_SHAPER_1K_LOOKUP_STATE for 1DLUT (4x 1DLUT but Gamut State only has 1DLUT)!");
+        return MOS_STATUS_SUCCESS;
+    }
+    
+    // Full AYUV processing for other platforms
+    MHW_CHK_NULL_RETURN(pGamutState);
+    MHW_CHK_NULL_RETURN(pVeboxIecpParams);
+    MHW_CHK_NULL_RETURN(pVeboxGEGammaCorrection);
+    
+    // Gamut Expansion setting
+    pGamutState->DW0.GlobalModeEnable = true;
+    pGamutState->DW1.CmW = 1023;
+    
+    // Populate GE_Values from 1DLUT AYUV data
+    MHW_CHK_STATUS_RETURN(PopulateGEValues_1DLUT_AYUV(
+        usGE_Values,
+        (uint16_t*)pVeboxIecpParams->s1DLutParams.p1DLUT,
+        pVeboxIecpParams->s1DLutParams.LUTSize));
+    
+    // Set identity matrix
+    pGamutState->DW1.C0 = 65536;
+    pGamutState->DW0.C1 = 0;
+    pGamutState->DW3.C2 = 0;
+    pGamutState->DW2.C3 = 0;
+    pGamutState->DW5.C4 = 65536;
+    pGamutState->DW4.C5 = 0;
+    pGamutState->DW7.C6 = 0;
+    pGamutState->DW6.C7 = 0;
+    pGamutState->DW8.C8 = 65536;
+    pGamutState->DW9.OffsetInR = 0;
+    pGamutState->DW10.OffsetInG = 0;
+    pGamutState->DW11.OffsetInB = 0;
+    pGamutState->DW12.OffsetOutR = 0;
+    pGamutState->DW13.OffsetOutG = 0;
+    pGamutState->DW14.OffsetOutB = 0;
+    
+    // Copy to gamma correction structure (1024 DWords)
+    MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1024, usGE_Values, sizeof(uint16_t) * 8 * 256);
+    
+    return MOS_STATUS_SUCCESS;
+}
+
 }  // namespace common
 }  // namespace vebox
 }  // namespace mhw

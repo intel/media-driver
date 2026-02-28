@@ -1003,31 +1003,11 @@ public:
         pGamutState = &pIecpState->GamutState;
         MHW_CHK_NULL_RETURN(pGamutState);
 
+        // Section 1: Gamut Compression
         if (pVeboxGamutParams->GCompMode != MHW_GAMUT_MODE_NONE)
         {
-            if (pVeboxGamutParams->GCompMode == MHW_GAMUT_MODE_BASIC)
-            {
-                pGamutState->DW15.Fullrangemappingenable = false;
-
-                if (pVeboxGamutParams->GCompBasicMode == gamutCmd.GCC_BASICMODESELECTION_SCALINGFACTOR)
-                {
-                    pGamutState->DW17.GccBasicmodeselection = gamutCmd.GCC_BASICMODESELECTION_SCALINGFACTOR;
-                    pGamutState->DW17.Basicmodescalingfactor =
-                        pVeboxGamutParams->iBasicModeScalingFactor;
-                }
-            }
-            else if (pVeboxGamutParams->GCompMode == MHW_GAMUT_MODE_ADVANCED)
-            {
-                pGamutState->DW15.Fullrangemappingenable = true;
-                pGamutState->DW15.D1Out                  = pVeboxGamutParams->iDout;
-                pGamutState->DW15.DOutDefault            = pVeboxGamutParams->iDoutDefault;
-                pGamutState->DW15.DInDefault             = pVeboxGamutParams->iDinDefault;
-                pGamutState->DW16.D1In                   = pVeboxGamutParams->iDin;
-            }
-            else
-            {
-                MHW_ASSERTMESSAGE("Invalid GAMUT MODE");
-            }
+            MHW_CHK_STATUS_RETURN(mhw::vebox::common::SetGamutCompression<mhw::vebox::xe2_lpm_base_next::Cmd>(
+                pGamutState, gamutCmd, pVeboxGamutParams));
 
             // Set Vertex Table if Gamut Compression is enabled
             SetVeboxVertexTable(pVeboxGamutParams->ColorSpace);
@@ -1035,413 +1015,41 @@ public:
 
         // Initialize the Gamut_Expansion_Gamma_Correction.
         *pVeboxGEGammaCorrection = VeboxGEGammaCorrection;
+        
+        // Section 2: Color Balance
         if (pVeboxGamutParams->bColorBalance)
         {
-            // Need to convert YUV input to RGB before GE
-            pIecpState->CscState.DW0.TransformEnable = true;
-            if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT601 ||
-                pVeboxGamutParams->ColorSpace == MHW_CSpace_xvYCC601 ||
-                pVeboxGamutParams->ColorSpace == MHW_CSpace_BT601_FullRange)
-            {
-                pIecpState->CscState.DW0.C0          = 76309;
-                pIecpState->CscState.DW1.C1          = 0;
-                pIecpState->CscState.DW2.C2          = 104597;
-                pIecpState->CscState.DW3.C3          = 76309;
-                pIecpState->CscState.DW4.C4          = MOS_BITFIELD_VALUE((uint32_t)-25675, 19);
-                pIecpState->CscState.DW5.C5          = MOS_BITFIELD_VALUE((uint32_t)-53279, 19);
-                pIecpState->CscState.DW6.C6          = 76309;
-                pIecpState->CscState.DW7.C7          = 132201;
-                pIecpState->CscState.DW8.C8          = 0;
-                pIecpState->CscState.DW9.OffsetIn1   = MOS_BITFIELD_VALUE((uint32_t)-2048, 16);
-                pIecpState->CscState.DW9.OffsetOut1  = 0;
-                pIecpState->CscState.DW10.OffsetIn2  = MOS_BITFIELD_VALUE((uint32_t)-16384, 16);
-                pIecpState->CscState.DW10.OffsetOut2 = 0;
-                pIecpState->CscState.DW11.OffsetIn3  = MOS_BITFIELD_VALUE((uint32_t)-16384, 16);
-                pIecpState->CscState.DW11.OffsetOut3 = 0;
-            }
-            else if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT709 ||
-                     pVeboxGamutParams->ColorSpace == MHW_CSpace_xvYCC709 ||
-                     pVeboxGamutParams->ColorSpace == MHW_CSpace_BT709_FullRange)
-            {
-                pIecpState->CscState.DW0.C0          = 76309;
-                pIecpState->CscState.DW1.C1          = 0;
-                pIecpState->CscState.DW2.C2          = 117489;
-                pIecpState->CscState.DW3.C3          = 76309;
-                pIecpState->CscState.DW4.C4          = MOS_BITFIELD_VALUE((uint32_t)-13975, 19);
-                pIecpState->CscState.DW5.C5          = MOS_BITFIELD_VALUE((uint32_t)-34925, 19);
-                pIecpState->CscState.DW6.C6          = 76309;
-                pIecpState->CscState.DW7.C7          = 138438;
-                pIecpState->CscState.DW8.C8          = 0;
-                pIecpState->CscState.DW9.OffsetIn1   = MOS_BITFIELD_VALUE((uint32_t)-2048, 16);
-                pIecpState->CscState.DW9.OffsetOut1  = 0;
-                pIecpState->CscState.DW10.OffsetIn2  = MOS_BITFIELD_VALUE((uint32_t)-16384, 16);
-                pIecpState->CscState.DW10.OffsetOut2 = 0;
-                pIecpState->CscState.DW11.OffsetIn3  = MOS_BITFIELD_VALUE((uint32_t)-16384, 16);
-                pIecpState->CscState.DW11.OffsetOut3 = 0;
-            }
-            else
-            {
-                MHW_ASSERTMESSAGE("Unknown primary");
-            }
-
-            pGamutState->DW0.GlobalModeEnable = true;
-            pGamutState->DW1.CmW              = 1023;
-
-            pGamutState->DW1.C0 = pVeboxGamutParams->Matrix[0][0];
-            pGamutState->DW0.C1 = pVeboxGamutParams->Matrix[0][1];
-            pGamutState->DW3.C2 = pVeboxGamutParams->Matrix[0][2];
-            pGamutState->DW2.C3 = pVeboxGamutParams->Matrix[1][0];
-            pGamutState->DW5.C4 = pVeboxGamutParams->Matrix[1][1];
-            pGamutState->DW4.C5 = pVeboxGamutParams->Matrix[1][2];
-            pGamutState->DW7.C6 = pVeboxGamutParams->Matrix[2][0];
-            pGamutState->DW6.C7 = pVeboxGamutParams->Matrix[2][1];
-            pGamutState->DW8.C8 = pVeboxGamutParams->Matrix[2][2];
-            pGamutState->DW9.OffsetInR   = 0;
-            pGamutState->DW10.OffsetInG  = 0;
-            pGamutState->DW11.OffsetInB  = 0;
-            pGamutState->DW12.OffsetOutR = 0;
-            pGamutState->DW13.OffsetOutG = 0;
-            pGamutState->DW14.OffsetOutB = 0;
-
-            for (i = 0; i < 256; i++)
-            {
-                usGE_Values[i][0] = 257 * i;
-                usGE_Values[i][1] =
-                    usGE_Values[i][2] =
-                        usGE_Values[i][3] = 257 * i;
-
-                usGE_Values[i][4] = 257 * i;
-                usGE_Values[i][5] =
-                    usGE_Values[i][6] =
-                        usGE_Values[i][7] = 257 * i;
-            }
-            // Copy two uint16_t to one DW (UNT32).
-            MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1024, usGE_Values, sizeof(uint16_t) * 8 * 256);
+            MHW_CHK_STATUS_RETURN(mhw::vebox::common::SetColorBalance<mhw::vebox::xe2_lpm_base_next::Cmd>(
+                pIecpState, pVeboxGamutParams, usGE_Values, pVeboxGEGammaCorrection));
         }
+        // Section 3: Gamut Expansion
         else if(pVeboxGamutParams->GExpMode != MHW_GAMUT_MODE_NONE)
         {
-            // Need to convert YUV input to RGB before GE
-            pIecpState->CscState.DW0.TransformEnable = true;
-            if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT601 ||
-                pVeboxGamutParams->ColorSpace == MHW_CSpace_xvYCC601 ||
-                pVeboxGamutParams->ColorSpace == MHW_CSpace_BT601_FullRange)
-            {
-                pIecpState->CscState.DW0.C0          = 1192;
-                pIecpState->CscState.DW1.C1          = MOS_BITFIELD_VALUE((uint32_t)-2, 19);
-                pIecpState->CscState.DW2.C2          = 1634;
-                pIecpState->CscState.DW3.C3          = 1192;
-                pIecpState->CscState.DW4.C4          = MOS_BITFIELD_VALUE((uint32_t)-401, 19);
-                pIecpState->CscState.DW5.C5          = MOS_BITFIELD_VALUE((uint32_t)-833, 19);
-                pIecpState->CscState.DW6.C6          = 1192;
-                pIecpState->CscState.DW7.C7          = 2066;
-                pIecpState->CscState.DW8.C8          = MOS_BITFIELD_VALUE((uint32_t)-1, 19);
-                pIecpState->CscState.DW9.OffsetIn1   = MOS_BITFIELD_VALUE((uint32_t)-64, 16);
-                pIecpState->CscState.DW9.OffsetOut1  = 0;
-                pIecpState->CscState.DW10.OffsetIn2  = MOS_BITFIELD_VALUE((uint32_t)-512, 16);
-                pIecpState->CscState.DW10.OffsetOut2 = 0;
-                pIecpState->CscState.DW11.OffsetIn3  = MOS_BITFIELD_VALUE((uint32_t)-512, 16);
-                pIecpState->CscState.DW11.OffsetOut3 = 0;
-            }
-            else if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT709 ||
-                     pVeboxGamutParams->ColorSpace == MHW_CSpace_xvYCC709 ||
-                     pVeboxGamutParams->ColorSpace == MHW_CSpace_BT709_FullRange)
-            {
-                pIecpState->CscState.DW0.C0          = 1192;
-                pIecpState->CscState.DW1.C1          = MOS_BITFIELD_VALUE((uint32_t)-1, 19);
-                pIecpState->CscState.DW2.C2          = 1835;
-                pIecpState->CscState.DW3.C3          = 1192;
-                pIecpState->CscState.DW4.C4          = MOS_BITFIELD_VALUE((uint32_t)-218, 19);
-                pIecpState->CscState.DW5.C5          = MOS_BITFIELD_VALUE((uint32_t)-537, 19);
-                pIecpState->CscState.DW6.C6          = 1192;
-                pIecpState->CscState.DW7.C7          = 2164;
-                pIecpState->CscState.DW8.C8          = 1;
-                pIecpState->CscState.DW9.OffsetIn1   = MOS_BITFIELD_VALUE((uint32_t)-64, 16);
-                pIecpState->CscState.DW9.OffsetOut1  = 0;
-                pIecpState->CscState.DW10.OffsetIn2  = MOS_BITFIELD_VALUE((uint32_t)-512, 16);
-                pIecpState->CscState.DW10.OffsetOut2 = 0;
-                pIecpState->CscState.DW11.OffsetIn3  = MOS_BITFIELD_VALUE((uint32_t)-512, 16);
-                pIecpState->CscState.DW11.OffsetOut3 = 0;
-            }
-            else
-            {
-                MHW_ASSERTMESSAGE("Unknown primary");
-            }
-
-            if (pVeboxGamutParams->GExpMode == MHW_GAMUT_MODE_BASIC)
-            {
-                pGamutState->DW0.GlobalModeEnable = true;
-                pGamutState->DW1.CmW              = 1023;
-            }
-            else if (pVeboxGamutParams->GExpMode == MHW_GAMUT_MODE_ADVANCED)
-            {
-                pGamutState->DW0.GlobalModeEnable = false;
-            }
-            else
-            {
-                MHW_ASSERTMESSAGE("Invalid GAMUT MODE");
-            }
-
-            pGamutState->DW1.C0 = pVeboxGamutParams->Matrix[0][0];
-            pGamutState->DW0.C1 = pVeboxGamutParams->Matrix[0][1];
-            pGamutState->DW3.C2 = pVeboxGamutParams->Matrix[0][2];
-            pGamutState->DW2.C3 = pVeboxGamutParams->Matrix[1][0];
-            pGamutState->DW5.C4 = pVeboxGamutParams->Matrix[1][1];
-            pGamutState->DW4.C5 = pVeboxGamutParams->Matrix[1][2];
-            pGamutState->DW7.C6 = pVeboxGamutParams->Matrix[2][0];
-            pGamutState->DW6.C7 = pVeboxGamutParams->Matrix[2][1];
-            pGamutState->DW8.C8 = pVeboxGamutParams->Matrix[2][2];
+            MHW_CHK_STATUS_RETURN(mhw::vebox::common::SetGamutExpansion<mhw::vebox::xe2_lpm_base_next::Cmd>(
+                pIecpState, pVeboxGamutParams));
         }
+        // Section 4: Gamma Correction
         else if (pVeboxGamutParams->bGammaCorr)
         {
-            // Need to convert YUV input to RGB before Gamma Correction
-            pIecpState->CscState.DW0.TransformEnable = true;
-            if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT601 ||
-                pVeboxGamutParams->ColorSpace == MHW_CSpace_xvYCC601 ||
-                pVeboxGamutParams->ColorSpace == MHW_CSpace_BT601_FullRange)
-            {
-                pIecpState->CscState.DW0.C0          = 76309;
-                pIecpState->CscState.DW1.C1          = 0;
-                pIecpState->CscState.DW2.C2          = 104597;
-                pIecpState->CscState.DW3.C3          = 76309;
-                pIecpState->CscState.DW4.C4          = MOS_BITFIELD_VALUE((uint32_t)-25675, 19);
-                pIecpState->CscState.DW5.C5          = MOS_BITFIELD_VALUE((uint32_t)-53279, 19);
-                pIecpState->CscState.DW6.C6          = 76309;
-                pIecpState->CscState.DW7.C7          = 132201;
-                pIecpState->CscState.DW8.C8          = 0;
-                pIecpState->CscState.DW9.OffsetIn1   = MOS_BITFIELD_VALUE((uint32_t)-2048, 16);
-                pIecpState->CscState.DW9.OffsetOut1  = 0;
-                pIecpState->CscState.DW10.OffsetIn2  = MOS_BITFIELD_VALUE((uint32_t)-16384, 16);
-                pIecpState->CscState.DW10.OffsetOut2 = 0;
-                pIecpState->CscState.DW11.OffsetIn3  = MOS_BITFIELD_VALUE((uint32_t)-16384, 16);
-                pIecpState->CscState.DW11.OffsetOut3 = 0;
-            }
-            else if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT709 ||
-                     pVeboxGamutParams->ColorSpace == MHW_CSpace_xvYCC709 ||
-                     pVeboxGamutParams->ColorSpace == MHW_CSpace_BT709_FullRange)
-            {
-                pIecpState->CscState.DW0.C0          = 76309;
-                pIecpState->CscState.DW1.C1          = 0;
-                pIecpState->CscState.DW2.C2          = 117489;
-                pIecpState->CscState.DW3.C3          = 76309;
-                pIecpState->CscState.DW4.C4          = MOS_BITFIELD_VALUE((uint32_t)-13975, 19);
-                pIecpState->CscState.DW5.C5          = MOS_BITFIELD_VALUE((uint32_t)-34925, 19);
-                pIecpState->CscState.DW6.C6          = 76309;
-                pIecpState->CscState.DW7.C7          = 138438;
-                pIecpState->CscState.DW8.C8          = 0;
-                pIecpState->CscState.DW9.OffsetIn1   = MOS_BITFIELD_VALUE((uint32_t)-2048, 16);
-                pIecpState->CscState.DW9.OffsetOut1  = 0;
-                pIecpState->CscState.DW10.OffsetIn2  = MOS_BITFIELD_VALUE((uint32_t)-16384, 16);
-                pIecpState->CscState.DW10.OffsetOut2 = 0;
-                pIecpState->CscState.DW11.OffsetIn3  = MOS_BITFIELD_VALUE((uint32_t)-16384, 16);
-                pIecpState->CscState.DW11.OffsetOut3 = 0;
-            }
-            else if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT2020 ||
-                     pVeboxGamutParams->ColorSpace == MHW_CSpace_BT2020_FullRange)
-            {
-                VeboxInterface_BT2020YUVToRGB(m_veboxHeap, pVeboxIecpParams, pVeboxGamutParams);
-            }
-            else
-            {
-                MHW_ASSERTMESSAGE("Unknown primary");
-            }
-
-            // CCM is needed for CSC(BT2020->BT709/BT601 or vice versa with Different Gamma).
-            bEnableCCM                        = (pVeboxGamutParams->InputGammaValue == pVeboxGamutParams->OutputGammaValue) ? false : true;
-            pGamutState->DW0.GlobalModeEnable = true;
-            pGamutState->DW1.CmW              = 1023;
-            if ((pVeboxGamutParams->ColorSpace == MHW_CSpace_BT2020) && bEnableCCM)
-            {
-                if (pVeboxGamutParams->dstColorSpace == MHW_CSpace_BT709)
-                {
-                    pGamutState->DW1.C0 = 108190;
-                    pGamutState->DW0.C1 = MOS_BITFIELD_VALUE((uint32_t)-38288, 21);
-                    pGamutState->DW3.C2 = MOS_BITFIELD_VALUE((uint32_t)-4747, 21);
-                    pGamutState->DW2.C3 = MOS_BITFIELD_VALUE((uint32_t)-7967, 21);
-                    pGamutState->DW5.C4 = 74174;
-                    pGamutState->DW4.C5 = MOS_BITFIELD_VALUE((uint32_t)-557, 21);
-                    pGamutState->DW7.C6 = MOS_BITFIELD_VALUE((uint32_t)-1198, 21);
-                    pGamutState->DW6.C7 = MOS_BITFIELD_VALUE((uint32_t)-6587, 21);
-                    pGamutState->DW8.C8 = 73321;
-                }
-                else
-                {
-                    pGamutState->DW1.C0 = 116420;
-                    pGamutState->DW0.C1 = MOS_BITFIELD_VALUE((uint32_t)-45094, 21);
-                    pGamutState->DW3.C2 = MOS_BITFIELD_VALUE((uint32_t)-5785, 21);
-                    pGamutState->DW2.C3 = MOS_BITFIELD_VALUE((uint32_t)-10586, 21);
-                    pGamutState->DW5.C4 = 77814;
-                    pGamutState->DW4.C5 = MOS_BITFIELD_VALUE((uint32_t)-1705, 21);
-                    pGamutState->DW7.C6 = MOS_BITFIELD_VALUE((uint32_t)-1036, 21);
-                    pGamutState->DW6.C7 = MOS_BITFIELD_VALUE((uint32_t)-6284, 21);
-                    pGamutState->DW8.C8 = 72864;
-                }
-            }
-            else
-            {
-                pGamutState->DW1.C0          = 65536;
-                pGamutState->DW0.C1          = 0;
-                pGamutState->DW3.C2          = 0;
-                pGamutState->DW2.C3          = 0;
-                pGamutState->DW5.C4          = 65536;
-                pGamutState->DW4.C5          = 0;
-                pGamutState->DW7.C6          = 0;
-                pGamutState->DW6.C7          = 0;
-                pGamutState->DW8.C8          = 65536;
-                pGamutState->DW9.OffsetInR   = 0;
-                pGamutState->DW10.OffsetInG  = 0;
-                pGamutState->DW11.OffsetInB  = 0;
-                pGamutState->DW12.OffsetOutR = 0;
-                pGamutState->DW13.OffsetOutG = 0;
-                pGamutState->DW14.OffsetOutB = 0;
-            }
-
-            if (pVeboxGamutParams->InputGammaValue == MHW_GAMMA_1P0)
-            {
-                dInverseGamma = 1.0;
-            }
-            else if (pVeboxGamutParams->InputGammaValue == MHW_GAMMA_2P2)
-            {
-                dInverseGamma = 2.2;
-            }
-            else if (pVeboxGamutParams->InputGammaValue == MHW_GAMMA_2P6)
-            {
-                dInverseGamma = 2.6;
-            }
-            else
-            {
-                MHW_ASSERTMESSAGE("Invalid InputGammaValue");
-            }
-
-            if (pVeboxGamutParams->OutputGammaValue == MHW_GAMMA_1P0)
-            {
-                dForwardGamma = 1.0;
-            }
-            else if (pVeboxGamutParams->OutputGammaValue == MHW_GAMMA_2P2)
-            {
-                dForwardGamma = 2.2;
-            }
-            else if (pVeboxGamutParams->OutputGammaValue == MHW_GAMMA_2P6)
-            {
-                dForwardGamma = 2.6;
-            }
-            else
-            {
-                MHW_ASSERTMESSAGE("Invalid OutputGammaValue");
-            }
-            if ((pVeboxGamutParams->InputGammaValue == MHW_GAMMA_1P0) && (pVeboxGamutParams->OutputGammaValue == MHW_GAMMA_1P0))
-            {
-                for (i = 0; i < 256; i++)
-                {
-                    usGE_Values[i][0] = 257 * i;
-                    usGE_Values[i][1] =
-                    usGE_Values[i][2] =
-                    usGE_Values[i][3] = 257 * i;
-
-                    usGE_Values[i][4] = 257 * i;
-                    usGE_Values[i][5] =
-                    usGE_Values[i][6] =
-                    usGE_Values[i][7] = 257 * i;
-                }
-                // Copy two uint16_t to one DW (UNT32).
-                MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1024, usGE_Values, sizeof(uint16_t) * 8 * 256);
-            }
-            else
-            {
-                for (i = 0; i < 255; i++)
-                {
-                    usGE_Values[i][0] = 256 * i;
-                    usGE_Values[i][1] =
-                    usGE_Values[i][2] =
-                    usGE_Values[i][3] = (uint16_t)MOS_F_ROUND(pow((double)((double)i / 256), dInverseGamma) * 65536);
-
-                    usGE_Values[i][4] = 256 * i;
-                    usGE_Values[i][5] =
-                    usGE_Values[i][6] =
-                    usGE_Values[i][7] = (uint16_t)MOS_F_ROUND(pow((double)((double)i / 256), 1 / dForwardGamma) * 65536);
-                }
-                // Copy two uint16_t to one DW (UNT32).
-                MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1020, usGE_Values, sizeof(uint16_t) * 8 * 255);
-            }
+            MHW_CHK_STATUS_RETURN(mhw::vebox::common::SetGammaCorrection<mhw::vebox::xe2_lpm_base_next::Cmd>(
+                pIecpState, pVeboxGamutParams, usGE_Values, pVeboxGEGammaCorrection,
+                this, m_veboxHeap, pVeboxIecpParams));
         }
+        // Section 5: H2S Mode
         else if (pVeboxGamutParams->bH2S)
         {
-            VeboxInterface_H2SManualMode(m_veboxHeap, pVeboxIecpParams, pVeboxGamutParams);
+            VeboxInterface_H2SManualMode(this->m_veboxHeap, pVeboxIecpParams, pVeboxGamutParams);
         }
+        // Section 6: BT2020 CSC
         else if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT2020 ||
-                 pVeboxGamutParams->ColorSpace == MHW_CSpace_BT2020_FullRange)  // BT2020 CSC case
+                 pVeboxGamutParams->ColorSpace == MHW_CSpace_BT2020_FullRange)
         {
-            if (pVeboxIecpParams->s1DLutParams.bActive)
-            {
-                //CCM setting if 1Dlut VEBOX HDR enabled
-                p1DLutParams = &pVeboxIecpParams->s1DLutParams;
-
-                pIecpState->CcmState.DW1.C0          = p1DLutParams->pCCM[0];
-                pIecpState->CcmState.DW0.C1          = MOS_BITFIELD_VALUE((uint32_t)p1DLutParams->pCCM[1], 27);
-                pIecpState->CcmState.DW3.C2          = MOS_BITFIELD_VALUE((uint32_t)p1DLutParams->pCCM[2], 27);
-                pIecpState->CcmState.DW2.C3          = MOS_BITFIELD_VALUE((uint32_t)p1DLutParams->pCCM[3], 27);
-                pIecpState->CcmState.DW5.C4          = p1DLutParams->pCCM[4];
-                pIecpState->CcmState.DW4.C5          = MOS_BITFIELD_VALUE((uint32_t)p1DLutParams->pCCM[5], 27);
-                pIecpState->CcmState.DW7.C6          = MOS_BITFIELD_VALUE((uint32_t)p1DLutParams->pCCM[6], 27);
-                pIecpState->CcmState.DW6.C7          = MOS_BITFIELD_VALUE((uint32_t)p1DLutParams->pCCM[7], 27);
-                pIecpState->CcmState.DW8.C8          = p1DLutParams->pCCM[8];
-                pIecpState->CcmState.DW9.OffsetInR   = p1DLutParams->pCCM[9];
-                pIecpState->CcmState.DW10.OffsetInG  = p1DLutParams->pCCM[10];
-                pIecpState->CcmState.DW11.OffsetInB  = p1DLutParams->pCCM[11];
-                pIecpState->CcmState.DW12.OffsetOutR = p1DLutParams->pCCM[12];
-                pIecpState->CcmState.DW13.OffsetOutG = p1DLutParams->pCCM[13];
-                pIecpState->CcmState.DW14.OffsetOutB = p1DLutParams->pCCM[14];
-
-                pGamutState->DW0.GlobalModeEnable = false;
-                // Still need to set CSC params here
-                VeboxInterface_BT2020YUVToRGB(m_veboxHeap, pVeboxIecpParams, pVeboxGamutParams);
-
-                return eStatus;
-            }
-
-            pGamutState->DW0.GlobalModeEnable = true;
-            pGamutState->DW1.CmW              = 1023;  // Colorimetric accurate image
-            if (pVeboxGamutParams->dstColorSpace == MHW_CSpace_BT601)
-            {
-                pGamutState->DW1.C0 = 116420;
-                pGamutState->DW0.C1 = MOS_BITFIELD_VALUE((uint32_t)-45094, 21);
-                pGamutState->DW3.C2 = MOS_BITFIELD_VALUE((uint32_t)-5785, 21);
-                pGamutState->DW2.C3 = MOS_BITFIELD_VALUE((uint32_t)-10586, 21);
-                pGamutState->DW5.C4 = 77814;
-                pGamutState->DW4.C5 = MOS_BITFIELD_VALUE((uint32_t)-1705, 21);
-                pGamutState->DW7.C6 = MOS_BITFIELD_VALUE((uint32_t)-1036, 21);
-                pGamutState->DW6.C7 = MOS_BITFIELD_VALUE((uint32_t)-6284, 21);
-                pGamutState->DW8.C8 = 72864;
-            }
-            else  //BT709, sRGB has same chromaticity CIE 1931
-            {
-                pGamutState->DW1.C0 = 108190;
-                pGamutState->DW0.C1 = MOS_BITFIELD_VALUE((uint32_t)-38288, 21);
-                pGamutState->DW3.C2 = MOS_BITFIELD_VALUE((uint32_t)-4747, 21);
-                pGamutState->DW2.C3 = MOS_BITFIELD_VALUE((uint32_t)-7967, 21);
-                pGamutState->DW5.C4 = 74174;
-                pGamutState->DW4.C5 = MOS_BITFIELD_VALUE((uint32_t)-557, 21);
-                pGamutState->DW7.C6 = MOS_BITFIELD_VALUE((uint32_t)-1198, 21);
-                pGamutState->DW6.C7 = MOS_BITFIELD_VALUE((uint32_t)-6587, 21);
-                pGamutState->DW8.C8 = 73321;
-            }
-
-            for (i = 0; i < 256; i++)
-            {
-                usGE_Values[i][0] = (uint16_t)g_Vebox_BT2020_Inverse_Pixel_Value[i];
-                usGE_Values[i][1] =
-                    usGE_Values[i][2] =
-                        usGE_Values[i][3] = (uint16_t)g_Vebox_BT2020_Inverse_Gamma_LUT[i];
-
-                usGE_Values[i][4] = (uint16_t)g_Vebox_BT2020_Forward_Pixel_Value[i];
-                usGE_Values[i][5] =
-                    usGE_Values[i][6] =
-                        usGE_Values[i][7] = (uint16_t)g_Vebox_BT2020_Forward_Gamma_LUT[i];
-            }
-            // Copy two UNT16 to one DW(UNT32).
-            MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1024, usGE_Values, sizeof(uint16_t) * 8 * 256);
-            // Back end CSC setting, need to convert BT2020 YUV input to RGB before GE
-            VeboxInterface_BT2020YUVToRGB(m_veboxHeap, pVeboxIecpParams, pVeboxGamutParams);
+            MOS_STATUS status = mhw::vebox::common::SetBT2020CSC<mhw::vebox::xe2_lpm_base_next::Cmd>(
+                pIecpState, pVeboxIecpParams, pVeboxGamutParams, usGE_Values, pVeboxGEGammaCorrection,
+                this, m_veboxHeap);
+            if (status != MOS_STATUS_SUCCESS) return status;
         }
+        // Section 7: 1DLUT Processing (xe2_lpm_base only logs message, no full AYUV processing)
         else if (pVeboxIecpParams && pVeboxIecpParams->s1DLutParams.bActive && (pVeboxIecpParams->s1DLutParams.LUTSize == 256))
         {
             MHW_NORMALMESSAGE("Use VEBOX_SHAPER_1K_LOOKUP_STATE for 1DLUT (4x 1DLUT but Gamut State only has 1DLUT)!");
