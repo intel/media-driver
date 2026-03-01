@@ -91,9 +91,9 @@ export LIBVA_DRIVER_NAME=iHD
 ## Components and Features
 
 Media driver contains three components as below
-- **Video decoding** calls hardware-based decoder([VDBox](https://01.org/sites/default/files/documentation/intel-gfx-prm-osrc-kbl-vol08-media_vdbox.pdf))  which provides fully-accelerated hardware video decoding to release the graphics engine for other operations.
-- **Video encoding** supports two modes, one calls hardware-based encoder([VDEnc](https://01.org/sites/default/files/documentation/intel-gfx-prm-osrc-kbl-vol08-media_vdbox.pdf)/[Huc](https://01.org/linuxgraphics/downloads/firmware?langredirect=1)) to provide low power encoding, another one is hardware([PAK](https://01.org/sites/default/files/documentation/intel-gfx-prm-osrc-kbl-vol08-media_vdbox.pdf))+shader(media kernel+[VME](https://01.org/sites/default/files/documentation/intel-gfx-prm-osrc-kbl-vol04-configurations.pdf)) based encoding. User could choose the mode through VA-API.
-- **Video processing** supports several popular features by hardware-based video processor([VEBox/SFC](https://01.org/sites/default/files/documentation/intel-gfx-prm-osrc-kbl-vol09-media_vebox.pdf)) and shader(media kernel) based solution together.
+- **Video decoding** calls hardware-based decoder(VDBox) which provides fully-accelerated hardware video decoding to release the graphics engine for other operations.
+- **Video encoding** supports two modes, one calls hardware-based encoder(VDEnc/Huc) to provide low power encoding, another one is hardware(PAK)+shader(media kernel+VME) based encoding. User could choose the mode through VA-API.
+- **Video processing** supports several popular features by hardware-based video processor(VEBox/SFC) and shader(media kernel) based solution together.
 
 Media driver supports below two builds
 - **Full Feature Build** is ***default*** driver build, which supports all feature by hardware accelerator and close source shaders(media kernel binaries). Most of OSVs(like RHEL/SUSE/fedora) are using this build.
