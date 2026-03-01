@@ -48,7 +48,7 @@ MOS_STATUS CmdTask::CalculateCmdBufferSizeFromActivePackets()
 
     m_cmdBufSize    = 0;
     m_patchListSize = 0;
-    for (auto prop : m_packets)
+    for (const auto &prop : m_packets)
     {
         // Calculate total size based on pipe 0
         if (prop.stateProperty.currentPipe == 0)
