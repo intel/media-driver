@@ -2123,6 +2123,457 @@ inline void SetInverseGammaIdentity(InvGamma_t* pInverseGamma, uint32_t nLutInBi
     }
 }
 
+//!
+//! \brief    Helper function for VEBOX input format determination
+//! \details  Extracts input format determination logic shared across all platforms.
+//!           This helper function encapsulates the primary format switch (handling
+//!           25+ surface formats including YUV, RGB, Bayer patterns) for VeboxInputFormat.
+//!           Each platform's VeboxInputFormat can call this helper and only handle
+//!           platform-specific differences.
+//! \param    [in] pCurrSurf
+//!           Pointer to current surface parameters containing format information
+//! \param    [out] dwFormat
+//!           Pointer to format value to be set
+//! \param    [in] VeboxSurfaceState
+//!           Reference to VEBOX_SURFACE_STATE command structure (used for format constants)
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename SurfaceStateType>
+inline MOS_STATUS VeboxInputFormat(
+    PMHW_VEBOX_SURFACE_PARAMS pCurrSurf,
+    uint32_t                  *dwFormat,
+    SurfaceStateType          &VeboxSurfaceState)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    switch (pCurrSurf->Format)
+    {
+    case Format_NV12:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PLANAR4208;
+        break;
+
+    case Format_YUYV:
+    case Format_YUY2:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_YCRCBNORMAL;
+        break;
+
+    case Format_UYVY:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_YCRCBSWAPY;
+        break;
+
+    case Format_AYUV:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PACKED444A8;
+        break;
+
+    case Format_Y416:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PACKED44416;
+        break;
+
+    case Format_Y410:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PACKED44410;
+        break;
+
+    case Format_YVYU:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_YCRCBSWAPUV;
+        break;
+
+    case Format_VYUY:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_YCRCBSWAPUVY;
+        break;
+
+    case Format_A8B8G8R8:
+    case Format_X8B8G8R8:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_R8G8B8A8UNORMR8G8B8A8UNORMSRGB;
+        break;
+
+    case Format_A16B16G16R16:
+    case Format_A16R16G16B16:
+    case Format_A16B16G16R16F:
+    case Format_A16R16G16B16F:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_R16G16B16A16;
+        break;
+
+    case Format_L8:
+    case Format_P8:
+    case Format_Y8:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_Y8UNORM;
+        break;
+
+    case Format_IRW0:
+    case Format_IRW1:
+    case Format_IRW2:
+    case Format_IRW3:
+    case Format_IRW4:
+    case Format_IRW5:
+    case Format_IRW6:
+    case Format_IRW7:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_BAYERPATTERN;
+        break;
+
+    case Format_P010:
+    case Format_P016:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PLANAR42016;
+        break;
+
+    case Format_A8R8G8B8:
+    case Format_X8R8G8B8:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_R8G8B8A8UNORMR8G8B8A8UNORMSRGB;
+        break;
+
+    case Format_R10G10B10A2:
+    case Format_B10G10R10A2:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_R10G10B10A2UNORMR10G10B10A2UNORMSRGB;
+        break;
+
+    case Format_Y216:
+    case Format_Y210:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PACKED42216;
+        break;
+
+    case Format_P216:
+    case Format_P210:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PLANAR42216;
+        break;
+
+    case Format_Y16S:
+    case Format_Y16U:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_Y16UNORM;
+        break;
+
+    default:
+        MHW_ASSERTMESSAGE("Unsupported format.");
+        break;
+    }
+
+    return eStatus;
+}
+
+//!
+//! \brief    Helper function for VEB_DI_IECP surface resource binding
+//! \details  Handles all 11 surface resource binding blocks (DW2 through DW22)
+//!           for the VEB_DI_IECP command. This is the common logic shared across
+//!           all platforms. Platform-specific MMC field assignments (e.g.,
+//!           MemoryCompressionEnable, CompressionType) should be done before
+//!           calling this helper.
+//! \param    [in,out] cmd
+//!           Reference to VEB_DI_IECP command structure
+//! \param    [in] params
+//!           Reference to VEB_DI_IECP parameters
+//! \param    [in] pOsInterface
+//!           Pointer to OS interface
+//! \param    [in] pCmdBuffer
+//!           Pointer to command buffer
+//! \param    [in] AddResourceToCmd
+//!           Function pointer to AddResourceToCmd
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t, typename ParamsT>
+inline MOS_STATUS VebDiIecpSetResources(
+    typename cmd_t::VEB_DI_IECP_CMD &cmd,
+    const ParamsT                   &params,
+    PMOS_INTERFACE                  pOsInterface,
+    PMOS_COMMAND_BUFFER             pCmdBuffer,
+    MOS_STATUS (*AddResourceToCmd)(PMOS_INTERFACE, PMOS_COMMAND_BUFFER, PMHW_RESOURCE_PARAMS))
+{
+    MHW_RESOURCE_PARAMS resourceParams = {};
+
+    // Block 1 — pOsResCurrInput (DW2)
+    if (params.pOsResCurrInput)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResCurrInput;
+        resourceParams.dwOffset        = params.dwCurrInputSurfOffset + params.CurrInputSurfCtrl.Value;
+        resourceParams.pdwCmd          = &(cmd.DW2.Value);
+        resourceParams.dwLocationInCmd = 2;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    // Block 2 — pOsResPrevInput (DW4)
+    if (params.pOsResPrevInput)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResPrevInput;
+        resourceParams.dwOffset        = params.PrevInputSurfCtrl.Value + params.dwPrevInputSurfOffset;
+        resourceParams.pdwCmd          = &(cmd.DW4.Value);
+        resourceParams.dwLocationInCmd = 4;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    // Block 3 — pOsResStmmInput (DW6)
+    if (params.pOsResStmmInput)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResStmmInput;
+        resourceParams.dwOffset        = params.StmmInputSurfCtrl.Value;
+        resourceParams.pdwCmd          = &(cmd.DW6.Value);
+        resourceParams.dwLocationInCmd = 6;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    // Block 4 — pOsResStmmOutput (DW8)
+    if (params.pOsResStmmOutput)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResStmmOutput;
+        resourceParams.dwOffset        = params.StmmOutputSurfCtrl.Value;
+        resourceParams.pdwCmd          = &(cmd.DW8.Value);
+        resourceParams.dwLocationInCmd = 8;
+        resourceParams.bIsWritable     = true;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    // Block 5 — pOsResDenoisedCurrOutput (DW10)
+    if (params.pOsResDenoisedCurrOutput)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResDenoisedCurrOutput;
+        resourceParams.dwOffset        = params.DenoisedCurrOutputSurfCtrl.Value;
+        resourceParams.pdwCmd          = &(cmd.DW10.Value);
+        resourceParams.dwLocationInCmd = 10;
+        resourceParams.bIsWritable     = true;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    // Block 6 — pOsResCurrOutput (DW12)
+    if (params.pOsResCurrOutput)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResCurrOutput;
+        resourceParams.dwOffset        = params.CurrOutputSurfCtrl.Value + params.dwCurrOutputSurfOffset;
+        resourceParams.pdwCmd          = &(cmd.DW12.Value);
+        resourceParams.dwLocationInCmd = 12;
+        resourceParams.bIsWritable     = true;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    // Block 7 — pOsResPrevOutput (DW14)
+    if (params.pOsResPrevOutput)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResPrevOutput;
+        resourceParams.dwOffset        = params.PrevOutputSurfCtrl.Value;
+        resourceParams.pdwCmd          = &(cmd.DW14.Value);
+        resourceParams.dwLocationInCmd = 14;
+        resourceParams.bIsWritable     = true;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    // Block 8 — pOsResStatisticsOutput (DW16)
+    if (params.pOsResStatisticsOutput)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResStatisticsOutput;
+        resourceParams.dwOffset        = params.StatisticsOutputSurfCtrl.Value;
+        resourceParams.pdwCmd          = &(cmd.DW16.Value);
+        resourceParams.dwLocationInCmd = 16;
+        resourceParams.bIsWritable     = true;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    // Block 9 — pOsResAlphaOrVignette (DW18)
+    if (params.pOsResAlphaOrVignette)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResAlphaOrVignette;
+        resourceParams.dwOffset        = params.AlphaOrVignetteSurfCtrl.Value;
+        resourceParams.pdwCmd          = &(cmd.DW18.Value);
+        resourceParams.dwLocationInCmd = 18;
+        resourceParams.bIsWritable     = true;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    // Block 10 — pOsResLaceOrAceOrRgbHistogram (DW20)
+    if (params.pOsResLaceOrAceOrRgbHistogram)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResLaceOrAceOrRgbHistogram;
+        resourceParams.dwOffset        = params.LaceOrAceOrRgbHistogramSurfCtrl.Value;
+        resourceParams.pdwCmd          = &(cmd.DW20.Value);
+        resourceParams.dwLocationInCmd = 20;
+        resourceParams.bIsWritable     = true;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    // Block 11 — pOsResSkinScoreSurface (DW22)
+    if (params.pOsResSkinScoreSurface)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResSkinScoreSurface;
+        resourceParams.dwOffset        = params.SkinScoreSurfaceSurfCtrl.Value;
+        resourceParams.pdwCmd          = &(cmd.DW22.Value);
+        resourceParams.dwLocationInCmd = 22;
+        resourceParams.bIsWritable     = true;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for VEB_DI_IECP scalability X coordinate calculation
+//! \details  Handles the vebox scalability X coordinate calculation block for the
+//!           VEB_DI_IECP command. This is the common logic shared across all platforms.
+//!           When scalability is disabled, simply sets EndingX and StartingX from params.
+//!           When scalability is enabled, computes the medium X split point and assigns
+//!           per-vebox start/end coordinates, with optional SFC overfetch adjustments.
+//! \param    [in,out] cmd
+//!           Reference to VEB_DI_IECP command structure
+//! \param    [in] params
+//!           Reference to VEB_DI_IECP parameters
+//! \param    [in] bVeboxScalabilityEnabled
+//!           Whether VEBOX scalability is enabled
+//! \param    [in] numVebox
+//!           Number of VEBOX
+//! \param    [in] indexofVebox
+//!           Index of current VEBOX
+//! \param    [in] bUsingSfc
+//!           Whether SFC is used
+//! \return   void
+//!
+template <typename cmd_t, typename ParamsT>
+inline void VebDiIecpSetScalability(
+    typename cmd_t::VEB_DI_IECP_CMD &cmd,
+    const ParamsT                   &params,
+    bool                             bVeboxScalabilityEnabled,
+    uint32_t                         numVebox,
+    uint32_t                         indexofVebox,
+    bool                             bUsingSfc)
+{
+    if (bVeboxScalabilityEnabled == false)
+    {
+        cmd.DW1.EndingX   = params.dwEndingX;
+        cmd.DW1.StartingX = params.dwStartingX;
+    }
+    else
+    {
+        uint32_t iMediumX;
+        MHW_ASSERT(params.dwEndingX >= numVebox * 64 - 1);
+
+        iMediumX = MOS_ALIGN_FLOOR(((params.dwEndingX + 1) / numVebox), 64);
+        iMediumX = MOS_CLAMP_MIN_MAX(iMediumX, 64, (params.dwEndingX - 63));
+
+        if (numVebox > 1)
+        {
+            if (indexofVebox == MHW_VEBOX_STARTING_INDEX)
+            {
+                cmd.DW1.EndingX   = iMediumX - 1;
+                cmd.DW1.StartingX = params.dwStartingX;
+            }
+            else if (indexofVebox == numVebox - 1)
+            {
+                cmd.DW1.EndingX   = params.dwEndingX;
+                cmd.DW1.StartingX = indexofVebox * iMediumX;
+            }
+            else if (indexofVebox < numVebox - 1)
+            {
+                cmd.DW1.EndingX   = (indexofVebox + 1) * iMediumX - 1;
+                cmd.DW1.StartingX = indexofVebox * iMediumX;
+            }
+            else
+            {
+                MHW_ASSERTMESSAGE("Unsupported Vebox Scalability Settings");
+            }
+        }
+
+        if (bUsingSfc)
+        {
+            cmd.DW1.SplitWorkloadEnable = true;
+
+            if ((params.dwEndingX + 1) != numVebox * iMediumX)
+            {
+                if (indexofVebox < numVebox - 1)
+                {
+                    cmd.DW1.EndingX += 64;
+                }
+
+                if (indexofVebox > MHW_VEBOX_STARTING_INDEX)
+                {
+                    cmd.DW1.StartingX += 64;
+                }
+            }
+        }
+        else
+        {
+            cmd.DW1.SplitWorkloadEnable = false;
+        }
+
+        cmd.DW24.OutputEndingX   = cmd.DW1.EndingX;
+        cmd.DW24.OutputStartingX = cmd.DW1.StartingX;
+
+        if (bUsingSfc)
+        {
+            // Use left overfetch for sfc split
+            if (cmd.DW1.StartingX >= 64)
+            {
+                cmd.DW1.StartingX -= 64;
+            }
+        }
+
+        MT_LOG3(MT_VP_MHW_VE_SCALABILITY, MT_NORMAL, MT_VP_MHW_VE_SCALABILITY_EN, bVeboxScalabilityEnabled,
+            MT_VP_MHW_VE_SCALABILITY_USE_SFC, bUsingSfc, MT_VP_MHW_VE_SCALABILITY_IDX, indexofVebox);
+
+        MHW_NORMALMESSAGE("VEBOX%d STATE: startx %d endx %d", indexofVebox, cmd.DW1.StartingX, cmd.DW1.EndingX);
+        MHW_NORMALMESSAGE("VEBOX%d STATE: output startx %d endx %d", indexofVebox, cmd.DW24.OutputStartingX, cmd.DW24.OutputEndingX);
+    }
+}
+
 }  // namespace common
 }  // namespace vebox
 }  // namespace mhw
