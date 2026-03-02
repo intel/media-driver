@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2024, Intel Corporation
+* Copyright (c) 2024-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -266,6 +266,8 @@ Cmd::HCP_PIC_STATE_CMD::HCP_PIC_STATE_CMD()
 
     DW36.Value                                       = 0x00000000;
     //DW36.FrameCrcType                                = FRAME_CRC_TYPE_CRCWITHYUVVALUE;
+
+    DW37.Value                                       = 0x00000000;
 
     DW38.Value                                       = 0x00000000;
 
