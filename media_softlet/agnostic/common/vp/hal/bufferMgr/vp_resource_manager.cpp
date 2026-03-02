@@ -2561,7 +2561,11 @@ MOS_STATUS VpResourceManager::AssignVeboxResource(VP_EXECUTE_CAPS& caps, VP_SURF
     if (caps.bDI || caps.bDiProcess2ndField)
     {
         bool b60fpsDi = resHint.b60fpsDi || caps.bDiProcess2ndField;
-        VEBOX_SURFACES_CONFIG cfg(b60fpsDi, caps.bSFC, m_sameSamples, m_outOfBound, m_currentFrameIds.pastFrameAvailable,
+        // sameSample path is only meaningful for 60fps DI workflows.
+        // For 30i->30p (single-field) DI, forcing sameSample can select an invalid
+        // VEBOX surface config combination.
+        const bool sameSamplesForConfig = b60fpsDi ? m_sameSamples : false;
+        VEBOX_SURFACES_CONFIG cfg(b60fpsDi, caps.bSFC, sameSamplesForConfig, m_outOfBound, m_currentFrameIds.pastFrameAvailable,
             m_currentFrameIds.futureFrameAvailable, IsInterleaveFirstField(inputSurface->SampleType));
         auto it = m_veboxSurfaceConfigMap.find(cfg.value);
         if (m_veboxSurfaceConfigMap.end() == it)
