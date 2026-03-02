@@ -1288,19 +1288,18 @@ namespace encode
         auto &params = m_hcpItf->MHW_GETPAR_F(HCP_REF_IDX_STATE)();
         params       = {};
 
-        CODEC_PICTURE currPic                                     = {};
         CODEC_PICTURE refPicList[2][CODEC_MAX_NUM_REF_FRAME_HEVC] = {};
         void **       hevcRefList                                 = nullptr;
         int32_t       pocCurrPic                                  = 0;
         int8_t *      pRefIdxMapping                              = nullptr;
-        int32_t       pocList[CODEC_MAX_NUM_REF_FRAME_HEVC]       = {};
 
         if (m_basicFeature->m_preEncConfig.SliceType != encodeHevcISlice)
         {
-            currPic                                    = m_basicFeature->m_preEncConfig.CurrReconstructedPic;
-            params.ucList                              = LIST_0;
-            params.numRefIdxLRefpiclistnumActiveMinus1 = 0;
-            eStatus                                    = MOS_SecureMemcpy(&refPicList, sizeof(refPicList), &m_basicFeature->m_preEncConfig.RefPicList, sizeof(m_basicFeature->m_preEncConfig.RefPicList));
+            int32_t pocList[CODEC_MAX_NUM_REF_FRAME_HEVC] = {};
+            CODEC_PICTURE currPic                         = m_basicFeature->m_preEncConfig.CurrReconstructedPic;
+            params.ucList                                 = LIST_0;
+            params.numRefIdxLRefpiclistnumActiveMinus1    = 0;
+            eStatus                                       = MOS_SecureMemcpy(&refPicList, sizeof(refPicList), &m_basicFeature->m_preEncConfig.RefPicList, sizeof(m_basicFeature->m_preEncConfig.RefPicList));
             if (eStatus != MOS_STATUS_SUCCESS)
             {
                 ENCODE_ASSERTMESSAGE("Failed to copy memory.");
