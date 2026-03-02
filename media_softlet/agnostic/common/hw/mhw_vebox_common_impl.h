@@ -2574,6 +2574,221 @@ inline void VebDiIecpSetScalability(
     }
 }
 
+//!
+//! \brief    Common helper for VEBOX IECP state field initialization
+//! \details  Resets all fields to HW defaults by default-constructing a local
+//!           VEBOX_IECP_STATE_CMD and then assigns the common field values that
+//!           are identical across all supported platforms. This function is
+//!           intended to be called from each platform's IecpStateInitialization
+//!           member function after the default-construct/assign step.
+//! \param    [in,out] pVeboxIecpState
+//!           Pointer to VEBOX_IECP_STATE_CMD to initialize
+//! \return   void
+//!
+template <typename cmd_t>
+inline void IecpStateInitialization(typename cmd_t::VEBOX_IECP_STATE_CMD *pVeboxIecpState)
+{
+    // Reset all fields to HW defaults via default construction
+    typename cmd_t::VEBOX_IECP_STATE_CMD IecpState;
+    *pVeboxIecpState = IecpState;
+
+    // Re-set the common values identical across all platforms
+    pVeboxIecpState->StdSteState.DW5.InvMarginVyl       = 3300;
+    pVeboxIecpState->StdSteState.DW5.InvSkinTypesMargin = 1638;
+    pVeboxIecpState->StdSteState.DW12.B3U               = 140;
+    pVeboxIecpState->StdSteState.DW27.Hues0Dark         = 256;
+    pVeboxIecpState->StdSteState.DW27.Hues1Dark         = 0;
+
+    pVeboxIecpState->AceState.DW0.LaceHistogramSize     = 1;
+
+    pVeboxIecpState->TccState.DW0.Satfactor1            = 160;
+    pVeboxIecpState->TccState.DW0.Satfactor2            = 160;
+    pVeboxIecpState->TccState.DW0.Satfactor3            = 160;
+    pVeboxIecpState->TccState.DW1.Satfactor4            = 160;
+    pVeboxIecpState->TccState.DW1.Satfactor5            = 160;
+    pVeboxIecpState->TccState.DW1.Satfactor6            = 160;
+
+    pVeboxIecpState->GamutState.DW2.CmS                 = 640;
+    pVeboxIecpState->GamutState.DW3.AG                  = 26;
+    pVeboxIecpState->GamutState.DW4.AB                  = 26;
+    pVeboxIecpState->GamutState.DW5.RS                  = 768;
+    pVeboxIecpState->GamutState.DW6.CmI                 = 192;
+    pVeboxIecpState->GamutState.DW7.RI                  = 128;
+}
+
+//!
+//! \brief    Common helper for SetVeboxIecpState shared control flow
+//! \details  Encapsulates the shared control flow of SetVeboxIecpState used
+//!           across all 6 platform-specific VEBOX implementations. Two
+//!           compile-time bool template parameters handle the two behavioral
+//!           differences across platforms:
+//!           - EnableLACEArg: if true, passes bEnableLACE from params to
+//!             SetVeboxIecpStateACELACE; if false, passes hardcoded false.
+//!           - HasFeCSCBlock: if true, includes the HDR Front End CSC block
+//!             that checks bFeCSCEnable.
+//! \param    [in] pImpl
+//!           Pointer to the platform-specific implementation object
+//! \param    [in] pVeboxHeap
+//!           Pointer to VEBOX heap
+//! \param    [in] pVeboxIecpParams
+//!           Pointer to VEBOX IECP parameters
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t, typename ImplType, bool EnableLACEArg, bool HasFeCSCBlock>
+inline MOS_STATUS SetVeboxIecpState(
+    ImplType               *pImpl,
+    MHW_VEBOX_HEAP         *pVeboxHeap,
+    PMHW_VEBOX_IECP_PARAMS  pVeboxIecpParams)
+{
+    bool                                   bEnableFECSC    = false;
+    PMHW_FORWARD_GAMMA_SEG                 pFwdGammaSeg    = nullptr;
+    uint32_t                               uiOffset        = 0;
+    MOS_STATUS                             eStatus         = MOS_STATUS_SUCCESS;
+    typename cmd_t::VEBOX_IECP_STATE_CMD  *pVeboxIecpState = nullptr;
+
+    MHW_CHK_NULL_RETURN(pVeboxIecpParams);
+    MHW_CHK_NULL_RETURN(pVeboxHeap);
+
+    uiOffset        = pVeboxHeap->uiCurState * pVeboxHeap->uiInstanceSize;
+    pVeboxIecpState = (typename cmd_t::VEBOX_IECP_STATE_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
+                                                                pVeboxHeap->uiIecpStateOffset +
+                                                                uiOffset);
+
+    MHW_CHK_NULL_RETURN(pVeboxIecpState);
+
+    // FDFB early-return block
+    if (pVeboxIecpParams->iecpstateforFDFB)
+    {
+        pImpl->IecpStateInitializationforFDFB(pVeboxIecpState);
+        return MOS_STATUS_SUCCESS;
+    }
+    else
+    {
+        pImpl->IecpStateInitialization(pVeboxIecpState);
+    }
+
+    // ColorPipe block: STD/E and TCC
+    if (pVeboxIecpParams->ColorPipeParams.bActive)
+    {
+        // Enable STD/E (Skin Tone Detection/Enhancement)
+        pImpl->SetVeboxIecpStateSTE(
+            &pVeboxIecpState->StdSteState,
+            &pVeboxIecpParams->ColorPipeParams);
+
+        // Enable TCC (Total Color Control)
+        if (pVeboxIecpParams->ColorPipeParams.bEnableTCC)
+        {
+            pImpl->SetVeboxIecpStateTCC(
+                &pVeboxIecpState->TccState,
+                &pVeboxIecpParams->ColorPipeParams);
+        }
+    }
+
+    // ACE/LACE block: Enable ACE (Automatic Contrast Enhancement).
+    // EnableLACEArg controls whether bEnableLACE is passed or hardcoded false.
+    if (pVeboxIecpParams->bAce ||
+        (pVeboxIecpParams->ColorPipeParams.bActive &&
+            pVeboxIecpParams->ColorPipeParams.bEnableACE))
+    {
+        // Compile-time selection of lace argument
+        bool laceArg = EnableLACEArg ? (pVeboxIecpParams->ColorPipeParams.bEnableLACE == true) : false;
+        pImpl->SetVeboxIecpStateACELACE(
+            &pVeboxIecpState->AceState,
+            &pVeboxIecpState->AlphaAoiState,
+            laceArg);
+    }
+
+    // CapPipe block: Front End CSC and Color Correction Matrix
+    if (pVeboxIecpParams->CapPipeParams.bActive)
+    {
+        // IECP needs to operate in YUV space
+        if ((pVeboxIecpParams->srcFormat != Format_AYUV) &&
+            (pVeboxIecpParams->dstFormat == Format_AYUV ||
+                pVeboxIecpParams->dstFormat == Format_Y416 ||
+                pVeboxIecpParams->ProcAmpParams.bActive ||
+                pVeboxIecpParams->ColorPipeParams.bActive))
+        {
+            bEnableFECSC = true;
+        }
+        else if (pVeboxIecpParams->CapPipeParams.FECSCParams.bActive)
+        {
+            bEnableFECSC = true;
+        }
+        else
+        {
+            bEnableFECSC = false;
+        }
+
+        // Enable Front End CSC so that input to IECP will be in YUV color space
+        if (bEnableFECSC)
+        {
+            pImpl->SetVeboxIecpStateFecsc(&pVeboxIecpState->FrontEndCsc, pVeboxIecpParams);
+        }
+
+        // Enable Color Correction Matrix
+        if (pVeboxIecpParams->CapPipeParams.ColorCorrectionParams.bActive)
+        {
+            pImpl->SetVeboxIecpStateCcm(
+                pVeboxIecpState,
+                &pVeboxIecpParams->CapPipeParams,
+                65536);
+        }
+    }
+
+    // HDR Front End CSC block (compile-time gated by HasFeCSCBlock).
+    if (HasFeCSCBlock && pVeboxIecpParams->bFeCSCEnable)
+    {
+        pImpl->SetVeboxIecpStateFecsc(&pVeboxIecpState->FrontEndCsc, pVeboxIecpParams);
+    }
+
+    // Back End CSC block: Enable Back End CSC for capture pipeline or Vebox output pipe
+    if (pVeboxIecpParams->CapPipeParams.bActive ||
+        pVeboxIecpParams->bCSCEnable)
+    {
+        pImpl->SetVeboxIecpStateBecsc(
+            pVeboxIecpState,
+            pVeboxIecpParams,
+            bEnableFECSC);
+    }
+
+    // ProcAmp block: Enable ProcAmp
+    if (pVeboxIecpParams->ProcAmpParams.bActive &&
+        pVeboxIecpParams->ProcAmpParams.bEnabled)
+    {
+        pImpl->SetVeboxIecpStateProcAmp(
+            &pVeboxIecpState->ProcampState,
+            &pVeboxIecpParams->ProcAmpParams);
+    }
+
+    // CapPipeState block
+    if (pVeboxIecpParams && pVeboxIecpParams->CapPipeParams.bActive)
+    {
+        pImpl->SetVeboxCapPipeState(
+            &pVeboxIecpParams->CapPipeParams);
+    }
+
+    // FwdGamma block
+    if (pVeboxIecpParams &&
+        pVeboxIecpParams->CapPipeParams.bActive &&
+        pVeboxIecpParams->CapPipeParams.FwdGammaParams.bActive)
+    {
+        pFwdGammaSeg =
+            (PMHW_FORWARD_GAMMA_SEG)(pVeboxHeap->pLockedDriverResourceMem +
+                                     pVeboxHeap->uiGammaCorrectionStateOffset +
+                                     uiOffset);
+
+        MHW_CHK_NULL_RETURN(pFwdGammaSeg);
+        MOS_SecureMemcpy(
+            pFwdGammaSeg,
+            sizeof(MHW_FORWARD_GAMMA_SEG) * MHW_FORWARD_GAMMA_SEGMENT_CONTROL_POINT,
+            &pVeboxIecpParams->CapPipeParams.FwdGammaParams.Segment[0],
+            sizeof(MHW_FORWARD_GAMMA_SEG) * MHW_FORWARD_GAMMA_SEGMENT_CONTROL_POINT);
+    }
+
+    return eStatus;
+}
+
 }  // namespace common
 }  // namespace vebox
 }  // namespace mhw
