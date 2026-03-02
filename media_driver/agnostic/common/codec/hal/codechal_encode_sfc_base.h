@@ -449,7 +449,7 @@ protected:
     float                           m_cscInOffset[3] = { 0.0f, };
     float                           m_cscOutOffset[3] = { 0.0f, };
 
-    MHW_AVS_PARAMS                  m_avsParams = { Format_Any, };
+    MHW_AVS_PARAMS                  m_avsParams = { .Format = Format_Any, };
     MHW_SFC_AVS_LUMA_TABLE          m_lumaTable = { 0, };
     MHW_SFC_AVS_CHROMA_TABLE        m_chromaTable = { 0, };
     MHW_SFC_AVS_STATE               m_avsState = { 0, };

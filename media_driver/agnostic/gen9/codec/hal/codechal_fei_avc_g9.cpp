@@ -1978,8 +1978,8 @@ typedef struct _CODECHAL_ENCODE_AVC_MBENC_DISPATCH_PARAMS
     CodechalEncodeMdfKernelResource*        pKernelRes;
     struct CodechalEncodeAvcSurfaceIdx      *avcMBEncSurface;
     uint32_t                                frameWidthInMBs;
-    uint16_t                                wSliceHeight;
     uint32_t                                numSlices;
+    uint16_t                                wSliceHeight;
     uint16_t                                wSliceType;
     uint32_t                                dwNumMBs;
     bool                                    EnableArbitrarySliceSize;

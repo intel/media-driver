@@ -314,8 +314,8 @@ typedef struct _MHW_SFC_OUT_SURFACE_PARAMS
 //!
 typedef struct _MHW_SFC_LOCK_PARAMS
 {
-    uint8_t  sfcPipeMode;                                                        //!< SFC Pipe Mode
     uint32_t dwGaClientId;                                                       // Ga Client Id
+    uint8_t  sfcPipeMode;                                                        //!< SFC Pipe Mode
     bool     bOutputToMemory;                                                    // Write Vebox or Vdbox o/p to memory
 } MHW_SFC_LOCK_PARAMS, *PMHW_SFC_LOCK_PARAMS;
 
