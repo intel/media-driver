@@ -233,22 +233,27 @@ MOS_STATUS Policy::RegisterFeatures()
     m_NpuFeatureHandlers.insert(std::make_pair(FeatureTypeAiOnNpu, p));
 
     // Next step to add a table to trace all SW features based on platforms
-    m_featurePool.push_back(FeatureTypeCsc);
-    m_featurePool.push_back(FeatureTypeScaling);
-    m_featurePool.push_back(FeatureTypeRotMir);
-    m_featurePool.push_back(FeatureTypeDn);
-    m_featurePool.push_back(FeatureTypeSte);
-    m_featurePool.push_back(FeatureTypeTcc);
-    m_featurePool.push_back(FeatureTypeProcamp);
-    m_featurePool.push_back(FeatureTypeHdr);
-    m_featurePool.push_back(FeatureTypeDi);
-    m_featurePool.push_back(FeatureTypeFc);
-    m_featurePool.push_back(FeatureTypeLumakey);
-    m_featurePool.push_back(FeatureTypeBlending);
-    m_featurePool.push_back(FeatureTypeColorFill);
-    m_featurePool.push_back(FeatureTypeAlpha);
-    m_featurePool.push_back(FeatureTypeCgc);
-    m_featurePool.push_back(FeatureTypeAi);
+    static constexpr std::array<FeatureType, 16> features = {
+        FeatureTypeCsc,
+        FeatureTypeScaling,
+        FeatureTypeRotMir,
+        FeatureTypeDn,
+        FeatureTypeSte,
+        FeatureTypeTcc,
+        FeatureTypeProcamp,
+        FeatureTypeHdr,
+        FeatureTypeDi,
+        FeatureTypeFc,
+        FeatureTypeLumakey,
+        FeatureTypeBlending,
+        FeatureTypeColorFill,
+        FeatureTypeAlpha,
+        FeatureTypeCgc,
+        FeatureTypeAi
+    };
+    m_featurePool.reserve(features.size());
+    for (auto feature : features)
+        m_featurePool.push_back(feature);
 
     return MOS_STATUS_SUCCESS;
 }
