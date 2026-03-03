@@ -841,7 +841,9 @@ public:
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_STATUS ValidateVeboxScalabilityConfig()
     {
-        MEDIA_SYSTEM_INFO* pGtSystemInfo = nullptr;
+        MHW_FUNCTION_ENTER;
+
+        MEDIA_ENGINE_INFO mediaSysInfo = {};
         MOS_FORCE_VEBOX   eForceVebox;
         bool              bScalableVEMode;
         bool              bUseVE1, bUseVE2, bUseVE3, bUseVE4;
@@ -849,10 +851,10 @@ public:
 
         MHW_CHK_NULL_RETURN(this->m_osItf);
 
-        eForceVebox     = this->m_osItf->eForceVebox;
+        eForceVebox = this->m_osItf->eForceVebox;
         bScalableVEMode = ((this->m_osItf->bVeboxScalabilityMode) ? true : false);
-        pGtSystemInfo = this->m_osItf->pfnGetGtSystemInfo(this->m_osItf);
-        MHW_CHK_NULL_RETURN(pGtSystemInfo);
+        eStatus = this->m_osItf->pfnGetMediaEngineInfo(this->m_osItf, mediaSysInfo);
+        MHW_CHK_STATUS_RETURN(eStatus);
 
         if (eForceVebox != MOS_FORCE_VEBOX_NONE &&
             eForceVebox != MOS_FORCE_VEBOX_1 &&
@@ -873,15 +875,13 @@ public:
         {
             eStatus = MOS_STATUS_INVALID_PARAMETER;
             MHW_ASSERTMESSAGE("eForceVebox value is not consistent with scalability mode.");
-
             return eStatus;
         }
 
-        if (bScalableVEMode && !m_veboxScalabilitySupported)
+        if (bScalableVEMode && !this->m_veboxScalabilitySupported)
         {
             eStatus = MOS_STATUS_INVALID_PARAMETER;
             MHW_ASSERTMESSAGE("scalability mode is not allowed on current platform!");
-
             return eStatus;
         }
 
@@ -898,11 +898,12 @@ public:
             MHW_VEBOX_IS_VEBOX_SPECIFIED_IN_CONFIG(eForceVebox, MOS_FORCE_VEBOX_4, MOS_FORCEVEBOX_VEBOXID_BITSNUM, MOS_FORCEVEBOX_MASK, bUseVE4);
         }
 
-        if (!pGtSystemInfo->VEBoxInfo.IsValid ||
-            (uint32_t)(bUseVE1 + bUseVE2 + bUseVE3 + bUseVE4) > pGtSystemInfo->VEBoxInfo.NumberOfVEBoxEnabled)
+        if (!mediaSysInfo.VEBoxInfo.IsValid ||
+            (uint32_t)(bUseVE1 + bUseVE2 + bUseVE3 + bUseVE4) > mediaSysInfo.VEBoxInfo.NumberOfVEBoxEnabled)
         {
             eStatus = MOS_STATUS_INVALID_PARAMETER;
             MHW_ASSERTMESSAGE("the forced VEBOX is not enabled in current platform.");
+            return eStatus;
         }
 
         return eStatus;
