@@ -240,6 +240,8 @@ public:
     bool                            m_brcAdaptiveRegionBoostSupported = false;  //!< Adaptive Region Boost supported flag
     bool                            m_brcAdaptiveRegionBoostEnabled   = false;  //!< Adaptive Region Boost enabled flag
 
+    bool                            m_is8bit420 = false;  //!< Flag to indicate current encode format is 8-bit 4:2:0
+
     uint32_t                       m_prevFrameHeight = 0; //!< Previous frame height before resolution change (for OCA logging)
     uint32_t                       m_prevFrameWidth  = 0; //!< Previous frame width before resolution change (for OCA logging)
 

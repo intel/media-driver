@@ -147,6 +147,8 @@ MOS_STATUS AvcBasicFeature::Update(void *params)
     }
 
     m_seqParam = m_seqParams[spsidx] = (PCODEC_AVC_ENCODE_SEQUENCE_PARAMS)(encodeParams->pSeqParams);
+    // Detect 8-bit 4:2:0 format (chroma_format_idc==1 means 4:2:0; bit_depth_luma_minus8==0 means 8-bit)
+    m_is8bit420 = (m_seqParam->chroma_format_idc == 1 && m_seqParam->bit_depth_luma_minus8 == 0);
     m_picParam = m_picParams[ppsidx] = (PCODEC_AVC_ENCODE_PIC_PARAMS)(encodeParams->pPicParams);
     m_vuiParams                      = (PCODECHAL_ENCODE_AVC_VUI_PARAMS)encodeParams->pVuiParams;
     m_sliceParams                    = (PCODEC_AVC_ENCODE_SLICE_PARAMS)encodeParams->pSliceParams;
