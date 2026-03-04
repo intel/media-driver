@@ -40,11 +40,6 @@
 #include "mos_solo_generic.h"
 
 #include "media_libva_vp_tools.h"
-#if (_DEBUG || _RELEASE_INTERNAL)
-#if ANDROID
-#include "media_libva_vp_tools_android.h"
-#endif
-#endif // #if (_DEBUG || _RELEASE_INTERNAL)
 
 #define VP_SETTING_MAX_PHASES                           1
 #define VP_SETTING_MEDIA_STATES                         32
