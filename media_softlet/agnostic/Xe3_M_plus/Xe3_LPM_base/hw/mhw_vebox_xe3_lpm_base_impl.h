@@ -728,74 +728,19 @@ public:
 
     MOS_STATUS Add1DLutState(void *surface, PMHW_1DLUT_PARAMS p1DLutParams)
     {
-        mhw::vebox::xe3_lpm_base::Cmd::VEBOX_SHAPER_1K_LOOKUP_CMD *pShaper1KLut = ((mhw::vebox::xe3_lpm_base::Cmd::VEBOX_SHAPER_1K_LOOKUP_STATE_CMD *)surface)->VEBOXSHAPER1KLOOKUP;
+        mhw::vebox::xe3_lpm_base::Cmd::VEBOX_SHAPER_1K_LOOKUP_CMD *pShaper1KLut =
+            ((mhw::vebox::xe3_lpm_base::Cmd::VEBOX_SHAPER_1K_LOOKUP_STATE_CMD *)surface)->VEBOXSHAPER1KLOOKUP;
         MHW_CHK_NULL_RETURN(pShaper1KLut);
 
-        if (p1DLutParams && p1DLutParams->bActive && (p1DLutParams->LUTSize == 1024))
-        {
-            uint16_t *p1DLut = (uint16_t *)p1DLutParams->p1DLUT;
+        // Define platform-specific channel setters as lambdas
+        auto setR = [](mhw::vebox::xe3_lpm_base::Cmd::VEBOX_SHAPER_1K_LOOKUP_CMD *arr, uint32_t i, uint16_t v)
+            { arr[i].DW0.RChannelValue = v; };
+        auto setG = [](mhw::vebox::xe3_lpm_base::Cmd::VEBOX_SHAPER_1K_LOOKUP_CMD *arr, uint32_t i, uint16_t v)
+            { arr[i].DW1.GChannelValue = v; };
+        auto setB = [](mhw::vebox::xe3_lpm_base::Cmd::VEBOX_SHAPER_1K_LOOKUP_CMD *arr, uint32_t i, uint16_t v)
+            { arr[i].DW1.BChannelValue = v; };
 
-            for (uint32_t i = 0; i < p1DLutParams->LUTSize; i++)
-            {
-                pShaper1KLut[i].DW0.RChannelValue = (uint16_t)(p1DLut[4 * i + 1]);
-                pShaper1KLut[i].DW1.GChannelValue = (uint16_t)(p1DLut[4 * i + 2]);
-                pShaper1KLut[i].DW1.BChannelValue = (uint16_t)(p1DLut[4 * i + 3]);
-            }
-        }
-        else if (p1DLutParams && p1DLutParams->bActive && (p1DLutParams->LUTSize == 256))
-        {
-            uint32_t  cur_index = 0, pre_index = 0, point = 1;
-            uint16_t *p1DLut = (uint16_t *)p1DLutParams->p1DLUT;
-
-            pShaper1KLut[0].DW0.RChannelValue = (uint16_t)(p1DLut[1]);
-            pShaper1KLut[0].DW1.GChannelValue = (uint16_t)(p1DLut[2]);
-            pShaper1KLut[0].DW1.BChannelValue = (uint16_t)(p1DLut[3]);
-            for (uint32_t i = 1; i < 1024; i++)
-            {
-                for (uint32_t j = point; j <= 256; j++)
-                {
-                    cur_index = 4 * j;
-                    pre_index = cur_index ? 4 * (j - 1) : 0;
-                    if (p1DLut[cur_index] == i * 64)
-                    {
-                        pShaper1KLut[i].DW0.RChannelValue = (p1DLut[cur_index + 1]);
-                        pShaper1KLut[i].DW1.GChannelValue = (p1DLut[cur_index + 2]);
-                        pShaper1KLut[i].DW1.BChannelValue = (p1DLut[cur_index + 3]);
-                        point                             = j;
-                        break;
-                    }
-                    else if (p1DLut[cur_index] > i * 64)
-                    {
-                        if (cur_index != pre_index)
-                        {
-                            pShaper1KLut[i].DW0.RChannelValue = p1DLut[pre_index + 1] + (p1DLut[cur_index + 1] - p1DLut[pre_index + 1]) * (i * 64 - p1DLut[pre_index]) / (p1DLut[cur_index] - p1DLut[pre_index]);
-                            pShaper1KLut[i].DW1.GChannelValue = p1DLut[pre_index + 2] + (p1DLut[cur_index + 2] - p1DLut[pre_index + 2]) * (i * 64 - p1DLut[pre_index]) / (p1DLut[cur_index] - p1DLut[pre_index]);
-                            pShaper1KLut[i].DW1.BChannelValue = p1DLut[pre_index + 3] + (p1DLut[cur_index + 3] - p1DLut[pre_index + 3]) * (i * 64 - p1DLut[pre_index]) / (p1DLut[cur_index] - p1DLut[pre_index]);
-                            point                             = j;
-                            break;
-                        }
-                        else
-                        {
-                            MHW_ASSERTMESSAGE("Error in map 256 LUT to 1k LUT");
-                        }
-                    }
-                }
-            }
-        }
-        else
-        {
-            MHW_NORMALMESSAGE("Fall back to the identity 1k 1dlut");
-            for (uint32_t i = 0; i < 1023; i++)
-            {
-                pShaper1KLut[i].DW0.RChannelValue = (uint16_t)(i * 64);
-                pShaper1KLut[i].DW1.GChannelValue = (uint16_t)(i * 64);
-                pShaper1KLut[i].DW1.BChannelValue = (uint16_t)(i * 64);
-            }
-            pShaper1KLut[1023].DW0.RChannelValue = 0xffff;
-            pShaper1KLut[1023].DW1.GChannelValue = 0xffff;
-            pShaper1KLut[1023].DW1.BChannelValue = 0xffff;
-        }
-        return MOS_STATUS_SUCCESS;
+        return mhw::vebox::common::Add1DLutState(pShaper1KLut, p1DLutParams, setR, setG, setB);
     }
 
     MOS_STATUS SetVeboxGamutState(

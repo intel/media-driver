@@ -2789,6 +2789,190 @@ inline MOS_STATUS SetVeboxIecpState(
     return eStatus;
 }
 
+//!
+//! \brief    Helper function for direct copy of 1024-entry 1D LUT
+//! \details  Handles the LUTSize==1024 case by directly copying all 1024 source
+//!           LUT entries into the target hardware command array via the provided
+//!           R/G/B channel setter callables. Avoids any interpolation.
+//!           Setter signature: setter(LutArray& arr, uint32_t index, uint16_t value)
+//! \param    [in,out] lutArray
+//!           Reference to the target LUT array in the hardware command structure
+//! \param    [in] p1DLutParams
+//!           Pointer to 1D LUT parameters (must have LUTSize==1024 and valid p1DLUT)
+//! \param    [in] setR
+//!           Callable to set the R channel value at a given index
+//! \param    [in] setG
+//!           Callable to set the G channel value at a given index
+//! \param    [in] setB
+//!           Callable to set the B channel value at a given index
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename LutArray, typename SetterR, typename SetterG, typename SetterB>
+MOS_STATUS Copy1DLut1024(
+    LutArray                 &lutArray,
+    const MHW_1DLUT_PARAMS   *p1DLutParams,
+    SetterR                   setR,
+    SetterG                   setG,
+    SetterB                   setB)
+{
+    uint16_t *p1DLut = (uint16_t *)p1DLutParams->p1DLUT;
+    for (uint32_t i = 0; i < p1DLutParams->LUTSize; i++)
+    {
+        setR(lutArray, i, (uint16_t)(p1DLut[4 * i + 1]));
+        setG(lutArray, i, (uint16_t)(p1DLut[4 * i + 2]));
+        setB(lutArray, i, (uint16_t)(p1DLut[4 * i + 3]));
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for interpolating 256-entry 1D LUT to 1024 entries
+//! \details  Handles the LUTSize==256 case by computing 1024 output entries via
+//!           linear interpolation between adjacent 256-entry source samples using
+//!           cur_index/pre_index/point arithmetic, writing results via the provided
+//!           R/G/B channel setter callables.
+//!           Setter signature: setter(LutArray& arr, uint32_t index, uint16_t value)
+//! \param    [in,out] lutArray
+//!           Reference to the target LUT array in the hardware command structure
+//! \param    [in] p1DLutParams
+//!           Pointer to 1D LUT parameters (must have LUTSize==256 and valid p1DLUT)
+//! \param    [in] setR
+//!           Callable to set the R channel value at a given index
+//! \param    [in] setG
+//!           Callable to set the G channel value at a given index
+//! \param    [in] setB
+//!           Callable to set the B channel value at a given index
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename LutArray, typename SetterR, typename SetterG, typename SetterB>
+MOS_STATUS Interpolate1DLut256To1024(
+    LutArray                 &lutArray,
+    const MHW_1DLUT_PARAMS   *p1DLutParams,
+    SetterR                   setR,
+    SetterG                   setG,
+    SetterB                   setB)
+{
+    uint32_t  cur_index = 0, pre_index = 0, point = 1;
+    uint16_t *p1DLut    = (uint16_t *)p1DLutParams->p1DLUT;
+
+    // Set index 0 directly from first source entry
+    setR(lutArray, 0, (uint16_t)(p1DLut[1]));
+    setG(lutArray, 0, (uint16_t)(p1DLut[2]));
+    setB(lutArray, 0, (uint16_t)(p1DLut[3]));
+
+    for (uint32_t i = 1; i < 1024; i++)
+    {
+        for (uint32_t j = point; j <= 256; j++)
+        {
+            cur_index = 4 * j;
+            pre_index = cur_index ? 4 * (j - 1) : 0;
+            if (p1DLut[cur_index] == i * 64)
+            {
+                setR(lutArray, i, (uint16_t)(p1DLut[cur_index + 1]));
+                setG(lutArray, i, (uint16_t)(p1DLut[cur_index + 2]));
+                setB(lutArray, i, (uint16_t)(p1DLut[cur_index + 3]));
+                point = j;
+                break;
+            }
+            else if (p1DLut[cur_index] > i * 64)
+            {
+                if (cur_index != pre_index)
+                {
+                    setR(lutArray, i, (uint16_t)(p1DLut[pre_index + 1] + (p1DLut[cur_index + 1] - p1DLut[pre_index + 1]) * (i * 64 - p1DLut[pre_index]) / (p1DLut[cur_index] - p1DLut[pre_index])));
+                    setG(lutArray, i, (uint16_t)(p1DLut[pre_index + 2] + (p1DLut[cur_index + 2] - p1DLut[pre_index + 2]) * (i * 64 - p1DLut[pre_index]) / (p1DLut[cur_index] - p1DLut[pre_index])));
+                    setB(lutArray, i, (uint16_t)(p1DLut[pre_index + 3] + (p1DLut[cur_index + 3] - p1DLut[pre_index + 3]) * (i * 64 - p1DLut[pre_index]) / (p1DLut[cur_index] - p1DLut[pre_index])));
+                    point = j;
+                    break;
+                }
+                else
+                {
+                    MHW_ASSERTMESSAGE("Error in map 256 LUT to 1k LUT");
+                }
+            }
+        }
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for writing identity 1D LUT (fallback)
+//! \details  Handles the identity/fallback case by writing i*64 for indices [0,1022]
+//!           and 0xFFFF for index 1023 into all three channels via the provided setter
+//!           callables. Used when p1DLutParams is null, LUT is disabled, or LUTSize
+//!           is not a recognized value.
+//!           Setter signature: setter(LutArray& arr, uint32_t index, uint16_t value)
+//! \param    [in,out] lutArray
+//!           Reference to the target LUT array in the hardware command structure
+//! \param    [in] setR
+//!           Callable to set the R channel value at a given index
+//! \param    [in] setG
+//!           Callable to set the G channel value at a given index
+//! \param    [in] setB
+//!           Callable to set the B channel value at a given index
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename LutArray, typename SetterR, typename SetterG, typename SetterB>
+MOS_STATUS WriteIdentity1DLut(
+    LutArray &lutArray,
+    SetterR   setR,
+    SetterG   setG,
+    SetterB   setB)
+{
+    MHW_NORMALMESSAGE("Fall back to the identity 1k 1dlut");
+    for (uint32_t i = 0; i < 1023; i++)
+    {
+        setR(lutArray, i, (uint16_t)(i * 64));
+        setG(lutArray, i, (uint16_t)(i * 64));
+        setB(lutArray, i, (uint16_t)(i * 64));
+    }
+    setR(lutArray, 1023, (uint16_t)0xffff);
+    setG(lutArray, 1023, (uint16_t)0xffff);
+    setB(lutArray, 1023, (uint16_t)0xffff);
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function to unify Add1DLutState logic across platforms
+//! \details  Dispatches to Copy1DLut1024, Interpolate1DLut256To1024, or WriteIdentity1DLut
+//!           based on p1DLutParams validation and LUTSize.
+//! \param    [in,out] lutArray
+//!           Reference to the target LUT array in the hardware command structure
+//! \param    [in] p1DLutParams
+//!           Pointer to 1D LUT parameters
+//! \param    [in] setR
+//!           Callable to set the R channel value at a given index
+//! \param    [in] setG
+//!           Callable to set the G channel value at a given index
+//! \param    [in] setB
+//!           Callable to set the B channel value at a given index
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename LutArray, typename SetterR, typename SetterG, typename SetterB>
+MOS_STATUS Add1DLutState(
+    LutArray                 &lutArray,
+    const MHW_1DLUT_PARAMS   *p1DLutParams,
+    SetterR                   setR,
+    SetterG                   setG,
+    SetterB                   setB)
+{
+    if (p1DLutParams && p1DLutParams->bActive && (p1DLutParams->LUTSize == 1024))
+    {
+        return Copy1DLut1024(lutArray, p1DLutParams, setR, setG, setB);
+    }
+    else if (p1DLutParams && p1DLutParams->bActive && (p1DLutParams->LUTSize == 256))
+    {
+        return Interpolate1DLut256To1024(lutArray, p1DLutParams, setR, setG, setB);
+    }
+    else
+    {
+        return WriteIdentity1DLut(lutArray, setR, setG, setB);
+    }
+}
+
 }  // namespace common
 }  // namespace vebox
 }  // namespace mhw

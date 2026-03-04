@@ -720,84 +720,32 @@ public:
 
     MOS_STATUS Add1DLutState(void *surface, PMHW_1DLUT_PARAMS p1DLutParams)
     {
-        MHW_VEBOX_HEAP                                                 *pVeboxHeap     = nullptr;
-        uint32_t                                                        uiOffset       = 0;
+        MHW_VEBOX_HEAP *pVeboxHeap = nullptr;
+        uint32_t        uiOffset   = 0;
         MHW_CHK_NULL_RETURN(this->m_veboxHeap);
 
         pVeboxHeap = this->m_veboxHeap;
         uiOffset   = pVeboxHeap->uiCurState * pVeboxHeap->uiInstanceSize;
 
         //Remove VEBOX_SHAPER_1K_LOOKUP_STATE_CMD use VEBOX_HDR_STATE_EOTF16_CMD instead.
-        typename cmd_t::VEBOX_HDR_STATE_EOTF16_CMD *pVeboxHdrState = (typename cmd_t::VEBOX_HDR_STATE_EOTF16_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
-                                                                                                                  pVeboxHeap->uiHdrStateOffset +
-                                                                                                                  uiOffset);
+        typename cmd_t::VEBOX_HDR_STATE_EOTF16_CMD *pVeboxHdrState =
+            (typename cmd_t::VEBOX_HDR_STATE_EOTF16_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
+                                                            pVeboxHeap->uiHdrStateOffset +
+                                                            uiOffset);
         MHW_CHK_NULL_RETURN(pVeboxHdrState);
-        typename cmd_t::VEBOX_HDR_INV_EOTF16_GAMMA_CORRECTION_STATE_CMD *pInverseGamma = pVeboxHdrState->PRGBCorrectedValue;
-        if (p1DLutParams && p1DLutParams->bActive && (p1DLutParams->LUTSize == 1024))
-        {
-            uint16_t *p1DLut = (uint16_t *)p1DLutParams->p1DLUT;
+        typename cmd_t::VEBOX_HDR_INV_EOTF16_GAMMA_CORRECTION_STATE_CMD *pInverseGamma =
+            pVeboxHdrState->PRGBCorrectedValue;
 
-            for (uint32_t i = 0; i < p1DLutParams->LUTSize; i++)
-            {
-                pInverseGamma[i].DW0.InverseRChannelGammaCorrectionValue = (uint16_t)(p1DLut[4 * i + 1]);
-                pInverseGamma[i].DW1.InverseGChannelGammaCorrectionValue = (uint16_t)(p1DLut[4 * i + 2]);
-                pInverseGamma[i].DW1.InverseBChannelGammaCorrectionValue = (uint16_t)(p1DLut[4 * i + 3]);
-            }
-        }
-        else if (p1DLutParams && p1DLutParams->bActive && (p1DLutParams->LUTSize == 256))
-        {
-            uint32_t  cur_index = 0, pre_index = 0, point = 1;
-            uint16_t *p1DLut = (uint16_t *)p1DLutParams->p1DLUT;
+        // Define platform-specific channel setters as lambdas
+        // xe3p uses named InverseR/G/BChannelGammaCorrectionValue fields
+        auto setR = [](typename cmd_t::VEBOX_HDR_INV_EOTF16_GAMMA_CORRECTION_STATE_CMD *arr, uint32_t i, uint16_t v)
+            { arr[i].DW0.InverseRChannelGammaCorrectionValue = v; };
+        auto setG = [](typename cmd_t::VEBOX_HDR_INV_EOTF16_GAMMA_CORRECTION_STATE_CMD *arr, uint32_t i, uint16_t v)
+            { arr[i].DW1.InverseGChannelGammaCorrectionValue = v; };
+        auto setB = [](typename cmd_t::VEBOX_HDR_INV_EOTF16_GAMMA_CORRECTION_STATE_CMD *arr, uint32_t i, uint16_t v)
+            { arr[i].DW1.InverseBChannelGammaCorrectionValue = v; };
 
-            pInverseGamma[0].DW0.InverseRChannelGammaCorrectionValue = (uint16_t)(p1DLut[1]);
-            pInverseGamma[0].DW1.InverseGChannelGammaCorrectionValue = (uint16_t)(p1DLut[2]);
-            pInverseGamma[0].DW1.InverseBChannelGammaCorrectionValue = (uint16_t)(p1DLut[3]);
-            for (uint32_t i = 1; i < 1024; i++)
-            {
-                for (uint32_t j = point; j <= 256; j++)
-                {
-                    cur_index = 4 * j;
-                    pre_index = cur_index ? 4 * (j - 1) : 0;
-                    if (p1DLut[cur_index] == i * 64)
-                    {
-                        pInverseGamma[i].DW0.InverseRChannelGammaCorrectionValue = (uint16_t)(p1DLut[cur_index + 1]);
-                        pInverseGamma[i].DW1.InverseGChannelGammaCorrectionValue = (uint16_t)(p1DLut[cur_index + 2]);
-                        pInverseGamma[i].DW1.InverseBChannelGammaCorrectionValue = (uint16_t)(p1DLut[cur_index + 3]);
-                        point                             = j;
-                        break;
-                    }
-                    else if (p1DLut[cur_index] > i * 64)
-                    {
-                        if (cur_index != pre_index)
-                        {
-                            pInverseGamma[i].DW0.InverseRChannelGammaCorrectionValue = (uint16_t)(p1DLut[pre_index + 1] + (p1DLut[cur_index + 1] - p1DLut[pre_index + 1]) * (i * 64 - p1DLut[pre_index]) / (p1DLut[cur_index] - p1DLut[pre_index]));
-                            pInverseGamma[i].DW1.InverseGChannelGammaCorrectionValue = (uint16_t)(p1DLut[pre_index + 2] + (p1DLut[cur_index + 2] - p1DLut[pre_index + 2]) * (i * 64 - p1DLut[pre_index]) / (p1DLut[cur_index] - p1DLut[pre_index]));
-                            pInverseGamma[i].DW1.InverseBChannelGammaCorrectionValue = (uint16_t)(p1DLut[pre_index + 3] + (p1DLut[cur_index + 3] - p1DLut[pre_index + 3]) * (i * 64 - p1DLut[pre_index]) / (p1DLut[cur_index] - p1DLut[pre_index]));
-                            point                             = j;
-                            break;
-                        }
-                        else
-                        {
-                            MHW_ASSERTMESSAGE("Error in map 256 LUT to 1k LUT");
-                        }
-                    }
-                }
-            }
-        }
-        else
-        {
-            MHW_NORMALMESSAGE("Fall back to the identity 1k 1dlut");
-            for (uint32_t i = 0; i < 1023; i++)
-            {
-                pInverseGamma[i].DW0.InverseRChannelGammaCorrectionValue = (uint16_t)(i * 64);
-                pInverseGamma[i].DW1.InverseGChannelGammaCorrectionValue = (uint16_t)(i * 64);
-                pInverseGamma[i].DW1.InverseBChannelGammaCorrectionValue = (uint16_t)(i * 64);
-            }
-            pInverseGamma[1023].DW0.InverseRChannelGammaCorrectionValue    = 0xffff;
-            pInverseGamma[1023].DW1.InverseGChannelGammaCorrectionValue    = 0xffff;
-            pInverseGamma[1023].DW1.InverseBChannelGammaCorrectionValue    = 0xffff;
-        }
-        return MOS_STATUS_SUCCESS;
+        return mhw::vebox::common::Add1DLutState(pInverseGamma, p1DLutParams, setR, setG, setB);
     }
 
     MOS_STATUS AddVeboxHdrState(
