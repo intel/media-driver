@@ -1943,8 +1943,22 @@ public:
         MEMORYADDRESSATTRIBUTES_CMD              SSETileLineReadWriteBufferAddressAttributes;                             //!< DW208, SSE Tile Line Read/Write Buffer Address Attributes
         SPLITBASEADDRESS64BYTEALIGNED_CMD        PostCDEFpixelsBufferAddress;                                             //!< DW209..210, PostCDEF pixels Buffer Address
         MEMORYADDRESSATTRIBUTES_CMD              PostCDEFpixelsBufferAddressAttributes;                                   //!< DW211, PostCDEF pixels Buffer Address Attributes
-        SPLITBASEADDRESS64BYTEALIGNED_CMD        AVP_PIPE_BUF_ADDR_STATE_DW212;                                        
-        MEMORYADDRESSATTRIBUTES_CMD              AVP_PIPE_BUF_ADDR_STATE_DW214;                              
+        union
+        {
+            struct
+            {
+                uint64_t                 Reserved6784                                                                     ; //!< Reserved
+            };
+            uint32_t                     Value[2];
+        } DW212_213;
+        union
+        {
+            struct
+            {
+                uint32_t                 Rererved                                                                         ; //!< Rererved
+            };
+            uint32_t                     Value;
+        } DW214;
 
         //! \name Local enumerations
 

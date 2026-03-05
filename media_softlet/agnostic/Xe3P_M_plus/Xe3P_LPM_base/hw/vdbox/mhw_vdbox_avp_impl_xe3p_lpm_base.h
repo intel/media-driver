@@ -141,14 +141,8 @@ protected:
     {
         _MHW_SETCMD_CALLBASE(AVP_PIPE_BUF_ADDR_STATE);
 
-        MHW_RESOURCE_PARAMS resourceParams = {};
-        resourceParams.dwLsbNum      = MHW_VDBOX_HCP_GENERAL_STATE_SHIFT;
-        resourceParams.HwCommandType = MOS_MFX_PIPE_BUF_ADDR;
-
         // Call base class template function to handle common buffers
         MHW_MI_CHK_STATUS(this->SetAvpPipeBufAddrStateSpecific(cmd));
-
-        __MHW_VDBOX_AVP_WRAPPER_EXT(AVP_PIPE_BUF_ADDR_STATE_IMPL_XE3P_LPM_BASE_EXT);
 
         return MOS_STATUS_SUCCESS;
     }
