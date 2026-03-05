@@ -130,6 +130,16 @@ namespace decode
         //!
         virtual MOS_STATUS InitMmcState();
 
+        //!
+        //! \brief    Register CP subpacket if CP is enabled
+        //!
+        //! \param    [in] subPacketManager
+        //!           Reference to DecodeSubPacketManager
+        //!
+        //! \return   MOS_STATUS
+        //!           MOS_STATUS_SUCCESS if success
+        //!
+        MOS_STATUS RegisterCpSubPacket(DecodeSubPacketManager &subPacketManager);
 
     #if USE_CODECHAL_DEBUG_TOOL
         //! \brief    Dump the parameters

@@ -148,15 +148,7 @@ MOS_STATUS VvcPipelineXe3P_Lpm_Base::CreateSubPackets(DecodeSubPacketManager &su
     DECODE_CHK_STATUS(subPacketManager.Register(
         DecodePacketId(this, vvcSliceSubPacketId), *m_vvcSlicePkt));
 
-    if (m_decodecp != nullptr)
-    {
-        auto feature = dynamic_cast<VvcBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
-        DECODE_CHK_NULL(feature);
-        DecodeSubPacket *cpSubPkt = (DecodeSubPacket *)m_decodecp->CreateDecodeCpIndSubPkt((DecodePipeline *)this, feature->m_mode, m_hwInterface);
-        DECODE_CHK_NULL(cpSubPkt);
-        DECODE_CHK_STATUS(subPacketManager.Register(
-            DecodePacketId(this, vvcCpSubPacketId), *cpSubPkt));
-    }
+    DECODE_CHK_STATUS(RegisterCpSubPacket(subPacketManager));
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     VvcDecodeDebugPkt *debugPkt = MOS_New(VvcDecodeDebugPkt, this, m_hwInterface);

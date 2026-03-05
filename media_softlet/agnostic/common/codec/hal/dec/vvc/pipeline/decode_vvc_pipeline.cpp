@@ -319,15 +319,7 @@ namespace decode
         DECODE_CHK_STATUS(subPacketManager.Register(
                             DecodePacketId(this, vvcSliceSubPacketId), *sliceDecodePkt));
 
-        if(m_decodecp!=nullptr)
-        {
-            auto feature = dynamic_cast<VvcBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
-            DECODE_CHK_NULL(feature);
-            DecodeSubPacket *cpSubPkt = (DecodeSubPacket *)m_decodecp->CreateDecodeCpIndSubPkt((DecodePipeline *)this, feature->m_mode, m_hwInterface);
-            DECODE_CHK_NULL(cpSubPkt);
-            DECODE_CHK_STATUS(subPacketManager.Register(
-                            DecodePacketId(this, vvcCpSubPacketId), *cpSubPkt));
-        }
+        DECODE_CHK_STATUS(RegisterCpSubPacket(subPacketManager));
 
 #if (_DEBUG || _RELEASE_INTERNAL)
         VvcDecodeDebugPkt *debugPkt = MOS_New(VvcDecodeDebugPkt, this, m_hwInterface);
@@ -340,6 +332,21 @@ namespace decode
             return status;
         }
 #endif
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS VvcPipeline::RegisterCpSubPacket(DecodeSubPacketManager &subPacketManager)
+    {
+        if (m_decodecp != nullptr)
+        {
+            auto feature = dynamic_cast<VvcBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+            DECODE_CHK_NULL(feature);
+            DecodeSubPacket *cpSubPkt = (DecodeSubPacket *)m_decodecp->CreateDecodeCpIndSubPkt((DecodePipeline *)this, feature->m_mode, m_hwInterface);
+            DECODE_CHK_NULL(cpSubPkt);
+            DECODE_CHK_STATUS(subPacketManager.Register(
+                DecodePacketId(this, vvcCpSubPacketId), *cpSubPkt));
+        }
 
         return MOS_STATUS_SUCCESS;
     }
