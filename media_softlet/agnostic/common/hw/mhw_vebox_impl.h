@@ -393,6 +393,31 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    const MHW_VEBOX_CHROMA_PARAMS &GetChromaParams() const
+    {
+        return m_chromaParams;
+    }
+
+    bool GetTGNEEnable() const
+    {
+        return bTGNEEnable;
+    }
+
+    uint32_t GetChromaStadThreshold() const
+    {
+        return dwChromaStadTh;
+    }
+
+    uint32_t GetLumaStadThreshold() const
+    {
+        return dwLumaStadTh;
+    }
+
+    uint32_t Get4X4TGNEThresholdCount() const
+    {
+        return dw4X4TGNEThCnt;
+    }
+
 
     void RefreshVeboxSync()
     {
