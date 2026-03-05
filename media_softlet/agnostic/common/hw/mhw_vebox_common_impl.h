@@ -3503,6 +3503,300 @@ inline MOS_STATUS SetVeboxIecpStateSTE(
     return eStatus;
 }
 
+//!
+//! \brief    Common helper for SetVeboxIecpStateFecsc (Front-End CSC)
+//! \details  Encapsulates the shared implementation of SetVeboxIecpStateFecsc used
+//!           across all 6 platform-specific VEBOX implementations. Uses duck typing
+//!           on the FecscStateType template parameter so that all platforms can call
+//!           the same implementation regardless of their specific command namespace.
+//! \param    [in,out] pVeboxFecscState
+//!           Pointer to platform-specific VEBOX_FRONT_END_CSC_STATE_CMD structure
+//! \param    [in] pVeboxIecpParams
+//!           Pointer to VEBOX IECP State Params
+//! \return   void
+//!
+template <typename FecscStateType>
+inline void SetVeboxIecpStateFecsc(
+    FecscStateType        *pVeboxFecscState,
+    PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams)
+{
+    MHW_CAPPIPE_PARAMS *pCapPipeParams = nullptr;
+
+    MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxFecscState);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxIecpParams);
+
+    pCapPipeParams = &pVeboxIecpParams->CapPipeParams;
+    MHW_CHK_NULL_NO_STATUS_RETURN(pCapPipeParams);
+    MHW_ASSERT(pCapPipeParams->bActive);
+
+#define SET_COEFS(_c0, _c1, _c2, _c3, _c4, _c5, _c6, _c7, _c8)   \
+    {                                                            \
+        pVeboxFecscState->DW0.FecscC0TransformCoefficient = _c0; \
+        pVeboxFecscState->DW1.FecscC1TransformCoefficient = _c1; \
+        pVeboxFecscState->DW2.FecscC2TransformCoefficient = _c2; \
+        pVeboxFecscState->DW3.FecscC3TransformCoefficient = _c3; \
+        pVeboxFecscState->DW4.FecscC4TransformCoefficient = _c4; \
+        pVeboxFecscState->DW5.FecscC5TransformCoefficient = _c5; \
+        pVeboxFecscState->DW6.FecscC6TransformCoefficient = _c6; \
+        pVeboxFecscState->DW7.FecscC7TransformCoefficient = _c7; \
+        pVeboxFecscState->DW8.FecscC8TransformCoefficient = _c8; \
+    }
+
+#define SET_INPUT_OFFSETS(_in1, _in2, _in3)                         \
+    {                                                               \
+        pVeboxFecscState->DW9.FecScOffsetIn1OffsetInForYR   = _in1; \
+        pVeboxFecscState->DW10.FecScOffsetIn2OffsetOutForUG = _in2; \
+        pVeboxFecscState->DW11.FecScOffsetIn3OffsetOutForVB = _in3; \
+    }
+
+#define SET_OUTPUT_OFFSETS(_out1, _out2, _out3)                       \
+    {                                                                 \
+        pVeboxFecscState->DW9.FecScOffsetOut1OffsetOutForYR  = _out1; \
+        pVeboxFecscState->DW10.FecScOffsetOut2OffsetOutForUG = _out2; \
+        pVeboxFecscState->DW11.FecScOffsetOut3OffsetOutForVB = _out3; \
+    }
+
+    pVeboxFecscState->DW0.FrontEndCscTransformEnable = true;
+
+    if (pCapPipeParams->FECSCParams.bActive)
+    {
+        // Coeff is S2.16, so multiply the floating value by 65536
+        SET_COEFS(
+            ((uint32_t)(pCapPipeParams->FECSCParams.Matrix[0][0] * 65536)),
+            ((uint32_t)(pCapPipeParams->FECSCParams.Matrix[0][1] * 65536)),
+            ((uint32_t)(pCapPipeParams->FECSCParams.Matrix[0][2] * 65536)),
+            ((uint32_t)(pCapPipeParams->FECSCParams.Matrix[1][0] * 65536)),
+            ((uint32_t)(pCapPipeParams->FECSCParams.Matrix[1][1] * 65536)),
+            ((uint32_t)(pCapPipeParams->FECSCParams.Matrix[1][2] * 65536)),
+            ((uint32_t)(pCapPipeParams->FECSCParams.Matrix[2][0] * 65536)),
+            ((uint32_t)(pCapPipeParams->FECSCParams.Matrix[2][1] * 65536)),
+            ((uint32_t)(pCapPipeParams->FECSCParams.Matrix[2][2] * 65536)));
+        SET_INPUT_OFFSETS(
+            ((uint32_t)pCapPipeParams->FECSCParams.PreOffset[0]),
+            ((uint32_t)pCapPipeParams->FECSCParams.PreOffset[1]),
+            ((uint32_t)pCapPipeParams->FECSCParams.PreOffset[2]));
+        SET_OUTPUT_OFFSETS(
+            ((uint32_t)pCapPipeParams->FECSCParams.PostOffset[0]),
+            ((uint32_t)pCapPipeParams->FECSCParams.PostOffset[1]),
+            ((uint32_t)pCapPipeParams->FECSCParams.PostOffset[2]));
+    }
+    else if (pVeboxIecpParams->bFeCSCEnable)
+    {
+        // Coeff is S2.16, so multiply the floating value by 65536
+        SET_COEFS(
+            ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[0] * 65536)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[1] * 65536)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[2] * 65536)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[3] * 65536)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[4] * 65536)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[5] * 65536)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[6] * 65536)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[7] * 65536)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[8] * 65536)));
+        SET_INPUT_OFFSETS(
+            ((uint32_t)(pVeboxIecpParams->pfFeCscInOffset[0] * 128.0F)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscInOffset[1] * 128.0F)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscInOffset[2] * 128.0F)));
+        SET_OUTPUT_OFFSETS(
+            ((uint32_t)(pVeboxIecpParams->pfFeCscOutOffset[0] * 128.0F)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscOutOffset[1] * 128.0F)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscOutOffset[2] * 128.0F)));
+    }
+    else if (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT601)
+    {
+        SET_COEFS(16843, 33030, 6423, MOS_BITFIELD_VALUE((uint32_t)-9698, 19), MOS_BITFIELD_VALUE((uint32_t)-19070, 19), 28770, 28770, MOS_BITFIELD_VALUE((uint32_t)-24116, 19), MOS_BITFIELD_VALUE((uint32_t)-4652, 19));
+        SET_INPUT_OFFSETS(0, 0, 0);
+        SET_OUTPUT_OFFSETS(2048, 16384, 16384);
+    }
+    else if (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT709)
+    {
+        SET_COEFS(11993, 40239, 4063, MOS_BITFIELD_VALUE((uint32_t)-6618, 19), MOS_BITFIELD_VALUE((uint32_t)-22216, 19), 28770, 28770, MOS_BITFIELD_VALUE((uint32_t)-26148, 19), MOS_BITFIELD_VALUE((uint32_t)-2620, 19));
+        SET_INPUT_OFFSETS(0, 0, 0);
+        SET_OUTPUT_OFFSETS(2048, 16384, 16384);
+    }
+    else if (pVeboxIecpParams->ColorSpace == MHW_CSpace_sRGB)
+    {
+        SET_COEFS(13932, 46871, 4731, MOS_BITFIELD_VALUE((uint32_t)-7508, 19), MOS_BITFIELD_VALUE((uint32_t)-25260, 19), 32768, 32768, MOS_BITFIELD_VALUE((uint32_t)-29764, 19), MOS_BITFIELD_VALUE((uint32_t)-3005, 19));
+        SET_INPUT_OFFSETS(0, 0, 0);
+        SET_OUTPUT_OFFSETS(0, 16384, 16384);
+    }
+    else
+    {
+        MHW_ASSERT(0);
+    }
+
+#undef SET_COEFS
+#undef SET_INPUT_OFFSETS
+#undef SET_OUTPUT_OFFSETS
+}
+
+//!
+//! \brief    Common helper for SetVeboxIecpStateBecsc (Back-End CSC)
+//! \details  Encapsulates the shared implementation of SetVeboxIecpStateBecsc used
+//!           across all 6 platform-specific VEBOX implementations. Uses duck typing
+//!           on the IecpStateType template parameter so that all platforms can call
+//!           the same implementation regardless of their specific command namespace.
+//! \param    [in,out] pVeboxIecpState
+//!           Pointer to platform-specific VEBOX_IECP_STATE_CMD structure
+//! \param    [in] pVeboxIecpParams
+//!           Pointer to VEBOX IECP State Params
+//! \param    [in] bEnableFECSC
+//!           Whether Front-End CSC is enabled
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename IecpStateType>
+inline MOS_STATUS SetVeboxIecpStateBecsc(
+    IecpStateType         *pVeboxIecpState,
+    PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams,
+    bool                   bEnableFECSC)
+{
+    MHW_CAPPIPE_PARAMS *m_capPipeParams = nullptr;
+    MOS_FORMAT          dstFormat;
+
+    MHW_CHK_NULL_RETURN(pVeboxIecpState);
+    MHW_CHK_NULL_RETURN(pVeboxIecpParams);
+
+    m_capPipeParams = &pVeboxIecpParams->CapPipeParams;
+    dstFormat       = pVeboxIecpParams->dstFormat;
+
+#define SET_COEFS(_c0, _c1, _c2, _c3, _c4, _c5, _c6, _c7, _c8) \
+    {                                                          \
+        pVeboxIecpState->CscState.DW0.C0 = _c0;                \
+        pVeboxIecpState->CscState.DW1.C1 = _c1;                \
+        pVeboxIecpState->CscState.DW2.C2 = _c2;                \
+        pVeboxIecpState->CscState.DW3.C3 = _c3;                \
+        pVeboxIecpState->CscState.DW4.C4 = _c4;                \
+        pVeboxIecpState->CscState.DW5.C5 = _c5;                \
+        pVeboxIecpState->CscState.DW6.C6 = _c6;                \
+        pVeboxIecpState->CscState.DW7.C7 = _c7;                \
+        pVeboxIecpState->CscState.DW8.C8 = _c8;                \
+    }
+
+#define SET_INPUT_OFFSETS(_in1, _in2, _in3)              \
+    {                                                    \
+        pVeboxIecpState->CscState.DW9.OffsetIn1  = _in1; \
+        pVeboxIecpState->CscState.DW10.OffsetIn2 = _in2; \
+        pVeboxIecpState->CscState.DW11.OffsetIn3 = _in3; \
+    }
+
+#define SET_OUTPUT_OFFSETS(_out1, _out2, _out3)            \
+    {                                                      \
+        pVeboxIecpState->CscState.DW9.OffsetOut1  = _out1; \
+        pVeboxIecpState->CscState.DW10.OffsetOut2 = _out2; \
+        pVeboxIecpState->CscState.DW11.OffsetOut3 = _out3; \
+    }
+
+    MHW_CHK_NULL_RETURN(m_capPipeParams);
+    if (m_capPipeParams->bActive)
+    {
+        // Application controlled CSC operation
+        if (m_capPipeParams->BECSCParams.bActive)
+        {
+            pVeboxIecpState->CscState.DW0.TransformEnable = true;
+
+            // Coeff is S2.16, so multiply the floating value by 65536
+            SET_COEFS(
+                ((uint32_t)(m_capPipeParams->BECSCParams.Matrix[0][0] * 65536)),
+                ((uint32_t)(m_capPipeParams->BECSCParams.Matrix[0][1] * 65536)),
+                ((uint32_t)(m_capPipeParams->BECSCParams.Matrix[0][2] * 65536)),
+                ((uint32_t)(m_capPipeParams->BECSCParams.Matrix[1][0] * 65536)),
+                ((uint32_t)(m_capPipeParams->BECSCParams.Matrix[1][1] * 65536)),
+                ((uint32_t)(m_capPipeParams->BECSCParams.Matrix[1][2] * 65536)),
+                ((uint32_t)(m_capPipeParams->BECSCParams.Matrix[2][0] * 65536)),
+                ((uint32_t)(m_capPipeParams->BECSCParams.Matrix[2][1] * 65536)),
+                ((uint32_t)(m_capPipeParams->BECSCParams.Matrix[2][2] * 65536)));
+            SET_INPUT_OFFSETS(
+                ((uint32_t)m_capPipeParams->BECSCParams.PreOffset[0]),
+                ((uint32_t)m_capPipeParams->BECSCParams.PreOffset[1]),
+                ((uint32_t)m_capPipeParams->BECSCParams.PreOffset[2]));
+            SET_OUTPUT_OFFSETS(
+                ((uint32_t)m_capPipeParams->BECSCParams.PostOffset[0]),
+                ((uint32_t)m_capPipeParams->BECSCParams.PostOffset[1]),
+                ((uint32_t)m_capPipeParams->BECSCParams.PostOffset[2]));
+        }
+        // YUV 4:4:4 CSC to xBGR or xRGB
+        else if ((bEnableFECSC || (pVeboxIecpParams->srcFormat == Format_AYUV)) &&
+                 (IS_RGB_FORMAT(dstFormat)))
+        {
+            pVeboxIecpState->CscState.DW0.TransformEnable = true;
+
+            // CSC matrix to convert YUV 4:4:4 to xBGR. e.g. Format_A8B8G8R8. In the
+            // event that dstFormat is xRGB, driver sets R & B channel swapping via
+            // CscState.DW0.YuvChannelSwap so a separate matrix is not needed.
+
+            if (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT601)
+            {
+                SET_COEFS(76284, 0, 104595, 76284, MOS_BITFIELD_VALUE((uint32_t)-25689, 19), MOS_BITFIELD_VALUE((uint32_t)-53280, 19), 76284, 132186, 0);
+
+                SET_INPUT_OFFSETS(MOS_BITFIELD_VALUE((uint32_t)-2048, 16),
+                    MOS_BITFIELD_VALUE((uint32_t)-16384, 16),
+                    MOS_BITFIELD_VALUE((uint32_t)-16384, 16));
+                SET_OUTPUT_OFFSETS(0, 0, 0);
+            }
+            else if (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT709)
+            {
+                SET_COEFS(76284, 0, 117506, 76284, MOS_BITFIELD_VALUE((uint32_t)-13958, 19), MOS_BITFIELD_VALUE((uint32_t)-34930, 19), 76284, 138412, 0);
+
+                SET_INPUT_OFFSETS(MOS_BITFIELD_VALUE((uint32_t)-2048, 16),
+                    MOS_BITFIELD_VALUE((uint32_t)-16384, 16),
+                    MOS_BITFIELD_VALUE((uint32_t)-16384, 16));
+                SET_OUTPUT_OFFSETS(0, 0, 0);
+            }
+            else
+            {
+                MHW_ASSERT(false);
+            }
+        }
+    }
+    else if (pVeboxIecpParams->bCSCEnable)
+    {
+        pVeboxIecpState->CscState.DW0.TransformEnable = true;
+
+        // Coeff is S2.16, so multiply the floating value by 65536
+        SET_COEFS(
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[0] * 65536.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[1] * 65536.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[2] * 65536.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[3] * 65536.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[4] * 65536.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[5] * 65536.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[6] * 65536.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[7] * 65536.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[8] * 65536.0F)));
+
+        // Offset is S15, but the SW offsets are calculated as 8bits,
+        // so left shift them 7bits to be in the position of MSB
+        SET_INPUT_OFFSETS(
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscInOffset[0] * 128.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscInOffset[1] * 128.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscInOffset[2] * 128.0F)));
+        SET_OUTPUT_OFFSETS(
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscOutOffset[0] * 128.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscOutOffset[1] * 128.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscOutOffset[2] * 128.0F)));
+    }
+
+    pVeboxIecpState->AlphaAoiState.DW0.AlphaFromStateSelect = pVeboxIecpParams->bAlphaEnable;
+
+    if (pVeboxIecpParams->dstFormat == Format_Y416)
+    {
+        pVeboxIecpState->AlphaAoiState.DW0.ColorPipeAlpha = pVeboxIecpParams->wAlphaValue;
+    }
+    else
+    {
+        // Alpha is U16, but the SW alpha is calculated as 8bits,
+        // so left shift it 8bits to be in the position of MSB
+        pVeboxIecpState->AlphaAoiState.DW0.ColorPipeAlpha = pVeboxIecpParams->wAlphaValue * 256;
+    }
+
+#undef SET_COEFS
+#undef SET_INPUT_OFFSETS
+#undef SET_OUTPUT_OFFSETS
+
+    return MOS_STATUS_SUCCESS;
+}
+
 }  // namespace common
 }  // namespace vebox
 }  // namespace mhw
