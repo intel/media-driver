@@ -26,7 +26,7 @@
 //!           a programmable Microcontroller added to the VDBox pipeline.
 //!
 
-/* Media Kernel Version - 20240411 */
+/* Media Kernel Version - 20260204 */
 
 #pragma once
 

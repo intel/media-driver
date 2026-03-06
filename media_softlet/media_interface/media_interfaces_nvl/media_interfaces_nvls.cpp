@@ -49,8 +49,8 @@ Copyright (c) 2026, Intel Corporation
 #endif
 #include "huc_kernel_source_xe3p_lpm_base.h"
 
-// VP9 Encode WA: Use VDEnc from xe_lpm_plus instead of xe3p_lpm.
-#include "mhw_vdbox_vdenc_impl_xe_lpm_plus.h"
+// VP9 Encode: Use VDEnc from xe3_lpm for VP9 encode.
+#include "mhw_vdbox_vdenc_impl_xe3_lpm.h"
 
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igvpkrn_xe2_hpg.h"
@@ -313,10 +313,10 @@ MOS_STATUS CodechalInterfacesXe3P_Lpm::Initialize(
     PCODECHAL_STANDARD_INFO info          = ((PCODECHAL_STANDARD_INFO)standardInfo);
     CODECHAL_FUNCTION       CodecFunction = info->CodecFunction;
 
-#ifdef _VP9_ENCODE_VDENC_SUPPORTED  // VP9 Encode WA: Use VDEnc from xe_lpm_plus instead of xe3p_lpm.
+#ifdef _VP9_ENCODE_VDENC_SUPPORTED  // VP9 Encode: Use VDEnc from xe3_lpm for VP9 encode.
     if (mhwInterfaces != nullptr && info->Mode == CODECHAL_ENCODE_MODE_VP9)
     {
-        auto ptr                  = std::make_shared<mhw::vdbox::vdenc::xe_lpm_plus_base::v0::Impl>(osInterface);
+        auto ptr                  = std::make_shared<mhw::vdbox::vdenc::xe3_lpm_base::xe3_lpm::Impl>(osInterface);
         mhwInterfaces->m_vdencItf = std::dynamic_pointer_cast<mhw::vdbox::vdenc::Itf>(ptr);
         CODECHAL_PUBLIC_CHK_NULL_RETURN(mhwInterfaces->m_vdencItf);
     }
