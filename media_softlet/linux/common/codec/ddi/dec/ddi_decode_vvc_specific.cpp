@@ -889,6 +889,16 @@ VAStatus DdiDecodeVvc::AllocSliceControlBuffer(
                           buf->uiNumElements, vvcMaxSliceNum);
         return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
     }
+
+    // Check cumulative slice count to prevent buffer overflow
+    if (bufMgr->dwNumSliceControl > vvcMaxSliceNum - buf->uiNumElements)
+    {
+        DDI_CODEC_ASSERTMESSAGE("Cumulative slice count exceeds limit: dwNumSliceControl = %d, uiNumElements = %d, cumulative = %d, vvcMaxSliceNum = %d",
+                          bufMgr->dwNumSliceControl, buf->uiNumElements, 
+                          bufMgr->dwNumSliceControl + buf->uiNumElements, vvcMaxSliceNum);
+        return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
+    }
+
     buf->pData = (uint8_t*)Codec_Param_VVC->pVASliceParameterBufferVVC;
     buf->uiOffset = bufMgr->dwNumSliceControl * sizeof(VASliceParameterBufferVVC);
 
