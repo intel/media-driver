@@ -245,53 +245,8 @@ public:
         MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxCapPipeState);
         *pVeboxCapPipeState = CapPipCmd;
 
-        if (pCapPipeParams->BlackLevelParams.bActive)
-        {
-            pVeboxCapPipeState->DW2.BlackPointCorrectionEnable = true;
-            // Red
-            pVeboxCapPipeState->DW2.BlackPointOffsetRedMsb =
-                (pCapPipeParams->BlackLevelParams.R & MOS_BITFIELD_BIT_N(16)) >> 16;
-            pVeboxCapPipeState->DW3.BlackPointOffsetRed =
-                pCapPipeParams->BlackLevelParams.R & MOS_MASK(0, 15);
-            // Green Top
-            pVeboxCapPipeState->DW2.BlackPointOffsetGreenTopMsb =
-                (pCapPipeParams->BlackLevelParams.G1 & MOS_BITFIELD_BIT_N(16)) >> 16;
-            pVeboxCapPipeState->DW3.BlackPointOffsetGreenTop =
-                pCapPipeParams->BlackLevelParams.G1 & MOS_MASK(0, 15);
-            // Green Bottom
-            pVeboxCapPipeState->DW2.BlackPointOffsetGreenBottomMsb =
-                (pCapPipeParams->BlackLevelParams.G0 & MOS_BITFIELD_BIT_N(16)) >> 16;
-            pVeboxCapPipeState->DW4.BlackPointOffsetGreenBottom =
-                pCapPipeParams->BlackLevelParams.G0 & MOS_MASK(0, 15);
-            // Blue
-            pVeboxCapPipeState->DW2.BlackPointOffsetBlueMsb =
-                (pCapPipeParams->BlackLevelParams.B & MOS_BITFIELD_BIT_N(16)) >> 16;
-            pVeboxCapPipeState->DW4.BlackPointOffsetBlue =
-                pCapPipeParams->BlackLevelParams.B & MOS_MASK(0, 15);
-        }
-
-        if (pCapPipeParams->WhiteBalanceParams.bActive &&
-            pCapPipeParams->WhiteBalanceParams.Mode == MHW_WB_MANUAL)
-        {
-            pVeboxCapPipeState->DW2.WhiteBalanceCorrectionEnable = true;
-
-            // Is U4.12, so multiply the floating value by 4096
-            // Red
-            pVeboxCapPipeState->DW5.WhiteBalanceRedCorrection =
-                (uint32_t)(pCapPipeParams->WhiteBalanceParams.RedCorrection * 4096);
-
-            // Greep Top
-            pVeboxCapPipeState->DW5.WhiteBalanceGreenTopCorrection =
-                (uint32_t)(pCapPipeParams->WhiteBalanceParams.GreenTopCorrection * 4096);
-
-            // Green Bottom
-            pVeboxCapPipeState->DW6.WhiteBalanceGreenBottomCorrection =
-                (uint32_t)(pCapPipeParams->WhiteBalanceParams.GreenBottomCorrection * 4096);
-
-            // Blue
-            pVeboxCapPipeState->DW6.WhiteBalanceBlueCorrection =
-                (uint32_t)(pCapPipeParams->WhiteBalanceParams.BlueCorrection * 4096);
-        }
+        // Delegate BlackLevelParams and WhiteBalanceParams logic to common helper
+        mhw::vebox::common::SetVeboxCapPipeStateCommon(pVeboxCapPipeState, pCapPipeParams);
     }
 
     //!
@@ -1629,7 +1584,7 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
         MOS_ZeroMemory(&veboxInputSurfCtrlBits, sizeof(veboxInputSurfCtrlBits));
         MOS_ZeroMemory(&veboxOutputSurfCtrlBits, sizeof(veboxOutputSurfCtrlBits));
 
-        // Set Input surface compression status
+        // Set Input surface compression status (xe_lpm_plus-specific compression handling)
         if (inSurParams->CompressionMode != MOS_MMC_DISABLED)
         {
             veboxInputSurfCtrlBits.DW0.MemoryCompressionEnable = true;
@@ -1644,20 +1599,7 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
             }
         }
 
-        switch (inputSurface->TileType)
-        {
-        case MOS_TILE_YF:
-            veboxInputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_TILEYF;
-            break;
-        case MOS_TILE_YS:
-            veboxInputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_TILEYS;
-            break;
-        default:
-            veboxInputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_NONE;
-            break;
-        }
-
-        surface                                             = outputSurface;
+        // Output compression reset then re-evaluate (xe_lpm_plus-specific)
         veboxOutputSurfCtrlBits.DW0.MemoryCompressionEnable = false;
         veboxOutputSurfCtrlBits.DW0.CompressionType         = 0;
 
@@ -1675,64 +1617,16 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
             }
         }
 
-        if (surface)
-        {
-            switch (surface->TileType)
-            {
-            case MOS_TILE_YF:
-                veboxOutputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_TILEYF;
-                break;
-            case MOS_TILE_YS:
-                veboxOutputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_TILEYS;
-                break;
-            default:
-                veboxOutputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_NONE;
-                break;
-            }
-        }
+        // Compute MOCS index
+        uint32_t mocsIndex = (this->m_osItf->pfnCachePolicyGetMemoryObject(
+            MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF,
+            this->m_osItf->pfnGetGmmClientContext(this->m_osItf))).XE_LPG.Index;
 
-        veboxInputSurfCtrlBits.DW0.IndexToMemoryObjectControlStateMocsTables =
-            veboxOutputSurfCtrlBits.DW0.IndexToMemoryObjectControlStateMocsTables =
-            (this->m_osItf->pfnCachePolicyGetMemoryObject(
-                MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF,
-                this->m_osItf->pfnGetGmmClientContext(this->m_osItf)))
-            .XE_LPG.Index;
-
-        MOS_ZeroMemory(&ResourceParams, sizeof(MHW_RESOURCE_PARAMS));
-        InitMocsParams(ResourceParams, &cmd.DW1_2.Value[0], 1, 6);
-        ResourceParams.presResource  = inputSurface;
-        ResourceParams.HwCommandType = MOS_VEBOX_TILING_CONVERT;
-
-        // set up DW[2:1], input graphics address
-        ResourceParams.dwLocationInCmd = 1;
-        ResourceParams.pdwCmd          = &(cmd.DW1_2.Value[0]);
-        ResourceParams.bIsWritable     = false;
-        ResourceParams.dwOffset        = inSurParams->dwOffset + veboxInputSurfCtrlBits.DW0.Value;
-        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
-            this->m_osItf,
-            cmdBuffer,
-            &ResourceParams));
-
-        cmd.DW1_2.InputSurfaceControlBits = veboxInputSurfCtrlBits.DW0.Value;
-
-        MOS_ZeroMemory(&ResourceParams, sizeof(MHW_RESOURCE_PARAMS));
-        InitMocsParams(ResourceParams, &cmd.DW3_4.Value[0], 1, 6);
-        ResourceParams.presResource = outputSurface;
-        ResourceParams.HwCommandType = MOS_VEBOX_TILING_CONVERT;
-
-        // set up DW[4:3], output graphics address
-        ResourceParams.dwLocationInCmd = 3;
-        ResourceParams.pdwCmd          = &(cmd.DW3_4.Value[0]);
-        ResourceParams.bIsWritable     = true;
-        ResourceParams.dwOffset        = outSurParams->dwOffset + veboxOutputSurfCtrlBits.DW0.Value;;
-        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
-            this->m_osItf,
-            cmdBuffer,
-            &ResourceParams));
-
-        cmd.DW3_4.OutputSurfaceControlBits = veboxOutputSurfCtrlBits.DW0.Value;
-
-        m_osItf->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize);
+        // Delegate tiling convert common logic to helper
+        MHW_CHK_STATUS_RETURN((mhw::vebox::common::SetupVeboxTilingConvertCommon<mhw::vebox::xe_lpm_plus_next::Cmd>(
+            cmd, veboxInputSurfCtrlBits, veboxOutputSurfCtrlBits,
+            inputSurface, outputSurface, inSurParams, outSurParams,
+            mocsIndex, this->m_osItf, cmdBuffer, AddResourceToCmd)));
 
         return eStatus;
     }

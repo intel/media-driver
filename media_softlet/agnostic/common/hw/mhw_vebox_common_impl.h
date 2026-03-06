@@ -3797,6 +3797,190 @@ inline MOS_STATUS SetVeboxIecpStateBecsc(
     return MOS_STATUS_SUCCESS;
 }
 
+//!
+//! \brief    Common helper for SetVeboxCapPipeState shared logic
+//! \details  Encapsulates the BlackLevelParams and WhiteBalanceParams logic
+//!           that is 100% identical across all 6 platform-specific VEBOX
+//!           implementations. Each platform's member function sets up the
+//!           heap pointer and fetches the typed state pointer, then delegates
+//!           all logic to this helper.
+//! \param    [in,out] pVeboxCapPipeState
+//!           Pointer to platform-specific VEBOX_CAPTURE_PIPE_STATE_CMD structure
+//! \param    [in] pCapPipeParams
+//!           Pointer to capture pipe parameters
+//! \return   void
+//!
+template <typename CapPipeStateCmdType>
+inline void SetVeboxCapPipeStateCommon(
+    CapPipeStateCmdType *pVeboxCapPipeState,
+    PMHW_CAPPIPE_PARAMS  pCapPipeParams)
+{
+    if (pCapPipeParams->BlackLevelParams.bActive)
+    {
+        pVeboxCapPipeState->DW2.BlackPointCorrectionEnable = true;
+        // Red
+        pVeboxCapPipeState->DW2.BlackPointOffsetRedMsb =
+            (pCapPipeParams->BlackLevelParams.R & MOS_BITFIELD_BIT_N(16)) >> 16;
+        pVeboxCapPipeState->DW3.BlackPointOffsetRed =
+            pCapPipeParams->BlackLevelParams.R & MOS_MASK(0, 15);
+        // Green Top
+        pVeboxCapPipeState->DW2.BlackPointOffsetGreenTopMsb =
+            (pCapPipeParams->BlackLevelParams.G1 & MOS_BITFIELD_BIT_N(16)) >> 16;
+        pVeboxCapPipeState->DW3.BlackPointOffsetGreenTop =
+            pCapPipeParams->BlackLevelParams.G1 & MOS_MASK(0, 15);
+        // Green Bottom
+        pVeboxCapPipeState->DW2.BlackPointOffsetGreenBottomMsb =
+            (pCapPipeParams->BlackLevelParams.G0 & MOS_BITFIELD_BIT_N(16)) >> 16;
+        pVeboxCapPipeState->DW4.BlackPointOffsetGreenBottom =
+            pCapPipeParams->BlackLevelParams.G0 & MOS_MASK(0, 15);
+        // Blue
+        pVeboxCapPipeState->DW2.BlackPointOffsetBlueMsb =
+            (pCapPipeParams->BlackLevelParams.B & MOS_BITFIELD_BIT_N(16)) >> 16;
+        pVeboxCapPipeState->DW4.BlackPointOffsetBlue =
+            pCapPipeParams->BlackLevelParams.B & MOS_MASK(0, 15);
+    }
+
+    if (pCapPipeParams->WhiteBalanceParams.bActive &&
+        pCapPipeParams->WhiteBalanceParams.Mode == MHW_WB_MANUAL)
+    {
+        pVeboxCapPipeState->DW2.WhiteBalanceCorrectionEnable = true;
+
+        // Is U4.12, so multiply the floating value by 4096
+        // Red
+        pVeboxCapPipeState->DW5.WhiteBalanceRedCorrection =
+            (uint32_t)(pCapPipeParams->WhiteBalanceParams.RedCorrection * 4096);
+
+        // Green Top
+        pVeboxCapPipeState->DW5.WhiteBalanceGreenTopCorrection =
+            (uint32_t)(pCapPipeParams->WhiteBalanceParams.GreenTopCorrection * 4096);
+
+        // Green Bottom
+        pVeboxCapPipeState->DW6.WhiteBalanceGreenBottomCorrection =
+            (uint32_t)(pCapPipeParams->WhiteBalanceParams.GreenBottomCorrection * 4096);
+
+        // Blue
+        pVeboxCapPipeState->DW6.WhiteBalanceBlueCorrection =
+            (uint32_t)(pCapPipeParams->WhiteBalanceParams.BlueCorrection * 4096);
+    }
+}
+
+//!
+//! \brief    Common helper for AddVeboxTilingConvert shared logic
+//! \details  Encapsulates the tiling mode switch logic, MOCS index assignment,
+//!           InitMocsParams/AddResourceToCmd calls for both input and output
+//!           surfaces, SurfaceControlBits assignment, and pfnAddCommand call.
+//!           This logic is common across all 6 platform-specific VEBOX
+//!           implementations. Platform-specific differences (e.g., compression
+//!           handling for, different MOCS usage) are
+//!           handled by the caller before invoking this helper.
+//! \param    [in,out] cmd
+//!           Reference to VEBOX_TILING_CONVERT_CMD structure
+//! \param    [in,out] veboxInputSurfCtrlBits
+//!           Reference to input surface control bits (may have compression bits
+//!           pre-set by caller)
+//! \param    [in,out] veboxOutputSurfCtrlBits
+//!           Reference to output surface control bits (may have compression bits
+//!           pre-set by caller)
+//! \param    [in] inputSurface
+//!           Pointer to input MOS resource
+//! \param    [in] outputSurface
+//!           Pointer to output MOS resource
+//! \param    [in] inSurParams
+//!           Pointer to input surface parameters
+//! \param    [in] outSurParams
+//!           Pointer to output surface parameters
+//! \param    [in] mocsIndex
+//!           MOCS index value already computed by the caller
+//! \param    [in] osItf
+//!           Pointer to OS interface
+//! \param    [in] cmdBuffer
+//!           Pointer to command buffer
+//! \param    [in] AddResourceToCmd
+//!           Function pointer to AddResourceToCmd
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetupVeboxTilingConvertCommon(
+    typename cmd_t::VEBOX_TILING_CONVERT_CMD                     &cmd,
+    typename cmd_t::VEB_DI_IECP_COMMAND_SURFACE_CONTROL_BITS_CMD &veboxInputSurfCtrlBits,
+    typename cmd_t::VEB_DI_IECP_COMMAND_SURFACE_CONTROL_BITS_CMD &veboxOutputSurfCtrlBits,
+    PMOS_RESOURCE                                                  inputSurface,
+    PMOS_RESOURCE                                                  outputSurface,
+    PMHW_VEBOX_SURFACE_PARAMS                                      inSurParams,
+    PMHW_VEBOX_SURFACE_PARAMS                                      outSurParams,
+    uint32_t                                                       mocsIndex,
+    PMOS_INTERFACE                                                 osItf,
+    PMOS_COMMAND_BUFFER                                            cmdBuffer,
+    MOS_STATUS(*AddResourceToCmd)(PMOS_INTERFACE, PMOS_COMMAND_BUFFER, PMHW_RESOURCE_PARAMS))
+{
+    MHW_RESOURCE_PARAMS ResourceParams = {0};
+
+    // Set input tiling mode
+    switch (inputSurface->TileType)
+    {
+    case MOS_TILE_YF:
+        veboxInputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_TILEYF;
+        break;
+    case MOS_TILE_YS:
+        veboxInputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_TILEYS;
+        break;
+    default:
+        veboxInputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_NONE;
+        break;
+    }
+
+    // Set output tiling mode
+    if (outputSurface)
+    {
+        switch (outputSurface->TileType)
+        {
+        case MOS_TILE_YF:
+            veboxOutputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_TILEYF;
+            break;
+        case MOS_TILE_YS:
+            veboxOutputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_TILEYS;
+            break;
+        default:
+            veboxOutputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_NONE;
+            break;
+        }
+    }
+
+    // Set MOCS index for both input and output
+    veboxInputSurfCtrlBits.DW0.IndexToMemoryObjectControlStateMocsTables  = mocsIndex;
+    veboxOutputSurfCtrlBits.DW0.IndexToMemoryObjectControlStateMocsTables = mocsIndex;
+
+    // Setup input resource params: set up DW[2:1], input graphics address
+    MOS_ZeroMemory(&ResourceParams, sizeof(MHW_RESOURCE_PARAMS));
+    InitMocsParams(ResourceParams, &cmd.DW1_2.Value[0], 1, 6);
+    ResourceParams.presResource    = inputSurface;
+    ResourceParams.HwCommandType   = MOS_VEBOX_TILING_CONVERT;
+    ResourceParams.dwLocationInCmd = 1;
+    ResourceParams.pdwCmd          = &(cmd.DW1_2.Value[0]);
+    ResourceParams.bIsWritable     = false;
+    ResourceParams.dwOffset        = inSurParams->dwOffset + veboxInputSurfCtrlBits.DW0.Value;
+    MHW_CHK_STATUS_RETURN(AddResourceToCmd(osItf, cmdBuffer, &ResourceParams));
+    cmd.DW1_2.InputSurfaceControlBits = veboxInputSurfCtrlBits.DW0.Value;
+
+    // Setup output resource params: set up DW[4:3], output graphics address
+    MOS_ZeroMemory(&ResourceParams, sizeof(MHW_RESOURCE_PARAMS));
+    InitMocsParams(ResourceParams, &cmd.DW3_4.Value[0], 1, 6);
+    ResourceParams.presResource    = outputSurface;
+    ResourceParams.HwCommandType   = MOS_VEBOX_TILING_CONVERT;
+    ResourceParams.dwLocationInCmd = 3;
+    ResourceParams.pdwCmd          = &(cmd.DW3_4.Value[0]);
+    ResourceParams.bIsWritable     = true;
+    ResourceParams.dwOffset        = outSurParams->dwOffset + veboxOutputSurfCtrlBits.DW0.Value;
+    MHW_CHK_STATUS_RETURN(AddResourceToCmd(osItf, cmdBuffer, &ResourceParams));
+    cmd.DW3_4.OutputSurfaceControlBits = veboxOutputSurfCtrlBits.DW0.Value;
+
+    // Issue command
+    osItf->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize);
+
+    return MOS_STATUS_SUCCESS;
+}
+
 }  // namespace common
 }  // namespace vebox
 }  // namespace mhw
