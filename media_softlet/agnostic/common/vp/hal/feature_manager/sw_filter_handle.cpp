@@ -807,6 +807,11 @@ bool SwFilterHdrHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInp
             bColorSpaceConversion = false;
             // HDR pipe cannot be used for ARGB8 input.
         }
+        else if (IS_RGB64_FORMAT(pSrc->Format))
+        {
+            bColorSpaceConversion = false;
+            // HDR pipe cannot be used for RGB16 input.
+        }
         bFP16HdrProcessing = bColorSpaceConversion;
     }
 
