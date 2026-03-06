@@ -854,7 +854,7 @@ public:
             
             // Initialize parameters using helper macro
             // This macro hardcodes semaphoreToken to 0 and sets other parameters
-            INIT_MHW_MI_SEMAPHORE_WAIT_64_PARAMS(params, semaMem, semaData, opCode, semaMemOffset);
+            INIT_MHW_MI_SEMAPHORE_WAIT_64_PARAMS_SCALABILITY(params, semaMem, semaData, opCode, semaMemOffset);
             
             eStatus = m_miItf->MHW_ADDCMD_F(MI_SEMAPHORE_WAIT_64)(cmdBuffer);
         }
