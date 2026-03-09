@@ -34,6 +34,7 @@
 #include <signal.h>
 #include <unistd.h>  // fork
 #include <algorithm>
+#include <string>
 #include <sys/types.h>
 #include <sys/stat.h>  // fstat
 #include <sys/ipc.h>  // System V IPC
@@ -59,6 +60,7 @@ uint8_t *MosUtilities::m_mosUltFlag               = &g_mosUltFlag;
 int32_t *MosUtilities::m_mosMemAllocIndex         = &g_mosMemAllocIndex;
 
 const char           *MosUtilitiesSpecificNext::m_szUserFeatureFile     = USER_FEATURE_FILE;
+std::string          MosUtilitiesSpecificNext::m_szUserFeatureFileNext = USER_FEATURE_FILE_NEXT;
 MOS_PUF_KEYLIST      MosUtilitiesSpecificNext::m_ufKeyList              = nullptr;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -1542,10 +1544,30 @@ MOS_STATUS MosUtilities::MosInitializeReg(RegBufferMap &regBufferMap)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Get user feature file next from env, instead of default.
+    FILE* fp = nullptr;
+    const char* tmpFileNext = getenv("GFX_FEATURE_FILE_NEXT");
+
+    if (tmpFileNext != nullptr)
+    {
+        if ((fp = fopen(tmpFileNext, "r")) != nullptr)
+        {
+            MosUtilitiesSpecificNext::m_szUserFeatureFileNext = std::string(tmpFileNext);
+            fclose(fp);
+            MOS_OS_NORMALMESSAGE("using %s for USER_FEATURE_FILE_NEXT", MosUtilitiesSpecificNext::m_szUserFeatureFileNext.c_str());
+        }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Can't open %s for USER_FEATURE_FILE_NEXT!!!", tmpFileNext);
+        }
+    }
+#endif
+
     std::ifstream regStream;
     try
     {
-        regStream.open(USER_FEATURE_FILE_NEXT);
+        regStream.open(MosUtilitiesSpecificNext::m_szUserFeatureFileNext.c_str());
         if (regStream.good())
         {
             std::string id       = "";
@@ -1629,7 +1651,7 @@ MOS_STATUS MosUtilities::MosUninitializeReg(RegBufferMap &regBufferMap)
 // skips if it does not exist
 // For other version: always writes to the file
 #if(_RELEASE)
-        std::ifstream regFile(USER_FEATURE_FILE_NEXT);
+        std::ifstream regFile(MosUtilitiesSpecificNext::m_szUserFeatureFileNext.c_str());
         if (regFile.good())
         {
             regFile.close();

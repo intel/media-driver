@@ -28,6 +28,7 @@
 
 #include <map>
 #include <malloc.h>
+#include <string>
 #include "mos_defs.h"
 #include "media_class_trace.h"
 
@@ -404,6 +405,7 @@ private:
 
 public:
     static const char*          m_szUserFeatureFile;
+    static std::string          m_szUserFeatureFileNext;
     static MOS_PUF_KEYLIST      m_ufKeyList;
     static int32_t              m_mosTraceFd;
     static uint64_t             m_filterEnv;
