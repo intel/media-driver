@@ -70,6 +70,7 @@ set(SOFTLET_MHW_VEBOX_HEADERS_
 
 set(TMP_SFC_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_sfc_cmdpar.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_sfc_common_impl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_sfc_impl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_sfc_itf.h
 )
