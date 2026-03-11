@@ -247,6 +247,13 @@ MOS_STATUS AvcBasicFeature::SetSequenceStructs()
 
     auto seqParams = m_seqParam;
 
+    // Validate tainted sequence parameters before using them in division
+    if (seqParams->FramesPer100Sec == 0)
+    {
+        ENCODE_ASSERTMESSAGE("Invalid FramesPer100Sec value (zero)");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
     // For G12+ TCBRC is used instead of LowDelayBRC, also needs TargetFrameSize in PPS.
     m_forcedTCBRC = false;
     if (seqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW && !seqParams->LookaheadDepth)
@@ -376,6 +383,13 @@ MOS_STATUS AvcBasicFeature::SetPictureStructs()
     auto picParams = m_picParam;
     auto seqParams = m_seqParam;
     auto slcParams = m_sliceParams;
+
+    // Validate tainted sequence parameters before using them in division
+    if (seqParams->FramesPer100Sec == 0)
+    {
+        ENCODE_ASSERTMESSAGE("Invalid FramesPer100Sec value (zero)");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
 
     // TCBRC forced from LowDelayBRC also needs TargetFrameSize
     if (m_forcedTCBRC)
