@@ -833,6 +833,12 @@ extern const MHW_SURFACE_PLANES g_cRenderHal_SurfacePlanes[RENDERHAL_PLANES_DEFI
             { MHW_U_PLANE, 2, 1, 1, 2, 1, 0, MHW_GFX3DSTATE_SURFACEFORMAT_R8G8B8A8_UNORM }
         }
     },
+    // RENDERHAL_PLANES_R16G16_FLOAT
+    {   1,
+        {
+            { MHW_GENERIC_PLANE, 1, 1, 1, 1, 1, 0, MHW_GFX3DSTATE_SURFACEFORMAT_R16G16_FLOAT }
+         }
+    },
 };
 
 //!
@@ -4156,6 +4162,10 @@ MOS_STATUS RenderHal_GetSurfaceStateEntries(
                 PlaneDefinition = RENDERHAL_PLANES_R16_FLOAT;
                 break;
 
+            case Format_R16G16F:
+                PlaneDefinition = RENDERHAL_PLANES_R16G16_FLOAT;
+                break;
+
             case Format_R24G8:
             case Format_D24S8UN:
                 PlaneDefinition = RENDERHAL_PLANES_R24_UNORM_X8_TYPELESS;
@@ -4373,6 +4383,7 @@ MOS_STATUS RenderHal_GetPlaneDefinitionForCommonMessage(
     case Format_R8UN:
     case Format_R8G8UN:
     case Format_R16F:
+    case Format_R16G16F:
         //already handled rightly in normal non-adv GetPlaneDefinition
         break;
     case Format_YV12:

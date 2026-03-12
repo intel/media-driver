@@ -154,6 +154,7 @@ MOS_STATUS VpSurfaceDumper::GetPlaneDefs(
     case Format_R10G10B10A2:
     case Format_B10G10R10A2:
     case Format_Y410:
+    case Format_R16G16F:
         *pdwNumPlanes = 1;
 
         pPlanes[0].dwWidth  = pSurface->dwWidth * 4;
@@ -542,6 +543,7 @@ MOS_STATUS VpSurfaceDumper::GetPlaneDefs(
     case Format_R10G10B10A2:
     case Format_B10G10R10A2:
     case Format_Y410:
+    case Format_R16G16F:
         *pdwNumPlanes = 1;
 
         pPlanes[0].dwWidth = pSurface->osSurface->dwWidth * 4;
@@ -3165,6 +3167,7 @@ const char * VpDumperTool::GetFormatStr(MOS_FORMAT format)
         case Format_P010        : return _T("p010");
         case Format_P016        : return _T("p016");
         case Format_R16F        : return _T("r16f");
+        case Format_R16G16F     : return _T("r16g16f");
         case Format_Y210        : return _T("y210");
         case Format_Y216        : return _T("y216");
         case Format_Y410        : return _T("y410");
