@@ -100,7 +100,7 @@ inline MOS_STATUS AddVeboxResource(
     
     if (bUseSharedMocs)
     {
-        ResourceParams.dwSharedMocsOffset = dwSharedMocsOffset;
+        ResourceParams.dwSharedMocsOffset = static_cast<uint32_t>(dwSharedMocsOffset);
     }
 
     MHW_CHK_STATUS_RETURN(AddResourceToCmd(
@@ -507,7 +507,7 @@ inline MOS_STATUS SetupVeboxLaceLut(
     ResourceParams.pdwCmd = &(cmd.DW12.Value);
     ResourceParams.dwLocationInCmd = 12;
     ResourceParams.HwCommandType = MOS_VEBOX_STATE;
-    ResourceParams.dwSharedMocsOffset = 1 - 12;
+    ResourceParams.dwSharedMocsOffset = static_cast<uint32_t>(1 - 12);
 
     return AddResourceToCmd(
         pOsInterface,
@@ -618,7 +618,7 @@ inline MOS_STATUS SetupVebox3DLut(
     ResourceParams.pdwCmd = &(cmd.DW16.Value);
     ResourceParams.dwLocationInCmd = 16;
     ResourceParams.HwCommandType = MOS_VEBOX_STATE;
-    ResourceParams.dwSharedMocsOffset = 1 - 16;
+    ResourceParams.dwSharedMocsOffset = static_cast<uint32_t>(1 - 16);
 
     return AddResourceToCmd(
         pOsInterface,
@@ -661,7 +661,7 @@ inline MOS_STATUS SetupVebox1DLut(
     ResourceParams.pdwCmd = &(cmd.DW21.Value);
     ResourceParams.dwLocationInCmd = 21;
     ResourceParams.HwCommandType = MOS_VEBOX_STATE;
-    ResourceParams.dwSharedMocsOffset = 1 - 21;
+    ResourceParams.dwSharedMocsOffset = static_cast<uint32_t>(1 - 21);
 
     return AddResourceToCmd(
         pOsInterface,
@@ -723,7 +723,7 @@ inline MOS_STATUS SetupDummyIecpResource(
     ResourceParams.pdwCmd = &(cmd.DW4.Value);
     ResourceParams.dwLocationInCmd = 4;
     ResourceParams.HwCommandType = MOS_VEBOX_STATE;
-    ResourceParams.dwSharedMocsOffset = 1 - 4;
+    ResourceParams.dwSharedMocsOffset = static_cast<uint32_t>(1 - 4);
 
     MHW_CHK_STATUS_RETURN(AddResourceToCmd(
         pOsInterface,

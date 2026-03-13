@@ -61,6 +61,7 @@ set(TMP_VEBOX_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vebox_cmdpar.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vebox_impl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vebox_itf.h
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vebox_common_impl.h
 )
 
 set(SOFTLET_MHW_VEBOX_HEADERS_
