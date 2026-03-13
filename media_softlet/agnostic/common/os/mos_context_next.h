@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2024, Intel Corporation
+* Copyright (c) 2019-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -36,6 +36,7 @@
 #include "mos_mediacopy.h"
 
 class MosOcaRTLogMgr;
+class MosMockAdaptor;
 
 class OsContextNext
 {
@@ -393,6 +394,9 @@ protected:
 
     //! \brief the ptr to mos media copy module
     MosMediaCopy                    *m_mosMediaCopy = nullptr;
+
+    //! \brief the ptr to mos mock adaptor module
+    MosMockAdaptor                  *m_mockAdaptor = nullptr;
 
     //!< Indicate if this device is working in aync mode or normal mode
     bool                            m_aynchronousDevice = false;

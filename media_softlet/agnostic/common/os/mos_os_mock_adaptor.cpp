@@ -35,14 +35,17 @@
 #define TGL_B0_REV_ID 0x01
 #define TGL_C0_REV_ID 0x02
 
-PRODUCT_FAMILY MosMockAdaptor::m_productFamily = {};
-std::string MosMockAdaptor::m_stepping = {};
-uint16_t MosMockAdaptor::m_deviceId = 0;
-uint16_t MosMockAdaptor::m_numOfVdbox = 1;
-MosMockAdaptor *MosMockAdaptor::m_mocAdaptor = nullptr;
-
 MosMockAdaptor::MosMockAdaptor()
 {
+    m_pPlatform     = nullptr;
+    m_pWaTable      = nullptr;
+    m_pSkuTable     = nullptr;
+    m_pGtSystemInfo = nullptr;
+    m_productFamily = {};
+    m_stepping      = "";
+    m_deviceId      = 0;
+    m_numOfVdbox    = 1;
+    m_enabled       = false;
 }
 
 MosMockAdaptor::~MosMockAdaptor()
@@ -119,13 +122,13 @@ MOS_STATUS MosMockAdaptor::Init(
     nullHwEnabled = (value) ? true : false;
     osDeviceContext->SetNullHwIsEnabled(nullHwEnabled);
 
-    if (nullHwEnabled) {
+    // Per-Context: Only initialize if not already enabled for this instance
+    if (nullHwEnabled && !m_enabled)
+    {
+        m_enabled = true;  // Set flag to prevent re-initialization
+
         MOS_OS_CHK_STATUS_RETURN(RegkeyRead(osContext));
-
-        m_mocAdaptor = MOS_New(MosMockAdaptorSpecific);
-        MOS_OS_CHK_NULL_RETURN(m_mocAdaptor);
-
-        eStatus = m_mocAdaptor->Initialize(osContext);
+        eStatus = Initialize(osContext);
     }
 
     return eStatus;
@@ -133,11 +136,9 @@ MOS_STATUS MosMockAdaptor::Init(
 
 MOS_STATUS MosMockAdaptor::Destroy()
 {
-    if (m_mocAdaptor != nullptr)
-    {
-        MOS_Delete(m_mocAdaptor);
-        m_mocAdaptor = nullptr;
-    }
+    // Per-Context: Simply reset the enabled flag
+    // The object itself will be deleted by OsContextNext
+    m_enabled = false;
 
     return MOS_STATUS_SUCCESS;
 }

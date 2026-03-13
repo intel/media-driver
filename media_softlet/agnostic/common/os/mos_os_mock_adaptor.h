@@ -48,7 +48,7 @@ public:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    static MOS_STATUS Init(
+    MOS_STATUS Init(
         MOS_CONTEXT_HANDLE osDriverContext,
         OsContextNext      *osDeviceContext);
 
@@ -57,7 +57,7 @@ public:
     //! \details  Destroy MockAdaptor.
     //! \return   void
     //!
-    static MOS_STATUS Destroy();
+    MOS_STATUS Destroy();
 
 protected:
     //!
@@ -79,7 +79,7 @@ protected:
     //! \return   MOS_STATUS
     //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
     //!
-    static MOS_STATUS RegkeyRead(PMOS_CONTEXT osContext);
+    MOS_STATUS RegkeyRead(PMOS_CONTEXT osContext);
 
     //!
     //! \brief    Initialize PlatForm.
@@ -133,17 +133,16 @@ protected:
     }
 
 protected:
-    PLATFORM                *m_pPlatform     = nullptr;
-    MEDIA_WA_TABLE          *m_pWaTable      = nullptr;
-    MEDIA_FEATURE_TABLE     *m_pSkuTable     = nullptr;
-    MEDIA_SYSTEM_INFO       *m_pGtSystemInfo = nullptr;
+    PLATFORM                *m_pPlatform;
+    MEDIA_WA_TABLE          *m_pWaTable;
+    MEDIA_FEATURE_TABLE     *m_pSkuTable;
+    MEDIA_SYSTEM_INFO       *m_pGtSystemInfo;
 
-
-    static PRODUCT_FAMILY m_productFamily;
-    static std::string m_stepping;
-    static uint16_t m_deviceId;
-    static uint16_t m_numOfVdbox;
-    static MosMockAdaptor *m_mocAdaptor;
+    PRODUCT_FAMILY m_productFamily;
+    std::string m_stepping;
+    uint16_t m_deviceId;
+    uint16_t m_numOfVdbox;
+    bool m_enabled;
 
 MEDIA_CLASS_DEFINE_END(MosMockAdaptor)
 };

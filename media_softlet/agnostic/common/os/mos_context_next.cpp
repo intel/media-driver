@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2020, Intel Corporation
+* Copyright (c) 2019-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@
 
 #include "mos_context_specific_next.h"
 #include "mos_os_mock_adaptor.h"
+#include "mos_os_mock_adaptor_specific.h"
 #include "mos_oca_rtlog_mgr.h"
 
 class OsContextNext* OsContextNext::GetOsContextObject()
@@ -60,17 +61,39 @@ void OsContextNext::CleanUp()
         m_cmdBufMgr = nullptr;
     }
 
+    NullHwDestroy();
+
     Destroy();
 }
 
 MOS_STATUS OsContextNext::NullHwInit(MOS_CONTEXT_HANDLE osContext)
 {
     MOS_OS_FUNCTION_ENTER;
-    return MosMockAdaptor::Init(osContext, this);
+
+    // Per-Context: Create a new MockAdaptor instance for this context
+    if (m_mockAdaptor == nullptr)
+    {
+        m_mockAdaptor = MOS_New(MosMockAdaptorSpecific);
+        if (m_mockAdaptor == nullptr)
+        {
+            return MOS_STATUS_NO_SPACE;
+        }
+    }
+    
+    // Initialize the per-context MockAdaptor
+    return m_mockAdaptor->Init(osContext, this);
 }
 
 MOS_STATUS OsContextNext::NullHwDestroy()
 {
     MOS_OS_FUNCTION_ENTER;
-    return MosMockAdaptor::Destroy();
+
+    if (m_mockAdaptor != nullptr)
+    {
+        m_mockAdaptor->Destroy();
+        MOS_Delete(m_mockAdaptor);
+        m_mockAdaptor = nullptr;
+    }
+
+    return MOS_STATUS_SUCCESS;
 }
