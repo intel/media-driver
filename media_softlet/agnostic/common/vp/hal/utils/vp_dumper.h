@@ -450,7 +450,7 @@ protected:
     char                        m_dumpDDI[MAX_PATH];        // to avoid recursive call from diff owner but sharing the same buffer
     MediaUserSettingSharedPtr   m_userSettingPtr = nullptr; // userSettingInstance
 
-private:
+protected:
 
     //!
     //! \brief    Get plane information of a surface
@@ -486,6 +486,30 @@ private:
         uint32_t*                           pdwSize,
         bool                                auxEnable,
         bool                                isDeswizzled);
+
+    //!
+    //! \brief    Copy one scanline of surface data, with RGB24 hole-stripping
+    //! \details  For Format_R8G8B8 on older platforms (FtrSFCRGB24OutNoPadding not set),
+    //!           strips 1 padding byte every 64 bytes. Otherwise does a plain copy.
+    //! \param    [in] pDst
+    //!           Destination buffer
+    //! \param    [in] pSrc
+    //!           Source buffer
+    //! \param    [in] dwWidth
+    //!           Width of the scanline in bytes
+    //! \param    [in] format
+    //!           Surface format
+    //! \param    [in] skuTable
+    //!           Pointer to SKU table (may be nullptr)
+    //!
+    void CopyScanlineWithHoleStripping(
+        uint8_t        *pDst,
+        const uint8_t  *pSrc,
+        uint32_t        dwWidth,
+        MOS_FORMAT      format,
+        MEDIA_FEATURE_TABLE *skuTable);
+
+private:
 
     //!
     //! \brief    Parse dump location

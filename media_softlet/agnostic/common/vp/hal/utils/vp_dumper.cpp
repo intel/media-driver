@@ -77,6 +77,50 @@ void VpDumperTool::GetOsFilePath(
     MOS_SecureMemcpy(pOsFilePath, MAX_PATH, (void*)pcFilePath, strlen(pcFilePath));
 }
 
+void VpSurfaceDumper::CopyScanlineWithHoleStripping(
+    uint8_t        *pDst,
+    const uint8_t  *pSrc,
+    uint32_t        dwWidth,
+    MOS_FORMAT      format,
+    MEDIA_FEATURE_TABLE *skuTable)
+{
+    VP_FUNC_CALL();
+
+    // For RGB24 format on older platforms, need to remove one invalid zero every 64 bytes
+    // which is designed to avoid splitting two cache lines.
+    // On newer platforms (FtrSFCRGB24OutNoPadding), RGB24 is continuous packed — no holes to strip.
+    if (format == Format_R8G8B8 &&
+        !(skuTable && MEDIA_IS_SKU(skuTable, FtrSFCRGB24OutNoPadding)))
+    {
+        int dummyBytesPerLine = dwWidth / 63;
+        int resPixel          = dwWidth - 63 * dummyBytesPerLine;
+        for (int p = 0; p < dummyBytesPerLine; p++)
+        {
+            MOS_SecureMemcpy(
+                &pDst[p * 63],
+                63,
+                &pSrc[p * 64],
+                63);
+        }
+        if (resPixel > 0)
+        {
+            MOS_SecureMemcpy(
+                &pDst[dummyBytesPerLine * 63],
+                resPixel,
+                &pSrc[dummyBytesPerLine * 64],
+                resPixel);
+        }
+    }
+    else
+    {
+        MOS_SecureMemcpy(
+            pDst,
+            dwWidth,
+            pSrc,
+            dwWidth);
+    }
+}
+
 MOS_STATUS VpSurfaceDumper::GetPlaneDefs(
     PVPHAL_SURFACE                    pSurface,
     VPHAL_SURF_DUMP_SURFACE_DEF      *pPlanes,
@@ -537,7 +581,6 @@ MOS_STATUS VpSurfaceDumper::GetPlaneDefs(
     case Format_X8R8G8B8:
     case Format_A8B8G8R8:
     case Format_X8B8G8R8:
-    case Format_R8G8B8:
     case Format_AYUV:
     case Format_AUYV:
     case Format_R10G10B10A2:
@@ -549,6 +592,14 @@ MOS_STATUS VpSurfaceDumper::GetPlaneDefs(
         pPlanes[0].dwWidth = pSurface->osSurface->dwWidth * 4;
         pPlanes[0].dwHeight = pSurface->osSurface->dwHeight;
         pPlanes[0].dwPitch = pSurface->osSurface->dwPitch;
+        break;
+
+    case Format_R8G8B8:
+        *pdwNumPlanes = 1;
+
+        pPlanes[0].dwWidth  = pSurface->osSurface->dwWidth * 3;
+        pPlanes[0].dwHeight = pSurface->osSurface->dwHeight;
+        pPlanes[0].dwPitch  = pSurface->osSurface->dwPitch;
         break;
 
     case Format_Y416:
@@ -1113,6 +1164,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
     uint32_t                            dstPlaneOffset[3] = {0};
     MOS_LOCK_PARAMS                     LockFlags;
     bool                                hasAuxSurf;
+    MEDIA_FEATURE_TABLE                *skuTable = nullptr;
     bool                                enableAuxDump;
     bool                                enablePlaneDump   = false;
     PMOS_RESOURCE                       pLockedResource   = nullptr;
@@ -1147,6 +1199,9 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
         hasAuxSurf, //(hasAuxSurf && enableAuxDump),
         !enableAuxDump));// !(hasAuxSurf && enableAuxDump)));
 
+    VP_DEBUG_CHK_NULL(pOsInterface->pfnGetSkuTable);
+    skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
+
     if (bLockSurface)
     {
         // Caller should not give pData when it expect the function to lock surf
@@ -1172,8 +1227,6 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
         isPlanar      = (pSurface->Format == Format_NV12) || (pSurface->Format == Format_P010) || (pSurface->Format == Format_P016);
 #endif
         VP_DEBUG_CHK_NULL(pOsInterface);
-        VP_DEBUG_CHK_NULL(pOsInterface->pfnGetSkuTable);
-        auto *skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
 
         // RGBP and BGRP support tile output but should not transfer to linear surface due to height 16 align issue.
         if (((skuTable && MEDIA_IS_SKU(skuTable, FtrE2ECompression) || isPlanar) &&
@@ -1283,52 +1336,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
             }
             else
             {
-                // For RGB24 format, need to remove one invalid zero every 64 byte
-                // which is designed to avoid splitting two cache lines
-                if (pSurface->Format == Format_R8G8B8)
-                {
-                    // Check if FtrSFCRGB24OutNoPadding is enabled
-                    auto *skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
-                    if (skuTable && MEDIA_IS_SKU(skuTable, FtrSFCRGB24OutNoPadding))
-                    {
-                        // Bypass dummyBytesPerLine processing when flag is enabled
-                        MOS_SecureMemcpy(
-                            pTmpDst,
-                            planes[j].dwWidth,
-                            pTmpSrc,
-                            planes[j].dwWidth);
-                    }
-                    else
-                    {
-                        // Original processing logic
-                        int dummyBytesPerLine = planes[j].dwWidth / 63;
-                        int resPixel          = planes[j].dwWidth - 63 * dummyBytesPerLine;
-                        for (int p = 0; p < dummyBytesPerLine; p++)
-                        {
-                            MOS_SecureMemcpy(
-                                &pTmpDst[p * 63],
-                                63,
-                                &pTmpSrc[p * 64],
-                                63);
-                        }
-                        if (resPixel > 0)
-                        {
-                            MOS_SecureMemcpy(
-                                &pTmpDst[dummyBytesPerLine * 63],
-                                resPixel,
-                                &pTmpSrc[dummyBytesPerLine * 64],
-                                resPixel);
-                        }
-                    }
-                }
-                else
-                {
-                    MOS_SecureMemcpy(
-                        pTmpDst,
-                        planes[j].dwWidth,
-                        pTmpSrc,
-                        planes[j].dwWidth);
-                }
+                CopyScanlineWithHoleStripping(pTmpDst, pTmpSrc, planes[j].dwWidth, pSurface->Format, skuTable);
                 pTmpSrc += planes[j].dwPitch;
                 pTmpDst += planes[j].dwWidth;
 
@@ -1494,6 +1502,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
     bool                                enablePlaneDump = false;
     PMOS_RESOURCE                       pLockedResource = nullptr;
     PVPHAL_SURFACE                      temp2DSurfForCopy = nullptr;
+    MEDIA_FEATURE_TABLE                *skuTable = nullptr;
 
     VP_DEBUG_ASSERT(pSurface);
     VP_DEBUG_ASSERT(pOsInterface);
@@ -1559,7 +1568,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
 #endif
         VP_DEBUG_CHK_NULL(pOsInterface);
         VP_DEBUG_CHK_NULL(pOsInterface->pfnGetSkuTable);
-        auto *skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
+        skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
 
         // RGBP and BGRP support tile output but should not transfer to linear surface due to height 16 align issue.
         if (((skuTable && MEDIA_IS_SKU(skuTable, FtrE2ECompression) || isPlanar) &&
