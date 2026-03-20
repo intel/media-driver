@@ -150,13 +150,6 @@ MOS_STATUS VvcPipelineXe3P_Lpm_Base::CreateSubPackets(DecodeSubPacketManager &su
 
     DECODE_CHK_STATUS(RegisterCpSubPacket(subPacketManager));
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    VvcDecodeDebugPkt *debugPkt = MOS_New(VvcDecodeDebugPkt, this, m_hwInterface);
-    DECODE_CHK_NULL(debugPkt);
-    DECODE_CHK_STATUS(subPacketManager.Register(
-        DecodePacketId(this, vvcDebugSubPacketId), *debugPkt));
-#endif
-
     return MOS_STATUS_SUCCESS;
 }
 

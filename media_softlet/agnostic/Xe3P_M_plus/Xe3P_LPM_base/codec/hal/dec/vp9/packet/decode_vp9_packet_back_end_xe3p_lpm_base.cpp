@@ -157,7 +157,13 @@ MOS_STATUS Vp9DecodeBackEndPktXe3P_Lpm_Base::PackPictureLevelCmds(MOS_COMMAND_BU
     DECODE_CHK_STATUS(VdScalabPipeUnLock(cmdBuffer));
     DECODE_CHK_STATUS(ReadVdboxId(cmdBuffer));
     DECODE_CHK_STATUS(VdPipelineFlush(cmdBuffer));
-    DECODE_CHK_STATUS(MiFlush(cmdBuffer));
+    // Skip MI_FLUSH when CRC output is enabled to maintain proper command ordering
+    // This MiFlush comes BEFORE EndStatusReport, so bypass it when CRC mode is enabled
+    // When CRC debug mode is enabled, debug packet Execute() will handle MI_FLUSH after CRC data collection
+    if (!m_vp9Pipeline->GetMemDataAccessCrcOutputEnable())
+    {
+        DECODE_CHK_STATUS(MiFlush(cmdBuffer));
+    }
 
     auto scalability = m_vp9Pipeline->GetMediaScalability();
     DECODE_CHK_STATUS(scalability->SyncPipe(syncOnePipeWaitOthers, 0, &cmdBuffer));
@@ -171,6 +177,7 @@ MOS_STATUS Vp9DecodeBackEndPktXe3P_Lpm_Base::PackPictureLevelCmds(MOS_COMMAND_BU
     {
         DECODE_CHK_STATUS(NullHW::StopPredicateNext(m_osInterface, m_miItf, &cmdBuffer));
     }
+    // Keep EnsureAllCommandsExecuted UNCONDITIONAL - it comes AFTER EndStatusReport
     DECODE_CHK_STATUS(EnsureAllCommandsExecuted(cmdBuffer));
 
     DECODE_CHK_STATUS(m_miItf->AddMiBatchBufferEnd(&cmdBuffer, nullptr));

@@ -40,12 +40,6 @@ MOS_STATUS Av1Pipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingPtr
 #if (_DEBUG || _RELEASE_INTERNAL)
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
-        "AV1 CRC Value",
-        MediaUserSetting::Group::Sequence,
-        int32_t(0),
-        true);
-    DeclareUserSettingKeyForDebug(
-        userSettingPtr,
         "AV1 Command Counter",
         MediaUserSetting::Group::Sequence,
         int32_t(0),

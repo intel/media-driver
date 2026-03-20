@@ -99,6 +99,17 @@ public:
     virtual MOS_STATUS Execute(MOS_COMMAND_BUFFER& cmdBuffer, MediaStatusReport *statusReport);
 
     //!
+    //! \brief  Execute debug sub packet per tile
+    //! \param  [in] cmdBuffer
+    //!         Command buffer
+    //! \param  [in] idx
+    //!         Tile index
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS ExecutePerTile(MOS_COMMAND_BUFFER& cmdBuffer, int16_t idx);
+
+    //!
     //! \brief  Complete debug operations after decode
     //! \param  [in] mfxStatus
     //!         Pointer to status buffer which for MFX

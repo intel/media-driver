@@ -173,6 +173,13 @@ MOS_STATUS AvcDecodePkt::MiFlush(MOS_COMMAND_BUFFER &cmdBuffer)
 
     auto &par = m_miItf->GETPAR_MI_FLUSH_DW();
     MOS_ZeroMemory(&par, sizeof(mhw::mi::MI_FLUSH_DW_PAR));
+    
+    // Add Video Pipeline Cache Invalidate when CRC output is enabled
+    if (m_avcPipeline && m_avcPipeline->GetMemDataAccessCrcOutputEnable())
+    {
+        par.bVideoPipelineCacheInvalidate = true;
+    }
+    
     DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_FLUSH_DW(&cmdBuffer));
 
     return MOS_STATUS_SUCCESS;
@@ -268,12 +275,17 @@ MOS_STATUS AvcDecodePkt::ReadMfxStatus(MediaStatusReport *statusReport, MOS_COMM
 
     DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_STORE_REGISTER_MEM(&cmdBuffer));
 
-    DECODE_CHK_STATUS(statusReport->GetAddress(decode::DecodeStatusReportType::DecFrameCrcOffset, osResource, offset));
-    par.presStoreBuffer    = osResource;
-    par.dwOffset           = offset;
-    par.dwRegister         = mmioRegisters->mfxFrameCrcRegOffset;
+    // Skip CRC MMIO register read when CRC output is enabled
+    // When CRC debug mode is enabled, debug packet Execute() handles CRC data collection via MFX_MEM_DATA_ACCESS
+    if (!m_avcPipeline->GetMemDataAccessCrcOutputEnable())
+    {
+        DECODE_CHK_STATUS(statusReport->GetAddress(decode::DecodeStatusReportType::DecFrameCrcOffset, osResource, offset));
+        par.presStoreBuffer    = osResource;
+        par.dwOffset           = offset;
+        par.dwRegister         = mmioRegisters->mfxFrameCrcRegOffset;
 
-    DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_STORE_REGISTER_MEM(&cmdBuffer));
+        DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_STORE_REGISTER_MEM(&cmdBuffer));
+    }
 
     DECODE_CHK_STATUS(statusReport->GetAddress(decode::DecodeStatusReportType::DecMBCountOffset, osResource, offset));
     par.presStoreBuffer = osResource;
@@ -315,14 +327,15 @@ MOS_STATUS AvcDecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER *cm
 {
     DECODE_FUNC_CALL();
     DECODE_CHK_NULL(cmdBuffer);
-    DECODE_CHK_STATUS(ReadMfxStatus(m_statusReport, *cmdBuffer));
 #if (_DEBUG || _RELEASE_INTERNAL)
-        // Execute debug packet for MFX debug functionality before MiFlush
-        if (m_debugPkt != nullptr)
-        {
-            DECODE_CHK_STATUS(m_debugPkt->Execute(*cmdBuffer, m_statusReport));
-        }
+    // Execute debug packet BEFORE ReadMfxStatus when CRC output is enabled
+    // This ensures CRC data and MI_FLUSH commands from debug packet are inserted before status reads
+    if (m_debugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_debugPkt->Execute(*cmdBuffer, m_statusReport));
+    }
 #endif
+    DECODE_CHK_STATUS(ReadMfxStatus(m_statusReport, *cmdBuffer));
     DECODE_CHK_STATUS(MediaPacket::EndStatusReportNext(srType, cmdBuffer));
 
     MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();

@@ -188,18 +188,11 @@ MOS_STATUS DecodePipeline::Initialize(void *settings)
     MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
     MOS_UserFeature_ReadValue_ID(
         nullptr,
-        __MEDIA_USER_FEATURE_VALUE_VDBOX_CRC_OUTPUT_ENABLE_ID,
-        &userFeatureData,
-        m_osInterface->pOsContext);
-    m_crcoutputEnable = userFeatureData.i32Data ? true : false;
-
-    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
-    MOS_UserFeature_ReadValue_ID(
-        nullptr,
         __MEDIA_USER_FEATURE_VALUE_VDBOX_COMMAND_COUNTER_OVERRIDE_ID,
         &userFeatureData,
         m_osInterface->pOsContext);
     m_vdboxCommandCounterOverride = userFeatureData.i32Data;
+    DECODE_NORMALMESSAGE("m_vdboxCommandCounterOverride value read: %d", m_vdboxCommandCounterOverride);
 #endif
 
     m_decodecp = Create_DecodeCpInterface(codecSettings, m_hwInterface->GetCpInterface(), m_hwInterface->GetOsInterface());
@@ -223,6 +216,20 @@ MOS_STATUS DecodePipeline::Initialize(void *settings)
 
     return MOS_STATUS_SUCCESS;
 }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+void DecodePipeline::InitMemDataAccessCrcOutputEnable()
+{
+    MOS_USER_FEATURE_VALUE_DATA userFeatureData;
+    MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
+    MOS_UserFeature_ReadValue_ID(
+        nullptr,
+        __MEDIA_USER_FEATURE_VALUE_VDBOX_CRC_OUTPUT_ENABLE_ID,
+        &userFeatureData,
+        m_osInterface->pOsContext);
+    m_memDataAccessCrcOutputEnable = userFeatureData.i32Data ? true : false;
+}
+#endif
 
 MOS_STATUS DecodePipeline::Uninitialize()
 {

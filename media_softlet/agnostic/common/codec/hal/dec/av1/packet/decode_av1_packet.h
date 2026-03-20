@@ -148,6 +148,18 @@ protected:
     virtual MOS_STATUS ReadAvpStatus(MediaStatusReport* statusReport, MOS_COMMAND_BUFFER& cmdBuffer);
     virtual MOS_STATUS StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cmdBuffer) override;
     virtual MOS_STATUS EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cmdBuffer) override;
+
+    //!
+    //! \brief  Status report per tile
+    //! \param  [in] cmdBuffer
+    //!         Command buffer
+    //! \param  [in] idx
+    //!         Tile index
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS StatusReportPerTile(MOS_COMMAND_BUFFER *cmdBuffer, int16_t idx);
+
     MOS_STATUS InitPicLevelCmdBuffer(MHW_BATCH_BUFFER &batchBuffer, uint8_t *batchBufBase);
 
     MediaFeatureManager    *m_featureManager   = nullptr;

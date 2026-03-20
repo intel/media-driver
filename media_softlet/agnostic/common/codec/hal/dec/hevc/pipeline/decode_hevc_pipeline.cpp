@@ -173,14 +173,6 @@ MOS_STATUS HevcPipeline::CreateSubPackets(DecodeSubPacketManager& subPacketManag
                         DecodePacketId(this, downSamplingSubPacketId), *downSamplingPkt));
 #endif
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    // Create debug packet
-    HevcDecodeDebugPkt *debugPkt = MOS_New(HevcDecodeDebugPkt, this, m_hwInterface);
-    DECODE_CHK_NULL(debugPkt);
-    DECODE_CHK_STATUS(subPacketManager.Register(
-                        DecodePacketId(this, hevcDebugSubPacketId), *debugPkt));
-#endif
-
     return MOS_STATUS_SUCCESS;
 }
 

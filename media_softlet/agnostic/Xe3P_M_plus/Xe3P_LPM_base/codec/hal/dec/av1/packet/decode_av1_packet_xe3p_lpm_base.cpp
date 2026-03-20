@@ -168,6 +168,11 @@ namespace decode
         if ( tileIdx < int16_t(m_av1BasicFeature->m_tileCoding.m_numTiles))
         {
             DECODE_CHK_STATUS(m_tilePkt->Execute(cmdBuffer, tileIdx));
+            
+    #if (_DEBUG || _RELEASE_INTERNAL)
+            // Call StatusReportPerTile after tile packet execution for per-tile CRC and command counter reporting
+            DECODE_CHK_STATUS(StatusReportPerTile(&cmdBuffer, tileIdx));
+    #endif
         }
 
         if (m_isLastTileInPartialFrm || m_av1Pipeline->TileBasedDecodingInuse() ||
@@ -219,6 +224,10 @@ namespace decode
         {
             // Add PPC fulsh
             par.bEnablePPCFlush = true;
+        }
+        if (m_av1Pipeline->GetMemDataAccessCrcOutputEnable())
+        {
+            par.bVideoPipelineCacheInvalidate = true;
         }
         DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_FLUSH_DW(&cmdBuffer));
 

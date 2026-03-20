@@ -125,9 +125,16 @@ MOS_STATUS Vp9DecodeSinglePktXe3P_Lpm_Base::Submit(
         DECODE_CHK_STATUS(VdMemoryFlush(cmdBuffer));
         DECODE_CHK_STATUS(VdPipelineFlush(cmdBuffer));
 
-        DECODE_CHK_STATUS(MiFlush(cmdBuffer));
+        // Skip MI_FLUSH when CRC output is enabled to maintain proper command ordering
+        // This MiFlush comes BEFORE EndStatusReport, so bypass it when CRC mode is enabled
+        // When CRC debug mode is enabled, debug packet Execute() will handle MI_FLUSH after CRC data collection
+        if (!m_vp9Pipeline->GetMemDataAccessCrcOutputEnable())
+        {
+            DECODE_CHK_STATUS(MiFlush(cmdBuffer));
+        }
         DECODE_CHK_STATUS(EndStatusReport(statusReportMfx, &cmdBuffer));
         DECODE_CHK_STATUS(UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer));
+        // Keep EnsureAllCommandsExecuted UNCONDITIONAL - it comes AFTER EndStatusReport
         DECODE_CHK_STATUS(EnsureAllCommandsExecuted(cmdBuffer));
 
         return MOS_STATUS_SUCCESS;

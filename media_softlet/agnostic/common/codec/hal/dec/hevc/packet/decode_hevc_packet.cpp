@@ -262,12 +262,17 @@ MOS_STATUS HevcDecodePkt::ReadHcpStatus(MediaStatusReport* statusReport, MOS_COM
 
     DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_STORE_REGISTER_MEM(&cmdBuffer));
 
-    DECODE_CHK_STATUS(statusReport->GetAddress(decode::DecodeStatusReportType::DecFrameCrcOffset, osResource, offset));
-    par.presStoreBuffer    = osResource;
-    par.dwOffset           = offset;
-    par.dwRegister         = mmioRegistersHcp->hcpFrameCrcRegOffset;
+    // Skip CRC MMIO register read when CRC output is enabled
+    // When CRC debug mode is enabled, debug packet Execute() handles CRC data collection via HCP_MEM_DATA_ACCESS
+    if (!m_hevcPipeline->GetMemDataAccessCrcOutputEnable())
+    {
+        DECODE_CHK_STATUS(statusReport->GetAddress(decode::DecodeStatusReportType::DecFrameCrcOffset, osResource, offset));
+        par.presStoreBuffer    = osResource;
+        par.dwOffset           = offset;
+        par.dwRegister         = mmioRegistersHcp->hcpFrameCrcRegOffset;
 
-    DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_STORE_REGISTER_MEM(&cmdBuffer));
+        DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_STORE_REGISTER_MEM(&cmdBuffer));
+    }
 
     DECODE_CHK_STATUS(statusReport->GetAddress(decode::DecodeStatusReportType::DecMBCountOffset, osResource, offset));
     par.presStoreBuffer    = osResource;
@@ -320,20 +325,20 @@ MOS_STATUS HevcDecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* c
 {
     DECODE_FUNC_CALL();
     DECODE_CHK_NULL(cmdBuffer);
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Execute debug packet BEFORE ReadHcpStatus when CRC output is enabled
+    // This ensures CRC data and MI_FLUSH commands from debug packet are inserted before status reads
+    if (m_debugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_debugPkt->Execute(*cmdBuffer, m_statusReport));
+    }
+#endif
     DECODE_CHK_STATUS(ReadHcpStatus(m_statusReport, *cmdBuffer));
     DECODE_CHK_STATUS(MediaPacket::EndStatusReportNext(srType, cmdBuffer));
 
     MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
     DECODE_CHK_NULL(perfProfiler);
     DECODE_CHK_STATUS(perfProfiler->AddPerfCollectEndCmd((void*)m_hevcPipeline, m_osInterface, m_miItf, cmdBuffer));
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    // Execute debug packet for HCP debug functionality
-    if (m_debugPkt != nullptr)
-    {
-        DECODE_CHK_STATUS(m_debugPkt->Execute(*cmdBuffer, m_statusReport));
-    }
-#endif
 
     // Add Mi flush here to ensure end status tag flushed to memory earlier than completed count
     DECODE_CHK_STATUS(MiFlush(*cmdBuffer));
@@ -348,6 +353,13 @@ MOS_STATUS HevcDecodePkt::EnsureAllCommandsExecuted(MOS_COMMAND_BUFFER &cmdBuffe
     // Send MI_FLUSH command
     auto &par      = m_miItf->GETPAR_MI_FLUSH_DW();
     par            = {};
+    
+    // Add Video Pipeline Cache Invalidate when CRC output is enabled
+    if (m_hevcPipeline && m_hevcPipeline->GetMemDataAccessCrcOutputEnable())
+    {
+        par.bVideoPipelineCacheInvalidate = true;
+    }
+    
     auto *skuTable = m_hevcPipeline->GetSkuTable();
     if (skuTable && MEDIA_IS_SKU(skuTable, FtrEnablePPCFlush))
     {

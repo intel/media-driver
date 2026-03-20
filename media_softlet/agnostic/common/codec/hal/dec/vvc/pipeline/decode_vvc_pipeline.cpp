@@ -321,18 +321,6 @@ namespace decode
 
         DECODE_CHK_STATUS(RegisterCpSubPacket(subPacketManager));
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-        VvcDecodeDebugPkt *debugPkt = MOS_New(VvcDecodeDebugPkt, this, m_hwInterface);
-        DECODE_CHK_NULL(debugPkt);
-        MOS_STATUS status = subPacketManager.Register(
-            DecodePacketId(this, vvcDebugSubPacketId), *debugPkt);
-        if (status != MOS_STATUS_SUCCESS)
-        {
-            MOS_Delete(debugPkt);
-            return status;
-        }
-#endif
-
         return MOS_STATUS_SUCCESS;
     }
 

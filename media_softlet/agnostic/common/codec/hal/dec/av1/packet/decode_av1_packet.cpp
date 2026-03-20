@@ -195,6 +195,13 @@ MOS_STATUS Av1DecodePkt::MiFlush(MOS_COMMAND_BUFFER & cmdBuffer)
 
     auto &par = m_miItf->GETPAR_MI_FLUSH_DW();
     MOS_ZeroMemory(&par, sizeof(mhw::mi::MI_FLUSH_DW_PAR));
+    
+    // Add Video Pipeline Cache Invalidate when CRC output is enabled
+    if (m_av1Pipeline && m_av1Pipeline->GetMemDataAccessCrcOutputEnable())
+    {
+        par.bVideoPipelineCacheInvalidate = true;
+    }
+    
     DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_FLUSH_DW(&cmdBuffer));
 
     return MOS_STATUS_SUCCESS;
@@ -319,17 +326,26 @@ MOS_STATUS Av1DecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cm
     DECODE_CHK_STATUS(perfProfiler->AddPerfCollectEndCmd(
         (void*)m_av1Pipeline, m_osInterface, m_miItf, cmdBuffer));
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    // Execute debug packet BEFORE MiFlush
-    if (m_av1DebugPkt != nullptr)
-    {
-        DECODE_CHK_STATUS(m_av1DebugPkt->Execute(*cmdBuffer, m_statusReport));
-    }
-#endif
-
     // Add Mi flush here to ensure end status tag flushed to memory earlier than completed count
     DECODE_CHK_STATUS(MiFlush(*cmdBuffer));
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Av1DecodePkt::StatusReportPerTile(MOS_COMMAND_BUFFER *cmdBuffer, int16_t idx)
+{
+    DECODE_FUNC_CALL();
+    
+    DECODE_CHK_NULL(cmdBuffer);
+    
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Call debug packet ExecutePerTile for per-tile status reporting
+    if (m_av1DebugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_av1DebugPkt->ExecutePerTile(*cmdBuffer, idx));
+    }
+#endif
+    
     return MOS_STATUS_SUCCESS;
 }
 

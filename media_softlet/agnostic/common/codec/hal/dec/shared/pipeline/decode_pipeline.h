@@ -319,16 +319,27 @@ public:
     //!
     virtual MOS_STATUS SetDecodeFormat(bool isShortFormat ){ return MOS_STATUS_UNIMPLEMENTED; };
 
-#if (_DEBUG || _RELEASE_INTERNAL)
     //!
-    //! \brief  CRC output enable
+    //! \brief  CRC output enable. Returns false in release builds.
     //! \return bool
     //!         true if enabled, else false
     //!
-    bool GetCRCOutputEnable()
+    bool GetMemDataAccessCrcOutputEnable()
     {
-        return m_crcoutputEnable;
+#if (_DEBUG || _RELEASE_INTERNAL)
+        return m_memDataAccessCrcOutputEnable;
+#else
+        return false;
+#endif
     }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //!
+    //! \brief  Read the CRC output enable regkey and update internal state.
+    //!         Called from platform-specific debug packet ext Init() so that
+    //!         CRC enable is only active on platforms that support it.
+    //!
+    void InitMemDataAccessCrcOutputEnable();
 
     //!
     //! \brief  Get Vdbox command counter override value
@@ -547,7 +558,7 @@ protected:
 #if (_DEBUG || _RELEASE_INTERNAL)
     uint32_t                m_statusCheckCount = 0;     //!< count for status check
     uint32_t                m_delayMiliseconds = 0;     //!< miliseconds delay after each frame
-    uint32_t                m_crcoutputEnable  = 0;     //!< crc output enable
+    uint32_t                m_memDataAccessCrcOutputEnable  = 0;     //!< mem data access crc output enable
     uint32_t                m_vdboxCommandCounterOverride = 0;  //!< vdbox command counter override
 #endif
 

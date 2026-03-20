@@ -120,7 +120,13 @@ MOS_STATUS AvcDecodePktXe3P_Lpm_Base::PackSliceLevelCmds(MOS_COMMAND_BUFFER &cmd
         }
     }
 
-    DECODE_CHK_STATUS(EnsureAllCommandsExecuted(cmdBuffer));
+    // Skip MI_FLUSH when CRC output is enabled to maintain proper command ordering
+    // This EnsureAllCommandsExecuted comes BEFORE EndStatusReport, so bypass it when CRC mode is enabled
+    // When CRC debug mode is enabled, debug packet Execute() will handle MI_FLUSH after CRC data collection
+    if (!m_avcPipeline->GetMemDataAccessCrcOutputEnable())
+    {
+        DECODE_CHK_STATUS(EnsureAllCommandsExecuted(cmdBuffer));
+    }
 
     DECODE_CHK_STATUS(EndStatusReport(statusReportMfx, &cmdBuffer));
     DECODE_CHK_STATUS(UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer));

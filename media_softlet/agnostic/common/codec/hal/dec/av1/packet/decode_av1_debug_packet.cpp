@@ -103,6 +103,15 @@ MOS_STATUS Av1DecodeDebugPkt::AddCommandCounterCmds(MOS_COMMAND_BUFFER& cmdBuffe
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS Av1DecodeDebugPkt::ExecutePerTile(MOS_COMMAND_BUFFER& cmdBuffer, int16_t idx)
+{
+    DECODE_FUNC_CALL();
+    
+    // Base class provides no-op implementation
+    // Derived classes should override this method to provide actual functionality
+    return MOS_STATUS_SUCCESS;
+}
+
 }  // namespace decode
 
 #endif  // _DEBUG || _RELEASE_INTERNAL
