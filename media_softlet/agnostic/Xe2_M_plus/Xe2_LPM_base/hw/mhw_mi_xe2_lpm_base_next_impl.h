@@ -554,9 +554,14 @@ public:
         MOS_STATUS status = MOS_STATUS_SUCCESS;
 
         //set fence token value to token register
+        // Fence token max value is upto 255 or 0xFF requires 8 bits.
+        // These 8 bits needs to be programmed into 2 fields of semaphore token register:
+        // MSB 3 bits of those 8 bits into bits [31:27] and LSB 5 bits of those 8 bits into bits [4:0] of semaphore token register.
         auto &miLoadRegImmParams      = MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
         miLoadRegImmParams            = {};
-        miLoadRegImmParams.dwData     = static_cast<uint32_t>(fenceTokenValue);
+        uint32_t fenceTokenV          = static_cast<uint32_t>(fenceTokenValue);
+        miLoadRegImmParams.dwData     = (fenceTokenV & 0x1F);              // LSB 5 bits [4:0]
+        miLoadRegImmParams.dwData    |= (((fenceTokenV & 0xE0) << 22));   // MSB 3 bits shifted to [31:27]
         miLoadRegImmParams.dwRegister = tokenRegister.m_tokenRegister;
         miLoadRegImmParams.bMMIORemap = tokenRegister.m_bMMIORemap;
         status                        = MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdbuffer, batchBuffer);  //with fenceToken
@@ -611,9 +616,14 @@ public:
         MHW_CHK_STATUS_RETURN(status);
 
         //set fence token value to token register
+        // Fence token max value is upto 255 or 0xFF requires 8 bits.
+        // These 8 bits needs to be programmed into 2 fields of semaphore token register:
+        // MSB 3 bits of those 8 bits into bits [31:27] and LSB 5 bits of those 8 bits into bits [4:0] of semaphore token register.
         auto &miLoadRegImmParams      = MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
         miLoadRegImmParams            = {};
-        miLoadRegImmParams.dwData     = static_cast<uint32_t>(fenceTokenValue);
+        uint32_t fenceTokenV          = static_cast<uint32_t>(fenceTokenValue);
+        miLoadRegImmParams.dwData     = (fenceTokenV & 0x1F);              // LSB 5 bits [4:0]
+        miLoadRegImmParams.dwData    |= (((fenceTokenV & 0xE0) << 22));   // MSB 3 bits shifted to [31:27]
         miLoadRegImmParams.dwRegister = tokenRegister.m_tokenRegister;
         miLoadRegImmParams.bMMIORemap = tokenRegister.m_bMMIORemap;
         status                        = MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdbuffer, nullptr);  //with fenceToken
