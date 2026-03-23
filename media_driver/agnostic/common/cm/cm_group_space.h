@@ -44,14 +44,14 @@ public:
     virtual uint32_t GetIndexInTGsArray();
 
 #if CM_LOG_ON
-    std::string Log();
+    std::string Log() const;
 #endif
 
 protected:
     CmThreadGroupSpace(CmDeviceRT* device, uint32_t index, uint32_t threadSpaceWidth, uint32_t threadSpaceHeight, uint32_t groupSpaceWidth, uint32_t groupSpaceHeight);
     CmThreadGroupSpace(CmDeviceRT* device, uint32_t index, uint32_t threadSpaceWidth, uint32_t threadSpaceHeight, uint32_t threadSpaceDepth, uint32_t groupSpaceWidth, uint32_t groupSpaceHeight, uint32_t groupSpaceDepth);
     ~CmThreadGroupSpace( void );
-    int32_t Initialize( void );
+    static int32_t Initialize( void );
 
     CmDeviceRT* m_device;
     uint32_t m_threadSpaceWidth;
