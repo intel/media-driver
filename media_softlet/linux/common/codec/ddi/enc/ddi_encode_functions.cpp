@@ -653,7 +653,7 @@ VAStatus DdiEncodeFunctions::DestroyBuffer (
         case VAImageBufferType:
             if(buf->format == Media_Format_CPU)
             {
-                MOS_DeleteArray(buf->pData);
+                MOS_FreeMemory(buf->pData);
             }
             else
             {
