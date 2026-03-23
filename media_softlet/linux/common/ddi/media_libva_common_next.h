@@ -148,6 +148,24 @@ typedef enum _DDI_MEDIA_FORMAT
     Media_Format_Count
 } DDI_MEDIA_FORMAT;
 
+#define IS_RGB_DDI_MEDIA_FORMAT(format)            \
+    ((format) == Media_Format_A8R8G8B8          || \
+     (format) == Media_Format_X8R8G8B8          || \
+     (format) == Media_Format_A8B8G8R8          || \
+     (format) == Media_Format_X8B8G8R8          || \
+     (format) == Media_Format_R8G8B8A8          || \
+     (format) == Media_Format_R5G6B5            || \
+     (format) == Media_Format_R10G10B10A2       || \
+     (format) == Media_Format_B10G10R10A2       || \
+     (format) == Media_Format_R10G10B10X2       || \
+     (format) == Media_Format_B10G10R10X2       || \
+     (format) == Media_Format_R8G8B8            || \
+     (format) == Media_Format_RGBP              || \
+     (format) == Media_Format_BGRP              || \
+     (format) == Media_Format_A16R16G16B16      || \
+     (format) == Media_Format_A16B16G16R16)
+
+
 typedef enum _DDI_MEDIA_STATUS_REPORT_QUERY_STATE
 {
     DDI_MEDIA_STATUS_REPORT_QUERY_STATE_INIT,
