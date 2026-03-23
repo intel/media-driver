@@ -831,7 +831,9 @@ VAStatus MediaLibvaUtilNext::GenerateGmmParamsForInternalSurface(
             if ((params.format == Media_Format_A8R8G8B8 || 
                 params.format == Media_Format_B10G10R10A2 || 
                 params.format == Media_Format_A8B8G8R8 ||
-                params.format == Media_Format_X8R8G8B8) && !MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrTileY))
+                params.format == Media_Format_X8R8G8B8 ||
+		params.format == Media_Format_R8G8B8A8 ||
+		params.format == Media_Format_R10G10B10X2) && !MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrTileY))
             {
                 gmmParams.Flags.Info.Tile4 = true;
             }
