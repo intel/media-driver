@@ -640,6 +640,15 @@ VAStatus DdiMedia_EndPicture (
     VAContextID       context
 );
 
+//#if VA_CHECK_VERSION(1, 9, 0) //todo: check correct version
+VAStatus DdiMedia_EndPicture2 (
+    VADriverContextP    ctx,
+    VAContextID         context,
+    int32_t            *fences,
+    int32_t            count
+);
+//#endif
+
 //!
 //! \brief  Sync surface
 //! \details    This function blocks until all pending operations on the render target
