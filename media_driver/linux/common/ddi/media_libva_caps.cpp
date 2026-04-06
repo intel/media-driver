@@ -3578,7 +3578,7 @@ GMM_RESOURCE_FORMAT MediaLibvaCaps::ConvertFourccToGmmFmt(uint32_t fourcc)
         case VA_FOURCC_IMC3   : return GMM_FORMAT_IMC3_TYPE;
         case VA_FOURCC_P208   : return GMM_FORMAT_P208_TYPE;
         case VA_FOURCC_P010   : return GMM_FORMAT_P010_TYPE;
-        case VA_FOURCC_P012   : return GMM_FORMAT_P016_TYPE;
+        case VA_FOURCC_P012   : return GMM_FORMAT_P012_TYPE;
         case VA_FOURCC_P016   : return GMM_FORMAT_P016_TYPE;
         case VA_FOURCC_Y210   : return GMM_FORMAT_Y210_TYPE;
         case VA_FOURCC_Y410   : return GMM_FORMAT_Y410_TYPE;
