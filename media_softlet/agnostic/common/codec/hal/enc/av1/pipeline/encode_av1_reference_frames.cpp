@@ -1374,10 +1374,10 @@ MHW_SETPAR_DECL_SRC(VDENC_CMD2, Av1ReferenceFrames)
         }
     }
 
-    CODEC_Ref_Frame_Ctrl_AV1 refCtrlL0 = m_basicFeature->m_av1PicParams->ref_frame_ctrl_l0;
-    CODEC_Ref_Frame_Ctrl_AV1 refCtrlL1 = m_basicFeature->m_av1PicParams->ref_frame_ctrl_l1;
     if (m_basicFeature->m_enableNonDefaultMapping)
     {
+        CODEC_Ref_Frame_Ctrl_AV1 refCtrlL0 = m_basicFeature->m_av1PicParams->ref_frame_ctrl_l0;
+        CODEC_Ref_Frame_Ctrl_AV1 refCtrlL1 = m_basicFeature->m_av1PicParams->ref_frame_ctrl_l1;
         params.av1RefId[0][0] = refCtrlL0.RefFrameCtrl.fields.search_idx0;
         params.av1RefId[0][1] = refCtrlL0.RefFrameCtrl.fields.search_idx1;
         params.av1RefId[0][2] = refCtrlL0.RefFrameCtrl.fields.search_idx2;
