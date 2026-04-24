@@ -600,6 +600,10 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
     uint8_t     FastPassRatio;
     uint8_t     FastPassDsType;  // [0..1]
     uint8_t     long_term_ref_pics_present_flag;
+    uint16_t    reserved16b_crop1; // CropTopOffset
+    uint16_t    reserved16b_crop2; // CropLeftOffset
+    uint16_t    reserved16b_pad1;  // PadBottomOffset
+    uint16_t    reserved16b_pad2;  // PadRightOffset
 } CODEC_HEVC_ENCODE_SEQUENCE_PARAMS, *PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS;
 
 /*! \brief Provides the picture-level parameters of a compressed picture for HEVC decoding.
@@ -985,6 +989,7 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     } QualityInfoSupportFlags;
 
     uint8_t AdaptiveTUEnabled;
+    uint8_t reserved8b_dqp; // DeltaQpDcOffset
 } CODEC_HEVC_ENCODE_PICTURE_PARAMS, *PCODEC_HEVC_ENCODE_PICTURE_PARAMS;
 
 /*! \brief Slice-level parameters of a compressed picture for HEVC encoding.

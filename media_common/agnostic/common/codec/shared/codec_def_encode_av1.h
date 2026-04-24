@@ -297,15 +297,12 @@ typedef struct _CODEC_AV1_ENCODE_SEQUENCE_PARAMS
     } CodingToolFlags;
 
     uint8_t     order_hint_bits_minus_1;    // [0..7]
-    union
-    {
-        uint8_t LookaheadDepth;               // [0..100]
-        uint8_t TargetFrameSizeConfidence;    // [0..100]
-    };
-
-    uint8_t     Reserved8b2;
-    uint8_t     Reserved8b3;
-    uint32_t    Reserved32b[16];
+    uint8_t     LookaheadDepth;             // [0..128]
+    uint8_t     reserved8b_fg;              // FGLookaheadDepth
+    uint8_t     FastPassRatio;              // [0..2]
+    uint8_t     FastPassDsType;             // [0..1]
+    uint8_t     reserved8b[3];
+    uint32_t    Reserved32b[15];
 } CODEC_AV1_ENCODE_SEQUENCE_PARAMS, *PCODEC_AV1_ENCODE_SEQUENCE_PARAMS;
 
 struct CODEC_Intel_Seg_AV1

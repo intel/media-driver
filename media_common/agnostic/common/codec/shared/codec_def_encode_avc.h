@@ -574,6 +574,12 @@ typedef struct _CODEC_AVC_ENCODE_SEQUENCE_PARAMS
     *    Range is [0~127]. Default is 0 which means lookahead disabled. Valid only when LookaheadBRCSupport is 1. When not 0, application should send LOOKAHEADDATA buffer to driver.
     */
     uint8_t   LookaheadDepth;
+    uint8_t   reserved8b_fg; // FGLookaheadDepth
+    uint8_t   FastPassRatio;
+    uint8_t   FastPassDsType;
+    uint8_t   reserved8b_rgb; // RGBInputStudioRange
+    uint8_t   reserved8b_yuv; // ConvertedYUVStudioRange
+    bool      EnableFastPass;
 
     uint8_t            constraint_set0_flag               : 1;    //!< Same as AVC syntax element.
     uint8_t            constraint_set1_flag               : 1;    //!< Same as AVC syntax element.
@@ -1065,6 +1071,7 @@ typedef struct _CODEC_AVC_ENCODE_PIC_PARAMS
     uint8_t         QpModulationStrength;
 
     uint8_t         AdaptiveTUEnabled;
+    uint8_t         reserved8b_dqp; // DeltaQpDcOffset
 
     /*! \brief StatusReportEnable
     *
