@@ -206,6 +206,7 @@ MOS_STATUS GraphicsResourceSpecificNext::Allocate(OsContextNext* osContextPtr, C
         gmmParams.Flags.Info.LocalOnly = MEDIA_IS_SKU(pOsContextSpecific->GetSkuTable(), FtrLocalMemory);
     }
 
+    gmmParams.Flags.Info.Cacheable        = params.m_flags.bCacheable;
     GMM_RESOURCE_INFO*  gmmResourceInfoPtr = pOsContextSpecific->GetGmmClientContext()->CreateResInfoObject(&gmmParams);
 
     if (gmmResourceInfoPtr == nullptr)
