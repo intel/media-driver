@@ -33,12 +33,14 @@
 #define DECODE_ASSERT(_expr)                                                   \
     MOS_ASSERT(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_DECODE, _expr)
 
+#ifndef DECODE_ASSERTMESSAGE
 #if (_DEBUG || _RELEASE_INTERNAL)
 #define DECODE_ASSERTMESSAGE(_message, ...)                                    \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_DECODE, _message, ##__VA_ARGS__)
 #else
 #define DECODE_ASSERTMESSAGE(_message, ...)                                    \
     OcaOnMosCriticalMessage(MOS_FUNCTION, __LINE__);
+#endif
 #endif
 
 #define DECODE_WARNINGMESSAGE(_message, ...) \
@@ -59,8 +61,10 @@
 #define DECODE_CHK_STATUS_MESSAGE(_stmt, _message, ...)                        \
     MOS_CHK_STATUS_MESSAGE_RETURN(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_DECODE, _stmt, _message, ##__VA_ARGS__)
 
+#ifndef DECODE_CHK_COND
 #define DECODE_CHK_COND(_expr, _message, ...)                                  \
     MOS_CHK_COND_RETURN(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_DECODE,_expr,_message, ##__VA_ARGS__)
+#endif
 
 #define DECODE_CHK_NULL_NO_STATUS_RETURN(_ptr) \
     MOS_CHK_NULL_NO_STATUS_RETURN(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_DECODE, _ptr)

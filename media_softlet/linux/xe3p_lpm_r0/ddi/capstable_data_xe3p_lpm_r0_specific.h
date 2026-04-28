@@ -66,6 +66,9 @@
 #if defined(_VVC_DECODE_SUPPORTED)
 #include "capstable_data_vvc_decode_xe3p_lpm_r0_specific.h"
 #endif
+#ifdef _MEDIA_RESERVED
+#include "capstable_includes_xe3p_lpm_r0_reserved.h"
+#endif
 
 #include "capstable_data_image_format_definition.h"
 
@@ -347,6 +350,10 @@ static const EntrypointMap entrypointMap_VAProfileVVCMultilayerMain10_Xe3p_Lpm_r
 #endif
 };
 
+#ifdef _MEDIA_RESERVED
+#include "capstable_entrypoint_xe3p_lpm_r0_reserved.h"
+#endif
+
 //!
 //! \brief  ProfileMap for Xe3p_Lpm_r0
 //!
@@ -402,6 +409,10 @@ static const ProfileMap profileMap_Xe3p_Lpm_r0
 #if defined(_VVC_DECODE_SUPPORTED)
     {(VAProfile)VAProfileVVCMain10, &entrypointMap_VAProfileVVCMain10_Xe3p_Lpm_r0},
     {(VAProfile)VAProfileVVCMultilayerMain10, &entrypointMap_VAProfileVVCMultilayerMain10_Xe3p_Lpm_r0},
+#endif
+
+#ifdef _MEDIA_RESERVED
+#include "capstable_profilemap_xe3p_lpm_r0_reserved.h"
 #endif
 };
 
