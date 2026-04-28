@@ -196,7 +196,7 @@ MOS_STATUS DecodeDownSamplingFeature::Update(void *params)
         m_histogramBufferV   = nullptr;
     }
 
-    if (m_osInterface && MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrVDAQMHistogram) &&
+    if (decodeParams->m_vdaqmHistogram &&
         (m_histogramBuffer != nullptr || m_histogramBufferU != nullptr || m_histogramBufferV != nullptr))
     {
         m_aqmHistogramEnable = true;
