@@ -353,6 +353,12 @@ MOS_STATUS McpyDeviceXe_Hpm::Initialize(
     MhwInterfaces* mhwInterfaces = nullptr;
 
     auto deleterOnFailure = [&](bool deleteOsInterface, bool deleteMhwInterface){
+        if (deleteMhwInterface && mhwInterfaces != nullptr)
+        {
+            mhwInterfaces->Destroy();
+            MOS_Delete(mhwInterfaces);
+        }
+
         if (deleteOsInterface && osInterface != nullptr)
         {
             if (osInterface->pfnDestroy)
@@ -360,12 +366,6 @@ MOS_STATUS McpyDeviceXe_Hpm::Initialize(
                 osInterface->pfnDestroy(osInterface, false);
             }
             MOS_FreeMemory(osInterface);
-        }
-
-        if (deleteMhwInterface && mhwInterfaces != nullptr)
-        {
-            mhwInterfaces->Destroy();
-            MOS_Delete(mhwInterfaces);
         }
 
         MOS_Delete(device);
