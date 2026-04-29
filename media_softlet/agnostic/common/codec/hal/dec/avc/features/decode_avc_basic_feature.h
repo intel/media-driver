@@ -160,6 +160,7 @@ public:
     uint32_t                        m_slcLength               = 0;
     uint32_t                        m_slcOffset               = 0;
     bool                            m_usingVeRing             = false;
+    bool                            m_avcd4ByteNalStartCodeSupport = false; //!< HW handles start code detection
     // CencDecode buffer
     CencDecodeShareBuf              *m_cencBuf                = nullptr;
 
@@ -167,8 +168,6 @@ public:
     AvcReferenceFrames              m_refFrames;                              //!< Reference frames
     std::vector<uint32_t>           m_refFrameIndexList;                      //!< Reference frame index list
     RefrenceAssociatedBuffer<MOS_BUFFER, AvcMvBufferOpInf, AvcBasicFeature> m_mvBuffers; //!< Reference associated buffers
-
-    bool m_hwStartCodeSupportEnabled = false;  //!< Controls AVC hardware start code support based on both hardware capability and user feature setting
 
 protected:
     virtual MOS_STATUS SetRequiredBitstreamSize(uint32_t requiredSize) override;
