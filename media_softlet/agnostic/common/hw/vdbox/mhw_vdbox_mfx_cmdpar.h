@@ -282,6 +282,7 @@ struct _MHW_PAR_T(MFX_AVC_IMG_STATE)
     uint8_t                   maxViewIdxl0                                 = 0;
     uint8_t                   maxViewIdxl1                                 = 0;
     bool                      extendedRhodomainStatisticsEnable            = false;
+    bool                      fullrangeFrameQpRhoTableFlag                 = false;
     uint32_t                  thresholdSizeInBytes                         = 0;
     uint32_t                  targetSliceSizeInBytes                       = 0;
     PCODEC_AVC_PIC_PARAMS     avcPicParams                                 = nullptr;
