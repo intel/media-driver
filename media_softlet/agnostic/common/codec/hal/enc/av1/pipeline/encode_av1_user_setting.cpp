@@ -62,7 +62,7 @@ MOS_STATUS Av1Pipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingPtr
         userSettingPtr,
         "AV1 Encode Additional Intra Angles",
         MediaUserSetting::Group::Sequence,
-        uint32_t(0),
+        (int32_t)-1,
         false);
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
