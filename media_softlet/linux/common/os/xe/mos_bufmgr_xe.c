@@ -2561,7 +2561,7 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
      * exec.address only accepts batch->offset64 when num bo == 1;
      * and it only accepts batch array when num bo > 1
     */
-    exec.address = (num_bo == 1 ? (uintptr_t)batch_addrs[0] : (uintptr_t)batch_addrs);
+    exec.address = (num_bo == 1 ? batch_addrs[0] : (uint64_t)(uintptr_t)batch_addrs);
     exec.num_batch_buffer = num_bo;
     ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_XE_EXEC, &exec);
     if (ret)
