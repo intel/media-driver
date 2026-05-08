@@ -68,6 +68,14 @@ static ConfigDataList configDataList_VAProfileH264High10_VAEntrypointVLD_Xe3_Lpm
   {VA_DEC_SLICE_MODE_BASE,   VA_ENCRYPTION_TYPE_NONE, VA_DEC_PROCESSING}
 };
 
+static ConfigDataList configDataList_VAProfileH264High422_VAEntrypointVLD_Xe3_Lpm_r0 =
+{
+  {VA_DEC_SLICE_MODE_NORMAL, VA_ENCRYPTION_TYPE_NONE, VA_DEC_PROCESSING_NONE},
+  {VA_DEC_SLICE_MODE_NORMAL, VA_ENCRYPTION_TYPE_NONE, VA_DEC_PROCESSING},
+  {VA_DEC_SLICE_MODE_BASE,   VA_ENCRYPTION_TYPE_NONE, VA_DEC_PROCESSING_NONE},
+  {VA_DEC_SLICE_MODE_BASE,   VA_ENCRYPTION_TYPE_NONE, VA_DEC_PROCESSING}
+};
+
 //!
 //! \brief  Definition for AttribList
 //!
@@ -96,6 +104,18 @@ static const AttribList attribList_VAProfileH264High_VAEntrypointVLD_Xe3_Lpm_r0
 };
 
 static const AttribList attribList_VAProfileH264High10_VAEntrypointVLD_Xe3_Lpm_r0
+{
+   {VAConfigAttribRTFormat, VA_RT_FORMAT_YUV420_10 | VA_RT_FORMAT_YUV422_10 | VA_RT_FORMAT_YUV420_10BPP},
+   {VAConfigAttribDecSliceMode, VA_DEC_SLICE_MODE_NORMAL | VA_DEC_SLICE_MODE_BASE},
+   {VAConfigAttribDecProcessing, VA_DEC_PROCESSING},
+   {VAConfigAttribMaxPictureWidth, CODEC_4K_MAX_PIC_WIDTH},
+   {VAConfigAttribMaxPictureHeight, CODEC_4K_MAX_PIC_HEIGHT},
+   {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
+   {VAConfigAttribProcessingRate, VA_PROCESSING_RATE_DECODE},
+   {VAConfigAttribCustomRoundingControl, 1},
+};
+
+static const AttribList attribList_VAProfileH264High422_VAEntrypointVLD_Xe3_Lpm_r0
 {
    {VAConfigAttribRTFormat, VA_RT_FORMAT_YUV420_10 | VA_RT_FORMAT_YUV422_10 | VA_RT_FORMAT_YUV420_10BPP},
    {VAConfigAttribDecSliceMode, VA_DEC_SLICE_MODE_NORMAL | VA_DEC_SLICE_MODE_BASE},
@@ -166,6 +186,14 @@ static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileH264High10_VAEntrypoi
     }}}
 };
 
+static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileH264High422_VAEntrypointVLD_Xe3_Lpm_r0 =
+{
+  {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_Y210}}},
+  {VASurfaceAttribMaxWidth,    VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_4K_MAX_PIC_WIDTH}}},
+  {VASurfaceAttribMaxHeight,   VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_4K_MAX_PIC_HEIGHT}}},
+  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_SURFACE_ATTRIB_MEM_TYPE_VA| VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2}}}
+};
+
 static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileH264ConstrainedBaseline_VAEntrypointVLD_Xe3_Lpm_r0 =
 {
   {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_NV12}}},
@@ -211,4 +239,10 @@ static const EntrypointData entrypointMap_VAProfileH264High10Dec_Data_Xe3_Lpm_r0
     &surfaceAttribInfo_VAProfileH264High10_VAEntrypointVLD_Xe3_Lpm_r0
 };
 
+static const EntrypointData entrypointMap_VAProfileH264High422Dec_Data_Xe3_Lpm_r0
+{
+    &attribList_VAProfileH264High422_VAEntrypointVLD_Xe3_Lpm_r0,
+    &configDataList_VAProfileH264High422_VAEntrypointVLD_Xe3_Lpm_r0,
+    &surfaceAttribInfo_VAProfileH264High422_VAEntrypointVLD_Xe3_Lpm_r0
+};
 #endif
