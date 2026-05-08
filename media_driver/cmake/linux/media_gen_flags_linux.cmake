@@ -147,6 +147,11 @@ if(PTL)
     add_definitions(-DIGFX_PTL_SUPPORTED)
 endif()
 
+option(MFX_INTERFACE_EXT_SUPPORT "Enable MFX Interface Ext Support" ON)
+if(MFX_INTERFACE_EXT_SUPPORT)
+    add_definitions(-DIGFX_MFX_INTERFACE_EXT_SUPPORT)
+endif()
+
 if(GEN8)
     add_definitions(-DIGFX_GEN8_SUPPORTED)
 endif()

@@ -50,6 +50,7 @@ set(TMP_SOFTLET_MHW_VDBOX_AVP_HEADERS_
 )
 
 set(TMP_SOFTLET_MHW_VDBOX_MFX_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_mfx_cmdpar_ext.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_mfx_cmdpar.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_mfx_impl.h
     ${CMAKE_CURRENT_LIST_DIR}/mhw_vdbox_mfx_itf.h
