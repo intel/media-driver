@@ -476,6 +476,15 @@ static const ProfileMap profileMap_Xe3_Lpm_ext_r0
     {VAProfileH264ConstrainedBaseline, &entrypointMap_VAProfileH264ConstrainedBaseline_Xe3_Lpm_r0},
 #endif
 
+#if defined(_AVC_DECODE_SUPPORTED)
+#if VA_CHECK_VERSION(1, 18, 0)
+    {VAProfileH264High10, &entrypointMap_VAProfileH264High10_Xe3_Lpm_r0},
+#endif
+#if VA_CHECK_VERSION(1, 23, 0)
+    {VAProfileH264High422, &entrypointMap_VAProfileH264High422_Xe3_Lpm_r0},
+#endif
+#endif
+
 #if defined(_JPEG_ENCODE_SUPPORTED) || defined(_JPEG_DECODE_SUPPORTED)
     {VAProfileJPEGBaseline, &entrypointMap_VAProfileJPEGBaseline_Xe3_Lpm_r0},
 #endif
