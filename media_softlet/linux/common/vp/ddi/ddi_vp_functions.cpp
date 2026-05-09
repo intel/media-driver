@@ -47,6 +47,8 @@
 #define VP_MIN_PIC_HEIGHT                   16
 #define QUERY_CAPS_ATTRIBUTE                1                     /* query the actual filter caps attribute in vp module */
 
+#define VA_PROC_MODE_HIGH_QUALITY           3
+
 // ITU-T H.265 Table E.3: Colour Primaries
 #define COLOUR_PRIMARY_BT2020                  9
 #define COLOUR_PRIMARY_BT709                   1
@@ -4011,6 +4013,11 @@ VAStatus DdiVpFunctions::DdiSetProcPipelineParams(
 
     osInterface = vpCtx->pVpHal->GetOsInterface();
     DDI_VP_CHK_NULL(osInterface, "nullptr osInterface.", VA_STATUS_ERROR_INVALID_BUFFER);
+
+    if (static_cast<int>(pipelineParam->processing_mode) == VA_PROC_MODE_HIGH_QUALITY)
+    {
+        vpHalRenderParams->isHighQualityModeEnabled = true;
+    }
 
     // increment surface count
     vpHalRenderParams->uSrcCount++;
