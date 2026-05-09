@@ -61,7 +61,7 @@ HucVp9ProbUpdatePktPpgtt::~HucVp9ProbUpdatePktPpgtt()
 {
     if (m_hucKernelSource != nullptr && m_pipeline != nullptr)
     {
-        m_hucKernelSource->ReportMode(m_pipeline->GetSkuTable(), m_pipeline->GetUserSetting());
+        m_hucKernelSource->ReportMode(m_pipeline->GetUserSetting());
     }
 
     if (m_allocator != nullptr && m_kernelBinBuffer != nullptr)
@@ -77,7 +77,8 @@ MOS_STATUS HucVp9ProbUpdatePktPpgtt::Init()
     m_hucKernelSource = HucKernelSourceDevice::CreateFactory(m_osInterface);
     DECODE_CHK_NULL(m_hucKernelSource);
     DECODE_CHK_NULL(m_pipeline);
-    m_isPpgttMode = m_hucKernelSource->IsPpgttMode(m_pipeline->GetSkuTable(), m_pipeline->GetUserSetting());
+    DECODE_CHK_STATUS(m_hucKernelSource->Init(m_pipeline->GetSkuTable(), m_pipeline->GetUserSetting()));
+    m_isPpgttMode = m_hucKernelSource->IsPpgttMode();
 
     DECODE_CHK_STATUS(HucVp9ProbUpdatePkt::Init());
 

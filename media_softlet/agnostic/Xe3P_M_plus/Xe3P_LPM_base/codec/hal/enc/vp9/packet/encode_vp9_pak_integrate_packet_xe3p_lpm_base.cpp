@@ -109,7 +109,8 @@ MOS_STATUS Vp9PakIntegratePktXe3p_Lpm_Base::Init()
     m_hucKernelSource = HucKernelSourceDevice::CreateFactory(m_osInterface);
     ENCODE_CHK_NULL_RETURN(m_hucKernelSource);
     ENCODE_CHK_NULL_RETURN(m_hwInterface);
-    m_isPPGTT = m_hucKernelSource->IsPpgttMode(m_hwInterface->GetSkuTable(), m_userSettingPtr);
+    ENCODE_CHK_STATUS_RETURN(m_hucKernelSource->Init(m_hwInterface->GetSkuTable(), m_userSettingPtr));
+    m_isPPGTT = m_hucKernelSource->IsPpgttMode();
 
     ENCODE_CHK_STATUS_RETURN(Vp9PakIntegratePkt::Init());
 

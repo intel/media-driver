@@ -41,7 +41,8 @@ namespace decode {
 
         m_hucKernelSource = HucKernelSourceDevice::CreateFactory(m_osInterface);
         DECODE_CHK_NULL(m_hucKernelSource);
-        m_isPpgttMode = m_hucKernelSource->IsPpgttMode(m_hevcPipeline->GetSkuTable(), m_hevcPipeline->GetUserSetting());
+        DECODE_CHK_STATUS(m_hucKernelSource->Init(m_hevcPipeline->GetSkuTable(), m_hevcPipeline->GetUserSetting()));
+        m_isPpgttMode = m_hucKernelSource->IsPpgttMode();
 
         DECODE_CHK_STATUS(HucS2lPkt::Init());
 
@@ -95,7 +96,7 @@ namespace decode {
     {
         if (m_hucKernelSource != nullptr)
         {
-            DECODE_CHK_STATUS(m_hucKernelSource->ReportMode(m_hevcPipeline->GetSkuTable(), m_hevcPipeline->GetUserSetting()));
+            DECODE_CHK_STATUS(m_hucKernelSource->ReportMode(m_hevcPipeline->GetUserSetting()));
         }
 
         if (m_allocator != nullptr)

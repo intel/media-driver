@@ -83,7 +83,7 @@ public:
     {
         if (m_hucKernelSource != nullptr)
         {
-            m_hucKernelSource->ReportMode(m_hwInterface->GetSkuTable(), m_userSettingPtr);
+            m_hucKernelSource->ReportMode(m_userSettingPtr);
         }
     }
 

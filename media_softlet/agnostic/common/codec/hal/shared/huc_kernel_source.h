@@ -169,17 +169,19 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    virtual bool IsPpgttMode(MEDIA_FEATURE_TABLE *skuTable, MediaUserSettingSharedPtr userSettingPtr)
+    //!
+    //! \brief    Per-platform initialization. Caches SKU-driven state.
+    //!           Idempotent — safe to call multiple times with the same skuTable.
+    //!           MUST be called before IsPpgttMode / GetKernelBin / GetKernelHashIdx / GetManifest.
+    //!
+    virtual MOS_STATUS Init(MEDIA_FEATURE_TABLE *skuTable, MediaUserSettingSharedPtr userSettingPtr)
     {
         if (skuTable == nullptr)
         {
-            return false;
+            return MOS_STATUS_INVALID_PARAMETER;
         }
 
-        if(!MEDIA_IS_SKU(skuTable, FtrPPGTTBasedHuCLoad))
-        {
-            return false;
-        }
+        m_isPpgtt = MEDIA_IS_SKU(skuTable, FtrPPGTTBasedHuCLoad) ? true : false;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
         const std::string enableKey = "PPGTT Huc Enable";
@@ -188,12 +190,11 @@ public:
             userSettingPtr,
             enableKey,
             MediaUserSetting::Group::Device,
-            true, // enable by default
+            true,
             false);
 
         if (status == MOS_STATUS_SUCCESS || status == MOS_STATUS_FILE_EXISTS)
         {
-            // check if disabled by regkey
             bool enablePpgtt = true;
             ReadUserSettingForDebug(
                 userSettingPtr,
@@ -203,18 +204,21 @@ public:
 
             if (!enablePpgtt)
             {
-                return false;
+                m_isPpgtt = false;
             }
         }
 #endif
 
-        return true;
+        return MOS_STATUS_SUCCESS;
     }
 
-    virtual MOS_STATUS ReportMode(MEDIA_FEATURE_TABLE *skuTable, MediaUserSettingSharedPtr userSettingPtr)
-    {
-        MOS_CHK_NULL_RETURN(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_PUBLIC, skuTable);
+    //! \brief    Returns whether PPGTT-based HuC loading is active.
+    //!           Returns the value cached by the most recent Init() call.
+    //!           Returns false (safe default) if Init() has not been called.
+    virtual bool IsPpgttMode() const { return m_isPpgtt; }
 
+    virtual MOS_STATUS ReportMode(MediaUserSettingSharedPtr userSettingPtr)
+    {
         const std::string inUseKey = "PPGTT Huc In Use";
 
         MOS_STATUS status = DeclareUserSettingKey(
@@ -225,12 +229,10 @@ public:
             true);
         if (status == MOS_STATUS_SUCCESS || status == MOS_STATUS_FILE_EXISTS)
         {
-            bool isPpgttEnable = IsPpgttMode(skuTable, userSettingPtr);
-
             ReportUserSetting(
                 userSettingPtr,
                 inUseKey,
-                isPpgttEnable ? 1 : 0,
+                m_isPpgtt ? 1 : 0,
                 MediaUserSetting::Group::Device);
         }
 
@@ -258,6 +260,8 @@ protected:
     constexpr static HucBinaryInternal m_invalidKernelBin = { nullptr, nullptr };
 
     constexpr static uint32_t m_invalidHashIndex = 0xff; //!< Invalid hash index
+
+    bool m_isPpgtt = false; //!< Cached by Init(); true when PPGTT-based HuC loading is active
 
 private:
     virtual const BinaryTable  &GetBinTable() = 0;
