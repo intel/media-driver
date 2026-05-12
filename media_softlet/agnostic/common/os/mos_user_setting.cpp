@@ -1412,6 +1412,12 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         MediaUserSetting::Group::Device,
         0,
         true);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_NULLHW_PROXY_REPEAT_COUNT_FILE,
+        MediaUserSetting::Group::Device,
+        "",
+        true);  // "Path to per-pipeline repeat count config file"
 #endif
     DeclareUserSettingKeyForDebug(
         userSettingPtr,

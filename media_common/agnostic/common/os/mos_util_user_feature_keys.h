@@ -432,6 +432,7 @@
 #define __MEDIA_USER_FEATURE_VALUE_NULLHW_ENABLE                                "NULL HW Enable"
 #if (_DEBUG || _RELEASE_INTERNAL)
 #define __MEDIA_USER_FEATURE_VALUE_NULLHW_PROXY_REPEAT_COUNT                    "NULL HW Proxy Repeat Count"
+#define __MEDIA_USER_FEATURE_VALUE_NULLHW_PROXY_REPEAT_COUNT_FILE              "NULL HW Proxy Repeat Count File"
 #endif
 #define __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_PLATFORM                         "MockAdaptor Platform"
 #define __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_STEPPING                         "MockAdaptor Stepping"
