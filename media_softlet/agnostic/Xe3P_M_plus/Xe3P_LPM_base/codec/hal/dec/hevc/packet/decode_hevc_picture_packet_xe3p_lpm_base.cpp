@@ -60,7 +60,7 @@ MOS_STATUS HevcDecodePicPktXe3P_Lpm_Base::Execute(MOS_COMMAND_BUFFER &cmdBuffer)
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     if (m_downSamplingFeature != nullptr && m_downSamplingPkt != nullptr &&
-        m_downSamplingFeature->IsEnabled())
+        m_downSamplingFeature->IsEnabled() && !m_downSamplingFeature->IsVDAQMHistogramEnabled())
     {
         if (!IsFrontEndPhase())
         {
@@ -205,6 +205,13 @@ MHW_SETPAR_DECL_SRC(HCP_PIC_STATE, HevcDecodePicPktXe3P_Lpm_Base)
     params.pHevcExtPicParams                       = m_hevcRextPicParams;
     params.pHevcSccPicParams                       = m_hevcSccPicParams;
     params.ibcMotionCompensationBufferReferenceIdc = m_hevcBasicFeature->m_refFrames.m_IBCRefIdx;
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    if (m_downSamplingFeature && m_downSamplingFeature->IsVDAQMHistogramEnabled())
+    {
+        params.vdaqmEnable = true;
+    }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }

@@ -51,6 +51,11 @@ MOS_STATUS HevcDecodeLongPktXe3P_Lpm_Base::Init()
     m_tilePkt = dynamic_cast<HevcDecodeTilePktXe3P_Lpm_Base*>(subPacket);
     DECODE_CHK_NULL(m_tilePkt);
 
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    subPacket = m_hevcPipeline->GetSubPacket(DecodePacketId(m_hevcPipeline, hevcDecodeAqmId));
+    m_aqmPkt  = dynamic_cast<HevcDecodeAqmPktXe3PLpmBase *>(subPacket);
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -136,6 +141,20 @@ MOS_STATUS HevcDecodeLongPktXe3P_Lpm_Base::VdPipelineFlush(MOS_COMMAND_BUFFER & 
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS HevcDecodeLongPktXe3P_Lpm_Base::VdPipelineFlushAqm(MOS_COMMAND_BUFFER& cmdBuffer)
+{
+    DECODE_FUNC_CALL();
+
+    auto &par                  = m_vdencItf->GETPAR_VD_PIPELINE_FLUSH();
+    par                        = {};
+    par.waitDoneVDAQM          = 1;
+    par.flushVDAQM             = 1;
+    par.waitDoneVDCmdMsgParser = 1;
+    m_vdencItf->ADDCMD_VD_PIPELINE_FLUSH(&cmdBuffer);
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS HevcDecodeLongPktXe3P_Lpm_Base::PackPictureLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer)
 {
     PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
@@ -144,6 +163,13 @@ MOS_STATUS HevcDecodeLongPktXe3P_Lpm_Base::PackPictureLevelCmds(MOS_COMMAND_BUFF
 
     DECODE_CHK_STATUS(m_picturePkt->Execute(cmdBuffer));
 
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    if (m_aqmPkt)
+    {
+        DECODE_CHK_STATUS(m_aqmPkt->Execute(cmdBuffer));
+    }
+#endif
+
     PMHW_BATCH_BUFFER batchBuffer = m_hevcPipeline->GetSliceLvlCmdBuffer();
     DECODE_CHK_NULL(batchBuffer);
     batchBuffer->dwOffset = 0;
@@ -151,6 +177,15 @@ MOS_STATUS HevcDecodeLongPktXe3P_Lpm_Base::PackPictureLevelCmds(MOS_COMMAND_BUFF
 
     DECODE_CHK_STATUS(VdMemoryFlush(cmdBuffer));
     DECODE_CHK_STATUS(VdPipelineFlush(cmdBuffer));
+    DECODE_CHK_STATUS(VdPipelineFlushAqm(cmdBuffer));
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    if (m_aqmPkt)
+    {
+        DECODE_CHK_STATUS(m_aqmPkt->Flush(cmdBuffer));
+    }
+#endif
+
     // Skip MI_FLUSH when CRC output is enabled to maintain proper command ordering
     // This MiFlush comes BEFORE EndStatusReport, so bypass it when CRC mode is enabled
     // When CRC debug mode is enabled, debug packet Execute() will handle MI_FLUSH after CRC data collection
