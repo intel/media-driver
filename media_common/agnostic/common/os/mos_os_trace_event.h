@@ -407,7 +407,11 @@ typedef enum _MEDIA_EVENT
     EVENT_HWS_NATIVE_FENCE_ADD_TO_ARRAY_CMD,       //! event for Hws Native Fence Add To Array Cmd
     EVENT_HWS_NATIVE_FENCE_ADD_TO_QUEUE_API,       //! event for Hws Native Fence Add To Queue Api
     EVENT_HWS_NATIVE_FENCE_12_WAIT,                //! event for Hws Native Fence 12 Wait
-    EVENT_DECODE_FRAME                             //! release event for decode picture frame info
+    EVENT_DECODE_FRAME,                            //! release event for decode picture frame info
+    EVENT_ENCODE_DDI_STATUS_REPORT_RESERVED_0,     //! reserved: encode DDI status report slot 0
+    EVENT_ENCODE_DDI_CAPS_RESERVED_0,              //! reserved: encode DDI caps slot 0
+    EVENT_ENCODE_DDI_PIC_PARAM_RESERVED_0,         //! reserved: encode DDI picture param slot 0
+    EVENT_ENCODE_API_STICKER_RESERVED_0,           //! reserved: encode API sticker slot 0
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE
