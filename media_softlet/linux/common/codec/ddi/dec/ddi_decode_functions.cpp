@@ -394,7 +394,6 @@ VAStatus DdiDecodeFunctions::DestroyContext(
     uint32_t ctxType;
     PDDI_DECODE_CONTEXT decCtx = (decltype(decCtx))MediaLibvaCommonNext::GetContextFromContextID(ctx, context, &ctxType);
     DDI_CODEC_CHK_NULL(decCtx, "nullptr decCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CODEC_CHK_NULL(decCtx->pCodecHal, "nullptr decCtx->pCodecHal", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     /* Free the context id from the context_heap earlier */
     uint32_t decIndex = (uint32_t)context & DDI_MEDIA_MASK_VACONTEXTID;

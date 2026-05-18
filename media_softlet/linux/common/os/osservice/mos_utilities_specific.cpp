@@ -1764,6 +1764,10 @@ MOS_STATUS MosUtilities::MosOpenRegKey(
     PUFKEY_NEXT key,
     RegBufferMap &regBufferMap)
 {
+    MOS_UNUSED(keyHandle);
+    MOS_UNUSED(samDesired);
+    MOS_OS_CHK_NULL_RETURN(key);
+
     std::string tempSubKey = subKey;
 
     if (subKey.find_first_of("\\") != std::string::npos)
@@ -1775,7 +1779,16 @@ MOS_STATUS MosUtilities::MosOpenRegKey(
     {
         tempSubKey = "[" + tempSubKey + "]";
     }
-    return MosCreateRegKey(keyHandle, tempSubKey, samDesired, key, regBufferMap);
+
+    // Unlike MosCreateRegKey, only succeed if the key already exists.
+    auto ret = regBufferMap.find(tempSubKey);
+    if (ret == regBufferMap.end())
+    {
+        return MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED;
+    }
+
+    *key = tempSubKey;
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS MosUtilities::MosCloseRegKey(
