@@ -323,15 +323,20 @@ MOS_STATUS GpuContextSpecificNextXe::PatchCommandBuffer(
 
         MOS_OS_CHK_NULL_RETURN(tempCmdBo->virt);
 
-        if (perStreamParameters->bUse64BitRelocs)
+        // PRE_PATCHED entries: caller has already written the GPU address into the
+        // command buffer at PatchOffset. Skip the re-write.
+        if (currentPatch->patchType != (uint32_t)MOS_PATCH_TYPE_PRE_PATCHED)
         {
-            *((uint64_t *)((uint8_t *)tempCmdBo->virt + currentPatch->PatchOffset)) =
-                    boOffset + currentPatch->AllocationOffset;
-        }
-        else
-        {
-            *((uint32_t *)((uint8_t *)tempCmdBo->virt + currentPatch->PatchOffset)) =
-                    boOffset + currentPatch->AllocationOffset;
+            if (perStreamParameters->bUse64BitRelocs)
+            {
+                *((uint64_t *)((uint8_t *)tempCmdBo->virt + currentPatch->PatchOffset)) =
+                        boOffset + currentPatch->AllocationOffset;
+            }
+            else
+            {
+                *((uint32_t *)((uint8_t *)tempCmdBo->virt + currentPatch->PatchOffset)) =
+                        boOffset + currentPatch->AllocationOffset;
+            }
         }
 
 #if (_DEBUG || _RELEASE_INTERNAL)

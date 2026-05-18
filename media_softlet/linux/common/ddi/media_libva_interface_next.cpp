@@ -1625,7 +1625,10 @@ VAStatus MediaLibvaInterfaceNext::GetImage(
     VASurfaceID targetSurface = VA_INVALID_SURFACE;
     VASurfaceID outputSurface = surface;
 
-    if (inputSurface->format != OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.alpha_mask) ||
+    const bool isRgbInYuvContainer =
+        (vaimg->format.fourcc == VA_FOURCC_Y416) && (vaimg->format.red_mask != 0);
+
+    if (inputSurface->format != OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.alpha_mask, isRgbInYuvContainer) ||
         (width != vaimg->width || height != vaimg->height) &&
         (vaimg->format.fourcc != VA_FOURCC_444P &&
         vaimg->format.fourcc != VA_FOURCC_422V &&
@@ -1638,7 +1641,7 @@ VAStatus MediaLibvaInterfaceNext::GetImage(
         DDI_CHK_RET(vaStatus, "Create VP Context failed.");
 
         //Create target surface for VP pipeline.
-        DDI_MEDIA_FORMAT mediaFmt = OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.fourcc);
+        DDI_MEDIA_FORMAT mediaFmt = OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.fourcc, isRgbInYuvContainer);
         if (mediaFmt == Media_Format_Count)
         {
             DDI_ASSERTMESSAGE("Unsupported surface type.");
@@ -1777,8 +1780,11 @@ VAStatus MediaLibvaInterfaceNext::PutImage(
     DDI_CHK_RET(vaStatus,   "MapBuffer failed.");
     DDI_CHK_NULL(imageData, "nullptr imageData.", VA_STATUS_ERROR_INVALID_IMAGE);
 
+    const bool isRgbInYuvContainer =
+        (vaimg->format.fourcc == VA_FOURCC_Y416) && (vaimg->format.red_mask != 0);
+
     // VP Pipeline will be called for CSC/Scaling if the surface format or data size is not consistent with image.
-    if (mediaSurface->format != OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.alpha_mask) ||
+    if (mediaSurface->format != OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.alpha_mask, isRgbInYuvContainer) ||
         destWidth != srcWidth || destHeight != srcHeight ||
         srcX != 0 || destX != 0 || srcY != 0 || destY != 0)
     {
@@ -1790,7 +1796,7 @@ VAStatus MediaLibvaInterfaceNext::PutImage(
         DDI_CHK_RET(vaStatus, "Create VP Context failed");
 
         //Create temp surface for VP pipeline.
-        DDI_MEDIA_FORMAT mediaFmt = OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.fourcc);
+        DDI_MEDIA_FORMAT mediaFmt = OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.fourcc, isRgbInYuvContainer);
         if (mediaFmt == Media_Format_Count)
         {
             DDI_ASSERTMESSAGE("Unsupported surface type.");
@@ -2753,6 +2759,16 @@ VAStatus MediaLibvaInterfaceNext::DeriveImage (
         }
     }
     mediaCtx->m_capsNext->PopulateColorMaskInfo(&vaimg->format);
+
+    // Surface is an RGB payload reusing a YUV container fourcc (Y416).
+    if (mediaSurface->format == Media_Format_Y416_X16B16G16R16)
+    {
+        vaimg->format.depth      = 48;          // 16bpc x R/G/B; X channel ignored
+        vaimg->format.red_mask   = 0x0000FFFFu; // R in low 16 bits of low dword
+        vaimg->format.green_mask = 0xFFFF0000u; // G in high 16 bits of low dword
+        vaimg->format.blue_mask  = 0x0000FFFFu; // B is in the high dword (not expressible in 32-bit); reuse pattern as non-zero signal
+        vaimg->format.alpha_mask = 0;           // X channel unused
+    }
 
     buf = MOS_New(DDI_MEDIA_BUFFER);
     if (buf == nullptr)
@@ -4132,6 +4148,7 @@ VAStatus MediaLibvaInterfaceNext::GenerateVaImgFromMediaFormat(
     case Media_Format_Y412:
 #endif
     case Media_Format_Y416:
+    case Media_Format_Y416_X16B16G16R16:
         vaimg->format.bits_per_pixel    = 64; // packed format [alpha, Y, U, V], 16 bits per channel
         vaimg->num_planes               = 1;
         vaimg->pitches[0]               = mediaSurface->iPitch;
@@ -4437,7 +4454,7 @@ VAStatus MediaLibvaInterfaceNext::RtFormatToOsFormat(uint32_t format, int32_t &e
     return VA_STATUS_SUCCESS;
 }
 
-DDI_MEDIA_FORMAT MediaLibvaInterfaceNext::OsFormatToMediaFormat(int32_t fourcc, int32_t rtformatType)
+DDI_MEDIA_FORMAT MediaLibvaInterfaceNext::OsFormatToMediaFormat(int32_t fourcc, int32_t rtformatType, bool isRgbInYuvContainer)
 {
     switch (fourcc)
     {
@@ -4544,6 +4561,10 @@ DDI_MEDIA_FORMAT MediaLibvaInterfaceNext::OsFormatToMediaFormat(int32_t fourcc, 
             return Media_Format_Y412;
 #endif
         case VA_FOURCC_Y416:
+            if (isRgbInYuvContainer)
+            {
+                return Media_Format_Y416_X16B16G16R16;
+            }
             return Media_Format_Y416;
         case VA_FOURCC_Y8:
             return Media_Format_Y8;
@@ -4557,7 +4578,12 @@ DDI_MEDIA_FORMAT MediaLibvaInterfaceNext::OsFormatToMediaFormat(int32_t fourcc, 
             return Media_Format_A16R16G16B16;
         case VA_FOURCC_ABGR64:
             return Media_Format_A16B16G16R16;
-
+        case VA_FOURCC_XBGR64:
+            if (rtformatType & (VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_YUV444_10))
+            {
+                return Media_Format_Y416_X16B16G16R16;
+            }
+            return Media_Format_Count;
         default:
             return Media_Format_Count;
     }
@@ -4922,6 +4948,10 @@ int32_t MediaLibvaInterfaceNext::MediaFormatToOsFormat(DDI_MEDIA_FORMAT format)
             return VA_FOURCC_ARGB64;
         case Media_Format_A16B16G16R16:
             return VA_FOURCC_ABGR64;
+        case Media_Format_Y416_X16B16G16R16:
+            // Asymmetric reverse mapping: the DDI enum name encodes Y416-container
+            // semantics, so the reverse fourcc is VA_FOURCC_Y416 (not XBGR64).
+            return VA_FOURCC_Y416;
         default:
             return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
     }

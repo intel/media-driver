@@ -377,7 +377,8 @@ typedef enum _MOS_PATCH_TYPE
     MOS_PATCH_TYPE_BIND_ONLY,
     MOS_PATCH_TYPE_UV_BASE_ADDRESS,
     MOS_PATCH_TYPE_V_BASE_ADDRESS,
-    MOS_PATCH_TYPE_V_Y_OFFSET
+    MOS_PATCH_TYPE_V_Y_OFFSET,
+    MOS_PATCH_TYPE_PRE_PATCHED    //!< GPU address already written into cmd buffer at PatchOffset
 } MOS_PATCH_TYPE;
 
 //!

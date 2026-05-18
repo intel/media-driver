@@ -30,6 +30,11 @@
 
 #include <va/va.h>
 #include <va/va_backend.h>
+
+#ifndef VA_FOURCC_XBGR64
+#define VA_FOURCC_XBGR64 0x34474258    /* 'X','B','G','4' */
+#endif
+
 #include <semaphore.h>
 #include "GmmLib.h"
 #include "mos_bufmgr_api.h"
@@ -140,6 +145,7 @@ typedef enum _DDI_MEDIA_FORMAT
     Media_Format_YVYU        ,
     Media_Format_A16R16G16B16,
     Media_Format_A16B16G16R16,
+    Media_Format_Y416_X16B16G16R16,    //!< Y416-container variant carrying packed X16B16G16R16; collapses to Format_A16B16G16R16 below DDI
     Media_Format_P012        ,
 #if VA_CHECK_VERSION(1, 9, 0)
     Media_Format_Y212        ,
@@ -163,7 +169,8 @@ typedef enum _DDI_MEDIA_FORMAT
      (format) == Media_Format_RGBP              || \
      (format) == Media_Format_BGRP              || \
      (format) == Media_Format_A16R16G16B16      || \
-     (format) == Media_Format_A16B16G16R16)
+     (format) == Media_Format_A16B16G16R16      || \
+     (format) == Media_Format_Y416_X16B16G16R16)
 
 
 typedef enum _DDI_MEDIA_STATUS_REPORT_QUERY_STATE

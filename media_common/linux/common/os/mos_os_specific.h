@@ -527,6 +527,7 @@ typedef struct _PATCHLOCATIONLIST
     int32_t                     uiRelocFlag;
     uint32_t                    uiWriteOperation;
     MOS_LINUX_BO                *cmdBo;
+    uint32_t                    patchType;
 } PATCHLOCATIONLIST, *PPATCHLOCATIONLIST;
 
 //#define PATCHLOCATIONLIST_SIZE 25

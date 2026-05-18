@@ -1677,6 +1677,7 @@ MOS_STATUS MosInterface::ConvertResourceFromDdi(
             resource->Format = Format_A16R16G16B16;
             break;
         case Media_Format_A16B16G16R16:
+        case Media_Format_Y416_X16B16G16R16:
             resource->Format = Format_A16B16G16R16;
             break;
         case Media_Format_I420:

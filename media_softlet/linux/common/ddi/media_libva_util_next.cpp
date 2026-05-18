@@ -163,6 +163,7 @@ VAStatus MediaLibvaUtilNext::SetDefaultTileFormat(
         case Media_Format_Y412:
 #endif
         case Media_Format_Y416:
+        case Media_Format_Y416_X16B16G16R16:
         case Media_Format_Y8:
         case Media_Format_Y16S:
         case Media_Format_Y16U:
@@ -1171,6 +1172,7 @@ GMM_RESOURCE_FORMAT MediaLibvaUtilNext::ConvertMediaFmtToGmmFmt(DDI_MEDIA_FORMAT
         case Media_Format_Y16U       : return GMM_FORMAT_MEDIA_Y16_UNORM;
         case Media_Format_A16R16G16B16: return GMM_FORMAT_B16G16R16A16_UNORM;
         case Media_Format_A16B16G16R16: return GMM_FORMAT_R16G16B16A16_UNORM;
+        case Media_Format_Y416_X16B16G16R16: return GMM_FORMAT_R16G16B16A16_UNORM;
         default                      : return GMM_FORMAT_INVALID;
     }
 }
@@ -2447,7 +2449,8 @@ MOS_FORMAT MediaLibvaUtilNext::GetFormatFromMediaFormat(DDI_MEDIA_FORMAT mediaFo
         {Media_Format_VYUY, Format_VYUY},
         {Media_Format_YVYU, Format_YVYU},
         {Media_Format_A16R16G16B16, Format_A16R16G16B16},
-        {Media_Format_A16B16G16R16, Format_A16B16G16R16}
+        {Media_Format_A16B16G16R16, Format_A16B16G16R16},
+        {Media_Format_Y416_X16B16G16R16, Format_A16B16G16R16}
     };
     auto it = ddiFormatToMediaFormatMap.find(mediaFormat);
     if(it != ddiFormatToMediaFormatMap.end())

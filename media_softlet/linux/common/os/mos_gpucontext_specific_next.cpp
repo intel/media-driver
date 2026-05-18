@@ -783,6 +783,7 @@ MOS_STATUS GpuContextSpecificNext::SetPatchEntry(
     m_patchLocationList[m_currentNumPatchLocations].uiWriteOperation = params->bWrite ? true: false;
     m_patchLocationList[m_currentNumPatchLocations].cmdBo            =
                 params->cmdBuffer != nullptr ? params->cmdBuffer->OsResource.bo : nullptr;
+    m_patchLocationList[m_currentNumPatchLocations].patchType        = (uint32_t)params->patchType;
 
     if (streamState->osCpInterface &&
         streamState->osCpInterface->IsHMEnabled())
