@@ -221,6 +221,11 @@ namespace mi
         bool                    bHdcPipelineFlush             = false;
         bool                    bKernelFenceEnabled           = false;
         bool                    bPPCFlush                     = false;
+        bool                    bNotifyEnable                 = false;
+        bool                    bDepthStallEnable             = false;
+        bool                    bStallAtPixelScoreboard       = false;
+        bool                    bDepthCacheFlushEnable        = false;
+        bool                    bRenderTargetCacheFlushEnable = false;
     };
 
     struct _MHW_PAR_T(MI_BATCH_BUFFER_START)
