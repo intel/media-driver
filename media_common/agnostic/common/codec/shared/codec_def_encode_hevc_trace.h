@@ -28,6 +28,7 @@
 #include "codec_def_encode_hevc.h"
 #include "mos_utilities.h"
 
+#define RESERVE(num) data.reserve(num)
 #define NUM_ELEM_ARRAY(member) (sizeof(obj.member) / sizeof(obj.member[0]))
 #define PUSH(member) data.push_back(obj.member)
 #define PUSH64(member)                                            \
@@ -37,21 +38,25 @@
         data.push_back(p[1]);                                     \
     }
 #define PUSH_ARRAY(member)                                 \
+    RESERVE(NUM_ELEM_ARRAY(member));                       \
     for (size_t i0 = 0; i0 < NUM_ELEM_ARRAY(member); i0++) \
     {                                                      \
         PUSH(member[i0]);                                  \
     }
 #define PUSH_ARRAY2(member)                                \
+    RESERVE(NUM_ELEM_ARRAY(member));                       \
     for (size_t i1 = 0; i1 < NUM_ELEM_ARRAY(member); i1++) \
     {                                                      \
         PUSH_ARRAY(member[i1]);                            \
     }
 #define PUSH_ARRAY3(member)                                \
+    RESERVE(NUM_ELEM_ARRAY(member));                       \
     for (size_t i2 = 0; i2 < NUM_ELEM_ARRAY(member); i2++) \
     {                                                      \
         PUSH_ARRAY2(member[i2]);                           \
     }
 #define PUSH_SEQ(member, num)        \
+    RESERVE(num);                    \
     for (size_t i = 0; i < num; i++) \
     {                                \
         PUSH(member[i]);             \

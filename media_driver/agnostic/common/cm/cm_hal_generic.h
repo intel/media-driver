@@ -434,6 +434,7 @@ public:
     //!           always return MOS_STATUS_SUCCESS
     virtual MOS_STATUS AddSupportedCisaIDs(uint32_t *cisaGenIDs, int len = 1)
     {
+        m_cisaGenIDs.reserve(len);
         for (int i = 0; i < len; i++)
         {
             m_cisaGenIDs.push_back(cisaGenIDs[i]);

@@ -137,6 +137,7 @@ MOS_STATUS MediaDebugInterface::SetOutputFilePath()
 
 void MediaDebugInterface::PackGoldenReferences(std::initializer_list<std::vector<uint32_t>> goldenReference)
 {
+    m_goldenReferences.reserve(goldenReference.size());
     for (auto beg = goldenReference.begin(); beg != goldenReference.end(); beg++)
     {
         m_goldenReferences.push_back(*beg);
@@ -189,6 +190,7 @@ MOS_STATUS MediaDebugInterface::LockResource(uint32_t *semaData, PMOS_RESOURCE r
 
 MOS_STATUS MediaDebugInterface::LockSemaResource(std::vector<uint32_t *> &vSemaData, std::vector<MOS_RESOURCE> &vResource)
 {
+    vSemaData.reserve(vResource.size());
     for (uint32_t i = 0; i < vResource.size(); i++)
     {
         CodechalResLock semaLock(m_osInterface, &vResource[i]);
