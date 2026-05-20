@@ -191,13 +191,13 @@ typedef enum _MHW_SCALING_MODE
 //!
 typedef struct _MHW_AVS_PARAMS
 {
-    MOS_FORMAT              Format;
-    float                   fScaleX;
-    float                   fScaleY;
     int32_t                 *piYCoefsX;
     int32_t                 *piYCoefsY;
     int32_t                 *piUVCoefsX;
     int32_t                 *piUVCoefsY;
+    MOS_FORMAT              Format;
+    float                   fScaleX;
+    float                   fScaleY;
     bool                    bForcePolyPhaseCoefs;
     bool                    bUse8x8Filter;
 } MHW_AVS_PARAMS, *PMHW_AVS_PARAMS;
@@ -623,6 +623,12 @@ typedef struct _MHW_SAMPLER_AVS_TABLE_PARAM
 //!
 typedef struct _MHW_SAMPLER_STATE_AVS_PARAM
 {
+    PMHW_SAMPLER_AVS_TABLE_PARAM pMhwSamplerAvsTableParam; // pointer to AVS scaling 8x8 table params
+
+    void                         *pTable8x8_Ptr;     // Table data ptr in GSH
+    int32_t                      iTable8x8_Index;   // Table allocation index (not needed on Gen8+)
+    uint32_t                     dwTable8x8_Offset; // Table data offset in GSH
+
     int16_t                      stateID;
 
     // STE params
@@ -662,12 +668,6 @@ typedef struct _MHW_SAMPLER_STATE_AVS_PARAM
     uint16_t YSlope1;
     uint16_t S2U;
     uint16_t S1U;
-
-    PMHW_SAMPLER_AVS_TABLE_PARAM pMhwSamplerAvsTableParam; // pointer to AVS scaling 8x8 table params
-
-    int32_t                      iTable8x8_Index;   // Table allocation index (not needed on Gen8+)
-    void                         *pTable8x8_Ptr;     // Table data ptr in GSH
-    uint32_t                     dwTable8x8_Offset; // Table data offset in GSH
 } MHW_SAMPLER_STATE_AVS_PARAM, *PMHW_SAMPLER_STATE_AVS_PARAM;
 
 //!

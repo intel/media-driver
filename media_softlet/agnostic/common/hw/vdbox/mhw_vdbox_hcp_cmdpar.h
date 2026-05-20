@@ -551,6 +551,9 @@ struct _MHW_PAR_T(HCP_PIPE_BUF_ADDR_STATE)
 struct _MHW_PAR_T(HCP_PAK_INSERT_OBJECT)
 {
     PBSBuffer         pBsBuffer                        = nullptr;
+    PMHW_BATCH_BUFFER pBatchBufferForPakSlices         = nullptr;
+    uint32_t *        pdwMpeg2PicHeaderTotalBufferSize = nullptr;
+    uint32_t *        pdwMpeg2PicHeaderDataStartOffset = nullptr;
     uint32_t          dwBitSize                        = 0;
     uint32_t          dwOffset                         = 0;
     uint32_t          uiSkipEmulationCheckCount        = 0;
@@ -561,13 +564,10 @@ struct _MHW_PAR_T(HCP_PAK_INSERT_OBJECT)
     bool              bSetLastPicInStreamData          = false;
     bool              bSliceHeaderIndicator            = false;
     bool              bHeaderLengthExcludeFrmSize      = false;
-    uint32_t *        pdwMpeg2PicHeaderTotalBufferSize = nullptr;
-    uint32_t *        pdwMpeg2PicHeaderDataStartOffset = nullptr;
     bool              bResetBitstreamStartingPos       = false;
     bool              bEndOfSlice                      = false;
     uint32_t          dwLastPicInSeqData               = 0;
     uint32_t          dwLastPicInStreamData            = 0;
-    PMHW_BATCH_BUFFER pBatchBufferForPakSlices         = nullptr;
     bool              bVdencInUse                      = false;
     uint32_t          dataBitsInLastDw                 = 0;
     uint8_t           databyteoffset                   = 0;
@@ -675,14 +675,8 @@ struct _MHW_PAR_T(HCP_TILE_CODING)
     uint32_t numOfTileColumnsInFrame              = 0;
     uint32_t tileStartLCUX                        = 0;
     uint32_t tileStartLCUY                        = 0;
-    uint16_t tileHeightInMinCbMinus1              = 0;
-    uint16_t tileWidthInMinCbMinus1               = 0;
-    bool     isLastTileofColumn                   = false;
-    bool     isLastTileofRow                      = false;
     uint32_t tileRowStoreSelect                   = 0;
     uint32_t tileColumnStoreSelect                = 0;
-    bool     nonFirstPassTile                     = false;
-    bool     bitstreamByteOffsetEnable            = false;
     uint32_t numberOfActiveBePipes                = 0;
     uint32_t bitstreamByteOffset                  = 0;
     uint32_t pakTileStatisticsOffset              = 0;
@@ -693,6 +687,12 @@ struct _MHW_PAR_T(HCP_TILE_CODING)
     uint32_t saoRowstoreOffset                    = 0;
     uint32_t tileSizeStreamoutOffset              = 0;
     uint32_t vp9ProbabilityCounterStreamoutOffset = 0;
+    uint16_t tileHeightInMinCbMinus1              = 0;
+    uint16_t tileWidthInMinCbMinus1               = 0;
+    bool     nonFirstPassTile                     = false;
+    bool     bitstreamByteOffsetEnable            = false;
+    bool     isLastTileofColumn                   = false;
+    bool     isLastTileofRow                      = false;
 };
 
 struct _MHW_PAR_T(HCP_PALETTE_INITIALIZER_STATE)

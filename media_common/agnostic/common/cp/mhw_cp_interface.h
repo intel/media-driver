@@ -71,8 +71,8 @@ typedef struct _MHW_ADD_CP_COPY_PARAMS
 {
     PMOS_RESOURCE presSrc;
     PMOS_RESOURCE presDst;
-    uint32_t      size;
     uint64_t      offset;
+    uint32_t      size;
     bool          bypass;
 } MHW_ADD_CP_COPY_PARAMS, *PMHW_ADD_CP_COPY_PARAMS;
 
