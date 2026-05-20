@@ -272,9 +272,11 @@ protected:
 
     std::map<MOS_RESOURCE *, TraceInfo *> m_resourcePool;
     std::map<MOS_SURFACE *, TraceInfo *>  m_surfacePool;
+    std::map<MOS_BUFFER *, TraceInfo *>   m_bufferPool;
 #else
     std::vector<MOS_RESOURCE *> m_resourcePool;
     std::vector<MOS_SURFACE *>  m_surfacePool;
+    std::vector<MOS_BUFFER *>   m_bufferPool;
 #endif
 
     PMOS_INTERFACE m_osInterface = nullptr;  //!< PMOS_INTERFACE
