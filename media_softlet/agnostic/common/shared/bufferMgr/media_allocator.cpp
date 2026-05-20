@@ -51,6 +51,16 @@ MOS_STATUS Allocator::DestroyAllResources()
 
     m_resourcePool.clear();
 
+    for (auto it : m_bufferPool)
+    {
+        MOS_BUFFER *buffer = const_cast<MOS_BUFFER *>(it.first);
+        m_osInterface->pfnFreeResource(m_osInterface, &buffer->OsResource);
+        MOS_Delete(buffer);
+        MOS_Delete(it.second);
+    }
+
+    m_bufferPool.clear();
+
     for (auto it : m_surfacePool)
     {
         MOS_SURFACE *surface = const_cast<MOS_SURFACE *>(it.first);
@@ -71,6 +81,13 @@ MOS_STATUS Allocator::DestroyAllResources()
         MOS_Delete(it);
     }
     m_resourcePool.clear();
+
+    for (auto it : m_bufferPool)
+    {
+        m_osInterface->pfnFreeResource(m_osInterface, &it->OsResource);
+        MOS_Delete(it);
+    }
+    m_bufferPool.clear();
 
     for (auto it : m_surfacePool)
     {
@@ -165,9 +182,9 @@ PMOS_BUFFER Allocator::AllocateBuffer(MOS_ALLOC_GFXRES_PARAMS &param, bool zeroO
     MOS_OS_ASSERT(param.pBufName != nullptr);
     info->name     = param.pBufName;
 
-    m_resourcePool.insert(std::make_pair(&buffer->OsResource, info));
+    m_bufferPool.insert(std::make_pair(buffer, info));
 #else
-    m_resourcePool.push_back(&buffer->OsResource);
+    m_bufferPool.push_back(buffer);
 #endif
 
     if (zeroOnAllocate)
@@ -247,22 +264,22 @@ MOS_STATUS Allocator::DestroyBuffer(MOS_BUFFER *buffer)
         return MOS_STATUS_NULL_POINTER;
     }
 #if (_DEBUG || _RELEASE_INTERNAL)
-    auto it = m_resourcePool.find(&buffer->OsResource);
-    if (it == m_resourcePool.end())
+    auto it = m_bufferPool.find(buffer);
+    if (it == m_bufferPool.end())
     {
         return MOS_STATUS_SUCCESS;
     }
 
     MOS_Delete(it->second);
 #else
-    auto it = std::find(m_resourcePool.begin(), m_resourcePool.end(), &buffer->OsResource);
-    if (it == m_resourcePool.end())
+    auto it = std::find(m_bufferPool.begin(), m_bufferPool.end(), buffer);
+    if (it == m_bufferPool.end())
     {
         return MOS_STATUS_SUCCESS;
     }
 #endif
 
-    m_resourcePool.erase(it);
+    m_bufferPool.erase(it);
     m_osInterface->pfnFreeResource(m_osInterface, &buffer->OsResource);
     MOS_Delete(buffer);
 
