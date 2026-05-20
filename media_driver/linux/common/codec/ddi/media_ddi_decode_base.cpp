@@ -994,6 +994,7 @@ VAStatus DdiMediaDecode::CreateBuffer(
     buf->uiOffset      = 0;
     buf->bCFlushReq    = false;
     buf->pMediaCtx     = m_ddiDecodeCtx->pMediaCtx;
+    buf->lock          = MOS_New(std::shared_timed_mutex);
 
     switch ((int32_t)type)
     {
@@ -1122,6 +1123,7 @@ CleanUpandReturn:
     if(buf)
     {
         MOS_FreeMemory(buf->pData);
+        MOS_Delete(buf->lock);
         MOS_FreeMemory(buf);
     }
     return va;
