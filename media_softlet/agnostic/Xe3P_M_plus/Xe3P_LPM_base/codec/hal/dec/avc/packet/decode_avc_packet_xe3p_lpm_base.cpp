@@ -36,6 +36,18 @@
 namespace decode
 {
 
+MOS_STATUS AvcDecodePktXe3P_Lpm_Base::Init()
+{
+    DECODE_CHK_STATUS(AvcDecodePkt::Init());
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    DecodeSubPacket *subPacket = m_avcPipeline->GetSubPacket(DecodePacketId(m_avcPipeline, avcDecodeAqmId));
+    m_aqmPkt                   = dynamic_cast<AvcDecodeAqmPktXe3PLpmBase *>(subPacket);
+#endif
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS AvcDecodePktXe3P_Lpm_Base::Submit(
     MOS_COMMAND_BUFFER* cmdBuffer,
     uint8_t packetPhase)
@@ -73,6 +85,14 @@ MOS_STATUS AvcDecodePktXe3P_Lpm_Base::Submit(
     }
 
     DECODE_CHK_STATUS(PackPictureLevelCmds(*cmdBuffer));
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    if (m_aqmPkt)
+    {
+        DECODE_CHK_STATUS(m_aqmPkt->Execute(*cmdBuffer));
+    }
+#endif
+
     DECODE_CHK_STATUS(PackSliceLevelCmds(*cmdBuffer));
 
     HalOcaInterfaceNext::DumpCodechalParam(*cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, m_avcPipeline->GetCodechalOcaDumper(), CODECHAL_AVC);
@@ -120,6 +140,15 @@ MOS_STATUS AvcDecodePktXe3P_Lpm_Base::PackSliceLevelCmds(MOS_COMMAND_BUFFER &cmd
         }
     }
 
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    if (m_aqmPkt && m_aqmPkt->m_downSampling && m_aqmPkt->m_downSampling->IsVDAQMHistogramEnabled())
+    {
+        // Add VD_PIPELINE_FLUSH for VDAQM, then flush the AQM histogram.
+        DECODE_CHK_STATUS(VdPipelineFlushVdaqm(cmdBuffer));
+        DECODE_CHK_STATUS(m_aqmPkt->Flush(cmdBuffer));
+    }
+#endif
+
     // Skip MI_FLUSH when CRC output is enabled to maintain proper command ordering
     // This EnsureAllCommandsExecuted comes BEFORE EndStatusReport, so bypass it when CRC mode is enabled
     // When CRC debug mode is enabled, debug packet Execute() will handle MI_FLUSH after CRC data collection
@@ -141,6 +170,23 @@ MOS_STATUS AvcDecodePktXe3P_Lpm_Base::PackSliceLevelCmds(MOS_COMMAND_BUFFER &cmd
     {
         DECODE_CHK_STATUS(m_miItf->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
     }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS AvcDecodePktXe3P_Lpm_Base::VdPipelineFlushVdaqm(MOS_COMMAND_BUFFER &cmdBuffer)
+{
+    DECODE_FUNC_CALL();
+
+    auto &par = m_vdencItf->MHW_GETPAR_F(VD_PIPELINE_FLUSH)();
+    par       = {};
+
+    par.waitDoneMFX            = true;  // bit3
+    par.waitDoneVDCmdMsgParser = true;  // bit4
+    par.waitDoneVDAQM          = true;  // bit7
+    par.flushVDAQM             = true;  // bit22
+
+    m_vdencItf->MHW_ADDCMD_F(VD_PIPELINE_FLUSH)(&cmdBuffer);
 
     return MOS_STATUS_SUCCESS;
 }

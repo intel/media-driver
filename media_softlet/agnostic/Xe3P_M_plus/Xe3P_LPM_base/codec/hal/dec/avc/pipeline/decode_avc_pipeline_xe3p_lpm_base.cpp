@@ -29,6 +29,7 @@
 #include "decode_avc_packet_xe3p_lpm_base.h"
 #include "decode_avc_slice_packet_xe3p_lpm_base.h"
 #include "decode_avc_picture_packet_xe3p_lpm_base.h"
+#include "decode_avc_aqm_packet_xe3p_lpm_base.h"
 #include "decode_common_feature_defs.h"
 #include "decode_avc_downsampling_packet.h"
 #include "decode_avc_feature_manager_xe3p_lpm_base.h"
@@ -129,6 +130,13 @@ MOS_STATUS AvcPipelineXe3P_Lpm_Base::CreateSubPackets(DecodeSubPacketManager &su
     DECODE_CHK_STATUS(subPacketManager.Register(
                         DecodePacketId(this, avcSliceSubPacketId), *sliceDecodePkt));
 
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    AvcDecodeAqmPktXe3PLpmBase *aqmDecodePkt = MOS_New(AvcDecodeAqmPktXe3PLpmBase, this, m_hwInterface);
+    DECODE_CHK_NULL(aqmDecodePkt);
+    DECODE_CHK_STATUS(subPacketManager.Register(
+        DecodePacketId(this, avcDecodeAqmId), *aqmDecodePkt));
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -162,7 +170,7 @@ MOS_STATUS AvcPipelineXe3P_Lpm_Base::InitContext()
 #ifdef _DECODE_PROCESSING_SUPPORTED
     DecodeDownSamplingFeature* downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature*>(
         m_featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
-     if (downSamplingFeature != nullptr && downSamplingFeature->IsEnabled())
+     if (downSamplingFeature != nullptr && downSamplingFeature->IsEnabled() && !downSamplingFeature->IsVDAQMHistogramEnabled())
     {
         scalPars.usingSfc = true;
     }

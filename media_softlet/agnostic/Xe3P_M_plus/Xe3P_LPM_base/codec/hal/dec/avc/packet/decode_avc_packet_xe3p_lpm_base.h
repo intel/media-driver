@@ -30,6 +30,7 @@
 #include "mhw_vdbox_xe_lpm_plus_base.h"
 #include "codec_hw_xe3p_lpm_base.h"
 #include "decode_avc_packet.h"
+#include "decode_avc_aqm_packet_xe3p_lpm_base.h"
 
 namespace decode
 {
@@ -37,13 +38,16 @@ namespace decode
 class AvcDecodePktXe3P_Lpm_Base : public AvcDecodePkt
 {
 public:
-    AvcDecodePktXe3P_Lpm_Base(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext *hwInterface) : 
+    AvcDecodePktXe3P_Lpm_Base(MediaPipeline *pipeline, MediaTask *task, CodechalHwInterfaceNext *hwInterface) :
         AvcDecodePkt(pipeline, task, hwInterface)
     {
         m_hwInterface = dynamic_cast<CodechalHwInterfaceXe3P_Lpm_Base*>(hwInterface);
+        m_vdencItf    = std::static_pointer_cast<mhw::vdbox::vdenc::Itf>(hwInterface->GetVdencInterfaceNext());
     }
 
     virtual ~AvcDecodePktXe3P_Lpm_Base(){};
+
+    virtual MOS_STATUS Init() override;
 
     //!
     //! \brief  Add the command sequence into the commandBuffer and
@@ -55,12 +59,18 @@ public:
     //!
     virtual MOS_STATUS Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket) override;
 
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    AvcDecodeAqmPktXe3PLpmBase *m_aqmPkt = nullptr;
+#endif
+
 protected:
     MOS_STATUS PackPictureLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer);
     MOS_STATUS PackSliceLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer);
     MOS_STATUS EnsureAllCommandsExecuted(MOS_COMMAND_BUFFER &cmdBuffer);
+    MOS_STATUS VdPipelineFlushVdaqm(MOS_COMMAND_BUFFER &cmdBuffer);
 
     CodechalHwInterfaceXe3P_Lpm_Base* m_hwInterface = nullptr;
+    std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf = nullptr;
 
 MEDIA_CLASS_DEFINE_END(decode__AvcDecodePktXe3P_Lpm_Base)
 };

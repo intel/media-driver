@@ -49,7 +49,7 @@ namespace decode
         DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-        if (m_downSamplingFeature != nullptr && m_downSamplingPkt != nullptr)
+        if (m_downSamplingFeature != nullptr && m_downSamplingPkt != nullptr && !m_downSamplingFeature->IsVDAQMHistogramEnabled())
         {
             DECODE_CHK_STATUS(m_downSamplingPkt->Execute(cmdBuffer));
         }
@@ -228,6 +228,13 @@ namespace decode
 
         params.bitDepthLumaMinus8   = m_avcPicParams->bit_depth_luma_minus8;
         params.bitDepthChromaMinus8 = m_avcPicParams->bit_depth_chroma_minus8;
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+        if (m_downSamplingFeature && m_downSamplingFeature->IsVDAQMHistogramEnabled())
+        {
+            params.vdaqmEnable = true;
+        }
+#endif
 
         return MOS_STATUS_SUCCESS;
     }
