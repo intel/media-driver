@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -160,6 +160,12 @@ public:
 
     MHW_SETPAR_DECL_HDR(HUC_PIPE_MODE_SELECT);
 
+    //!
+    //! \brief    Get AVC SLBB buffer size (page-aligned)
+    //! \return   Buffer size in bytes, 0 if not yet computed
+    //!
+    uint32_t GetSlbbBufferSize() const { return m_slbbBufferSize; }
+
     EncodeMemComp *m_mmcState = nullptr;
 
     // Parameters passed from application
@@ -242,6 +248,8 @@ public:
 
     bool                            m_is8bit420 = false;  //!< Flag to indicate current encode format is 8-bit 4:2:0
 
+    bool                            m_useExtendedThreshold = false;
+
     uint32_t                       m_prevFrameHeight = 0; //!< Previous frame height before resolution change (for OCA logging)
     uint32_t                       m_prevFrameWidth  = 0; //!< Previous frame width before resolution change (for OCA logging)
 
@@ -309,6 +317,8 @@ protected:
     uint8_t *             m_seiParamBuffer = nullptr;  //!< Encode SEI data buffer.
 
     MediaCopyWrapper *m_mediaCopyWrapper = nullptr;
+
+    uint32_t m_slbbBufferSize = 0;  //!< AVC SLBB buffer size (page-aligned), computed by platform subclass
 
 MEDIA_CLASS_DEFINE_END(encode__AvcBasicFeature)
 };

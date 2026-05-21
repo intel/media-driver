@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2023, Intel Corporation
+* Copyright (c) 2019-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -250,7 +250,7 @@ namespace encode
         auto brcFeature = dynamic_cast<Av1Brc *>(m_featureManager->GetFeature(Av1FeatureIDs::av1BrcFeature));
         ENCODE_CHK_NULL_RETURN(brcFeature);
         auto vdenc2ndLevelBatchBuffer = brcFeature->GetVdenc2ndLevelBatchBuffer(m_pipeline->m_currRecycledBufIdx);
-        auto slbbData                 = brcFeature->GetSLBData();
+        auto slbbData                 = m_basicFeature->GetSLBData();
 
         //AV1 Tile Commands
         //set up VD_CONTROL_STATE command

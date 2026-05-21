@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -58,21 +58,6 @@ enum AV1_BRC_FRAME_TYPE
     {
         uint32_t  frameByteCount;
         uint8_t   pakPassNum;
-    };
-    struct SlbData
-    {
-        //SLB related fields.
-        uint16_t slbSize = 0;
-        uint16_t avpPicStateCmdNum = 1;
-        uint16_t avpSegmentStateOffset = 0;
-        uint16_t avpInloopFilterStateOffset = 0;
-        uint16_t vdencCmd1Offset = 0;
-        uint16_t vdencCmd2Offset = 0;
-        uint16_t avpPicStateOffset = 0;
-        uint16_t secondAvpPicStateOffset = 0;
-        uint16_t pakInsertSlbSize = 0;
-        uint16_t vdencTileSliceStateOffset = 0;
-        uint16_t tileNum = 1;
     };
     //!
     //! \struct Av1BrcPakMmio
@@ -179,9 +164,6 @@ enum AV1_BRC_FRAME_TYPE
         //!
         MOS_STATUS SetDmemForInit(VdencAv1HucBrcInitDmem *params) const;
 
-        const SlbData& GetSLBData() { return m_slbData; };
-        void SetSLBData(const SlbData& input) { m_slbData = input; };
-
     protected:
         //! \brief  Allocate feature related resources
         //! \return MOS_STATUS
@@ -209,7 +191,6 @@ enum AV1_BRC_FRAME_TYPE
         EncodeAllocator          *m_allocator    = nullptr;
         Av1BasicFeature          *m_basicFeature = nullptr;  //!< EncodeBasicFeature
 
-        SlbData  m_slbData = {};
         uint8_t  m_rcMode  = 0;
 
         bool m_brcInit              = true;   //!< BRC init flag

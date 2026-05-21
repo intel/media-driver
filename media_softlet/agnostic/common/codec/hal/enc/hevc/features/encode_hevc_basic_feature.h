@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -133,6 +133,7 @@ public:
     uint32_t m_vdencBatchBufferPerSliceVarSize[ENCODE_HEVC_VDENC_NUM_MAX_SLICES] = { 0 };    //!< VDEnc batch buffer slice size array
     uint32_t m_vdencBatchBufferPerSlicePart2Start[ENCODE_HEVC_VDENC_NUM_MAX_SLICES] = {0};  //!< VDEnc batch buffer slice size array
     uint32_t m_vdencBatchBufferPerSlicePart2Size[ENCODE_HEVC_VDENC_NUM_MAX_SLICES] = {0};  //!< VDEnc batch buffer slice size array
+    uint32_t m_vdencBatchBufferTileSliceStart[ENCODE_HEVC_VDENC_NUM_MAX_SLICES] = {0};  //!< Byte offset to VDENC_HEVC_VP9_TILE_SLICE_STATE per slice in SLBB
 
     uint32_t m_picStateCmdStartInBytes = 0;       //!< Offset of PIC_STATE cmd in batch buffer
 

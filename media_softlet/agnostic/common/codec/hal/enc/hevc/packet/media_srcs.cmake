@@ -1,4 +1,4 @@
-# Copyright (c) 2018-2021, Intel Corporation
+# Copyright (c) 2018-2026, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,7 @@ set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/encode_huc_la_init_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_huc_la_update_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_422_packet.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_huc_slbb_update_packet.cpp
 )
 
 set(TMP_HEADERS_
@@ -39,6 +40,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/encode_huc_la_init_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_huc_la_update_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_vdenc_422_packet.h
+    ${CMAKE_CURRENT_LIST_DIR}/encode_hevc_huc_slbb_update_packet.h
 )
 
 set(SOFTLET_ENCODE_HEVC_HEADERS_

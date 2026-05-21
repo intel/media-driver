@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2023, Intel Corporation
+* Copyright (c) 2019-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -64,6 +64,22 @@ MOS_STATUS SyntaxElementCdfTableInit(
     uint16_t                    *ctxBuffer,
     SyntaxElementCdfTableLayout SyntaxElement);
 
+struct SlbData
+{
+    //SLB related fields.
+    uint16_t slbSize = 0;
+    uint16_t avpPicStateCmdNum = 1;
+    uint16_t avpSegmentStateOffset = 0;
+    uint16_t avpInloopFilterStateOffset = 0;
+    uint16_t vdencCmd1Offset = 0;
+    uint16_t vdencCmd2Offset = 0;
+    uint16_t avpPicStateOffset = 0;
+    uint16_t secondAvpPicStateOffset = 0;
+    uint16_t pakInsertSlbSize = 0;
+    uint16_t vdencTileSliceStateOffset = 0;
+    uint16_t tileNum = 1;
+};
+
 class Av1BasicFeature : public EncodeBasicFeature, public mhw::vdbox::vdenc::Itf::ParSetting, public mhw::vdbox::avp::Itf::ParSetting, public mhw::vdbox::huc::Itf::ParSetting, public mhw::mi::Itf::ParSetting
 {
 public:
@@ -97,6 +113,11 @@ public:
     virtual uint32_t GetProfileLevelMaxFrameSize() override;
 
     uint32_t GetAppHdrSizeInBytes(bool excludeFrameHdr = false) const;
+
+    const SlbData& GetSLBData() { return m_slbData; };
+    void SetSLBData(const SlbData& input) { m_slbData = input; };
+
+    uint32_t GetSlbbBufferSize() const { return m_slbbBufferSize; }
 
     virtual MHW_SETPAR_DECL_HDR(VDENC_PIPE_MODE_SELECT);
 
@@ -182,6 +203,7 @@ public:
     uint32_t                           m_frameHdrOBUSizeByteOffset = 0;  //!< indicate current frame OBUFrame offset
     uint16_t                           m_tileGroupHeaderSize = 0;
     uint32_t                           m_encodedFrameNum = 0;                                   //!< Currently encoded frame number
+    SlbData                            m_slbData = {};                                          //!< Second Level Batch Buffer data
 
     PMOS_RESOURCE                      m_resMvTemporalBuffer = nullptr;                         //!< Pointer to MOS_RESOURCE of MvTemporal Buffer
 
@@ -225,6 +247,7 @@ public:
     PMOS_RESOURCE m_resMfdIntraRowStoreScratchBuffer                       = nullptr;
 
 protected:
+    uint32_t m_slbbBufferSize            = 0;
     uint32_t m_appHdrSize                = 0;
     uint32_t m_appHdrSizeExcludeFrameHdr = 0;
 

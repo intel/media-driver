@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -128,6 +128,7 @@ public:
     uint16_t          m_refIndex                 = 0;
     size_t            m_DumpInputNum             = 0;
     size_t            m_bufferDumpFrameNum       = 0;
+    bool              m_isLookAheadPass          = false;
     uint32_t          m_decodeSurfDumpFrameNum   = 0;
     uint32_t          m_streamId                 = 0;
     uint32_t          m_crcTable[256]            ={0};

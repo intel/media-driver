@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2023, Intel Corporation
+* Copyright (c) 2011-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -102,7 +102,8 @@ enum CodechalHucRegionDumpType
     hucRegionDumpPakIntegrate   = 6,
     hucRegionDumpHpu            = 7,
     hucRegionDumpBackAnnotation = 8,
-    hucRegionDumpHpuSuperFrame  = 9
+    hucRegionDumpHpuSuperFrame  = 9,
+    hucRegionDumpSlbbUpdate     = 10
 };
 
 typedef struct _CODECHAL_ME_OUTPUT_PARAMS

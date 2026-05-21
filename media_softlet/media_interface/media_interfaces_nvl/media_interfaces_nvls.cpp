@@ -41,12 +41,8 @@ Copyright (c) 2026, Intel Corporation
 #include "mhw_vdbox_avp_impl_xe3p_lpm.h"
 #include "mhw_vdbox_huc_impl_xe3p_lpm.h"
 
-#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_aqm_impl_xe3p_lpm.h"
 #include "mhw_vdbox_vdenc_impl_xe3p_lpm.h"
-#else
-#include "mhw_vdbox_vdenc_impl_xe3_lpm.h" // Temporary WA for decode open source test. Remove after xe3p_lpm VDEnc is available.
-#endif
 #include "huc_kernel_source_xe3p_lpm_base.h"
 
 // VP9 Encode: Use VDEnc from xe3_lpm for VP9 encode.
@@ -245,7 +241,6 @@ MOS_STATUS MhwInterfacesNvl_Xe3G::Initialize(
         auto ptr = std::make_shared<mhw::vdbox::huc::xe3p_lpm_base::xe3p_lpm::Impl>(osInterface, m_cpInterface);
         m_hucItf = std::static_pointer_cast<mhw::vdbox::huc::Itf>(ptr);
     }
-#ifdef _MEDIA_RESERVED
     if (params.Flags.m_vdboxAll)
     {
         auto ptr   = std::make_shared<mhw::vdbox::aqm::xe3p_lpm_base::xe3p_lpm::Impl>(osInterface);
@@ -256,16 +251,6 @@ MOS_STATUS MhwInterfacesNvl_Xe3G::Initialize(
         auto ptr = std::make_shared<mhw::vdbox::vdenc::xe3p_lpm_base::xe3p_lpm::Impl>(osInterface);
         m_vdencItf = std::static_pointer_cast<mhw::vdbox::vdenc::Itf>(ptr);
     }
-#else
-    // The xe3p_lpm vdenc is not yet available in the open source build.
-    // As a temporary workaround, the xe3_lpm vdenc is used for open source decode test.
-    // TODO: Remove this workaround once the xe3p_lpm vdenc is ready in open source.
-    if (params.Flags.m_vdboxAll || params.Flags.m_vdenc)
-    {
-        auto ptr = std::make_shared<mhw::vdbox::vdenc::xe3_lpm_base::xe3_lpm::Impl>(osInterface);
-        m_vdencItf = std::static_pointer_cast<mhw::vdbox::vdenc::Itf>(ptr);
-    }
-#endif
     if (params.Flags.m_blt)
     {
         auto bltptr = std::make_shared<mhw::blt::xe3p_lpm::Impl>(osInterface);
@@ -441,7 +426,7 @@ MOS_STATUS CodechalInterfacesXe3P_Lpm::Initialize(
     }
     else if (CodecHalIsEncode(CodecFunction))
     {
-#if defined(_AVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_AVC_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_AVC)
         {
             if (CodecHalUsesVdencEngine(info->CodecFunction))
@@ -483,7 +468,7 @@ MOS_STATUS CodechalInterfacesXe3P_Lpm::Initialize(
         }
         else
 #endif
-#if defined(_AV1_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_AV1_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == codechalEncodeModeAv1)
         {
             if (CodecHalUsesVdencEngine(info->CodecFunction))
@@ -503,7 +488,7 @@ MOS_STATUS CodechalInterfacesXe3P_Lpm::Initialize(
         }
         else
 #endif
-#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_HEVC)
         {
             if (CodecHalUsesVdencEngine(info->CodecFunction))

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2023, Intel Corporation
+* Copyright (c) 2019-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -1423,7 +1423,7 @@ namespace encode{
                         ENCODE_CHK_NULL_RETURN(pakInsertOutputBatchBuffer);
                         // send pak insert obj cmds after back annotation
                         ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(cmdBuffer, pakInsertOutputBatchBuffer));
-                        auto slbbData = brcFeature->GetSLBData();
+                        auto slbbData = m_basicFeature->GetSLBData();
                         HalOcaInterfaceNext::OnSubLevelBBStart(
                             *cmdBuffer,
                             m_osInterface->pOsContext,
@@ -1937,7 +1937,7 @@ namespace encode{
             auto brcFeature = dynamic_cast<Av1Brc *>(m_featureManager->GetFeature(Av1FeatureIDs::av1BrcFeature));
             ENCODE_CHK_NULL_RETURN(brcFeature);
             auto vdenc2ndLevelBatchBuffer = brcFeature->GetVdenc2ndLevelBatchBuffer(m_pipeline->m_currRecycledBufIdx);
-            auto slbbData                 = brcFeature->GetSLBData();
+            auto slbbData                 = m_basicFeature->GetSLBData();
             
             //qp
             uint32_t qpOffset     = resourceOffset.dwMetaDataSize + tileNum * resourceOffset.dwMetaDataSubRegionSize + resourceOffset.dwTilePartitionSize + AV1ResourceOffset.dwQuantization + AV1ResourceOffset.dwBaseQIndex;

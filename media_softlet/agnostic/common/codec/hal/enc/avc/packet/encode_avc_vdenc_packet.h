@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2025, Intel Corporation
+* Copyright (c) 2020-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -122,7 +122,7 @@ public:
     }
 
 protected:
-    MOS_STATUS PatchPictureLevelCommands(const uint8_t &packetPhase, MOS_COMMAND_BUFFER  &cmdBuffer);
+    virtual MOS_STATUS PatchPictureLevelCommands(const uint8_t &packetPhase, MOS_COMMAND_BUFFER  &cmdBuffer);
     MOS_STATUS PatchSliceLevelCommands(MOS_COMMAND_BUFFER &cmdBuffer, uint8_t packetPhase);
     MOS_STATUS InsertSeqStreamEnd(MOS_COMMAND_BUFFER &cmdBuffer);
 

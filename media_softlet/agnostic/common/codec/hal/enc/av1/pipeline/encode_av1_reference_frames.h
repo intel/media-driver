@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2023, Intel Corporation
+* Copyright (c) 2019-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -81,6 +81,13 @@ public:
     //!          true if it's p frame, false random access mode
     //!
     bool IsPFrame() const { return m_PFrame; }
+
+    //!
+    //! \brief  Get FWD and BWD reference number
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS GetFwdBwdRefNum(uint8_t &fwdRefNum, uint8_t &bwdRefNum) const;
 
     //!
     //! \brief  Get current reference list
@@ -278,13 +285,6 @@ protected:
     //!         Pointer to current frame's colMV buffer
     //!
     PMOS_RESOURCE GetCurrentColMVBuffer();
-
-    //!
-    //! \brief  Get FWD and BWD reference number
-    //! \return MOS_STATUS
-    //!         MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS GetFwdBwdRefNum(uint8_t &fwdRefNum, uint8_t &bwdRefNum) const;
 
     Av1BasicFeature        *m_basicFeature = nullptr;                           //!< AV1 paramter
     uint8_t                 m_primaryRefFrame = av1PrimaryRefNone;              //!< AV1 primary reference frame

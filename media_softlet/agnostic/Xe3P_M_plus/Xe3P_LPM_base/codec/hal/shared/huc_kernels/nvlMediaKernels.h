@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2024, Intel Corporation
+* Copyright (c) 2024-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -55,8 +55,9 @@ DECLARE_HUC_KERNEL_BIN(av1ba,          nvl);
 DECLARE_HUC_KERNEL_BIN(av1brc_init,    nvl);
 DECLARE_HUC_KERNEL_BIN(av1brc_update,  nvl);
 DECLARE_HUC_KERNEL_BIN(vvcs2l,         nvl);
-DECLARE_HUC_KERNEL_BIN(avcbrc_pxp_init,  nvl);
-DECLARE_HUC_KERNEL_BIN(avcbrc_pxp_update,nvl);
+DECLARE_HUC_KERNEL_BIN(avcbrc_pxp_init,   nvl);
+DECLARE_HUC_KERNEL_BIN(avcbrc_pxp_update, nvl);
+DECLARE_HUC_KERNEL_BIN(avcslbb_pxp_update,nvl);
 DECLARE_HUC_KERNEL_BIN(av1slbb_update,  nvl);
 DECLARE_HUC_KERNEL_BIN(avcslbb_update,  nvl);
 DECLARE_HUC_KERNEL_BIN(hevcslbb_update, nvl);
@@ -81,8 +82,9 @@ DECLARE_HUC_KERNEL_MFT(nvl);
 #define __MediaKernels_av1brc_init_nvl_NAME    "MediaKernels_av1brc_init_1360"
 #define __MediaKernels_av1brc_update_nvl_NAME  "MediaKernels_av1brc_update_1360"
 #define __MediaKernels_vvcs2l_nvl_NAME         "MediaKernels_vvcs2l_1360"
-#define __MediaKernels_avcbrc_pxp_init_nvl_NAME   "MediaKernels_avcbrc_pxp_init_1360"
-#define __MediaKernels_avcbrc_pxp_update_nvl_NAME "MediaKernels_avcbrc_pxp_update_1360"
+#define __MediaKernels_avcbrc_pxp_init_nvl_NAME    "MediaKernels_avcbrc_pxp_init_1360"
+#define __MediaKernels_avcbrc_pxp_update_nvl_NAME  "MediaKernels_avcbrc_pxp_update_1360"
+#define __MediaKernels_avcslbb_pxp_update_nvl_NAME "MediaKernels_avcslbb_pxp_update_1360"
 #define __MediaKernels_av1slbb_update_nvl_NAME   "MediaKernels_av1slbb_update_1360"
 #define __MediaKernels_avcslbb_update_nvl_NAME   "MediaKernels_avcslbb_update_1360"
 #define __MediaKernels_hevcslbb_update_nvl_NAME  "MediaKernels_hevcslbb_update_1360"
@@ -119,8 +121,9 @@ REGISTER_HUC_KERNEL_BIN(av1ba,          nvl);
 REGISTER_HUC_KERNEL_BIN(av1brc_init,    nvl);
 REGISTER_HUC_KERNEL_BIN(av1brc_update,  nvl);
 REGISTER_HUC_KERNEL_BIN(vvcs2l,         nvl);
-REGISTER_HUC_KERNEL_BIN(avcbrc_pxp_init,   nvl);
-REGISTER_HUC_KERNEL_BIN(avcbrc_pxp_update, nvl);
+REGISTER_HUC_KERNEL_BIN(avcbrc_pxp_init,    nvl);
+REGISTER_HUC_KERNEL_BIN(avcbrc_pxp_update,  nvl);
+REGISTER_HUC_KERNEL_BIN(avcslbb_pxp_update, nvl);
 REGISTER_HUC_KERNEL_BIN(av1slbb_update,  nvl);
 REGISTER_HUC_KERNEL_BIN(avcslbb_update,  nvl);
 REGISTER_HUC_KERNEL_BIN(hevcslbb_update, nvl);

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -304,7 +304,9 @@ namespace encode
 
         slbData.slbSize = (uint16_t)constructedCmdBuf.iOffset - slbData.avpSegmentStateOffset;
 
-        RUN_FEATURE_INTERFACE_NO_RETURN(Av1Brc, Av1FeatureIDs::av1BrcFeature, SetSLBData, slbData);
+        auto basicFeature = dynamic_cast<Av1BasicFeature *>(m_featureManager->GetFeature(Av1FeatureIDs::basicFeature));
+        ENCODE_CHK_NULL_RETURN(basicFeature);
+        basicFeature->SetSLBData(slbData);
 
         m_allocator->UnLock(batchBuffer);
 
@@ -327,15 +329,15 @@ namespace encode
         constructedCmdBuf.pCmdBase = constructedCmdBuf.pCmdPtr = (uint32_t *)batchbufferAddr;
         constructedCmdBuf.iRemaining                           = MOS_ALIGN_CEIL(m_hwInterface->m_vdencReadBatchBufferSize, CODECHAL_PAGE_SIZE);
 
-        auto brcFeature = dynamic_cast<Av1Brc *>(m_featureManager->GetFeature(Av1FeatureIDs::av1BrcFeature));
-        ENCODE_CHK_NULL_RETURN(brcFeature);
-        auto slbData = brcFeature->GetSLBData();
+        auto basicFeature = dynamic_cast<Av1BasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+        ENCODE_CHK_NULL_RETURN(basicFeature);
+        auto slbData = basicFeature->GetSLBData();
 
         ENCODE_CHK_STATUS_RETURN(AddAllCmds_AVP_PAK_INSERT_OBJECT(&constructedCmdBuf));
         ENCODE_CHK_STATUS_RETURN(AddBBEnd(m_miItf, constructedCmdBuf));
 
         slbData.pakInsertSlbSize = (uint16_t)constructedCmdBuf.iOffset;
-        RUN_FEATURE_INTERFACE_NO_RETURN(Av1Brc, Av1FeatureIDs::av1BrcFeature, SetSLBData, slbData);
+        basicFeature->SetSLBData(slbData);
 
         return MOS_STATUS_SUCCESS;
     }

@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Intel Corporation
+# Copyright (c) 2025-2026, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -20,3 +20,6 @@
 
 media_include_subdirectory(vp9)
 media_include_subdirectory(jpeg)
+media_include_subdirectory(av1)
+media_include_subdirectory(avc)
+media_include_subdirectory(hevc)

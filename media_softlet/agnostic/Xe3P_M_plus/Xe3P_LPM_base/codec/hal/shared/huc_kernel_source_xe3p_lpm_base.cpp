@@ -48,6 +48,7 @@ HUC_KERNEL_BIN_LOCAL(__MediaKernels_vvcs2l_nvl)
 HUC_KERNEL_BIN_LOCAL(__MediaKernels_drm_nvl)
 HUC_KERNEL_BIN_LOCAL(__MediaKernels_avcbrc_pxp_init_nvl)
 HUC_KERNEL_BIN_LOCAL(__MediaKernels_avcbrc_pxp_update_nvl)
+HUC_KERNEL_BIN_LOCAL(__MediaKernels_avcslbb_pxp_update_nvl)
 #endif
 HUC_KERNEL_BIN_LOCAL(__MediaKernels_av1slbb_update_nvl)
 HUC_KERNEL_BIN_LOCAL(__MediaKernels_avcslbb_update_nvl)
@@ -80,6 +81,7 @@ const HucKernelSource::BinaryTable HucKernelSourceXe3P_Lpm_Base::m_binTable =
 #ifdef _MEDIA_RESERVED
     {HucKernelSource::avcPxpBrcInitKernelId,     HUC_KERNEL_BIN_ELEMENT(__MediaKernels_avcbrc_pxp_init_nvl)},
     {HucKernelSource::avcPxpBrcUpdateKernelId,   HUC_KERNEL_BIN_ELEMENT(__MediaKernels_avcbrc_pxp_update_nvl)},
+    {HucKernelSource::avcPxpSlbbUpdateKernelId,  HUC_KERNEL_BIN_ELEMENT(__MediaKernels_avcslbb_pxp_update_nvl)},
 #endif
     {HucKernelSource::av1SlbbUpdateKernelId,     HUC_KERNEL_BIN_ELEMENT(__MediaKernels_av1slbb_update_nvl)},
     {HucKernelSource::avcSlbbUpdateKernelId,     HUC_KERNEL_BIN_ELEMENT(__MediaKernels_avcslbb_update_nvl)},
@@ -111,6 +113,7 @@ const HucKernelSource::HashIdxTable HucKernelSourceXe3P_Lpm_Base::m_hashIdxTable
     {HucKernelSource::av1BrcInitKernelId,        HucKernelSource::m_invalidHashIndex},
     {HucKernelSource::av1BrcUpdateKernelId,      HucKernelSource::m_invalidHashIndex},
     {HucKernelSource::vvcS2lKernelId,            7},
+    {HucKernelSource::avcPxpSlbbUpdateKernelId,  8},
     {HucKernelSource::av1SlbbUpdateKernelId,     HucKernelSource::m_invalidHashIndex},
     {HucKernelSource::avcSlbbUpdateKernelId,     HucKernelSource::m_invalidHashIndex},
     {HucKernelSource::hevcSlbbUpdateKernelId,    HucKernelSource::m_invalidHashIndex},

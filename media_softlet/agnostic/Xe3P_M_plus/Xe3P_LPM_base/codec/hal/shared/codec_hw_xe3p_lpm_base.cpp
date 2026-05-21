@@ -146,10 +146,12 @@ CodechalHwInterfaceXe3P_Lpm_Base::CodechalHwInterfaceXe3P_Lpm_Base(
             + m_hcpItf->MHW_GETSIZE_F(HCP_SLICE_STATE)()
             + (HEVC_MAX_NAL_UNIT_TYPE + 2) * m_hcpItf->MHW_GETSIZE_F(HCP_PAK_INSERT_OBJECT)()
             + m_vdencItf->MHW_GETSIZE_F(VDENC_WEIGHTSOFFSETS_STATE)()
-            + m_miItf->MHW_GETSIZE_F(MI_BATCH_BUFFER_END)()
+            + m_vdencItf->MHW_GETSIZE_F(VDENC_HEVC_VP9_TILE_SLICE_STATE)()
+            + m_miItf->MHW_GETSIZE_F(MI_BATCH_BUFFER_END)() * 3
+            + m_miItf->MHW_GETSIZE_F(MI_NOOP)()
             + 4 * ENCODE_VDENC_HEVC_PADDING_DW_SIZE);
 
-    m_HucStitchCmdBatchBufferSize = 7 * 4 
+    m_HucStitchCmdBatchBufferSize = 7 * 4
                                     + 14 * 4 
                                     + m_miItf->MHW_GETSIZE_F(MI_BATCH_BUFFER_END)();
                                     
@@ -157,7 +159,9 @@ CodechalHwInterfaceXe3P_Lpm_Base::CodechalHwInterfaceXe3P_Lpm_Base(
     m_vdencBatchBufferPerSliceConstSize = m_hcpItf->MHW_GETSIZE_F(HCP_SLICE_STATE)()
         + m_hcpItf->MHW_GETSIZE_F(HCP_PAK_INSERT_OBJECT)() // 1st PakInsertObject cmd is not always inserted for each slice, 2nd PakInsertObject cmd is always inserted for each slice
         + m_vdencItf->MHW_GETSIZE_F(VDENC_WEIGHTSOFFSETS_STATE)()
-        + m_miItf->MHW_GETSIZE_F(MI_BATCH_BUFFER_END)();
+        + m_vdencItf->MHW_GETSIZE_F(VDENC_HEVC_VP9_TILE_SLICE_STATE)()
+        + m_miItf->MHW_GETSIZE_F(MI_BATCH_BUFFER_END)() * 3
+        + m_miItf->MHW_GETSIZE_F(MI_NOOP)();
 
     // Set to size of the BRC update command buffer, since it is larger than BRC Init/ PAK integration commands
     m_hucCommandBufferSize = m_hucItf->MHW_GETSIZE_F(HUC_IMEM_STATE)()

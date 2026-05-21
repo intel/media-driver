@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2023, Intel Corporation
+* Copyright (c) 2020-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -373,8 +373,10 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::AddOneTileCommands(
 
     auto brcFeature = dynamic_cast<Av1Brc *>(m_featureManager->GetFeature(Av1FeatureIDs::av1BrcFeature));
     ENCODE_CHK_NULL_RETURN(brcFeature);
+    auto basicFeature = dynamic_cast<Av1BasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+    ENCODE_CHK_NULL_RETURN(basicFeature);
     auto vdenc2ndLevelBatchBuffer = brcFeature->GetVdenc2ndLevelBatchBuffer(m_pipeline->m_currRecycledBufIdx);
-    auto slbbData                 = brcFeature->GetSLBData();
+    auto slbbData                 = basicFeature->GetSLBData();
 
     ENCODE_CHK_STATUS_RETURN(AddAllCmds_AVP_PIPE_MODE_SELECT(tempCmdBuffer));
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2023, Intel Corporation
+* Copyright (c) 2020-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -300,15 +300,15 @@ namespace encode
         dmem->UPD_LALength = 0;
 
         //SLBB related fields.
-        dmem->UPD_SLBBSize = m_slbData.slbSize;
-        dmem->UPD_AVPPiCStateCmdNum = m_slbData.avpPicStateCmdNum;
-        dmem->UPD_AVPSegmentStateOffset = m_slbData.avpSegmentStateOffset;
-        dmem->UPD_AVPInloopFilterStateOffset = m_slbData.avpInloopFilterStateOffset;
-        dmem->UPD_VDEncCmd1Offset = m_slbData.vdencCmd1Offset;
-        dmem->UPD_VDEncCmd2Offset = m_slbData.vdencCmd2Offset;
-        dmem->UPD_AVPPicStateOffset = m_slbData.avpPicStateOffset;
-        dmem->UPD_VDEncTileSliceStateOffset = m_slbData.vdencTileSliceStateOffset;
-        dmem->UPD_TileNum = m_slbData.tileNum;
+        dmem->UPD_SLBBSize = m_basicFeature->m_slbData.slbSize;
+        dmem->UPD_AVPPiCStateCmdNum = m_basicFeature->m_slbData.avpPicStateCmdNum;
+        dmem->UPD_AVPSegmentStateOffset = m_basicFeature->m_slbData.avpSegmentStateOffset;
+        dmem->UPD_AVPInloopFilterStateOffset = m_basicFeature->m_slbData.avpInloopFilterStateOffset;
+        dmem->UPD_VDEncCmd1Offset = m_basicFeature->m_slbData.vdencCmd1Offset;
+        dmem->UPD_VDEncCmd2Offset = m_basicFeature->m_slbData.vdencCmd2Offset;
+        dmem->UPD_AVPPicStateOffset = m_basicFeature->m_slbData.avpPicStateOffset;
+        dmem->UPD_VDEncTileSliceStateOffset = m_basicFeature->m_slbData.vdencTileSliceStateOffset;
+        dmem->UPD_TileNum = m_basicFeature->m_slbData.tileNum;
 
         // BA start
         dmem->UPD_LoopFilterParamsBitOffset      = (uint16_t)m_basicFeature->m_av1PicParams->LoopFilterParamsBitOffset;
@@ -757,6 +757,10 @@ namespace encode
         }
         case PAK_INTEGRATE: {
             // nothing need to be done within brc feature for pak int
+            break;
+        }
+        case SLBB_UPDATE: {
+            // nothing need to be done
             break;
         }
         default:

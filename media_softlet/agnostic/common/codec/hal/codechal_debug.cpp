@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2023, Intel Corporation
+* Copyright (c) 2011-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -3615,12 +3615,15 @@ const char *CodechalDebugInterface::CreateFileName(
         extType = MediaDbgExtType::dat;
     }
 
+    // Mark LA-pass dumps so LPLA's two passes don't overwrite each other; non-LA keeps original filename.
+    const char *passSeg = m_isLookAheadPass ? "_LAPASS_" : "_";
+
     if (bufType != nullptr &&
         !strncmp(bufType, MediaDbgBufferType::bufSlcParams, sizeof(MediaDbgBufferType::bufSlcParams) - 1) && !strncmp(funcName, "_DDIEnc", sizeof("_DDIEnc") - 1))
     {
         m_outputFileName = m_outputFilePath +
                            std::to_string(m_bufferDumpFrameNum) + '-' +
-                           std::to_string(m_streamId) + '_' +
+                           std::to_string(m_streamId) + passSeg +
                            std::to_string(m_sliceId + 1) +
                            funcName + '_' + bufType + '_' + frameType + fieldOrder + extType;
     }
@@ -3637,7 +3640,7 @@ const char *CodechalDebugInterface::CreateFileName(
         {
             m_outputFileName = m_outputFilePath +
                                std::to_string(m_bufferDumpFrameNum) + '-' +
-                               std::to_string(m_streamId) + '_' +
+                               std::to_string(m_streamId) + passSeg +
                                funcName + frameType + fieldOrder + extType;
         }
     }
@@ -3650,14 +3653,14 @@ const char *CodechalDebugInterface::CreateFileName(
         {
             m_outputFileName = m_outputFilePath +
                                std::to_string(m_bufferDumpFrameNum) + '-' +
-                               std::to_string(m_streamId) + '_' +
+                               std::to_string(m_streamId) + passSeg +
                                funcName + '_' + bufType + '_' + frameType + fieldOrder + extType;
         }
         else
         {
             m_outputFileName = m_outputFilePath +
                                std::to_string(m_bufferDumpFrameNum) + '-' +
-                               std::to_string(m_streamId) + '_' +
+                               std::to_string(m_streamId) + passSeg +
                                funcName + '_' + frameType + fieldOrder + extType;
         }
     }

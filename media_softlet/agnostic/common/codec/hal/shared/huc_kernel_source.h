@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2024, Intel Corporation
+* Copyright (c) 2024-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -90,7 +90,8 @@ public:
         avcPxpBrcUpdateKernelId   = 22,
         av1SlbbUpdateKernelId     = 23,  // AV1 SLBB update kernel
         avcSlbbUpdateKernelId     = 24,  // AVC SLBB update kernel
-        hevcSlbbUpdateKernelId    = 25   // HEVC SLBB update kernel
+        hevcSlbbUpdateKernelId    = 25,  // HEVC SLBB update kernel
+        avcPxpSlbbUpdateKernelId  = 26   // AVC SLBB update PXP kernel
     };
 
     //!
