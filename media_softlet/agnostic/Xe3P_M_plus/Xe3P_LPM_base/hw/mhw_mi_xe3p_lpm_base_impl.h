@@ -66,6 +66,9 @@ public:
         this->m_watchdogOffsets.thresholdVecs = WATCHDOG_COUNT_THRESTHOLD_OFFSET_VECS;
         this->m_watchdogOffsets.teecsCtrl      = WATCHDOG_COUNT_CTRL_OFFSET_TEECS;
         this->m_watchdogOffsets.thresholdTeecs = WATCHDOG_COUNT_THRESTHOLD_OFFSET_TEECS;
+
+        m_enableCsMocsGT    = MEDIA_IS_SKU(this->m_osItf->pfnGetSkuTable(this->m_osItf), FtrCommandStreamerPerCommandMocsGT);
+        m_enableCsMocsMedia = MEDIA_IS_SKU(this->m_osItf->pfnGetSkuTable(this->m_osItf), FtrCommandStreamerPerCommandMocsMedia);
     };
 
     void SetDecoderWatchdogThreshold(uint32_t frameWidth, uint32_t frameHeight, uint32_t codecMode) override
@@ -105,8 +108,18 @@ public:
     {
         _MHW_SETCMD_CALLBASE(MI_SEMAPHORE_WAIT);
 
-        cmd.DW0.RegisterPollMode   = params.bRegisterPollMode;
-        cmd.DW0._64bCompareEnableWithGPR   = params.b64bCompareEnableWithGPR;
+        cmd.DW0.RegisterPollMode         = params.bRegisterPollMode;
+        cmd.DW0._64bCompareEnableWithGPR = params.b64bCompareEnableWithGPR;
+
+        {
+            MOS_GPU_CONTEXT gpuCtx    = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+            bool            enableMocs = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx))
+                                             ? m_enableCsMocsGT : m_enableCsMocsMedia;
+            if (enableMocs)
+            {
+                cmd.DW0.MocsIndex = params.mocsIdx;
+            }
+        }
 
         return MOS_STATUS_SUCCESS;
     }
@@ -117,6 +130,16 @@ public:
         _MHW_SETCMD_CALLBASE(MI_SEMAPHORE_WAIT_64);
 
         __MHW_MI_WRAPPER_EXT(MI_SEMAPHORE_WAIT_64_IMPL_XE3P_LPM_BASE_EXT)
+
+        {
+            MOS_GPU_CONTEXT gpuCtx    = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+            bool            enableMocs = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx))
+                                             ? m_enableCsMocsGT : m_enableCsMocsMedia;
+            if (enableMocs)
+            {
+                cmd.DW0.MocsIndex = params.mocsIdx;
+            }
+        }
 
         return MOS_STATUS_SUCCESS;
     }
@@ -277,6 +300,16 @@ public:
         cmd.DW0.Obj3.SecondLevelBatchBuffer = params.secondLevelBatchBuffer ? true : false;
         cmd.DW0.Obj0.AddressSpaceIndicator  = !this->IsGlobalGttInUse();
 
+        {
+            MOS_GPU_CONTEXT gpuCtx    = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+            bool            enableMocs = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx))
+                                             ? m_enableCsMocsGT : m_enableCsMocsMedia;
+            if (enableMocs)
+            {
+                cmd.DW0.Obj1.MocsIndex = params.mocsIdx;
+            }
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -324,6 +357,16 @@ public:
             this->m_currentCmdBuf,
             &resourceParams));
 
+        {
+            MOS_GPU_CONTEXT gpuCtx    = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+            bool            enableMocs = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx))
+                                             ? m_enableCsMocsGT : m_enableCsMocsMedia;
+            if (enableMocs)
+            {
+                cmd.DW0.MocsIndex = params.mocsIdx;
+            }
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -357,6 +400,16 @@ public:
 
         cmd.DW0.MmioRemapEnable = this->IsRemappingMMIO(reg);
 
+        {
+            MOS_GPU_CONTEXT gpuCtx    = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+            bool            enableMocs = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx))
+                                             ? m_enableCsMocsGT : m_enableCsMocsMedia;
+            if (enableMocs)
+            {
+                cmd.DW0.MocsIndex = params.mocsIdx;
+            }
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -373,6 +426,16 @@ public:
         }
 
         cmd.DW0.MmioRemapEnable = this->IsRemappingMMIO(Reg) | params.bMMIORemap;
+
+        {
+            MOS_GPU_CONTEXT gpuCtx    = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+            bool            enableMocs = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx))
+                                             ? m_enableCsMocsGT : m_enableCsMocsMedia;
+            if (enableMocs)
+            {
+                cmd.DW0.MocsIndex = params.mocsIdx;
+            }
+        }
 
         return MOS_STATUS_SUCCESS;
     }
@@ -539,6 +602,16 @@ public:
             cmd.DW0.FlushCcs = params.bEnablePPCFlush;
         }
 
+        {
+            MOS_GPU_CONTEXT gpuCtx    = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+            bool            enableMocs = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx))
+                                             ? m_enableCsMocsGT : m_enableCsMocsMedia;
+            if (enableMocs)
+            {
+                cmd.DW0.MocsIndex = params.mocsIdx;
+            }
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -553,12 +626,50 @@ public:
     {
         _MHW_SETCMD_CALLBASE(MI_ATOMIC);
 
+        {
+            MOS_GPU_CONTEXT gpuCtx    = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+            bool            enableMocs = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx))
+                                             ? m_enableCsMocsGT : m_enableCsMocsMedia;
+            if (enableMocs)
+            {
+                cmd.DW0.MocsIndex = params.mocsIdx;
+            }
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 
     _MHW_SETCMD_OVERRIDE_DECL(MI_STORE_DATA_IMM)
     {
         _MHW_SETCMD_CALLBASE(MI_STORE_DATA_IMM);
+
+        {
+            MOS_GPU_CONTEXT gpuCtx    = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+            bool            enableMocs = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx))
+                                             ? m_enableCsMocsGT : m_enableCsMocsMedia;
+            if (enableMocs)
+            {
+                cmd.DW0.MocsIndex = params.mocsIdx;
+            }
+        }
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    _MHW_SETCMD_OVERRIDE_DECL(MI_COPY_MEM_MEM)
+    {
+        _MHW_SETCMD_CALLBASE(MI_COPY_MEM_MEM);
+
+        {
+            MOS_GPU_CONTEXT gpuCtx    = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+            bool            enableMocs = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx))
+                                             ? m_enableCsMocsGT : m_enableCsMocsMedia;
+            if (enableMocs)
+            {
+                cmd.DW0.MocsIndexForRead  = params.readMocsIdx;
+                cmd.DW0.MocsIndexForWrite = params.writeMocsIdx;
+            }
+        }
 
         return MOS_STATUS_SUCCESS;
     }
@@ -816,6 +927,10 @@ public:
         }
          return MOS_STATUS_SUCCESS;
      }
+private:
+    bool m_enableCsMocsGT    = false;
+    bool m_enableCsMocsMedia = false;
+
 MEDIA_CLASS_DEFINE_END(mhw__mi__xe3p_lpm_base__BaseImpl)
 };
 

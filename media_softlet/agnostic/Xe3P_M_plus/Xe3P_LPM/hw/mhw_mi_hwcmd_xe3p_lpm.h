@@ -432,7 +432,8 @@ namespace xe3p_lpm
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0,  7)    ; //!< DWORD_LENGTH
-                uint32_t                 Reserved8                                        : __CODEGEN_BITFIELD( 8, 15)    ; //!< Reserved
+                uint32_t                 Reserved8                                        : __CODEGEN_BITFIELD( 8, 11)    ; //!< Reserved
+                uint32_t                 MocsIndex                                        : __CODEGEN_BITFIELD(12, 15)    ; //!< MOCS_INDEX
                 uint32_t                 WorkloadPartitionIdOffsetEnable                  : __CODEGEN_BITFIELD(16, 16)    ; //!< WORKLOAD_PARTITION_ID_OFFSET_ENABLE
                 uint32_t                 MmioRemapEnable                                  : __CODEGEN_BITFIELD(17, 17)    ; //!< MMIO_REMAP_ENABLE
                 uint32_t                 Reserved18                                       : __CODEGEN_BITFIELD(18, 18)    ; //!< Reserved
@@ -761,7 +762,8 @@ namespace xe3p_lpm
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0,  7)    ; //!< DWORD_LENGTH
-                uint32_t                 Reserved8                                        : __CODEGEN_BITFIELD( 8, 15)    ; //!< Reserved
+                uint32_t                 Reserved8                                        : __CODEGEN_BITFIELD( 8, 11)    ; //!< Reserved
+                uint32_t                 MocsIndex                                        : __CODEGEN_BITFIELD(12, 15)    ; //!< MOCS_INDEX
                 uint32_t                 WorkloadPartitionIdOffsetEnable                  : __CODEGEN_BITFIELD(16, 16)    ; //!< WORKLOAD_PARTITION_ID_OFFSET_ENABLE
                 uint32_t                 MmioRemapEnable                                  : __CODEGEN_BITFIELD(17, 17)    ; //!< MMIO_REMAP_ENABLE
                 uint32_t                 Reserved18                                       : __CODEGEN_BITFIELD(18, 18)    ; //!< Reserved
@@ -970,7 +972,8 @@ namespace xe3p_lpm
             {
                 uint32_t                 Reserved0                                        : __CODEGEN_BITFIELD(0, 8)    ; //!< Reserved,
                 uint32_t                 Reserved9                                        : __CODEGEN_BITFIELD(9, 9)    ; //!< Reserved
-                uint32_t                 Reserved10                                       : __CODEGEN_BITFIELD(10, 14)  ; //!< Reserved,
+                uint32_t                 MocsIndex                                        : __CODEGEN_BITFIELD(10, 13)  ; //!< MOCS_INDEX,
+                uint32_t                 Reserved14                                       : __CODEGEN_BITFIELD(14, 14)  ; //!< Reserved,
                 uint32_t                 PredicationEnable                                : __CODEGEN_BITFIELD(15, 15)  ; //!< Predication Enable,
                 uint32_t                 Reserved16                                       : __CODEGEN_BITFIELD(16, 18)  ; //!< Reserved,
                 uint32_t                 EnableCommandCache                               : __CODEGEN_BITFIELD(19, 19)  ; //!< ENABLE_COMMAND_CACHE,
@@ -1348,7 +1351,9 @@ namespace xe3p_lpm
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0,  7)    ; //!< DWORD_LENGTH
-                uint32_t                 Reserved8                                        : __CODEGEN_BITFIELD( 8, 20)    ; //!< Reserved
+                uint32_t                 MocsIndexForRead                                 : __CODEGEN_BITFIELD( 8, 11)    ; //!< MOCS_INDEX_FOR_READ
+                uint32_t                 MocsIndexForWrite                                : __CODEGEN_BITFIELD(12, 15)    ; //!< MOCS_INDEX_FOR_WRITE
+                uint32_t                 Reserved16                                       : __CODEGEN_BITFIELD(16, 20)    ; //!< Reserved
                 uint32_t                 UseGlobalGttDestination                          : __CODEGEN_BITFIELD(21, 21)    ; //!< USE_GLOBAL_GTT_DESTINATION
                 uint32_t                 UseGlobalGttSource                               : __CODEGEN_BITFIELD(22, 22)    ; //!< USE_GLOBAL_GTT_SOURCE
                 uint32_t                 MiCommandOpcode                                  : __CODEGEN_BITFIELD(23, 28)    ; //!< MI_COMMAND_OPCODE
@@ -1470,7 +1475,8 @@ namespace xe3p_lpm
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0,  9)    ; //!< DWORD_LENGTH
                 uint32_t                 ForceWriteCompletionCheck                        : __CODEGEN_BITFIELD(10, 10)    ; //!< FORCE_WRITE_COMPLETION_CHECK
                 uint32_t                 WorkloadPartitionIdOffsetEnable                  : __CODEGEN_BITFIELD(11, 11)    ; //!< WORKLOAD_PARTITION_ID_OFFSET_ENABLE
-                uint32_t                 Reserved12                                       : __CODEGEN_BITFIELD(12, 20)    ; //!< Reserved
+                uint32_t                 MocsIndex                                        : __CODEGEN_BITFIELD(12, 15)    ; //!< MOCS_INDEX
+                uint32_t                 Reserved16                                       : __CODEGEN_BITFIELD(16, 20)    ; //!< Reserved
                 uint32_t                 StoreQword                                       : __CODEGEN_BITFIELD(21, 21)    ; //!< Store Qword
                 uint32_t                 UseGlobalGtt                                     : __CODEGEN_BITFIELD(22, 22)    ; //!< Use Global GTT
                 uint32_t                 MiCommandOpcode                                  : __CODEGEN_BITFIELD(23, 28)    ; //!< MI_COMMAND_OPCODE
@@ -1781,7 +1787,8 @@ namespace xe3p_lpm
         {
             struct
             {
-                uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0,  7)    ; //!< DWORD_LENGTH
+                uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0,  3)    ; //!< DWORD_LENGTH
+                uint32_t                 MocsIndex                                        : __CODEGEN_BITFIELD( 4,  7)    ; //!< MOCS_INDEX
                 uint32_t                 Reserved8                                        : __CODEGEN_BITFIELD( 8, 11)    ; //!< Reserved
                 uint32_t                 CompareOperation                                 : __CODEGEN_BITFIELD(12, 14)    ; //!< COMPARE_OPERATION
                 uint32_t                 WaitMode                                         : __CODEGEN_BITFIELD(15, 15)    ; //!< WAIT_MODE
@@ -2007,7 +2014,8 @@ namespace xe3p_lpm
             {
                 struct
                 {
-                uint32_t DwordLength : __CODEGEN_BITFIELD(0, 7);                              //!< DWORD_LENGTH
+                uint32_t DwordLength : __CODEGEN_BITFIELD(0, 3);                              //!< DWORD_LENGTH
+                uint32_t MocsIndex : __CODEGEN_BITFIELD(4, 7);                                //!< MOCS_INDEX
                 uint32_t SwTokenInfo : __CODEGEN_BITFIELD(8, 10);                             //!< SW Token Info
                 uint32_t QueueSwitchMode : __CODEGEN_BITFIELD(11, 11);                        //!< QUEUE_SWITCH_MODE
                 uint32_t CompareOperation : __CODEGEN_BITFIELD(12, 14);                       //!< COMPARE_OPERATION
@@ -2268,7 +2276,7 @@ namespace xe3p_lpm
             struct
             {
                 uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0,  7)    ; //!< DWORD_LENGTH
-                uint32_t                 Reserved8                                        : __CODEGEN_BITFIELD( 8, 11)    ; //!< Reserved
+                uint32_t                 MocsIndex                                        : __CODEGEN_BITFIELD( 8, 11)    ; //!< MOCS_INDEX
                 uint32_t                 CompareOperation                                 : __CODEGEN_BITFIELD(12, 14)    ; //!< COMPARE_OPERATION
                 uint32_t                 PredicateEnable                                  : __CODEGEN_BITFIELD(15, 15)    ; //!< Predicate Enable
                 uint32_t                 Reserved16                                       : __CODEGEN_BITFIELD(16, 17)    ; //!< Reserved
@@ -2450,7 +2458,8 @@ namespace xe3p_lpm
         {
             struct
             {
-                uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0,  7)    ; //!< DWORD_LENGTH
+                uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0,  3)    ; //!< DWORD_LENGTH
+                uint32_t                 MocsIndex                                        : __CODEGEN_BITFIELD( 4,  7)    ; //!< MOCS_INDEX
                 uint32_t                 AtomicOpcode                                     : __CODEGEN_BITFIELD( 8, 15)    ; //!< ATOMIC_OPCODE
                 uint32_t                 ReturnDataControl                                : __CODEGEN_BITFIELD(16, 16)    ; //!< Return Data Control
                 uint32_t                 CsStall                                          : __CODEGEN_BITFIELD(17, 17)    ; //!< CS STALL
@@ -2777,7 +2786,7 @@ namespace xe3p_lpm
                 uint32_t                 VideoPipelineCacheInvalidate                     : __CODEGEN_BITFIELD( 7,  7)    ; //!< Video Pipeline Cache invalidate
                 uint32_t                 NotifyEnable                                     : __CODEGEN_BITFIELD( 8,  8)    ; //!< Notify Enable
                 uint32_t                 FlushLlc                                         : __CODEGEN_BITFIELD( 9,  9)    ; //!< Flush LLC
-                uint32_t                 Reserved10                                       : __CODEGEN_BITFIELD(10, 13)    ; //!< Reserved
+                uint32_t                 MocsIndex                                        : __CODEGEN_BITFIELD(10, 13)    ; //!< MOCS_INDEX
                 uint32_t                 PostSyncOperation                                : __CODEGEN_BITFIELD(14, 15)    ; //!< POST_SYNC_OPERATION
                 uint32_t                 FlushCcs                                         : __CODEGEN_BITFIELD(16, 16)    ; //!< Flush CCS
                 uint32_t                 Reserved17                                       : __CODEGEN_BITFIELD(17, 17)    ; //!< Reserved

@@ -188,6 +188,7 @@ namespace mi
         uint32_t                    waitTokenNumber    = 0;
         bool                        b64bCompareEnableWithGPR = 0;
         MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION CompareOperation = {};
+        uint32_t                    mocsIdx            = 0;
     };
 
     struct _MHW_PAR_T(MI_SEMAPHORE_SIGNAL)
@@ -232,6 +233,7 @@ namespace mi
     {
         PMOS_RESOURCE               presResource           = nullptr;
         bool                        secondLevelBatchBuffer = true;
+        uint32_t                    mocsIdx                = 0;
     };
 
     struct _MHW_PAR_T(MI_CONDITIONAL_BATCH_BUFFER_END)
@@ -243,6 +245,7 @@ namespace mi
         uint32_t                    dwParamsType                   = 0;         //reserved
         bool                        enableEndCurrentBatchBuffLevel = false;
         uint32_t                    compareOperation               = 0;
+        uint32_t                    mocsIdx                        = 0;
     };
 
     struct _MHW_PAR_T(MI_SET_PREDICATE)
@@ -256,6 +259,7 @@ namespace mi
         uint32_t                    dwOffset        = 0;
         uint32_t                    dwRegister      = 0;
         uint32_t                    dwOption        = 0;
+        uint32_t                    mocsIdx         = 0;
     };
 
     struct _MHW_PAR_T(MI_LOAD_REGISTER_MEM)
@@ -266,6 +270,7 @@ namespace mi
         uint32_t                    dwRegister      = 0;
         uint32_t                    dwOption        = 0;
         bool                        bMMIORemap      = 0;
+        uint32_t                    mocsIdx         = 0;
     };
 
     struct _MHW_PAR_T(MI_LOAD_REGISTER_IMM)
@@ -316,6 +321,7 @@ namespace mi
         uint32_t                    postSyncOperation             = 0;
         uint32_t                    bQWordEnable                  = 0;
         bool                        bEnablePPCFlush               = false;
+        uint32_t                    mocsIdx                        = 0;
     };
 
     struct _MHW_PAR_T(VD_CONTROL_STATE)
@@ -375,6 +381,7 @@ namespace mi
         uint32_t                    dwOperand2Data[4] = {};          // Values to Write
         uint32_t                    dwDataSize        = 0;
         MHW_COMMON_MI_ATOMIC_OPCODE Operation         = {};
+        uint32_t                    mocsIdx            = 0;
     };
 
     struct _MHW_PAR_T(MI_STORE_DATA_IMM)
@@ -382,6 +389,7 @@ namespace mi
         PMOS_RESOURCE               pOsResource      = nullptr;       // Target OS Resource
         uint32_t                    dwResourceOffset = 0;
         uint32_t                    dwValue          = 0;             // Value to Write
+        uint32_t                    mocsIdx          = 0;
     };
 
     struct _MHW_PAR_T(MI_MATH)
@@ -396,8 +404,10 @@ namespace mi
         uint32_t                    dwSrcOffset    = 0;
         PMOS_RESOURCE               presDst        = nullptr;
         uint32_t                    dwDstOffset    = 0;
+        uint32_t                    readMocsIdx    = 0;
+        uint32_t                    writeMocsIdx   = 0;
     };
-    
+
     struct _MHW_PAR_T(MFX_WAIT)
     {
         bool                        iStallVdboxPipeline = false;
