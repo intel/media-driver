@@ -411,7 +411,7 @@ public:
             mhw::vebox::xe3_lpm_base::Cmd::VEBOX_HDR_FWD_GAMMA_CORRECTION_STATE_CMD *pForwardGamma = pVeboxHdrState->ForwardGammaLUTvalue;
             mhw::vebox::common::SetForwardGammaIdentity(pForwardGamma, 255u, false);
 
-            // Program CCM as identity matrix with enable=true (3D LUT path enables CCM)
+            // Program CCM as identity matrix with enable=true (legacy 3DLUT path needs CCM enabled)
             mhw::vebox::common::SetCcmIdentityMatrix(pIecpState, true);
         }
         else if (pVeboxIecpParams->bCcmCscEnable)

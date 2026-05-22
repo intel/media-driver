@@ -943,6 +943,7 @@ typedef struct _VPHAL_3DLUT_PARAMS
     uint16_t       MappingMode        = 0;        // Mapping Mode
 
     VPHAL_3DLUT_INTERPOLATION InterpolationMethod = VPHAL_3DLUT_INTERPOLATION_DEFAULT;  // VEBox 3DLut interpolation mode
+    bool bUpdated = true;  // True when 3DLut content changed, default true for backward compatibility 
 } VPHAL_3DLUT_PARAMS, *PVPHAL_3DLUT_PARAMS;
 
 //!
