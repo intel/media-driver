@@ -257,7 +257,7 @@ MOS_STATUS VpRenderHVSKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
 {
     VP_FUNC_CALL();
     curbeLength = 0;
-    for (auto arg : m_kernelArgs)
+    for (const auto &arg : m_kernelArgs)
     {
         curbeLength += arg.uSize;
     }
@@ -307,7 +307,7 @@ MOS_STATUS VpRenderHVSKernel::SetupSurfaceState()
     PMOS_INTERFACE osInterface = m_hwInterface->m_osInterface;
     m_surfaceBindingIndex.clear();
     m_surfaceState.clear();
-    for (auto arg : m_kernelArgs)
+    for (const auto &arg : m_kernelArgs)
     {
         VP_RENDER_CHK_NULL_RETURN(arg.pData);
 

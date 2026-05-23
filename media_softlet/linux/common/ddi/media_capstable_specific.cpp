@@ -229,7 +229,7 @@ VAStatus MediaCapsTableSpecific::CreateConfig(
     DDI_UNUSED(configId);
 
     VAStatus ret = VA_STATUS_ERROR_UNSUPPORTED_PROFILE;
-    for (auto configItem : m_configList)
+    for (const auto &configItem : m_configList)
     {
         // check profile, entrypoint here
         if (configItem.profile == profile)

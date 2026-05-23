@@ -386,7 +386,7 @@ MOS_STATUS Vp9HpuPkt::PatchHucProbCommands(MOS_COMMAND_BUFFER *commandBuffer, ui
         params.resBitstreamByteCountPerFrame    = osResource;
         params.bitstreamByteCountPerFrameOffset = offset;
 
-        auto virtualAddrParams       = m_hucItf->MHW_GETPAR_F(HUC_VIRTUAL_ADDR_STATE)();
+        const auto &virtualAddrParams       = m_hucItf->MHW_GETPAR_F(HUC_VIRTUAL_ADDR_STATE)();
         auto &copyMemMemParams       = m_miItf->MHW_GETPAR_F(MI_COPY_MEM_MEM)();
         copyMemMemParams             = {};
         copyMemMemParams.presSrc     = virtualAddrParams.regionParams[11].presRegion;
