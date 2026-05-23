@@ -2720,7 +2720,8 @@ mos_query_engines_xe(struct mos_bufmgr *bufmgr,
     for (i = 0, num = 0; i < engines->num_engines; i++)
     {
         engine = (struct drm_xe_engine *)&engines->engines[i];
-        if (engine_class == engine->instance.engine_class)
+        if (engine_class == engine->instance.engine_class
+                    && ((caps & engine->capabilities) == caps )) // Note: gpu context should set cap to query required engine with certain caps; and engine capability should given by XE KMD by this uapi.
         {
             ci->engine_class = engine_class;
             ci->engine_instance = engine->instance.engine_instance;
