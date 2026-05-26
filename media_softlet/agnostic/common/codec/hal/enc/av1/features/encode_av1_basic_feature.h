@@ -119,6 +119,11 @@ public:
 
     uint32_t GetSlbbBufferSize() const { return m_slbbBufferSize; }
 
+    virtual MOS_RESOURCE*     GetVdencReadBatchBufferOrigin(uint32_t recycledBufIdx, uint32_t brcPass) { return nullptr; }
+    virtual MOS_RESOURCE*     GetVdencReadBatchBufferTU7(uint32_t recycledBufIdx, uint32_t brcPass) { return nullptr; }
+    virtual MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBuffer(uint32_t recycledBufIdx) { return nullptr; }
+    virtual MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBufferTU7(uint32_t recycledBufIdx) { return nullptr; }
+
     virtual MHW_SETPAR_DECL_HDR(VDENC_PIPE_MODE_SELECT);
 
     virtual MHW_SETPAR_DECL_HDR(VDENC_SRC_SURFACE_STATE);

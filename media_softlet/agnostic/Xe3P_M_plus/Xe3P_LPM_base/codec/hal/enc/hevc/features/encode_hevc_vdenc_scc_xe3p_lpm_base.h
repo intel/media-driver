@@ -51,7 +51,7 @@ public:
     //!          would otherwise use the stale value from the previous frame.
     //! \return MOS_STATUS
     //!
-    MOS_STATUS UpdateSlotForRecNotFiltered();
+    MOS_STATUS UpdateSlotForRecNotFiltered() override;
 
 MEDIA_CLASS_DEFINE_END(encode__HevcVdencSccXe3P_Lpm_Base)
 };

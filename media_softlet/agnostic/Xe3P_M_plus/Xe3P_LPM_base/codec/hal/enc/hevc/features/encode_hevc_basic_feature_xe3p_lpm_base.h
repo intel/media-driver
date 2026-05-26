@@ -46,8 +46,8 @@ public:
 
     virtual MOS_STATUS Init(void *setting) override;
 
-    MOS_RESOURCE* GetVdencReadBatchBufferOrigin(uint32_t recycledBufIdx, uint32_t brcPass);
-    MOS_RESOURCE* GetVdencReadBatchBufferTU7(uint32_t recycledBufIdx, uint32_t brcPass);
+    MOS_RESOURCE* GetVdencReadBatchBufferOrigin(uint32_t recycledBufIdx, uint32_t brcPass) override;
+    MOS_RESOURCE* GetVdencReadBatchBufferTU7(uint32_t recycledBufIdx, uint32_t brcPass) override;
 
     //!
     //! \brief    Get VDEnc 2nd level batch buffer
@@ -57,21 +57,11 @@ public:
     //! \return   MHW_BATCH_BUFFER*
     //!           Pointer to the VDEnc 2nd level batch buffer
     //!
-    MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBuffer(uint32_t recycledBufIdx);
-    MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBufferTU7(uint32_t recycledBufIdx);
+    MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBuffer(uint32_t recycledBufIdx) override;
+    MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBufferTU7(uint32_t recycledBufIdx) override;
 
     MHW_SETPAR_DECL_HDR(VDENC_PIPE_MODE_SELECT);
     MHW_SETPAR_DECL_HDR(VDENC_CMD2);
-
-    //! SLBB layout offsets populated by HEVCHucSLBBUpdatePkt::ConstructBatchBuffer()
-    //! and consumed by BRC Update to set DMEM without re-constructing the SLBB.
-    uint32_t m_slbbCmd2StartInBytes              = 0;
-    uint32_t m_slbbSlbDataSizeInBytes            = 0;
-    uint32_t m_slbbHcpSliceStateCmdSize          = 0;
-    uint32_t m_slbbHcpWeightOffsetStateCmdSize   = 0;
-    uint32_t m_slbbVdencWeightOffsetStateCmdSize = 0;
-    uint32_t m_slbbMiBatchBufferEndCmdSize       = 0;
-    uint32_t m_slbbAlignSize[ENCODE_HEVC_VDENC_NUM_MAX_SLICES] = {0};
 
 protected:
     MOS_STATUS AllocateVdencBatchBuffers();

@@ -33,7 +33,6 @@
 #include "encode_av1_brc.h"
 #include "encode_av1_tile.h"
 #include "encode_av1_scc.h"
-#include "encode_av1_basic_feature_xe3p_lpm_base.h"
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug.h"
 #endif
@@ -367,18 +366,14 @@ MOS_STATUS AV1HucSLBBUpdatePkt::ConstructBatchBuffer()
     ENCODE_CHK_NULL_RETURN(m_basicFeature);
     ENCODE_CHK_NULL_RETURN(m_pipeline);
     
-    // Cast to xe3p_lpm_base basic feature to access GetVdencReadBatchBufferOrigin
-    auto basicFeatureXe3pLpm = dynamic_cast<Av1BasicFeatureXe3P_Lpm_Base *>(m_basicFeature);
-    ENCODE_CHK_NULL_RETURN(basicFeatureXe3pLpm);
-    
     // Get current recycled buffer index
     const uint32_t recycledBufIdx = m_pipeline->m_currRecycledBufIdx;
-    
+
     // CRITICAL: Retrieve SLBB buffer using HARDCODED brcPass=0
     // SLBB update operates on first pass only, as evidenced by pipeline activation patterns
     // where all three codec pipelines (AV1, AVC, HEVC) activate SLBB update with pass=0
     // BEFORE BRC iterations begin
-    MOS_RESOURCE *batchBuffer = basicFeatureXe3pLpm->GetVdencReadBatchBufferOrigin(recycledBufIdx, 0);
+    MOS_RESOURCE *batchBuffer = m_basicFeature->GetVdencReadBatchBufferOrigin(recycledBufIdx, 0);
     ENCODE_CHK_NULL_RETURN(batchBuffer);
     
     // Lock buffer for writing
@@ -460,7 +455,7 @@ MOS_STATUS AV1HucSLBBUpdatePkt::ConstructBatchBuffer()
         auto original_TU = m_basicFeature->m_targetUsage;
         m_basicFeature->m_targetUsage = m_basicFeature->m_av1SeqParams->TargetUsage = 7;
 
-        MOS_RESOURCE *tu7Buffer = basicFeatureXe3pLpm->GetVdencReadBatchBufferTU7(recycledBufIdx, 0);
+        MOS_RESOURCE *tu7Buffer = m_basicFeature->GetVdencReadBatchBufferTU7(recycledBufIdx, 0);
         ENCODE_CHK_NULL_RETURN(tu7Buffer);
 
         auto tu7Addr = (uint8_t *)m_allocator->LockResourceForWrite(tu7Buffer);
@@ -760,22 +755,18 @@ MHW_SETPAR_DECL_SRC(HUC_VIRTUAL_ADDR_STATE, AV1HucSLBBUpdatePkt)
 
     const uint32_t bufIdx = m_pipeline->m_currRecycledBufIdx;
 
-    // Cast to xe3p_lpm_base to access platform-specific buffers
-    auto basicFeatureXe3pLpm = dynamic_cast<Av1BasicFeatureXe3P_Lpm_Base *>(m_basicFeature);
-    ENCODE_CHK_NULL_RETURN(basicFeatureXe3pLpm);
-
     // Region 0 - Input SLB Buffer (Input Origin)
     int32_t currentPass = m_pipeline->GetCurrentPass();
     if (currentPass < 0)
     {
         return MOS_STATUS_INVALID_PARAMETER;
     }
-    MOS_RESOURCE *inputBuffer = basicFeatureXe3pLpm->GetVdencReadBatchBufferOrigin(bufIdx, currentPass);
+    MOS_RESOURCE *inputBuffer = m_basicFeature->GetVdencReadBatchBufferOrigin(bufIdx, currentPass);
     ENCODE_CHK_NULL_RETURN(inputBuffer);
     params.regionParams[0].presRegion = inputBuffer;
 
     // Region 1 - Output SLBB Buffer (HuC firmware writes to HUC_REGION1)
-    auto vdenc2ndLevelBatchBuffer = basicFeatureXe3pLpm->GetVdenc2ndLevelBatchBuffer(bufIdx);
+    auto vdenc2ndLevelBatchBuffer = m_basicFeature->GetVdenc2ndLevelBatchBuffer(bufIdx);
     ENCODE_CHK_NULL_RETURN(vdenc2ndLevelBatchBuffer);
     params.regionParams[1].presRegion = &vdenc2ndLevelBatchBuffer->OsResource;
     params.regionParams[1].isWritable = true;
@@ -783,11 +774,11 @@ MHW_SETPAR_DECL_SRC(HUC_VIRTUAL_ADDR_STATE, AV1HucSLBBUpdatePkt)
     // Region 2/3 - TU7 SLBB Buffer (AdaptiveTU: separate input and output buffers)
     if (m_basicFeature->m_av1PicParams->AdaptiveTUEnabled != 0)
     {
-        MOS_RESOURCE *tu7InputBuffer = basicFeatureXe3pLpm->GetVdencReadBatchBufferTU7(bufIdx, currentPass);
+        MOS_RESOURCE *tu7InputBuffer = m_basicFeature->GetVdencReadBatchBufferTU7(bufIdx, currentPass);
         ENCODE_CHK_NULL_RETURN(tu7InputBuffer);
         params.regionParams[2].presRegion = tu7InputBuffer;
 
-        auto tu7OutputBuffer = basicFeatureXe3pLpm->GetVdenc2ndLevelBatchBufferTU7(bufIdx);
+        auto tu7OutputBuffer = m_basicFeature->GetVdenc2ndLevelBatchBufferTU7(bufIdx);
         ENCODE_CHK_NULL_RETURN(tu7OutputBuffer);
         params.regionParams[3].presRegion = &tu7OutputBuffer->OsResource;
         params.regionParams[3].isWritable = true;

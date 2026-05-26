@@ -29,8 +29,7 @@
 #include "codechal_debug.h"
 #include "encode_hevc_tile.h"
 #include "encode_hevc_vdenc_weighted_prediction.h"
-#include "encode_hevc_basic_feature_xe3p_lpm_base.h"
-#include "encode_hevc_vdenc_scc_xe3p_lpm_base.h"
+#include "encode_hevc_vdenc_scc.h"
 #include "encode_hevc_cqp.h"
 
 namespace encode
@@ -234,14 +233,10 @@ namespace encode
     {
         ENCODE_FUNC_CALL();
 
-        // Retrieve batch buffer from xe3p_lpm_base basic feature
-        auto hevcBasicFeatureXe3p = dynamic_cast<HevcBasicFeatureXe3p_Lpm_Base *>(m_hevcBasicFeature);
-        ENCODE_CHK_NULL_RETURN(hevcBasicFeatureXe3p);
-
         uint32_t recycledBufIdx = m_pipeline->m_currRecycledBufIdx;
         uint32_t brcPass        = m_pipeline->GetCurrentPass();
 
-        PMOS_RESOURCE batchBuffer = hevcBasicFeatureXe3p->GetVdencReadBatchBufferOrigin(recycledBufIdx, brcPass);
+        PMOS_RESOURCE batchBuffer = m_hevcBasicFeature->GetVdencReadBatchBufferOrigin(recycledBufIdx, brcPass);
         ENCODE_CHK_NULL_RETURN(batchBuffer);
 
         m_batchbufferAddr = (uint8_t *)m_allocator->LockResourceForWrite(batchBuffer);
@@ -252,7 +247,7 @@ namespace encode
         // and VDENC_CMD2 (FwdRefXRefPic for IBC). Without this, the first
         // B-frame after an I-frame uses the stale slot from the previous frame
         // because HCP_SURFACE_STATE SETPAR hasn't run yet.
-        auto sccFeature = dynamic_cast<HevcVdencSccXe3P_Lpm_Base *>(
+        auto sccFeature = dynamic_cast<HevcVdencScc *>(
             m_pipeline->GetFeatureManager()->GetFeature(HevcFeatureIDs::hevcVdencSccFeature));
         if (sccFeature)
         {
@@ -266,14 +261,14 @@ namespace encode
         // Share SLBB layout offsets with BRC Update via basic feature so that
         // BRC can populate its DMEM without re-constructing the SLBB (which
         // would overwrite Origin with a different layout).
-        hevcBasicFeatureXe3p->m_slbbCmd2StartInBytes              = m_cmd2StartInBytes;
-        hevcBasicFeatureXe3p->m_slbbSlbDataSizeInBytes            = m_slbDataSizeInBytes;
-        hevcBasicFeatureXe3p->m_slbbHcpSliceStateCmdSize          = m_hcpSliceStateCmdSize;
-        hevcBasicFeatureXe3p->m_slbbHcpWeightOffsetStateCmdSize  = m_hcpWeightOffsetStateCmdSize;
-        hevcBasicFeatureXe3p->m_slbbVdencWeightOffsetStateCmdSize = m_vdencWeightOffsetStateCmdSize;
-        hevcBasicFeatureXe3p->m_slbbMiBatchBufferEndCmdSize       = m_miBatchBufferEndCmdSize;
-        MOS_SecureMemcpy(hevcBasicFeatureXe3p->m_slbbAlignSize,
-                         sizeof(hevcBasicFeatureXe3p->m_slbbAlignSize),
+        m_hevcBasicFeature->m_slbbCmd2StartInBytes              = m_cmd2StartInBytes;
+        m_hevcBasicFeature->m_slbbSlbDataSizeInBytes            = m_slbDataSizeInBytes;
+        m_hevcBasicFeature->m_slbbHcpSliceStateCmdSize          = m_hcpSliceStateCmdSize;
+        m_hevcBasicFeature->m_slbbHcpWeightOffsetStateCmdSize  = m_hcpWeightOffsetStateCmdSize;
+        m_hevcBasicFeature->m_slbbVdencWeightOffsetStateCmdSize = m_vdencWeightOffsetStateCmdSize;
+        m_hevcBasicFeature->m_slbbMiBatchBufferEndCmdSize       = m_miBatchBufferEndCmdSize;
+        MOS_SecureMemcpy(m_hevcBasicFeature->m_slbbAlignSize,
+                         sizeof(m_hevcBasicFeature->m_slbbAlignSize),
                          m_alignSize, sizeof(m_alignSize));
 
         m_allocator->UnLock(batchBuffer);
@@ -298,7 +293,7 @@ namespace encode
             auto saved_slbDataSizeInBytes                 = m_slbDataSizeInBytes;
 
             // Construct TU7 into SLBB HuC input buffer (Region 2 for HuC SLBB processing)
-            PMOS_RESOURCE tu7Buffer = hevcBasicFeatureXe3p->GetVdencReadBatchBufferTU7(recycledBufIdx, brcPass);
+            PMOS_RESOURCE tu7Buffer = m_hevcBasicFeature->GetVdencReadBatchBufferTU7(recycledBufIdx, brcPass);
             ENCODE_CHK_NULL_RETURN(tu7Buffer);
 
             m_batchbufferAddr = (uint8_t *)m_allocator->LockResourceForWrite(tu7Buffer);
@@ -315,7 +310,7 @@ namespace encode
             // matching the base class ConstructBatchBufferHuCBRC behavior.
             // If HuC SLBB processing runs on TU7, it will overwrite this with
             // processed values; otherwise BRC uses this raw template directly.
-            auto tu7OutputBatchBuffer = hevcBasicFeatureXe3p->GetVdenc2ndLevelBatchBufferTU7(recycledBufIdx);
+            auto tu7OutputBatchBuffer = m_hevcBasicFeature->GetVdenc2ndLevelBatchBufferTU7(recycledBufIdx);
             ENCODE_CHK_NULL_RETURN(tu7OutputBatchBuffer);
 
             m_batchbufferAddr = (uint8_t *)m_allocator->LockResourceForWrite(&tu7OutputBatchBuffer->OsResource);
@@ -939,22 +934,18 @@ MOS_STATUS HEVCHucSLBBUpdatePkt::DumpOutput()
 
         const uint32_t bufIdx = m_pipeline->m_currRecycledBufIdx;
 
-        // Cast to xe3p_lpm_base to access platform-specific buffers
-        auto hevcBasicFeatureXe3p = dynamic_cast<HevcBasicFeatureXe3p_Lpm_Base *>(m_hevcBasicFeature);
-        ENCODE_CHK_NULL_RETURN(hevcBasicFeatureXe3p);
-
         // Region 0 - Input SLB Buffer (Input Origin)
         int32_t currentPass = m_pipeline->GetCurrentPass();
         if (currentPass < 0)
         {
             return MOS_STATUS_INVALID_PARAMETER;
         }
-        MOS_RESOURCE *inputBuffer = hevcBasicFeatureXe3p->GetVdencReadBatchBufferOrigin(bufIdx, currentPass);
+        MOS_RESOURCE *inputBuffer = m_hevcBasicFeature->GetVdencReadBatchBufferOrigin(bufIdx, currentPass);
         ENCODE_CHK_NULL_RETURN(inputBuffer);
         params.regionParams[0].presRegion = inputBuffer;
 
         // Region 1 - Output SLBB Buffer (HuC firmware writes to HUC_REGION1)
-        auto vdenc2ndLevelBatchBuffer = hevcBasicFeatureXe3p->GetVdenc2ndLevelBatchBuffer(bufIdx);
+        auto vdenc2ndLevelBatchBuffer = m_hevcBasicFeature->GetVdenc2ndLevelBatchBuffer(bufIdx);
         ENCODE_CHK_NULL_RETURN(vdenc2ndLevelBatchBuffer);
         params.regionParams[1].presRegion = &vdenc2ndLevelBatchBuffer->OsResource;
         params.regionParams[1].isWritable = true;
@@ -962,11 +953,11 @@ MOS_STATUS HEVCHucSLBBUpdatePkt::DumpOutput()
         // Region 2/3 - TU7 SLBB Buffer (AdaptiveTU: separate input and output buffers)
         if (m_hevcBasicFeature->m_hevcPicParams->AdaptiveTUEnabled != 0)
         {
-            MOS_RESOURCE *tu7InputBuffer = hevcBasicFeatureXe3p->GetVdencReadBatchBufferTU7(bufIdx, currentPass);
+            MOS_RESOURCE *tu7InputBuffer = m_hevcBasicFeature->GetVdencReadBatchBufferTU7(bufIdx, currentPass);
             ENCODE_CHK_NULL_RETURN(tu7InputBuffer);
             params.regionParams[2].presRegion = tu7InputBuffer;
 
-            auto tu7OutputBuffer = hevcBasicFeatureXe3p->GetVdenc2ndLevelBatchBufferTU7(bufIdx);
+            auto tu7OutputBuffer = m_hevcBasicFeature->GetVdenc2ndLevelBatchBufferTU7(bufIdx);
             ENCODE_CHK_NULL_RETURN(tu7OutputBuffer);
             params.regionParams[3].presRegion = &tu7OutputBuffer->OsResource;
             params.regionParams[3].isWritable = true;

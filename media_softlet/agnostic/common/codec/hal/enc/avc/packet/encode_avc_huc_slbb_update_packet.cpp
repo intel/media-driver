@@ -29,7 +29,6 @@
 #include "media_avc_feature_defs.h"
 #include "encode_avc_vdenc_pipeline.h"
 #include "codec_def_common_encode.h"
-#include "encode_avc_basic_feature_xe3p_lpm.h"
 #include "encode_avc_vdenc_fastpass.h"
 #include "mos_os_cp_interface_specific.h"
 #if USE_CODECHAL_DEBUG_TOOL
@@ -221,15 +220,11 @@ MOS_STATUS AVCHucSLBBUpdatePkt::ConstructBatchBuffer()
     ENCODE_CHK_NULL_RETURN(m_basicFeature);
     ENCODE_CHK_NULL_RETURN(m_pipeline);
     
-    // Cast m_basicFeature to platform-specific type
-    auto basicFeatureXe3pLpm = dynamic_cast<AvcBasicFeatureXe3P_Lpm *>(m_basicFeature);
-    ENCODE_CHK_NULL_RETURN(basicFeatureXe3pLpm);
-    
     // Get current recycled buffer index
     const uint32_t recycledBufIdx = m_pipeline->m_currRecycledBufIdx;
-    
+
     // Retrieve Origin SLBB buffer
-    PMOS_RESOURCE slbbBufferOrigin = basicFeatureXe3pLpm->GetVdencReadBatchBufferOrigin(recycledBufIdx);
+    PMOS_RESOURCE slbbBufferOrigin = m_basicFeature->GetVdencReadBatchBufferOrigin(recycledBufIdx);
     ENCODE_CHK_NULL_RETURN(slbbBufferOrigin);
     
     // Query command sizes
@@ -287,7 +282,7 @@ MOS_STATUS AVCHucSLBBUpdatePkt::ConstructBatchBuffer()
         auto original_TU = m_basicFeature->m_targetUsage;
         m_basicFeature->m_targetUsage = m_basicFeature->m_seqParam->TargetUsage = 7;
 
-        PMOS_RESOURCE tu7Buffer = basicFeatureXe3pLpm->GetVdencReadBatchBufferTU7(recycledBufIdx);
+        PMOS_RESOURCE tu7Buffer = m_basicFeature->GetVdencReadBatchBufferTU7(recycledBufIdx);
         ENCODE_CHK_NULL_RETURN(tu7Buffer);
 
         uint8_t *dataTU7 = (uint8_t *)m_allocator->LockResourceForWrite(tu7Buffer);
@@ -556,17 +551,13 @@ MHW_SETPAR_DECL_SRC(HUC_VIRTUAL_ADDR_STATE, AVCHucSLBBUpdatePkt)
 
     const uint32_t bufIdx = m_pipeline->m_currRecycledBufIdx;
 
-    // Cast m_basicFeature to platform-specific type
-    auto basicFeatureXe3pLpm = dynamic_cast<AvcBasicFeatureXe3P_Lpm *>(m_basicFeature);
-    ENCODE_CHK_NULL_RETURN(basicFeatureXe3pLpm);
-
     // Region 0 - Input SLB Buffer (Input Origin)
-    MOS_RESOURCE *inputBuffer = basicFeatureXe3pLpm->GetVdencReadBatchBufferOrigin(bufIdx);
+    MOS_RESOURCE *inputBuffer = m_basicFeature->GetVdencReadBatchBufferOrigin(bufIdx);
     ENCODE_CHK_NULL_RETURN(inputBuffer);
     params.regionParams[0].presRegion = inputBuffer;
 
     // Region 1 - Output SLBB Buffer (HuC firmware writes to HUC_REGION1)
-    auto vdenc2ndLevelBatchBuffer = basicFeatureXe3pLpm->GetVdenc2ndLevelBatchBuffer(bufIdx);
+    auto vdenc2ndLevelBatchBuffer = m_basicFeature->GetVdenc2ndLevelBatchBuffer(bufIdx);
     ENCODE_CHK_NULL_RETURN(vdenc2ndLevelBatchBuffer);
     params.regionParams[1].presRegion = &vdenc2ndLevelBatchBuffer->OsResource;
     params.regionParams[1].isWritable = true;
@@ -574,11 +565,11 @@ MHW_SETPAR_DECL_SRC(HUC_VIRTUAL_ADDR_STATE, AVCHucSLBBUpdatePkt)
     // Region 2/3 - TU7 SLBB Buffer (AdaptiveTU: separate input and output buffers)
     if (m_basicFeature->m_picParam->AdaptiveTUEnabled != 0)
     {
-        PMOS_RESOURCE tu7InputBuffer = basicFeatureXe3pLpm->GetVdencReadBatchBufferTU7(bufIdx);
+        PMOS_RESOURCE tu7InputBuffer = m_basicFeature->GetVdencReadBatchBufferTU7(bufIdx);
         ENCODE_CHK_NULL_RETURN(tu7InputBuffer);
         params.regionParams[2].presRegion = tu7InputBuffer;
 
-        auto tu7OutputBuffer = basicFeatureXe3pLpm->GetVdenc2ndLevelBatchBufferTU7(bufIdx);
+        auto tu7OutputBuffer = m_basicFeature->GetVdenc2ndLevelBatchBufferTU7(bufIdx);
         ENCODE_CHK_NULL_RETURN(tu7OutputBuffer);
         params.regionParams[3].presRegion = &tu7OutputBuffer->OsResource;
         params.regionParams[3].isWritable = true;

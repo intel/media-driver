@@ -99,6 +99,8 @@ namespace encode
 
         virtual bool IsCompressFlagNeeded() { return true; }
 
+        virtual MOS_STATUS UpdateSlotForRecNotFiltered() { return MOS_STATUS_SUCCESS; }
+
         MHW_SETPAR_DECL_HDR(VDENC_PIPE_MODE_SELECT);
 
         MHW_SETPAR_DECL_HDR(VDENC_PIPE_BUF_ADDR_STATE);

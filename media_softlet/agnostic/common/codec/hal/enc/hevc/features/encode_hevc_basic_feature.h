@@ -86,6 +86,11 @@ public:
 
     MHW_SETPAR_DECL_HDR(HCP_SLICE_STATE);
 
+    virtual MOS_RESOURCE*     GetVdencReadBatchBufferOrigin(uint32_t recycledBufIdx, uint32_t brcPass) { return nullptr; }
+    virtual MOS_RESOURCE*     GetVdencReadBatchBufferTU7(uint32_t recycledBufIdx, uint32_t brcPass) { return nullptr; }
+    virtual MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBuffer(uint32_t recycledBufIdx) { return nullptr; }
+    virtual MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBufferTU7(uint32_t recycledBufIdx) { return nullptr; }
+
     EncodeMemComp *m_mmcState = nullptr;
 
     static constexpr uint32_t                   m_maxSliceQP   = 52;          //!< Max QP
@@ -136,6 +141,16 @@ public:
     uint32_t m_vdencBatchBufferTileSliceStart[ENCODE_HEVC_VDENC_NUM_MAX_SLICES] = {0};  //!< Byte offset to VDENC_HEVC_VP9_TILE_SLICE_STATE per slice in SLBB
 
     uint32_t m_picStateCmdStartInBytes = 0;       //!< Offset of PIC_STATE cmd in batch buffer
+
+    //! SLBB layout offsets populated by HEVCHucSLBBUpdatePkt::ConstructBatchBuffer()
+    //! and consumed by BRC Update to set DMEM without re-constructing the SLBB.
+    uint32_t m_slbbCmd2StartInBytes              = 0;
+    uint32_t m_slbbSlbDataSizeInBytes            = 0;
+    uint32_t m_slbbHcpSliceStateCmdSize          = 0;
+    uint32_t m_slbbHcpWeightOffsetStateCmdSize   = 0;
+    uint32_t m_slbbVdencWeightOffsetStateCmdSize = 0;
+    uint32_t m_slbbMiBatchBufferEndCmdSize       = 0;
+    uint32_t m_slbbAlignSize[ENCODE_HEVC_VDENC_NUM_MAX_SLICES] = {0};
 
     HevcBasicFeature422 *m_422State= nullptr;
     MOS_STATUS            Init422State();

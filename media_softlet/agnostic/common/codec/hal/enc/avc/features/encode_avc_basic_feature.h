@@ -166,6 +166,11 @@ public:
     //!
     uint32_t GetSlbbBufferSize() const { return m_slbbBufferSize; }
 
+    virtual PMOS_RESOURCE     GetVdencReadBatchBufferOrigin(uint32_t recycledBufIdx) { return nullptr; }
+    virtual PMOS_RESOURCE     GetVdencReadBatchBufferTU7(uint32_t recycledBufIdx) { return nullptr; }
+    virtual MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBuffer(uint32_t recycledBufIdx) { return nullptr; }
+    virtual MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBufferTU7(uint32_t recycledBufIdx) { return nullptr; }
+
     EncodeMemComp *m_mmcState = nullptr;
 
     // Parameters passed from application

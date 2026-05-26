@@ -50,8 +50,8 @@ public:
 
     virtual MOS_STATUS Init(void *setting) override;
 
-    MOS_RESOURCE* GetVdencReadBatchBufferOrigin(uint32_t recycledBufIdx, uint32_t brcPass);
-    MOS_RESOURCE* GetVdencReadBatchBufferTU7(uint32_t recycledBufIdx, uint32_t brcPass);
+    MOS_RESOURCE* GetVdencReadBatchBufferOrigin(uint32_t recycledBufIdx, uint32_t brcPass) override;
+    MOS_RESOURCE* GetVdencReadBatchBufferTU7(uint32_t recycledBufIdx, uint32_t brcPass) override;
 
     //!
     //! \brief    Get VDEnc 2nd level batch buffer
@@ -61,8 +61,8 @@ public:
     //! \return   MHW_BATCH_BUFFER*
     //!           Pointer to the VDEnc 2nd level batch buffer
     //!
-    MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBuffer(uint32_t recycledBufIdx);
-    MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBufferTU7(uint32_t recycledBufIdx);
+    MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBuffer(uint32_t recycledBufIdx) override;
+    MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBufferTU7(uint32_t recycledBufIdx) override;
 
     virtual MHW_SETPAR_DECL_HDR(AVP_SURFACE_STATE);
 

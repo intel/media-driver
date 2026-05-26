@@ -58,7 +58,7 @@ public:
     //! \brief    Get VDENC read batch buffer for original TU
     //! \return   Pointer to VDENC BRC image states read buffer array for original TU
     //!
-    PMOS_RESOURCE GetVdencReadBatchBufferOrigin(uint32_t index)
+    PMOS_RESOURCE GetVdencReadBatchBufferOrigin(uint32_t index) override
     {
         if (index < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM)
         {
@@ -71,7 +71,7 @@ public:
     //! \brief    Get VDENC read batch buffer for TU7
     //! \return   Pointer to VDENC BRC image states read buffer array for TU7
     //!
-    PMOS_RESOURCE GetVdencReadBatchBufferTU7(uint32_t index)
+    PMOS_RESOURCE GetVdencReadBatchBufferTU7(uint32_t index) override
     {
         if (index < CODECHAL_ENCODE_RECYCLED_BUFFER_NUM)
         {
@@ -88,8 +88,8 @@ public:
     //! \return   MHW_BATCH_BUFFER*
     //!           Pointer to the VDEnc 2nd level batch buffer
     //!
-    MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBuffer(uint32_t recycledBufIdx);
-    MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBufferTU7(uint32_t recycledBufIdx);
+    MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBuffer(uint32_t recycledBufIdx) override;
+    MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBufferTU7(uint32_t recycledBufIdx) override;
 
     MHW_SETPAR_DECL_HDR(VDENC_PIPE_MODE_SELECT);
     MHW_SETPAR_DECL_HDR(VDENC_AVC_IMG_STATE);
