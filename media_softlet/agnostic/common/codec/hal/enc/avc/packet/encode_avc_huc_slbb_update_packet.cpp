@@ -107,7 +107,13 @@ MOS_STATUS AVCHucSLBBUpdatePkt::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_
         m_basicFeature->m_frameWidth, m_basicFeature->m_frameHeight, true));
 
     // Construct batch buffer for SLBB operations
-    ENCODE_CHK_STATUS_RETURN(ConstructBatchBuffer());
+    MOS_STATUS status = ConstructBatchBuffer();
+    if (status != MOS_STATUS_SUCCESS)
+    {
+        ENCODE_NORMALMESSAGE("ERROR - Recycled buffer index exceed the maximum");
+        SETPAR_AND_ADDCMD(MI_BATCH_BUFFER_END, m_miItf, commandBuffer);
+        return status;
+    }
 
     bool firstTaskInPhase = packetPhase & firstPacket;
     bool requestProlog = false;
