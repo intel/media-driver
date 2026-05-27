@@ -103,6 +103,41 @@ using MosFormatArray = std::vector<MOS_FORMAT>;
 #define VP_PUBLIC_CHK_NULL_RETURN(_ptr)                                           \
     MOS_CHK_NULL_RETURN(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC, _ptr)
 
+//!
+//! \def VP_PUBLIC_CHK_NULL_DELETE_RETURN(_ptr, ...)
+//!  Check if \a _ptr == nullptr; if so delete the variadic pointer(s) and return MOS_STATUS_NULL_POINTER.
+//!
+#define VP_PUBLIC_CHK_NULL_DELETE_RETURN(_ptr, ...)                               \
+{                                                                                 \
+    if ((_ptr) == nullptr)                                                        \
+    {                                                                             \
+        MOS_ASSERTMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC,               \
+            "Invalid (nullptr) Pointer: " #_ptr);                                \
+        MT_ERR2(MT_ERR_NULL_CHECK, MT_COMPONENT, MOS_COMPONENT_VP,              \
+            MT_SUB_COMPONENT, MOS_VP_SUBCOMP_PUBLIC);                            \
+        _MOS_DELETE_ALL(__VA_ARGS__);                                             \
+        return MOS_STATUS_NULL_POINTER;                                           \
+    }                                                                             \
+}
+
+//!
+//! \def VP_PUBLIC_CHK_NULL_DELETE_RETURN_VALUE(_ptr, retVal, ...)
+//!  Check if \a _ptr == nullptr; if so delete the variadic pointer(s) and return \a retVal.
+//!  \a retVal may be a side-effecting expression, e.g. (*eStatus = MOS_STATUS_NULL_POINTER).
+//!
+#define VP_PUBLIC_CHK_NULL_DELETE_RETURN_VALUE(_ptr, retVal, ...)                              \
+{                                                                                              \
+    if ((_ptr) == nullptr)                                                                     \
+    {                                                                                          \
+        MOS_ASSERTMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC,                            \
+            "Invalid (nullptr) Pointer: " #_ptr);                                             \
+        MT_ERR2(MT_ERR_NULL_CHECK, MT_COMPONENT, MOS_COMPONENT_VP,                           \
+            MT_SUB_COMPONENT, MOS_VP_SUBCOMP_PUBLIC);                                         \
+        _MOS_DELETE_ALL(__VA_ARGS__);                                                          \
+        return (retVal);                                                                       \
+    }                                                                                          \
+}
+
 #define VP_PUBLIC_CHK_NULL_NO_STATUS(_ptr)                                        \
     MOS_CHK_NULL_NO_STATUS(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC, _ptr)
 

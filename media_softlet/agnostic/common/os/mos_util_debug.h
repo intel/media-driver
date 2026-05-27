@@ -1335,6 +1335,56 @@ MOS_CHK_NULL_RETURN_NULL(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _ptr)
     MOS_CHK_NULL_RETURN(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _ptr)
 
 //!
+//! Helper macros: call MOS_Delete on 1–5 pointers (used by MOS_OS_CHK_NULL_DELETE_RETURN).
+//!
+#define _MOS_DELETE_EACH_1(a)             MOS_Delete(a)
+#define _MOS_DELETE_EACH_2(a, b)          MOS_Delete(a); MOS_Delete(b)
+#define _MOS_DELETE_EACH_3(a, b, c)       MOS_Delete(a); MOS_Delete(b); MOS_Delete(c)
+#define _MOS_DELETE_EACH_4(a, b, c, d)    MOS_Delete(a); MOS_Delete(b); MOS_Delete(c); MOS_Delete(d)
+#define _MOS_DELETE_EACH_5(a,b,c,d,e)     MOS_Delete(a); MOS_Delete(b); MOS_Delete(c); MOS_Delete(d); MOS_Delete(e)
+#define _MOS_DELETE_NARGS(_1,_2,_3,_4,_5,N,...) N
+#define _MOS_EXPAND(...)                   __VA_ARGS__
+#define _MOS_DELETE_COUNT(...)             _MOS_EXPAND(_MOS_DELETE_NARGS(__VA_ARGS__, 5, 4, 3, 2, 1))
+#define _MOS_DELETE_CONCAT2(a, b)          a##b
+#define _MOS_DELETE_CONCAT(a, b)           _MOS_DELETE_CONCAT2(a, b)
+#define _MOS_DELETE_ALL(...)               _MOS_EXPAND(_MOS_DELETE_CONCAT(_MOS_DELETE_EACH_, _MOS_DELETE_COUNT(__VA_ARGS__))(__VA_ARGS__))
+
+//!
+//! \def MOS_OS_CHK_NULL_DELETE_RETURN(_ptr, ...)
+//!  Check if \a _ptr == nullptr; if so delete the variadic pointer(s) and return MOS_STATUS_NULL_POINTER.
+//!
+#define MOS_OS_CHK_NULL_DELETE_RETURN(_ptr, ...)                                               \
+{                                                                                              \
+    if ((_ptr) == nullptr)                                                                     \
+    {                                                                                          \
+        MOS_ASSERTMESSAGE(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF,                                 \
+            "Invalid (nullptr) Pointer: " #_ptr);                                             \
+        MT_ERR2(MT_ERR_NULL_CHECK, MT_COMPONENT, MOS_COMPONENT_OS,                           \
+            MT_SUB_COMPONENT, MOS_SUBCOMP_SELF);                                              \
+        _MOS_DELETE_ALL(__VA_ARGS__);                                                          \
+        return MOS_STATUS_NULL_POINTER;                                                        \
+    }                                                                                          \
+}
+
+//!
+//! \def MOS_OS_CHK_NULL_DELETE_RETURN_VALUE(_ptr, retVal, ...)
+//!  Check if \a _ptr == nullptr; if so delete the variadic pointer(s) and return \a retVal.
+//!  \a retVal may be a side-effecting expression, e.g. (*eStatus = MOS_STATUS_NULL_POINTER).
+//!
+#define MOS_OS_CHK_NULL_DELETE_RETURN_VALUE(_ptr, retVal, ...)                                 \
+{                                                                                              \
+    if ((_ptr) == nullptr)                                                                     \
+    {                                                                                          \
+        MOS_ASSERTMESSAGE(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF,                                 \
+            "Invalid (nullptr) Pointer: " #_ptr);                                             \
+        MT_ERR2(MT_ERR_NULL_CHECK, MT_COMPONENT, MOS_COMPONENT_OS,                           \
+            MT_SUB_COMPONENT, MOS_SUBCOMP_SELF);                                              \
+        _MOS_DELETE_ALL(__VA_ARGS__);                                                          \
+        return (retVal);                                                                       \
+    }                                                                                          \
+}
+
+//!
 //! \def MOS_OS_CHK_STATUS(_stmt)
 //!  MOS_CHK_STATUS \a _stmt with MOS utility comp/subcomp info
 //!
