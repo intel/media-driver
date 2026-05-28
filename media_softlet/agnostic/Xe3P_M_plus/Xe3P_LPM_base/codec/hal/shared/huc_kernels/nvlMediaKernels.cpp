@@ -92,7 +92,7 @@ DEFINE_HUC_KERNEL_MFT(nvl);
 #include "nvlMediaKernel_av1slbb_update.h"
 #include "nvlMediaKernel_avcslbb_update.h"
 #include "nvlMediaKernel_hevcslbb_update.h"
-#ifdef _MEDIA_RESERVED
+#if defined(_PXP_HUC_KERNEL_BIN_INCLUDED)
 #include "nvlMediaKernel_drm.h"
 #include "nvlMediaKernel_avcbrc_pxp_init.h"
 #include "nvlMediaKernel_avcbrc_pxp_update.h"
@@ -129,7 +129,7 @@ DEFINE_HUC_KERNEL_BIN_SIZE(vvcs2l,         nvl);
 DEFINE_HUC_KERNEL_BIN_SIZE(av1slbb_update,  nvl);
 DEFINE_HUC_KERNEL_BIN_SIZE(avcslbb_update,  nvl);
 DEFINE_HUC_KERNEL_BIN_SIZE(hevcslbb_update, nvl);
-#ifdef _MEDIA_RESERVED
+#if defined(_PXP_HUC_KERNEL_BIN_INCLUDED)
 DEFINE_HUC_KERNEL_BIN_SIZE(drm,                nvl);
 DEFINE_HUC_KERNEL_BIN_SIZE(avcbrc_pxp_init,    nvl);
 DEFINE_HUC_KERNEL_BIN_SIZE(avcbrc_pxp_update,  nvl);

@@ -44,7 +44,7 @@ HUC_KERNEL_BIN_LOCAL(__MediaKernels_av1ba_nvl)
 HUC_KERNEL_BIN_LOCAL(__MediaKernels_av1brc_init_nvl)
 HUC_KERNEL_BIN_LOCAL(__MediaKernels_av1brc_update_nvl)
 HUC_KERNEL_BIN_LOCAL(__MediaKernels_vvcs2l_nvl)
-#ifdef _MEDIA_RESERVED
+#if defined(_PXP_HUC_KERNEL_BIN_INCLUDED)
 HUC_KERNEL_BIN_LOCAL(__MediaKernels_drm_nvl)
 HUC_KERNEL_BIN_LOCAL(__MediaKernels_avcbrc_pxp_init_nvl)
 HUC_KERNEL_BIN_LOCAL(__MediaKernels_avcbrc_pxp_update_nvl)
@@ -58,7 +58,7 @@ HUC_KERNEL_BIN_LOCAL(__MediaKernels_hevcslbb_update_nvl)
 const HucKernelSource::BinaryTable HucKernelSourceXe3P_Lpm_Base::m_binTable =
 {
     {HucKernelSource::hevcS2lKernelId,           HUC_KERNEL_BIN_ELEMENT(__MediaKernels_s2l_nvl)},
-#ifdef _MEDIA_RESERVED
+#if defined(_PXP_HUC_KERNEL_BIN_INCLUDED)
     {HucKernelSource::drmKernelId,               HUC_KERNEL_BIN_ELEMENT(__MediaKernels_drm_nvl)},
 #endif
     {HucKernelSource::copyKernelId,              HUC_KERNEL_BIN_ELEMENT(__MediaKernels_copykrn_nvl)},
@@ -78,7 +78,7 @@ const HucKernelSource::BinaryTable HucKernelSourceXe3P_Lpm_Base::m_binTable =
     {HucKernelSource::av1BrcInitKernelId,        HUC_KERNEL_BIN_ELEMENT(__MediaKernels_av1brc_init_nvl)},
     {HucKernelSource::av1BrcUpdateKernelId,      HUC_KERNEL_BIN_ELEMENT(__MediaKernels_av1brc_update_nvl)},
     {HucKernelSource::vvcS2lKernelId,            HUC_KERNEL_BIN_ELEMENT(__MediaKernels_vvcs2l_nvl)},
-#ifdef _MEDIA_RESERVED
+#if defined(_PXP_HUC_KERNEL_BIN_INCLUDED)
     {HucKernelSource::avcPxpBrcInitKernelId,     HUC_KERNEL_BIN_ELEMENT(__MediaKernels_avcbrc_pxp_init_nvl)},
     {HucKernelSource::avcPxpBrcUpdateKernelId,   HUC_KERNEL_BIN_ELEMENT(__MediaKernels_avcbrc_pxp_update_nvl)},
     {HucKernelSource::avcPxpSlbbUpdateKernelId,  HUC_KERNEL_BIN_ELEMENT(__MediaKernels_avcslbb_pxp_update_nvl)},
@@ -121,7 +121,7 @@ const HucKernelSource::HashIdxTable HucKernelSourceXe3P_Lpm_Base::m_hashIdxTable
 
 MOS_STATUS HucKernelSourceXe3P_Lpm_Base::GetManifest(HucManifest &manifest)
 {
-#ifdef _MEDIA_RESERVED
+#if defined(_PXP_HUC_KERNEL_BIN_INCLUDED)
     manifest.m_data = reinterpret_cast<const uint8_t *>(__MediaKernels_manifest_nvl);
     manifest.m_size = __MediaKernels_manifest_nvl_size;
 #endif
