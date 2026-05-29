@@ -1117,7 +1117,7 @@ struct VPHAL_RENDER_PARAMS
 
     HANDLE gpuAppTaskEvent;  //!< GPU App task event
 
-#if LINUX
+#if defined(LINUX) && !defined(WDDM_LINUX)
     //!< Enable High Quality / Super Resolution mode (SR3) on Linux.
     //!< TODO: DDI layer (ddi_vp_functions.cpp) must set this from a libva signal before
     //!< SR3 can trigger. Suggested hook: VA_FILTER_SCALING_HQ in VAProcPipelineParameterBuffer::filter_flags
@@ -1151,7 +1151,7 @@ struct VPHAL_RENDER_PARAMS
                             bUseVEHdrSfc(false),
                             bNonFirstFrame(false),
                             gpuAppTaskEvent(nullptr)
-#if LINUX
+#if defined(LINUX) && !defined(WDDM_LINUX)
                             , isHighQualityModeEnabled(false)
 #endif
     {

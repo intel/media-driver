@@ -4014,10 +4014,12 @@ VAStatus DdiVpFunctions::DdiSetProcPipelineParams(
     osInterface = vpCtx->pVpHal->GetOsInterface();
     DDI_VP_CHK_NULL(osInterface, "nullptr osInterface.", VA_STATUS_ERROR_INVALID_BUFFER);
 
+#if defined(LINUX) && !defined(WDDM_LINUX)
     if (static_cast<int>(pipelineParam->processing_mode) == VA_PROC_MODE_HIGH_QUALITY)
     {
         vpHalRenderParams->isHighQualityModeEnabled = true;
     }
+#endif
 
     // increment surface count
     vpHalRenderParams->uSrcCount++;
