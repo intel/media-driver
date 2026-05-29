@@ -380,6 +380,7 @@ MOS_STATUS AVCHucSLBBUpdatePkt::SetDmem() const
     ENCODE_CHK_NULL_RETURN(m_mfxItf);
     ENCODE_CHK_NULL_RETURN(m_vdencItf);
     ENCODE_CHK_NULL_RETURN(m_miItf);
+    ENCODE_CHK_NULL_RETURN(m_pipeline);
 
     const uint32_t bufIdx = m_pipeline->m_currRecycledBufIdx;
     auto dmem = (HucAvcSlbbUpdateDmem *)m_allocator->LockResourceForWrite(
