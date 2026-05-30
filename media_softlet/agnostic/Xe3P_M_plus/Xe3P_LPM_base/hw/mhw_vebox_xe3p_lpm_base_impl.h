@@ -59,19 +59,6 @@ public:
     BaseImpl(PMOS_INTERFACE osItf) : base_t(osItf)
     {
         MHW_FUNCTION_ENTER;
-#if (_DEBUG || _RELEASE_INTERNAL)
-        bool enableReport = false;
-        ReadUserSettingForDebug(
-            this->m_userSettingPtr,
-            enableReport,
-            __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_ID_REPORT,
-            MediaUserSetting::Group::Sequence);
-        if (enableReport)
-        {
-            this->m_veboxIdReportEnabled = true;
-            this->m_veboxSettings.uiEngineDataSize = MHW_PAGE_SIZE;
-        }
-#endif
     };
 
     MOS_STATUS IecpStateInitialization(typename cmd_t::VEBOX_IECP_STATE_CMD *pVeboxIecpState)

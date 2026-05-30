@@ -103,6 +103,10 @@ using MosFormatArray = std::vector<MOS_FORMAT>;
 #define VP_PUBLIC_CHK_NULL_RETURN(_ptr)                                           \
     MOS_CHK_NULL_RETURN(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC, _ptr)
 
+#define VP_CHK_NULL_RETURN_VALUE(_ptr, retVal)                                    \
+    MOS_CHK_COND_RETURN_VALUE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC,           \
+        (_ptr == nullptr), retVal, "Invalid (nullptr) Pointer.")
+
 //!
 //! \def VP_PUBLIC_CHK_NULL_DELETE_RETURN(_ptr, ...)
 //!  Check if \a _ptr == nullptr; if so delete the variadic pointer(s) and return MOS_STATUS_NULL_POINTER.
@@ -135,6 +139,24 @@ using MosFormatArray = std::vector<MOS_FORMAT>;
             MT_SUB_COMPONENT, MOS_VP_SUBCOMP_PUBLIC);                                         \
         _MOS_DELETE_ALL(__VA_ARGS__);                                                          \
         return (retVal);                                                                       \
+    }                                                                                          \
+}
+
+//!
+//! \def VP_PUBLIC_CHK_STATUS_DELETE_RETURN(_stmt, ...)
+//!  Evaluate \a _stmt; if it fails delete the variadic pointer(s) and return the error status.
+//!
+#define VP_PUBLIC_CHK_STATUS_DELETE_RETURN(_stmt, ...)                                         \
+{                                                                                              \
+    MOS_STATUS _stmtStatus = (MOS_STATUS)(_stmt);                                             \
+    if (_stmtStatus != MOS_STATUS_SUCCESS)                                                     \
+    {                                                                                          \
+        MOS_ASSERTMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC,                            \
+            "MOS returned error, eStatus = 0x%x", _stmtStatus);                              \
+        MT_ERR3(MT_ERR_MOS_STATUS_CHECK, MT_COMPONENT, MOS_COMPONENT_VP,                     \
+            MT_SUB_COMPONENT, MOS_VP_SUBCOMP_PUBLIC, MT_ERROR_CODE, _stmtStatus);            \
+        _MOS_DELETE_ALL(__VA_ARGS__);                                                          \
+        return _stmtStatus;                                                                    \
     }                                                                                          \
 }
 

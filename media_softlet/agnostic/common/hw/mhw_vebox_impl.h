@@ -90,6 +90,17 @@ public:
                 __MEDIA_USER_FEATURE_VALUE_VEBOX_SPLIT_RATIO,
                 MediaUserSetting::Group::Device);
         }
+        bool enableReport = false;
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            enableReport,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_ID_REPORT,
+            MediaUserSetting::Group::Sequence);
+        if (enableReport)
+        {
+            m_veboxIdReportEnabled = true;
+            m_veboxSettings.uiEngineDataSize = MHW_PAGE_SIZE;
+        }
 #endif
     };
 
