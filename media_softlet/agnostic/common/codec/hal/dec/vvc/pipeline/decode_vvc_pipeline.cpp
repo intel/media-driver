@@ -30,7 +30,6 @@
 #include "decode_vvc_packet.h"
 #include "decode_mem_compression.h"
 #include "media_debug_fast_dump.h"
-#include "decode_vvc_debug_packet.h"
 
 namespace decode
 {

@@ -324,11 +324,6 @@ MOS_STATUS Av1DecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* 
     {
         StoreEngineId(cmdBuffer, decode::DecodeStatusReportType::CsEngineIdOffset_0);
     }
-    // Add command counter commands for debug
-    if (m_av1DebugPkt != nullptr)
-    {
-        DECODE_CHK_STATUS(m_av1DebugPkt->AddCommandCounterCmds(*cmdBuffer, m_statusReport));
-    }
 #endif
     return MOS_STATUS_SUCCESS;
 }

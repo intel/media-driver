@@ -96,13 +96,6 @@ MOS_STATUS Av1DecodeDebugPkt::Completed(void *mfxStatus)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Av1DecodeDebugPkt::AddCommandCounterCmds(MOS_COMMAND_BUFFER& cmdBuffer, MediaStatusReport *statusReport)
-{
-    DECODE_FUNC_CALL();
-
-    return MOS_STATUS_SUCCESS;
-}
-
 MOS_STATUS Av1DecodeDebugPkt::ExecutePerTile(MOS_COMMAND_BUFFER& cmdBuffer, int16_t idx)
 {
     DECODE_FUNC_CALL();

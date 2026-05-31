@@ -27,7 +27,6 @@
 #include "decode_vvc_packet.h"
 #include "decode_vvc_s2l_packet_register_xe3p_lpm_base.h"
 #include "decode_vvc_slice_packet_xe3p_lpm_base.h"
-#include "decode_vvc_debug_packet.h"
 
 namespace decode
 {

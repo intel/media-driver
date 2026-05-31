@@ -32,7 +32,6 @@
 #include "mos_solo_generic.h"
 #include "decode_resource_auto_lock.h"
 #include "hal_oca_interface_next.h"
-#include "decode_vvc_debug_packet.h"
 
 namespace decode {
 
@@ -69,21 +68,6 @@ MOS_STATUS VvcDecodePkt::Init()
     DECODE_CHK_NULL(m_slicePkt);
     DECODE_CHK_STATUS(m_slicePkt->CalculateCommandSize(m_sliceStatesSize, m_slicePatchListSize));
     DECODE_CHK_STATUS(m_slicePkt->CalculateTileCommandSize(m_tileStateSize, m_tilePatchListSize));
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    subPacket = m_vvcPipeline->GetSubPacket(DecodePacketId(m_vvcPipeline, vvcDebugSubPacketId));
-    m_debugPkt = dynamic_cast<VvcDecodeDebugPkt*>(subPacket);
-    // Debug packet is optional, don't fail if not present
-    if (m_debugPkt != nullptr)
-    {
-        DECODE_CHK_STATUS(m_debugPkt->CalculateCommandSize(m_debugStatesSize, m_debugPatchListSize));
-    }
-    else
-    {
-        m_debugStatesSize = 0;
-        m_debugPatchListSize = 0;
-    }
-#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -212,13 +196,6 @@ MOS_STATUS VvcDecodePkt::Completed(void *mfxStatus, void *rcsStatus, void *statu
     DecodeStatusReportData *statusReportData = (DecodeStatusReportData *)statusReport;
     DECODE_VERBOSEMESSAGE("Current Frame Index = %d", statusReportData->currDecodedPic.FrameIdx);
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    // Call debug packet completion handling for VVCP debug functionality
-    if (m_debugPkt != nullptr)
-    {
-        DECODE_CHK_STATUS(m_debugPkt->Completed(mfxStatus));
-    }
-#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -235,11 +212,6 @@ MOS_STATUS VvcDecodePkt::CalculateCommandSize(uint32_t &commandBufferSize, uint3
         requestedPatchListSize += CalculatePicPatchListSize();
         m_picCmdSizeCalculated = true;
     }
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    commandBufferSize += m_debugStatesSize;
-    requestedPatchListSize += m_debugPatchListSize;
-#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -311,11 +283,6 @@ MOS_STATUS VvcDecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* 
     {
         StoreEngineId(cmdBuffer, decode::DecodeStatusReportType::CsEngineIdOffset_0);
     }
-    // Add command counter commands for debug
-    if (m_debugPkt != nullptr)
-    {
-        DECODE_CHK_STATUS(m_debugPkt->AddCommandCounterCmds(*cmdBuffer, m_statusReport));
-    }
 #endif
     return MOS_STATUS_SUCCESS;
 }
@@ -328,11 +295,6 @@ MOS_STATUS VvcDecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cm
 
     DECODE_CHK_STATUS(ReadVvcpStatus(m_statusReport, *cmdBuffer));
 #if (_DEBUG || _RELEASE_INTERNAL)
-    // Execute debug packet for VVCP debug
-    if (m_debugPkt != nullptr)
-    {
-        DECODE_CHK_STATUS(m_debugPkt->Execute(*cmdBuffer, m_statusReport));
-    }
 #endif
     DECODE_CHK_STATUS(MediaPacket::EndStatusReportNext(srType, cmdBuffer));
 

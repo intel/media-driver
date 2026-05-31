@@ -42,16 +42,6 @@ MOS_STATUS VvcPipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingPtr
         int32_t(0),
         true);
     
-#if (_DEBUG || _RELEASE_INTERNAL)
-    // Debug-only user settings
-    DeclareUserSettingKeyForDebug(
-        userSettingPtr,
-        "VVC Command Counter",
-        MediaUserSetting::Group::Sequence,
-        int32_t(0),
-        true);
-#endif
-    
     return MOS_STATUS_SUCCESS;
 }
 }  // namespace decode

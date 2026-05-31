@@ -37,14 +37,6 @@ MOS_STATUS Av1Pipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingPtr
         MediaUserSetting::Group::Sequence,
         int32_t(0),
         true);
-#if (_DEBUG || _RELEASE_INTERNAL)
-    DeclareUserSettingKeyForDebug(
-        userSettingPtr,
-        "AV1 Command Counter",
-        MediaUserSetting::Group::Sequence,
-        int32_t(0),
-        true);
-#endif
     return MOS_STATUS_SUCCESS;
 }
 }  // namespace decode
