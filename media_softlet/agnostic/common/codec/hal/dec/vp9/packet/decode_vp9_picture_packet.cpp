@@ -63,11 +63,24 @@ MOS_STATUS Vp9DecodePicPkt::FreeResources()
         m_allocator->Destroy(m_resCABACSyntaxStreamOutBuffer);
         m_allocator->Destroy(m_resCABACStreamOutSizeBuffer);
 
-        // Cleanup 2nd level batch buffer array for mismatch order programming
-        if (m_osInterface->pfnIsMismatchOrderProgrammingSupported() && m_secondLevelBBArray != nullptr)
+        // Cleanup 2nd level batch buffer arrays for mismatch order programming
+        if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
         {
-            m_allocator->Destroy(m_secondLevelBBArray);
-            m_secondLevelBBArray = nullptr;
+            if (m_secondLevelBBArray != nullptr)
+            {
+                m_allocator->Destroy(m_secondLevelBBArray);
+                m_secondLevelBBArray = nullptr;
+            }
+            if (m_pingPongMvBBArray != nullptr)
+            {
+                m_allocator->Destroy(m_pingPongMvBBArray);
+                m_pingPongMvBBArray = nullptr;
+            }
+            if (m_copyStateBBArray != nullptr)
+            {
+                m_allocator->Destroy(m_copyStateBBArray);
+                m_copyStateBBArray = nullptr;
+            }
         }
     }
 
@@ -114,6 +127,31 @@ MOS_STATUS Vp9DecodePicPkt::Init()
             m_secondLevelBBArray = m_allocator->AllocateBatchBufferArray(
                 picStateSize, 1, 32, true, lockableVideoMem);
             DECODE_CHK_NULL(m_secondLevelBBArray);
+        }
+
+        // Allocate MV ping-pong BB array.
+        // Each BB: MI_COND_BB_END + HCP_PIPE_BUF_ADDR_STATE + MI_STORE_DATA_IMM
+        if (m_pingPongMvBBArray == nullptr)
+        {
+            uint32_t mvBBSize = 0;
+            mvBBSize += m_miItf->MHW_GETSIZE_F(MI_CONDITIONAL_BATCH_BUFFER_END)();
+            mvBBSize += m_hcpItf->MHW_GETSIZE_F(HCP_PIPE_BUF_ADDR_STATE)();
+            mvBBSize += m_miItf->MHW_GETSIZE_F(MI_STORE_DATA_IMM)();
+            m_pingPongMvBBArray = m_allocator->AllocateBatchBufferArray(
+                mvBBSize, 1, 32, true, lockableVideoMem);
+            DECODE_CHK_NULL(m_pingPongMvBBArray);
+        }
+
+        // Allocate copy-state BB array: replaces MI_COPY_MEM_MEM (fails on discrete GPU LMEM).
+        // Each BB: MI_COND_BB_END + MI_STORE_DATA_IMM
+        if (m_copyStateBBArray == nullptr)
+        {
+            uint32_t copyBBSize = 0;
+            copyBBSize += m_miItf->MHW_GETSIZE_F(MI_CONDITIONAL_BATCH_BUFFER_END)();
+            copyBBSize += m_miItf->MHW_GETSIZE_F(MI_STORE_DATA_IMM)();
+            m_copyStateBBArray = m_allocator->AllocateBatchBufferArray(
+                copyBBSize, 1, 32, true, lockableVideoMem);
+            DECODE_CHK_NULL(m_copyStateBBArray);
         }
     }
 
@@ -630,14 +668,17 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, Vp9DecodePicPkt)
     if ((m_vp9PicParams->PicFlags.fields.frame_type == CODEC_VP9_INTER_FRAME) && !m_vp9PicParams->PicFlags.fields.intra_only)
     {
         params.presCurMvTempBuffer = &(m_vp9BasicFeature->m_resVp9MvTemporalBuffer[m_vp9BasicFeature->m_curMvTempBufIdx]->OsResource);
-
         if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
         {
+            //m_curMvTempBufIdx/m_colMvTempBufIdx update logic is different , still update collocated buffer even last frame is key frame
             params.presColMvTempBuffer[0] = &(m_vp9BasicFeature->m_resVp9MvTemporalBuffer[m_vp9BasicFeature->m_colMvTempBufIdx]->OsResource);
         }
-        else if (!m_vp9BasicFeature->m_prevFrameParams.fields.KeyFrame && !m_vp9PicParams->PicFlags.fields.intra_only)
+        else
         {
-            params.presColMvTempBuffer[0] = &(m_vp9BasicFeature->m_resVp9MvTemporalBuffer[m_vp9BasicFeature->m_colMvTempBufIdx]->OsResource);
+            if (!m_vp9BasicFeature->m_prevFrameParams.fields.KeyFrame && !m_vp9PicParams->PicFlags.fields.intra_only)
+            {
+                params.presColMvTempBuffer[0] = &(m_vp9BasicFeature->m_resVp9MvTemporalBuffer[m_vp9BasicFeature->m_colMvTempBufIdx]->OsResource);
+            }
         }
     }
 

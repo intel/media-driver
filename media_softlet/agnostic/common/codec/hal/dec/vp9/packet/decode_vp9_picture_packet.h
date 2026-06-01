@@ -211,7 +211,19 @@ namespace decode
         PMHW_BATCH_BUFFER  m_batchBufferForKeyFrame    = nullptr;  //!< Batch buffer for key frame picture state
         PMHW_BATCH_BUFFER  m_batchBufferForNonKeyFrame = nullptr;  //!< Batch buffer for non-key frame picture state
         MOS_COMMAND_BUFFER m_picStateCmdBuffer         = {};       //!< Command buffer for picture state commands in second-level batch buffer
-        
+
+        // MV ping-pong 2nd-level BBs for mismatch (Vulkan) mode
+        BatchBufferArray  *m_pingPongMvBBArray  = nullptr;  //!< BB array for MV pipe buf addr (ping + pong per frame)
+        PMHW_BATCH_BUFFER  m_batchBufForMvPing  = nullptr;  //!< Ping BB: cur=MvBuf[0], col=MvBuf[1]
+        PMHW_BATCH_BUFFER  m_batchBufForMvPong  = nullptr;  //!< Pong BB: cur=MvBuf[1], col=MvBuf[0]
+
+        // Copy-state BBs: replace MI_COPY_MEM_MEM (fails on discrete GPU LMEM).
+        // BB0: skip-if(nextState==1), STORE stateBuffer=0  (Ping ran last)
+        // BB1: skip-if(nextState==0), STORE stateBuffer=1  (Pong ran last)
+        BatchBufferArray  *m_copyStateBBArray   = nullptr;
+        PMHW_BATCH_BUFFER  m_batchBufCopyState0 = nullptr;
+        PMHW_BATCH_BUFFER  m_batchBufCopyState1 = nullptr;
+
         mutable uint8_t m_curHcpSurfStateId            = 0;
         PMOS_SURFACE    psSurface                      = nullptr;; // 2D surface parameters
         static const uint32_t m_vp9ScalingFactor       = (1 << 14);

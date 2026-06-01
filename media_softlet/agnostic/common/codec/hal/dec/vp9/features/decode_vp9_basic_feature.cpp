@@ -94,6 +94,17 @@ Vp9BasicFeature::~Vp9BasicFeature()
                     m_allocator->Destroy(m_resVp9MvTemporalBuffer[i]);
                 }
             }
+
+            if (m_resVp9MVPingPongStateBuffer != nullptr)
+            {
+                m_allocator->Destroy(m_resVp9MVPingPongStateBuffer);
+                m_resVp9MVPingPongStateBuffer = nullptr;
+            }
+            if (m_resVp9MVNextStateBuffer != nullptr)
+            {
+                m_allocator->Destroy(m_resVp9MVNextStateBuffer);
+                m_resVp9MVNextStateBuffer = nullptr;
+            }
         }
         else{
             for(uint8_t i = 0; i < CODECHAL_VP9_NUM_MV_BUFFERS; i++)
@@ -144,6 +155,20 @@ MOS_STATUS Vp9BasicFeature::Init(void *setting)
         auto             data = (uint8_t *)resLock.LockResourceForWrite();
         DECODE_CHK_NULL(data);
         MOS_ZeroMemory(data, 1);
+
+        // Allocate ping-pong state buffer: read by MI_COND_BB_END each frame.
+        // GPU-init (STORE_DATA_IMM = 1) is emitted in every key frame's Execute().
+        m_resVp9MVPingPongStateBuffer = m_allocator->AllocateBuffer(
+            sizeof(uint32_t), "Vp9MVPingPongStateBuffer",
+            resourceInternalReadWriteCache, lockableVideoMem);
+        DECODE_CHK_NULL(m_resVp9MVPingPongStateBuffer);
+
+        // Allocate next-state buffer: written by the executing BB via MI_STORE_DATA_IMM.
+        // GPU-init (STORE_DATA_IMM = 0) is also emitted in every key frame's Execute().
+        m_resVp9MVNextStateBuffer = m_allocator->AllocateBuffer(
+            sizeof(uint32_t), "Vp9MVNextStateBuffer",
+            resourceInternalReadWriteCache, lockableVideoMem);
+        DECODE_CHK_NULL(m_resVp9MVNextStateBuffer);
     }
 
     return MOS_STATUS_SUCCESS;
@@ -419,11 +444,14 @@ MOS_STATUS Vp9BasicFeature::SetPictureStructs()
 
 
     //update MV temp buffer index
-    if (m_vp9PicParams->PicFlags.fields.frame_type == CODEC_VP9_INTER_FRAME &&
-        !m_vp9PicParams->PicFlags.fields.intra_only)
+    if (!m_osInterface->pfnIsMismatchOrderProgrammingSupported())
     {
-        m_curMvTempBufIdx = (m_curMvTempBufIdx + 1) % CODECHAL_VP9_NUM_MV_BUFFERS;
-        m_colMvTempBufIdx = (m_curMvTempBufIdx < 1) ? (CODECHAL_VP9_NUM_MV_BUFFERS - 1) : (m_curMvTempBufIdx - 1);
+        if (m_vp9PicParams->PicFlags.fields.frame_type == CODEC_VP9_INTER_FRAME &&
+            !m_vp9PicParams->PicFlags.fields.intra_only)
+        {
+            m_curMvTempBufIdx = (m_curMvTempBufIdx + 1) % CODECHAL_VP9_NUM_MV_BUFFERS;
+            m_colMvTempBufIdx = (m_curMvTempBufIdx < 1) ? (CODECHAL_VP9_NUM_MV_BUFFERS - 1) : (m_curMvTempBufIdx - 1);
+        }
     }
 
     // Allocate segment buffer

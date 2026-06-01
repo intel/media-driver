@@ -79,6 +79,14 @@ namespace decode
 
         MOS_STATUS Pack2ndLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer, bool bLastIsKeyFrame);
 
+        // MV ping-pong for mismatch mode:
+        // Builds COND_BB_END + HCP_PIPE_BUF_ADDR_STATE + STORE_DATA_IMM(→nextState) into cmdBuffer.
+        // isPing=true : cur=MvBuf[0], col=MvBuf[1], skip-if-state==0, nextState=0
+        // isPing=false: cur=MvBuf[1], col=MvBuf[0], skip-if-state==1, nextState=1
+        MOS_STATUS PackMvBufAddrCmds(MOS_COMMAND_BUFFER &cmdBuffer, bool isPing);
+
+        MOS_STATUS BuildCopyStateBB(MOS_COMMAND_BUFFER &cmdBuffer, uint32_t skipIfValue, uint32_t writeValue);
+
         MHW_SETPAR_DECL_HDR(HCP_PIPE_MODE_SELECT);
         MHW_SETPAR_DECL_HDR(HCP_PIPE_BUF_ADDR_STATE);
         MHW_SETPAR_DECL_HDR(HCP_VP9_PIC_STATE);

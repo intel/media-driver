@@ -81,7 +81,13 @@ class Vp9DecodePicPktXe2_Lpm_Base : public Vp9DecodePicPkt
         //! \return MOS_STATUS
         //!         MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        MOS_STATUS Pack2ndLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer, bool bLastIsKeyFrame);
+        MOS_STATUS PackPicState2ndLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer, bool bLastIsKeyFrame);
+
+        MOS_STATUS PackMvBufAddrCmds(MOS_COMMAND_BUFFER &cmdBuffer, bool isPing);
+
+        // Builds a copy-state 2nd-level BB: COND_BB_END(skip-if nextState==skipIfValue)
+        // + STORE_DATA_IMM(stateBuffer = writeValue).
+        MOS_STATUS BuildCopyStateBB(MOS_COMMAND_BUFFER &cmdBuffer, uint32_t skipIfValue, uint32_t writeValue);
 
     protected:
         virtual MOS_STATUS VdInit(MOS_COMMAND_BUFFER &cmdBuffer);
