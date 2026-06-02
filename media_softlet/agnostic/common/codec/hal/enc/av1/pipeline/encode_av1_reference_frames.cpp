@@ -733,17 +733,19 @@ void Av1ReferenceFrames::PopulateReferenceFramePOCs(int32_t (&refsPOCList)[7])
             refsPOCList[i] = currentOrderHint + dist;
         }
             
-        // Populate savedOrderHints for this reference frame
-        if (m_refFrameFlags & (AV1_ENCODE_GET_REF_FALG(i)))
+        // Populate savedOrderHints for all valid reference types, not just encoding refs.
+        // Motion field projection (spec 7.9.1) needs savedOrderHints for refs in
+        // m_activeRefBitmaskMfProj, which may include refs deduplicated from m_refFrameFlags.
         {
             auto index = picParams->ref_frame_idx[i];
             
-            // Validate index bounds
-            if (index >= 7)
+            // Validate index bounds and DPB entry
+            if (index >= 7
+                || CodecHal_PictureIsInvalid(picParams->RefFrameList[index]))
             {
                 continue;
             }
-            
+
             auto refFrameIdx = picParams->RefFrameList[index].FrameIdx;
             
             // Validate refFrameIdx bounds
@@ -1540,14 +1542,32 @@ MHW_SETPAR_DECL_SRC(AVP_PIPE_BUF_ADDR_STATE, Av1ReferenceFrames)
         params.colMvTempBuffer[0]  = params.curMvTempBuffer;
 
         //set for reference frames and collated temoral buffer
+        // Align AVP temporal MV slots with VDENC: when MFMV is active, also
+        // fill slots for refs in the motion field projection bitmask (spec 7.9.1)
+        uint8_t colMvRefMask = m_refFrameFlags;
+        if (picParams->PicFlags.fields.use_ref_frame_mvs
+            && m_enable_order_hint
+            && m_activeRefBitmaskMfProj)
+        {
+            colMvRefMask = m_activeRefBitmaskMfProj;
+        }
+
         for (uint8_t i = 0; i < av1NumInterRefFrames; i++)
         {
             params.refs[i + lastFrame] = &m_currRefPic[i]->OsResource;
 
-            if (m_refFrameFlags & (AV1_ENCODE_GET_REF_FALG(i)))
+            if (colMvRefMask & (AV1_ENCODE_GET_REF_FALG(i)))
             {
-                auto idx      = picParams->ref_frame_idx[i];
+                auto idx = picParams->ref_frame_idx[i];
+                if (idx >= 7 || CodecHal_PictureIsInvalid(picParams->RefFrameList[idx]))
+                {
+                    continue;
+                }
                 auto frameIdx = picParams->RefFrameList[idx].FrameIdx;
+                if (frameIdx >= CODEC_NUM_REF_BUFFERS || m_refList[frameIdx] == nullptr)
+                {
+                    continue;
+                }
 
                 uint8_t mvTempBufIdx      = m_refList[frameIdx]->ucScalingIdx;
                 auto    mvTempBufferForRef = m_basicFeature->m_trackedBuf->GetBuffer(BufferType::mvTemporalBuffer, mvTempBufIdx);
