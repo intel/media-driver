@@ -47,6 +47,7 @@ AVCHucSLBBUpdatePkt::AVCHucSLBBUpdatePkt(MediaPipeline *pipeline, MediaTask *tas
     m_vdboxHucKernelDescriptor = m_vdboxHucAvcSlbbUpdateKernelDescriptor;
 
     // Get feature manager from pipeline
+    ENCODE_CHK_NULL_NO_STATUS_RETURN(m_pipeline);
     m_featureManager = m_pipeline->GetPacketLevelFeatureManager(AvcVdencPipeline::HucSLBBUpdate);
 
     // Set DMEM buffer size to match HucAvcSlbbUpdateDmem (64 bytes, cache-line aligned)
