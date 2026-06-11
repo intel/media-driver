@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2025, Intel Corporation
+* Copyright (c) 2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -21,7 +21,7 @@
 */
 
 //!
-//! \file     media_sku_wa_nvls.cpp
+//! \file     media_sku_wa_nvl.cpp
 //!
 
 #include "igfxfmid.h"
@@ -132,7 +132,7 @@ static bool InitNvlMediaSkuExt(struct GfxDeviceInfo *devInfo,
         MEDIA_WR_SKU(skuTable, FtrEncodeHEVCVdencMain10bit422, codecInfo->hevcVdenc);
         MEDIA_WR_SKU(skuTable, FtrEncodeHEVCVdencMain10bit444, codecInfo->hevcVdenc);
 
-        /* HEVC 12bit Decoding. Currently it is enabled */ 
+        /* HEVC 12bit Decoding. Currently it is enabled */
         MEDIA_WR_SKU(skuTable, FtrIntelHEVCVLDMain12bit420Decoding, 1);
         MEDIA_WR_SKU(skuTable, FtrIntelHEVCVLDMain12bit422Decoding, 1);
         MEDIA_WR_SKU(skuTable, FtrIntelHEVCVLDMain12bit444Decoding, 1);
@@ -296,3 +296,13 @@ static struct LinuxDeviceInit nvlXe3GDeviceInit =
 
 static bool nvlXe3GDeviceRegister = DeviceInfoFactory<LinuxDeviceInit>::
     RegisterDevice(IGFX_NVL_XE3G, &nvlXe3GDeviceInit);
+
+static struct LinuxDeviceInit nvlDeviceInit =
+{
+    .productFamily    = IGFX_NVL,
+    .InitMediaFeature = InitNvlMediaSkuExt,
+    .InitMediaWa      = InitNvlMediaWaExt,
+};
+
+static bool nvlDeviceRegister = DeviceInfoFactory<LinuxDeviceInit>::
+    RegisterDevice(IGFX_NVL, &nvlDeviceInit);

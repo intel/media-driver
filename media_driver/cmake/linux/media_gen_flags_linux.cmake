@@ -126,6 +126,7 @@ endif()
 option(NVL "Enable NVL support" ON)
 if(NVL)
     option(XE3P_LPM_SUPPORT "Enable XE3P_LPM support" ON)
+    option(XE3P_LPG "Enable XE3P_LPG render support" ON)
     add_definitions(-DIGFX_NVL_SUPPORTED)
 endif()
 

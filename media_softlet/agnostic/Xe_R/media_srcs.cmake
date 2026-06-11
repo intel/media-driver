@@ -30,6 +30,11 @@ if(XE2_HPG)
     media_include_subdirectory(Xe2_HPG)
 endif()
 
+if(XE3P_LPG)
+    media_include_subdirectory(Xe3P_LPG_base)
+    media_include_subdirectory(Xe3P_LPG)
+endif()
+
 set(MEDIA_BIN_HEADERS_
     ${MEDIA_BIN_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/media_bin_register_xe_hpg.h

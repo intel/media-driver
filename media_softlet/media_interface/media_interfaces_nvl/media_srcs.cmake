@@ -17,14 +17,15 @@
 # OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
-# and approved by Intel in writing.
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_nvls.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_nvl.cpp
 )
 
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_nvls.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_nvl.h
 )
 
 set(SOFTLET_COMMON_SOURCES_

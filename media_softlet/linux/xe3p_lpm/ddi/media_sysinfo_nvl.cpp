@@ -1,6 +1,6 @@
 /*===================== begin_copyright_notice ==================================
 
-Copyright (c) 2025, Intel Corporation
+Copyright (c) 2026, Intel Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
@@ -22,7 +22,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 ======================= end_copyright_notice ==================================*/
 //!
-//! \file     media_sysinfo_nvls.cpp
+//! \file     media_sysinfo_nvl.cpp
 //!
 
 #include "igfxfmid.h"
@@ -181,6 +181,27 @@ static struct GfxDeviceInfo nvlXe3GInfo = {
     .InitShadowWa     = InitNvlShadowWa,
 };
 
+static struct GfxDeviceInfo nvlInfo = {
+    .platformType  = PLATFORM_MOBILE,
+    .productFamily = IGFX_NVL,
+    .displayFamily = IGFX_UNKNOWN_CORE,
+    .renderFamily  = IGFX_XE3P_CORE,
+    .mediaFamily   = IGFX_XE3P_CORE,
+    .eGTType       = GTTYPE_GT2,
+    .L3CacheSizeInKb = 0,
+    .L3BankCount   = 0,
+    .EUCount       = 0,
+    .SliceCount    = 0,
+    .SubSliceCount = 0,
+    .MaxEuPerSubSlice = 0,
+    .isLCIA        = 0,
+    .hasLLC        = 0,
+    .hasERAM       = 0,
+    .InitMediaSysInfo = InitNvlMediaSysInfo,
+    .InitShadowSku    = InitNvlShadowSku,
+    .InitShadowWa     = InitNvlShadowWa,
+};
+
 // NVL-S
 static bool nvlDeviceD740 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0xD740, &nvlXe3GInfo);
@@ -205,3 +226,31 @@ static bool nvlDeviceD74A = DeviceInfoFactory<GfxDeviceInfo>::
 
 static bool nvlDeviceD74B = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0xD74B, &nvlXe3GInfo);
+
+// NVL-P
+static bool nvlDeviceD750 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0xD750, &nvlInfo);
+
+static bool nvlDeviceD751 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0xD751, &nvlInfo);
+
+static bool nvlDeviceD752 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0xD752, &nvlInfo);
+
+static bool nvlDeviceD753 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0xD753, &nvlInfo);
+
+static bool nvlDeviceD754 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0xD754, &nvlInfo);
+
+static bool nvlDeviceD755 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0xD755, &nvlInfo);
+
+static bool nvlDeviceD756 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0xD756, &nvlInfo);
+
+static bool nvlDeviceD757 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0xD757, &nvlInfo);
+
+static bool nvlDeviceD75F = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0xD75F, &nvlInfo);
