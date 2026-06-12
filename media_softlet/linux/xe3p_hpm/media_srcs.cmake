@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Intel Corporation
+# Copyright (c) 2025-2026, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,7 +18,4 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(Xe3P_LPM_base)
-if(NVL OR CRI)
-    media_include_subdirectory(Xe3P_LPM)
-endif()
+media_include_subdirectory(ddi)

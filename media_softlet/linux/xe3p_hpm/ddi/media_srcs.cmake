@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Intel Corporation
+# Copyright (c) 2025-2026, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,7 +18,18 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(Xe3P_LPM_base)
-if(NVL OR CRI)
-    media_include_subdirectory(Xe3P_LPM)
-endif()
+set(TMP_SOURCES_
+    ${CMAKE_CURRENT_LIST_DIR}/caps_register_specific_xe3p_hpm.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_sysinfo_cri.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/media_sku_wa_cri.cpp
+)
+
+set(SOFTLET_DDI_SOURCES_
+    ${SOFTLET_DDI_SOURCES_}
+    ${TMP_SOURCES_}
+)
+
+set(SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_
+    ${SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

@@ -18,7 +18,16 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(Xe3P_LPM_base)
-if(NVL OR CRI)
-    media_include_subdirectory(Xe3P_LPM)
-endif()
+set(TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/capstable_data_vp_xe3p_hpm_r0_specific.h
+)
+
+set(SOFTLET_DDI_HEADERS_
+    ${SOFTLET_DDI_HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+set(SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_
+    ${SOFTLET_DDI_PUBLIC_INCLUDE_DIRS_}
+    ${CMAKE_CURRENT_LIST_DIR}
+)

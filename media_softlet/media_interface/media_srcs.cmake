@@ -41,3 +41,7 @@ endif()
 if(NVL)
     media_include_subdirectory(media_interfaces_nvl)
 endif()
+
+if(CRI)
+    media_include_subdirectory(media_interfaces_cri)
+endif()

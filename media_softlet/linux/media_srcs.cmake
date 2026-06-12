@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2024, Intel Corporation
+# Copyright (c) 2019-2026, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -46,4 +46,9 @@ endif()
 if(XE3P_LPM_SUPPORT)
 media_include_subdirectory(xe3p_lpm)
 media_include_subdirectory(xe3p_lpm_r0)
+endif()
+
+if(XE3P_HPM_SUPPORT)
+media_include_subdirectory(xe3p_hpm)
+media_include_subdirectory(xe3p_hpm_r0)
 endif()

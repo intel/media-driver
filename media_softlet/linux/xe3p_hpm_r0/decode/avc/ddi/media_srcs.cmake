@@ -6,7 +6,7 @@
 # the rights to use, copy, modify, merge, publish, distribute, sublicense,
 # and/or sell copies of the Software, and to permit persons to whom the
 # Software is furnished to do so, subject to the following conditions:
-#
+# 
 # The above copyright notice and this permission notice shall be included
 # in all copies or substantial portions of the Software.
 #
@@ -18,7 +18,13 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-media_include_subdirectory(Xe3P_LPM_base)
-if(NVL OR CRI)
-    media_include_subdirectory(Xe3P_LPM)
-endif()
+set (TMP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/capstable_data_avc_decode_xe3p_hpm_r0_specific.h
+)
+
+set (HEADERS_
+    ${HEADERS_}
+    ${TMP_HEADERS_}
+)
+
+media_add_curr_to_include_path()

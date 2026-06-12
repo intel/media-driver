@@ -31,7 +31,7 @@ if(PTL)
     media_include_subdirectory(Xe3_M_plus)
 endif()
 
-if(NVL)
+if(NVL OR CRI)
     media_include_subdirectory(Xe3P_M_plus)
 endif()
 
