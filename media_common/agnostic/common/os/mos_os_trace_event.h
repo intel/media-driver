@@ -412,6 +412,8 @@ typedef enum _MEDIA_EVENT
     EVENT_ENCODE_DDI_CAPS_RESERVED_0,              //! reserved: encode DDI caps slot 0
     EVENT_ENCODE_DDI_PIC_PARAM_RESERVED_0,         //! reserved: encode DDI picture param slot 0
     EVENT_ENCODE_API_STICKER_RESERVED_0,           //! reserved: encode API sticker slot 0
+    EVENT_CP_FW_ERROR,                             //! release event for CP FW command failure
+    EVENT_CP_HUC_AUTH_FAIL                         //! release event for HuC authentication failure
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE
