@@ -297,6 +297,9 @@ namespace encode
 
         hucVdencBrcUpdateDmem->UPD_AdaptiveTUEnabled = m_basicFeature->m_hevcPicParams->AdaptiveTUEnabled;
 
+        hucVdencBrcUpdateDmem->UPD_GopPicSize = m_basicFeature->m_hevcSeqParams->GopPicSize;
+        hucVdencBrcUpdateDmem->UPD_LADsRatio = m_basicFeature->m_hevcSeqParams->FastPassRatio;
+
         return MOS_STATUS_SUCCESS;
     }
 

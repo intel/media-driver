@@ -773,6 +773,9 @@ MOS_STATUS AvcEncodeBRC::SetDmemForUpdate(void *params, uint16_t currPass, bool 
         hucVdencBrcUpdateDmem->UPD_Delta_U8             = m_qpModulationStrength;
     }
 
+    hucVdencBrcUpdateDmem->UPD_GopPicSize  = avcSeqParams->GopPicSize;
+    hucVdencBrcUpdateDmem->UPD_LADsRatio = avcSeqParams->FastPassRatio;
+
     return MOS_STATUS_SUCCESS;
 }
 

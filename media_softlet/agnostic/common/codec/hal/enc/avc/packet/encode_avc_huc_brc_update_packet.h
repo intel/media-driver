@@ -41,7 +41,8 @@ class AvcEncodeBRC;
 struct VdencAvcHucBrcUpdateDmem
 {
     uint8_t     BRCFunc_U8;                           // =1 for Update, other values are reserved for future use
-    uint8_t     RSVD[3];
+    uint8_t     RSVD[2];
+    uint8_t     UPD_LADsRatio;
     uint32_t    UPD_TARGETSIZE_U32;                   // refer to AVC BRC for calculation
     uint32_t    UPD_FRAMENUM_U32;                     // frame number
     uint32_t    UPD_PeakTxBitsPerFrame_U32;           // current global target bits - previous global target bits (global target bits += input bits per frame)
@@ -124,7 +125,7 @@ struct VdencAvcHucBrcUpdateDmem
     uint32_t     UPD_UserMaxFramePB;        // In Bytes
     uint8_t      UPD_ExtCurrFrameType;      // correctly calculated FrameType for all cases (including hierarchy golden BGops)
     uint8_t      UPD_AdaptiveTUEnabled;
-    uint8_t      RSVD2[2];
+    uint16_t     UPD_GopPicSize;
 };
 
 struct VdencAvcHucBrcConstantData
