@@ -699,6 +699,7 @@ void DecodeVp9BufferUpdate::InitScalabilityPars(PMOS_INTERFACE osInterface)
     m_decodeScalabilityPars.disableRealTile    = true;
     m_decodeScalabilityPars.enableVE           = MOS_VE_SUPPORTED(osInterface);
     m_decodeScalabilityPars.numVdbox           = m_numVdbox;
+    m_decodeScalabilityPars.vdboxTypePref      = m_pipeline->GetPipelineVdboxTypePref();
 }
 
 }  // namespace decode

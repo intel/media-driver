@@ -143,6 +143,7 @@ MOS_STATUS JpegPipeline::Prepare(void *params)
     scalPars.numTileRows        = 1;
     scalPars.numTileColumns     = 1;
     scalPars.IsPak              = true;
+    scalPars.vdboxTypePref = m_pipelineVdboxTypePref;
 
     ENCODE_CHK_STATUS_RETURN(m_mediaContext->SwitchContext(VdboxEncodeFunc, &scalPars, &m_scalability));
 

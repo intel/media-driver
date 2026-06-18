@@ -151,6 +151,7 @@ void DecodeSfcHistogramSubPipeline::InitScalabilityPars(PMOS_INTERFACE osInterfa
     m_decodeScalabilityPars.disableRealTile = true;
     m_decodeScalabilityPars.enableVE = MOS_VE_SUPPORTED(osInterface);
     m_decodeScalabilityPars.numVdbox = m_numVdbox;
+    m_decodeScalabilityPars.vdboxTypePref = m_pipeline->GetPipelineVdboxTypePref();
 }
 
 MOS_STATUS DecodeSfcHistogramSubPipeline::CopyHistogramToDestBuf(MOS_RESOURCE* src,

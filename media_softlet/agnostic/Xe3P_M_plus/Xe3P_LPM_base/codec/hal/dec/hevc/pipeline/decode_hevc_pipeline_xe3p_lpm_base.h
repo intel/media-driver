@@ -127,13 +127,6 @@ protected:
     MOS_STATUS DumpParams(HevcBasicFeature &basicFeature);
 #endif
 
-    //!
-    //! \brief  Get the number of Vdbox
-    //! \return uint8_t
-    //!         Return the number of Vdbox
-    //!
-    virtual uint8_t GetSystemVdboxNumber() override;
-
     HevcDecodeSlcPktXe3P_Lpm_Base *m_hevcSlicePkt = nullptr;
 
 MEDIA_CLASS_DEFINE_END(decode__HevcPipelineXe3P_Lpm_Base)

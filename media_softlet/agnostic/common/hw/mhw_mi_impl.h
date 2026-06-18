@@ -272,6 +272,8 @@ public:
         case MOS_GPU_CONTEXT_VIDEO5:
         case MOS_GPU_CONTEXT_VIDEO6:
         case MOS_GPU_CONTEXT_VIDEO7:
+        case MOS_GPU_CONTEXT_VIDEO_DEC_FULL:
+        case MOS_GPU_CONTEXT_VIDEO_ENC_FULL:
             MediaResetParam.watchdogCountCtrlOffset      = m_watchdogOffsets.ctrlVcs0;
             MediaResetParam.watchdogCountThresholdOffset = m_watchdogOffsets.thresholdVcs0;
             break;

@@ -169,7 +169,9 @@ MOS_STATUS DecodePipeline::Initialize(void *settings)
             m_debugInterface->Initialize(m_hwInterface, codecSettings->codecFunction, m_mediaCopyWrapper));
     );
 
-    m_mediaContext = MOS_New(MediaContext, scalabilityDecoder, m_hwInterface, m_osInterface);
+    EvaluateVdboxTypePref();
+
+    m_mediaContext = MOS_New(MediaContext, scalabilityDecoder, m_hwInterface, m_osInterface, m_pipelineVdboxTypePref);
     DECODE_CHK_NULL(m_mediaContext);
 
     m_task = CreateTask(MediaTask::TaskType::cmdTask);
@@ -296,7 +298,43 @@ uint8_t DecodePipeline::GetSystemVdboxNumber()
         DECODE_ASSERTMESSAGE("Failed to query media engine info!!");
     }
 
+    if (MEDIA_IS_SKU(m_skuTable, FtrWithSlimVdbox))
+    {
+        numVdbox = 1;
+    }
+
     return numVdbox;
+}
+
+VdboxTypePref DecodePipeline::GetDefaultVdboxTypePref() const
+{
+    auto sku = m_osInterface->pfnGetSkuTable(m_osInterface);
+    return (sku && MEDIA_IS_SKU(sku, FtrWithSlimVdbox))
+         ? MOS_VDBOX_PREFER_SLIM : MOS_VDBOX_PREFER_NONE;
+}
+
+void DecodePipeline::EvaluateVdboxTypePref()
+{
+    m_pipelineVdboxTypePref = GetDefaultVdboxTypePref();
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (MEDIA_IS_SKU(m_skuTable, FtrWithSlimVdbox))
+    {
+        uint32_t forcePref = 0;
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            forcePref,
+            __MEDIA_USER_FEATURE_VALUE_VDBOX_TYPE_PREF,
+            MediaUserSetting::Group::Device);
+        switch (forcePref)
+        {
+            case 1: m_pipelineVdboxTypePref = MOS_VDBOX_PREFER_FULL; break;
+            case 2: m_pipelineVdboxTypePref = MOS_VDBOX_PREFER_SLIM; break;
+            case 3: m_pipelineVdboxTypePref = MOS_VDBOX_PREFER_NONE; break;
+            default: break;
+        }
+    }
+#endif
 }
 
 MOS_STATUS DecodePipeline::Prepare(void *params)

@@ -37,6 +37,7 @@ EncodeScalabilityOption::EncodeScalabilityOption(const EncodeScalabilityOption &
 {
     m_numPipe = pOption.m_numPipe;
     m_enabledVdenc = pOption.m_enabledVdenc;
+    m_vdboxTypePref = pOption.m_vdboxTypePref;
 }
 
 MOS_STATUS EncodeScalabilityOption::SetScalabilityOption(ScalabilityPars *params)
@@ -44,6 +45,8 @@ MOS_STATUS EncodeScalabilityOption::SetScalabilityOption(ScalabilityPars *params
     SCALABILITY_CHK_NULL_RETURN(params);
 
     EncodeScalabilityPars *encPars = (EncodeScalabilityPars *)params;
+
+    m_vdboxTypePref = encPars->vdboxTypePref;
 
     if (encPars->enableVE == false)
     {
@@ -101,7 +104,8 @@ bool EncodeScalabilityOption::IsScalabilityOptionMatched(ScalabilityPars *params
     if (m_numPipe != newOption.GetNumPipe() ||
         m_enabledVdenc != newOption.IsVdencEnabled()||
         m_raMode != newOption.GetRAMode() ||
-        m_protectMode != newOption.GetProtectMode())
+        m_protectMode != newOption.GetProtectMode() ||
+        m_vdboxTypePref != newOption.GetVdboxTypePref())
     {
         matched = false;
     }

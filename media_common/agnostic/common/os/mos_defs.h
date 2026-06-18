@@ -449,7 +449,9 @@ typedef enum _MOS_GPU_CONTEXT
     MOS_GPU_CONTEXT_VIDEO7          = 20, // Decode Node 0 Split 3
     MOS_GPU_CONTEXT_BLT             = 21,
     MOS_GPU_CONTEXT_TEE             = 22, // TEE context
-    MOS_GPU_CONTEXT_MAX             = 23,
+    MOS_GPU_CONTEXT_VIDEO_DEC_FULL  = 23, // Decode on full(type-A) VDBox only
+    MOS_GPU_CONTEXT_VIDEO_ENC_FULL  = 24, // Encode on full(type-A) VDBox only
+    MOS_GPU_CONTEXT_MAX             = 25,
     MOS_GPU_CONTEXT_INVALID_HANDLE  = 0xFFFFA
 } MOS_GPU_CONTEXT, *PMOS_GPU_CONTEXT;
 

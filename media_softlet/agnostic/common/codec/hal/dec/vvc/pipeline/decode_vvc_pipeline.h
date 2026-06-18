@@ -122,6 +122,8 @@ namespace decode
         //!
         MOS_STATUS InitContext();
 
+        VdboxTypePref GetDefaultVdboxTypePref() const override;
+
         //!
         //! \brief    Initialize MMC state
         //!

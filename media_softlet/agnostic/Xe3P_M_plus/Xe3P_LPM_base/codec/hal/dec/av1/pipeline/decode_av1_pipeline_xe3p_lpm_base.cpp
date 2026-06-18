@@ -78,6 +78,7 @@ namespace decode
         scalPars.disableRealTile = true;
         scalPars.enableVE = MOS_VE_SUPPORTED(m_osInterface);
         scalPars.numVdbox = m_numVdbox;
+        scalPars.vdboxTypePref = m_pipelineVdboxTypePref;
 
         if (m_allowVirtualNodeReassign)
         {

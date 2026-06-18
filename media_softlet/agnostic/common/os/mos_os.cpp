@@ -513,6 +513,41 @@ void Mos_AddIndirectStateByAddressValue(
 //! \return   MOS_STATUS
 //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
 //!
+const char *Mos_GetCmdBufferEngineName(MOS_GPU_CONTEXT gpuContext)
+{
+    switch (gpuContext)
+    {
+        case MOS_GPU_CONTEXT_VIDEO:
+        case MOS_GPU_CONTEXT_VIDEO2:
+        case MOS_GPU_CONTEXT_VIDEO3:
+        case MOS_GPU_CONTEXT_VIDEO4:
+        case MOS_GPU_CONTEXT_VDBOX2_VIDEO:
+        case MOS_GPU_CONTEXT_VDBOX2_VIDEO2:
+        case MOS_GPU_CONTEXT_VDBOX2_VIDEO3:
+        case MOS_GPU_CONTEXT_VIDEO5:
+        case MOS_GPU_CONTEXT_VIDEO6:
+        case MOS_GPU_CONTEXT_VIDEO7:
+        case MOS_GPU_CONTEXT_VIDEO_DEC_FULL:
+        case MOS_GPU_CONTEXT_VIDEO_ENC_FULL:
+            return MOS_COMMAND_BUFFER_VIDEO_ENGINE;
+        case MOS_GPU_CONTEXT_TEE:
+            return MOS_COMMAND_BUFFER_TEE_ENGINE;
+        case MOS_GPU_CONTEXT_RENDER:
+        case MOS_GPU_CONTEXT_RENDER2:
+        case MOS_GPU_CONTEXT_RENDER3:
+        case MOS_GPU_CONTEXT_RENDER4:
+        case MOS_GPU_CONTEXT_RENDER_RA:
+        case MOS_GPU_CONTEXT_COMPUTE:
+        case MOS_GPU_CONTEXT_COMPUTE_RA:
+        case MOS_GPU_CONTEXT_CM_COMPUTE:
+            return MOS_COMMAND_BUFFER_RENDER_ENGINE;
+        case MOS_GPU_CONTEXT_VEBOX:
+            return MOS_COMMAND_BUFFER_VEBOX_ENGINE;
+        default:
+            return nullptr;
+    }
+}
+
 MOS_STATUS Mos_DumpCommandBuffer(
     PMOS_INTERFACE      pOsInterface,
     PMOS_COMMAND_BUFFER pCmdBuffer)
@@ -541,40 +576,13 @@ MOS_STATUS Mos_DumpCommandBuffer(
 
     // Set the name of the engine that is going to be used.
     MOS_GPU_CONTEXT sGpuContext = pOsInterface->pfnGetGpuContext(pOsInterface);
-    switch (sGpuContext)
+    const char     *pEngName    = Mos_GetCmdBufferEngineName(sGpuContext);
+    if (pEngName == nullptr)
     {
-        case MOS_GPU_CONTEXT_VIDEO:
-        case MOS_GPU_CONTEXT_VIDEO2:
-        case MOS_GPU_CONTEXT_VIDEO3:
-        case MOS_GPU_CONTEXT_VIDEO4:
-        case MOS_GPU_CONTEXT_VDBOX2_VIDEO:
-        case MOS_GPU_CONTEXT_VDBOX2_VIDEO2:
-        case MOS_GPU_CONTEXT_VDBOX2_VIDEO3:
-        case MOS_GPU_CONTEXT_VIDEO5:
-        case MOS_GPU_CONTEXT_VIDEO6:
-        case MOS_GPU_CONTEXT_VIDEO7:
-            MOS_SecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_VIDEO_ENGINE);
-            break;
-        case MOS_GPU_CONTEXT_TEE:
-            MOS_SecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_TEE_ENGINE);
-            break;
-        case MOS_GPU_CONTEXT_RENDER:
-        case MOS_GPU_CONTEXT_RENDER2:
-        case MOS_GPU_CONTEXT_RENDER3:
-        case MOS_GPU_CONTEXT_RENDER4:
-        case MOS_GPU_CONTEXT_RENDER_RA:
-        case MOS_GPU_CONTEXT_COMPUTE:
-        case MOS_GPU_CONTEXT_COMPUTE_RA:
-        case MOS_GPU_CONTEXT_CM_COMPUTE:
-            MOS_SecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_RENDER_ENGINE);
-            break;
-        case MOS_GPU_CONTEXT_VEBOX:
-            MOS_SecureStrcpy(sEngName, sizeof(sEngName), MOS_COMMAND_BUFFER_VEBOX_ENGINE);
-            break;
-        default:
-            MOS_OS_ASSERTMESSAGE("Unsupported GPU context.");
-            return MOS_STATUS_UNKNOWN;
+        MOS_OS_ASSERTMESSAGE("Unsupported GPU context.");
+        return MOS_STATUS_UNKNOWN;
     }
+    MOS_SecureStrcpy(sEngName, sizeof(sEngName), pEngName);
 
     dwNumberOfDwords = pCmdBuffer->iOffset / sizeof(uint32_t);
 

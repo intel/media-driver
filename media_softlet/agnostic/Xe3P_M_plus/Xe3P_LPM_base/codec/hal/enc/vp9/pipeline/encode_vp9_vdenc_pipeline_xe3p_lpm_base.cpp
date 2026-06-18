@@ -98,36 +98,21 @@ MOS_STATUS Vp9VdencPipelineXe3p_Lpm_Base::Init(void *settings)
 MOS_STATUS Vp9VdencPipelineXe3p_Lpm_Base::GetSystemVdboxNumber()
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
     ENCODE_FUNC_CALL();
-
     ENCODE_CHK_STATUS_RETURN(EncodePipeline::GetSystemVdboxNumber());
+    ENCODE_CHK_NULL_RETURN(m_hwInterface);
 
     MediaUserSetting::Value outValue;
-    MOS_STATUS              statusKey = MOS_STATUS_SUCCESS;
-    statusKey                         = ReadUserSetting(
-        m_userSettingPtr,
-        outValue,
-        "Enable Media Encode Scalability",
-        MediaUserSetting::Group::Sequence);
+    MOS_STATUS statusKey = ReadUserSetting(m_userSettingPtr, outValue,
+                                           "Enable Media Encode Scalability",
+                                           MediaUserSetting::Group::Sequence);
+
     bool disableScalability = m_hwInterface->IsDisableScalability();
     if (statusKey == MOS_STATUS_SUCCESS)
-    {
         disableScalability = !outValue.Get<bool>();
-    }
 
-    MEDIA_ENGINE_INFO mediaSysInfo;
-    MOS_ZeroMemory(&mediaSysInfo, sizeof(MEDIA_ENGINE_INFO));
-    eStatus = m_osInterface->pfnGetMediaEngineInfo(m_osInterface, mediaSysInfo);
-
-    if (eStatus == MOS_STATUS_SUCCESS && disableScalability == false)
-    {
-        m_numVdbox = (uint8_t)(mediaSysInfo.VDBoxInfo.NumberOfVDBoxEnabled);
-    }
-    else
-    {
+    if (disableScalability)
         m_numVdbox = 1;
-    }
 
     return eStatus;
 }
@@ -169,6 +154,7 @@ MOS_STATUS Vp9VdencPipelineXe3p_Lpm_Base::Prepare(void *params)
     scalPars.numTileColumns     = numTileColumns;
 
     scalPars.IsPak = true;
+    scalPars.vdboxTypePref = m_pipelineVdboxTypePref;
 
     // Switch the media encode function context
     m_mediaContext->SwitchContext(VdboxEncodeFunc, &scalPars, &m_scalability);

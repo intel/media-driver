@@ -261,6 +261,8 @@ MOS_STATUS HevcVdencPipeline::SwitchContext(uint8_t outputChromaFormat, uint16_t
 
     m_scalPars->enableTileReplay = enableTileReplay;
 
+    m_scalPars->vdboxTypePref = m_pipelineVdboxTypePref;
+
     m_mediaContext->SwitchContext(VdboxEncodeFunc, &*m_scalPars, &m_scalability);
     ENCODE_CHK_NULL_RETURN(m_scalability);
 

@@ -1198,6 +1198,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
 
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_VDBOX_TYPE_PREF,
+        MediaUserSetting::Group::Device,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_ENABLE_LINUX_FRAME_SPLIT,
         MediaUserSetting::Group::Device,
         0,

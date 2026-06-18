@@ -89,6 +89,7 @@ struct ScalabilityPars : public ContextRequirement
     uint32_t raMode = 0;
     uint32_t protectMode = 0;
     bool     allowSwArbitarySplit = false;
+    VdboxTypePref vdboxTypePref = MOS_VDBOX_PREFER_NONE;
 };
 
 class ScalabilityTrace

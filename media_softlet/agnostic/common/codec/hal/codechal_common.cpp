@@ -148,6 +148,10 @@ MOS_STATUS Codechal::Allocate(CodechalSetting *codecHalSettings)
         (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxRender);
     m_useNullHw[MOS_GPU_CONTEXT_RENDER2]       =
         (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxRender2);
+    m_useNullHw[MOS_GPU_CONTEXT_VIDEO_DEC_FULL] =
+        (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVideo);
+    m_useNullHw[MOS_GPU_CONTEXT_VIDEO_ENC_FULL] =
+        (nullHWAccelerationEnable.CodecGlobal || nullHWAccelerationEnable.CtxVideo3);
 #endif // _DEBUG || _RELEASE_INTERNAL
 
     return MOS_STATUS_SUCCESS;

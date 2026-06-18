@@ -350,6 +350,8 @@ protected:
 
     std::shared_ptr<EncodeScalabilityPars> m_scalPars = nullptr;
 
+    VdboxTypePref m_pipelineVdboxTypePref = MOS_VDBOX_PREFER_NONE;
+
 MEDIA_CLASS_DEFINE_END(encode__EncodePipeline)
 };
 

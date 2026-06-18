@@ -73,13 +73,6 @@ public:
 
     virtual MOS_STATUS Destroy() override;
 
-    //!
-    //! \brief  Get the number of Vdbox
-    //! \return uint8_t
-    //!         Return the number of Vdbox
-    //!
-    virtual uint8_t GetSystemVdboxNumber() override;
-
 protected:
     virtual MOS_STATUS Initialize(void *settings) override;
     virtual MOS_STATUS Uninitialize() override;

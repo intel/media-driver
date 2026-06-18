@@ -27,6 +27,7 @@
 //!           this file is for the base interface which is shared by all components.
 //!
 
+#include <bitset>
 #include "media_context.h"
 #include "mos_interface.h"
 #include "mos_os_virtualengine_next.h"
@@ -35,7 +36,7 @@
 #include "decode_scalability_defs.h"
 #endif
 #include "mos_os_cp_interface_specific.h"
-MediaContext::MediaContext(uint8_t componentType, void *hwInterface, PMOS_INTERFACE osInterface)
+MediaContext::MediaContext(uint8_t componentType, void *hwInterface, PMOS_INTERFACE osInterface, VdboxTypePref pref)
 {
     if (!hwInterface)
     {
@@ -76,7 +77,14 @@ MediaContext::MediaContext(uint8_t componentType, void *hwInterface, PMOS_INTERF
     {
         if (m_osInterface->pfnGetMediaEngineInfo(m_osInterface, mediaEngineInfo) == MOS_STATUS_SUCCESS)
         {
+#ifdef _MEDIA_RESERVED
+            if (pref == MOS_VDBOX_PREFER_FULL)
+                m_numVdbox = (uint8_t)std::bitset<32>(mediaEngineInfo.VDBoxInfo.VDBoxTypeA.VDBoxTypeAValue).count();
+            else
+                m_numVdbox = (uint8_t)mediaEngineInfo.VDBoxInfo.NumberOfVDBoxEnabled;
+#else
             m_numVdbox = (uint8_t)mediaEngineInfo.VDBoxInfo.NumberOfVDBoxEnabled;
+#endif
         }
     }
     else
@@ -84,7 +92,14 @@ MediaContext::MediaContext(uint8_t componentType, void *hwInterface, PMOS_INTERF
         gtSystemInfo    = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
         if(gtSystemInfo)
         {
+#ifdef _MEDIA_RESERVED
+            if (pref == MOS_VDBOX_PREFER_FULL)
+                m_numVdbox = (uint8_t)std::bitset<32>(gtSystemInfo->VDBoxInfo.VDBoxTypeA.VDBoxTypeAValue).count();
+            else
+                m_numVdbox = (uint8_t)(gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled);
+#else
             m_numVdbox = (uint8_t)(gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled);
+#endif
         }
     }
 
@@ -741,6 +756,12 @@ MOS_STATUS MediaContext::FunctionToGpuContext(MediaFunction func, const MOS_GPUC
 
 MOS_STATUS MediaContext::FunctionToGpuContextDecode(const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, const MOS_GPU_NODE &node, MOS_GPU_CONTEXT &ctx)
 {
+    if (option.m_vdboxTypePref == MOS_VDBOX_PREFER_FULL)
+    {
+        ctx = MOS_GPU_CONTEXT_VIDEO_DEC_FULL;
+        return MOS_STATUS_SUCCESS;
+    }
+
     if (option.UsingSFC)
     {
         ctx = MOS_GPU_CONTEXT_VIDEO4;
@@ -770,6 +791,12 @@ MOS_STATUS MediaContext::FunctionToGpuContextDecode(const MOS_GPUCTX_CREATOPTION
 
 MOS_STATUS MediaContext::FunctionToGpuContextEncode(const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, MOS_GPU_CONTEXT &ctx)
 {
+    if (option.m_vdboxTypePref == MOS_VDBOX_PREFER_FULL)
+    {
+        ctx = MOS_GPU_CONTEXT_VIDEO_ENC_FULL;
+        return MOS_STATUS_SUCCESS;
+    }
+
     switch (option.LRCACount)
     {
     case 0:

@@ -284,25 +284,6 @@ MOS_STATUS Vp9PipelineXe3P_Lpm_Base::InitMmcState()
     return MOS_STATUS_SUCCESS;
 }
 
-uint8_t Vp9PipelineXe3P_Lpm_Base::GetSystemVdboxNumber()
-{
-    uint8_t numVdbox = 1;
-
-    MEDIA_ENGINE_INFO mediaSysInfo;
-    MOS_ZeroMemory(&mediaSysInfo, sizeof(MEDIA_ENGINE_INFO));
-    MOS_STATUS eStatus = m_osInterface->pfnGetMediaEngineInfo(m_osInterface, mediaSysInfo);
-    if (eStatus == MOS_STATUS_SUCCESS)
-    {
-        numVdbox = (uint8_t)(mediaSysInfo.VDBoxInfo.NumberOfVDBoxEnabled);
-    }
-    else
-    {
-        DECODE_ASSERTMESSAGE("Failed to query media engine info!!");
-    }
-
-    return numVdbox;
-}
-
 MOS_STATUS Vp9PipelineXe3P_Lpm_Base::InitContexOption(Vp9BasicFeature &basicFeature)
 {
     DecodeScalabilityPars scalPars;
@@ -316,6 +297,7 @@ MOS_STATUS Vp9PipelineXe3P_Lpm_Base::InitContexOption(Vp9BasicFeature &basicFeat
     scalPars.frameWidth         = basicFeature.m_frameWidthAlignedMinBlk;
     scalPars.frameHeight        = basicFeature.m_frameHeightAlignedMinBlk;
     scalPars.numVdbox           = m_numVdbox;
+    scalPars.vdboxTypePref = m_pipelineVdboxTypePref;
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     DecodeDownSamplingFeature *downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature *>(

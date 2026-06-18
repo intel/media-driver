@@ -272,8 +272,10 @@ typedef struct _MOS_LOCK_PARAMS    *PMOS_LOCK_PARAMS;
 
 typedef void *MEDIAUMD_RESOURCE;
 
+enum VdboxTypePref : uint8_t;
+
 //!
-//! \brief enum to video device operations 
+//! \brief enum to video device operations
 //!
 typedef enum _MOS_MEDIA_OPERATION
 {

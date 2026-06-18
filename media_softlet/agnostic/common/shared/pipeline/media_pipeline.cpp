@@ -33,6 +33,13 @@
 #include "media_interfaces_mcpy_next.h"
 #include "media_debug_interface.h"
 
+bool SlimVdboxPrefInconsistent(MEDIA_FEATURE_TABLE *skuTable, VdboxTypePref pref)
+{
+    return skuTable != nullptr &&
+           MEDIA_IS_SKU(skuTable, FtrWithSlimVdbox) &&
+           pref != MOS_VDBOX_PREFER_FULL;
+}
+
 MediaPipeline::MediaPipeline(PMOS_INTERFACE osInterface) : m_osInterface(osInterface)
 {
     if (m_osInterface)

@@ -147,6 +147,7 @@ MOS_STATUS JpegPipelineXe3P_Lpm_Base::InitContext()
     scalPars.disableRealTile    = true;
     scalPars.enableVE           = MOS_VE_SUPPORTED(m_osInterface);
     scalPars.numVdbox           = m_numVdbox;
+    scalPars.vdboxTypePref = m_pipelineVdboxTypePref;
 #ifdef _DECODE_PROCESSING_SUPPORTED
     DecodeDownSamplingFeature *downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature *>(
         m_featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));

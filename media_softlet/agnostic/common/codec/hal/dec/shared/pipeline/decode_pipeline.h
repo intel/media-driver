@@ -384,6 +384,26 @@ protected:
     virtual uint8_t GetSystemVdboxNumber();
 
     //!
+    //! \brief  Natural class default VDBox routing preference
+    //! \return VdboxTypePref
+    //!
+    virtual VdboxTypePref GetDefaultVdboxTypePref() const;
+
+    //!
+    //! \brief  Resolve the pipeline VDBox routing preference
+    //!
+    void EvaluateVdboxTypePref();
+
+public:
+    //!
+    //! \brief  Resolved pipeline VDBox routing preference
+    //! \return VdboxTypePref
+    //!
+    VdboxTypePref GetPipelineVdboxTypePref() const { return m_pipelineVdboxTypePref; }
+
+protected:
+
+    //!
     //! \brief  Create status report
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
@@ -551,6 +571,7 @@ protected:
     DecodeStreamOut*        m_streamout = nullptr;      //!< Decode input bitstream
 
     uint8_t                 m_numVdbox  = 0;            //!< Number of Vdbox
+    VdboxTypePref           m_pipelineVdboxTypePref = MOS_VDBOX_PREFER_NONE;
 
     bool                    m_singleTaskPhaseSupported = true; //!< Indicates whether sumbit packets in single phase
 

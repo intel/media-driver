@@ -276,4 +276,19 @@ protected:
     MediaUserSettingSharedPtr                          m_userSettingPtr = nullptr;     //!< usersettingInstance
 MEDIA_CLASS_DEFINE_END(MediaPipeline)
 };
+
+//!
+//! \brief    Predicate for the slim-vdbox / vdbox-type-pref consistency rule
+//! \details  Behavior-preserving extract of the shared consistency check used
+//!           by the Encode and VVC pipelines: when FtrWithSlimVdbox is set, the
+//!           pipeline vdbox-type preference must be FULL (the corresponding HW is
+//!           Type-A only). Returns true when the combination is inconsistent.
+//! \param    MEDIA_FEATURE_TABLE *skuTable
+//!           [in] SKU feature table (nullptr -> consistent / no constraint)
+//! \param    VdboxTypePref pref
+//!           [in] pipeline vdbox-type preference
+//! \return   bool  true if (slim-vdbox set AND pref != FULL)
+//!
+bool SlimVdboxPrefInconsistent(MEDIA_FEATURE_TABLE *skuTable, VdboxTypePref pref);
+
 #endif // !__MEDIA_PIPELINE_H__

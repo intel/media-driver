@@ -137,6 +137,7 @@
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_VDBOX_ID_REPORT                 "Enable VDBOX ID Report"
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_VE_DEBUG_OVERRIDE               "Enable VE Debug Override"
 #define __MEDIA_USER_FEATURE_VALUE_FORCE_VDBOX                            "Force VDBOX"
+#define __MEDIA_USER_FEATURE_VALUE_VDBOX_TYPE_PREF                        "VDBoxTypePref"
 #define __MEDIA_USER_FEATURE_VALUE_FORCE_VEBOX                            "Force VEBOX"
 #define __MEDIA_USER_FEATURE_VALUE_FORCE_YFYS                             "Force to allocate YfYs"
 #define __MEDIA_USER_FEATURE_VALUE_USED_VDBOX_ID                          "Used VDBOX ID"

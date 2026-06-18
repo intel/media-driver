@@ -64,7 +64,12 @@ MOS_STATUS EncodePipeline::Initialize(void *settings)
         m_mediaCopyWrapper->SetMediaCopyState(m_hwInterface->CreateMediaCopy(m_osInterface));
     }
 
-    m_mediaContext = MOS_New(MediaContext, scalabilityEncoder, m_hwInterface, m_osInterface);
+    if (MEDIA_IS_SKU(m_skuTable, FtrWithSlimVdbox))
+    {
+        m_pipelineVdboxTypePref = MOS_VDBOX_PREFER_FULL;
+    }
+
+    m_mediaContext = MOS_New(MediaContext, scalabilityEncoder, m_hwInterface, m_osInterface, m_pipelineVdboxTypePref);
     ENCODE_CHK_NULL_RETURN(m_mediaContext);
 
     m_allocator = MOS_New(EncodeAllocator, m_osInterface);
@@ -122,6 +127,11 @@ MOS_STATUS EncodePipeline::Initialize(void *settings)
     ENCODE_CHK_STATUS_RETURN(m_statusReport->Create());
 
     m_encodecp->setStatusReport(m_statusReport);
+
+    ENCODE_CHK_COND_RETURN(
+        SlimVdboxPrefInconsistent(m_skuTable, m_pipelineVdboxTypePref),
+        "FtrWithSlimVdbox=1 but EncodePipeline pref != FULL "
+        "(VDENC HW is Type-A only)");
 
     return MOS_STATUS_SUCCESS;
 }
@@ -219,6 +229,11 @@ MOS_STATUS EncodePipeline::Prepare(void *params)
 
     m_osInterface->pfnIncPerfFrameID(m_osInterface);
 
+    if (m_scalPars)
+    {
+        m_scalPars->vdboxTypePref = m_pipelineVdboxTypePref;
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -252,6 +267,11 @@ MOS_STATUS EncodePipeline::GetSystemVdboxNumber()
         m_numVdbox = (uint8_t)(mediaSysInfo.VDBoxInfo.NumberOfVDBoxEnabled);
     }
     else
+    {
+        m_numVdbox = 1;
+    }
+
+    if (MEDIA_IS_SKU(m_skuTable, FtrWithSlimVdbox))
     {
         m_numVdbox = 1;
     }

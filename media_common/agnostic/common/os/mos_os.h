@@ -45,6 +45,13 @@
 //!
 //! \brief OS specific includes and definitions
 //!
+enum VdboxTypePref : uint8_t
+{
+    MOS_VDBOX_PREFER_NONE = 0,
+    MOS_VDBOX_PREFER_FULL = 1,
+    MOS_VDBOX_PREFER_SLIM = 2
+};
+
 #include "mos_os_specific.h"
 #include "mos_os_virtualengine_specific.h"
 
@@ -74,7 +81,9 @@ class MhwInterfacesNext;
     ((GpuContext) == MOS_GPU_CONTEXT_VDBOX2_VIDEO3) || \
     ((GpuContext) == MOS_GPU_CONTEXT_VIDEO5)        || \
     ((GpuContext) == MOS_GPU_CONTEXT_VIDEO6)        || \
-    ((GpuContext) == MOS_GPU_CONTEXT_VIDEO7)           \
+    ((GpuContext) == MOS_GPU_CONTEXT_VIDEO7)        || \
+    ((GpuContext) == MOS_GPU_CONTEXT_VIDEO_DEC_FULL)|| \
+    ((GpuContext) == MOS_GPU_CONTEXT_VIDEO_ENC_FULL)   \
 )
 
 #define MOS_RCS_ENGINE_USED(GpuContext) (                 \
@@ -111,6 +120,19 @@ class MhwInterfacesNext;
 #define MOS_COMMAND_BUFFER_VEBOX_ENGINE    "VECS"
 #define MOS_COMMAND_BUFFER_TEE_ENGINE      "TEE"
 #define MOS_COMMAND_BUFFER_PLATFORM_LEN    4
+
+//!
+//! \brief    Map a GPU context ordinal to its command-buffer engine name
+//! \details  Behavior-preserving extract of the engine-name selection used by
+//!           the command-buffer dump path. The FULL VDBox ordinals
+//!           (MOS_GPU_CONTEXT_VIDEO_DEC_FULL / _ENC_FULL) map to the VIDEO
+//!           (VCS) engine, alongside the legacy VIDEO ordinals.
+//! \param    MOS_GPU_CONTEXT gpuContext
+//!           [in] GPU context ordinal
+//! \return   const char*
+//!           Engine-name string, or nullptr for an unsupported context
+//!
+const char *Mos_GetCmdBufferEngineName(MOS_GPU_CONTEXT gpuContext);
 #endif // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
 #ifndef E_NOTIMPL
@@ -2288,6 +2310,8 @@ struct _MOS_GPUCTX_CREATOPTIONS_ENHANCED : public _MOS_GPUCTX_CREATOPTIONS
 
     uint32_t    LRCACount;
 
+    VdboxTypePref m_vdboxTypePref = MOS_VDBOX_PREFER_NONE;
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     // Logical engine instances used by this context; valid only if flag DebugOverride is set.
     uint8_t    EngineInstance[MOS_MAX_ENGINE_INSTANCE_PER_CLASS];
@@ -2312,6 +2336,7 @@ struct _MOS_GPUCTX_CREATOPTIONS_ENHANCED : public _MOS_GPUCTX_CREATOPTIONS
         {
             Flags     = ((MOS_GPUCTX_CREATOPTIONS_ENHANCED *)createOption)->Flags;
             LRCACount = ((MOS_GPUCTX_CREATOPTIONS_ENHANCED *)createOption)->LRCACount;
+            m_vdboxTypePref = ((MOS_GPUCTX_CREATOPTIONS_ENHANCED *)createOption)->m_vdboxTypePref;
 #if (_DEBUG || _RELEASE_INTERNAL)
             for (auto i = 0; i < MOS_MAX_ENGINE_INSTANCE_PER_CLASS; i++)
             {
