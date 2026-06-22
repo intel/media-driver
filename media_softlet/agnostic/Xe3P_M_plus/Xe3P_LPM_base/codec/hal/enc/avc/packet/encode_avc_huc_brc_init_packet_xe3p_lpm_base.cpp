@@ -28,6 +28,9 @@
 #include "mos_os_cp_interface_specific.h"
 #include "encode_avc_vdenc_const_settings.h"
 #include "media_interfaces_huc_kernel_source.h"
+#if (_DEBUG || _RELEASE_INTERNAL)
+#include "bypass_hw_legacy.h"
+#endif
 
 namespace encode {
 
@@ -121,6 +124,13 @@ MOS_STATUS AvcHucBrcInitPktXe3p_Lpm_Base::Execute(PMOS_COMMAND_BUFFER cmdBuffer,
             basicFeature->m_recycleBuf->GetBuffer(VdencBrcPakMmioBuffer, 0));
     }
 #endif  // !_SW_BRC
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_osInterface && m_osInterface->bNullHwIsEnabled)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+#endif
 
     if (prologNeeded)
     {

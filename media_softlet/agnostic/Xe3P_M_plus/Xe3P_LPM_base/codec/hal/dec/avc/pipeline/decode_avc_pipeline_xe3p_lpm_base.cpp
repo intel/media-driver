@@ -33,6 +33,7 @@
 #include "decode_common_feature_defs.h"
 #include "decode_avc_downsampling_packet.h"
 #include "decode_avc_feature_manager_xe3p_lpm_base.h"
+#include "media_perf_profiler.h"
 
 namespace decode {
 
@@ -104,6 +105,42 @@ MOS_STATUS AvcPipelineXe3P_Lpm_Base::Initialize(void *settings)
 {
     DECODE_FUNC_CALL();
     DECODE_CHK_STATUS(AvcPipeline::Initialize(settings));
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_osInterface && m_osInterface->bNullHwIsEnabled)
+    {
+        m_bypassHW = MOS_New(BypassHwLegacy);
+        DECODE_CHK_NULL(m_bypassHW);
+
+        MOS_STATUS status = m_bypassHW->Initialize(m_osInterface, m_hwInterface->GetMiInterfaceNext());
+        if (status == MOS_STATUS_SUCCESS)
+        {
+            m_osInterface->bNullHwIsEnabled = true;
+
+            auto *codecSettings = static_cast<CodechalSetting *>(settings);
+            DECODE_CHK_NULL(codecSettings);
+
+            uint32_t bitDepth = (codecSettings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_12_BITS) ?
+                12 : ((codecSettings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS) ? 10 : 8);
+
+            DECODE_CHK_STATUS(m_bypassHW->FetchDummyVdNode(
+                m_gpuNode,
+                CODECHAL_AVC,
+                false,
+                codecSettings->width,
+                codecSettings->height,
+                static_cast<uint8_t>(codecSettings->chromaFormat),
+                static_cast<uint8_t>(bitDepth),
+                0));
+        }
+        else
+        {
+            MOS_Delete(m_bypassHW);
+            m_bypassHW = nullptr;
+        }
+    }
+#endif
+
     DECODE_CHK_STATUS(InitMmcState());
 
     return MOS_STATUS_SUCCESS;
@@ -144,6 +181,15 @@ MOS_STATUS AvcPipelineXe3P_Lpm_Base::Uninitialize()
 {
     DECODE_FUNC_CALL();
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_bypassHW != nullptr)
+    {
+        m_bypassHW->Destroy();
+        MOS_Delete(m_bypassHW);
+        m_bypassHW = nullptr;
+    }
+#endif
+
     for (auto pair : m_packetList)
     {
         pair.second->Destroy();
@@ -177,6 +223,25 @@ MOS_STATUS AvcPipelineXe3P_Lpm_Base::InitContext()
     }
 #endif
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_osInterface && m_osInterface->bNullHwIsEnabled &&
+        (m_gpuNode == MOS_GPU_NODE_VE || m_gpuNode == MOS_GPU_NODE_VIDEO || m_gpuNode == MOS_GPU_NODE_VIDEO2))
+    {
+        scalPars.numVdbox = 1;
+        scalPars.usingSfc  = false;
+        MediaFunction decFunc;
+        if (m_gpuNode == MOS_GPU_NODE_VE)
+        {
+            decFunc = VeboxVppFunc;
+        }
+        else
+        {
+            decFunc = VdboxDecodeFunc;
+        }
+        DECODE_CHK_STATUS(m_mediaContext->SwitchContext(decFunc, &scalPars, &m_scalability));
+    }
+    else
+#endif
     if (m_allowVirtualNodeReassign)
     {
         // reassign decoder virtual node at the first frame for each stream

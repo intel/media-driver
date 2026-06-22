@@ -27,6 +27,9 @@
 #define __ENCODE_AVC_VDENC_PIPELINE_XE3P_LPM_BASE_H__
 
 #include "encode_avc_vdenc_pipeline.h"
+#if (_DEBUG || _RELEASE_INTERNAL)
+#include "bypass_hw_legacy.h"
+#endif
 
 namespace encode
 {
@@ -52,7 +55,20 @@ public:
     virtual MOS_STATUS InitMmcState();
 
 protected:
+    virtual MOS_STATUS Initialize(void *settings) override;
+    virtual MOS_STATUS Uninitialize() override;
     virtual MOS_STATUS ActivateVdencVideoPackets() override;
+    virtual MOS_STATUS SwitchContext(uint8_t outputChromaFormat) override;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+public:
+    BypassHwLegacy *GetBypassHW() const { return m_bypassHW; }
+    MOS_GPU_NODE    GetGpuNode()  const { return m_gpuNode; }
+
+protected:
+    BypassHwLegacy *m_bypassHW = nullptr;
+    MOS_GPU_NODE    m_gpuNode  = MOS_GPU_NODE_VIDEO;
+#endif
 
 MEDIA_CLASS_DEFINE_END(encode__AvcVdencPipelineXe3P_Lpm_Base)
 };

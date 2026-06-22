@@ -30,10 +30,14 @@
 #include "mos_os.h"
 #include "mos_gpucontextmgr_next.h"
 #if !EMUL
-#include "mos_cmdbufmgr_next.h" 
+#include "mos_cmdbufmgr_next.h"
 #include "mos_decompression.h"
 #endif
 #include "mos_mediacopy.h"
+#if (_DEBUG || _RELEASE_INTERNAL)
+#include "mos_bypass_hw_defs.h"
+#include <mutex>
+#endif
 
 class MosOcaRTLogMgr;
 class MosMockAdaptor;
@@ -409,6 +413,121 @@ protected:
 
     //! \brief is pooled resource is supported
     bool                            m_resourcePooling = false;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+public:
+    //!
+    //! \brief  Initialize dummy VDBox slot array; reads fakeCount/realCount from MockAdaptor
+    //!         (one-time, under mutex, idempotent).  Requires NullHW enabled and MockAdaptor
+    //!         already initialized via NullHwInit().
+    //! \return MOS_STATUS
+    //!
+    MOS_STATUS InitDummyVdboxSlots();
+
+    //!
+    //! \brief  Select and claim the least-loaded dummy VDBox slot (thread-safe)
+    //! \param  [in]      isEncode        true for encode pipeline, false for decode
+    //! \param  [in,out]  isScalable      On entry: caller's intent (from config). On exit: whether
+    //!                                   scalable path was actually taken (set to false when
+    //!                                   vdCount < 2 forces fallback to standard path)
+    //! \param  [out] gpuNode         Assigned GPU node
+    //! \param  [out] claimedSlotIndex Index of the claimed slot
+    //! \return MOS_STATUS
+    //!
+    MOS_STATUS SelectAndClaimDummyVdSlot(
+        bool          isEncode,
+        bool         &isScalable,
+        MOS_GPU_NODE &gpuNode,
+        int32_t      &claimedSlotIndex);
+
+    //!
+    //! \brief  Release a previously claimed dummy VDBox slot (thread-safe)
+    //! \param  [in] slotIndex   Slot index returned by SelectAndClaimDummyVdSlot
+    //! \param  [in] isScalable  true if the slot was claimed via scalable path
+    //!                          (decrements all VD refCounts); false for single-slot release
+    //!
+    void ReleaseDummyVdSlot(int32_t slotIndex, bool isScalable);
+
+    //!
+    //! \brief  Get the per-process dummy VDBox slot mutex for thread-safe access.
+    //! \note   Returns a function-local static (Meyers singleton) so OsContextNext
+    //!         has no non-trivial member and its class layout is unaffected.
+    //! \return Reference to the mutex
+    //!
+    std::mutex &GetDummyVdboxMutex()
+    {
+        static std::mutex s_mutex;
+        return s_mutex;
+    }
+
+    //!
+    //! \brief  Check if dummy VDBox slots have been initialized
+    //! \return true if initialized
+    //!
+    bool IsDummyVdboxInitialized() const { return m_dummyVdboxInitialized; }
+
+    //!
+    //! \brief  Set dummy VDBox initialization flag
+    //!
+    void SetDummyVdboxInitialized(bool initialized) { m_dummyVdboxInitialized = initialized; }
+
+    //!
+    //! \brief  Get dummy VDBox array
+    //! \return Pointer to DummyVdboxInfo array
+    //!
+    DummyVdboxInfo *GetDummyVdboxArray() { return m_dummyVdboxArray; }
+
+    //!
+    //! \brief  Get dummy VDBox slot count
+    //! \return Number of slots in the array
+    //!
+    uint32_t GetDummyVdboxCount() const { return m_dummyVdboxCount; }
+
+    //!
+    //! \brief  Set dummy VDBox slot count
+    //!
+    void SetDummyVdboxCount(uint32_t count) { m_dummyVdboxCount = count; }
+
+    //!
+    //! \brief  Get per-slot reference count array
+    //! \return Pointer to ref count array
+    //!
+    uint32_t *GetSlotRefCount() { return m_slotRefCount; }
+
+    //!
+    //! \brief  Get decode start slot counter (initial DUMMY_VDBOX_NUM_MAX-1, VEBox-first)
+    //! \return Reference to counter
+    //!
+    uint32_t &GetStartSlotCounterDecode() { return m_startSlotCounterDecode; }
+
+    //!
+    //! \brief  Get encode start slot counter (initial 0, VDBox-first)
+    //! \return Reference to counter
+    //!
+    uint32_t &GetStartSlotCounterEncode() { return m_startSlotCounterEncode; }
+
+    //!
+    //! \brief  Reset all dummy VDBox state (for ULT)
+    //!
+    void ResetDummyVdboxState()
+    {
+        m_dummyVdboxInitialized = false;
+        m_dummyVdboxCount       = 0;
+        MOS_ZeroMemory(m_dummyVdboxArray, sizeof(m_dummyVdboxArray));
+        MOS_ZeroMemory(m_slotRefCount, sizeof(m_slotRefCount));
+        m_startSlotCounterDecode = DUMMY_VDBOX_NUM_MAX - 1;
+        m_startSlotCounterEncode = 0;
+    }
+
+protected:
+    bool         m_dummyVdboxInitialized = false;                       //!< Set on first Initialize() call
+    DummyVdboxInfo m_dummyVdboxArray[DUMMY_VDBOX_NUM_MAX] = {};         //!< Per-slot engine info
+    uint32_t     m_dummyVdboxCount = 0;                                 //!< Number of active slots
+    uint32_t     m_slotRefCount[DUMMY_VDBOX_NUM_MAX] = {};              //!< Per-slot active pipeline count
+    uint32_t     m_startSlotCounterDecode = DUMMY_VDBOX_NUM_MAX - 1;    //!< Decode: VEBox-first
+    uint32_t     m_startSlotCounterEncode = 0;                          //!< Encode: VDBox-first
+#endif // (_DEBUG || _RELEASE_INTERNAL)
+
 MEDIA_CLASS_DEFINE_END(OsContextNext)
 };
 #endif // #ifndef __MOS_CONTEXTNext_NEXT_H__

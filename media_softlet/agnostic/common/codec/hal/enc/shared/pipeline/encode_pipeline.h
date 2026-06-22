@@ -45,6 +45,10 @@
 #define CONSTRUCTPACKETID(_componentId, _subComponentId, _packetId) \
     (_componentId << 24 | _subComponentId << 16 | _packetId)
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+class BypassHwLegacy;
+#endif
+
 namespace encode
 {
 class EncodePipeline : public MediaPipeline
@@ -105,6 +109,10 @@ public:
     //! \return void
     //!
     void SetFrameTrackingForMultiTaskPhase();
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    virtual ::BypassHwLegacy *GetBypassHW() const { return nullptr; }
+#endif
 
     enum ComponentPacketIds
     {

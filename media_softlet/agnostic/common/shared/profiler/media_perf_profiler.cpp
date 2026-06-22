@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2023, Intel Corporation
+* Copyright (c) 2021-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -274,14 +274,13 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
     MosUtilities::MosLockMutex(m_mutex);
 
     m_contextIndexMap[context] = 0;
+    m_refMap[pOsContext]++;  // count every Initialize caller so Destroy fires only after last one
 
     if (m_initializedMap[pOsContext] == true)
     {
         MosUtilities::MosUnlockMutex(m_mutex);
         return status;
     }
-    
-    m_refMap[pOsContext]++;
 
     m_enableProfilerDump = MosUtilities::MosIsProfilerDumpEnabled();
 

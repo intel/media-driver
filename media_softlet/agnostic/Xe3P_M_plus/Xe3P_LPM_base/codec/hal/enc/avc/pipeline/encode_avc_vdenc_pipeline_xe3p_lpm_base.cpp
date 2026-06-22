@@ -34,8 +34,102 @@
 #include "encode_avc_brc.h"
 #include "encode_avc_vdenc_preenc.h"
 #include "media_avc_feature_defs.h"
+#include "media_perf_profiler.h"
 
 namespace encode {
+
+MOS_STATUS AvcVdencPipelineXe3P_Lpm_Base::Initialize(void *settings)
+{
+    ENCODE_FUNC_CALL();
+    ENCODE_CHK_STATUS_RETURN(AvcVdencPipeline::Initialize(settings));
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_osInterface && m_osInterface->bNullHwIsEnabled)
+    {
+        m_bypassHW = MOS_New(BypassHwLegacy);
+        ENCODE_CHK_NULL_RETURN(m_bypassHW);
+
+        MOS_STATUS status = m_bypassHW->Initialize(m_osInterface, m_hwInterface->GetMiInterfaceNext());
+        if (status == MOS_STATUS_SUCCESS)
+        {
+            m_osInterface->bNullHwIsEnabled = true;
+
+            auto *codecSettings = static_cast<CodechalSetting *>(settings);
+            ENCODE_CHK_NULL_RETURN(codecSettings);
+
+            uint32_t bitDepth = (codecSettings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_12_BITS) ?
+                12 : ((codecSettings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS) ? 10 : 8);
+
+            ENCODE_CHK_STATUS_RETURN(m_bypassHW->FetchDummyVdNode(
+                m_gpuNode,
+                CODECHAL_AVC,
+                true,
+                codecSettings->width,
+                codecSettings->height,
+                static_cast<uint8_t>(codecSettings->chromaFormat),
+                static_cast<uint8_t>(bitDepth),
+                0));
+        }
+        else
+        {
+            MOS_Delete(m_bypassHW);
+            m_bypassHW = nullptr;
+        }
+    }
+#endif
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS AvcVdencPipelineXe3P_Lpm_Base::Uninitialize()
+{
+    ENCODE_FUNC_CALL();
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_bypassHW != nullptr)
+    {
+        m_bypassHW->Destroy();
+        MOS_Delete(m_bypassHW);
+        m_bypassHW = nullptr;
+    }
+#endif
+
+    return AvcVdencPipeline::Uninitialize();
+}
+
+MOS_STATUS AvcVdencPipelineXe3P_Lpm_Base::SwitchContext(uint8_t outputChromaFormat)
+{
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_osInterface && m_osInterface->bNullHwIsEnabled)
+    {
+        ENCODE_FUNC_CALL();
+
+        if (!m_scalPars)
+        {
+            m_scalPars = std::make_shared<EncodeScalabilityPars>();
+        }
+
+        *m_scalPars                    = {};
+        m_scalPars->enableVDEnc        = true;
+        m_scalPars->enableVE           = MOS_VE_SUPPORTED(m_osInterface);
+        m_scalPars->numVdbox           = 1;
+        m_scalPars->forceMultiPipe     = false;
+        m_scalPars->outputChromaFormat = outputChromaFormat;
+        m_scalPars->numTileRows        = 1;
+        m_scalPars->numTileColumns     = 1;
+        m_scalPars->IsPak              = true;
+
+        MediaFunction encFunc = (m_gpuNode == MOS_GPU_NODE_VE) ? VeboxVppFunc : VdboxEncodeFunc;
+        ENCODE_CHK_STATUS_RETURN(m_mediaContext->SwitchContext(encFunc, &*m_scalPars, &m_scalability));
+        ENCODE_CHK_NULL_RETURN(m_scalability);
+
+        m_scalability->SetPassNumber(m_featureManager->GetNumPass());
+
+        return MOS_STATUS_SUCCESS;
+    }
+#endif
+    return AvcVdencPipeline::SwitchContext(outputChromaFormat);
+}
 
 MOS_STATUS AvcVdencPipelineXe3P_Lpm_Base::Init(void *settings)
 {

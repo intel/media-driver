@@ -24,6 +24,7 @@ media_include_subdirectory(levelzero)
 
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/mos_context_next.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/mos_context_next_nullhw.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_graphicsresource_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_os_next.cpp
     ${CMAKE_CURRENT_LIST_DIR}/mos_utilities_inner.cpp
@@ -62,6 +63,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/mos_oca_rtlog_mgr_base.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_cache_manager.h
     ${CMAKE_CURRENT_LIST_DIR}/mos_hybrid_cmd_manager.h
+    ${CMAKE_CURRENT_LIST_DIR}/mos_bypass_hw_defs.h
 )
 
 set(TMP_MOS_HAL_SHARED_SOURCES_
@@ -104,6 +106,7 @@ set(SOFTLET_MOS_PUBLIC_INCLUDE_DIRS_
 set(SOFTLET_COMMON_DLL_SOURCES_
     ${SOFTLET_COMMON_DLL_SOURCES_}
     ${TMP_MOS_HAL_SHARED_SOURCES_}
+    ${CMAKE_CURRENT_LIST_DIR}/mos_context_next_nullhw.cpp
 )
 set(SOFTLET_COMMON_DLL_PRIVATE_INCLUDE_DIRS_
     ${SOFTLET_COMMON_DLL_PRIVATE_INCLUDE_DIRS_}

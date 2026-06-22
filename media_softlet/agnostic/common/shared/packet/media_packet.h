@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -356,6 +356,14 @@ protected:
     MediaStatusReport             *m_statusReport = nullptr;
     std::shared_ptr<mhw::mi::Itf> m_miItf         = nullptr;
     MediaUserSettingSharedPtr     m_userSettingPtr = nullptr;  //!< usersettingInstance
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //! Set to true when BypassHwLegacy is fully initialized and active. Controls two behaviors:
+    //! (1) Disables NullHW::StartPredicateNext/StopPredicateNext so BypassHwLegacy is the
+    //!     sole owner of MI_SET_PREDICATE in the command buffer.
+    //! (2) Skips HuC-dependent commands (HuC status checks, BRC batch buffer jumps) that
+    //!     would fail or cause GPU hangs because HuC never runs in NullHW mode.
+    bool                          m_bypassHwLegacyEnabled = false;
+#endif
 
     //!
     //! \brief  Add native fence sync BB start command before force wakeup and prolog

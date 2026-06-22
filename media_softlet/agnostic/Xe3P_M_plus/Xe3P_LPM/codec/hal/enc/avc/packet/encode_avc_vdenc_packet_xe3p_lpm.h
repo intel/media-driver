@@ -49,6 +49,7 @@ namespace encode
 
         virtual ~AvcVdencPktXe3P_Lpm() {}
         virtual MOS_STATUS Completed(void *mfxStatus, void *rcsStatus, void *statusReport) override;
+        MOS_STATUS Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t packetPhase) override;
 
     protected:
         virtual MOS_STATUS PatchPictureLevelCommands(const uint8_t &packetPhase, MOS_COMMAND_BUFFER &cmdBuffer) override;

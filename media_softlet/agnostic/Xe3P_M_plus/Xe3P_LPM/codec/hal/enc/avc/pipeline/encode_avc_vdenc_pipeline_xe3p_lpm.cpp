@@ -92,6 +92,41 @@ MOS_STATUS AvcVdencPipelineXe3P_Lpm::Initialize(void *settings)
     ENCODE_CHK_STATUS_RETURN(InitMmcState());
     ENCODE_CHK_STATUS_RETURN(AvcVdencPipeline::Initialize(settings));
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_osInterface && m_osInterface->bNullHwIsEnabled)
+    {
+        m_bypassHW = MOS_New(BypassHwLegacy);
+        ENCODE_CHK_NULL_RETURN(m_bypassHW);
+
+        MOS_STATUS status = m_bypassHW->Initialize(m_osInterface, m_hwInterface->GetMiInterfaceNext());
+        if (status == MOS_STATUS_SUCCESS)
+        {
+            m_osInterface->bNullHwIsEnabled = true;
+
+            auto *codecSettings = static_cast<CodechalSetting *>(settings);
+            ENCODE_CHK_NULL_RETURN(codecSettings);
+
+            uint32_t bitDepth = (codecSettings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_12_BITS) ?
+                12 : ((codecSettings->lumaChromaDepth & CODECHAL_LUMA_CHROMA_DEPTH_10_BITS) ? 10 : 8);
+
+            ENCODE_CHK_STATUS_RETURN(m_bypassHW->FetchDummyVdNode(
+                m_gpuNode,
+                CODECHAL_AVC,
+                true,
+                codecSettings->width,
+                codecSettings->height,
+                static_cast<uint8_t>(codecSettings->chromaFormat),
+                static_cast<uint8_t>(bitDepth),
+                0));
+        }
+        else
+        {
+            MOS_Delete(m_bypassHW);
+            m_bypassHW = nullptr;
+        }
+    }
+#endif
+
     CODECHAL_DEBUG_TOOL(
         if (m_debugInterface != nullptr) {
             MOS_Delete(m_debugInterface);

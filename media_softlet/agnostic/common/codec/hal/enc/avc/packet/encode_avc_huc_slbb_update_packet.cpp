@@ -31,6 +31,9 @@
 #include "codec_def_common_encode.h"
 #include "encode_avc_vdenc_fastpass.h"
 #include "mos_os_cp_interface_specific.h"
+#if (_DEBUG || _RELEASE_INTERNAL)
+#include "bypass_hw_legacy.h"
+#endif
 #if USE_CODECHAL_DEBUG_TOOL
 #include "codechal_debug.h"
 #endif
@@ -133,6 +136,12 @@ MOS_STATUS AVCHucSLBBUpdatePkt::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_
     }
 
     // Execute HuC SLBB Update
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_osInterface && m_osInterface->bNullHwIsEnabled)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+#endif
     ENCODE_CHK_STATUS_RETURN(Execute(commandBuffer, true, requestProlog, SLBB_UPDATE));
 
     return MOS_STATUS_SUCCESS;

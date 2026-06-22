@@ -32,9 +32,38 @@
 #include "media_avc_feature_defs.h"
 #include "hal_oca_interface_next.h"
 #include "mos_solo_generic.h"
+#if (_DEBUG || _RELEASE_INTERNAL)
+#include "encode_avc_vdenc_pipeline_xe3p_lpm_base.h"
+#endif
 
 namespace encode
 {
+
+MOS_STATUS AvcVdencPktXe3P_Lpm::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t packetPhase)
+{
+#if (_DEBUG || _RELEASE_INTERNAL)
+    auto *avcPipeline = dynamic_cast<AvcVdencPipelineXe3P_Lpm_Base *>(m_pipeline);
+    BypassHwLegacy *bypassHW = avcPipeline ? avcPipeline->GetBypassHW() : nullptr;
+    if (bypassHW)
+    {
+        m_bypassHwLegacyEnabled = true;
+        // AVC codecSettings->chromaFormat = 0 means default 4:2:0 (not MONOCHROME).
+        // Normalize to HCP_CHROMA_FORMAT_YUV420 (= 1) so cfg file "420" entries match.
+        uint32_t avcChromaFmt = m_basicFeature->m_chromaFormat == 0 ? 1 : m_basicFeature->m_chromaFormat;
+        // Use MB-aligned dimensions (m_frameWidth/Height) to match AVC decode, which
+        // can only derive MB-aligned dimensions from pic_*_in_mbs_minus1. Config file
+        // entries for AVC must use MB-aligned height (e.g. 1088 for 1080p, not 1080).
+        bypassHW->SetPipelineCharacteristics(
+            CODECHAL_AVC,
+            avcChromaFmt,
+            m_basicFeature->m_frameWidth,
+            m_basicFeature->m_frameHeight,
+            m_basicFeature->m_bitDepth,
+            m_basicFeature->m_targetUsage);
+    }
+#endif
+    return AvcVdencPkt::Submit(commandBuffer, packetPhase);
+}
 
     MOS_STATUS AvcVdencPktXe3P_Lpm::Completed(void *mfxStatus, void *rcsStatus, void *statusReport)
     {
@@ -135,6 +164,17 @@ namespace encode
     {
         ENCODE_FUNC_CALL();
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+        {
+            auto *avcPipeline = dynamic_cast<AvcVdencPipelineXe3P_Lpm_Base *>(m_pipeline);
+            BypassHwLegacy *bypassHW = avcPipeline ? avcPipeline->GetBypassHW() : nullptr;
+            if (bypassHW)
+            {
+                ENCODE_CHK_STATUS_RETURN(bypassHW->StopPredicate(&cmdBuffer));
+            }
+        }
+#endif
+
         // Send MI_FLUSH command
         auto &flushDwParams                         = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
         flushDwParams                               = {};
@@ -170,6 +210,12 @@ namespace encode
         auto brcFeature = dynamic_cast<AvcEncodeBRC *>(m_featureManager->GetFeature(AvcFeatureIDs::avcBrcFeature));
         ENCODE_CHK_NULL_RETURN(brcFeature);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+        auto *avcPipeline = dynamic_cast<AvcVdencPipelineXe3P_Lpm_Base *>(m_pipeline);
+        BypassHwLegacy *bypassHW = avcPipeline ? avcPipeline->GetBypassHW() : nullptr;
+        bool isNullHwVecs = bypassHW && (avcPipeline->GetGpuNode() == MOS_GPU_NODE_VE);
+#endif
+
         if (!m_pipeline->IsSingleTaskPhaseSupported() || (m_pipeline->IsFirstPass() && !brcFeature->IsVdencBrcEnabled()))
         {
             SETPAR_AND_ADDCMD(MI_FORCE_WAKEUP, m_miItf, &cmdBuffer);
@@ -182,8 +228,15 @@ namespace encode
             if (!brcFeature->m_swBrc)
             {
 #endif
-            m_pResource = brcFeature->GetHucStatus2Buffer();
-            SETPAR_AND_ADDCMD(MI_CONDITIONAL_BATCH_BUFFER_END, m_miItf, &cmdBuffer);
+#if (_DEBUG || _RELEASE_INTERNAL)
+            // In NullHW mode HuC never runs so HucStatus2=0 would always fire the early-exit.
+            // Skip the check to allow profiler and codec commands to execute.
+            if (!bypassHW)
+#endif
+            {
+                m_pResource = brcFeature->GetHucStatus2Buffer();
+                SETPAR_AND_ADDCMD(MI_CONDITIONAL_BATCH_BUFFER_END, m_miItf, &cmdBuffer);
+            }
 #if _SW_BRC
             }
 #endif
@@ -197,9 +250,14 @@ namespace encode
                 ENCODE_CHK_STATUS_RETURN(MediaPacket::UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer));
             }
 
-            m_pResource =
-                m_basicFeature->m_recycleBuf->GetBuffer(VdencBrcPakMmioBuffer, 0);
-            SETPAR_AND_ADDCMD(MI_CONDITIONAL_BATCH_BUFFER_END, m_miItf, &cmdBuffer);
+#if (_DEBUG || _RELEASE_INTERNAL)
+            if (!bypassHW)
+#endif
+            {
+                m_pResource =
+                    m_basicFeature->m_recycleBuf->GetBuffer(VdencBrcPakMmioBuffer, 0);
+                SETPAR_AND_ADDCMD(MI_CONDITIONAL_BATCH_BUFFER_END, m_miItf, &cmdBuffer);
+            }
         }
 
         if (m_pipeline->IsFirstPipe())
@@ -207,9 +265,32 @@ namespace encode
             ENCODE_CHK_STATUS_RETURN(StartStatusReport(statusReportMfx, &cmdBuffer));
         }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (bypassHW)
+        {
+            ENCODE_CHK_STATUS_RETURN(bypassHW->AddNullHwProxyCmd(&cmdBuffer, true));
+            ENCODE_CHK_STATUS_RETURN(bypassHW->StartPredicate(&cmdBuffer));
+        }
+#endif
+
         SETPAR_AND_ADDCMD(VDENC_CONTROL_STATE, m_vdencItf, &cmdBuffer);
 
-        ENCODE_CHK_STATUS_RETURN(AddPictureMfxCommands(cmdBuffer));
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (isNullHwVecs)
+        {
+            // Cannot call AddPictureMfxCommands on VE node: it issues MFX_WAIT(iStallVdboxPipeline=true),
+            // which causes GPU device failure on VEBOX engine that has no VDBox pipeline.
+            SETPAR_AND_ADDCMD(MFX_PIPE_MODE_SELECT, m_mfxItf, &cmdBuffer);
+            ENCODE_CHK_STATUS_RETURN(AddAllCmds_MFX_SURFACE_STATE(&cmdBuffer));
+            SETPAR_AND_ADDCMD(MFX_PIPE_BUF_ADDR_STATE, m_mfxItf, &cmdBuffer);
+            SETPAR_AND_ADDCMD(MFX_IND_OBJ_BASE_ADDR_STATE, m_mfxItf, &cmdBuffer);
+            SETPAR_AND_ADDCMD(MFX_BSP_BUF_BASE_ADDR_STATE, m_mfxItf, &cmdBuffer);
+        }
+        else
+#endif
+        {
+            ENCODE_CHK_STATUS_RETURN(AddPictureMfxCommands(cmdBuffer));
+        }
 
         ENCODE_CHK_STATUS_RETURN(AddPictureVdencCommands(cmdBuffer));
 
@@ -230,23 +311,33 @@ namespace encode
         secondLevelBatchBufferUsed->iCurrent = 0;
         secondLevelBatchBufferUsed->dwOffset = 0;
 
-        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(&cmdBuffer, secondLevelBatchBufferUsed));
-        HalOcaInterfaceNext::OnSubLevelBBStart(
-            cmdBuffer,
-            m_osInterface->pOsContext,
-            &secondLevelBatchBufferUsed->OsResource,
-            secondLevelBatchBufferUsed->dwOffset,
-            false,
-            MOS_ALIGN_CEIL(m_hwInterface->m_vdencBrcImgStateBufferSize, CODECHAL_CACHELINE_SIZE));
+#if (_DEBUG || _RELEASE_INTERNAL)
+        // MI_BATCH_BUFFER_START is an MI command — it is NOT predicated by MI_SET_PREDICATE.
+        // It always executes even inside a StartPredicate(ENABLE_ALWAYS) region.
+        // In NullHW/BRC mode HuC never ran, so the BRC img-state batch buffer is
+        // uninitialized. Jumping to it causes a GPU hang (MFX_ERR_DEVICE_FAILED).
+        // Skip the sub-level batch entirely in NullHW mode.
+        if (!bypassHW)
+#endif
+        {
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(&cmdBuffer, secondLevelBatchBufferUsed));
+            HalOcaInterfaceNext::OnSubLevelBBStart(
+                cmdBuffer,
+                m_osInterface->pOsContext,
+                &secondLevelBatchBufferUsed->OsResource,
+                secondLevelBatchBufferUsed->dwOffset,
+                false,
+                MOS_ALIGN_CEIL(m_hwInterface->m_vdencBrcImgStateBufferSize, CODECHAL_CACHELINE_SIZE));
 
-        CODECHAL_DEBUG_TOOL
-        (
-            CodechalDebugInterface *debugInterface = m_pipeline->GetDebugInterface();
-            ENCODE_CHK_STATUS_RETURN(debugInterface->Dump2ndLvlBatch(
-                secondLevelBatchBufferUsed,
-                CODECHAL_MEDIA_STATE_ENC_NORMAL,
-                nullptr));
-        )
+            CODECHAL_DEBUG_TOOL
+            (
+                CodechalDebugInterface *debugInterface = m_pipeline->GetDebugInterface();
+                ENCODE_CHK_STATUS_RETURN(debugInterface->Dump2ndLvlBatch(
+                    secondLevelBatchBufferUsed,
+                    CODECHAL_MEDIA_STATE_ENC_NORMAL,
+                    nullptr));
+            )
+        }
 
         ENCODE_CHK_STATUS_RETURN(AddAllCmds_MFX_QM_STATE(&cmdBuffer));
         ENCODE_CHK_STATUS_RETURN(AddAllCmds_MFX_FQM_STATE(&cmdBuffer));

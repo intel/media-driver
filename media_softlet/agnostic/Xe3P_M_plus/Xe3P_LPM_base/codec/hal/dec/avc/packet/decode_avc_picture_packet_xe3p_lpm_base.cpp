@@ -24,6 +24,9 @@
 //! \brief    Defines the interface for avc decode picture packet
 //!
 #include "decode_avc_picture_packet_xe3p_lpm_base.h"
+#if (_DEBUG || _RELEASE_INTERNAL)
+#include "decode_avc_pipeline_xe3p_lpm_base.h"
+#endif
 
 namespace decode
 {
@@ -37,16 +40,29 @@ namespace decode
 
     MOS_STATUS AvcDecodePicPktXe3P_Lpm_Base::Execute(MOS_COMMAND_BUFFER &cmdBuffer)
     {
-        auto &mfxWaitParams               = m_miItf->MHW_GETPAR_F(MFX_WAIT)();
-        mfxWaitParams                     = {};
-        mfxWaitParams.iStallVdboxPipeline = true;
-        DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+#if (_DEBUG || _RELEASE_INTERNAL)
+        auto *avcXe3pPipeline = dynamic_cast<AvcPipelineXe3P_Lpm_Base *>(m_avcPipeline);
+        bool skipMfxWait = avcXe3pPipeline && avcXe3pPipeline->GetGpuNode() == MOS_GPU_NODE_VE;
+        if (!skipMfxWait)
+#endif
+        {
+            auto &mfxWaitParams               = m_miItf->MHW_GETPAR_F(MFX_WAIT)();
+            mfxWaitParams                     = {};
+            mfxWaitParams.iStallVdboxPipeline = true;
+            DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+        }
 
         SETPAR_AND_ADDCMD(MFX_PIPE_MODE_SELECT, m_mfxItf, &cmdBuffer);
 
-        mfxWaitParams                     = {};
-        mfxWaitParams.iStallVdboxPipeline = true;
-        DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (!skipMfxWait)
+#endif
+        {
+            auto &mfxWaitParams               = m_miItf->MHW_GETPAR_F(MFX_WAIT)();
+            mfxWaitParams                     = {};
+            mfxWaitParams.iStallVdboxPipeline = true;
+            DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+        }
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
         if (m_downSamplingFeature != nullptr && m_downSamplingPkt != nullptr && !m_downSamplingFeature->IsVDAQMHistogramEnabled())

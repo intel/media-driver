@@ -34,6 +34,9 @@
 #include "mhw_vdbox_huc_ppgtt_itf.h"
 #include "mhw_vdbox_huc_ppgtt_cmdpar.h"
 #include "media_interfaces_huc_kernel_source.h"
+#if (_DEBUG || _RELEASE_INTERNAL)
+#include "bypass_hw_legacy.h"
+#endif
 
 namespace encode {
 #define VDENC_AVC_BRC_HUC_STATUS_REENCODE_MASK (1 << 31)
@@ -187,6 +190,13 @@ MOS_STATUS AvcHucBrcUpdatePktXe3p_Lpm_Base::Execute(PMOS_COMMAND_BUFFER cmdBuffe
             basicFeature->m_recycleBuf->GetBuffer(VdencBrcPakMmioBuffer, 0));
     }
 #endif // !_SW_BRC
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_osInterface && m_osInterface->bNullHwIsEnabled)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+#endif
 
     if (prologNeeded)
     {

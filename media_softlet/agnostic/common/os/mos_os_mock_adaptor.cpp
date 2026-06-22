@@ -44,8 +44,9 @@ MosMockAdaptor::MosMockAdaptor()
     m_productFamily = {};
     m_stepping      = "";
     m_deviceId      = 0;
-    m_numOfVdbox    = 1;
-    m_enabled       = false;
+    m_numOfVdbox     = 1;
+    m_numOfRealVdbox = 0;
+    m_enabled        = false;
 }
 
 MosMockAdaptor::~MosMockAdaptor()
@@ -97,8 +98,9 @@ MOS_STATUS MosMockAdaptor::RegkeyRead(PMOS_CONTEXT osContext)
         value,
         __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_PIPE,
         MediaUserSetting::Group::Device);
-    // Extract fake VDBox number from bits [7:0]
-    m_numOfVdbox = (uint16_t)(value & 0xFF);
+    // bits [7:0] = total simulated VDBox count (fake + real); bits [15:8] = real VDBox count (mapped to VIDEO/VIDEO2)
+    m_numOfVdbox     = (uint16_t)(value & 0xFF);
+    m_numOfRealVdbox = (uint16_t)((value >> 8) & 0xFF);
 
     return eStatus;
 }
