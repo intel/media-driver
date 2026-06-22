@@ -88,8 +88,7 @@ CmLogger* CmLogger::GetInstance(CM_HAL_STATE *halState)
     return &m_globalCmLogger;
 }
 
-void CmLogger::GetVerbosityLevel(CM_HAL_STATE *halState)
-{
+void CmLogger::GetVerbosityLevel(CM_HAL_STATE *halState) {
     // Read VerbosityLevel from RegisterKey
     MOS_USER_FEATURE_VALUE_DATA userFeatureValueData;
     // User feature key reads

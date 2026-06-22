@@ -39,7 +39,7 @@ public:
     MOS_STATUS Initialize(FrameTrackerProducer *trackerProducer);
 
     CmMediaState* CreateMediaState();
-    void DestroyMediaState(CmMediaState *mediaState);
+    static void DestroyMediaState(CmMediaState *mediaState);
     
 protected:
     HeapManager *m_heapMgr;

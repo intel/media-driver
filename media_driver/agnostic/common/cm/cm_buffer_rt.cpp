@@ -551,12 +551,12 @@ void CmBuffer_RT::SetSize( size_t size )
     m_size = size;
 }
 
-bool CmBuffer_RT::IsUpSurface()
+bool CmBuffer_RT::IsUpSurface() const
 {
     return (m_bufferType == CM_BUFFER_UP);
 }
 
-bool CmBuffer_RT::IsSVMSurface()
+bool CmBuffer_RT::IsSVMSurface() const
 {
     return (m_bufferType == CM_BUFFER_SVM);
 }
@@ -573,17 +573,17 @@ bool CmBuffer_RT::IsCMRTAllocatedSVMBuffer()
     return m_isCMRTAllocatedSVMBuffer;
 }
 
-bool CmBuffer_RT::IsConditionalSurface()
+bool CmBuffer_RT::IsConditionalSurface() const
 {
     return m_isConditionalBuffer;
 }
 
-uint32_t CmBuffer_RT::GetConditionalCompareValue()
+uint32_t CmBuffer_RT::GetConditionalCompareValue() const
 {
     return m_comparisonValue;
 }
 
-bool CmBuffer_RT::IsCompareMaskEnabled()
+bool CmBuffer_RT::IsCompareMaskEnabled() const
 {
     return m_enableCompareMask;
 }
