@@ -93,6 +93,16 @@ VAStatus DdiEncodeVp9::EncodeInCodecHal(uint32_t numSlices)
     CODEC_VP9_ENCODE_SEQUENCE_PARAMS *seqParams = (PCODEC_VP9_ENCODE_SEQUENCE_PARAMS)(m_encodeCtx->pSeqParams);
     CODEC_VP9_ENCODE_PIC_PARAMS *vp9PicParam = (PCODEC_VP9_ENCODE_PIC_PARAMS)(m_encodeCtx->pPicParams);
 
+    if (!headerInsertFlag &&
+        vp9PicParam->PicFlags.fields.frame_type == CODEC_VP9_KEY_FRAME &&
+        m_isPreviousFrameKey)
+    {
+        vp9PicParam->PicFlags.fields.refresh_frame_context = 0;
+    }
+
+    // Update the flag for the next frame
+    m_isPreviousFrameKey = (vp9PicParam->PicFlags.fields.frame_type == CODEC_VP9_KEY_FRAME);
+    
     EncoderParams encodeParams;
     MOS_ZeroMemory(&encodeParams, sizeof(EncoderParams));
     encodeParams.ExecCodecFunction = m_encodeCtx->codecFunction;
@@ -392,6 +402,8 @@ VAStatus DdiEncodeVp9::ContextInitialize(CodechalSetting *codecHalSettings)
 
     /* RT is used as the default target usage */
     vp9TargetUsage = TARGETUSAGE_RT_SPEED;
+
+    m_isPreviousFrameKey = false;
 
     return vaStatus;
 }
