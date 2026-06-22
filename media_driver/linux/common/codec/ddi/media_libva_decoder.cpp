@@ -408,6 +408,7 @@ VAStatus DdiDecode_StatusReport(PDDI_MEDIA_CONTEXT mediaCtx, CodechalDecode *dec
                     (tempNewReport.m_codecStatus == CODECHAL_STATUS_INCOMPLETE)     ||
                     (tempNewReport.m_codecStatus == CODECHAL_STATUS_RESET))
                 {
+                    mediaCtx->pSurfaceHeap->lock->lock_shared();
                     PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapElmt = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)mediaCtx->pSurfaceHeap->pHeapBase;
 
                     uint32_t j = 0;
@@ -422,6 +423,7 @@ VAStatus DdiDecode_StatusReport(PDDI_MEDIA_CONTEXT mediaCtx, CodechalDecode *dec
                             break;
                         }
                     }
+                    mediaCtx->pSurfaceHeap->lock->unlock_shared();
                 }
                 else
                 {
@@ -488,6 +490,7 @@ VAStatus DdiDecode_StatusReport(PDDI_MEDIA_CONTEXT mediaCtx, DecodePipelineAdapt
                     (tempNewReport.codecStatus == CODECHAL_STATUS_INCOMPLETE)   ||
                     (tempNewReport.codecStatus == CODECHAL_STATUS_RESET))
                 {
+                    mediaCtx->pSurfaceHeap->lock->lock_shared();
                     PDDI_MEDIA_SURFACE_HEAP_ELEMENT mediaSurfaceHeapElmt = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)mediaCtx->pSurfaceHeap->pHeapBase;
 
                     uint32_t j = 0;
@@ -502,6 +505,7 @@ VAStatus DdiDecode_StatusReport(PDDI_MEDIA_CONTEXT mediaCtx, DecodePipelineAdapt
                             break;
                         }
                     }
+                    mediaCtx->pSurfaceHeap->lock->unlock_shared();
                 }
                 else
                 {

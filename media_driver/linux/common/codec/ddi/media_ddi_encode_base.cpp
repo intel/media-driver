@@ -917,6 +917,7 @@ VAStatus DdiEncodeBase::CreateBuffer(
     buf->uiNumElements = elementsNum;
     buf->uiType        = type;
     buf->uiOffset      = 0;
+    buf->lock          = MOS_New(std::shared_timed_mutex);
 
     uint32_t bufSize = 0;
     uint32_t expectedSize = 0xffffffff;
