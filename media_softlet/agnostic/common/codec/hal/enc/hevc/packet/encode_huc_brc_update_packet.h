@@ -125,10 +125,8 @@ namespace encode
         uint32_t    UPD_UserMaxFramePB           = 0;
         uint8_t     UPD_Randomaccess             = 0;
         uint8_t     UPD_AdaptiveTUEnabled        = 0;
-        uint16_t    UPD_GopPicSize               = 0;
-        uint8_t     UPD_LADsRatio                = 0;
 
-        uint8_t     RSVD[39] = {};  // 64 bytes aligned
+        uint8_t     RSVD[42] = {};  // 64 bytes aligned
     };
     C_ASSERT(256 == sizeof(VdencHevcHucBrcUpdateDmem));
 

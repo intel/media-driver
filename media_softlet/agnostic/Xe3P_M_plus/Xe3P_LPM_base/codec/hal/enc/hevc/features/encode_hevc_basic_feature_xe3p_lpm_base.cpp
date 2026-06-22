@@ -169,8 +169,7 @@ MHW_SETPAR_DECL_SRC(VDENC_CMD2, HevcBasicFeatureXe3p_Lpm_Base)
 {
     ENCODE_CHK_STATUS_RETURN(HevcBasicFeature::MHW_SETPAR_F(VDENC_CMD2)(params));
 
-    if (m_hevcSeqParams->RateControlMethod == RATECONTROL_VBR ||
-        (m_hevcSeqParams->RateControlMethod == RATECONTROL_CBR && m_hevcSeqParams->LookaheadDepth > 0))
+    if (m_hevcSeqParams->RateControlMethod == RATECONTROL_VBR)
     {
         params.minQp = m_hevcPicParams->BRCMinQp < CODEC_HEVC_MIN_QP1 ? CODEC_HEVC_MIN_QP1 : m_hevcPicParams->BRCMinQp;
     }
