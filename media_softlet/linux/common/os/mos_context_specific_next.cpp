@@ -66,7 +66,6 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
     MOS_STATUS    eStatus   = MOS_STATUS_SUCCESS;
     uint32_t      value     = 0;
     uint32_t      mode      = 0;
-    MediaUserSettingSharedPtr   userSettingPtr = nullptr;
 
     MOS_OS_FUNCTION_ENTER;
 
@@ -90,7 +89,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         }
         m_fd = osDriverContext->fd;
 
-        userSettingPtr = MosInterface::MosGetUserSettingInstance(osDriverContext);
+        MediaUserSettingSharedPtr userSettingPtr = MosInterface::MosGetUserSettingInstance(osDriverContext);
 
         m_bufmgr = mos_bufmgr_gem_init(m_fd, BATCH_BUFFER_SIZE, &m_deviceType);
         if (nullptr == m_bufmgr)
