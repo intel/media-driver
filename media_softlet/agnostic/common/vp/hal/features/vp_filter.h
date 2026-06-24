@@ -181,7 +181,8 @@ struct _SFC_CSC_PARAMS
     uint32_t                        chromaDownSamplingVerticalCoef;              // Chroma DownSampling Vertical Coeff
     uint32_t                        chromaDownSamplingHorizontalCoef;            // Chroma DownSampling Horizontal Coeff
     bool                            isFullRgbG10P709;                            // Whether output colorspace is DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709
-    bool                            isDemosaicNeeded;                            // 0: demosaic is not needed; 1: demosaic is needed       
+    bool                            isDemosaicNeeded;                            // 0: demosaic is not needed; 1: demosaic is needed
+    bool                            bDV3DLutFp16Passthrough;                          // DV FP16-in/FP16-out 3DLUT passthrough: SFC passthrough (identity EOTF + identity CCM, FP16_input_select=CCM, gain=1) per HW Arch. DV FP16 3DLUT
 };
 
 struct _SFC_ROT_MIR_PARAMS

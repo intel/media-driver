@@ -635,6 +635,13 @@ MOS_STATUS VpVeboxCmdPacketXe3P_Lpm_Base::SetupVeboxFP16State(mhw::vebox::VEBOX_
     VP_RENDER_CHK_NULL_RETURN(pFp16Input);
     VP_RENDER_CHK_NULL_RETURN(fp16Params);
 
+    // DV/external-3DLUT path already configured FP16 state with bypass CCM/OETF — skip override
+    if (pFp16Input->VeboxFp16InputEnable)
+    {
+        VP_PUBLIC_NORMALMESSAGE("FP16 state already configured by DV path, skipping HDR FP16 setup.");
+        return MOS_STATUS_SUCCESS;
+    }
+
     pFp16Input->VeboxFp16InputEnable      = true;
     pFp16Input->HdrGainFactor             = 125;
     pVeboxMode->BypassCcm                 = 0;

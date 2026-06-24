@@ -142,6 +142,7 @@ struct _MHW_PAR_T(SFC_STATE)
     bool bRGBASwapEnable                        = false;  // R, B Channel Swap enable
     bool bInputColorSpace                       = false;  //0: YUV color space, 1:RGB color space
     bool isFullRgbG10P709                       = false;  // Whether output colorspace is COLOR_SPACE_RGB_FULL_G10_NONE_P709
+    bool bDV3DLutFp16Passthrough                     = false;  // DV FP16-in/FP16-out 3DLUT passthrough: SFC passthrough (identity EOTF + identity CCM, FP16_input_select=CCM, gain=1) per HW Arch. DV FP16 3DLUT
     // Memory compression Enable Flag
     bool bMMCEnable                             = false;            // Flag used to decide whether sfc output should be compressed
     MOS_RESOURCE_MMC_MODE MMCMode               = MOS_MMC_DISABLED; // Memory compression mode

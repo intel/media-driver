@@ -89,7 +89,8 @@ MOS_STATUS SfcRenderXe3P_Lpm_Base::SetupSfcState(
 
     m_renderData.sfcStateParams->histogramSurface = &m_histogramSurf;
 
-    if (m_renderData.sfcStateParams->isFullRgbG10P709 && IS_RGB64_FLOAT_FORMAT(m_renderData.sfcStateParams->OutputFrameFormat))
+    bool bDvFp16Passthrough = m_renderData.sfcStateParams->bDV3DLutFp16Passthrough;
+    if ((m_renderData.sfcStateParams->isFullRgbG10P709 || bDvFp16Passthrough) && IS_RGB64_FLOAT_FORMAT(m_renderData.sfcStateParams->OutputFrameFormat))
     {
         if (!m_EOTF)
         {
@@ -103,11 +104,23 @@ MOS_STATUS SfcRenderXe3P_Lpm_Base::SetupSfcState(
             VP_RENDER_CHK_NULL_RETURN(m_IndirectStateLut);
         }
 
-        VP_RENDER_NORMALMESSAGE("SFC input cspace %d", m_renderData.SfcInputCspace);
-        if (m_CurrentCSpaceForIndirectState != m_renderData.SfcInputCspace)
+        VP_RENDER_NORMALMESSAGE("SFC input cspace %d, bDvFp16Passthrough %d", m_renderData.SfcInputCspace, bDvFp16Passthrough);
+        // For DV 3DLUT FP16 output always (re)generate the identity indirect state; also invalidate
+        // the cspace cache so a following non-DV run regenerates its own EOTF/CCM (DV FP16 3DLUT).
+        if (bDvFp16Passthrough || m_CurrentCSpaceForIndirectState != m_renderData.SfcInputCspace)
         {
-            m_CurrentCSpaceForIndirectState = m_renderData.SfcInputCspace;
-            if (IS_COLOR_SPACE_BT2020(m_renderData.SfcInputCspace))
+            m_CurrentCSpaceForIndirectState = bDvFp16Passthrough ? CSpace_None : m_renderData.SfcInputCspace;
+            if (bDvFp16Passthrough)
+            {
+                // Identity EOTF (linear ramp, out == in): per HW Arch the SFC must not apply any
+                // transfer function for the DV 3DLUT FP16 passthrough path.
+                for (uint32_t k = 0; k < (uint32_t)EOTF_LUT_SIZE; k++)
+                {
+                    m_EOTF[k] = (uint32_t)((double(k) / double(1023)) * (pow(2, 32) - 1) + 0.5);
+                }
+                VP_RENDER_NORMALMESSAGE("Generate 1 K identity EOTF Lut for DV 3DLUT FP16 passthrough.");
+            }
+            else if (IS_COLOR_SPACE_BT2020(m_renderData.SfcInputCspace))
             {
                 // st2084 to linear
                 VP_RENDER_CHK_STATUS_RETURN(Gen2084EOTFLUT_1K(m_EOTF, EOTF_LUT_SIZE));  //generage 1K EOTF Lut
@@ -128,7 +141,7 @@ MOS_STATUS SfcRenderXe3P_Lpm_Base::SetupSfcState(
             }
 
              //CCM struct is VEBOX_CCM_STATE_CMD, S4.22
-            if (IS_COLOR_SPACE_BT2020(m_renderData.SfcInputCspace))
+            if (!bDvFp16Passthrough && IS_COLOR_SPACE_BT2020(m_renderData.SfcInputCspace))
             {
                 VP_RENDER_NORMALMESSAGE("CCM Covert bt2020 to bt709.");
                 m_IndirectStateLut[i] = (uint32_t)(1.660490254890140 * uCoeffValue);
@@ -582,7 +595,7 @@ MOS_STATUS SfcRenderXe3P_Lpm_Base::AllocateResources()
 
         m_renderData.sfcStateParams->tempFieldResource = &m_tempFieldSurface->osSurface->OsResource;
     }
-    if (m_renderData.sfcStateParams->isFullRgbG10P709 && IS_RGB64_FLOAT_FORMAT(m_renderData.sfcStateParams->OutputFrameFormat))
+    if ((m_renderData.sfcStateParams->isFullRgbG10P709 || m_renderData.sfcStateParams->bDV3DLutFp16Passthrough) && IS_RGB64_FLOAT_FORMAT(m_renderData.sfcStateParams->OutputFrameFormat))
     {
         VP_RENDER_CHK_STATUS_RETURN(m_allocator->ReAllocateSurface(
                                       m_sfcIndirectState,
@@ -753,7 +766,10 @@ bool SfcRenderXe3P_Lpm_Base::IsOutputChannelSwapNeeded(MOS_FORMAT outputFormat)
 {
     VP_FUNC_CALL();
 
-    // ARGB8,ABGR10,A16B16G16R16,BGRP,VYUY and YVYU output format need to enable swap
+    // ARGB8,ABGR10,A16B16G16R16,BGRP,VYUY and YVYU output format need to enable swap.
+    // A16R16G16B16F (BGRA FP16) also needs the output swap: the DV FP16 path swaps R/B on
+    // the VEBOX input (RgbSwapForFp16Input) so CCM sees proper R/G/B order, so the SFC must
+    // swap R/B back on output to restore BGRA byte order (DV FP16 3DLUT BGRA FP16 passthrough).
     if (outputFormat == Format_X8R8G8B8     ||
         outputFormat == Format_A8R8G8B8     ||
         outputFormat == Format_R10G10B10A2  ||

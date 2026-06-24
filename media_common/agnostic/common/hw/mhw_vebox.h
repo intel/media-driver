@@ -655,6 +655,7 @@ typedef struct _MHW_1DLUT_PARAMS
 typedef struct _MHW_FP16_PARAMS
 {
     uint32_t                isActive       = false;              //!< Active or not
+    uint32_t                bIdentityCcm   = false;              //!< Program identity CCM (passthrough) instead of BT.709->BT.2020 (DV FP16 3DLUT)
     uint32_t                OETFLutY[256]  = {};
     uint32_t                OETFLutX[256]  = {};
 } MHW_FP16_PARAMS, *PMHW_FP16_PARAMS;

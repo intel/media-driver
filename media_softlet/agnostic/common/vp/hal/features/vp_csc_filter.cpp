@@ -168,10 +168,14 @@ VPHAL_CSPACE GetSfcInputColorSpace(VP_EXECUTE_CAPS &executeCaps, VPHAL_CSPACE in
 
     if (executeCaps.b3DlutOutput)
     {
-        if (IS_RGB64_FLOAT_FORMAT(outputFormat)) // SFC output FP16, BT2020->BT709
+        if (IS_RGB64_FLOAT_FORMAT(outputFormat))
         {
-            VP_PUBLIC_NORMALMESSAGE("H2S Caps %d", executeCaps.bH2S);
-            return executeCaps.bH2S ? CSpace_sRGB : CSpace_BT2020_RGB;
+            VP_PUBLIC_NORMALMESSAGE("H2S Caps %d, inputColorSpace %d", executeCaps.bH2S, inputColorSpace);
+            if (executeCaps.bH2S || !IS_COLOR_SPACE_BT2020(inputColorSpace))
+            {
+                return CSpace_sRGB;
+            }
+            return CSpace_BT2020_RGB;
         }
         else
         {
@@ -267,14 +271,41 @@ MOS_STATUS VpCscFilter::CalculateSfcEngineParams()
 
     m_sfcCSCParams->inputColorSpace = GetSfcInputColorSpace(m_executeCaps, m_cscParams.input.colorSpace, m_cscParams.output.colorSpace, m_cscParams.formatOutput);
 
+    // Capture the original pipeline input format before GetSfcInputFormat overwrites m_cscParams.formatInput.
+    // The DV FP16 3DLUT passthrough is keyed off FP16 *input* (mirrors SetupVeboxLutsForDV); a legacy DV case
+    // with non-FP16 input (e.g. P010 in -> FP16 out) must NOT take the passthrough path.
+    bool bFp16Input = IS_RGB64_FLOAT_FORMAT(m_cscParams.formatInput);
+
     m_cscParams.formatInput         = GetSfcInputFormat(m_executeCaps, m_cscParams.formatInput, m_cscParams.output.colorSpace, m_cscParams.formatOutput);
     m_sfcCSCParams->inputFormat     = m_cscParams.formatInput;
     m_sfcCSCParams->outputFormat    = m_cscParams.formatOutput;
-    m_sfcCSCParams->isFullRgbG10P709 = m_cscParams.isFullRgbG10P709;
+    // FP16 input AND FP16 output through DV 3DLUT => RGB-to-RGB identity 3DLUT passthrough feature.
+    // Both input and output must be FP16; otherwise legacy DV FP16-output cases would wrongly be
+    // forced into the identity passthrough and lose their EOTF/CCM/gain processing.
+    bool bDV3DLutFp16Passthrough = m_executeCaps.bDV && m_executeCaps.b3DlutOutput &&
+                                   bFp16Input && IS_RGB64_FLOAT_FORMAT(m_cscParams.formatOutput);
+    m_sfcCSCParams->bDV3DLutFp16Passthrough = bDV3DLutFp16Passthrough;
+    if (bDV3DLutFp16Passthrough)
+    {
+        // DV FP16-in/FP16-out 3DLUT passthrough: VEBOX cannot output FP16, so the SFC does the
+        // RGB2.32->FP16 conversion. Per HW Arch the SFC must be a pure passthrough: identity EOTF +
+        // identity CCM, FP16_input_select=0 (CCM tap), FP16_gain=1. Keep isFullRgbG10P709=false so the
+        // regular full-RGB FP16 datapath (gamma2.2 EOTF + gain=125) is NOT used; identity EOTF/CCM
+        // indirect state is programmed via the bDV3DLutFp16Passthrough flag instead. The standard SFC
+        // CSC must stay DISABLED (do not set bCSCEnabled) so no color conversion is applied. (DV FP16 3DLUT)
+        m_sfcCSCParams->isFullRgbG10P709 = false;
+        VP_PUBLIC_NORMALMESSAGE("DV 3DLUT FP16 in/out passthrough: SFC passthrough (identity EOTF + identity CCM, FP16_input_select=CCM, gain=1)");
+    }
+    else
+    {
+        m_sfcCSCParams->isFullRgbG10P709 = m_cscParams.isFullRgbG10P709;
+    }
     m_sfcCSCParams->isDemosaicNeeded = m_executeCaps.bDemosaicInUse;
 
     // No need to check m_cscParams.pAlphaParams as CalculateVeboxEngineParams does, as alpha is done by scaling filter on SFC.
-    if (m_sfcCSCParams->inputColorSpace != m_cscParams.output.colorSpace && !(IS_RGB64_FLOAT_FORMAT(m_sfcCSCParams->outputFormat) && m_sfcCSCParams->isFullRgbG10P709))
+    if (m_sfcCSCParams->inputColorSpace != m_cscParams.output.colorSpace &&
+        !(IS_RGB64_FLOAT_FORMAT(m_sfcCSCParams->outputFormat) && m_sfcCSCParams->isFullRgbG10P709) &&
+        !bDV3DLutFp16Passthrough)
     {
         m_sfcCSCParams->bCSCEnabled = true;
     }

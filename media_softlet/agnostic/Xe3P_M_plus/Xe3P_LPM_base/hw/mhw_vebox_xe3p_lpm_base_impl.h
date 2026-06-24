@@ -387,17 +387,37 @@ public:
             pForwardGamma[i].DW3.ForwardBChannelGammaCorrectionValue = pFP16Params->OETFLutY[i];
         }
 
-        // Program CCM BT709 TO BT2020
+        // Program CCM. Default: BT.709 -> BT.2020 gamut conversion (real DV content).
+        // Identity option (DV FP16 3DLUT): for the DV 3DLUT FP16 passthrough path, program an
+        // identity matrix so a primary-color test pixel survives unchanged (pure red FP16=1.0 ->
+        // R10=1023 instead of 0.6274*1023=643). Identity coefficient = 1.0 in S?.?? fixed-point
+        // with scale 2^22 (bit22 = 1.0) => diagonal C0=C4=C8=4194304, off-diagonal = 0.
         pIecpState->CcmState.DW0.ColorCorrectionMatrixEnable = true;
-        pIecpState->CcmState.DW1.C0                          = 2631523;
-        pIecpState->CcmState.DW0.C1                          = 1381109;
-        pIecpState->CcmState.DW3.C2                          = 181671;
-        pIecpState->CcmState.DW2.C3                          = 289814;
-        pIecpState->CcmState.DW5.C4                          = 3856834;
-        pIecpState->CcmState.DW4.C5                          = 47652;
-        pIecpState->CcmState.DW7.C6                          = 68751;
-        pIecpState->CcmState.DW6.C7                          = 369154;
-        pIecpState->CcmState.DW8.C8                          = 3756397;
+        if (pFP16Params->bIdentityCcm)
+        {
+            const uint32_t kIdentityCcmUnity = 4194304;  // 1.0 in 2^22 fixed-point
+            pIecpState->CcmState.DW1.C0 = kIdentityCcmUnity;
+            pIecpState->CcmState.DW0.C1 = 0;
+            pIecpState->CcmState.DW3.C2 = 0;
+            pIecpState->CcmState.DW2.C3 = 0;
+            pIecpState->CcmState.DW5.C4 = kIdentityCcmUnity;
+            pIecpState->CcmState.DW4.C5 = 0;
+            pIecpState->CcmState.DW7.C6 = 0;
+            pIecpState->CcmState.DW6.C7 = 0;
+            pIecpState->CcmState.DW8.C8 = kIdentityCcmUnity;
+        }
+        else
+        {
+            pIecpState->CcmState.DW1.C0                          = 2631523;
+            pIecpState->CcmState.DW0.C1                          = 1381109;
+            pIecpState->CcmState.DW3.C2                          = 181671;
+            pIecpState->CcmState.DW2.C3                          = 289814;
+            pIecpState->CcmState.DW5.C4                          = 3856834;
+            pIecpState->CcmState.DW4.C5                          = 47652;
+            pIecpState->CcmState.DW7.C6                          = 68751;
+            pIecpState->CcmState.DW6.C7                          = 369154;
+            pIecpState->CcmState.DW8.C8                          = 3756397;
+        }
         pIecpState->CcmState.DW9.OffsetInR                   = 0;
         pIecpState->CcmState.DW10.OffsetInG                  = 0;
         pIecpState->CcmState.DW11.OffsetInB                  = 0;
@@ -452,7 +472,8 @@ public:
         MHW_CHK_NULL_RETURN(this->m_veboxHeap);
         if (pVeboxIecpParams->fp16Params.isActive)
         {
-            //FP16 enable didn't need program EOTF and CCM here, it will program in AddFP16State
+            // FP16 enable doesn't need to program EOTF and CCM here; OETF + CCM are programmed in
+            // AddFP16State from the DV/FP16 setup path.
             return MOS_STATUS_SUCCESS;
         }
 
@@ -1474,6 +1495,7 @@ public:
         cmd.DW24.BypassCcm = params.VeboxMode.BypassCcm;
         cmd.DW24.BypassOetf = params.VeboxMode.BypassOetf;
         cmd.DW24.VeboxFp16InputEnable = params.FP16Input.VeboxFp16InputEnable;
+        cmd.DW24.RgbSwapForFp16Input = params.FP16Input.RgbSwapForFp16Input;
         cmd.DW24.HdrGainFactor = params.FP16Input.HdrGainFactor;
         // PLATFORM SPECIFIC: xe3p_lpm adds enhanced HDR controls in DW24
 
