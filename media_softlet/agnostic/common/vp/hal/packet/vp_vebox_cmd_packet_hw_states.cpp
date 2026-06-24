@@ -1168,6 +1168,22 @@ MOS_STATUS VpVeboxCmdPacket::SetupVebox3DLutForHDR(mhw::vebox::VEBOX_STATE_PAR &
 
     veboxStateCmdParams.pVebox3DLookUpTables = &surf3DLut->osSurface->OsResource;
 
+    {
+        uint32_t isCompressible = 0;
+        if (surf3DLut->osSurface->OsResource.pGmmResInfo)
+        {
+            isCompressible = surf3DLut->osSurface->OsResource.pGmmResInfo->IsResourceMappedCompressible();
+        }
+        pLUT3D->b3DLutTableMemoryReadAccumulationBufferDisable = isCompressible ? 0 : 1;
+#if (_DEBUG || _RELEASE_INTERNAL)
+        ReportUserSettingForDebug(
+            m_userSettingPtr,
+            "VP 3DLut buffer Compressible",
+            isCompressible ? 1 : 0,
+            MediaUserSetting::Group::Sequence);
+#endif
+    }
+
     VP_RENDER_CHK_STATUS_RETURN(SetupHDRUnifiedForHDR(veboxStateCmdParams));
 
     return MOS_STATUS_SUCCESS;
@@ -1225,6 +1241,22 @@ MOS_STATUS VpVeboxCmdPacket::SetupVeboxExternal3DLutforHDR(
     veboxStateCmdParams.Vebox3DLookUpTablesSurfCtrl.Value =
         m_surfMemCacheCtl->DnDi.Vebox3DLookUpTablesSurfMemObjCtl;
     veboxStateCmdParams.pVebox3DLookUpTables = &(pRenderData->HDR3DLUT.external3DLutSurfResource);
+
+    {
+        uint32_t isCompressible = 0;
+        if (pRenderData->HDR3DLUT.external3DLutSurfResource.pGmmResInfo)
+        {
+            isCompressible = pRenderData->HDR3DLUT.external3DLutSurfResource.pGmmResInfo->IsResourceMappedCompressible();
+        }
+        pLUT3D->b3DLutTableMemoryReadAccumulationBufferDisable = isCompressible ? 0 : 1;
+#if (_DEBUG || _RELEASE_INTERNAL)
+        ReportUserSettingForDebug(
+            m_userSettingPtr,
+            "VP 3DLut buffer Compressible",
+            isCompressible ? 1 : 0,
+            MediaUserSetting::Group::Sequence);
+#endif
+    }
 
     return MOS_STATUS_SUCCESS;
 }

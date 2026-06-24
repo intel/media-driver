@@ -216,7 +216,8 @@ typedef struct _MHW_VEBOX_3D_LUT
     uint32_t    ChannelMappingSwapForLut3D                  : 1;
     uint32_t    InterpolationMethod                         : 1;
     uint32_t    Lut3DLoopingOrder                           : 1;  // 0=B-major(legacy), 1=R-major
-    uint32_t                                                : 24; // Reserved
+    uint32_t    b3DLutTableMemoryReadAccumulationBufferDisable : 1; // 0=Enable, 1=Disable
+    uint32_t                                                : 23; // Reserved
 } MHW_VEBOX_3D_LUT, *PMHW_VEBOX_3D_LUT;
 
 typedef struct _MHW_VEBOX_FP16_INPUT
