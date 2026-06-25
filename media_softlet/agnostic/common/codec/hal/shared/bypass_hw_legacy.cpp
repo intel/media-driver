@@ -66,7 +66,7 @@ MOS_STATUS BypassHwLegacy::Initialize(PMOS_INTERFACE pOsInterface, std::shared_p
     }
 
     m_osInterface = pOsInterface;
-    m_miItf       = pMiItf;
+    m_miItf       = std::move(pMiItf);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     OsContextNext *osDevCtx = GetOsDeviceContext();
@@ -493,7 +493,7 @@ bool BypassHwLegacy::LoadConfigFile(const std::string &filePath)
         trim(entry.direction);
         trim(entry.subsampling);
 
-        s_configEntries.push_back(entry);
+        s_configEntries.push_back(std::move(entry));
     }
 
     return !s_configEntries.empty();
