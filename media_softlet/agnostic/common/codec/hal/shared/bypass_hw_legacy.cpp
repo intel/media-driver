@@ -248,7 +248,7 @@ MOS_STATUS BypassHwLegacy::AddNullHwProxyCmd(PMOS_COMMAND_BUFFER cmdBuffer, bool
     // Populate 2nd level batch buffer with MI_NOOP commands (only once)
     if (!m_secondLevelBBInitialized)
     {
-        MOS_COMMAND_BUFFER secondLevelCmdBuffer;
+        MOS_COMMAND_BUFFER secondLevelCmdBuffer = {};
         MOS_ZeroMemory(&secondLevelCmdBuffer, sizeof(secondLevelCmdBuffer));
         secondLevelCmdBuffer.pCmdBase    = (uint32_t *)m_secondLevelBB.pData;
         secondLevelCmdBuffer.pCmdPtr     = secondLevelCmdBuffer.pCmdBase;
@@ -256,17 +256,19 @@ MOS_STATUS BypassHwLegacy::AddNullHwProxyCmd(PMOS_COMMAND_BUFFER cmdBuffer, bool
         secondLevelCmdBuffer.OsResource  = m_secondLevelBB.OsResource;
         secondLevelCmdBuffer.cmdBuf1stLvl = cmdBuffer;
 
-        // Write m_repeatCount MI_NOOP commands to mimic HW timing
-        auto &noopParams = m_miItf->MHW_GETPAR_F(MI_NOOP)();
-        noopParams = {};
-        for (uint32_t i = 0; i < m_repeatCount; i++)
-        {
-            eStatus = m_miItf->MHW_ADDCMD_F(MI_NOOP)(&secondLevelCmdBuffer);
-            if (eStatus != MOS_STATUS_SUCCESS)
-            {
-                return eStatus;
-            }
-        }
+        // Write m_repeatCount MI_NOOP commands into the 2nd level batch buffer.
+        // MI_NOOP encodes to a single DWORD of 0x00000000 (see MI_NOOP_CMD), so this
+        // is equivalent to a bulk zero-fill of m_repeatCount DWORDs. Emitting them
+        // one-by-one through AddHwCmd is far slower: each call takes a mutex-locked
+        // command-pool lookup plus virtual dispatch only to memcpy 4 bytes, so for
+        // large repeat counts the SW latency is dominated by this loop. Fill the
+        // region in one shot and advance the command buffer bookkeeping exactly as
+        // AddHwCmd / MosInterface::AddCommand would have.
+        const uint32_t noopBytes = m_repeatCount * (uint32_t)sizeof(uint32_t);
+        MOS_ZeroMemory(secondLevelCmdBuffer.pCmdPtr, noopBytes);
+        secondLevelCmdBuffer.pCmdPtr += m_repeatCount;
+        secondLevelCmdBuffer.iOffset += (int32_t)noopBytes;
+        secondLevelCmdBuffer.iRemaining -= (int32_t)noopBytes;
 
         // MI_BATCH_BUFFER_END
         auto &bbEndParams = m_miItf->MHW_GETPAR_F(MI_BATCH_BUFFER_END)();
