@@ -26,7 +26,7 @@
 //!           a programmable Microcontroller added to the VDBox pipeline.
 //!
 
-/* Media Kernel Version - 20260514 */
+/* Media Kernel Version - 20260610 */
 
 #pragma once
 
@@ -417,7 +417,7 @@ const uint32_t __MediaKernels_av1brc_init_nvl [] =
     0x8910c483, 0x0000c886, 0x3cc48300, 0x5d5b5f5e,
     0x909090c3, 0x90909090, 0x90909090, 0x90909090,
     0x53e58955, 0xec835657, 0x0c7d8b1c, 0x6808758b,
-    0x00000504, 0x0468006a, 0x56000005, 0xffeeefe8,
+    0x00000508, 0x0868006a, 0x56000005, 0xffeeefe8,
     0x10c483ff, 0xfa89f189, 0xfff5e3e8, 0x0f078bff,
     0x009798b6, 0xdb850000, 0x044b9e88, 0x840f0000,
     0x00000032, 0x0098808a, 0x86880000, 0x0000045f,

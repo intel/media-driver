@@ -35,7 +35,9 @@ MOS_STATUS AvcEncodeBRCXe3P_Lpm_Base::SetDmemForInit(void *params)
     ENCODE_FUNC_CALL();
     ENCODE_CHK_STATUS_RETURN(AvcEncodeBRC::SetDmemForInit(params));
 
-    if (m_basicFeature->m_seqParam->RateControlMethod != RATECONTROL_VBR)
+    if (m_basicFeature->m_seqParam->RateControlMethod != RATECONTROL_VBR &&
+        (m_basicFeature->m_seqParam->RateControlMethod != RATECONTROL_CBR ||
+         m_basicFeature->m_lookaheadDepth == 0))
     {
         return MOS_STATUS_SUCCESS;
     }

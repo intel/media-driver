@@ -33,7 +33,8 @@ MOS_STATUS HucBrcInitPktXe3_Lpm_Base::SetDmemBuffer() const
     ENCODE_FUNC_CALL();
     ENCODE_CHK_STATUS_RETURN(HucBrcInitPkt::SetDmemBuffer());
 
-    if (m_basicFeature->m_hevcSeqParams->RateControlMethod != RATECONTROL_VBR)
+    if (m_basicFeature->m_hevcSeqParams->RateControlMethod != RATECONTROL_VBR &&
+        (m_basicFeature->m_hevcSeqParams->RateControlMethod != RATECONTROL_CBR || m_basicFeature->m_hevcSeqParams->LookaheadDepth == 0))
     {
         return MOS_STATUS_SUCCESS;
     }

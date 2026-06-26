@@ -468,7 +468,7 @@ namespace encode
             m_bLastPicFlagFirstIn = false;
         }
 
-        m_skipAnalysisKernelCall = m_hevcSeqParams->FullPassCodecType == 1 && m_basicFeature->m_laDataBufferEnabled
+        m_skipAnalysisKernelCall = m_basicFeature->m_laDataBufferEnabled
                                    && !m_lookaheadAdaptiveI && !m_hevcSeqParams->GopFlags.fields.AdaptiveGop;
 
         return eStatus;
