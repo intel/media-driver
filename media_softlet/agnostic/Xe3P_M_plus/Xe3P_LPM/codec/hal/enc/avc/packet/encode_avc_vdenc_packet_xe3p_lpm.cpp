@@ -251,7 +251,15 @@ MOS_STATUS AvcVdencPktXe3P_Lpm::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_
             }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-            if (!bypassHW)
+            if (bypassHW)
+            {
+                // NullHW: unconditionally end batch buffer to skip entire second pass.
+                // In NullHW mode, HuC BRC never runs, so VdencBrcPakMmioBuffer is uninitialized.
+                // Adding MI_BATCH_BUFFER_END here terminates second pass immediately,
+                // preventing all subsequent commands (proxy, predicate zone, HW commands, MI_FLUSH) from executing.
+                SETPAR_AND_ADDCMD(MI_BATCH_BUFFER_END, m_miItf, &cmdBuffer);
+            }
+            else
 #endif
             {
                 m_pResource =
