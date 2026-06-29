@@ -31,10 +31,6 @@
 #include "mhw_impl.h"
 #include "mhw_mi_impl.h"
 
-#ifdef IGFX_MFX_INTERFACE_EXT_SUPPORT
-#include "mhw_vdbox_mfx_hwcmd_ext.h"
-#endif
-
 #define AVC_MPR_ROWSTORE_BASEADDRESS          256
 #define AVC_MPR_ROWSTORE_BASEADDRESS_MBAFF    512
 #define AVC_IP_ROWSTORE_BASEADDRESS           512

@@ -59,6 +59,8 @@ public:
         VABufferID       *buffers,
         int32_t          numBuffers) override;
 
+    virtual MOS_FORMAT GetFormat() override;
+
     virtual VAStatus SetDecodeParams() override;
 
     virtual void ContextInit(
