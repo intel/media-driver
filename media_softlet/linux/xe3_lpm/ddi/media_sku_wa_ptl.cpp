@@ -236,7 +236,7 @@ static bool InitPtlMediaSkuExt(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrLocalMemory, 0);
 
     MEDIA_WR_SKU(skuTable, FtrConditionalBatchBuffEnd, 1);
-    MEDIA_WR_SKU(skuTable, FtrUseSwSwizzling, 0);
+    MEDIA_WR_SKU(skuTable, FtrUseSwSwizzling, 1);
     MEDIA_WR_SKU(skuTable, FtrMemoryRemapSupport, 1);
 
     MEDIA_WR_SKU(skuTable, FtrAV1VLDLSTDecoding, 1);
