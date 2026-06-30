@@ -70,8 +70,8 @@ struct EncodePreencDef1
 
 struct PreEncInfo
 {
-    uint8_t  EncodePreEncInfo0 = 0;
     uint32_t EncodePreEncInfo1 = 0;
+    uint8_t  EncodePreEncInfo0 = 0;
     uint8_t  EncodePreEncInfo2 = 0;
     uint8_t  EncodePreEncInfo3 = 0;
     uint32_t preEncSrcWidth    = 0;
