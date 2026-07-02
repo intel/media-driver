@@ -34,6 +34,7 @@
 #include "encode_hevc_basic_feature_xe3p_lpm_base.h"
 #if _KERNEL_RESERVED
 #include "encode_hevc_vdenc_saliency.h"
+#include "encode_hevc_vdenc_saliency_xe3p_lpm.h"
 #endif
 
 namespace encode
@@ -97,8 +98,16 @@ MOS_STATUS EncodeHevcVdencFeatureManagerXe3P_Lpm_Base::CreateFeatures(void *cons
     ENCODE_CHK_STATUS_RETURN(RegisterFeatures(HevcFeatureIDs::hevcVdencFastPassFeature, hevcFastPass));
 
 #if _KERNEL_RESERVED
-    HevcVdencSaliency *hevcSaliency = MOS_New(HevcVdencSaliency, this, m_allocator, m_hwInterface, constSettings);
-    ENCODE_CHK_STATUS_RETURN(RegisterFeatures(FeatureIDs::saliencyFeature, hevcSaliency, {HevcPipeline::encodePreEncPacket}));
+    if (m_hwInterface->GetPlatform().eRenderCoreFamily == IGFX_XE3P_CORE)
+    {
+        HevcVdencSaliencyXe3p_Lpm *hevcSaliency = MOS_New(HevcVdencSaliencyXe3p_Lpm, this, m_allocator, m_hwInterface, constSettings);
+        ENCODE_CHK_STATUS_RETURN(RegisterFeatures(FeatureIDs::saliencyFeature, hevcSaliency, {HevcPipeline::encodePreEncPacket}));
+    }
+    else
+    {
+        HevcVdencSaliency *hevcSaliency = MOS_New(HevcVdencSaliency, this, m_allocator, m_hwInterface, constSettings);
+        ENCODE_CHK_STATUS_RETURN(RegisterFeatures(FeatureIDs::saliencyFeature, hevcSaliency, {HevcPipeline::encodePreEncPacket}));
+    }
 #endif
 
     HevcVdencHeightPadding *hevcHeightPadding = MOS_New(HevcVdencHeightPadding, this, m_allocator, m_hwInterface, constSettings);
