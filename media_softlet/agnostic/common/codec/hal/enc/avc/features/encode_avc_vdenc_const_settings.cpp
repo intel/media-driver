@@ -1149,7 +1149,7 @@ MOS_STATUS EncodeAvcVdencConstSettings::SetVdencCmd3Settings()
             auto     pictureType   = CodecHal_Clip3(0, 2, m_avcPicParams->CodingType - 1);
             uint16_t picWidthInMb  = CODECHAL_GET_WIDTH_IN_MACROBLOCKS(m_avcSeqParams->FrameWidth);
             uint16_t picHeightInMb = CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(m_avcSeqParams->FrameHeight);
-            m_qp = CodecHal_Clip3(10, 51, m_avcPicParams->QpY + m_avcSliceParams->slice_qp_delta);
+            m_qp = CodecHal_Clip3(10, 51, m_avcPicParams->pic_init_qp_minus26 + 26 + m_avcSliceParams->slice_qp_delta);
 
             // Only do this lambda offset for lower resolution and high QP range.
             uint16_t gopP = (m_avcSeqParams->GopRefDist) ? ((m_avcSeqParams->GopPicSize - 1) / m_avcSeqParams->GopRefDist) : 0;

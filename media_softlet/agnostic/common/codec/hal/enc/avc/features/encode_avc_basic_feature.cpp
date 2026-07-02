@@ -432,6 +432,7 @@ MOS_STATUS AvcBasicFeature::SetPictureStructs()
         }
         picParams->second_chroma_qp_index_offset = picParams->chroma_qp_index_offset;
     }
+    bool preserve_pic_init_qp = (picParams->QpY < 0 && seqParams->chroma_format_idc == 2 && seqParams->bit_depth_luma_minus8 == 2);
     if (picParams->QpY < 0)
     {
         picParams->QpY = 25;  // Set to default, recommended value used in simulation.
@@ -440,7 +441,10 @@ MOS_STATUS AvcBasicFeature::SetPictureStructs()
     {
         picParams->QpY = CODECHAL_ENCODE_AVC_MAX_SLICE_QP;  // Crop to 51 if larger
     }
-    picParams->pic_init_qp_minus26 = picParams->QpY - 26;
+    if (!preserve_pic_init_qp)
+    {
+        picParams->pic_init_qp_minus26 = picParams->QpY - 26;
+    }
 
     if (!seqParams->seq_scaling_matrix_present_flag)
     {

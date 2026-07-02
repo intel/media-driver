@@ -494,11 +494,12 @@ MOS_STATUS AVCHucSLBBUpdatePkt::SetDmem() const
 
     ENCODE_CHK_NULL_RETURN(m_basicFeature->m_sliceParams);
     dmem->NumRefIdxL0ActiveMinus1 = (uint8_t)m_basicFeature->m_sliceParams->num_ref_idx_l0_active_minus1;
-    dmem->SliceQp                 = (uint8_t)(m_basicFeature->m_picParam->QpY + m_basicFeature->m_sliceParams->slice_qp_delta);
+    int32_t sliceQpRaw             = m_basicFeature->m_picParam->pic_init_qp_minus26 + 26 + m_basicFeature->m_sliceParams->slice_qp_delta;
+    dmem->SliceQp                 = (uint8_t)MOS_CLAMP_MIN_MAX(sliceQpRaw, 0, 51);
 
     if (m_basicFeature->m_seqParam->chroma_format_idc == 2 && m_basicFeature->m_seqParam->bit_depth_luma_minus8 == 2)
     {
-        dmem->QpMin = 0;
+        dmem->QpMin = 10;
         dmem->Is10Bit422 = 1;
     }
     else
@@ -509,7 +510,7 @@ MOS_STATUS AVCHucSLBBUpdatePkt::SetDmem() const
 
     dmem->EntropyCodingModeFlag = m_basicFeature->m_picParam->entropy_coding_mode_flag;
 
-    dmem->SignedQp = (int8_t)((qpY < 0) ? qpY : (qpY + m_basicFeature->m_sliceParams->slice_qp_delta));
+    dmem->SignedQp = (int8_t)(m_basicFeature->m_picParam->pic_init_qp_minus26 + 26);
 
     dmem->AdaptiveTUEnabled = m_basicFeature->m_picParam->AdaptiveTUEnabled;
 
