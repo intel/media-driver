@@ -1,5 +1,6 @@
 import os,shutil
 import sys
+import subprocess
 
 import os
 from sys import platform
@@ -20,15 +21,8 @@ class WinKernel2Source(object):
                 newfilename = os.path.splitext(filename)[0]
                 newfilename += '.krn'
                 newfp = os.path.join('.\\Source', newfilename)
-                command = '.\\compile\\IGA\\iga64.exe -p 11 -a '
-                command += fp
-                command += ' -o '
-                command += newfp;
-                os.system(command)
-
-                command_Hex = '.\\compile\\KrnToHex_IGA.exe '
-                command_Hex += newfp;
-                os.system(command_Hex)
+                subprocess.run(['.\\compile\\IGA\\iga64.exe', '-p', '11', '-a', fp, '-o', newfp], check=False)
+                subprocess.run(['.\\compile\\KrnToHex_IGA.exe', newfp], check=False)
 
                 hexfilename  = os.path.splitext(filename)[0]
                 hexfilename += '.hex'
@@ -73,15 +67,8 @@ class LinuxKernel2Source(object):
                 newfilename = os.path.splitext(filename)[0]
                 newfilename += '.krn'
                 newfp = os.path.join('./Source', newfilename)
-                command = './compile/IGA/iga64.exe -p 11 -a '
-                command += fp
-                command += ' -o '
-                command += newfp;
-                os.system(command)
-
-                command_Hex = './compile/KrnToHex_IGA '
-                command_Hex += newfp;
-                os.system(command_Hex)
+                subprocess.run(['./compile/IGA/iga64.exe', '-p', '11', '-a', fp, '-o', newfp], check=False)
+                subprocess.run(['./compile/KrnToHex_IGA', newfp], check=False)
 
         print ('test')
 
