@@ -53,7 +53,7 @@ void DdiMedia_MediaSurfaceToMosResource(DDI_MEDIA_SURFACE *mediaSurface, MOS_RES
 {
     DDI_CHK_NULL(mediaSurface, "nullptr mediaSurface",);
     DDI_CHK_NULL(mosResource, "nullptr mosResource",);
-    DDI_ASSERT(mosResource->bo);
+    DDI_ASSERT(mediaSurface->bo);
 
     MosInterface::ConvertResourceFromDdi(mediaSurface, mosResource, OS_SPECIFIC_RESOURCE_SURFACE, 0);
 
