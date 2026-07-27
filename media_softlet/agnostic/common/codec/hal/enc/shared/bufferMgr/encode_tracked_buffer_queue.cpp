@@ -119,7 +119,15 @@ void *BufferQueue::AllocateResource()
         {
             MOS_SURFACE* surface = nullptr;
             surface = m_allocator->AllocateSurface(m_allocParam, false, MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE);
-            m_allocator->GetSurfaceInfo(surface);
+            if (surface == nullptr)
+            {
+                return nullptr;
+            }
+            MOS_STATUS eStatus = m_allocator->GetSurfaceInfo(surface);
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                return nullptr;
+            }
             return surface;
         }
         else if (m_resourceType == ResourceType::bufferResource)

@@ -609,7 +609,7 @@ namespace encode
         surface.OsResource = m_resTileBasedStatisticsBuffer[m_statisticsBufIndex];
         if (!Mos_ResourceIsNull(&surface.OsResource))
         {
-            m_allocator->GetSurfaceInfo(&surface);
+            ENCODE_CHK_STATUS_RETURN(m_allocator->GetSurfaceInfo(&surface));
         }
         uint32_t curPakIntTileStatsSize = surface.dwHeight * surface.dwWidth;
 

@@ -1052,7 +1052,7 @@ MOS_STATUS AvcBasicFeature::GetTrackedBuffers()
     {
         auto alignedRawSurf = m_trackedBuf->GetSurface(BufferType::AlignedRawSurface, m_trackedBuf->GetCurrIndex());
         ENCODE_CHK_NULL_RETURN(alignedRawSurf);
-        m_allocator->GetSurfaceInfo(alignedRawSurf);
+        ENCODE_CHK_STATUS_RETURN(m_allocator->GetSurfaceInfo(alignedRawSurf));
         alignedRawSurf->OsResource.pGmmResInfo->GetSetCpSurfTag(true, m_rawSurface.OsResource.pGmmResInfo->GetSetCpSurfTag(false, 0));
         ENCODE_CHK_STATUS_RETURN(m_allocator->UpdateResourceUsageType(&alignedRawSurf->OsResource, MOS_HW_RESOURCE_USAGE_ENCODE_INPUT_RAW));
 

@@ -117,7 +117,7 @@ MOS_STATUS Av1SuperRes::Update(void *params)
 
         ENCODE_CHK_NULL_RETURN(encodeParams->psRawSurface);
         m_raw.resource = encodeParams->psRawSurface;
-        m_allocator->GetSurfaceInfo(m_raw.resource);
+        ENCODE_CHK_STATUS_RETURN(m_allocator->GetSurfaceInfo(m_raw.resource));
 
         ENCODE_CHK_STATUS_RETURN(PrepareRawSurface());
 

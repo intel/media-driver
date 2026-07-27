@@ -137,7 +137,7 @@ MOS_STATUS EncodeBasicFeature::Update(void *params)
 
     ENCODE_CHK_NULL_RETURN(encodeParams->psRawSurface);
     m_rawSurface           = *(encodeParams->psRawSurface);           // used by all
-    m_allocator->GetSurfaceInfo(&m_rawSurface);
+    ENCODE_CHK_STATUS_RETURN(m_allocator->GetSurfaceInfo(&m_rawSurface));
     ENCODE_CHK_STATUS_RETURN(m_allocator->UpdateResourceUsageType(&m_rawSurface.OsResource, MOS_HW_RESOURCE_USAGE_ENCODE_INPUT_RAW));
 
     ENCODE_CHK_NULL_RETURN(encodeParams->presBitstreamBuffer);
@@ -156,7 +156,7 @@ MOS_STATUS EncodeBasicFeature::Update(void *params)
     MOS_SURFACE bsSurface;
     MOS_ZeroMemory(&bsSurface, sizeof(bsSurface));
     bsSurface.OsResource = m_resBitstreamBuffer;
-    m_allocator->GetSurfaceInfo(&bsSurface);
+    ENCODE_CHK_STATUS_RETURN(m_allocator->GetSurfaceInfo(&bsSurface));
     ENCODE_CHK_STATUS_RETURN(m_allocator->UpdateResourceUsageType(&m_resBitstreamBuffer, MOS_HW_RESOURCE_USAGE_ENCODE_OUTPUT_BITSTREAM));
 
     m_bitstreamSize = encodeParams->dwBitstreamSize = bsSurface.dwHeight * bsSurface.dwWidth;

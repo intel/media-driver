@@ -202,7 +202,8 @@ namespace encode
                 }
 
                 m_intrabcReconSurface = m_allocator->AllocateSurface(allocParams, false, MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE);
-                m_allocator->GetSurfaceInfo(m_intrabcReconSurface);
+                ENCODE_CHK_NULL_RETURN(m_intrabcReconSurface);
+                ENCODE_CHK_STATUS_RETURN(m_allocator->GetSurfaceInfo(m_intrabcReconSurface));
             }
         }
 
