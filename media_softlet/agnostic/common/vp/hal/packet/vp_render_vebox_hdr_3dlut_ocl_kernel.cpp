@@ -241,6 +241,8 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::Init(VpRenderKernel &kernel)
 
     m_kernelBtis = kernel.GetKernelBtis();
 
+    m_kernelPerThreadArgInfo = kernel.GetKernelPerThreadArgInfo();
+
     m_kernelEnv = kernel.GetKernelExeEnv();
 
     m_curbeLocation.size = kernel.GetCurbeSize();
@@ -454,7 +456,19 @@ MOS_STATUS VpRenderHdr3DLutOclKernel::SetWalkerSetting(KERNEL_THREAD_SPACE &thre
     {
         m_walkerParam.isEmitInlineParameter = true;
         m_walkerParam.isGenerateLocalID     = true;
-        m_walkerParam.emitLocal             = MHW_EMIT_LOCAL_XYZ;
+
+        if (m_renderHal && m_kernelPerThreadArgInfo.localIdSize == m_renderHal->grfSize)
+        {
+            m_walkerParam.emitLocal = MHW_EMIT_LOCAL_X;
+        }
+        else if (m_renderHal && m_kernelPerThreadArgInfo.localIdSize == 2 * m_renderHal->grfSize)
+        {
+            m_walkerParam.emitLocal = MHW_EMIT_LOCAL_XY;
+        }
+        else
+        {
+            m_walkerParam.emitLocal = MHW_EMIT_LOCAL_XYZ;
+        }
     }
 
     return MOS_STATUS_SUCCESS;

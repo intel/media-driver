@@ -83,6 +83,7 @@ protected:
     void*           m_curbe                 = nullptr;
     KERNEL_BTIS                  m_kernelBtis                    = {};
     KRN_EXECUTE_ENV              m_kernelEnv                     = {};
+    KRN_PER_THREAD_ARG_INFO      m_kernelPerThreadArgInfo        = {};
     KERNEL_ARG_INDEX_SURFACE_MAP m_argIndexSurfMap  = {};
 
     MEDIA_CLASS_DEFINE_END(vp__VpRenderHdr3DLutOclKernel)
