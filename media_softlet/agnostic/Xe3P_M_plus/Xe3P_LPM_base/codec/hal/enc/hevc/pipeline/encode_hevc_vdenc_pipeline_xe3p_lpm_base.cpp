@@ -97,6 +97,10 @@ MOS_STATUS HevcVdencPipelineXe3P_Lpm_Base::Init(void *settings)
     ENCODE_CHK_STATUS_RETURN(RegisterPacket(HucSLBBUpdate, slbbUpdatePkt));
     ENCODE_CHK_STATUS_RETURN(slbbUpdatePkt->Init());
 
+    // Pre-encode kernel packets (temporal filter: downscale / ME / MC / filter). Default
+    // no-op; the proprietary Xe3p_Lpm extension registers the reused kernel packets.
+    ENCODE_CHK_STATUS_RETURN(RegisterKernelPackets(task));
+
     HevcVdencPktXe3P_Lpm_Base *hevcVdencpkt = MOS_New(HevcVdencPktXe3P_Lpm_Base, this, task, m_hwInterface);
     ENCODE_CHK_STATUS_RETURN(RegisterPacket(hevcVdencPacket, hevcVdencpkt));
     ENCODE_CHK_STATUS_RETURN(hevcVdencpkt->Init());
@@ -252,6 +256,10 @@ MOS_STATUS HevcVdencPipelineXe3P_Lpm_Base::ActivateVdencVideoPackets()
 
     // Activate HucSLBBUpdate packet after PreEnc and before BrcInit
     ENCODE_CHK_STATUS_RETURN(ActivatePacket(HucSLBBUpdate, immediateSubmit, 0, 0));
+
+    // Activate the pre-encode kernel packets (temporal filter downscale / ME / MC) before
+    // the VDEnc pass loop. Default no-op; the proprietary Xe3p_Lpm extension supplies it.
+    ENCODE_CHK_STATUS_RETURN(ActivateKernelPackets());
 
 #if ((_DEBUG || _RELEASE_INTERNAL) && _MEDIA_RESERVED)
     ENCODE_CHK_STATUS_RETURN(HevcVdencPipeline::ActivateVdencVideoPackets());

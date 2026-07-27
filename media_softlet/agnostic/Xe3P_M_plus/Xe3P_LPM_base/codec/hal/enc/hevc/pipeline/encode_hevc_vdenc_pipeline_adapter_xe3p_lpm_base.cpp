@@ -26,6 +26,9 @@
 
 #include "encode_hevc_vdenc_pipeline_adapter_xe3p_lpm_base.h"
 #include "encode_utils.h"
+#if defined(_MEDIA_RESERVED)
+#include "encode_hevc_vdenc_pipeline_xe3p_lpm_base_ext.h"
+#endif
 
 EncodeHevcVdencPipelineAdapterXe3P_Lpm_Base::EncodeHevcVdencPipelineAdapterXe3P_Lpm_Base(
     CodechalHwInterfaceNext     *hwInterface,
@@ -42,7 +45,11 @@ MOS_STATUS EncodeHevcVdencPipelineAdapterXe3P_Lpm_Base::Allocate(CodechalSetting
 {
     ENCODE_FUNC_CALL();
 
+#if defined(_MEDIA_RESERVED)
+    m_encoder = std::make_shared<encode::HevcVdencPipelineXe3P_Lpm_BaseExt>(m_hwInterface, m_debugInterface);
+#else
     m_encoder = std::make_shared<encode::HevcVdencPipelineXe3P_Lpm_Base>(m_hwInterface, m_debugInterface);
+#endif
     ENCODE_CHK_NULL_RETURN(m_encoder);
 
     return m_encoder->Init(codecHalSettings);

@@ -76,6 +76,20 @@ protected:
     virtual MOS_STATUS Uninitialize() override;
     virtual MOS_STATUS ResetParams();
     virtual MOS_STATUS ActivateVdencVideoPackets() override;
+
+    //!
+    //! \brief  Extension hook: register the pre-encode kernel packets (downscale /
+    //!         motion-estimation / motion-compensation / temporal-filter) during Init.
+    //!         Default is a no-op; a derived extension class supplies the packets.
+    //!
+    virtual MOS_STATUS RegisterKernelPackets(MediaTask *task) { return MOS_STATUS_SUCCESS; }
+
+    //!
+    //! \brief  Extension hook: activate the pre-encode kernel packets (downscale / ME / MC)
+    //!         before the VDEnc pass loop. Default is a no-op; a derived extension supplies it.
+    //!
+    virtual MOS_STATUS ActivateKernelPackets() { return MOS_STATUS_SUCCESS; }
+
     virtual MOS_STATUS ActivateVdencTileReplayVideoPackets() override;
     virtual MOS_STATUS GetSystemVdboxNumber() override;
 

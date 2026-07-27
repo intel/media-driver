@@ -69,6 +69,14 @@ protected:
     virtual MOS_STATUS Uninitialize() override;
     virtual MOS_STATUS UserFeatureReport() override;
     virtual MOS_STATUS ActivateVdencVideoPackets();
+
+    //!
+    //! \brief  Extension hook: activate the per-pass pre-encode temporal-filter packet
+    //!         inside the VDEnc pass loop, after the HuC BRC update and before the VDEnc
+    //!         packet. Default is a no-op; a derived extension supplies it.
+    //!
+    virtual MOS_STATUS ActivateFilterPacket(uint8_t curPass) { return MOS_STATUS_SUCCESS; }
+
     virtual MOS_STATUS ActivateVdencTileReplayVideoPackets();
     virtual MOS_STATUS CreateFeatureManager() override;
     virtual MOS_STATUS SwitchContext(uint8_t outputChromaFormat, uint16_t numTileRows, uint16_t numTileColumns, bool enableTileReplay);

@@ -125,6 +125,10 @@ MOS_STATUS HevcVdencPipeline::ActivateVdencVideoPackets()
                 ENCODE_CHK_STATUS_RETURN(ActivatePacket(HucBrcUpdate, immediateSubmit, curPass, 0));
             }
 
+            // Pre-encode temporal filter runs once, after the BRC update and before the
+            // VDEnc packet. Default no-op; the Xe3p_Lpm extension supplies it.
+            ENCODE_CHK_STATUS_RETURN(ActivateFilterPacket(curPass));
+
             for (uint8_t curPipe = 0; curPipe < GetPipeNum(); curPipe++)
             {
                 ENCODE_CHK_STATUS_RETURN(ActivatePacket(hevcVdencPacket, immediateSubmit, curPass, curPipe, GetPipeNum()));
