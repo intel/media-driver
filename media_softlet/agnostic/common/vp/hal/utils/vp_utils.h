@@ -402,6 +402,8 @@ protected:
 #define __VPHAL_VEBOX_FORCE_VP_MEMCOPY_OUTPUTCOMPRESSED                 "Force VP Memorycopy Outputcompressed"
 #define __VPHAL_ENABLE_SFC_NV12_P010_LINEAR_OUTPUT                      "Enable SFC NV12 P010 Linear Output"
 #define __VPHAL_ENABLE_SFC_RGBP_RGB24_OUTPUT                            "Enable SFC RGBP RGB24 Output"
+#define __VPHAL_ENABLE_SFC_LINEAR_OUTPUT_TEMP_SURF_COMPRESSION          "Enable SFC Linear Output Temp Surf compression"
+#define __VPHAL_SFC_LINEAR_SURFACE_ACCUM_BUFFER_DISABLE                 "VP SFC Linear Surface Accum Buffer Disable"
 
 #define __VPHAL_DBG_PARAM_DUMP_OUTFILE_KEY_NAME                         "outxmlLocation"
 #define __VPHAL_DBG_PARAM_DUMP_START_FRAME_KEY_NAME                     "startxmlFrame"

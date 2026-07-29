@@ -418,6 +418,23 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
         m_ctrlValDefault.enabledSFCRGBPRGB24Output = 0;
     }
 
+    //Enable SFC Linear Output Temp Surf compression.
+    uint32_t enabledSFCLinearOutputTempSurfCompression = 0;
+    eRegKeyReadStatus = ReadUserSettingForDebug(
+        m_userSettingPtr,
+        enabledSFCLinearOutputTempSurfCompression,
+        __VPHAL_ENABLE_SFC_LINEAR_OUTPUT_TEMP_SURF_COMPRESSION,
+        MediaUserSetting::Group::Sequence);
+    if (MOS_SUCCEEDED(eRegKeyReadStatus))
+    {
+        m_ctrlValDefault.enabledSFCLinearOutputTempSurfCompression = enabledSFCLinearOutputTempSurfCompression;
+    }
+    else
+    {
+        // Default value
+        m_ctrlValDefault.enabledSFCLinearOutputTempSurfCompression = 0;
+    }
+
     //Enable IFNCC report
     bool enableIFNCC  = false;
     eRegKeyReadStatus = ReadUserSettingForDebug(

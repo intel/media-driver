@@ -146,6 +146,7 @@ struct _MHW_PAR_T(SFC_STATE)
     // Memory compression Enable Flag
     bool bMMCEnable                             = false;            // Flag used to decide whether sfc output should be compressed
     MOS_RESOURCE_MMC_MODE MMCMode               = MOS_MMC_DISABLED; // Memory compression mode
+    bool bLinearSurfaceAccumBufferDisable       = false;            // SFC_STATE DW3 bit30: Linear output pixel surface Accum Buffer Disable Bit
 
     // Resources used by SFC
     PMOS_RESOURCE pOsResOutputSurface           = nullptr;  // Output Frame written by SFC

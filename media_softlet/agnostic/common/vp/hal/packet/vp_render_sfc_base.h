@@ -528,6 +528,7 @@ protected:
     std::shared_ptr<mhw::mi::Itf>   m_miItf       = nullptr;
     MEDIA_FEATURE_TABLE             *m_skuTable = nullptr;
     MEDIA_WA_TABLE                  *m_waTable = nullptr;
+    MediaUserSettingSharedPtr       m_userSettingPtr = nullptr;                //!< usersettingInstance
 
     // AVS related params
     MHW_AVS_PARAMS                  m_AvsParameters = {};                     //!< AVS parameters

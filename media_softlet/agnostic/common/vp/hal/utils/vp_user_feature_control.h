@@ -59,6 +59,7 @@ public:
         uint32_t force3DLutInterpolation    = 0;
         uint32_t enabledSFCNv12P010LinearOutput = 0;
         uint32_t enabledSFCRGBPRGB24Output  = 0;
+        uint32_t enabledSFCLinearOutputTempSurfCompression = 0;
         bool     enableIFNCC                = false;
         bool     enable3DLutNewLayout       = false;  // Enable 3DLUT texture layout conversion
 #endif
@@ -105,6 +106,11 @@ public:
     uint32_t EnabledSFCRGBPRGB24Output()
     {
         return m_ctrlVal.enabledSFCRGBPRGB24Output;
+    }
+
+    uint32_t EnabledSFCLinearOutputTempSurfCompression()
+    {
+        return m_ctrlVal.enabledSFCLinearOutputTempSurfCompression;
     }
 
     bool EnableIFNCC() 

@@ -310,6 +310,20 @@ MOS_STATUS VpUserSetting::InitVpUserSetting(MediaUserSettingSharedPtr userSettin
             0,
             true);
 
+        DeclareUserSettingKeyForDebug(  // Enable SFC Linear Output Temp Surf compression
+            userSettingPtr,
+            __VPHAL_ENABLE_SFC_LINEAR_OUTPUT_TEMP_SURF_COMPRESSION,
+            MediaUserSetting::Group::Sequence,
+            0,
+            false);
+
+        DeclareUserSettingKeyForDebug(  // VP SFC Linear Surface Accum Buffer Disable
+            userSettingPtr,
+            __VPHAL_SFC_LINEAR_SURFACE_ACCUM_BUFFER_DISABLE,
+            MediaUserSetting::Group::Sequence,
+            0,
+            true);
+
        DeclareUserSettingKey(  // Enable HDR 3DLut table caculate by CPU. 1: enabled, 0: disabled.
             userSettingPtr,
             __VPHAL_HDR_3DLUT_CPU_PATH,

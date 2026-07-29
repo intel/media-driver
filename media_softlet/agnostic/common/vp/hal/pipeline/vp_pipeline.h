@@ -488,6 +488,7 @@ protected:
     VpGraphManager        *m_graphManager           = nullptr;
 #if (_DEBUG || _RELEASE_INTERNAL)
     VPHAL_SURFACE         *m_tempTargetSurface      = nullptr;
+    VPHAL_SURFACE         *m_trueOutputSurfaceForLinearCopyBack = nullptr;
 #endif
     VP_SETTINGS           *m_vpSettings = nullptr;
     VpUserFeatureControl  *m_userFeatureControl = nullptr;

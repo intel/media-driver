@@ -1054,6 +1054,11 @@ MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
     VP_PUBLIC_CHK_NULL_RETURN(skuTable);
     VP_PUBLIC_CHK_NULL_RETURN(m_userFeatureControl);
 
+    // Reset per-frame so a stale pointer from a prior frame (e.g. Execute() returning
+    // early before it could clear this) can never trigger a copy-back against a
+    // target surface that isn't part of the current frame.
+    m_trueOutputSurfaceForLinearCopyBack = nullptr;
+
     if (m_userFeatureControl->EnabledSFCNv12P010LinearOutput() &&
         MOS_TILE_LINEAR != params->pTarget[0]->TileType &&
         (Format_P010 == params->pTarget[0]->Format || Format_NV12 == params->pTarget[0]->Format) &&
@@ -1064,6 +1069,10 @@ MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
             m_tempTargetSurface = AllocateTempTargetSurface(m_tempTargetSurface);
         }
         VP_PUBLIC_CHK_NULL_RETURN(m_tempTargetSurface);
+
+        bool linearOutputTempSurfCompressionEnabled = (m_userFeatureControl->EnabledSFCLinearOutputTempSurfCompression() != 0);
+        MOS_RESOURCE_MMC_MODE tempSurfMmcMode = linearOutputTempSurfCompressionEnabled ? MOS_MMC_MC : MOS_MMC_DISABLED;
+
         eStatus = m_allocator->ReAllocateSurface(
             m_tempTargetSurface,
             "TempTargetSurface",
@@ -1072,8 +1081,8 @@ MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
             MOS_TILE_LINEAR,
             params->pTarget[0]->dwWidth,
             params->pTarget[0]->dwHeight,
-            false,
-            MOS_MMC_DISABLED,
+            linearOutputTempSurfCompressionEnabled,
+            tempSurfMmcMode,
             &allocated);
 
         m_tempTargetSurface->ColorSpace = params->pTarget[0]->ColorSpace;
@@ -1083,6 +1092,7 @@ MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
 
         if (eStatus == MOS_STATUS_SUCCESS)
         {
+            m_trueOutputSurfaceForLinearCopyBack = params->pTarget[0];
             params->pTarget[0] = m_tempTargetSurface;    //params is the copy of pcRenderParams which will not cause the memleak,
         }
     }
@@ -1422,6 +1432,18 @@ MOS_STATUS VpPipeline::Execute()
 
     VP_PUBLIC_CHK_STATUS_RETURN(ExecuteVpPipeline())
     VP_PUBLIC_CHK_STATUS_RETURN(UserFeatureReport());
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_tempTargetSurface && m_trueOutputSurfaceForLinearCopyBack)
+    {
+        VP_PUBLIC_CHK_NULL_RETURN(m_mediaCopyWrapper);
+        VP_PUBLIC_CHK_STATUS_RETURN(m_mediaCopyWrapper->MediaCopy(
+            &m_tempTargetSurface->OsResource,
+            &m_trueOutputSurfaceForLinearCopyBack->OsResource,
+            MCPY_METHOD_BALANCE));
+        m_trueOutputSurfaceForLinearCopyBack = nullptr;
+    }
+#endif
 
     bool veboxFeatureInuse = (m_vpPipeContexts.size() >= 1) && (m_vpPipeContexts[0]) && (m_vpPipeContexts[0]->IsVeboxInUse());
     if (m_packetSharedContext && m_packetSharedContext->isVeboxFirstFrame && veboxFeatureInuse)
