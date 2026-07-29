@@ -510,7 +510,7 @@ MOS_STATUS CM_HAL_G9_X::HwSetSurfaceMemoryObjectControl(
         mosUsage = GetDefaultMOCS();
 
     surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(mosUsage,
-        renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
+        renderHal->pOsInterface).DwordValue;
 
     return eStatus;
 }

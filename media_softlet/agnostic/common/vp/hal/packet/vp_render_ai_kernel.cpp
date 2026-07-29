@@ -370,7 +370,7 @@ MOS_STATUS VpRenderAiKernel::GetKernelSurfaceParam(bool isBTI, SURFACE_PARAMS &s
 
     pRenderSurfaceParams->MemObjCtl = (m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
                                            resourceType,
-                                           m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface)))
+                                           m_renderHal->pOsInterface))
                                           .DwordValue;
     pRenderSurfaceParams->Component = COMPONENT_VPCommon;
 

@@ -205,7 +205,7 @@ MOS_STATUS XRenderHal_Interface_G12_Base::SetupSurfaceState (
             {
                 SurfStateParams.dwCacheabilityControl = pRenderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
                     MOS_MHW_GMM_RESOURCE_USAGE_CAMERA_CAPTURE,
-                    pRenderHal->pOsInterface->pfnGetGmmClientContext(pRenderHal->pOsInterface)).DwordValue;
+                    pRenderHal->pOsInterface).DwordValue;
                 MHW_RENDERHAL_NORMALMESSAGE(" disable  CameraCapture  caches on render path ");
             }
 
@@ -214,7 +214,7 @@ MOS_STATUS XRenderHal_Interface_G12_Base::SetupSurfaceState (
             {
                 SurfStateParams.dwCacheabilityControl = pRenderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
                                                                                     MOS_RESOURCE_USAGE_CCS_MEDIA_WRITABLE,
-                                                                                    pRenderHal->pOsInterface->pfnGetGmmClientContext(pRenderHal->pOsInterface))
+                                                                                    pRenderHal->pOsInterface)
                                                             .DwordValue;
                 MHW_RENDERHAL_NORMALMESSAGE(" MOS_RESOURCE_USAGE_CCS_MEDIA_WRITABLE is queried, and target SurfStateParams.dwCacheabilityControl = %d \n", SurfStateParams.dwCacheabilityControl);
             }

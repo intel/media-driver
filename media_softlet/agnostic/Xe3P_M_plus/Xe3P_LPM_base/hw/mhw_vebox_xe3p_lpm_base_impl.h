@@ -1218,7 +1218,7 @@ public:
         // Compute MOCS index
         uint32_t mocsIndex = (this->m_osItf->pfnCachePolicyGetMemoryObject(
             MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF,
-            this->m_osItf->pfnGetGmmClientContext(this->m_osItf))).XE_LPG.Index;
+            this->m_osItf)).XE_LPG.Index;
 
         // Delegate tiling convert common logic to helper
         // Note: the common helper uses bare AddResourceToCmd (non-member) and osItf->pfnAddCommand

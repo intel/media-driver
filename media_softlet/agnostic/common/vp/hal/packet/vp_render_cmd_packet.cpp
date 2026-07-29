@@ -339,7 +339,7 @@ MOS_STATUS VpRenderCmdPacket::Prepare()
             pStateBaseParams->presInstructionBuffer      = &m_renderHal->pStateHeap->IshOsResource;
             pStateBaseParams->dwInstructionBufferSize    = m_renderHal->pStateHeap->dwSizeISH;
             uint32_t heapMocs                            = m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(MOS_HW_RESOURCE_USAGE_VP_INPUT_PICTURE_RENDER,
-                                                             m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface)).DwordValue;
+                                                             m_renderHal->pOsInterface).DwordValue;
             pStateBaseParams->mocs4SurfaceState         = heapMocs;
             pStateBaseParams->mocs4GeneralState         = heapMocs;
             pStateBaseParams->mocs4DynamicState         = heapMocs;
@@ -749,7 +749,7 @@ MOS_STATUS VpRenderCmdPacket::SetupSurfaceState()
                 //set mem object control for cache
                 renderSurfaceParams.MemObjCtl = (m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
                     MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER,
-                    m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface))).DwordValue;
+                    m_renderHal->pOsInterface)).DwordValue;
             }
 
             VP_SURFACE *vpSurface = nullptr;

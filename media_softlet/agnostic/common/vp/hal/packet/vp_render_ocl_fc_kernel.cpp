@@ -329,7 +329,7 @@ MOS_STATUS VpRenderOclFcKernel::GetKernelSurfaceParam(bool isBTI, SURFACE_PARAMS
 
     pRenderSurfaceParams->MemObjCtl = (m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
                                            resourceType,
-                                           m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface)))
+                                           m_renderHal->pOsInterface))
                                           .DwordValue;
     pRenderSurfaceParams->Component = COMPONENT_VPCommon;
     if (m_kernelId == kernelOclFcCommon ||

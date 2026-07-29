@@ -2561,7 +2561,7 @@ public:
         cmd.DW1.Fp16ModeEnable = params.VeboxMode.Fp16ModeEnable;
         cmd.DW1.StateSurfaceControlBits = (pOsInterface->pfnCachePolicyGetMemoryObject(
             MOS_MP_RESOURCE_USAGE_DEFAULT,
-            pOsInterface->pfnGetGmmClientContext(pOsInterface)))
+            pOsInterface))
             .DwordValue;
 
         //cmd.DW17.EncDataControlFor3DLUT = 0;
@@ -2612,7 +2612,7 @@ public:
             veboxOutputSurfCtrlBits.DW0.IndexToMemoryObjectControlStateMocsTables =
                 (this->m_osItf->pfnCachePolicyGetMemoryObject(
                      MOS_MP_RESOURCE_USAGE_DEFAULT,
-                    this->m_osItf->pfnGetGmmClientContext(this->m_osItf)))
+                    this->m_osItf))
                     .Gen12.Index;
 
         // Set Input surface compression status

@@ -43,7 +43,7 @@ extern const Kdll_RuleEntry         g_KdllRuleTable_g8[];
 #define VPHAL_SET_SURF_MEMOBJCTL_GEN8(VpField, GmmUsageEnum)                                                    \
     {                                                                                                           \
         Usage = GmmUsageEnum;                                                                                   \
-        MemObjCtrl = pOsInterface->pfnCachePolicyGetMemoryObject(Usage, pOsInterface->pfnGetGmmClientContext(pOsInterface));                                        \
+        MemObjCtrl = pOsInterface->pfnCachePolicyGetMemoryObject(Usage, pOsInterface);                                        \
         do                                                                                                      \
         {                                                                                                       \
             if (MemObjCtrl.Gen8.TargetCache == RENDERHAL_MO_TARGET_CACHE_ELLC_G8)                               \

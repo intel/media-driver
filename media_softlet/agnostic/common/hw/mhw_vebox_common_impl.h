@@ -818,7 +818,7 @@ inline void SetupVeboxModeControls(
     cmd.DW1.Fp16ModeEnable = params.VeboxMode.Fp16ModeEnable;
     cmd.DW1.StateSurfaceControlBits = (pOsInterface->pfnCachePolicyGetMemoryObject(
         cacheUsage,
-        pOsInterface->pfnGetGmmClientContext(pOsInterface))).DwordValue;
+        pOsInterface)).DwordValue;
 }
 
 //!

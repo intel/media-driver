@@ -97,7 +97,7 @@ public:
         cmd.DW1.DestinationPitch        = params.dwDstPitch - 1;
         cmd.DW1.DestinationMocsValue =
             this->m_osItf->pfnCachePolicyGetMemoryObject(MOS_GMM_RESOURCE_USAGE_BLT_DESTINATION,
-                             m_osItf->pfnGetGmmClientContext(m_osItf))
+                             m_osItf)
                 .DwordValue;
 
         if (dstMmcModel != MOS_MEMCOMP_DISABLED && dstMmcModel != MOS_MEMCOMP_RC)
@@ -135,7 +135,7 @@ public:
         cmd.DW8.SourceTiling      = GetFastTilingMode(srcTiledMode);
         cmd.DW8.SourceMocs =
             this->m_osItf->pfnCachePolicyGetMemoryObject(MOS_GMM_RESOURCE_USAGE_BLT_SOURCE,
-                             m_osItf->pfnGetGmmClientContext(m_osItf))
+                             m_osItf)
                 .DwordValue;
 
         cmd.DW2.DestinationX1CoordinateLeft   = 0;
@@ -242,7 +242,7 @@ protected:
     {
         // MemoryObject will get 7 bits data. bit[0] for encrypt and bits[1-7] for MOCS.
         return m_osItf->pfnCachePolicyGetMemoryObject(UsageDef,
-                    m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+                    m_osItf).DwordValue;
     }
 
     using base_t = blt::Impl<mhw::blt::xe_lpm_plus_next::Cmd>;

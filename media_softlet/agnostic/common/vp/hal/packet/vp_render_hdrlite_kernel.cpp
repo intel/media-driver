@@ -303,7 +303,7 @@ MOS_STATUS VpRenderHDRLITEKernel::GetKernelSurfaceParam(SURFACE_PARAMS &surfPara
 
     pRenderSurfaceParams->MemObjCtl = (m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
                                            resourceType,
-                                           m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface)))
+                                           m_renderHal->pOsInterface))
                                           .DwordValue;
     pRenderSurfaceParams->Component = COMPONENT_VPCommon;
 

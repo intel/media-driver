@@ -420,7 +420,7 @@ uint32_t RenderCmdPacket::SetSurfaceForHwAccess(
         //set mem object control for cache
         surfaceParams.MemObjCtl = (m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
                                        MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER,
-                                       m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface))).DwordValue;
+                                       m_renderHal->pOsInterface)).DwordValue;
 
         pSurfaceParams = &surfaceParams;
     }
@@ -522,7 +522,7 @@ uint32_t RenderCmdPacket::SetSurfaceForHwAccess(
         //set mem object control for cache
         surfaceParams.MemObjCtl = (m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
                                        MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER,
-                                       m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface))).DwordValue;
+                                       m_renderHal->pOsInterface)).DwordValue;
 
         pSurfaceParams = &surfaceParams;
     }
@@ -645,7 +645,7 @@ MOS_STATUS RenderCmdPacket::SetSurfaceForHwAccess(
         //set mem object control for cache
         surfaceParams.MemObjCtl = (m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
                                        MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER,
-                                       m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface))).DwordValue;
+                                       m_renderHal->pOsInterface)).DwordValue;
 
         pSurfaceParams = &surfaceParams;
     }
@@ -738,7 +738,7 @@ MOS_STATUS RenderCmdPacket::SetSurfaceForHwAccess(
         //set mem object control for cache
         surfaceParams.MemObjCtl = (m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
                                        MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER,
-                                       m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface)))
+                                       m_renderHal->pOsInterface))
                                       .DwordValue;
 
         pSurfaceParams = &surfaceParams;
@@ -912,7 +912,7 @@ uint32_t RenderCmdPacket::SetBufferForHwAccess(PMOS_SURFACE buffer, PRENDERHAL_S
         //set mem object control for cache
         SurfaceParam.MemObjCtl = (m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
                                       MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER,
-                                      m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface))).DwordValue;
+                                      m_renderHal->pOsInterface)).DwordValue;
 
         pSurfaceParams = &SurfaceParam;
     }
@@ -975,7 +975,7 @@ MOS_STATUS RenderCmdPacket::SetBufferForHwAccess(
         //set mem object control for cache
         SurfaceParam.MemObjCtl = (m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
                                       MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER,
-                                      m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface)))
+                                      m_renderHal->pOsInterface))
                                      .DwordValue;
 
         pSurfaceParams = &SurfaceParam;
@@ -1047,7 +1047,7 @@ uint32_t RenderCmdPacket::SetBufferForHwAccess(MOS_BUFFER buffer, PRENDERHAL_SUR
         //set mem object control for cache
         SurfaceParam.MemObjCtl = (m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
                                       MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER,
-                                      m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface))).DwordValue;
+                                      m_renderHal->pOsInterface)).DwordValue;
 
         pSurfaceParams = &SurfaceParam;
     }

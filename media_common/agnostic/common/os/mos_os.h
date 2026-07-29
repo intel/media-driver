@@ -780,7 +780,7 @@ typedef struct _MOS_INTERFACE
 
     MEMORY_OBJECT_CONTROL_STATE (* pfnCachePolicyGetMemoryObject) (
         MOS_HW_RESOURCE_DEF         Usage,
-        GMM_CLIENT_CONTEXT          *pGmmClientContext);
+        PMOS_INTERFACE              pOsInterface);
 
     uint8_t (* pfnCachePolicyGetL1Config) (
             MOS_HW_RESOURCE_DEF         Usage,

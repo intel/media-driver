@@ -6621,9 +6621,9 @@ finish:
 //!
 MEMORY_OBJECT_CONTROL_STATE Mos_Specific_CachePolicyGetMemoryObject(
     MOS_HW_RESOURCE_DEF         MosUsage,
-    GMM_CLIENT_CONTEXT          *pGmmClientContext)
+    PMOS_INTERFACE              pOsInterface)
 {
-   // Force convert to stream handle for wrapper
+    GMM_CLIENT_CONTEXT *pGmmClientContext = pOsInterface ? pOsInterface->pfnGetGmmClientContext(pOsInterface) : nullptr;
     return MosInterface::GetCachePolicyMemoryObject(pGmmClientContext, MosUsage);
 }
 

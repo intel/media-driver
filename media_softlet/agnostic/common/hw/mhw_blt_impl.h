@@ -262,7 +262,7 @@ protected:
         // MemoryObject will get 7 bits data. only bits[1-7] save MOCS, while some
         // platoforms only use 4 bits mocs.
         return (m_osItf->pfnCachePolicyGetMemoryObject(UsageDef,
-                    m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue & 0x1E) >>1;
+                    m_osItf).DwordValue & 0x1E) >>1;
     }
 
     using base_t = Itf;

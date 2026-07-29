@@ -155,7 +155,7 @@ MOS_STATUS CM_HAL_G12_X::HwSetSurfaceMemoryObjectControl(
 
     surfStateParams->MemObjCtl = renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
         mosUsage,
-        renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
+        renderHal->pOsInterface).DwordValue;
 
     return eStatus;
 }
@@ -615,27 +615,27 @@ MOS_STATUS CM_HAL_G12_X::SubmitCommands(
     //update MOCS for Instruction Cache
     renderHal->StateBaseAddressParams.mocs4InstructionCache =
         renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(MOS_CM_RESOURCE_USAGE_StateHeap,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
+            renderHal->pOsInterface).DwordValue;
     //update MOCS for General state
     renderHal->StateBaseAddressParams.mocs4GeneralState =
         renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(MOS_CM_RESOURCE_USAGE_StateHeap,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
+            renderHal->pOsInterface).DwordValue;
     //update MOCS for Dynamic state
     renderHal->StateBaseAddressParams.mocs4DynamicState =
         renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(MOS_CM_RESOURCE_USAGE_StateHeap,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
+            renderHal->pOsInterface).DwordValue;
     //update MOCS for Surface state
     renderHal->StateBaseAddressParams.mocs4SurfaceState =
         renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(MOS_CM_RESOURCE_USAGE_StateHeap,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
+            renderHal->pOsInterface).DwordValue;
     //update MOCS for Indirect Object
     renderHal->StateBaseAddressParams.mocs4IndirectObjectBuffer =
         renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(MOS_CM_RESOURCE_USAGE_StateHeap,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
+            renderHal->pOsInterface).DwordValue;
     //update MOCS for Stateless Dataport access
     renderHal->StateBaseAddressParams.mocs4StatelessDataport =
         renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(MOS_CM_RESOURCE_USAGE_StateHeap,
-            renderHal->pOsInterface->pfnGetGmmClientContext(renderHal->pOsInterface)).DwordValue;
+            renderHal->pOsInterface).DwordValue;
 
     // Send State Base Address command
     CM_CHK_MOSSTATUS_GOTOFINISH( renderHal->pfnSendStateBaseAddress( renderHal, &mosCmdBuffer ) );

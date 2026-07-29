@@ -41,7 +41,7 @@ MOS_STATUS VphalStateG12Tgllp::Allocate(
     {
         MHW_STATE_BASE_ADDR_PARAMS *pStateBaseParams = &m_renderHal->StateBaseAddressParams;
         MEMORY_OBJECT_CONTROL_STATE StateMocs        = m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(MOS_MP_RESOURCE_USAGE_DEFAULT,
-            m_renderHal->pOsInterface->pfnGetGmmClientContext(m_renderHal->pOsInterface));
+            m_renderHal->pOsInterface);
 
         //update MOCS for Instruction Cache
         pStateBaseParams->mocs4InstructionCache = StateMocs.DwordValue;

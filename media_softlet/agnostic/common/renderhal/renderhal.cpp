@@ -5995,7 +5995,7 @@ MOS_STATUS RenderHal_SetupBufferSurfaceState(
         {
             RcsSurfaceParams.dwCacheabilityControl = (pRenderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
                                       element.mocsUsageType,
-                                      pRenderHal->pOsInterface->pfnGetGmmClientContext(pRenderHal->pOsInterface)))
+                                      pRenderHal->pOsInterface))
                                      .DwordValue;
         }
         else
@@ -6973,7 +6973,7 @@ MOS_STATUS RenderHal_SetupSurfaceState(
         {
             pParams->MemObjCtl = (pRenderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
                                                             element.mocsUsageType,
-                                                            pRenderHal->pOsInterface->pfnGetGmmClientContext(pRenderHal->pOsInterface)))
+                                                            pRenderHal->pOsInterface))
                                                             .DwordValue;
         }
         else

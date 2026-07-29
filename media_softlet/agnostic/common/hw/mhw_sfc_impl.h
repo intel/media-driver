@@ -73,33 +73,33 @@ public:
         // will need to be implemented.
         m_outputSurfCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
             MOS_HW_RESOURCE_USAGE_VP_OUTPUT_PICTURE_FF,
-            osItf->pfnGetGmmClientContext(osItf)).DwordValue;
+            osItf).DwordValue;
 
         m_avsLineBufferCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
             MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF,
-            osItf->pfnGetGmmClientContext(osItf)).DwordValue;
+            osItf).DwordValue;
         m_iefLineBufferCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
             MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF,
-            osItf->pfnGetGmmClientContext(osItf)).DwordValue;
+            osItf).DwordValue;
 
         m_sfdLineBufferCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
             MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED,
-            osItf->pfnGetGmmClientContext(osItf)).DwordValue;
+            osItf).DwordValue;
         m_avsLineTileBufferCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
             MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED,
-            osItf->pfnGetGmmClientContext(osItf)).DwordValue;
+            osItf).DwordValue;
         m_iefLineTileBufferCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
             MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED,
-            osItf->pfnGetGmmClientContext(osItf)).DwordValue;
+            osItf).DwordValue;
         m_sfdLineTileBufferCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
             MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED,
-            osItf->pfnGetGmmClientContext(osItf)).DwordValue;
+            osItf).DwordValue;
         m_histogramBufferCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
             MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED,
-            osItf->pfnGetGmmClientContext(osItf)).DwordValue;
+            osItf).DwordValue;
         m_sfcIndirectBufferCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
             MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED,
-            osItf->pfnGetGmmClientContext(osItf)).DwordValue;
+            osItf).DwordValue;
 
         m_maxWidth  = MHW_SFC_MAX_WIDTH;
         m_maxHeight = MHW_SFC_MAX_HEIGHT;

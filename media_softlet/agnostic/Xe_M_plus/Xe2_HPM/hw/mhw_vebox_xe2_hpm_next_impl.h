@@ -1527,7 +1527,7 @@ MOS_STATUS DumpDNDIStates(uint8_t *pDndiSate)
         // Compute MOCS index using xe2_hpm-specific MOCS usage type (MOS_MP_RESOURCE_USAGE_DEFAULT)
         uint32_t mocsIndex = (this->m_osItf->pfnCachePolicyGetMemoryObject(
             MOS_MP_RESOURCE_USAGE_DEFAULT,
-            this->m_osItf->pfnGetGmmClientContext(this->m_osItf))).XE_LPG.Index;
+            this->m_osItf)).XE_LPG.Index;
 
         // Delegate tiling convert common logic to helper
         MHW_CHK_STATUS_RETURN((mhw::vebox::common::SetupVeboxTilingConvertCommon<mhw::vebox::xe2_hpm_next::Cmd>(

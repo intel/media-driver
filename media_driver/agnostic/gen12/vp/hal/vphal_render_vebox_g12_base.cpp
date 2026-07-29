@@ -2947,7 +2947,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::SetupSurfaceStatesForDenoise()
     SurfaceParams.bWidth16Align    = false;
     SurfaceParams.MemObjCtl = (pRenderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
         MOS_MP_RESOURCE_USAGE_DEFAULT,
-        pRenderHal->pOsInterface->pfnGetGmmClientContext(pRenderHal->pOsInterface))).DwordValue;
+        pRenderHal->pOsInterface)).DwordValue;
 
     VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetSurfaceForHwAccess(
         pRenderHal,
@@ -2969,7 +2969,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::SetupSurfaceStatesForDenoise()
     SurfaceParams.bWidth16Align    = false;
     SurfaceParams.MemObjCtl = (pRenderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
         MOS_MP_RESOURCE_USAGE_DEFAULT,
-        pRenderHal->pOsInterface->pfnGetGmmClientContext(pRenderHal->pOsInterface))).DwordValue;
+        pRenderHal->pOsInterface)).DwordValue;
 
     VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetSurfaceForHwAccess(
         pRenderHal,

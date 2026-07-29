@@ -53,29 +53,29 @@ MhwSfcInterfaceXe_Xpm::MhwSfcInterfaceXe_Xpm(PMOS_INTERFACE pOsInterface)
     // will need to be implemented.
     m_outputSurfCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
         MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface,
-        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
+        m_osInterface).DwordValue;
 
     m_avsLineBufferCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
         MOS_MHW_RESOURCE_USAGE_Sfc_AvsLineBufferSurface,
-        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
+        m_osInterface).DwordValue;
     m_iefLineBufferCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
         MOS_MHW_RESOURCE_USAGE_Sfc_IefLineBufferSurface,
-        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
+        m_osInterface).DwordValue;
     m_sfdLineBufferCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
         MOS_MP_RESOURCE_USAGE_DEFAULT,
-        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
+        m_osInterface).DwordValue;
     m_avsLineTileBufferCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
         MOS_MHW_RESOURCE_USAGE_Sfc_AvsLineBufferSurface,
-        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
+        m_osInterface).DwordValue;
     m_iefLineTileBufferCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
         MOS_MHW_RESOURCE_USAGE_Sfc_IefLineBufferSurface,
-        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
+        m_osInterface).DwordValue;
     m_sfdLineTileBufferCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
         MOS_MP_RESOURCE_USAGE_DEFAULT,
-        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
+        m_osInterface).DwordValue;
     m_histogramBufferCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
         MOS_MP_RESOURCE_USAGE_DEFAULT,
-        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
+        m_osInterface).DwordValue;
 }
 
 MhwSfcInterfaceXe_Xpm::~MhwSfcInterfaceXe_Xpm()
