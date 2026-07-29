@@ -680,7 +680,6 @@ protected:
     DecodeAllocator                      *m_allocator       = nullptr;
     PMOS_INTERFACE                        m_osInterface     = nullptr;
     CodechalHwInterfaceNext              *m_hwInterface     = nullptr;
-    DecodeBasicFeature                   *m_basicFeature    = nullptr;
     DecodeCpInterface                    *m_decodecp        = nullptr;
     std::shared_ptr<mhw::vdbox::huc::Itf> m_hucItf          = nullptr;
 

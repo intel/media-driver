@@ -262,4 +262,27 @@ MOS_STATUS DecodeHucBasic::MemoryFlush(MOS_COMMAND_BUFFER &cmdBuffer)
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS DecodeHucBasic::StartPerfCollect(MOS_COMMAND_BUFFER& cmdBuffer)
+{
+    MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
+    DECODE_CHK_NULL(perfProfiler);
+    DECODE_CHK_STATUS(perfProfiler->AddPerfCollectStartCmd((void *)m_pipeline, m_osInterface, m_miItf, &cmdBuffer));
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS DecodeHucBasic::EndPerfCollect(MOS_COMMAND_BUFFER& cmdBuffer)
+{
+    MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
+    DECODE_CHK_NULL(perfProfiler);
+    DECODE_CHK_STATUS(perfProfiler->AddPerfCollectEndCmd((void *)m_pipeline, m_osInterface, m_miItf, &cmdBuffer));
+    return MOS_STATUS_SUCCESS;
+}
+
+void DecodeHucBasic::SetPerfTag()
+{
+    DECODE_FUNC_CALL();
+    uint16_t perfTag = ((m_basicFeature->m_mode << 4) & 0xF0) | CODECHAL_DECODE_MODE_HUC;
+    m_osInterface->pfnSetPerfTag(m_osInterface, perfTag);
+}
+
 }

@@ -151,12 +151,14 @@ namespace decode {
     
         DECODE_CHK_NULL(m_hucItf);
 
+        SetPerfTag();
         if (prologNeeded)
         {
             DECODE_CHK_STATUS(AddForceWakeup(cmdBuffer, false, true));
             DECODE_CHK_STATUS(SendPrologCmds(cmdBuffer));
         }
 
+        DECODE_CHK_STATUS(StartPerfCollect(cmdBuffer));
 #if (_DEBUG || _RELEASE_INTERNAL)
         if (m_hevcPipeline->GetBypassHWLegacy())
         {
@@ -173,6 +175,7 @@ namespace decode {
             DECODE_CHK_STATUS(m_hevcPipeline->GetBypassHWLegacy()->StopPredicate(&cmdBuffer));
         }
 #endif
+        DECODE_CHK_STATUS(EndPerfCollect(cmdBuffer));
         // Flush the engine to ensure memory written out
         DECODE_CHK_STATUS(MemoryFlush(cmdBuffer));
 

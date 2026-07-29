@@ -62,15 +62,20 @@ namespace decode
         DECODE_FUNC_CALL();
         PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
 
+        SetPerfTag();
+
         if (prologNeeded)
         {
             DECODE_CHK_STATUS(AddForceWakeup(cmdBuffer, false, true));
             DECODE_CHK_STATUS(SendPrologCmds(cmdBuffer));
         }
 
+        DECODE_CHK_STATUS(StartPerfCollect(cmdBuffer));
+
         DECODE_CHK_STATUS(PackPictureLevelCmds(cmdBuffer));
         DECODE_CHK_STATUS(PackSliceLevelCmds(cmdBuffer));
         DECODE_CHK_STATUS(VdPipelineFlush(cmdBuffer));
+        DECODE_CHK_STATUS(EndPerfCollect(cmdBuffer));
         // Flush the engine to ensure memory written out
         DECODE_CHK_STATUS(MemoryFlush(cmdBuffer));
 
