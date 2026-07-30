@@ -39,7 +39,6 @@ Vp9DecodePicPktXe_M_Base::~Vp9DecodePicPktXe_M_Base()
     FreeResources();
 }
 
-//????need check which buffer need free for VP9
 MOS_STATUS Vp9DecodePicPktXe_M_Base::FreeResources()
 {
     DECODE_FUNC_CALL();

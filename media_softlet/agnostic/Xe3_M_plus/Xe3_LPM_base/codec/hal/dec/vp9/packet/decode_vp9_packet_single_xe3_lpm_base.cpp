@@ -69,7 +69,14 @@ MOS_STATUS Vp9DecodeSinglePktXe3_Lpm_Base::Submit(
         DECODE_CHK_STATUS(PackPictureLevelCmds(*cmdBuffer));
         DECODE_CHK_STATUS(PackSliceLevelCmds(*cmdBuffer));
 
-        DECODE_CHK_STATUS(m_miItf->AddMiBatchBufferEnd(cmdBuffer, nullptr));
+        // In mismatch-order (Vulkan) mode the 1st-level batch buffer must NOT be ended
+        // here: the mismatch post-processing (buffer_update_post -> FrameStatusBuffer
+        // update + probability-buffer reset) is appended to the same command buffer
+        // afterwards.
+        if (!m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+        {
+            DECODE_CHK_STATUS(m_miItf->AddMiBatchBufferEnd(cmdBuffer, nullptr));
+        }
 
         HalOcaInterfaceNext::On1stLevelBBEnd(*cmdBuffer, *m_osInterface);
 

@@ -111,7 +111,7 @@ MOS_STATUS DecodeVp9BufferUpdatePost::Prepare(DecodePipelineParams &params)
             copyParams.srcOffset  = 0;
             copyParams.destBuffer = &(m_basicFeature->m_resVp9FrameStatusBuffer->OsResource);
             copyParams.destOffset = 0;
-            copyParams.copyLength = 1;
+            copyParams.copyLength = sizeof(uint32_t);
         }
         else
         {
@@ -119,7 +119,7 @@ MOS_STATUS DecodeVp9BufferUpdatePost::Prepare(DecodePipelineParams &params)
             copyParams.srcOffset  = 0;
             copyParams.destBuffer = &(m_basicFeature->m_resVp9FrameStatusBuffer->OsResource);
             copyParams.destOffset = 0;
-            copyParams.copyLength = 1;
+            copyParams.copyLength = sizeof(uint32_t);
         }
         m_probbufferResetPostPkt->PushCopyParams(copyParams);
         DECODE_CHK_STATUS(ActivatePacket(DecodePacketId(m_pipeline, hucCopyPacketId), true, 0, 0));
@@ -375,24 +375,29 @@ MOS_STATUS DecodeVp9BufferUpdatePost::AllocateTempBuffer()
         DECODE_CHK_STATUS(CtxBufDiffInit(data, false));
     }
 
+    // Source is copied verbatim into the DWORD-wide m_resVp9FrameStatusBuffer, which
+    // MI_COND_BB_END compares as a full 32-bit value. Define all 4 bytes so the compared
+    // DWORD is exactly 0x00000000 (key) or 0x00000001 (non-key), regardless of HuC
+    // stream-out write granularity.
     m_tempFrameTypeKeyBuffer = m_allocator->AllocateBuffer(
-        1, "tempFrameTypeBuffer", resourceInternalRead, lockableVideoMem);
+        sizeof(uint32_t), "tempFrameTypeBuffer", resourceInternalRead, lockableVideoMem);
     DECODE_CHK_NULL(m_tempFrameTypeKeyBuffer);
     {
         ResourceAutoLock resLock(m_allocator, &(m_tempFrameTypeKeyBuffer->OsResource));
         auto             data = (uint8_t *)resLock.LockResourceForWrite();
         DECODE_CHK_NULL(data);
-        MOS_ZeroMemory(data, 1);
+        MOS_ZeroMemory(data, sizeof(uint32_t));   // DWORD 0x00000000
     }
 
     m_tempFrameTypeNonKeyBuffer = m_allocator->AllocateBuffer(
-        1, "tempFrameTypeBuffer", resourceInternalRead, lockableVideoMem);
+        sizeof(uint32_t), "tempFrameTypeBuffer", resourceInternalRead, lockableVideoMem);
     DECODE_CHK_NULL(m_tempFrameTypeNonKeyBuffer);
     {
         ResourceAutoLock resLock(m_allocator, &(m_tempFrameTypeNonKeyBuffer->OsResource));
         auto             data = (uint8_t *)resLock.LockResourceForWrite();
         DECODE_CHK_NULL(data);
-        MOS_FillMemory(data, 1, 1);
+        MOS_ZeroMemory(data, sizeof(uint32_t));
+        data[0] = 1;                              // little-endian DWORD 0x00000001
     }
 
     return MOS_STATUS_SUCCESS;
