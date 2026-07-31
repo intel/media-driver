@@ -423,6 +423,9 @@ namespace encode
         case RATECONTROL_VBR:
             brcFlag = 0x20;
             break;
+        case RATECONTROL_QVBR:
+            brcFlag = 0x40;
+            break;
         case RATECONTROL_CQP:
             brcFlag = 0;
             break;
@@ -648,22 +651,25 @@ namespace encode
 
         ENCODE_FUNC_CALL();
         
+        const uint8_t ICQFactorLookup[52] = {
+            0,  1,  1,  1,  1,  2,  3,  4,  6,  7,  9,  11, 13, 16, 18, 23,
+            26, 30, 34, 39, 46, 52, 59, 68, 77, 87, 98, 104,112,120,127,134,
+            142,149,157,164,171,178,186,193,200,207,213,219,225,230,235,240,
+            245,249,252,255};
+
         if (m_basicFeature->m_av1SeqParams->RateControlMethod == RATECONTROL_CQL)
         {
-            const uint8_t ICQFactorLookup[52] = { 
-                0,  1,  1,  1,  1,  2,  3,  4,  6,  7,  9,  11, 13, 16, 18, 23,
-                26, 30, 34, 39, 46, 52, 59, 68, 77, 87, 98, 104,112,120,127,134,
-                142,149,157,164,171,178,186,193,200,207,213,219,225,230,235,240,
-                245,249,252,255 
-            };
-            
             uint32_t TargetBitRate                                     = m_basicFeature->m_frameWidth * m_basicFeature->m_frameHeight * 8 / 1000;
-            m_basicFeature->m_av1SeqParams->ICQQualityFactor           = ICQFactorLookup[m_basicFeature->m_av1SeqParams->ICQQualityFactor];
+            m_basicFeature->m_av1SeqParams->ICQQualityFactor           = ICQFactorLookup[MOS_MIN(m_basicFeature->m_av1SeqParams->ICQQualityFactor, 51)];
             m_basicFeature->m_av1SeqParams->TargetBitRate[0]           = TargetBitRate;
             m_basicFeature->m_av1SeqParams->MaxBitRate                 = (TargetBitRate << 4) / 10;
             m_basicFeature->m_av1SeqParams->MinBitRate                 = 0;
             m_basicFeature->m_av1SeqParams->InitVBVBufferFullnessInBit = 8000 * (TargetBitRate << 3) / 10;
             m_basicFeature->m_av1SeqParams->VBVBufferSizeInBit         = 8000 * (TargetBitRate << 1);
+        }
+        else if (m_basicFeature->m_av1SeqParams->RateControlMethod == RATECONTROL_QVBR)
+        {
+            m_basicFeature->m_av1SeqParams->ICQQualityFactor = ICQFactorLookup[MOS_MIN(m_basicFeature->m_av1SeqParams->ICQQualityFactor, 51)];
         }
         
         m_brcEnabled = IsRateControlBrc(m_basicFeature->m_av1SeqParams->RateControlMethod);
