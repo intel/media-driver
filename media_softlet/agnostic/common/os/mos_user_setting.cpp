@@ -930,6 +930,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
 
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_TILE_B_IN_USE,
+        MediaUserSetting::Group::Device,
+        int32_t(0),
+        true);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_ENABLE,
         MediaUserSetting::Group::Device,
         1,

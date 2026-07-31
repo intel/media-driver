@@ -375,6 +375,15 @@ MOS_STATUS MediaCopyBaseState::CheckResourceSizeValidForCopy(const MOS_SURFACE &
 
 MOS_STATUS MediaCopyBaseState::ValidateResource(const MOS_SURFACE &src, const MOS_SURFACE &dst, MCPY_ENGINE method)
 {
+    // TileB surfaces are only supported by the VEBOX copy engine. Reject cleanly
+    // if any other engine was selected - this covers both VEBOX being unavailable
+    // and a non-BALANCE copy method selecting BLT/Render for a TileB surface.
+    if ((src.TileType == MOS_TILE_B || dst.TileType == MOS_TILE_B) && method != MCPY_ENGINE_VEBOX)
+    {
+        MCPY_ASSERTMESSAGE("TileB surface copy is only supported on the VEBOX engine");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
     // For CP buffer copy, CP will handle the overflown size, skip size check
     if (src.OsResource.pGmmResInfo->GetResourceType() == RESOURCE_BUFFER &&
         dst.OsResource.pGmmResInfo->GetResourceType() == RESOURCE_BUFFER &&

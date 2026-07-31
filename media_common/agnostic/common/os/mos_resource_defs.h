@@ -501,6 +501,7 @@ typedef enum _MOS_TILE_TYPE
     MOS_TILE_YF,            // 4KB tile
     MOS_TILE_YS,            // 64KB tile
     MOS_TILE_LINEAR,
+    MOS_TILE_B,             // TileB tiling
     MOS_TILE_INVALID
 } MOS_TILE_TYPE;
 C_ASSERT(MOS_TILE_LINEAR == 4); //!< When adding, update assert
@@ -522,6 +523,7 @@ C_ASSERT(MOS_TILE_4_GMM == 3);
             ( (MOS_TILE_X  == TileType) ||    \
               (MOS_TILE_Y  == TileType) ||    \
               (MOS_TILE_YF == TileType) ||    \
+              (MOS_TILE_B  == TileType) ||    \
               (MOS_TILE_YS == TileType) )
 
 #define IS_Y_MAJOR_TILE_FORMAT(TileType)      \

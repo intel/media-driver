@@ -196,6 +196,9 @@ protected:
         case MOS_TILE_X:
             tileMode = 2;
             break;
+        case MOS_TILE_B:
+            tileMode = 2;
+            break;
         default:
             tileMode = 3;
             break;
