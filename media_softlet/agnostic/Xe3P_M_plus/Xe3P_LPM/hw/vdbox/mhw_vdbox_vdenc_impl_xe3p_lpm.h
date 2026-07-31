@@ -74,7 +74,7 @@ protected:
         _MHW_SETCMD_CALLBASE(VDENC_AVC_IMG_STATE);
 
 #define DO_FIELDS_EXT() \
-        __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_AVC_IMG_STATE_IMPL_XE_LPM_BASE_EXT)
+        __MHW_VDBOX_VDENC_WRAPPER_EXT(VDENC_AVC_IMG_STATE_IMPL_XE3P_LPM_EXT)
 
 #include "mhw_hwcmd_process_cmdfields.h"
     }
