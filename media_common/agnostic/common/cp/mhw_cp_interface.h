@@ -356,6 +356,74 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    virtual MOS_STATUS AddCpHucStoreImmediate(
+        void               *hucItf,
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        PMOS_RESOURCE       resource,
+        uint32_t            offset,
+        uint32_t            value)
+    {
+        MOS_UNUSED(hucItf);
+        MOS_UNUSED(cmdBuffer);
+        MOS_UNUSED(resource);
+        MOS_UNUSED(offset);
+        MOS_UNUSED(value);
+
+        MhwStubMessage();
+        return MOS_STATUS_SUCCESS;
+    }
+
+    virtual MOS_STATUS AddCpHucStoreStatus(
+        void               *hucItf,
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        PMOS_RESOURCE       resource,
+        uint32_t            offset,
+        uint32_t            vdboxIndex)
+    {
+        MOS_UNUSED(hucItf);
+        MOS_UNUSED(cmdBuffer);
+        MOS_UNUSED(resource);
+        MOS_UNUSED(offset);
+        MOS_UNUSED(vdboxIndex);
+
+        MhwStubMessage();
+        return MOS_STATUS_SUCCESS;
+    }
+
+    virtual MOS_STATUS AddCpHucStoreStatus2(
+        void               *hucItf,
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        PMOS_RESOURCE       resource,
+        uint32_t            offset,
+        uint32_t            vdboxIndex)
+    {
+        MOS_UNUSED(hucItf);
+        MOS_UNUSED(cmdBuffer);
+        MOS_UNUSED(resource);
+        MOS_UNUSED(offset);
+        MOS_UNUSED(vdboxIndex);
+
+        MhwStubMessage();
+        return MOS_STATUS_SUCCESS;
+    }
+
+    virtual MOS_STATUS AddCpHucStoreKernelHeaderInfo(
+        void               *hucItf,
+        PMOS_COMMAND_BUFFER cmdBuffer,
+        PMOS_RESOURCE       resource,
+        uint32_t            offset,
+        uint32_t            vdboxIndex)
+    {
+        MOS_UNUSED(hucItf);
+        MOS_UNUSED(cmdBuffer);
+        MOS_UNUSED(resource);
+        MOS_UNUSED(offset);
+        MOS_UNUSED(vdboxIndex);
+
+        MhwStubMessage();
+        return MOS_STATUS_SUCCESS;
+    }
+
     MEDIA_CLASS_DEFINE_END(MhwCpInterface)
 };
 
