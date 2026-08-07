@@ -3501,11 +3501,11 @@ mos_gem_bo_create_from_prime(struct mos_bufmgr *bufmgr, struct mos_drm_bo_alloc_
      * later, we can lseek on the prime fd to get the size.  Older
      * kernels will just fail, in which case we fall back to the
      * provided (estimated or guess size). */
-    ret = lseek(prime_fd, 0, SEEK_END);
-    if (ret != -1)
-        bo_gem->bo.size = ret;
+    off_t sz =lseek(prime_fd,0,SEEK_END);
+    if(sz>= 0)
+        bo_gem->bo.size=(unsigned long)sz;
     else
-        bo_gem->bo.size = size;
+        bo_gem->bo.size = (unsigned long)size;
 
     bo_gem->bo.handle = handle;
     bo_gem->bo.bufmgr = bufmgr;
