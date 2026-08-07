@@ -67,8 +67,7 @@ public:
         this->m_watchdogOffsets.teecsCtrl      = WATCHDOG_COUNT_CTRL_OFFSET_TEECS;
         this->m_watchdogOffsets.thresholdTeecs = WATCHDOG_COUNT_THRESTHOLD_OFFSET_TEECS;
 
-        m_enableCsMocsGT    = MEDIA_IS_SKU(this->m_osItf->pfnGetSkuTable(this->m_osItf), FtrCommandStreamerPerCommandMocsGT);
-        m_enableCsMocsMedia = MEDIA_IS_SKU(this->m_osItf->pfnGetSkuTable(this->m_osItf), FtrCommandStreamerPerCommandMocsMedia);
+        this->InitCsMocsSettings();
     };
 
     void SetDecoderWatchdogThreshold(uint32_t frameWidth, uint32_t frameHeight, uint32_t codecMode) override
@@ -112,12 +111,12 @@ public:
         cmd.DW0._64bCompareEnableWithGPR = params.b64bCompareEnableWithGPR;
 
         {
-            MOS_GPU_CONTEXT gpuCtx    = this->m_osItf->pfnGetGpuContext(this->m_osItf);
-            bool            enableMocs = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx))
-                                             ? m_enableCsMocsGT : m_enableCsMocsMedia;
-            if (enableMocs)
+            MOS_GPU_CONTEXT gpuCtx         = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+            bool            isGtEngineCtx  = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx));
+            uint32_t        mocsIndex      = 0;
+            if (this->TryGetCsMocsIndex(isGtEngineCtx, mocsIndex))
             {
-                cmd.DW0.MocsIndex = params.mocsIdx;
+                cmd.DW0.MocsIndex = mocsIndex;
             }
         }
 
@@ -132,12 +131,12 @@ public:
         __MHW_MI_WRAPPER_EXT(MI_SEMAPHORE_WAIT_64_IMPL_XE3P_LPM_BASE_EXT)
 
         {
-            MOS_GPU_CONTEXT gpuCtx    = this->m_osItf->pfnGetGpuContext(this->m_osItf);
-            bool            enableMocs = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx))
-                                             ? m_enableCsMocsGT : m_enableCsMocsMedia;
-            if (enableMocs)
+            MOS_GPU_CONTEXT gpuCtx         = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+            bool            isGtEngineCtx  = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx));
+            uint32_t        mocsIndex      = 0;
+            if (this->TryGetCsMocsIndex(isGtEngineCtx, mocsIndex))
             {
-                cmd.DW0.MocsIndex = params.mocsIdx;
+                cmd.DW0.MocsIndex = mocsIndex;
             }
         }
 
@@ -271,6 +270,16 @@ public:
             cmd.DW0.CompressionControlSurfaceCcsFlush = true;
         }
 
+        {
+            MOS_GPU_CONTEXT gpuCtx         = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+            bool            isGtEngineCtx  = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx));
+            uint32_t        mocsIndex      = 0;
+            if (this->TryGetCsMocsIndex(isGtEngineCtx, mocsIndex))
+            {
+                cmd.DW0.MocsIndex = mocsIndex;
+            }
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -301,12 +310,12 @@ public:
         cmd.DW0.Obj0.AddressSpaceIndicator  = !this->IsGlobalGttInUse();
 
         {
-            MOS_GPU_CONTEXT gpuCtx    = this->m_osItf->pfnGetGpuContext(this->m_osItf);
-            bool            enableMocs = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx))
-                                             ? m_enableCsMocsGT : m_enableCsMocsMedia;
-            if (enableMocs)
+            MOS_GPU_CONTEXT gpuCtx         = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+            bool            isGtEngineCtx  = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx));
+            uint32_t        mocsIndex      = 0;
+            if (this->TryGetCsMocsIndex(isGtEngineCtx, mocsIndex))
             {
-                cmd.DW0.Obj1.MocsIndex = params.mocsIdx;
+                cmd.DW0.Obj1.MocsIndex = mocsIndex;
             }
         }
 
@@ -358,12 +367,12 @@ public:
             &resourceParams));
 
         {
-            MOS_GPU_CONTEXT gpuCtx    = this->m_osItf->pfnGetGpuContext(this->m_osItf);
-            bool            enableMocs = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx))
-                                             ? m_enableCsMocsGT : m_enableCsMocsMedia;
-            if (enableMocs)
+            MOS_GPU_CONTEXT gpuCtx         = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+            bool            isGtEngineCtx  = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx));
+            uint32_t        mocsIndex      = 0;
+            if (this->TryGetCsMocsIndex(isGtEngineCtx, mocsIndex))
             {
-                cmd.DW0.MocsIndex = params.mocsIdx;
+                cmd.DW0.MocsIndex = mocsIndex;
             }
         }
 
@@ -401,12 +410,12 @@ public:
         cmd.DW0.MmioRemapEnable = this->IsRemappingMMIO(reg);
 
         {
-            MOS_GPU_CONTEXT gpuCtx    = this->m_osItf->pfnGetGpuContext(this->m_osItf);
-            bool            enableMocs = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx))
-                                             ? m_enableCsMocsGT : m_enableCsMocsMedia;
-            if (enableMocs)
+            MOS_GPU_CONTEXT gpuCtx         = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+            bool            isGtEngineCtx  = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx));
+            uint32_t        mocsIndex      = 0;
+            if (this->TryGetCsMocsIndex(isGtEngineCtx, mocsIndex))
             {
-                cmd.DW0.MocsIndex = params.mocsIdx;
+                cmd.DW0.MocsIndex = mocsIndex;
             }
         }
 
@@ -428,12 +437,12 @@ public:
         cmd.DW0.MmioRemapEnable = this->IsRemappingMMIO(Reg) | params.bMMIORemap;
 
         {
-            MOS_GPU_CONTEXT gpuCtx    = this->m_osItf->pfnGetGpuContext(this->m_osItf);
-            bool            enableMocs = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx))
-                                             ? m_enableCsMocsGT : m_enableCsMocsMedia;
-            if (enableMocs)
+            MOS_GPU_CONTEXT gpuCtx         = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+            bool            isGtEngineCtx  = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx));
+            uint32_t        mocsIndex      = 0;
+            if (this->TryGetCsMocsIndex(isGtEngineCtx, mocsIndex))
             {
-                cmd.DW0.MocsIndex = params.mocsIdx;
+                cmd.DW0.MocsIndex = mocsIndex;
             }
         }
 
@@ -603,12 +612,12 @@ public:
         }
 
         {
-            MOS_GPU_CONTEXT gpuCtx    = this->m_osItf->pfnGetGpuContext(this->m_osItf);
-            bool            enableMocs = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx))
-                                             ? m_enableCsMocsGT : m_enableCsMocsMedia;
-            if (enableMocs)
+            MOS_GPU_CONTEXT gpuCtx         = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+            bool            isGtEngineCtx  = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx));
+            uint32_t        mocsIndex      = 0;
+            if (this->TryGetCsMocsIndex(isGtEngineCtx, mocsIndex))
             {
-                cmd.DW0.MocsIndex = params.mocsIdx;
+                cmd.DW0.MocsIndex = mocsIndex;
             }
         }
 
@@ -627,12 +636,12 @@ public:
         _MHW_SETCMD_CALLBASE(MI_ATOMIC);
 
         {
-            MOS_GPU_CONTEXT gpuCtx    = this->m_osItf->pfnGetGpuContext(this->m_osItf);
-            bool            enableMocs = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx))
-                                             ? m_enableCsMocsGT : m_enableCsMocsMedia;
-            if (enableMocs)
+            MOS_GPU_CONTEXT gpuCtx         = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+            bool            isGtEngineCtx  = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx));
+            uint32_t        mocsIndex      = 0;
+            if (this->TryGetCsMocsIndex(isGtEngineCtx, mocsIndex))
             {
-                cmd.DW0.MocsIndex = params.mocsIdx;
+                cmd.DW0.MocsIndex = mocsIndex;
             }
         }
 
@@ -644,12 +653,12 @@ public:
         _MHW_SETCMD_CALLBASE(MI_STORE_DATA_IMM);
 
         {
-            MOS_GPU_CONTEXT gpuCtx    = this->m_osItf->pfnGetGpuContext(this->m_osItf);
-            bool            enableMocs = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx))
-                                             ? m_enableCsMocsGT : m_enableCsMocsMedia;
-            if (enableMocs)
+            MOS_GPU_CONTEXT gpuCtx         = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+            bool            isGtEngineCtx  = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx));
+            uint32_t        mocsIndex      = 0;
+            if (this->TryGetCsMocsIndex(isGtEngineCtx, mocsIndex))
             {
-                cmd.DW0.MocsIndex = params.mocsIdx;
+                cmd.DW0.MocsIndex = mocsIndex;
             }
         }
 
@@ -661,13 +670,13 @@ public:
         _MHW_SETCMD_CALLBASE(MI_COPY_MEM_MEM);
 
         {
-            MOS_GPU_CONTEXT gpuCtx    = this->m_osItf->pfnGetGpuContext(this->m_osItf);
-            bool            enableMocs = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx))
-                                             ? m_enableCsMocsGT : m_enableCsMocsMedia;
-            if (enableMocs)
+            MOS_GPU_CONTEXT gpuCtx         = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+            bool            isGtEngineCtx  = (MOS_RCS_ENGINE_USED(gpuCtx) || MOS_BCS_ENGINE_USED(gpuCtx));
+            uint32_t        mocsIndex      = 0;
+            if (this->TryGetCsMocsIndex(isGtEngineCtx, mocsIndex))
             {
-                cmd.DW0.MocsIndexForRead  = params.readMocsIdx;
-                cmd.DW0.MocsIndexForWrite = params.writeMocsIdx;
+                cmd.DW0.MocsIndexForRead  = mocsIndex;
+                cmd.DW0.MocsIndexForWrite = mocsIndex;
             }
         }
 
@@ -927,10 +936,6 @@ public:
         }
          return MOS_STATUS_SUCCESS;
      }
-private:
-    bool m_enableCsMocsGT    = false;
-    bool m_enableCsMocsMedia = false;
-
 MEDIA_CLASS_DEFINE_END(mhw__mi__xe3p_lpm_base__BaseImpl)
 };
 

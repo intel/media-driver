@@ -723,6 +723,52 @@ protected:
         uint32_t thresholdTeecs = 0;
     } m_watchdogOffsets;
 
+    bool                        m_enableCsMocsGT    = false;
+    bool                        m_enableCsMocsMedia = false;
+    MEMORY_OBJECT_CONTROL_STATE m_csMocsMemCtrl     = {};
+
+    //! \brief    Query the SKU-gated per-command-streamer MOCS settings and cache
+    //!           the GMM-resolved memory object once, at construction time.
+    void InitCsMocsSettings()
+    {
+        if (nullptr == this->m_osItf)
+        {
+            return;
+        }
+
+        m_enableCsMocsGT    = MEDIA_IS_SKU(this->m_osItf->pfnGetSkuTable(this->m_osItf), FtrCommandStreamerPerCommandMocsGT);
+        m_enableCsMocsMedia = MEDIA_IS_SKU(this->m_osItf->pfnGetSkuTable(this->m_osItf), FtrCommandStreamerPerCommandMocsMedia);
+
+#if !EMUL
+        if (m_enableCsMocsGT || m_enableCsMocsMedia)
+        {
+            GMM_CLIENT_CONTEXT *gmmClientContext = this->m_osItf->pfnGetGmmClientContext(this->m_osItf);
+            if (gmmClientContext && this->m_osItf->pfnGetGmmCachePolicyMemoryObject)
+            {
+                m_csMocsMemCtrl = this->m_osItf->pfnGetGmmCachePolicyMemoryObject(gmmClientContext, GMM_RESOURCE_USAGE_COMMAND_STREAMER);
+            }
+        }
+#endif
+    }
+
+    //! \brief    Return the cached per-command-streamer MOCS index, gated by the
+    //!           SKU flag matching the current engine context.
+    //! \param    [in] isGtEngineContext
+    //!           true for GT (render/compute) engine context, false for media engine context.
+    //! \param    [out] mocsIndex
+    //!           Set to the GMM-resolved MOCS index only when the return value is true.
+    //! \return   bool
+    //!           True if the corresponding SKU flag is enabled and mocsIndex was set.
+    bool TryGetCsMocsIndex(bool isGtEngineContext, uint32_t &mocsIndex)
+    {
+        if (isGtEngineContext ? m_enableCsMocsGT : m_enableCsMocsMedia)
+        {
+            mocsIndex = m_csMocsMemCtrl.Gen12.Index;
+            return true;
+        }
+        return false;
+    }
+
     //!
     //! \brief    Check RCS and CCS remap offset
     //! \details  Check if a RCS register offset is set and remap it to RCS/CCS register offset if so.

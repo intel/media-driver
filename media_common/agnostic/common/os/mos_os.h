@@ -846,6 +846,16 @@ typedef struct _MOS_INTERFACE
     GMM_CLIENT_CONTEXT* (* pfnGetGmmClientContext) (
         PMOS_INTERFACE              pOsInterface);
 
+    //! \brief    Query the GMM cache-policy memory object for a GMM resource usage type.
+    //! \details  Command-streamer MOCS (GMM_RESOURCE_USAGE_COMMAND_STREAMER) has no
+    //!           MOS_HW_RESOURCE_DEF entry, so it cannot use pfnCachePolicyGetMemoryObject.
+    //!           This accessor takes the GMM_RESOURCE_USAGE_TYPE directly. Exposing it as a
+    //!           MOS function pointer keeps the shared mi::Impl accessor free of a direct GMM
+    //!           dependency and makes the GMM query mockable in ULT.
+    MEMORY_OBJECT_CONTROL_STATE (* pfnGetGmmCachePolicyMemoryObject) (
+        GMM_CLIENT_CONTEXT          *pGmmClientContext,
+        GMM_RESOURCE_USAGE_TYPE     Usage);
+
     MOS_STATUS (* pfnIsGpuContextValid) (
         PMOS_INTERFACE              pOsInterface,
         MOS_GPU_CONTEXT             GpuContext);

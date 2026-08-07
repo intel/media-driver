@@ -3002,7 +3002,8 @@ namespace xe3p_lpm
         {
             struct
             {
-                uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0,  7)    ; //!< DWORD_LENGTH
+                uint32_t                 DwordLength                                      : __CODEGEN_BITFIELD( 0,  3)    ; //!< DWORD_LENGTH
+                uint32_t                 MocsIndex                                        : __CODEGEN_BITFIELD( 4,  7)    ; //!< MOCS_INDEX
                 uint32_t                 PredicateEnable                                  : __CODEGEN_BITFIELD( 8,  8)    ; //!< Predicate Enable
                 uint32_t                 DataportFlush                                    : __CODEGEN_BITFIELD( 9,  9)    ; //!< Dataport Flush
                 uint32_t                 L3ReadOnlyCacheInvalidationEnable                : __CODEGEN_BITFIELD(10, 10)    ; //!< L3 Read Only Cache Invalidation Enable
