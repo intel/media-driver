@@ -1599,6 +1599,14 @@ MOS_STATUS GetVeboxOutputParams(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputFo
         {
             veboxOutputFormat = Format_A16B16G16R16;
         }
+        else if (executeCaps.bLutCompound)
+        {
+            // LutCompound's Vebox IECP emits the full 10-bit RGB result (CSC+1D+3D LUT).
+            // An 8-bit A8B8G8R8 VE->SFC intermediate loses that data (observed: all-zero
+            // RGB / black output when the pass runs non-isolated as Vebox+SFC). Keep the
+            // intermediate 10-bit RGB so SFC is scaling/pack-only. See GetSfcInputFormat.
+            veboxOutputFormat = Format_R10G10B10A2;
+        }
         else
         {
             veboxOutputFormat = IS_COLOR_SPACE_BT2020(colorSpaceOutput) ? Format_R10G10B10A2 : Format_A8B8G8R8;
@@ -1669,6 +1677,12 @@ MOS_FORMAT GetSfcInputFormat(VP_EXECUTE_CAPS &executeCaps, MOS_FORMAT inputForma
             if (IS_RGB64_FLOAT_FORMAT(outputFormat))  // SFC output FP16, YUV->ABGR16
             {
                 return Format_A16B16G16R16;
+            }
+            else if (executeCaps.bLutCompound)
+            {
+                // Match GetVeboxOutputParams: LutCompound emits 10-bit RGB; keep the SFC
+                // input (VE->SFC intermediate) 10-bit so no 8-bit A8B8G8R8 data loss.
+                return Format_R10G10B10A2;
             }
             else
             {
