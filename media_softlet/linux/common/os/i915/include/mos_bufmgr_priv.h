@@ -418,6 +418,9 @@ struct mos_bufmgr {
     uint8_t (*switch_off_n_bits)(struct mos_linux_context *ctx, uint8_t in_mask, int n) = nullptr;
     unsigned int (*hweight8)(struct mos_linux_context *ctx, uint8_t w) = nullptr;
 
+    int (*set_fences)(struct mos_bufmgr *bufmgr, struct mos_exec_fences *exec_fences) = nullptr;
+    int (*get_fence)(struct mos_bufmgr *bufmgr, int32_t *fence_out) = nullptr;
+
     /**< Enables verbose debugging printouts */
     int debug = 0;
     uint32_t *get_reserved = nullptr;
