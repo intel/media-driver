@@ -28,9 +28,6 @@
 #include "mos_os_cp_interface_specific.h"
 #include "encode_avc_vdenc_const_settings.h"
 #include "media_interfaces_huc_kernel_source.h"
-#if (_DEBUG || _RELEASE_INTERNAL)
-#include "bypass_hw_legacy.h"
-#endif
 
 namespace encode {
 
@@ -125,13 +122,6 @@ MOS_STATUS AvcHucBrcInitPktXe3p_Lpm_Base::Execute(PMOS_COMMAND_BUFFER cmdBuffer,
     }
 #endif  // !_SW_BRC
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (m_osInterface && m_osInterface->bNullHwIsEnabled)
-    {
-        return MOS_STATUS_SUCCESS;
-    }
-#endif
-
     if (prologNeeded)
     {
         ENCODE_CHK_STATUS_RETURN(AddForceWakeup(*cmdBuffer));
@@ -139,6 +129,13 @@ MOS_STATUS AvcHucBrcInitPktXe3p_Lpm_Base::Execute(PMOS_COMMAND_BUFFER cmdBuffer,
     }
 
     ENCODE_CHK_STATUS_RETURN(StartPerfCollect(*cmdBuffer));
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_bypassHwLegacyEnabled)
+    {
+        ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StartPredicate(cmdBuffer));
+    }
+#endif
 
     if (m_isPPGTT)
     {
@@ -159,6 +156,13 @@ MOS_STATUS AvcHucBrcInitPktXe3p_Lpm_Base::Execute(PMOS_COMMAND_BUFFER cmdBuffer,
         ENCODE_CHK_STATUS_RETURN(DumpInput());)
 
     SETPAR_AND_ADDCMD(VD_PIPELINE_FLUSH, m_vdencItf, cmdBuffer);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_bypassHwLegacyEnabled)
+    {
+        ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StopPredicate(cmdBuffer));
+    }
+#endif
 
     // Flush the engine to ensure memory written out
     ENCODE_CHK_NULL_RETURN(m_miItf);
@@ -206,7 +210,12 @@ MOS_STATUS AvcHucBrcInitPktXe3p_Lpm_Base::AddAllCmds_HUC_IMEM_STATE(PMOS_COMMAND
     auto &mfxWaitParams               = m_miItf->MHW_GETPAR_F(MFX_WAIT)();
     mfxWaitParams                     = {};
     mfxWaitParams.iStallVdboxPipeline = true;
-    ENCODE_CHK_STATUS_RETURN((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(cmdBuffer)));
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (!m_bypassHwLegacyEnabled)
+#endif
+    {
+        ENCODE_CHK_STATUS_RETURN((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(cmdBuffer)));
+    }
 
     return MOS_STATUS_SUCCESS;
 }

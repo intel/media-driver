@@ -305,7 +305,33 @@ MOS_STATUS AvcVdencPipeline::SwitchContext(uint8_t outputChromaFormat)
 
     m_scalPars->vdboxTypePref = m_pipelineVdboxTypePref;
 
-    m_mediaContext->SwitchContext(VdboxEncodeFunc, &*m_scalPars, &m_scalability);
+    if (GetBypassHWLegacy())
+    {
+        if (!GetBypassHWLegacy()->IsDummyVdNodeFetch())
+        {
+            auto basicFeature = dynamic_cast<AvcBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+            ENCODE_CHK_NULL_RETURN(basicFeature);
+            // AVC codecSettings->chromaFormat = 0 means default 4:2:0 (not MONOCHROME).
+            // Normalize to HCP_CHROMA_FORMAT_YUV420 (= 1) so cfg file "420" entries match.
+            uint8_t avcChromaFmt = basicFeature->m_chromaFormat == 0 ? 1 : basicFeature->m_chromaFormat;
+            ENCODE_CHK_STATUS_RETURN(GetBypassHWLegacy()->FetchDummyVdNode(
+                m_bypassHWLegacyGpuNode,
+                CODECHAL_AVC,
+                true,
+                basicFeature->m_frameWidth,
+                basicFeature->m_frameHeight,
+                avcChromaFmt,
+                basicFeature->m_bitDepth,
+                basicFeature->m_seqParam->TargetUsage));
+            GetBypassHWLegacy()->SetDummyVdNodeFetchFlag();
+        }
+        MediaFunction encFunc = (m_bypassHWLegacyGpuNode == MOS_GPU_NODE_VE) ? VeboxVppFunc : VdboxEncodeFunc;
+        ENCODE_CHK_STATUS_RETURN(m_mediaContext->SwitchContext(encFunc, &*m_scalPars, &m_scalability));
+    }
+    else
+    {
+        m_mediaContext->SwitchContext(VdboxEncodeFunc, &*m_scalPars, &m_scalability);
+    }
     ENCODE_CHK_NULL_RETURN(m_scalability);
 
     m_scalability->SetPassNumber(m_featureManager->GetNumPass());

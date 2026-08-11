@@ -27,10 +27,6 @@
 #include "decode_utils.h"
 #include "decode_avc_pipeline.h"
 #include "decode_avc_basic_feature.h"
-#if (_DEBUG || _RELEASE_INTERNAL)
-#include "decode_avc_pipeline_xe3p_lpm_base.h"
-#include <cstdio>
-#endif
 #include "decode_status_report_defs.h"
 #include "mos_solo_generic.h"
 #include "decode_status_report_defs.h"
@@ -48,7 +44,12 @@ MOS_STATUS AvcDecodePktXe3P_Lpm_Base::Init()
     DecodeSubPacket *subPacket = m_avcPipeline->GetSubPacket(DecodePacketId(m_avcPipeline, avcDecodeAqmId));
     m_aqmPkt                   = dynamic_cast<AvcDecodeAqmPktXe3PLpmBase *>(subPacket);
 #endif
-
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_avcPipeline->GetBypassHWLegacy())
+    {
+        m_bypassHwLegacyEnabled = true;
+    }
+#endif
     return MOS_STATUS_SUCCESS;
 }
 
@@ -115,37 +116,7 @@ MOS_STATUS AvcDecodePktXe3P_Lpm_Base::PackPictureLevelCmds(MOS_COMMAND_BUFFER &c
 
     PERF_UTILITY_AUTO(__FUNCTION__, PERF_DECODE, PERF_LEVEL_HAL);
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    auto *avcXe3pPipeline = dynamic_cast<AvcPipelineXe3P_Lpm_Base *>(m_avcPipeline);
-    BypassHwLegacy *bypassHW = avcXe3pPipeline ? avcXe3pPipeline->GetBypassHW() : nullptr;
-    if (bypassHW)
-    {
-        m_bypassHwLegacyEnabled = true;
-        // AVC decode DDI never sets codecSettings->chromaFormat (always 0).
-        // Use picParams->seq_fields.chroma_format_idc from bitstream SPS instead.
-        uint32_t avcChromaFmt = m_avcBasicFeature->m_avcPicParams->seq_fields.chroma_format_idc ? m_avcBasicFeature->m_avcPicParams->seq_fields.chroma_format_idc : 1;
-        // AVC DDI only exposes MB-aligned dimensions (pic_*_in_mbs_minus1); display crop
-        // info is not passed through. Config file entries for AVC must use MB-aligned
-        // height (e.g. 1088 for 1080p, not 1080). AVC encode uses the same convention.
-        bypassHW->SetPipelineCharacteristics(
-            CODECHAL_AVC,
-            avcChromaFmt,
-            m_avcBasicFeature->m_width,
-            m_avcBasicFeature->m_height,
-            m_avcBasicFeature->m_bitDepth,
-            0);
-    }
-#endif
-
     DECODE_CHK_STATUS(StartStatusReport(statusReportMfx, &cmdBuffer));
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (bypassHW)
-    {
-        DECODE_CHK_STATUS(bypassHW->AddNullHwProxyCmd(&cmdBuffer, false));
-        DECODE_CHK_STATUS(bypassHW->StartPredicate(&cmdBuffer));
-    }
-#endif
 
     DECODE_CHK_STATUS(m_picturePkt->Execute(cmdBuffer));
 
@@ -180,17 +151,6 @@ MOS_STATUS AvcDecodePktXe3P_Lpm_Base::PackSliceLevelCmds(MOS_COMMAND_BUFFER &cmd
         // Add VD_PIPELINE_FLUSH for VDAQM, then flush the AQM histogram.
         DECODE_CHK_STATUS(VdPipelineFlushVdaqm(cmdBuffer));
         DECODE_CHK_STATUS(m_aqmPkt->Flush(cmdBuffer));
-    }
-#endif
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    {
-        auto *avcXe3pPipeline = dynamic_cast<AvcPipelineXe3P_Lpm_Base *>(m_avcPipeline);
-        BypassHwLegacy *bypassHW = avcXe3pPipeline ? avcXe3pPipeline->GetBypassHW() : nullptr;
-        if (bypassHW)
-        {
-            DECODE_CHK_STATUS(bypassHW->StopPredicate(&cmdBuffer));
-        }
     }
 #endif
 

@@ -106,6 +106,13 @@ namespace encode {
 
         m_usePatchList = m_osInterface->bUsesPatchList;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_pipeline->GetBypassHWLegacy())
+        {
+            m_bypassHwLegacyEnabled = true;
+        }
+#endif
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -376,6 +383,28 @@ namespace encode {
             ENCODE_CHK_STATUS_RETURN(StartStatusReport(statusReportMfx, &cmdBuffer));
         }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_bypassHwLegacyEnabled)
+        {
+            if (!m_pipeline->GetBypassHWLegacy()->IsPipelineCharacteristicsSet())
+            {
+                // AVC codecSettings->chromaFormat = 0 means default 4:2:0 (not MONOCHROME).
+                // Normalize to HCP_CHROMA_FORMAT_YUV420 (= 1) so cfg file "420" entries match.
+                uint32_t avcChromaFmt = m_basicFeature->m_chromaFormat == 0 ? 1 : m_basicFeature->m_chromaFormat;
+                m_pipeline->GetBypassHWLegacy()->SetPipelineCharacteristics(
+                    CODECHAL_AVC,
+                    avcChromaFmt,
+                    m_basicFeature->m_frameWidth,
+                    m_basicFeature->m_frameHeight,
+                    m_basicFeature->m_bitDepth,
+                    m_seqParam->TargetUsage);
+                m_pipeline->GetBypassHWLegacy()->SetPipelineCharacteristicsFlag();
+            }
+            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->AddNullHwProxyCmd(&cmdBuffer, true));
+            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StartPredicate(&cmdBuffer));
+        }
+#endif
+
         SETPAR_AND_ADDCMD(VDENC_CONTROL_STATE, m_vdencItf, &cmdBuffer);
 
         ENCODE_CHK_STATUS_RETURN(AddPictureMfxCommands(cmdBuffer));
@@ -537,6 +566,14 @@ namespace encode {
         }
 
         ENCODE_CHK_STATUS_RETURN(EnsureAllCommandsExecuted(cmdBuffer));
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_bypassHwLegacyEnabled)
+        {
+            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StopPredicate(&cmdBuffer));
+        }
+#endif
+
         ENCODE_CHK_STATUS_RETURN(PrepareHWMetaData(&cmdBuffer));
         ENCODE_CHK_STATUS_RETURN(ReadMfcStatus(cmdBuffer));
 
@@ -1552,9 +1589,17 @@ namespace encode {
         ENCODE_FUNC_CALL();
 
         //for gen 12, we need to add MFX wait for both KIN and VRT before and after MFX Pipemode select...
-        SETPAR_AND_ADDCMD(MFX_WAIT, m_miItf, &cmdBuffer);
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (!m_bypassHwLegacyEnabled)
+#endif
+            SETPAR_AND_ADDCMD(MFX_WAIT, m_miItf, &cmdBuffer);
+
         SETPAR_AND_ADDCMD(MFX_PIPE_MODE_SELECT, m_mfxItf, &cmdBuffer);
-        SETPAR_AND_ADDCMD(MFX_WAIT, m_miItf, &cmdBuffer);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (!m_bypassHwLegacyEnabled)
+#endif
+            SETPAR_AND_ADDCMD(MFX_WAIT, m_miItf, &cmdBuffer);
 
         ENCODE_CHK_STATUS_RETURN(AddAllCmds_MFX_SURFACE_STATE(&cmdBuffer));
 
