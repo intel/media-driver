@@ -2169,6 +2169,7 @@ MOS_STATUS SwFilterAiBase::Clean()
 {
     VP_FUNC_CALL();
 
+    m_Params.stageIndex = 0;
     m_Params.settings.clear();
     m_Params.splitGroupIndex.clear();
     VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
