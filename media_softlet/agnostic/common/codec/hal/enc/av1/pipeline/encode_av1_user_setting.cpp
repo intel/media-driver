@@ -94,6 +94,15 @@ MOS_STATUS Av1Pipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingPtr
         MediaUserSetting::Group::Sequence,
         (int32_t)0,
         false);
+    // AV1 Chroma vs Luma VMAF: default 0 = feature enabled. When set,
+    // the driver forces the SLBB Update DMEM ChromaQpOffset to 0 (see SetDmem), which is
+    // HuC's sole disable gate; the regkey value is never conveyed to HuC.
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "Disable VDEnc Chroma vs Luma VMAF Optimization",
+        MediaUserSetting::Group::Sequence,
+        (int32_t)0,
+        false);
 #endif
     DeclareUserSettingKey(
         userSettingPtr,

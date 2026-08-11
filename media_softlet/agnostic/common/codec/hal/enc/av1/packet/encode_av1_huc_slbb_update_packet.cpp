@@ -148,6 +148,35 @@ MOS_STATUS AV1HucSLBBUpdatePkt::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_
     return MOS_STATUS_SUCCESS;
 }
 
+int8_t AV1HucSLBBUpdatePkt::ComputeChromaQpOffset(int32_t uDcDeltaQ, int32_t uAcDeltaQ, int32_t vDcDeltaQ, int32_t vAcDeltaQ, bool regkeyDisabled)
+{
+    // AV1 Chroma vs Luma VMAF. When the disable regkey is set, force the
+    // offset to 0 (HuC's sole gate then disables the ENC feature); the regkey never reaches
+    // HuC and does not touch the PAK path.
+    if (regkeyDisabled)
+    {
+        return 0;
+    }
+
+    // Average the four DDI chroma delta_q params, round to nearest (ties away from zero),
+    // then clamp to signed +/-64. Equality of the four is not required; when equal (the
+    // common case) the result is that common value, matching the reference model's
+    // (ChromaCb + ChromaCr) >> 1.
+    const int32_t sum = uDcDeltaQ + uAcDeltaQ + vDcDeltaQ + vAcDeltaQ;
+    int32_t       avg = (sum >= 0) ? (sum + 2) / 4 : (sum - 2) / 4;
+
+    if (avg > 64)
+    {
+        avg = 64;
+    }
+    else if (avg < -64)
+    {
+        avg = -64;
+    }
+
+    return (int8_t)avg;
+}
+
 MOS_STATUS AV1HucSLBBUpdatePkt::SetDmem() const
 {
     ENCODE_FUNC_CALL();
@@ -259,6 +288,31 @@ MOS_STATUS AV1HucSLBBUpdatePkt::SetDmem() const
     // platform subclass overrides IsExtendedPlatform() to return true so the kernel
     // skips and the driver's L2/L5 lambda pre-fills survive into the SLBB.
     dmem->ExtendedPlatform = IsExtendedPlatform() ? 1 : 0;
+
+    // ChromaQpOffset: AV1 Chroma vs Luma VMAF. Derive the averaged
+    // chroma QP offset from the four DDI delta_q params (clamped +/-64), then apply the
+    // disable regkey ENTIRELY on the driver side: when "Disable VDEnc Chroma vs Luma VMAF
+    // Optimization" is set, force the offset to 0 so HuC's sole gate (ChromaQpOffset != 0)
+    // naturally disables the ENC feature. The regkey value itself is never sent to HuC and
+    // must NOT touch the PAK chroma QP path (AVP_PIC_STATE DW5, programmed from the same DDI).
+    bool chromaVmafRegkeyDisabled = false;
+#if (_DEBUG || _RELEASE_INTERNAL)
+    {
+        MediaUserSetting::Value outValue;
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            outValue,
+            "Disable VDEnc Chroma vs Luma VMAF Optimization",
+            MediaUserSetting::Group::Sequence);
+        chromaVmafRegkeyDisabled = outValue.Get<bool>();
+    }
+#endif
+    dmem->ChromaQpOffset = ComputeChromaQpOffset(
+        m_basicFeature->m_av1PicParams->u_dc_delta_q,
+        m_basicFeature->m_av1PicParams->u_ac_delta_q,
+        m_basicFeature->m_av1PicParams->v_dc_delta_q,
+        m_basicFeature->m_av1PicParams->v_ac_delta_q,
+        chromaVmafRegkeyDisabled);
 
     // Unlock resource
     ENCODE_CHK_STATUS_RETURN(m_allocator->UnLock(const_cast<MOS_RESOURCE*>(&m_slbbUpdateDmemBuffer[bufIdx])));

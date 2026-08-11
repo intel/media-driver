@@ -84,6 +84,24 @@ public:
     //!
     virtual MOS_STATUS CalculateCommandSize(uint32_t &commandBufferSize, uint32_t &requestedPatchListSize) override;
 
+    //!
+    //! \brief  Derive the AV1 Chroma vs Luma VMAF chroma QP offset.
+    //! \details Averages the four DDI chroma delta_q params, rounds to nearest
+    //!          (ties away from zero), and clamps to signed +/-64:
+    //!          regkeyDisabled ? 0 : clamp( round( (uDc + uAc + vDc + vAc) / 4 ), -64, +64 ).
+    //!          The disable regkey is applied as the final step (forces 0) so HuC's sole
+    //!          gate (ChromaQpOffset != 0) disables the ENC feature; the regkey never
+    //!          reaches HuC and does not touch the PAK path. Pure/static so the
+    //!          driver-DMEM ULT can verify it without packet construction.
+    //! \param  [in] uDcDeltaQ       u_dc_delta_q from m_av1PicParams
+    //! \param  [in] uAcDeltaQ       u_ac_delta_q from m_av1PicParams
+    //! \param  [in] vDcDeltaQ       v_dc_delta_q from m_av1PicParams
+    //! \param  [in] vAcDeltaQ       v_ac_delta_q from m_av1PicParams
+    //! \param  [in] regkeyDisabled  when true, force the returned offset to 0
+    //! \return int8_t  clamped averaged chroma QP offset (0 when regkeyDisabled)
+    //!
+    static int8_t ComputeChromaQpOffset(int32_t uDcDeltaQ, int32_t uAcDeltaQ, int32_t vDcDeltaQ, int32_t vAcDeltaQ, bool regkeyDisabled = false);
+
 protected:
     //!
     //! \brief  Indicates whether the runtime is an extended platform whose
@@ -257,7 +275,11 @@ protected:
         uint8_t AdaptiveTUEnabled;         // AdaptiveTU mode flag: 0=disabled, 1=enabled (process TU7 SLBB via Region 2->3)
         uint8_t ExtendedPlatform;     // 0 = HuC writes DW54/DW63/DW64 conflict-surface fields (base platform default).
                                            // 1 = HuC preserves driver pre-fills (extended platform — driver lambdas L2/L4/L5 own them).
-        uint8_t Reserved6[20];             // Reserved for future use, must be zero-initialized
+        int8_t  ChromaQpOffset;            // AV1 Chroma vs Luma VMAF: driver-computed averaged chroma QP
+                                           // offset (signed, +/-64); 0 when the regkey disables the feature. HuC's sole
+                                           // runtime gate is (ChromaQpOffset != 0). Byte offset 44 -- mirrors the HuC
+                                           // av1_slbb_update.h struct byte-for-byte (kernel ID 21, 64-byte DMEM).
+        uint8_t Reserved6[19];             // Reserved for future use, must be zero-initialized
     };
 
     //!
