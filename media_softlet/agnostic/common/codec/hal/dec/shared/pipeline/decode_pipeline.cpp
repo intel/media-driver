@@ -274,6 +274,22 @@ MOS_STATUS DecodePipeline::Uninitialize()
     // Wait all cmd completion before delete resource.
     m_osInterface->pfnWaitAllCmdCompletion(m_osInterface);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // The last submitted frame's HW completion is only detected by the next
+    // frame's Execute()->StatusCheck() call, so for the final frame(s) in a
+    // sequence that call never happens and their status/debug report is never
+    // processed. All commands are guaranteed complete at this point, so catch
+    // them up here before m_statusReport is deleted below. Skip when
+    // Initialize() failed before CreateStatusReport() (m_statusReport still
+    // null) or when no debug-packet dump is configured, since that is the
+    // only thing this catch-up call exists to preserve for the final frame.
+    if (m_statusReport != nullptr && m_debugInterface != nullptr &&
+        m_debugInterface->DumpIsEnabled(CodechalDbgAttr::attrDebugPacket))
+    {
+        StatusCheck();
+    }
+#endif
+
     Delete_DecodeCpInterface(m_decodecp);
     m_decodecp = nullptr;
 
@@ -822,10 +838,6 @@ MOS_STATUS DecodePipeline::StatusCheck()
         DECODE_NORMALMESSAGE("hucStatus2 is 0x%x at frame %d.", status.m_hucErrorStatus2, m_statusCheckCount);
         DECODE_NORMALMESSAGE("hucStatus is 0x%x at frame %d.", status.m_hucErrorStatus, m_statusCheckCount);
 
-        DECODE_CHK_STATUS(HwStatusCheck(status));
-
-        DECODE_CHK_STATUS(ReportVdboxIds(status));
-
 #if USE_CODECHAL_DEBUG_TOOL
         const DecodeStatusReportData& reportData = statusReport->GetReportData(m_statusCheckCount);
 
@@ -838,7 +850,18 @@ MOS_STATUS DecodePipeline::StatusCheck()
         m_debugInterface->m_currPic            = reportData.currDecodedPic;
         m_debugInterface->m_frameType          = reportData.frameType;
         m_debugInterface->m_secondField        = reportData.secondField;
+#endif
 
+        // Moved after the m_debugInterface per-frame field updates above (was
+        // previously called before them): HwStatusCheck()'s debug-packet dump/
+        // report path reads m_debugInterface->m_currPic/m_frameType/
+        // m_bufferDumpFrameNum, so calling it earlier meant those dumps used the
+        // previous frame's stale values instead of the current frame's.
+        DECODE_CHK_STATUS(HwStatusCheck(status));
+
+        DECODE_CHK_STATUS(ReportVdboxIds(status));
+
+#if USE_CODECHAL_DEBUG_TOOL
 #ifdef _DECODE_PROCESSING_SUPPORTED
         ReportSfcLinearSurfaceUsage(reportData);
 #endif

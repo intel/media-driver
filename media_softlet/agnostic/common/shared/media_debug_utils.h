@@ -95,6 +95,7 @@ static const char *attrHuffmanTbl              = "HuffmanTbl";
 static const char *attrScanParams              = "ScanParams";
 static const char *attrDriverUltDump           = "DriverUltDump";
 static const char *attrGranularCRCDump         = "GranularCRCDump";
+static const char *attrDebugPacket             = "DebugPacket";
 
 static const char *attrDumpEncodePar          = "DumpEncodePar";
 static const char *attrForceCmdDumpLvl        = "ForceCmdDumpLvl";
