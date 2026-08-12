@@ -660,7 +660,6 @@ MHW_SETPAR_DECL_SRC(VDENC_HEVC_VP9_TILE_SLICE_STATE, Vp9EncodeTile)
     ENCODE_CHK_NULL_RETURN(vp9BasicFeature);
     auto picParams       = vp9BasicFeature->m_vp9PicParams;
     ENCODE_CHK_NULL_RETURN(picParams);
-    auto tileCodingParams = m_curTileCodingParams;
     params.ctbSize        = CODEC_VP9_SUPER_BLOCK_WIDTH;
 
     if (!m_enabled)
@@ -670,6 +669,7 @@ MHW_SETPAR_DECL_SRC(VDENC_HEVC_VP9_TILE_SLICE_STATE, Vp9EncodeTile)
     }
     else
     {
+        auto tileCodingParams = m_curTileCodingParams;
         params.tileWidth  = ((tileCodingParams.TileWidthInMinCbMinus1 + 1) * CODEC_VP9_MIN_BLOCK_WIDTH);
         params.tileHeight = ((tileCodingParams.TileHeightInMinCbMinus1 + 1) * CODEC_VP9_MIN_BLOCK_HEIGHT);
 
@@ -706,7 +706,6 @@ MHW_SETPAR_DECL_SRC(VDENC_WALKER_STATE, Vp9EncodeTile)
     ENCODE_CHK_NULL_RETURN(vp9BasicFeature);
     auto picParams = vp9BasicFeature->m_vp9PicParams;
     ENCODE_CHK_NULL_RETURN(picParams);
-    auto tileCodingParams = m_curTileCodingParams;
 
     if (!m_enabled)
     {
@@ -716,6 +715,7 @@ MHW_SETPAR_DECL_SRC(VDENC_WALKER_STATE, Vp9EncodeTile)
     }
     else
     {
+        auto tileCodingParams = m_curTileCodingParams;
         params.tileSliceStartLcuMbX = tileCodingParams.TileStartLCUX;
         params.tileSliceStartLcuMbY = tileCodingParams.TileStartLCUY;
 
