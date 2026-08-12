@@ -750,7 +750,7 @@ int32_t CmProgramRT::GetIsaFileName( char* & isaFileName )
 //| Purpose:    Get Kernel's options
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmProgramRT::GetKernelOptions( char* & kernelOptions )
+int32_t CmProgramRT::GetKernelOptions( char* & kernelOptions ) const
 {
     kernelOptions = m_options;
     return CM_SUCCESS;
@@ -760,7 +760,7 @@ int32_t CmProgramRT::GetKernelOptions( char* & kernelOptions )
 //| Purpose:    Get the number of Surfaces
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-uint32_t CmProgramRT::GetSurfaceCount(void)
+uint32_t CmProgramRT::GetSurfaceCount(void) const
 {
     return m_surfaceCount;
 }
@@ -919,7 +919,7 @@ uint32_t CmProgramRT::ReleaseKernelInfo(uint32_t index)
     }
 }
 
-int32_t CmProgramRT::GetKernelInfoRefCount(uint32_t index, uint32_t& refCount)
+int32_t CmProgramRT::GetKernelInfoRefCount(uint32_t index, uint32_t& refCount) const
 {
     CM_KERNEL_INFO* kernelInfo = nullptr;
 
@@ -944,7 +944,7 @@ int32_t CmProgramRT::GetKernelInfoRefCount(uint32_t index, uint32_t& refCount)
     }
 }
 
-int32_t CmProgramRT::GetCISAVersion(uint32_t& majorVersion, uint32_t& minorVersion)
+int32_t CmProgramRT::GetCISAVersion(uint32_t& majorVersion, uint32_t& minorVersion) const
 {
     majorVersion = m_cisaMajorVersion;
     minorVersion = m_cisaMinorVersion;
@@ -957,7 +957,7 @@ uint32_t CmProgramRT::GetProgramIndex()
     return m_programIndex;
 }
 
-vISA::ISAfile *CmProgramRT::getISAfile()
+vISA::ISAfile *CmProgramRT::getISAfile() const
 {
     return m_isaFile;
 }
@@ -975,7 +975,7 @@ inline void hashCombineString(uint32_t &res, char *str)
     hashCombine(res, strHash);
 }
 
-uint32_t CmProgramRT::GetKernelInfoHash(CM_KERNEL_INFO *kernelInfo)
+uint32_t CmProgramRT::GetKernelInfoHash(CM_KERNEL_INFO *kernelInfo) const
 {
     uint32_t value = 0;
     hashCombineString(value, kernelInfo->kernelName);

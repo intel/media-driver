@@ -64,7 +64,7 @@ MOS_STATUS CmHashTable::Init()
     return eStatus;
 }
 
-void CmHashTable::Free()
+void CmHashTable::Free() const
 {
     if (m_hashTable.pHashEntries) MOS_FreeMemory(m_hashTable.pHashEntries);
 }

@@ -43,10 +43,10 @@ public:
 
     MOS_STATUS Initialize(CMRT_UMD::CmDeviceRT *device);
     MOS_STATUS Allocate(CmKernelEx **kernels, uint32_t count);
-    void Submit(uint32_t trackerIndex, uint32_t tracker);
+    void Submit(uint32_t trackerIndex, uint32_t tracker) const;
 
-    inline MOS_RESOURCE *GetResource() {return m_resource; }
-    inline uint32_t GetSize() {return m_scratchSize; }
+    inline MOS_RESOURCE *GetResource() const {return m_resource; }
+    inline uint32_t GetSize() const {return m_scratchSize; }
 
 protected:
     CMRT_UMD::CmDeviceRT *m_device;
