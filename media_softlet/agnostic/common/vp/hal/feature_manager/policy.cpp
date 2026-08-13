@@ -1123,6 +1123,21 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature, bool isCamPipeWithBaye
 
     VP_EngineEntry *cscEngine = &csc->GetFilterEngineCaps();
 
+    // TileB surfaces must never be routed to the Render/FC path (out of scope for
+    // this feature). When TileB is enabled and the input or output surface is TileB
+    // (surfaced as MOS_TILE_X_GMM once the layout is active), RenderNeeded is forced
+    // to 0 before each fresh-computation return below so pipeline selection falls to
+    // VEBOX/SFC only. (The already-processed early return hands back caps computed and
+    // already TileB-corrected on the prior pass, so it needs no guard.)
+    // If neither engine can handle the operation, downstream pipeline selection
+    // returns MOS_STATUS_INVALID_PARAMETER; there is deliberately no Render fallback.
+    // Only the GMM tile mode is available here (CSC params carry no TileB tile type),
+    // so a genuine TileX surface would share this state; accepted because the gate is
+    // behind IsTileBEnabled and TileX media surfaces do not occur on this platform.
+    bool isTileBSurface = userFeatureControl->IsTileBEnabled() &&
+                          (cscParams->input.tileMode  == MOS_TILE_X_GMM ||
+                           cscParams->output.tileMode == MOS_TILE_X_GMM);
+
     cscEngine->isBayerInputInUse = false;
     // Clean usedForNextPass flag.
     if (cscEngine->usedForNextPass)
@@ -1204,6 +1219,11 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature, bool isCamPipeWithBaye
             }
         }
 
+        if (isTileBSurface)
+        {
+            cscEngine->RenderNeeded = 0;
+        }
+
         PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
         return MOS_STATUS_SUCCESS;
     }
@@ -1274,6 +1294,11 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature, bool isCamPipeWithBaye
                                     isAlphaSettingSupportedByVebox);
             
         }
+    }
+
+    if (isTileBSurface)
+    {
+        cscEngine->RenderNeeded = 0;
     }
 
     PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
@@ -1729,19 +1754,23 @@ bool Policy::IsSfcRotationSupported(FeatureParamRotMir *rotationParams)
         }
         else if (rotationParams->rotation <= VPHAL_ROTATION_270)
         {
-            // Rotation w/o mirror case
+            // Rotation w/o mirror case. TileB shares TileY's 4KB tile geometry and
+            // the same SFC rotation support, so accept it wherever TileY is accepted.
             if (m_hwCaps.m_sfcHwEntry[rotationParams->formatInput].rotationSupported &&
-                rotationParams->surfInfo.tileOutput == MOS_TILE_Y)
+                (rotationParams->surfInfo.tileOutput == MOS_TILE_Y ||
+                 rotationParams->surfInfo.tileOutput == MOS_TILE_B))
             {
                 isSfcRotationSupported = true;
             }
         }
         else
         {
-            // Rotation w/ mirror case
+            // Rotation w/ mirror case. TileB shares TileY's 4KB tile geometry and
+            // the same SFC rotation support, so accept it wherever TileY is accepted.
             if (m_hwCaps.m_sfcHwEntry[rotationParams->formatInput].mirrorSupported &&
                 m_hwCaps.m_sfcHwEntry[rotationParams->formatInput].rotationSupported &&
-                rotationParams->surfInfo.tileOutput == MOS_TILE_Y)
+                (rotationParams->surfInfo.tileOutput == MOS_TILE_Y ||
+                 rotationParams->surfInfo.tileOutput == MOS_TILE_B))
             {
                 isSfcRotationSupported = true;
             }

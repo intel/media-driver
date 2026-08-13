@@ -1862,6 +1862,17 @@ MOS_STATUS VpResourceManager::ReAllocateVeboxDenoiseOutputSurface(VP_EXECUTE_CAP
         TileType = inputSurface->osSurface->TileType;
     }
 
+    // The VEBOX denoise reference (FFDN) is an internal surface consumed only by
+    // the DN block, which does not support the TileB media layout. When the input
+    // carries TileB, keep the reference on the base Tile4 geometry (via the
+    // Y-major request that resolves to Tile4) so the DN read/write path stays on
+    // a HW-supported tiling. The plane offsets are unchanged, so the FFDN surface
+    // state still shares with the vebox input surface state.
+    if (TileType == MOS_TILE_B)
+    {
+        TileType = MOS_TILE_Y;
+    }
+
     for (uint32_t i = 0; i < VP_NUM_DN_SURFACES; i++)
     {
         VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(

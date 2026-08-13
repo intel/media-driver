@@ -158,6 +158,15 @@ public:
         return m_ctrlVal.disableSfc;
     }
 
+    //! \brief    Report whether the TileB texture layout is enabled for this device.
+    //! \details  Open-source default is false. The closed-source override queries the
+    //!           SKU table (FtrTileB) so open policy code can gate TileB behavior
+    //!           without direct SKU-table access.
+    virtual bool IsTileBEnabled()
+    {
+        return false;
+    }
+
     bool IsComputeContextEnabled()
     {
         return m_ctrlVal.computeContextEnabled;

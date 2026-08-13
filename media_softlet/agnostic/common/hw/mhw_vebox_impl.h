@@ -124,6 +124,12 @@ public:
         case MOS_TILE_X:
             tileMode = 2;
             break;
+        case MOS_TILE_B:
+            // TileB carries HW tile-mode value 2. Defensive: the GMM tile-enabled
+            // path above already returns tileModeGMM for TileB surfaces; this keeps
+            // the fallback correct if a TileB surface ever reaches the non-GMM path.
+            tileMode = 2;
+            break;
         default:
             tileMode = 3;
             break;
