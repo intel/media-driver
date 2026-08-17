@@ -81,6 +81,12 @@ typedef char**                  PPCHAR;                     //!< Pointer to a PC
 
 using MOS_CONTEXT_HANDLE = void *;
 
+enum GmmLibMode : uint32_t
+{
+    GMMLIB_LEGACY   = 0,
+    GMMLIB2_ENABLED = 1
+};
+
 //------------------------------------------------------------------------------
 // SECTION: Macros
 //
