@@ -85,6 +85,37 @@ public:
     virtual VAStatus ContextInitialize(CodechalSetting * codecHalSettings) = 0;
 
     //!
+    //! \brief    Whether this codec runs on the media-softlet "next" encode pipeline
+    //!           instead of the classic legacy-Codechal path.
+    //! \details  Classic codecs return false and use the inline legacy-Codechal creation in
+    //!           DdiEncodeFunctions::CreateContext. Codecs on the next pipeline override this
+    //!           to return true; CreateContext then routes them to CodecHalInit, which builds
+    //!           a media-softlet pipeline and leaves m_encodeCtx->pCodecHal null (no classic
+    //!           Codechal device).
+    //! \return   bool
+    //!           false for classic codecs (default); true for next-pipeline codecs.
+    //!
+    virtual bool UseNextEncodePipeline() { return false; }
+
+    //!
+    //! \brief    Create and initialize the next-pipeline codec HAL for this encode context.
+    //! \details  Only invoked for codecs whose UseNextEncodePipeline() returns true. Those
+    //!           codecs override this in their own DDI to
+    //!           create a media-softlet pipeline via MediaItfMgr::CreateHAL, leaving
+    //!           m_encodeCtx->pCodecHal null. The classic codecs never reach this path (their
+    //!           legacy-Codechal device is created inline in CreateContext), so the base
+    //!           implementation is a no-op stub.
+    //!
+    //! \param    [in] mediaCtx
+    //!           DDI media context
+    //! \param    [in] mosCtx
+    //!           MOS context for HAL creation
+    //! \return   VAStatus
+    //!           VA_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual VAStatus CodecHalInit(DDI_MEDIA_CONTEXT *mediaCtx, PMOS_CONTEXT mosCtx) { return VA_STATUS_ERROR_UNIMPLEMENTED; }
+
+    //!
     //! \brief Destructor
     //!
     virtual ~DdiEncodeBase()
