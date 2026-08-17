@@ -201,6 +201,9 @@ MOS_SURFACE *Allocator::AllocateSurface(MOS_ALLOC_GFXRES_PARAMS &param, bool zer
     {
         return nullptr;
     }
+    MOS_ZeroMemory(surface, sizeof(MOS_SURFACE));
+    surface->Format = Format_Invalid;
+
     MOS_STATUS status = m_osInterface->pfnAllocateResource(m_osInterface, &param, &surface->OsResource);
 
     m_osInterface->pfnGetResourceInfo(m_osInterface, &surface->OsResource, surface);
