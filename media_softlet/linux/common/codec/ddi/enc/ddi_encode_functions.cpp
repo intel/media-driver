@@ -199,192 +199,113 @@ VAStatus DdiEncodeFunctions::CreateContext (
     encCtx->wModeType     = ddiEncode->GetEncodeCodecMode(configItem->profile, configItem->entrypoint);
     encCtx->codecFunction = ddiEncode->GetEncodeCodecFunction(configItem->profile, configItem->entrypoint, encCtx->bVdencActive);
 
-    if (!ddiEncode->UseNextEncodePipeline())
+    CODECHAL_STANDARD_INFO standardInfo;
+    MOS_ZeroMemory(&standardInfo, sizeof(CODECHAL_STANDARD_INFO));
+    standardInfo.CodecFunction = encCtx->codecFunction;
+    standardInfo.Mode          = encCtx->wModeType;
+    Codechal *pCodecHal        = CodechalDeviceNext::CreateFactory(
+        nullptr,
+        &mosCtx,
+        &standardInfo,
+        nullptr);
+    if (pCodecHal == nullptr)
     {
-        // Classic Codechal path, taken by every codec not on the next encode pipeline: a
-        // Codechal device is created here and owned by encCtx->pCodecHal. Unchanged
-        // from the original flow, only re-indented into this branch.
-        CODECHAL_STANDARD_INFO standardInfo;
-        MOS_ZeroMemory(&standardInfo, sizeof(CODECHAL_STANDARD_INFO));
-        standardInfo.CodecFunction = encCtx->codecFunction;
-        standardInfo.Mode          = encCtx->wModeType;
-        Codechal *pCodecHal        = CodechalDeviceNext::CreateFactory(
-            nullptr,
-            &mosCtx,
-            &standardInfo,
-            nullptr);
-        if (pCodecHal == nullptr)
-        {
-            // add anything necessary here to free the resource
-            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
-            CleanUp(encCtx);
-            return vaStatus;
-        }
-
-        encCtx->pCodecHal = pCodecHal;
-
-        // Setup some initial data
-        encCtx->dworiFrameWidth  = pictureWidth;
-        encCtx->dworiFrameHeight = pictureHeight;
-        encCtx->wPicWidthInMB    = (uint16_t)(DDI_CODEC_NUM_MACROBLOCKS_WIDTH(pictureWidth));
-        encCtx->wPicHeightInMB   = (uint16_t)(DDI_CODEC_NUM_MACROBLOCKS_HEIGHT(pictureHeight));
-        encCtx->dwFrameWidth     = encCtx->wPicWidthInMB * CODECHAL_MACROBLOCK_WIDTH;
-        encCtx->dwFrameHeight    = encCtx->wPicHeightInMB * CODECHAL_MACROBLOCK_HEIGHT;
-        //recoder old resolution for dynamic resolution  change
-        encCtx->wContextPicWidthInMB  = encCtx->wPicWidthInMB;
-        encCtx->wContextPicHeightInMB = encCtx->wPicHeightInMB;
-        encCtx->wOriPicWidthInMB      = encCtx->wPicWidthInMB;
-        encCtx->wOriPicHeightInMB     = encCtx->wPicHeightInMB;
-        encCtx->targetUsage           = TARGETUSAGE_RT_SPEED;
-        // Attach PMEDIDA_DRIVER_CONTEXT
-        encCtx->pMediaCtx = mediaCtx;
-
-        encCtx->pCpDdiInterfaceNext->SetCpFlags(flag);
-        encCtx->pCpDdiInterfaceNext->SetCpParams(CP_TYPE_NONE, encCtx->m_encode->m_codechalSettings);
-
-        vaStatus = encCtx->m_encode->ContextInitialize(encCtx->m_encode->m_codechalSettings);
-
-        if (vaStatus != VA_STATUS_SUCCESS)
-        {
-            CleanUp(encCtx);
-            return vaStatus;
-        }
-
-        MOS_STATUS eStatus = pCodecHal->Allocate(encCtx->m_encode->m_codechalSettings);
-
-        PMOS_INTERFACE osInterface = pCodecHal->GetOsInterface();
-        if (osInterface != nullptr &&
-            !osInterface->apoMosEnabled &&
-            MEDIA_IS_SKU(osInterface->pfnGetSkuTable(osInterface), FtrMemoryCompression) &&
-            !mediaCtx->pMediaMemDecompState)
-        {
-            mediaCtx->pMediaMemDecompState =
-                static_cast<MediaMemDecompState *>(MmdDevice::CreateFactory(&mosCtx));
-        }
-
-        if (eStatus != MOS_STATUS_SUCCESS)
-        {
-            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
-            CleanUp(encCtx);
-            return vaStatus;
-        }
-
-        vaStatus = encCtx->m_encode->InitCompBuffer();
-        if (vaStatus != VA_STATUS_SUCCESS)
-        {
-            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
-            CleanUp(encCtx);
-            return vaStatus;
-        }
-
-        // register the render target surfaces for this encoder instance
-        // This is a must as driver has the constraint, 127 surfaces per context
-        for (int32_t i = 0; i < renderTargetsNum; i++)
-        {
-            DDI_MEDIA_SURFACE *surface;
-
-            surface = MediaLibvaCommonNext::GetSurfaceFromVASurfaceID(mediaCtx, renderTargets[i]);
-            if (nullptr == surface)
-            {
-                DDI_CODEC_ASSERTMESSAGE("DDI: invalid render target %d in vpgEncodeCreateContext.", i);
-                vaStatus = VA_STATUS_ERROR_INVALID_SURFACE;
-                CleanUp(encCtx);
-                return vaStatus;
-            }
-            encCtx->RTtbl.pRT[i] = surface;
-            encCtx->RTtbl.iNumRenderTargets++;
-        }
-
-        // convert PDDI_ENCODE_CONTEXT to VAContextID
-        MosUtilities::MosLockMutex(&mediaCtx->EncoderMutex);
-        PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT vaContextHeapElmt = MediaLibvaUtilNext::DdiAllocPVAContextFromHeap(mediaCtx->pEncoderCtxHeap);
-        if (nullptr == vaContextHeapElmt)
-        {
-            MosUtilities::MosUnlockMutex(&mediaCtx->EncoderMutex);
-            vaStatus = VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
-            CleanUp(encCtx);
-            return vaStatus;
-        }
-
-        vaContextHeapElmt->pVaContext = (void *)encCtx;
-        mediaCtx->uiNumEncoders++;
-        *context = (VAContextID)(vaContextHeapElmt->uiVaContextID + DDI_MEDIA_SOFTLET_VACONTEXTID_ENCODER_OFFSET);
-        MosUtilities::MosUnlockMutex(&mediaCtx->EncoderMutex);
-        DDI_CODEC_VERBOSEMESSAGE(" DdiEncodeFunctions::CreateContext ctx %p  *context %d", ctx, *context);
-    }
-    else
-    {
-        // Next (media-softlet) encode path: the codec HAL is a media-softlet pipeline
-        // created via the media interface manager inside CodecHalInit (which lives in the
-        // codec's own DDI). No classic Codechal device is created here, so
-        // encCtx->pCodecHal stays null.
-        encCtx->dworiFrameWidth  = pictureWidth;
-        encCtx->dworiFrameHeight = pictureHeight;
-        encCtx->wPicWidthInMB    = (uint16_t)(DDI_CODEC_NUM_MACROBLOCKS_WIDTH(pictureWidth));
-        encCtx->wPicHeightInMB   = (uint16_t)(DDI_CODEC_NUM_MACROBLOCKS_HEIGHT(pictureHeight));
-        encCtx->dwFrameWidth     = encCtx->wPicWidthInMB * CODECHAL_MACROBLOCK_WIDTH;
-        encCtx->dwFrameHeight    = encCtx->wPicHeightInMB * CODECHAL_MACROBLOCK_HEIGHT;
-        encCtx->wContextPicWidthInMB  = encCtx->wPicWidthInMB;
-        encCtx->wContextPicHeightInMB = encCtx->wPicHeightInMB;
-        encCtx->wOriPicWidthInMB      = encCtx->wPicWidthInMB;
-        encCtx->wOriPicHeightInMB     = encCtx->wPicHeightInMB;
-        encCtx->targetUsage           = TARGETUSAGE_RT_SPEED;
-        encCtx->pMediaCtx             = mediaCtx;
-
-        encCtx->pCpDdiInterfaceNext->SetCpFlags(flag);
-        encCtx->pCpDdiInterfaceNext->SetCpParams(CP_TYPE_NONE, encCtx->m_encode->m_codechalSettings);
-
-        vaStatus = ddiEncode->CodecHalInit(mediaCtx, &mosCtx);
-        if (vaStatus != VA_STATUS_SUCCESS)
-        {
-            CleanUp(encCtx);
-            return vaStatus;
-        }
-
-        vaStatus = encCtx->m_encode->InitCompBuffer();
-        if (vaStatus != VA_STATUS_SUCCESS)
-        {
-            vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
-            CleanUp(encCtx);
-            return vaStatus;
-        }
-
-        // register the render target surfaces for this encoder instance
-        // This is a must as driver has the constraint, 127 surfaces per context
-        for (int32_t i = 0; i < renderTargetsNum; i++)
-        {
-            DDI_MEDIA_SURFACE *surface;
-
-            surface = MediaLibvaCommonNext::GetSurfaceFromVASurfaceID(mediaCtx, renderTargets[i]);
-            if (nullptr == surface)
-            {
-                DDI_CODEC_ASSERTMESSAGE("DDI: invalid render target %d in vpgEncodeCreateContext.", i);
-                vaStatus = VA_STATUS_ERROR_INVALID_SURFACE;
-                CleanUp(encCtx);
-                return vaStatus;
-            }
-            encCtx->RTtbl.pRT[i] = surface;
-            encCtx->RTtbl.iNumRenderTargets++;
-        }
-
-        // convert PDDI_ENCODE_CONTEXT to VAContextID
-        MosUtilities::MosLockMutex(&mediaCtx->EncoderMutex);
-        PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT vaContextHeapElmt = MediaLibvaUtilNext::DdiAllocPVAContextFromHeap(mediaCtx->pEncoderCtxHeap);
-        if (nullptr == vaContextHeapElmt)
-        {
-            MosUtilities::MosUnlockMutex(&mediaCtx->EncoderMutex);
-            vaStatus = VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
-            CleanUp(encCtx);
-            return vaStatus;
-        }
-
-        vaContextHeapElmt->pVaContext = (void *)encCtx;
-        mediaCtx->uiNumEncoders++;
-        *context = (VAContextID)(vaContextHeapElmt->uiVaContextID + DDI_MEDIA_SOFTLET_VACONTEXTID_ENCODER_OFFSET);
-        MosUtilities::MosUnlockMutex(&mediaCtx->EncoderMutex);
-        DDI_CODEC_VERBOSEMESSAGE(" DdiEncodeFunctions::CreateContext ctx %p  *context %d", ctx, *context);
+        // add anything necessary here to free the resource
+        vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
+        CleanUp(encCtx);
+        return vaStatus;
     }
 
+    encCtx->pCodecHal = pCodecHal;
+
+    // Setup some initial data
+    encCtx->dworiFrameWidth  = pictureWidth;
+    encCtx->dworiFrameHeight = pictureHeight;
+    encCtx->wPicWidthInMB    = (uint16_t)(DDI_CODEC_NUM_MACROBLOCKS_WIDTH(pictureWidth));
+    encCtx->wPicHeightInMB   = (uint16_t)(DDI_CODEC_NUM_MACROBLOCKS_HEIGHT(pictureHeight));
+    encCtx->dwFrameWidth     = encCtx->wPicWidthInMB * CODECHAL_MACROBLOCK_WIDTH;
+    encCtx->dwFrameHeight    = encCtx->wPicHeightInMB * CODECHAL_MACROBLOCK_HEIGHT;
+    //recoder old resolution for dynamic resolution  change
+    encCtx->wContextPicWidthInMB  = encCtx->wPicWidthInMB;
+    encCtx->wContextPicHeightInMB = encCtx->wPicHeightInMB;
+    encCtx->wOriPicWidthInMB      = encCtx->wPicWidthInMB;
+    encCtx->wOriPicHeightInMB     = encCtx->wPicHeightInMB;
+    encCtx->targetUsage           = TARGETUSAGE_RT_SPEED;
+    // Attach PMEDIDA_DRIVER_CONTEXT
+    encCtx->pMediaCtx = mediaCtx;
+
+    encCtx->pCpDdiInterfaceNext->SetCpFlags(flag);
+    encCtx->pCpDdiInterfaceNext->SetCpParams(CP_TYPE_NONE, encCtx->m_encode->m_codechalSettings);
+
+    vaStatus = encCtx->m_encode->ContextInitialize(encCtx->m_encode->m_codechalSettings);
+
+    if (vaStatus != VA_STATUS_SUCCESS)
+    {
+        CleanUp(encCtx);
+        return vaStatus;
+    }
+
+    MOS_STATUS eStatus = pCodecHal->Allocate(encCtx->m_encode->m_codechalSettings);
+
+    PMOS_INTERFACE osInterface = pCodecHal->GetOsInterface();
+    if (osInterface != nullptr &&
+        !osInterface->apoMosEnabled &&
+        MEDIA_IS_SKU(osInterface->pfnGetSkuTable(osInterface), FtrMemoryCompression) &&
+        !mediaCtx->pMediaMemDecompState)
+    {
+        mediaCtx->pMediaMemDecompState =
+            static_cast<MediaMemDecompState *>(MmdDevice::CreateFactory(&mosCtx));
+    }
+
+    if (eStatus != MOS_STATUS_SUCCESS)
+    {
+        vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
+        CleanUp(encCtx);
+        return vaStatus;
+    }
+
+    vaStatus = encCtx->m_encode->InitCompBuffer();
+    if (vaStatus != VA_STATUS_SUCCESS)
+    {
+        vaStatus = VA_STATUS_ERROR_ALLOCATION_FAILED;
+        CleanUp(encCtx);
+        return vaStatus;
+    }
+
+    // register the render target surfaces for this encoder instance
+    // This is a must as driver has the constraint, 127 surfaces per context
+    for (int32_t i = 0; i < renderTargetsNum; i++)
+    {
+        DDI_MEDIA_SURFACE *surface;
+
+        surface = MediaLibvaCommonNext::GetSurfaceFromVASurfaceID(mediaCtx, renderTargets[i]);
+        if (nullptr == surface)
+        {
+            DDI_CODEC_ASSERTMESSAGE("DDI: invalid render target %d in vpgEncodeCreateContext.", i);
+            vaStatus = VA_STATUS_ERROR_INVALID_SURFACE;
+            CleanUp(encCtx);
+            return vaStatus;
+        }
+        encCtx->RTtbl.pRT[i] = surface;
+        encCtx->RTtbl.iNumRenderTargets++;
+    }
+
+    // convert PDDI_ENCODE_CONTEXT to VAContextID
+    MosUtilities::MosLockMutex(&mediaCtx->EncoderMutex);
+    PDDI_MEDIA_VACONTEXT_HEAP_ELEMENT vaContextHeapElmt = MediaLibvaUtilNext::DdiAllocPVAContextFromHeap(mediaCtx->pEncoderCtxHeap);
+    if (nullptr == vaContextHeapElmt)
+    {
+        MosUtilities::MosUnlockMutex(&mediaCtx->EncoderMutex);
+        vaStatus = VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
+        CleanUp(encCtx);
+        return vaStatus;
+    }
+
+    vaContextHeapElmt->pVaContext = (void *)encCtx;
+    mediaCtx->uiNumEncoders++;
+    *context = (VAContextID)(vaContextHeapElmt->uiVaContextID + DDI_MEDIA_SOFTLET_VACONTEXTID_ENCODER_OFFSET);
+    MosUtilities::MosUnlockMutex(&mediaCtx->EncoderMutex);
+    DDI_CODEC_VERBOSEMESSAGE(" DdiEncodeFunctions::CreateContext ctx %p  *context %d", ctx, *context);
     return vaStatus;
 }
 
@@ -402,10 +323,8 @@ VAStatus DdiEncodeFunctions::DestroyContext (
     uint32_t        ctxType                   = 0;
     encode::PDDI_ENCODE_CONTEXT encCtx  = (decltype(encCtx))MediaLibvaCommonNext::GetContextFromContextID(ctx, context, &ctxType);
     DDI_CODEC_CHK_NULL(encCtx, "nullptr encCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CODEC_CHK_NULL(encCtx->pCodecHal, "nullptr encCtx->pCodecHal", VA_STATUS_ERROR_INVALID_CONTEXT);
 
-    // Next-pipeline codecs create no classic Codechal device (encCtx->pCodecHal stays null); their
-    // pipeline is owned by encCtx->m_encode and freed with it below. A null pCodecHal is valid
-    // here, so the classic teardown is guarded rather than asserted non-null.
     Codechal *codecHal = encCtx->pCodecHal;
 
     if (nullptr != encCtx->m_encode)
@@ -418,19 +337,15 @@ VAStatus DdiEncodeFunctions::DestroyContext (
         }
     }
 
-    // Classic CodecHal teardown; skipped for next-pipeline codecs (codecHal == nullptr).
-    if (codecHal != nullptr)
+    if (codecHal->GetOsInterface() && codecHal->GetOsInterface()->pOsContext)
     {
-        if (codecHal->GetOsInterface() && codecHal->GetOsInterface()->pOsContext)
-        {
-            MOS_FreeMemory(codecHal->GetOsInterface()->pOsContext->pPerfData);
-            codecHal->GetOsInterface()->pOsContext->pPerfData = nullptr;
-        }
-
-        // destroy codechal
-        codecHal->Destroy();
-        MOS_Delete(codecHal);
+        MOS_FreeMemory(codecHal->GetOsInterface()->pOsContext->pPerfData);
+        codecHal->GetOsInterface()->pOsContext->pPerfData = nullptr;
     }
+
+    // destroy codechal
+    codecHal->Destroy();
+    MOS_Delete(codecHal);
 
     if (encCtx->pCpDdiInterfaceNext)
     {
