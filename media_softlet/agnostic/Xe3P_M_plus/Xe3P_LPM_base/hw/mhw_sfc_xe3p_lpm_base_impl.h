@@ -148,10 +148,11 @@ public:
             cmd->DW3.OutputSurfaceFormatType = cmd->OUTPUT_SURFACE_FORMAT_TYPE_A8B8G8R85;
             cmd->DW4.Bitdepth                = 0;
             cmd->DW3.Fp16OutputEnable        = 1;
-            if (params.bDV3DLutFp16Passthrough)
+            if (params.bFp16OutputPassthrough)
             {
-                // DV 3DLUT FP16 output (HW Arch): FP16_input_select=0 (CCM tap), FP16_gain=1.
-                // Identity EOTF + identity CCM indirect state is programmed separately. DV FP16 3DLUT
+                // FP16 output passthrough (DV 3DLUT, or LutCompound) per HW Arch:
+                // FP16_input_select=0 (CCM tap), FP16_gain=1. Identity EOTF + identity CCM indirect
+                // state is programmed separately.
                 cmd->DW3.Fp16InputSelect                      = 0;
                 cmd->DW66.GainFactorForRgb232ToFp16Conversion = 1;
             }
@@ -324,7 +325,7 @@ public:
             addResFn, initMocsFn));
 
         // Group C platform-specific: sfcIndirectState buffer (DW63_64/DW65)
-        if ((params.isFullRgbG10P709 || params.bDV3DLutFp16Passthrough) && params.sfcIndirectState && !Mos_ResourceIsNull(params.sfcIndirectState))
+        if ((params.isFullRgbG10P709 || params.bFp16OutputPassthrough) && params.sfcIndirectState && !Mos_ResourceIsNull(params.sfcIndirectState))
         {
             MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
             resourceParams.presResource    = params.sfcIndirectState;
