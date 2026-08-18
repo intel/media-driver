@@ -323,7 +323,10 @@ typedef struct _MOS_LOCK_PARAMS
             uint32_t ForceCached         : 1;                                    //!< Prefer normal map to global GTT map(Uncached) if both can work
             uint32_t DumpBeforeSubmit    : 1;                                    //!< Lock only for dump before submit
             uint32_t DumpAfterSubmit     : 1;                                    //!< Lock only for dump after submit
-            uint32_t Reserved            : 23;                                   //!< Reserved for expansion.
+            uint32_t AfterCmdCompletion  : 1;                                    //!< Caller has already confirmed full GPU cmd completion
+                                                                                  //!< (e.g. via pfnWaitAllCmdCompletion); safe to bypass
+                                                                                  //!< the "still in Cmd list" recycler gate.
+            uint32_t Reserved            : 22;                                   //!< Reserved for expansion.
         };
         uint32_t    Value;
     };

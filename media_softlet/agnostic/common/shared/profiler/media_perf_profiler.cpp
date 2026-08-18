@@ -212,12 +212,18 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
 
     PMOS_CONTEXT pOsContext = osInterface->pOsContext;
     CHK_NULL_NO_STATUS_RETURN(pOsContext);
+
     MosUtilities::MosLockMutex(profiler->m_mutex);
     if (profiler->m_refMap[pOsContext] > 0)
     {
         profiler->m_refMap[pOsContext]--;
     }
-    osInterface->pfnWaitAllCmdCompletion(osInterface);
+
+    bool cmdCompletionConfirmed = false;
+    if (osInterface->pfnWaitAllCmdCompletion)
+    {
+        cmdCompletionConfirmed = osInterface->pfnWaitAllCmdCompletion(osInterface) == MOS_STATUS_SUCCESS;
+    }
 
     profiler->m_contextIndexMap.erase(context);
 
@@ -227,7 +233,7 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
         {
             if(profiler->m_enableProfilerDump)
             {
-                profiler->SavePerfData(osInterface);
+                profiler->SavePerfData(osInterface, cmdCompletionConfirmed);
             }
 
             osInterface->pfnFreeResource(
@@ -801,7 +807,7 @@ MOS_STATUS MediaPerfProfiler::AddCopyQualityMetricCmd(
     return status;
 }
 
-MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface)
+MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface, bool cmdCompletionConfirmed)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
 
@@ -818,6 +824,7 @@ MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface)
         MOS_ZeroMemory(&LockFlagsNoOverWrite, sizeof(MOS_LOCK_PARAMS));
         LockFlagsNoOverWrite.WriteOnly = 1;
         LockFlagsNoOverWrite.NoOverWrite = 1;
+        LockFlagsNoOverWrite.AfterCmdCompletion = cmdCompletionConfirmed;
 
         if (m_perfDataCombined == nullptr)
         {
@@ -885,6 +892,7 @@ MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface)
 
         LockFlagsNoOverWrite.WriteOnly = 1;
         LockFlagsNoOverWrite.NoOverWrite = 1;
+        LockFlagsNoOverWrite.AfterCmdCompletion = cmdCompletionConfirmed;
 
         uint8_t* pData = (uint8_t*)osInterface->pfnLockResource(
             osInterface,
