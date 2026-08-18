@@ -26,7 +26,7 @@
 //!           a programmable Microcontroller added to the VDBox pipeline.
 //!
 
-/* Media Kernel Version - 20260811 */
+/* Media Kernel Version - 20260814 */
 
 #pragma once
 
@@ -942,7 +942,7 @@ const uint32_t __MediaKernels_av1slbb_update_nvl [] =
     0x7a800f00, 0x1675002b, 0xffffffb8, 0xfc8723cf,
     0x0d000000, 0x10000000, 0x00fc8789, 0xe3830000,
     0x0ccb83e3, 0x00d89f89, 0xc0310000, 0x001f7a80,
-    0xea885174, 0x83084f8b, 0xc983fce1, 0x7fe38102,
+    0xea885174, 0x83084f8b, 0xc983fce1, 0x3fe38102,
     0x80ffffff, 0x4f8901fa, 0xd89f8908, 0x77000000,
     0x81f18922, 0x000c00e1, 0x00f98100, 0x75000004,
     0xffe68112, 0x81fffff3, 0x000800ce, 0xccb78900,
