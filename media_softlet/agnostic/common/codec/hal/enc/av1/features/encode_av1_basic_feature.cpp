@@ -255,6 +255,11 @@ MOS_STATUS Av1BasicFeature::Update(void *params)
         auto tfFeature = dynamic_cast<TfFeature *>(m_featureManager->GetFeature(FeatureIDs::tfFeature));
         if (tfFeature)
         {
+            // TF allocates its surfaces on demand from its own Update(), which the feature
+            // manager runs after this one, so ask for the filtered surface explicitly instead
+            // of assuming it already exists.
+            ENCODE_CHK_STATUS_RETURN(tfFeature->AllocateFilteredSurface());
+
             m_rawSurfaceToEnc =
                 m_rawSurfaceToPak = tfFeature->m_presFiltered;
         }
