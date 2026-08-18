@@ -836,34 +836,6 @@ MHW_SETPAR_DECL_SRC(VDENC_SRC_SURFACE_STATE, HevcBasicFeature)
     return MOS_STATUS_SUCCESS;
 }
 
-static inline uint32_t GetHwTileType(MOS_TILE_TYPE tileType, MOS_TILE_MODE_GMM tileModeGMM, bool gmmTileEnabled)
-{
-    uint32_t tileMode = 0;
-
-    if (gmmTileEnabled)
-    {
-        return tileModeGMM;
-    }
-
-    switch (tileType)
-    {
-    case MOS_TILE_LINEAR:
-        tileMode = 0;
-        break;
-    case MOS_TILE_YS:
-        tileMode = 1;
-        break;
-    case MOS_TILE_X:
-        tileMode = 2;
-        break;
-    default:
-        tileMode = 3;
-        break;
-    }
-
-    return tileMode;
-}
-
 MHW_SETPAR_DECL_SRC(VDENC_REF_SURFACE_STATE, HevcBasicFeature)
 {
     ENCODE_FUNC_CALL();
@@ -876,7 +848,6 @@ MHW_SETPAR_DECL_SRC(VDENC_REF_SURFACE_STATE, HevcBasicFeature)
     params.vOffset     = m_reconSurface.YoffsetForVplane;
     params.height      = ((m_hevcSeqParams->wFrameHeightInMinCbMinus1 + 1) << (m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3));
     params.width       = ((m_hevcSeqParams->wFrameWidthInMinCbMinus1 + 1) << (m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3));
-    uint32_t tileMode   = GetHwTileType(params.tileType, params.tileModeGmm, params.gmmTileEn);
 
     if (m_reconSurface.Format == Format_Y410 || m_reconSurface.Format == Format_444P || m_reconSurface.Format == Format_AYUV)
     {
