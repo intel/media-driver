@@ -49,6 +49,27 @@ else ()
     endif ()
 endif ()
 
+# Fetch googletest from upstream instead of vendoring a copy in-tree.
+# It is downloaded/built into a fixed location under the build tree.
+# The repository URL and tag can be overridden from the cmake command line,
+# e.g. -DGTEST_GIT_REPOSITORY=<internal-mirror> -DGTEST_GIT_TAG=<tag>.
+include(FetchContent)
+set(GTEST_GIT_REPOSITORY "https://github.com/google/googletest.git" CACHE STRING "googletest git repository URL")
+set(GTEST_GIT_TAG        "v1.13.0" CACHE STRING "googletest git tag to fetch")
+message("-- devult -- Fetching googletest ${GTEST_GIT_TAG} from ${GTEST_GIT_REPOSITORY}")
+
+# Only the gtest library is needed; skip gmock and installation.
+set(BUILD_GMOCK   OFF CACHE BOOL "" FORCE)
+set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY ${GTEST_GIT_REPOSITORY}
+    GIT_TAG        ${GTEST_GIT_TAG}
+    SOURCE_DIR     ${CMAKE_CURRENT_BINARY_DIR}/_deps/googletest-src
+)
+FetchContent_MakeAvailable(googletest)
+
 add_subdirectory(libdrm_mock)
 add_subdirectory(ult_app)
 
