@@ -39,6 +39,7 @@
 #include "sw_filter_pipe.h"
 #include "vp_resource_manager.h"
 #include <map>
+#include <array>
 
 namespace vp
 {

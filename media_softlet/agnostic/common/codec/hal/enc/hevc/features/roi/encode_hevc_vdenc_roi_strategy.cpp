@@ -297,6 +297,7 @@ void RoiStrategy::GetLCUsInRoiRegionForTile(
         tileEndLcuY,
         streamInBaseOffset);
 
+    lcuVector.reserve((bottom - top) * (right - left));
     for (auto y = top; y < bottom; y++)
     {
         for (auto x = left; x < right; x++)
@@ -347,6 +348,7 @@ void RoiStrategy::GetLCUsInRoiRegion(
         return;
     }
 
+    lcuVector.reserve((bottom - top) * (right - left));
     for (auto y = top; y < bottom; y++)
     {
         for (auto x = left; x < right; x++)
