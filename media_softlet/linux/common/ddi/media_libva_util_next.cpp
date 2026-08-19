@@ -1575,6 +1575,7 @@ void* MediaLibvaUtilNext::LockBuffer(DDI_MEDIA_BUFFER *buf, uint32_t flag)
         }
         else
         {
+            DDI_CHK_NULL(buf->bo, "nullptr buf->bo", nullptr);
             if (buf->pMediaCtx->bIsAtomSOC)
             {
                 mos_bo_map_gtt(buf->bo);
