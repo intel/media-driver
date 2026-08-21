@@ -42,6 +42,11 @@ struct AI_SURFACE_PARAMS
     MOS_TILE_TYPE   tileType        = MOS_TILE_Y;
     uint32_t        width           = 0;
     uint32_t        height          = 0;
+    // Depth for a genuine 3D-volume intermediate surface (resourceType=MOS_GFXRES_VOLUME,
+    // e.g. an image3d_t LUT). Default 0 matches VpAllocator::ReAllocateSurface's own default
+    // and preserves exact existing behavior for every current 2D caller (SR3/VFI/S2H backbone),
+    // none of which ever set this field.
+    uint32_t        depth           = 0;
     uint8_t        *fillContent     = nullptr;
     uint32_t        fillContentSize = 0;
 };

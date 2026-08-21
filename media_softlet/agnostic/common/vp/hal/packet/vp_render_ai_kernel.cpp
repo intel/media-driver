@@ -296,6 +296,19 @@ MOS_STATUS VpRenderAiKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
                     VP_PUBLIC_CHK_NULL_RETURN(surfHandle->second);
                     VP_PUBLIC_CHK_NULL_RETURN(surfHandle->second->osSurface);
 
+                    // Permanent -- buffer_compare's curbe_index.py has no other source for
+                    // resolved real GPU VA per stateless (buffer, non-BTI) surface, keyed by
+                    // kernel+argIndex. This covers the backbone conv/pool/reorder kernels'
+                    // intermediate+weight+bias buffers, which GetKernelSurfaceParam's BTI-path
+                    // print below does not see. Do not remove.
+#if (_DEBUG || _RELEASE_INTERNAL)
+                    {
+                        uint64_t gpuVa = m_renderHal->pOsInterface->pfnGetResourceGfxAddress(m_renderHal->pOsInterface, &surfHandle->second->osSurface->OsResource);
+                        VP_RENDER_NORMALMESSAGE("GetCurbeState: kernel=%s argIdx=%u surfType=%d isOutput=%d gpuVa=0x%llx width=%u height=%u curbeOffset=%u",
+                            m_kernelName.c_str(), arg.uIndex, (int)surfaceParam.surfType, (int)surfaceParam.isOutput, gpuVa,
+                            surfHandle->second->osSurface->dwWidth, surfHandle->second->osSurface->dwHeight, arg.uOffsetInPayload);
+                    }
+#endif
                     MHW_INDIRECT_STATE_RESOURCE_PARAMS params = {};
                     params.isWrite                            = surfaceParam.isOutput;
                     params.resource                           = &surfHandle->second->osSurface->OsResource;
@@ -368,6 +381,17 @@ MOS_STATUS VpRenderAiKernel::GetKernelSurfaceParam(bool isBTI, SURFACE_PARAMS &s
     VP_RENDER_CHK_NULL_RETURN(surf->second);
     VP_RENDER_CHK_NULL_RETURN(surf->second->osSurface);
 
+    // Permanent -- buffer_compare's curbe_index.py has no other source for resolved real GPU VA
+    // per BTI-bound (stateful) surface, keyed by kernel+argIndex, so a specific dispatch's
+    // binding can be cross-checked against a real-hardware page-fault VA. Do not remove.
+#if (_DEBUG || _RELEASE_INTERNAL)
+    {
+        uint64_t gpuVa = m_renderHal->pOsInterface->pfnGetResourceGfxAddress(m_renderHal->pOsInterface, &surf->second->osSurface->OsResource);
+        VP_RENDER_NORMALMESSAGE("GetKernelSurfaceParam: kernel=%s isBTI=%d surfType=%d isOutput=%d gpuVa=0x%llx width=%u height=%u",
+            m_kernelName.c_str(), (int)isBTI, (int)surfType, (int)surfParam.isOutput, gpuVa,
+            surf->second->osSurface->dwWidth, surf->second->osSurface->dwHeight);
+    }
+#endif
     pRenderSurfaceParams->MemObjCtl = (m_renderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
                                            resourceType,
                                            m_renderHal->pOsInterface))
@@ -575,15 +599,18 @@ MOS_STATUS VpRenderAiKernel::SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, 
 
     if (m_kernelEnv.uSimdSize != 1 && m_kernelPerThreadArgInfo.localIdSize > 0)
     {
-        if (m_kernelEnv.bHasDPAS)
+        m_walkerParam.isGenerateLocalID = true;
+        if (m_renderHal && m_kernelPerThreadArgInfo.localIdSize == m_renderHal->grfSize)
         {
-            m_walkerParam.isGenerateLocalID = false;
-            m_walkerParam.emitLocal         = MHW_EMIT_LOCAL_NONE;
+            m_walkerParam.emitLocal = MHW_EMIT_LOCAL_X;
+        }
+        else if (m_renderHal && m_kernelPerThreadArgInfo.localIdSize == 2 * m_renderHal->grfSize)
+        {
+            m_walkerParam.emitLocal = MHW_EMIT_LOCAL_XY;
         }
         else
         {
-            m_walkerParam.isGenerateLocalID = true;
-            m_walkerParam.emitLocal         = MHW_EMIT_LOCAL_XYZ;
+            m_walkerParam.emitLocal = MHW_EMIT_LOCAL_XYZ;
         }
     }
     m_walkerParam.registersPerThread = m_kernelEnv.uGrfCount;

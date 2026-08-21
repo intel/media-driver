@@ -197,7 +197,14 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_XE2_HPG::SetSurfaceStateEntry(
     MHW_NORMALMESSAGE("Feature Graph: Cache settings of Render SurfaceState: SurfaceType is %d, Surface width is %d, Surface height is %d,\
                 Surface format is %d, SurfaceMemoryObjectControlState %d, Index to Mocs table %d",pSurfaceState->DW0.SurfaceType, pSurfaceState->DW2.Width,
                pSurfaceState->DW2.Height, pSurfaceState->DW0.SurfaceFormat, pParams->dwCacheabilityControl, (pParams->dwCacheabilityControl >> 1) & 0x0000003f);
-
+    if (pSurfaceState->DW0.SurfaceType == 2)  // 3D surface
+    {
+        pSurfaceState->DW4.RenderTargetViewExtent = pParams->dwDepth - 1;
+    }
+    else
+    {
+        pSurfaceState->DW4.RenderTargetViewExtent = 0;
+    }
     pSurfaceState->DW4.RenderTargetAndSampleUnormRotation = pParams->RotationMode;
     pSurfaceState->DW5.XOffset                            = pParams->iXOffset >> 2;
     pSurfaceState->DW5.YOffset                            = pParams->iYOffset >> 2;
@@ -659,6 +666,11 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_XE2_HPG::SetSamplerState(
 
                 pUnormSampler->DW2.IndirectStatePointer = pParam->Unorm.IndirectStateOffset >> MHW_SAMPLER_INDIRECT_SHIFT;
             }
+
+            MHW_NORMALMESSAGE("SetSamplerState (3D) final dwords: DW0=0x%08X DW1=0x%08X DW2=0x%08X DW3=0x%08X  TCX=%d TCY=%d TCZ=%d NonNormalizedCoordinateEnable=%d MinFilter=%d MagFilter=%d",
+                pUnormSampler->DW0.Value, pUnormSampler->DW1.Value, pUnormSampler->DW2.Value, pUnormSampler->DW3.Value,
+                (int)pUnormSampler->DW3.TcxAddressControlMode, (int)pUnormSampler->DW3.TcyAddressControlMode, (int)pUnormSampler->DW3.TczAddressControlMode,
+                (int)pUnormSampler->DW3.NonNormalizedCoordinateEnable, (int)pUnormSampler->DW0.MinModeFilter, (int)pUnormSampler->DW0.MagModeFilter);
         }
         else
         {

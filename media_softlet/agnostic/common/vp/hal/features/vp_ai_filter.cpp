@@ -307,9 +307,11 @@ MOS_STATUS VpAiFilter::InitKrnParams(AI_KERNEL_PARAMS &krnParams, SwFilterPipe &
                 kernelParam.kernelStatefulSurfaces.insert(std::make_pair(uIndex, surfaceParam));
             }
         }
+        VP_PUBLIC_NORMALMESSAGE("InitKrnParams: stageIndex=%u layerIndex=%u kernel=%s kernelBtisFromPool=%zu statefulSurfacesBound=%zu kernelArgsBound=%zu",
+            swAiParam.stageIndex, layerIndex, kernelParam.kernelName.c_str(),
+            kernelBtis.size(), kernelParam.kernelStatefulSurfaces.size(), kernelParam.kernelArgs.size());
         krnParams.push_back(std::move(kernelParam));
     }
-    
     return MOS_STATUS_SUCCESS;
 }
 

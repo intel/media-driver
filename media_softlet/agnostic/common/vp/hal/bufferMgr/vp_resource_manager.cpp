@@ -1382,6 +1382,7 @@ MOS_STATUS VpResourceManager::AssignAiKernelResource(VP_EXECUTE_CAPS &caps, std:
                 VP_PUBLIC_CHK_NOT_FOUND_RETURN(handle, &m_aiIntermediateSurface);
             }
             VP_SURFACE *&intermediateSurface = handle->second;
+
             VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
                 intermediateSurface,
                 aiSurfaceSetting.second.surfaceName.c_str(),
@@ -1395,19 +1396,46 @@ MOS_STATUS VpResourceManager::AssignAiKernelResource(VP_EXECUTE_CAPS &caps, std:
                 allocated,
                 false,
                 IsDeferredResourceDestroyNeeded(),
-                MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER));
+                MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER,
+                MOS_TILE_UNSET_GMM,
+                MOS_MEMPOOL_VIDEOMEMORY,
+                false,
+                nullptr,
+                aiSurfaceSetting.second.depth));
 
             surfSetting.surfGroup.insert(std::make_pair(aiSurfaceSetting.first, intermediateSurface));
 
             if (allocated && aiSurfaceSetting.second.fillContentSize > 0)
             {
+                if (aiSurfaceSetting.second.fillContent == nullptr)
+                {
+                    // Report which surface, since the weight/bias symbol behind it likely
+                    // resolved to nullptr and the preceding ReAllocateSurface log alone doesn't
+                    // identify it.
+                    VP_PUBLIC_NORMALMESSAGE("AssignAiKernelResource: fillContent is null for surface '%s' (fillContentSize=%u) -- the weight/bias table symbol behind this surface likely resolved to nullptr.",
+                        aiSurfaceSetting.second.surfaceName.c_str(), aiSurfaceSetting.second.fillContentSize);
+                }
                 VP_PUBLIC_CHK_NULL_RETURN(aiSurfaceSetting.second.fillContent);
                 VP_PUBLIC_CHK_VALUE_RETURN((aiSurfaceSetting.second.width * aiSurfaceSetting.second.height >= aiSurfaceSetting.second.fillContentSize), true);
                 VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.Write1DSurface(intermediateSurface, aiSurfaceSetting.second.fillContent, aiSurfaceSetting.second.fillContentSize));
             }
+
+            // Permanent -- buffer_compare's surfdump_index.py parses this exact
+            // "surface=... allocated=... gpuVa=..." format to map dumped surfaces back to real
+            // GPU addresses. Does not use GMM_RESOURCE_INFO::GetSizeAllocation() -- this file is
+            // compiled into both the full driver and the solo build, and the solo build's
+            // lightweight GMM_RESOURCE_INFO stand-in does not implement that method.
+#if (_DEBUG || _RELEASE_INTERNAL)
+            if (intermediateSurface->osSurface != nullptr)
+            {
+                uint64_t gpuVa = m_osInterface.pfnGetResourceGfxAddress(&m_osInterface, &intermediateSurface->osSurface->OsResource);
+                VP_PUBLIC_NORMALMESSAGE("AssignAiKernelResource: surface='%s' surfType=%d allocated=%d gpuVa=0x%llx width=%u height=%u depth=%u format=%d",
+                    aiSurfaceSetting.second.surfaceName.c_str(), (int)aiSurfaceSetting.first, (int)allocated, gpuVa,
+                    aiSurfaceSetting.second.width, aiSurfaceSetting.second.height, aiSurfaceSetting.second.depth, (int)aiSurfaceSetting.second.format);
+            }
+#endif
         }
     }
-    
     return MOS_STATUS_SUCCESS;
 }
 
