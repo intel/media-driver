@@ -50,7 +50,7 @@ Configure::Configure(MOS_USER_FEATURE_KEY_PATH_INFO *keyPathInfo):Configure()
 
     //when statePath set, will init m_statedConfigPath and m_statedReportPath with m_keyPathInfo
 #if (_DEBUG || _RELEASE_INTERNAL)
-    m_pidPath = "\\" + std::to_string(MosUtilities::MosGetPid());
+    m_pidPath = "\\" + MosUtilities::MosGetRegKeySuffix(m_rootKey, subPath + m_configPath);
 #endif
     m_statedConfigPath = subPath + m_configPath;
     m_statedReportPath = subPath + m_reportPath;

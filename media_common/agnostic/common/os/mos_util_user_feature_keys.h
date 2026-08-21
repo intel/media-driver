@@ -64,6 +64,14 @@
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_HCP_SCALABILITY_DECODE        "Enable HCP Scalability Decode"
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_SCALABILITY_MODE        "Enable Vebox Scalability"
 
+//!
+//! \brief      Master gate for session-ID-suffixed (vs. PID-suffixed) decode settings path.
+//! \details    DWORD value under the adapter's decode settings key. 1 = enabled; absent/0/other
+//!             = disabled (default). Not declared as a user setting key -- see the concurrency
+//!             test design doc (env fallback would let a stray env var flip this global switch).
+//!
+#define __MEDIA_USER_FEATURE_VALUE_SESSION_ID_REG_PATH_ENABLE           "Enable Session Id Reg Path"
+
 #if (_DEBUG || _RELEASE_INTERNAL)
 
 //!

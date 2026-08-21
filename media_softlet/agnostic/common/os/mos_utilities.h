@@ -1312,6 +1312,20 @@ public:
     static int32_t MosGetPid();
 
     //!
+    //! \brief    Resolves the name used to suffix decode settings paths (PID or session ID)
+    //! \details  Reads a DWORD master gate at gatePath; when enabled, validates and returns
+    //!           the MEDIA_SESSION_ID env var, falling back to the current PID otherwise. Result
+    //!           is resolved once and cached for the lifetime of the process.
+    //! \param    [in] rootKey
+    //!           Root settings key under which gatePath is opened.
+    //! \param    [in] gatePath
+    //!           Settings sub-path (relative to rootKey) of the master gate key.
+    //! \return   std::string
+    //!           The resolved suffix (PID digits, or the session ID string).
+    //!
+    static std::string MosGetRegKeySuffix(UFKEY_NEXT rootKey, const std::string &gatePath);
+
+    //!
     //! \brief    Retrieves the frequency of the high-resolution performance
     //!           counter, if one exists.
     //! \details  Retrieves the frequency of the high-resolution performance
