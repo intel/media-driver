@@ -23,6 +23,7 @@
 
 #include "cm_printf_base.h"
 
+#include <cstdlib>
 #include <string>
 
 #define CM_PRINTF(f_, ...) fprintf((f_), __VA_ARGS__)
