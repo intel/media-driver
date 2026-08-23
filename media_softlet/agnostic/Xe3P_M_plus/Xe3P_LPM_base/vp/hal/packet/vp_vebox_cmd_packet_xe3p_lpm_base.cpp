@@ -30,6 +30,7 @@
 #include "vp_utils.h"
 #ifdef _MEDIA_RESERVED
 #include "vp_cmodel_algorithm.h"
+#include "vp_vebox_cmd_packet_ext.h"
 #endif
 #include "mhw_mmio_xe3p_lpm_base.h"
 
@@ -635,10 +636,82 @@ MOS_STATUS VpVeboxCmdPacketXe3P_Lpm_Base::SetupVeboxFP16State(mhw::vebox::VEBOX_
     VP_RENDER_CHK_NULL_RETURN(pFp16Input);
     VP_RENDER_CHK_NULL_RETURN(fp16Params);
 
-    // DV/external-3DLUT path already configured FP16 state with bypass CCM/OETF — skip override
-    if (pFp16Input->VeboxFp16InputEnable)
+    // DV-classified early return: this guard fires for BOTH classes SwFilterDVHandler claims -
+    // true DV tone mapping (DV.bEnableDVToneMapping) and the standalone external 3DLUT
+    // (DV.bEnable3DLUTMapping). On either of them SetupVeboxLutsForDV() owns the FP16 transfer
+    // math, so this function must not program it a second time (ownership contract §C.6 row 7).
+    //
+    // Both disjuncts are required HERE, on this platform, even though the sibling platform's
+    // SetupVeboxFP16State() keys its guard on true DV alone. The difference is deliberate and is
+    // the whole reason the predicate is written out rather than shared: the sibling platform's
+    // function dispatches into per-usage branches and has a branch that owns the
+    // standalone-external-3DLUT programming, so a frame of that class must fall THROUGH its guard to
+    // reach it. This function has no such branch - its body below is flat and unconditional, and it is the legacy
+    // HDR FP16 body: HdrGainFactor=125, a PQ (2084) OETF, and an AddFP16State() call that never
+    // sets ccmMode. Letting a standalone-external-3DLUT frame fall through to it would overwrite
+    // the gain of 1 that SetupVeboxLutsForDV() programmed with 125, replace the identity OETF with
+    // PQ, and lose ccmMode - a wrong image with no error. Narrowing this guard to true DV alone is
+    // therefore a behavior change on this platform, not a clarification.
+    //
+    // The two DV intent flags JOIN an FP16-input test rather than replacing it, and the conjunction
+    // is what makes this guard behavior-preserving on a platform that is not the feature target.
+    // Taken alone the DV flags are strictly WIDER than the pre-change test, and the extra frames they
+    // would capture are real:
+    //   - On a DV-classified frame whose INPUT is not FP16 the FP16-input test is 0, while both DV
+    //     flags can be 1.
+    //   - Such a frame can still reach this function, because the fp16Params.isActive that gates the
+    //     call has other writers than the DV path: SetHdrParams() raises it for isFp16Enable, and
+    //     SetCscParams() raises it for a non-linear FP16 OUTPUT. Either can be set on a frame the DV
+    //     handler also claimed.
+    // On exactly those frames the pre-change test let the flat body below run and the DV flags alone
+    // would suppress it - a silent behavior change on this platform, which is not the feature target
+    // and must keep its existing programming. Conjoining restores the pre-change behavior exactly.
+    //
+    // THE FP16-INPUT TEST IS COMPUTED LOCALLY, from the input surface format, against the same two
+    // FP16 formats VpVeboxCmdPacketExt::SetupVeboxLutsForDV() tests for its own bFp16Input. An
+    // earlier revision read pFp16Input->VeboxFp16InputEnable, a member that function writes, which
+    // made this guard depend on SetupHDRLuts() having run before this function. The two forms select
+    // the identical frame set: that member is raised exactly when the frame is DV-classified AND the
+    // input is FP16, and it is conjoined here with bDvClassified, so the DV half is already implied in the
+    // member and the format half is what the local test reproduces. Only the local form still means
+    // the same thing if the two calls are ever reordered. The null test is part of the expression, so
+    // nothing is dereferenced before it is checked; a null m_currentSurface yields false and the FP16
+    // setup below runs, exactly as it did when the member was still zero on such a frame.
+    //
+    // Ordinary FP16 frames - which are neither DV class - keep falling through to the FP16 setup
+    // below as they do today.
+    //
+    // The DV flags are Ext-only, so they are read through a dynamic_cast; a null cast (or a build
+    // without the Ext render data at all) is treated as false on both flags and the FP16 setup
+    // below runs.
+    MOS_FORMAT inputSurfaceFormat = (m_currentSurface && m_currentSurface->osSurface)
+                                        ? m_currentSurface->osSurface->Format
+                                        : Format_Any;
+    bool       bFp16Input         = (inputSurfaceFormat == Format_A16B16G16R16F ||
+                                     inputSurfaceFormat == Format_A16R16G16B16F);
+
+    bool bDvClassified        = false;
+    bool bTrueDVToneMapping     = false;
+    bool bStandalone3DLut     = false;
+#ifdef _MEDIA_RESERVED
+    VpVeboxRenderDataExt *pRenderDataExt = dynamic_cast<VpVeboxRenderDataExt *>(pRenderData);
+    if (pRenderDataExt)
     {
-        VP_PUBLIC_NORMALMESSAGE("FP16 state already configured by DV path, skipping HDR FP16 setup.");
+        bTrueDVToneMapping = pRenderDataExt->DV.bEnableDVToneMapping;
+        bStandalone3DLut = pRenderDataExt->DV.bEnable3DLUTMapping;
+    }
+#endif
+    bDvClassified = bTrueDVToneMapping || bStandalone3DLut;
+    if (bDvClassified && bFp16Input)
+    {
+        // The trace names WHICH class fired, because "the guard fired" alone would read as "DV tone
+        // mapping is enabled" on a standalone-external-3DLUT frame, which is exactly the confusion
+        // SwFilterDVHandler's two disjuncts create.
+        VP_PUBLIC_NORMALMESSAGE("SetupVeboxFP16State: guard FIRED - frame classified as DV by "
+                                "DV.bEnableDVToneMapping=%d (true DV tone mapping) / DV.bEnable3DLUTMapping=%d "
+                                "(standalone external 3DLUT, NOT DV tone mapping) AND FP16 input surface (inFormat=%d); "
+                                "SetupVeboxLutsForDV() owns the FP16 transfer math on both, skipping the HDR FP16 setup.",
+                                bTrueDVToneMapping, bStandalone3DLut, inputSurfaceFormat);
         return MOS_STATUS_SUCCESS;
     }
 

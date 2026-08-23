@@ -186,6 +186,8 @@ typedef struct _MHW_VEBOX_MODE
     uint32_t    BypassCcm                           : 1;
     uint32_t    BypassOetf                          : 1;
     uint32_t    Eotf16LayoutMode                    : 1;  // EOTF16 layout mode: 0=ARGB legacy, 1=RGBA new
+    uint32_t    IecpCscSignedOutput                 : 1;  // 0=unsigned U16 default, 1=signed; emitted into VEBOX_STATE DW24
+    uint32_t    IecpIntegerToFp16SourceSelect       : 2;  // IntToFP16 source select; emitted into VEBOX_STATE DW24
     uint32_t                                        : 2; // Reserved
 } MHW_VEBOX_MODE, *PMHW_VEBOX_MODE;
 
@@ -225,7 +227,13 @@ typedef struct _MHW_VEBOX_FP16_INPUT
     uint32_t VeboxFp16InputEnable                           : 1;
     uint32_t RgbSwapForFp16Input                            : 1;
     uint32_t HdrGainFactor                                  : 8;
-    uint32_t                                                : 22;  // Reserved
+    uint32_t Fp16OutputGainFactor                           : 8;   // DW23 FP16 output gain factor (per usage)
+    uint32_t bOorEnable                                     : 1;   // Enable OOR (out-of-range) EOTF/OETF scaling
+    uint32_t                                                : 13;  // Reserved
+    uint16_t EotfLutInScale;                                        // DW41 EOTF LUT in-scale (65535 legacy default when bOorEnable==0)
+    uint16_t OetfLutInScale;                                        // DW42 OETF LUT in-scale
+    uint8_t  EotfLutOutScale;                                       // DW41 EOTF LUT out-scale (1 legacy default when bOorEnable==0)
+    uint8_t  OetfLutOutScale;                                       // DW42 OETF LUT out-scale
 } MHW_VEBOX_FP16_INPUT, *PMHW_VEBOX_FP16_INPUT;
 
 //!
@@ -652,12 +660,50 @@ typedef struct _MHW_1DLUT_PARAMS
 //! Structure MHW_3DLUT_PARAMS
 //! \details No pre-si version for MHW_VEBOX_IECP_PARAMS, just leave it now and handle it later
 //!
+//!
+//! Enum MHW_FP16_CCM_MODE
+//! \details 3-state gamut CCM selection for the FP16 chain (replaces the legacy bIdentityCcm bool)
+//!
+typedef enum _MHW_FP16_CCM_MODE
+{
+    MHW_FP16_CCM_BT709_TO_BT2020 = 0,   //!< Zero-init-safe default; hardcoded BT.709->BT.2020
+    MHW_FP16_CCM_IDENTITY        = 1,   //!< Identity (matches old bIdentityCcm==true)
+    MHW_FP16_CCM_BT2020_TO_BT709 = 2,   //!< Reverse direction BT.2020->BT.709
+} MHW_FP16_CCM_MODE;
+
 typedef struct _MHW_FP16_PARAMS
 {
     uint32_t                isActive       = false;              //!< Active or not
-    uint32_t                bIdentityCcm   = false;              //!< Program identity CCM (passthrough) instead of BT.709->BT.2020 (DV FP16 3DLUT)
+    MHW_FP16_CCM_MODE       ccmMode        = MHW_FP16_CCM_BT709_TO_BT2020;  //!< Gamut CCM selection for the FP16 chain
+    uint32_t                bEnableTM      = 0;                   //!< HLG-OOTF tone-mapping enable signal: set by SetupVeboxFP16State (1 for Usage-2 HLG source, else 0), consumed by AddFP16State (§C.8/§D.9)
     uint32_t                OETFLutY[256]  = {};
     uint32_t                OETFLutX[256]  = {};
+    uint32_t                EOTF32LutX[1024] = {};               //!< InvEOTF32 axis, distinct from the 256-entry OETF table
+    uint32_t                EOTF32LutY[1024] = {};               //!< InvEOTF32 32-bit output, distinct from the 256-entry OETF table
+
+    //!< Per-channel diagonal CCM gain applied to the ccmMode-selected matrix (§C.2/§D.1): out = (in +
+    //!< CcmOffsetInX) x gain. Representation decision (spec ambiguity #7): these members carry the
+    //!< value already register-encoded in the VEBOX_CCM_STATE_CMD S5.22 fixed-point format (bit22 =
+    //!< 1.0 = 4194304), NOT a normalized float; AddFP16State() consumes them as-is and any
+    //!< float->fixed conversion happens upstream, at the constant-selection site. Default = 0, which
+    //!< AddFP16State() reads as the "no gain requested" sentinel and applies as unity - a no-op that
+    //!< reproduces today's CCM programming byte-for-byte (§A.3 non-regression). A unity-valued default
+    //!< (4194304) would be misleading here: the enclosing MHW_VEBOX_IECP_PARAMS is MOS_ZeroMemory'd
+    //!< once per frame by VpVeboxRenderData::Init(), so these member initializers never survive to
+    //!< AddFP16State() and every caller that does not explicitly write a gain arrives there with 0.
+    uint32_t                CcmGainR       = 0;
+    uint32_t                CcmGainG       = 0;
+    uint32_t                CcmGainB       = 0;
+
+    //!< Per-channel CCM input offset, feeding VEBOX_CCM_STATE_CMD.OffsetInR/G/B (DW9/DW10/DW11)
+    //!< directly. Same representation decision as CcmGainR/G/B: register-encoded s31 fixed-point
+    //!< (bit31 = 1.0 = 2^31), applied to the input before the gain multiply (ordering contract, §C.2).
+    //!< Default = 0 (no offset), which is also the value the per-frame MOS_ZeroMemory noted above
+    //!< leaves behind - declared default and observed value agree, so an unset caller reproduces
+    //!< today's unconditional-zero offset programming.
+    uint32_t                CcmOffsetInR   = 0;
+    uint32_t                CcmOffsetInG   = 0;
+    uint32_t                CcmOffsetInB   = 0;
 } MHW_FP16_PARAMS, *PMHW_FP16_PARAMS;
 
 //!

@@ -89,7 +89,10 @@ MOS_STATUS SfcRenderXe3P_Lpm_Base::SetupSfcState(
 
     m_renderData.sfcStateParams->histogramSurface = &m_histogramSurf;
 
-    bool bFp16OutputPassthrough = m_renderData.sfcStateParams->bFp16OutputPassthrough;
+    // Both passthrough flags need the same identity indirect state from here on; they differ only
+    // in which conversion tap they imply, and that is chosen where the command is programmed.
+    bool bFp16OutputPassthrough = m_renderData.sfcStateParams->bFp16OutputPassthrough ||
+                                  m_renderData.sfcStateParams->bRgb3DLutFp16Passthrough;
     if ((m_renderData.sfcStateParams->isFullRgbG10P709 || bFp16OutputPassthrough) && IS_RGB64_FLOAT_FORMAT(m_renderData.sfcStateParams->OutputFrameFormat))
     {
         if (!m_EOTF)
@@ -105,9 +108,9 @@ MOS_STATUS SfcRenderXe3P_Lpm_Base::SetupSfcState(
         }
 
         VP_RENDER_NORMALMESSAGE("SFC input cspace %d, bFp16OutputPassthrough %d", m_renderData.SfcInputCspace, bFp16OutputPassthrough);
-        // For FP16 output passthrough (DV 3DLUT, or LutCompound) always (re)generate the identity
-        // indirect state; also invalidate the cspace cache so a following non-passthrough run
-        // regenerates its own EOTF/CCM.
+        // For FP16 output passthrough (DV 3DLUT, LutCompound, or standalone external 3DLUT) always
+        // (re)generate the identity indirect state; also invalidate the cspace cache so a following
+        // non-passthrough run regenerates its own EOTF/CCM.
         if (bFp16OutputPassthrough || m_CurrentCSpaceForIndirectState != m_renderData.SfcInputCspace)
         {
             m_CurrentCSpaceForIndirectState = bFp16OutputPassthrough ? CSpace_None : m_renderData.SfcInputCspace;
@@ -596,7 +599,8 @@ MOS_STATUS SfcRenderXe3P_Lpm_Base::AllocateResources()
 
         m_renderData.sfcStateParams->tempFieldResource = &m_tempFieldSurface->osSurface->OsResource;
     }
-    if ((m_renderData.sfcStateParams->isFullRgbG10P709 || m_renderData.sfcStateParams->bFp16OutputPassthrough) && IS_RGB64_FLOAT_FORMAT(m_renderData.sfcStateParams->OutputFrameFormat))
+    if ((m_renderData.sfcStateParams->isFullRgbG10P709 || m_renderData.sfcStateParams->bFp16OutputPassthrough ||
+         m_renderData.sfcStateParams->bRgb3DLutFp16Passthrough) && IS_RGB64_FLOAT_FORMAT(m_renderData.sfcStateParams->OutputFrameFormat))
     {
         VP_RENDER_CHK_STATUS_RETURN(m_allocator->ReAllocateSurface(
                                       m_sfcIndirectState,

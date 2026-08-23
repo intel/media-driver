@@ -128,6 +128,13 @@ public:
 
     virtual MOS_STATUS SetupVeboxFP16State(mhw::vebox::VEBOX_STATE_PAR &veboxStateCmdParams) override;
 
+    //! \brief    This platform implements the float16 out-of-range state chain above, so the
+    //!           nonlinear float16 output route is safe to take here.
+    virtual bool IsVeboxFp16StateSupported() override
+    {
+        return true;
+    }
+
     virtual MOS_STATUS SetupHDRUnifiedForHDR(mhw::vebox::VEBOX_STATE_PAR &veboxStateCmdParams) override;
 
     virtual MOS_STATUS AddFP16State(PMHW_FP16_PARAMS pFP16Params);

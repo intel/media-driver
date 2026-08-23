@@ -787,7 +787,22 @@ bool SwFilterHdrHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInp
         // Check if input/output color space is same
         bool bColorSpaceConversion = true;
 
-        if (IS_COLOR_SPACE_BT2020(pRenderTarget->ColorSpace) &&
+        // FP16 OOR output: a nonlinear destination gamma means the VEBOX drives the
+        // CCM/EOTF/OETF chain and emits FP16 out-of-range data, so no downstream color
+        // space conversion must be applied on top of it.
+        // The render target format must be tested too, not just its gamma: this block is
+        // entered whenever EITHER the source OR the render target is FP16, so an FP16
+        // source feeding a non-FP16 render target (e.g. scRGB FP16 -> NV12 SDR tone
+        // mapping) also lands here. Such a render target is not an FP16 OOR output at all,
+        // and suppressing the conversion for it disables the whole HDR feature.
+        bool bNonLinearFp16 = VPHAL_IS_NONLINEAR_FP16(pRenderTarget);
+        VP_PUBLIC_NORMALMESSAGE("FP16 HDR processing check: dstFormat %d, dstGammaType %d, bNonLinearFp16 %d",
+            pRenderTarget->Format, pRenderTarget->GammaType, bNonLinearFp16);
+        if (bNonLinearFp16)
+        {
+            bColorSpaceConversion = false;
+        }
+        else if (IS_COLOR_SPACE_BT2020(pRenderTarget->ColorSpace) &&
             IS_COLOR_SPACE_BT2020(pSrc->ColorSpace))
         {
             bColorSpaceConversion = false;

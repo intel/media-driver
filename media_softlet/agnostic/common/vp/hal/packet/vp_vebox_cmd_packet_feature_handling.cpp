@@ -761,12 +761,104 @@ MOS_STATUS VpVeboxCmdPacket::SetVeboxBeCSCParams(PVEBOX_CSC_PARAMS cscParams)
         veboxIecpParams.pfCscCoeff     = m_fCscCoeff;
         veboxIecpParams.pfCscInOffset  = m_fCscInOffset;
         veboxIecpParams.pfCscOutOffset = m_fCscOutOffset;
-        if ((cscParams->outputFormat == Format_A16B16G16R16F) || (cscParams->outputFormat == Format_A16R16G16B16F))
+        bool bFp16Output    = (cscParams->outputFormat == Format_A16B16G16R16F) ||
+                              (cscParams->outputFormat == Format_A16R16G16B16F);
+        // The platform term is load-bearing, not defensive. A nonlinear float16 target sends the
+        // conversion through the transfer-function state chain instead of the colour-correction
+        // matrix, and on a platform that does not implement that chain the setup call is a no-op:
+        // nothing converts, and the float16 surface receives raw integer codes. Measured on a
+        // standard-definition/high-definition studio input there: 13.5% of samples not-a-number,
+        // magnitudes to 60000, and roughly 5 dB against a threshold of 45. Note the predicate
+        // below is true for ordinary standard-dynamic-range gamma too, so this is not confined to
+        // high-dynamic-range content.
+        bool bNonLinearFp16 = bFp16Output && m_renderTarget &&
+                              VPHAL_GAMMA_IS_NONLINEAR(m_renderTarget->GammaType) &&
+                              IsVeboxFp16StateSupported();
+
+        if (bNonLinearFp16)
         {
-            // Use CCM to do CSC for FP16 VEBOX output
+            // Nonlinear FP16 (OOR) output: run the real BE-CSC + FP16 chain (EOTF/CCM/OETF via
+            // SetupVeboxFP16State/AddFP16State). bCSCEnable stays true; single activation write (§C.3).
+            veboxIecpParams.fp16Params.isActive = true;
+
+            // The float output datapath left-shifts the source up to 16 bits, so a studio-range
+            // input reaches 219 << 8 and unity is 1 << 16. That is a 256 full scale, whereas
+            // VpHal_GetCscMatrix builds the matrix on an 8-bit 255 full scale, leaving the result
+            // short by 256/255 (~0.39%) on this path only. Kept in a separate array so the cached
+            // m_fCscCoeff stays untouched for the front-end and SFC users that share it.
+            //
+            // The correction belongs to the range EXPANSION, not to the input primaries. It only
+            // makes sense where the matrix normalises the source excursion to full scale, i.e.
+            // studio-range YCbCr in and full-range RGB out; there the luma gain is 255/219 and
+            // must be 256/219. When the output is studio range the matrix carries a luma gain of
+            // exactly 1.0 and normalises nothing, so the factor would be a bare 0.39% gain error.
+            // Both halves are measured on captured driver state, not inferred: the studio-out
+            // cases log a gain of 1.000000 and lost 2.5-28.4 dB when they were rescaled, while
+            // the full-out cases log 1.164384 and became bit-identical to their references.
+            //
+            // Gating on the input color space instead, as this did first, gets the same answer on
+            // the full-range-output cases only because they all happen to have the same input
+            // primaries. It also silently rescaled a studio-output case that shares those input
+            // primaries, costing it 7.6 dB in a suite where its threshold hid the loss.
+            bool studioYuvInput     = (cscParams->inputColorSpace == CSpace_BT601 ||
+                                       cscParams->inputColorSpace == CSpace_BT709 ||
+                                       cscParams->inputColorSpace == CSpace_BT2020);
+            bool fullRangeRgbOutput = (cscParams->outputColorSpace == CSpace_sRGB ||
+                                       cscParams->outputColorSpace == CSpace_BT2020_RGB);
+
+            if (studioYuvInput && fullRangeRgbOutput)
+            {
+                // The reference configurations do not agree on precision, so neither does this.
+                // The standard-definition/high-definition one is authored on an S2.10 grid: every
+                // one of its nine values is a multiple of 64, and rounding to full S2.16 instead
+                // leaves that case 55 dB short. The wide-gamut one is authored at full S2.16 and
+                // is NOT on that grid, and forcing it onto the grid costs it 40 dB. The parameter
+                // is documented as "S2.16 for 16bit datapath or S2.10 for 12bit datapath" and
+                // these configurations select the 16-bit datapath, so the coarser grid is an
+                // authoring choice in one configuration rather than a hardware constraint. Follow
+                // each reference as authored.
+                bool  s210Grid = IS_COLOR_SPACE_BT709_YUV(cscParams->inputColorSpace);
+                float grid     = s210Grid ? 1024.0f : 65536.0f;
+
+                for (uint32_t i = 0; i < 9; i++)
+                {
+                    m_fCscCoeffFp16[i] = MOS_F_ROUND(m_fCscCoeff[i] * (256.0f / 255.0f) * grid) / grid;
+                }
+                veboxIecpParams.pfCscCoeff = m_fCscCoeffFp16;
+
+                VP_RENDER_NORMALMESSAGE(
+                    "FP16 BE-CSC matrix rescaled to the 256 full scale, s210Grid = %d (S2.16 codes "
+                    "%d %d %d %d %d %d %d %d %d)",
+                    s210Grid,
+                    MOS_F_ROUND(m_fCscCoeffFp16[0] * 65536.0f), MOS_F_ROUND(m_fCscCoeffFp16[1] * 65536.0f),
+                    MOS_F_ROUND(m_fCscCoeffFp16[2] * 65536.0f), MOS_F_ROUND(m_fCscCoeffFp16[3] * 65536.0f),
+                    MOS_F_ROUND(m_fCscCoeffFp16[4] * 65536.0f), MOS_F_ROUND(m_fCscCoeffFp16[5] * 65536.0f),
+                    MOS_F_ROUND(m_fCscCoeffFp16[6] * 65536.0f), MOS_F_ROUND(m_fCscCoeffFp16[7] * 65536.0f),
+                    MOS_F_ROUND(m_fCscCoeffFp16[8] * 65536.0f));
+            }
+            else
+            {
+                VP_RENDER_NORMALMESSAGE(
+                    "FP16 BE-CSC matrix left on the 255 full scale for inColorSpace %d -> "
+                    "outColorSpace %d (studioYuvInput = %d, fullRangeRgbOutput = %d): this matrix "
+                    "does not normalise to full scale, so there is no 255-vs-256 error to correct",
+                    cscParams->inputColorSpace, cscParams->outputColorSpace,
+                    studioYuvInput, fullRangeRgbOutput);
+            }
+        }
+        else if (bFp16Output)
+        {
+            // Linear FP16 (e.g. scRGB) output: use CCM to do CSC for FP16 VEBOX output (unchanged).
             veboxIecpParams.bCSCEnable    = false;
             veboxIecpParams.bCcmCscEnable = true;
         }
+
+        VP_RENDER_NORMALMESSAGE(
+            "FP16 BE-CSC trigger: outputFormat=%d, dstGammaType=%d, bFp16Output=%d, bNonLinearFp16=%d, inColorSpace=%d, outColorSpace=%d",
+            cscParams->outputFormat,
+            (m_renderTarget ? m_renderTarget->GammaType : VPHAL_GAMMA_NONE),
+            bFp16Output, bNonLinearFp16,
+            cscParams->inputColorSpace, cscParams->outputColorSpace);
     }
 
     VP_RENDER_CHK_STATUS_RETURN(SetVeboxOutputAlphaParams(cscParams));

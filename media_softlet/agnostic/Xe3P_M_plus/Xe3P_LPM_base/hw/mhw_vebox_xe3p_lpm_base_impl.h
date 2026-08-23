@@ -393,7 +393,7 @@ public:
         // R10=1023 instead of 0.6274*1023=643). Identity coefficient = 1.0 in S?.?? fixed-point
         // with scale 2^22 (bit22 = 1.0) => diagonal C0=C4=C8=4194304, off-diagonal = 0.
         pIecpState->CcmState.DW0.ColorCorrectionMatrixEnable = true;
-        if (pFP16Params->bIdentityCcm)
+        if (pFP16Params->ccmMode == MHW_FP16_CCM_IDENTITY)
         {
             const uint32_t kIdentityCcmUnity = 4194304;  // 1.0 in 2^22 fixed-point
             pIecpState->CcmState.DW1.C0 = kIdentityCcmUnity;
@@ -973,14 +973,23 @@ public:
             }
             else
             {
-                pIecpState->CscState.DW0.C0 = 76607;
+                // Two roundings of the same matrix, selected by datapath - see the equivalent block
+                // on the sibling platform for the full reasoning. The float output path takes the
+                // correctly-rounded values; every other route keeps the 1-3 least-significant-bit-low
+                // values its bit-exact references were captured with.
+                const bool     fp16OorDatapath = (pVeboxIecpParams->fp16Params.isActive != 0);
+                const uint32_t lumaGain        = fp16OorDatapath ? 76608 : 76607;
+                const uint32_t crToRed         = fp16OorDatapath ? 110445 : 110443;
+                const uint32_t cbToBlue        = fp16OorDatapath ? 140914 : 140911;
+
+                pIecpState->CscState.DW0.C0 = lumaGain;
                 pIecpState->CscState.DW1.C1 = 0;
-                pIecpState->CscState.DW2.C2 = 110443;
-                pIecpState->CscState.DW3.C3 = 76607;
+                pIecpState->CscState.DW2.C2 = crToRed;
+                pIecpState->CscState.DW3.C3 = lumaGain;
                 pIecpState->CscState.DW4.C4 = MOS_BITFIELD_VALUE((uint32_t)-12325, 19);
                 pIecpState->CscState.DW5.C5 = MOS_BITFIELD_VALUE((uint32_t)-42793, 19);
-                pIecpState->CscState.DW6.C6 = 76607;
-                pIecpState->CscState.DW7.C7 = 140911;
+                pIecpState->CscState.DW6.C6 = lumaGain;
+                pIecpState->CscState.DW7.C7 = cbToBlue;
                 pIecpState->CscState.DW8.C8 = 0;
 
                 pIecpState->CscState.DW9.OffsetIn1  = MOS_BITFIELD_VALUE((uint32_t)-2048, 16);
@@ -1484,6 +1493,13 @@ public:
         cmd.DW18.InterpolationForThe3Dlut = params.LUT3D.InterpolationMethod;  // PLATFORM SPECIFIC: xe3p_lpm adds interpolation method
         mhw::vebox::common::SetupVeboxChromaSampling<cmd_t, decltype(params)>(
             cmd, params);
+        // The control that carries this comes from a user setting and is filled in for every
+        // platform, but the bit was only ever emitted on one of them, so on this one the setting
+        // was accepted and then silently dropped. 0 leaves the prefetch logic enabled, which is
+        // both the field's default and the behaviour before this line, so nothing changes unless
+        // the setting is actually turned on. This base is also what the higher-tier variant of
+        // this generation derives from without overriding the command, so it is covered here too.
+        cmd.DW18.TlbPrefetchDisable = params.isTlbPrefetchDisable;
 
         // DW23 3D LUT controls - RELOCATED FROM DW17
         mhw::vebox::common::SetupVebox3DLutControlsNew<cmd_t, decltype(params)>(

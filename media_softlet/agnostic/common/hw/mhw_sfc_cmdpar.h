@@ -143,6 +143,11 @@ struct _MHW_PAR_T(SFC_STATE)
     bool bInputColorSpace                       = false;  //0: YUV color space, 1:RGB color space
     bool isFullRgbG10P709                       = false;  // Whether output colorspace is COLOR_SPACE_RGB_FULL_G10_NONE_P709
     bool bFp16OutputPassthrough                 = false;  // FP16 output identity passthrough (DV FP16-in/FP16-out 3DLUT, or LutCompound FP16 output): SFC passthrough (identity EOTF + identity CCM, FP16_input_select=0 (CCM tap), gain=1) per HW Arch
+    // Standalone external RGB-to-RGB 3DLUT FP16-in/FP16-out passthrough. Kept SEPARATE from the
+    // flag above rather than folded into it: that one covers two other feature classes and selects
+    // the colour-matrix conversion tap, whereas this path measured correct only with the plain
+    // 16-bit bypass tap. The two are mutually exclusive by construction where they are produced.
+    bool bRgb3DLutFp16Passthrough               = false;  // Identity EOTF, identity colour matrix, plain 16-bit bypass conversion tap, unity gain
     // Memory compression Enable Flag
     bool bMMCEnable                             = false;            // Flag used to decide whether sfc output should be compressed
     MOS_RESOURCE_MMC_MODE MMCMode               = MOS_MMC_DISABLED; // Memory compression mode

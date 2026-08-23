@@ -1184,6 +1184,21 @@ protected:
         return MOS_STATUS_SUCCESS;
     }
 
+    //! \brief    Does this platform implement the float16 out-of-range state chain?
+    //! \details  SetupVeboxFP16State above is a no-op, so a platform that does not override it
+    //!           programs no transfer-function state at all. Such a platform must keep the
+    //!           original colour-correction-matrix route for float16 output, which is what
+    //!           performs the integer-to-float16 conversion there. Reporting support from the
+    //!           base class would silently produce a float16 surface holding raw integer codes.
+    //!           This deliberately does not consult the format capability tables: the float16
+    //!           output entry is legitimately set on platforms that have no such state chain,
+    //!           so it cannot distinguish them.
+    //! \return   false unless the platform overrides both this and SetupVeboxFP16State
+    virtual bool IsVeboxFp16StateSupported()
+    {
+        return false;
+    }
+
     virtual MOS_STATUS SetupHDRUnifiedForHDR(
         mhw::vebox::VEBOX_STATE_PAR &veboxStateCmdParams);
 
@@ -1246,6 +1261,7 @@ protected:
     VPHAL_CSPACE                m_CscOutputCspace = {};                            //!< Cspace of Output Frame
     VPHAL_CSPACE                m_CscInputCspace = {};                             //!< Cspace of Input frame
     float                       m_fCscCoeff[9];                                    //!< [3x3] Coeff matrix for CSC
+    float                       m_fCscCoeffFp16[9] = {};                           //!< [3x3] Coeff matrix rescaled for the float output datapath
     float                       m_fCscInOffset[3];                                 //!< [3x1] Input Offset matrix for CSC
     float                       m_fCscOutOffset[3];                                //!< [3x1] Output Offset matrix for CSC
     SfcRenderBase               *m_sfcRender             = nullptr;

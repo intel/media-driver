@@ -327,6 +327,8 @@ VP_SURFACE *VpAllocator::AllocateVpSurface(VPHAL_SURFACE &vphalSurf)
 
     // Initialize other parameters in vp surface according to vphal surface.
     surf->ColorSpace                            = vphalSurf.ColorSpace;
+    surf->GammaType                             = vphalSurf.GammaType;
+    VP_PUBLIC_NORMALMESSAGE("AllocateVpSurface: copy GammaType %d alongside ColorSpace %d", surf->GammaType, surf->ColorSpace);
     surf->ExtendedGamut                         = vphalSurf.ExtendedGamut;
     surf->Palette                               = vphalSurf.Palette;
     surf->bQueryVariance                        = vphalSurf.bQueryVariance;
@@ -1250,6 +1252,8 @@ MOS_STATUS VpAllocator::ReAllocateVpSurfaceWithSameConfigOfVphalSurface(
 
     // Initialize other parameters in vp surface according to vphal surface.
     surface->ColorSpace     = vphalSurface->ColorSpace;
+    surface->GammaType      = vphalSurface->GammaType;
+    VP_PUBLIC_NORMALMESSAGE("ReAllocateVpSurfaceWithSameConfigOfVphalSurface: copy GammaType %d alongside ColorSpace %d", surface->GammaType, surface->ColorSpace);
     surface->ExtendedGamut  = vphalSurface->ExtendedGamut;
     surface->Palette        = vphalSurface->Palette;
     surface->bQueryVariance = vphalSurface->bQueryVariance;
@@ -1620,6 +1624,7 @@ MOS_STATUS VP_SURFACE::Clean()
 
     isResourceOwner     = false;
     ColorSpace          = CSpace_Any;
+    GammaType           = VPHAL_GAMMA_NONE;
     ChromaSiting        = 0;
     bQueryVariance      = 0;
     FrameID             = 0;

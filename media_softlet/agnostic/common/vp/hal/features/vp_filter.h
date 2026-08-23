@@ -183,6 +183,7 @@ struct _SFC_CSC_PARAMS
     bool                            isFullRgbG10P709;                            // Whether output colorspace is DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709
     bool                            isDemosaicNeeded;                            // 0: demosaic is not needed; 1: demosaic is needed
     bool                            bFp16OutputPassthrough;                      // FP16 output identity passthrough (DV FP16-in/FP16-out 3DLUT, or LutCompound FP16 output): SFC passthrough (identity EOTF + identity CCM, FP16_input_select=0 (CCM tap), gain=1) per HW Arch
+    bool                            bRgb3DLutFp16Passthrough;                    // Standalone external RGB-to-RGB 3DLUT FP16-in/FP16-out passthrough: identity EOTF, identity colour matrix, plain 16-bit bypass conversion tap, unity gain. Mutually exclusive with the flag above.
 };
 
 struct _SFC_ROT_MIR_PARAMS

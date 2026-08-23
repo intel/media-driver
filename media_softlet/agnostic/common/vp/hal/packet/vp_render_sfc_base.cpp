@@ -861,6 +861,7 @@ MOS_STATUS SfcRenderBase::SetCSCParams(PSFC_CSC_PARAMS cscParams)
     m_renderData.sfcStateParams->bInputColorSpace = cscParams->isInputColorSpaceRGB;
     m_renderData.sfcStateParams->isFullRgbG10P709 = cscParams->isFullRgbG10P709;
     m_renderData.sfcStateParams->bFp16OutputPassthrough = cscParams->bFp16OutputPassthrough;
+    m_renderData.sfcStateParams->bRgb3DLutFp16Passthrough = cscParams->bRgb3DLutFp16Passthrough;
     m_renderData.sfcStateParams->isDemosaicEnabled = cscParams->isDemosaicNeeded;
 
     // Dithering parameter

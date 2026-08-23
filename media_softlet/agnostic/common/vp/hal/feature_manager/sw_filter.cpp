@@ -174,6 +174,8 @@ MOS_STATUS SwFilterCsc::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
 
     m_Params.input.colorSpace       = surfInput->ColorSpace;
     m_Params.output.colorSpace      = surfOutput->ColorSpace;
+    m_Params.output.gammaType       = surfOutput->GammaType;
+    VP_PUBLIC_NORMALMESSAGE("SwFilterCsc::Configure: copy output.gammaType %d alongside output.colorSpace %d", m_Params.output.gammaType, m_Params.output.colorSpace);
     m_Params.pIEFParams             = surfInput->pIEFParams;
     m_Params.formatInput            = surfInput->Format;
     m_Params.formatOutput           = surfOutput->Format;

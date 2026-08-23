@@ -525,7 +525,25 @@ MOS_STATUS Policy::GetExecutionCapsForSingleFeature(FeatureType featureType, SwF
         }
         else if (IS_COLOR_SPACE_BT2020_YUV(cscInputColorSpaceCheck) && cgc)
         {
-            VP_PUBLIC_CHK_STATUS_RETURN(GetCSCExecutionCapsBT2020ToRGB(cgc, feature));
+            FeatureParamCsc *cscParams          = &((SwFilterCsc *)feature)->GetSwFilterParams();
+            auto             hwInterface        = m_vpInterface.GetHwInterface();
+            auto             userFeatureControl = hwInterface ? hwInterface->m_userFeatureControl : nullptr;
+            bool             bFp16OorOutput     = (cscParams->formatOutput == Format_A16B16G16R16F ||
+                                                   cscParams->formatOutput == Format_A16R16G16B16F) &&
+                                                  VPHAL_GAMMA_IS_NONLINEAR(cscParams->output.gammaType) &&
+                                                  userFeatureControl &&
+                                                  !userFeatureControl->IsVeboxOutputDisabled() &&
+                                                  !userFeatureControl->IsVeboxTypeHMode();
+            VP_PUBLIC_NORMALMESSAGE("CSC exec-caps dispatch: formatOutput %d, dstGammaType %d, bFp16OorOutput %d",
+                cscParams->formatOutput, cscParams->output.gammaType, bFp16OorOutput);
+            if (bFp16OorOutput)
+            {
+                VP_PUBLIC_CHK_STATUS_RETURN(GetCSCExecutionCapsFp16Oor(feature));
+            }
+            else
+            {
+                VP_PUBLIC_CHK_STATUS_RETURN(GetCSCExecutionCapsBT2020ToRGB(cgc, feature));
+            }
         }
         else if (di)
         {
@@ -974,6 +992,42 @@ MOS_STATUS Policy::GetCSCExecutionCapsBT2020ToRGB(SwFilter *cgc, SwFilter *csc)
         PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
         VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
     }
+
+    PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Policy::GetCSCExecutionCapsFp16Oor(SwFilter *csc)
+{
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_NULL_RETURN(csc);
+
+    FeatureParamCsc *cscParams = &((SwFilterCsc *)csc)->GetSwFilterParams();
+    VP_EngineEntry  *cscEngine = &((SwFilterCsc *)csc)->GetFilterEngineCaps();
+
+    // Clean usedForNextPass flag.
+    if (cscEngine->usedForNextPass)
+    {
+        cscEngine->usedForNextPass = false;
+    }
+    if (cscEngine->value != 0)
+    {
+        VP_PUBLIC_NORMALMESSAGE("CSC Feature Already been processed, Skip further process");
+
+        PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
+        return MOS_STATUS_SUCCESS;
+    }
+
+    // FP16 OOR output: the VEBOX drives the CCM/EOTF/OETF chain and emits nonlinear FP16
+    // out-of-range values. The SFC and Render CSC stages must be bypassed so those values
+    // are preserved end to end.
+    cscEngine->bEnabled     = 1;
+    cscEngine->VeboxNeeded  = 1;
+    cscEngine->SfcNeeded    = 0;
+    cscEngine->RenderNeeded = 0;
+
+    VP_PUBLIC_NORMALMESSAGE("FP16 OOR CSC exec caps: VeboxNeeded 1, SfcNeeded 0, RenderNeeded 0, formatOutput %d, dstGammaType %d",
+        cscParams->formatOutput, cscParams->output.gammaType);
 
     PrintFeatureExecutionCaps(__FUNCTION__, *cscEngine);
     return MOS_STATUS_SUCCESS;

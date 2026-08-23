@@ -96,6 +96,7 @@ protected:
     MOS_STATUS GetCSCExecutionCapsHdr(SwFilter *hdr, SwFilter *csc);
     MOS_STATUS GetCSCExecutionCapsDi(SwFilter* feature);
     MOS_STATUS GetCSCExecutionCapsBT2020ToRGB(SwFilter *cgc, SwFilter *csc);
+    MOS_STATUS GetCSCExecutionCapsFp16Oor(SwFilter *csc);
     MOS_STATUS GetCSCExecutionCaps(SwFilter* feature, bool isCamPipeWithBayerInput);
     bool IsSfcSupported(MOS_FORMAT format);
     MOS_STATUS GetScalingExecutionCaps(SwFilter* feature, bool isDIEnabled);

@@ -104,6 +104,7 @@ struct VP_SURFACE
     MOS_SURFACE                 *osSurface      = nullptr;         //!< mos surface
     bool                        isResourceOwner = false;           //!< true if the resource is owned by current instance.
     VPHAL_CSPACE                ColorSpace      = CSpace_None;     //!< Color Space
+    VPHAL_GAMMA_TYPE            GammaType       = VPHAL_GAMMA_NONE;//!< Gamma Type (mirrors ColorSpace for FP16 OOR output)
     uint32_t                    ChromaSiting    = 0;               //!< ChromaSiting
 
     bool                        bQueryVariance  = false;     //!< enable variance query. Not in use for internal surface
@@ -190,6 +191,7 @@ struct _VP_EXECUTE_CAPS
             uint64_t bH2S           : 1;  // Vebox 3DLUT H2S Mode
             uint64_t b1K1DLutInited : 1;
             uint64_t bDV            : 1;
+            uint64_t bRgbRgb3DLut   : 1;  // Standalone external RGB-to-RGB 3DLUT surface (no 1DLUT). A classification, NOT vendor tone mapping.
             uint64_t b3DlutOutput   : 1;
             uint64_t bHdr33lutsize  : 1;
             uint64_t bLutCompound   : 1;  // Vebox LUT Compound (CSC + 1DLUT + 3DLUT) needed
