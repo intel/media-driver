@@ -104,39 +104,6 @@ public:
 #endif
     };
 
-    static __inline uint32_t MosGetHWTileType(MOS_TILE_TYPE tileType, MOS_TILE_MODE_GMM tileModeGMM, bool gmmTileEnabled)
-    {
-        uint32_t tileMode = 0;
-
-        if (gmmTileEnabled)
-        {
-            return tileModeGMM;
-        }
-
-        switch (tileType)
-        {
-        case MOS_TILE_LINEAR:
-            tileMode = 0;
-            break;
-        case MOS_TILE_YS:
-            tileMode = 1;
-            break;
-        case MOS_TILE_X:
-            tileMode = 2;
-            break;
-        case MOS_TILE_B:
-            // TileB carries HW tile-mode value 2. Defensive: the GMM tile-enabled
-            // path above already returns tileModeGMM for TileB surfaces; this keeps
-            // the fallback correct if a TileB surface ever reaches the non-GMM path.
-            tileMode = 2;
-            break;
-        default:
-            tileMode = 3;
-            break;
-        }
-        return tileMode;
-    }
-
     MOS_STATUS UpdateVeboxSync() override
     {
         PMHW_VEBOX_HEAP          pVeboxHeap;
@@ -434,7 +401,6 @@ public:
     {
         return dw4X4TGNEThCnt;
     }
-
 
     void RefreshVeboxSync()
     {

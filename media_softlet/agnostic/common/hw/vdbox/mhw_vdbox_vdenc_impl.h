@@ -502,7 +502,7 @@ protected:
     DO_FIELD(Dwords25.DW0, CrVCbUPixelOffsetVDirection, params.vDirection);                                        \
     DO_FIELD(Dwords25.DW0, SurfaceFormatByteSwizzle, params.displayFormatSwizzle);                                 \
                                                                                                                    \
-    DO_FIELD(Dwords25.DW1, TileMode, GetHwTileType(params.tileType, params.tileModeGmm, params.gmmTileEn));        \
+    DO_FIELD(Dwords25.DW1, TileMode, MhwGetHwTileType(params.tileType, params.tileModeGmm, params.gmmTileEn));        \
     DO_FIELD(Dwords25.DW1, SurfaceFormat, static_cast<uint32_t>(MosFormatToVdencSurfaceRawFormat(params.format))); \
     DO_FIELD(Dwords25.DW1, SurfacePitch, params.pitch - 1);                                                        \
     DO_FIELD(Dwords25.DW1, ChromaDownsampleFilterControl, params.chromaDownsampleFilterControl);                                                        \
@@ -522,7 +522,7 @@ protected:
     DO_FIELD(Dwords25.DW0, Height, params.height - 1);                                                               \
     DO_FIELD(Dwords25.DW0, CrVCbUPixelOffsetVDirection, params.vDirection);                                          \
                                                                                                                      \
-    DO_FIELD(Dwords25.DW1, TileMode, GetHwTileType(params.tileType, params.tileModeGmm, params.gmmTileEn));          \
+    DO_FIELD(Dwords25.DW1, TileMode, MhwGetHwTileType(params.tileType, params.tileModeGmm, params.gmmTileEn));          \
     DO_FIELD(Dwords25.DW1, SurfacePitch, params.pitch - 1);                                                          \
     DO_FIELD(Dwords25.DW1, SurfaceFormat, static_cast<uint32_t>(MosFormatToVdencSurfaceReconFormat(params.format))); \
                                                                                                                      \
@@ -543,7 +543,7 @@ protected:
     DO_FIELD(Dwords25.DW0, Height, params.heightStage1 - 1);                                                                               \
     DO_FIELD(Dwords25.DW0, CrVCbUPixelOffsetVDirection, params.vDirectionStage1);                                                          \
                                                                                                                                            \
-    DO_FIELD(Dwords25.DW1, TileMode, GetHwTileType(params.tileTypeStage1, params.tileModeGmmStage1, params.gmmTileEnStage1));              \
+    DO_FIELD(Dwords25.DW1, TileMode, MhwGetHwTileType(params.tileTypeStage1, params.tileModeGmmStage1, params.gmmTileEnStage1));              \
     DO_FIELD(Dwords25.DW1, SurfaceFormat, cmd_t::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8);                             \
     DO_FIELD(Dwords25.DW1, SurfacePitch, params.pitchStage1 - 1);                                                                          \
                                                                                                                                            \
@@ -555,7 +555,7 @@ protected:
     DO_FIELD(Dwords69.DW0, Height, stage2 ? params.heightStage2 - 1 : 0);                                                                  \
     DO_FIELD(Dwords69.DW0, CrVCbUPixelOffsetVDirection, stage2 ? params.vDirectionStage2 : 0);                                             \
                                                                                                                                            \
-    DO_FIELD(Dwords69.DW1, TileMode, stage2 ? GetHwTileType(params.tileTypeStage2, params.tileModeGmmStage2, params.gmmTileEnStage2) : 0); \
+    DO_FIELD(Dwords69.DW1, TileMode, stage2 ? MhwGetHwTileType(params.tileTypeStage2, params.tileModeGmmStage2, params.gmmTileEnStage2) : 0); \
     DO_FIELD(Dwords69.DW1, SurfaceFormat, stage2 ? cmd_t::VDENC_Surface_State_Fields_CMD::SURFACE_FORMAT_PLANAR_420_8 : 0);                \
     DO_FIELD(Dwords69.DW1, SurfacePitch, stage2 ? params.pitchStage2 - 1 : 0);                                                             \
                                                                                                                                            \

@@ -1487,36 +1487,6 @@ MHW_SETPAR_DECL_SRC(MFX_PIPE_MODE_SELECT, AvcBasicFeature)
     return MOS_STATUS_SUCCESS;
 }
 
-static inline uint32_t GetHwTileType(MOS_TILE_TYPE tileType, MOS_TILE_MODE_GMM tileModeGMM, bool gmmTileEnabled)
-{
-    uint32_t tileMode = 0;
-
-    if (gmmTileEnabled)
-    {
-        return tileModeGMM;
-    }
-
-    switch (tileType)
-    {
-    case MOS_TILE_LINEAR:
-        tileMode = 0;
-        break;
-    case MOS_TILE_YS:
-        tileMode = 1;
-        break;
-    case MOS_TILE_X:
-        tileMode = 2;
-        break;
-    case MOS_TILE_B:
-        tileMode = 2;
-        break;
-    default:
-        tileMode = 3;
-        break;
-    }
-
-    return tileMode;
-}
 
 uint8_t MosToMediaStateFormat(MOS_FORMAT format)
 {
@@ -1624,7 +1594,7 @@ MHW_SETPAR_DECL_SRC(MFX_SURFACE_STATE, AvcBasicFeature)
 
     ENCODE_CHK_NULL_RETURN(psSurface);
 
-    params.tilemode         = GetHwTileType(psSurface->TileType, psSurface->TileModeGMM, psSurface->bGMMTileEnabled);
+    params.tilemode         = MhwGetHwTileType(psSurface->TileType, psSurface->TileModeGMM, psSurface->bGMMTileEnabled);
     params.surfacePitch     = psSurface->dwPitch - 1;
     params.interleaveChroma = psSurface->Format == Format_P8 ? 0 : 1;
     params.surfaceFormat    = MosToMediaStateFormat(psSurface->Format);

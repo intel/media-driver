@@ -652,7 +652,7 @@ protected:
         // Decoded Output Frame Buffer
         cmd.DecodedPictureMemoryAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables =
             GetMocsValue(MOS_CODEC_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC);
-        cmd.DecodedPictureMemoryAddressAttributes.DW0.Tilemode = GetHwTileType(params.decodedPic->TileType, params.decodedPic->TileModeGMM, params.decodedPic->bGMMTileEnabled);
+        cmd.DecodedPictureMemoryAddressAttributes.DW0.Tilemode = MhwGetHwTileType(params.decodedPic->TileType, params.decodedPic->TileModeGMM, params.decodedPic->bGMMTileEnabled);
 
         resourceParams.presResource    = &(params.decodedPic->OsResource);
         resourceParams.dwOffset        = params.decodedPic->dwOffset;
@@ -674,7 +674,7 @@ protected:
                 MOS_SURFACE details = {};
                 details.Format = Format_Invalid;
                 MHW_MI_CHK_STATUS(m_osItf->pfnGetResourceInfo(m_osItf, params.references[i], &details));
-                cmd.ReferencePicture[i].ReferencePictureMemoryAddressAttributes.DW0.Tilemode = GetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+                cmd.ReferencePicture[i].ReferencePictureMemoryAddressAttributes.DW0.Tilemode = MhwGetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
                 cmd.ReferencePicture[i].ReferencePictureMemoryAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables =
                     GetMocsValue(MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC);
 

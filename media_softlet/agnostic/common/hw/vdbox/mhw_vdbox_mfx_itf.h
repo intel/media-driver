@@ -27,6 +27,7 @@
 #ifndef __MHW_VDBOX_MFX_ITF_H__
 #define __MHW_VDBOX_MFX_ITF_H__
 #include "mhw_itf.h"
+#include "mhw_utilities_next.h"
 #include "mhw_vdbox_mfx_cmdpar.h"
 #include "mhw_vdbox.h"
 
@@ -116,35 +117,6 @@ public:
         MFD_VP8_BSD_OBJECT_CMD_NUMBER_OF_ADDRESSES              = 0,   //  0 DW for    address fields
     };
 
-    static __inline uint32_t MosGetHWTileType(MOS_TILE_TYPE tileType, MOS_TILE_MODE_GMM tileModeGMM, bool gmmTileEnabled)
-    {
-        uint32_t tileMode = 0;
-
-        if (gmmTileEnabled)
-        {
-            return tileModeGMM;
-        }
-
-        switch (tileType)
-        {
-            case MOS_TILE_LINEAR:
-                tileMode = 0;
-                break;
-            case MOS_TILE_YS:
-                tileMode = 1;
-                break;
-            case MOS_TILE_X:
-                tileMode = 2;
-                break;
-            case MOS_TILE_B:
-                tileMode = 2;
-                break;
-            default:
-                tileMode = 3;
-                break;
-        }
-        return tileMode;
-    }
 
     class ParSetting
     {

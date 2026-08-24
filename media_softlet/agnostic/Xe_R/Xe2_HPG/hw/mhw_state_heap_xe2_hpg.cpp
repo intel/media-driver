@@ -25,6 +25,7 @@
 //!            all operating systems/DDIs, across MHW components.
 //!
 #include "mhw_state_heap_xe2_hpg.h"
+#include "mhw_utilities_next.h"
 #include "mhw_cp_interface.h"
 
 MHW_STATE_HEAP_INTERFACE_XE2_HPG::MHW_STATE_HEAP_INTERFACE_XE2_HPG(
@@ -116,33 +117,6 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_XE2_HPG::AddInterfaceDescriptorData(
     MOS_SafeFreeMemory(pInterfaceDescriptor);
     MHW_MI_CHK_STATUS(eStatus);
     return eStatus;
-}
-
-static uint32_t GetHWTileType(MOS_TILE_TYPE tileType, MOS_TILE_MODE_GMM tileModeGMM, bool gmmTileEnabled)
-{
-    uint32_t tileMode = 0;
-
-    if (gmmTileEnabled)
-    {
-        return tileModeGMM;
-    }
-
-    switch (tileType)
-    {
-    case MOS_TILE_LINEAR:
-        tileMode = mhw_state_heap_xe2_hpg::MEDIA_SURFACE_STATE_CMD::TILE_MODE_TILEMODELINEAR;
-        break;
-    case MOS_TILE_YS:
-        tileMode = mhw_state_heap_xe2_hpg::MEDIA_SURFACE_STATE_CMD::TILE_MODE_TILES_64K;
-        break;
-    case MOS_TILE_X:
-        tileMode = mhw_state_heap_xe2_hpg::MEDIA_SURFACE_STATE_CMD::TILE_MODE_TILEMODEXMAJOR;
-        break;
-    default:
-        tileMode = mhw_state_heap_xe2_hpg::MEDIA_SURFACE_STATE_CMD::TILE_MODE_TILEF;
-        break;
-    }
-    return tileMode;
 }
 
 MOS_STATUS MHW_STATE_HEAP_INTERFACE_XE2_HPG::SetSurfaceStateEntry(
@@ -348,7 +322,7 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_XE2_HPG::SetSurfaceState(
             pCmd->DW2.SurfaceFormat             = pParams->ForceSurfaceFormat[i];
             pCmd->DW2.InterleaveChroma          = pParams->bInterleaveChroma;
 
-            pCmd->DW2.TileMode = GetHWTileType(pParams->psSurface->TileType, pParams->psSurface->TileModeGMM, pParams->psSurface->bGMMTileEnabled);
+            pCmd->DW2.TileMode = MhwGetHwTileType(pParams->psSurface->TileType, pParams->psSurface->TileModeGMM, pParams->psSurface->bGMMTileEnabled);
 
             pCmd->DW5.SurfaceMemoryObjectControlState   = pParams->dwCacheabilityControl;
             MT_LOG6(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"SurfaceState"),

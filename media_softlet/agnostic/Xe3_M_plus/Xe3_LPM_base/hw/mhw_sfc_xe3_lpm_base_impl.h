@@ -273,7 +273,7 @@ public:
         // DW29: tile mode, pitch, interleave chroma, format
         mhw::sfc::common::SetSfcStateSurfaceParams<cmd_t>(
             cmd, pOutSurface, bHalfPitchForChroma, bInterleaveChroma,
-            MosGetHWTileType(pOutSurface->TileType, pOutSurface->TileModeGMM, pOutSurface->bGMMTileEnabled));
+            MhwGetHwTileType(pOutSurface->TileType, pOutSurface->TileModeGMM, pOutSurface->bGMMTileEnabled));
 
         // DW30-DW32: output surface UV offsets (member function, unchanged)
         SetOutputSurfaceOffset(&cmd, wUYOffset, wUXOffset, wVYOffset, wVXOffset, params, pOutSurface);

@@ -243,7 +243,7 @@ namespace decode
         params.interleaveChroma = 1;
         params.surfaceFormat    = SURFACE_FORMAT_PLANAR4208;
 
-        params.tilemode = m_mfxItf->MosGetHWTileType(psSurface->TileType, psSurface->TileModeGMM, psSurface->bGMMTileEnabled);
+        params.tilemode = MhwGetHwTileType(psSurface->TileType, psSurface->TileModeGMM, psSurface->bGMMTileEnabled);
 
         uint32_t uvPlaneAlignment = MHW_VDBOX_MFX_UV_PLANE_ALIGNMENT_LEGACY;
         if (params.surfaceId == CODECHAL_MFX_SRC_SURFACE_ID)

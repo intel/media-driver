@@ -176,7 +176,7 @@ MHW_SETPAR_DECL_SRC(MFX_SURFACE_STATE, JpegDecodePicPkt)
     params.psSurface          = &m_jpegBasicFeature->m_destSurface;
     uint32_t uvPlaneAlignment = MHW_VDBOX_MFX_RECON_UV_PLANE_ALIGNMENT;
 
-    params.tilemode = m_mfxItf->MosGetHWTileType(params.psSurface->TileType, params.psSurface->TileModeGMM, params.psSurface->bGMMTileEnabled);
+    params.tilemode = MhwGetHwTileType(params.psSurface->TileType, params.psSurface->TileModeGMM, params.psSurface->bGMMTileEnabled);
 
     params.height       = params.psSurface->dwHeight - 1;
     params.width        = params.psSurface->dwWidth - 1;

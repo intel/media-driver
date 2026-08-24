@@ -1314,7 +1314,7 @@ public:
         par.BayerPatternOffset    = bBayerOffset;
         par.BayerPatternFormat    = bBayerStride;
         par.SurfacePitch          = dwSurfacePitch - 1;
-        par.TileMode              = this->MosGetHWTileType(pSurfaceParam->TileType, pSurfaceParam->TileModeGMM, pSurfaceParam->bGMMTileEnabled);
+        par.TileMode              = MhwGetHwTileType(pSurfaceParam->TileType, pSurfaceParam->TileModeGMM, pSurfaceParam->bGMMTileEnabled);
         par.XOffsetForU           = wUXOffset;
         par.YOffsetForU           = wUYOffset;
         par.XOffsetForV           = wVXOffset;

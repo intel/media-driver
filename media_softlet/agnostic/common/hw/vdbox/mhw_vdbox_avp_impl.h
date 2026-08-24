@@ -923,7 +923,7 @@ protected:
             MHW_MI_CHK_STATUS(this->m_osItf->pfnGetResourceInfo(this->m_osItf, params.filmGrainOutputSurface, &details));
 
             cmd.FilmGrainInjectedOutputFrameBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
-            cmd.FilmGrainInjectedOutputFrameBufferAddressAttributes.DW0.TileMode = this->GetHwTileType(params.filmGrainOutputSurface->TileType,
+            cmd.FilmGrainInjectedOutputFrameBufferAddressAttributes.DW0.TileMode = MhwGetHwTileType(params.filmGrainOutputSurface->TileType,
                                                                                     params.filmGrainOutputSurface->TileModeGMM,
                                                                                     params.filmGrainOutputSurface->bGMMTileEnabled);
 
@@ -1056,7 +1056,7 @@ protected:
                 {
                     cmd.ReferenceFrameBufferBaseAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.mmcStatePreDeblock);
                     cmd.ReferenceFrameBufferBaseAddressAttributes.DW0.CompressionType                    = MmcRcEnabled(params.mmcStatePreDeblock);
-                    cmd.ReferenceFrameBufferBaseAddressAttributes.DW0.TileMode                           = GetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+                    cmd.ReferenceFrameBufferBaseAddressAttributes.DW0.TileMode                           = MhwGetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
                     firstRefPic                                                                          = false;
                 }
 
@@ -1079,7 +1079,7 @@ protected:
         //Decoded Output Frame Buffer
         cmd.DecodedOutputFrameBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.mmcStatePreDeblock);
         cmd.DecodedOutputFrameBufferAddressAttributes.DW0.CompressionType                    = MmcRcEnabled(params.mmcStatePreDeblock);
-        cmd.DecodedOutputFrameBufferAddressAttributes.DW0.TileMode                           = GetHwTileType(params.decodedPic->TileType, params.decodedPic->TileModeGMM, params.decodedPic->bGMMTileEnabled);
+        cmd.DecodedOutputFrameBufferAddressAttributes.DW0.TileMode                           = MhwGetHwTileType(params.decodedPic->TileType, params.decodedPic->TileModeGMM, params.decodedPic->bGMMTileEnabled);
 
         resourceParams.presResource    = &(params.decodedPic->OsResource);
         resourceParams.dwOffset        = params.decodedPic->dwOffset;
@@ -1113,7 +1113,7 @@ protected:
             //This surface should not have memory compression turned on
             cmd.IntrabcDecodedOutputFrameBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = 0;
             cmd.IntrabcDecodedOutputFrameBufferAddressAttributes.DW0.CompressionType                    = 0;
-            cmd.IntrabcDecodedOutputFrameBufferAddressAttributes.DW0.TileMode                           = GetHwTileType(params.intrabcDecodedOutputFrameBuffer->TileType, params.intrabcDecodedOutputFrameBuffer->TileModeGMM, params.intrabcDecodedOutputFrameBuffer->bGMMTileEnabled);
+            cmd.IntrabcDecodedOutputFrameBufferAddressAttributes.DW0.TileMode                           = MhwGetHwTileType(params.intrabcDecodedOutputFrameBuffer->TileType, params.intrabcDecodedOutputFrameBuffer->TileModeGMM, params.intrabcDecodedOutputFrameBuffer->bGMMTileEnabled);
         }
 
         // CDF Table Initialization Buffer
@@ -1837,7 +1837,7 @@ protected:
 
             cmd.OriginalUncompressedPictureSourceBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.mmcStateRawSurf);
             cmd.OriginalUncompressedPictureSourceBufferAddressAttributes.DW0.CompressionType                    = MmcRcEnabled(params.mmcStateRawSurf);
-            cmd.OriginalUncompressedPictureSourceBufferAddressAttributes.DW0.TileMode                           = GetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+            cmd.OriginalUncompressedPictureSourceBufferAddressAttributes.DW0.TileMode                           = MhwGetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
 
             resourceParams.presResource    = params.originalPicSourceBuffer;
             resourceParams.dwOffset        = 0;
@@ -1863,7 +1863,7 @@ protected:
 
             cmd.DownscaledUncompressedPictureSourceBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.mmcStateRawSurf);
             cmd.DownscaledUncompressedPictureSourceBufferAddressAttributes.DW0.CompressionType                    = MmcRcEnabled(params.mmcStateRawSurf);
-            cmd.DownscaledUncompressedPictureSourceBufferAddressAttributes.DW0.TileMode                           = GetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+            cmd.DownscaledUncompressedPictureSourceBufferAddressAttributes.DW0.TileMode                           = MhwGetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
 
             resourceParams.presResource    = params.dsPictureSourceBuffer;
             resourceParams.dwOffset        = 0;
@@ -1970,7 +1970,7 @@ protected:
         {
             cmd.PostCDEFpixelsBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable                   = MmcEnabled(params.postCdefSurfMmcState);
             cmd.PostCDEFpixelsBufferAddressAttributes.DW0.CompressionType                                      = MmcRcEnabled(params.postCdefSurfMmcState);
-            cmd.PostCDEFpixelsBufferAddressAttributes.DW0.TileMode                                             = GetHwTileType(params.postCDEFpixelsBuffer->TileType,
+            cmd.PostCDEFpixelsBufferAddressAttributes.DW0.TileMode                                             = MhwGetHwTileType(params.postCDEFpixelsBuffer->TileType,
                 params.postCDEFpixelsBuffer->TileModeGMM,
                 params.postCDEFpixelsBuffer->bGMMTileEnabled);
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2025, Intel Corporation
+* Copyright (c) 2021-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,27 @@ struct _MHW_BATCH_BUFFER;
 
 typedef struct _MHW_RCS_SURFACE_PARAMS MHW_RCS_SURFACE_PARAMS, * PMHW_RCS_SURFACE_PARAMS;
 typedef struct _MHW_BATCH_BUFFER MHW_BATCH_BUFFER, * PMHW_BATCH_BUFFER;
+
+inline uint32_t MhwGetHwTileType(MOS_TILE_TYPE tileType, MOS_TILE_MODE_GMM tileModeGMM, bool gmmTileEnabled)
+{
+    if (gmmTileEnabled)
+    {
+        return tileModeGMM;
+    }
+
+    switch (tileType)
+    {
+    case MOS_TILE_LINEAR:
+        return 0;
+    case MOS_TILE_YS:
+        return 1;
+    case MOS_TILE_X:
+    case MOS_TILE_B:
+        return 2;
+    default:
+        return 3;
+    }
+}
 
 #define MHW_CACHELINE_SIZE      64
 #define MHW_PAGE_SIZE           0x1000

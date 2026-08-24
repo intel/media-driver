@@ -135,7 +135,7 @@ protected:
 
             cmd.SourcePixelsFrameBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.mmcStateRawSurf);
             cmd.SourcePixelsFrameBufferAddressAttributes.DW0.CompressionType                    = MmcRcEnabled(params.mmcStateRawSurf);
-            cmd.SourcePixelsFrameBufferAddressAttributes.DW0.Tilemode                           = GetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+            cmd.SourcePixelsFrameBufferAddressAttributes.DW0.Tilemode                           = MhwGetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
 
             resourceParams.presResource    = params.surfaceRawBuffer;
             resourceParams.dwOffset        = 0;
@@ -167,7 +167,7 @@ protected:
 
             cmd.ReconstructedPixelsFrameBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.mmcStateReconSurf);
             cmd.ReconstructedPixelsFrameBufferAddressAttributes.DW0.CompressionType                    = MmcRcEnabled(params.mmcStateReconSurf);
-            cmd.ReconstructedPixelsFrameBufferAddressAttributes.DW0.Tilemode                           = GetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+            cmd.ReconstructedPixelsFrameBufferAddressAttributes.DW0.Tilemode                           = MhwGetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
 
             resourceParams.presResource    = params.surfaceReconBuffer;
             resourceParams.dwOffset        = 0;
@@ -227,7 +227,7 @@ protected:
 
             cmd.AQM_PIPE_BUF_ADDR_STATE_DW30.DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.AqmPipeBufAddrStatePar3);
             cmd.AQM_PIPE_BUF_ADDR_STATE_DW30.DW0.CompressionType                    = MmcRcEnabled(params.AqmPipeBufAddrStatePar3);
-            cmd.AQM_PIPE_BUF_ADDR_STATE_DW30.DW0.Tilemode                           = GetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+            cmd.AQM_PIPE_BUF_ADDR_STATE_DW30.DW0.Tilemode                           = MhwGetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
 
             resourceParams.presResource    = params.AqmPipeBufAddrStatePar2;
             resourceParams.dwOffset        = 0;
@@ -261,7 +261,7 @@ protected:
 
                 AqmCmdArr2Attributes[depth]->DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.AqmPipeBufAddrStatePar5[depth]);
                 AqmCmdArr2Attributes[depth]->DW0.CompressionType                    = MmcRcEnabled(params.AqmPipeBufAddrStatePar5[depth]);
-                AqmCmdArr2Attributes[depth]->DW0.Tilemode                           = GetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+                AqmCmdArr2Attributes[depth]->DW0.Tilemode                           = MhwGetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
 
                 resourceParams.presResource    = params.AqmPipeBufAddrStatePar4[depth];
                 resourceParams.dwOffset        = 0;

@@ -29,6 +29,7 @@
 #define __MHW_IMPL_H__
 
 #include "mhw_itf.h"
+#include "mhw_utilities_next.h"
 #include "mhw_utilities.h"
 #include "media_class_trace.h"
 
@@ -174,37 +175,6 @@ protected:
     static bool MmcRcEnabled(MOS_MEMCOMP_STATE state)
     {
         return state == MOS_MEMCOMP_RC;
-    }
-
-    static uint32_t GetHwTileType(MOS_TILE_TYPE tileType, MOS_TILE_MODE_GMM tileModeGMM, bool gmmTileEnabled)
-    {
-        uint32_t tileMode = 0;
-
-        if (gmmTileEnabled)
-        {
-            return tileModeGMM;
-        }
-
-        switch (tileType)
-        {
-        case MOS_TILE_LINEAR:
-            tileMode = 0;
-            break;
-        case MOS_TILE_YS:
-            tileMode = 1;
-            break;
-        case MOS_TILE_X:
-            tileMode = 2;
-            break;
-        case MOS_TILE_B:
-            tileMode = 2;
-            break;
-        default:
-            tileMode = 3;
-            break;
-        }
-
-        return tileMode;
     }
 
     static uint16_t Fp32_to_Fp16(float value)
