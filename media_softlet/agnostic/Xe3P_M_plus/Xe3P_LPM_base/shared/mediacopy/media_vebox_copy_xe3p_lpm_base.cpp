@@ -51,7 +51,10 @@ bool VeboxCopyStateXe3P_Lpm_Base::IsVeCopySupportedFormat(MOS_FORMAT format)
             format == Format_A16R16G16B16F ||
             format == Format_A16B16G16R16 ||
             format == Format_A16R16G16B16 ||
-            format == Format_R16UN);
+            format == Format_R16UN ||
+             format == Format_R8UN ||
+             format == Format_R8U ||
+             format == Format_R16U);
     return bRet;
 }
 
