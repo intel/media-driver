@@ -446,6 +446,7 @@ void MediaDebugConfigMgr::GenerateDefaultConfig(std::string configFileName)
     ofs << "##" << MediaDbgAttr::attrForceCmdDumpLvl << ":0" << std::endl;
     ofs << "##" << MediaDbgAttr::attrForceCurbeDumpLvl << ":0" << std::endl;
     ofs << "##" << MediaDbgAttr::attrFrameState << ":0" << std::endl;
+    ofs << "##" << MediaDbgAttr::attrVdencFrameStats << ":0" << std::endl;
     ofs << "##" << MediaDbgAttr::attrBrcPakStats << ":0" << std::endl;
     ofs << "##" << MediaDbgAttr::attrCUStreamout << ":0" << std::endl;
     ofs << "##" << MediaDbgAttr::attrImageState << ":0" << std::endl;

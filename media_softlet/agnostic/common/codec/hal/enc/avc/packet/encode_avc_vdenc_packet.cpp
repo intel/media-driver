@@ -2629,6 +2629,26 @@ namespace encode {
             CodechalDbgAttr::attrStatusReport,
             "EncodeStatusReport_Buffer"));
 
+        // VDENC frame statistics streamout
+        PMOS_RESOURCE vdencStatsBuffer = m_basicFeature->m_recycleBuf->GetBuffer(VdencStatsBuffer, 0);
+        if (vdencStatsBuffer != nullptr)
+        {
+            MOS_LOCK_PARAMS lockFlags;
+            MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+            lockFlags.ReadOnly = 1;
+            uint8_t *statsData = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, vdencStatsBuffer, &lockFlags);
+            if (statsData != nullptr)
+            {
+                debugInterface->DumpData(
+                    statsData,
+                    CODECHAL_PAGE_SIZE,
+                    CodechalDbgAttr::attrVdencFrameStats,
+                    "VdencFrameStats");
+
+                m_osInterface->pfnUnlockResource(m_osInterface, vdencStatsBuffer);
+            }
+        }
+
         // BRC non-native ROI dump as HuC_region8[in], HuC_region9[in] and HuC_region10[out]
         auto brcFeature = dynamic_cast<AvcEncodeBRC*>(m_featureManager->GetFeature(AvcFeatureIDs::avcBrcFeature));
         auto streamInFeature = dynamic_cast<AvcVdencStreamInFeature*>(m_featureManager->GetFeature(AvcFeatureIDs::avcVdencStreamInFeature));
