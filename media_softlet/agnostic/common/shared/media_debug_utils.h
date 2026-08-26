@@ -105,7 +105,6 @@ static const char *attrDisableSwizzleForDumps = "DisableSwizzleForDumps";
 static const char *attrVdencOutput            = "VdencOutput";
 static const char *attrDecodeProcParams       = "DecodeProcParams";
 static const char *attrFrameState             = "FrameState";
-static const char *attrVdencFrameStats        = "VdencFrameStats";
 static const char *attrCUStreamout            = "CUStreamout";
 static const char *attrBrcPakStats            = "BrcPakStats";
 static const char *attrImageState             = "ImageState";

@@ -2830,49 +2830,6 @@ MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFE
             CodechalDbgAttr::attrStatusReport,
             "EncodeStatusReport_Buffer"));
 
-        // VDENC frame statistics streamout
-        PMOS_RESOURCE vdencStatsBuffer = m_basicFeature->m_recycleBuf->GetBuffer(VdencStatsBuffer, 0);
-        uint32_t      vdencStatsOffset = 0;
-        bool          tileEnabled      = false;
-        RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, HevcFeatureIDs::encodeTile, IsEnabled, tileEnabled);
-        if (tileEnabled)
-        {
-            uint32_t      statsBufIdx     = statusReportData->currOriginalPic.FrameIdx;
-            MOS_RESOURCE *tileStatsBuffer = nullptr;
-            RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, HevcFeatureIDs::encodeTile, GetTileBasedStatisticsBuffer, statsBufIdx, tileStatsBuffer);
-
-            if (!Mos_ResourceIsNull(tileStatsBuffer))
-            {
-                HevcTileStatusInfo tileStatsOffset  = {};
-                HevcTileStatusInfo frameStatsOffset = {};
-                HevcTileStatusInfo statsSize        = {};
-                RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, HevcFeatureIDs::encodeTile, GetTileStatusInfo, tileStatsOffset, frameStatsOffset, statsSize);
-
-                vdencStatsBuffer = tileStatsBuffer;
-                vdencStatsOffset = tileStatsOffset.vdencStatistics;
-            }
-        }
-        if (vdencStatsBuffer != nullptr)
-        {
-            MOS_LOCK_PARAMS lockFlags;
-            MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
-            lockFlags.ReadOnly = 1;
-
-            uint8_t *statsData = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, vdencStatsBuffer, &lockFlags);
-            if (statsData != nullptr)
-            {
-                uint8_t *statsBase = statsData + vdencStatsOffset;
-
-                debugInterface->DumpData(
-                    statsBase,
-                    CODECHAL_PAGE_SIZE,
-                    CodechalDbgAttr::attrVdencFrameStats,
-                    "VdencFrameStats");
-
-                m_osInterface->pfnUnlockResource(m_osInterface, vdencStatsBuffer);
-            }
-        }
-
         PMOS_RESOURCE frameStatStreamOutBuffer = m_basicFeature->m_recycleBuf->GetBuffer(FrameStatStreamOutBuffer, 0);
         ENCODE_CHK_NULL_RETURN(frameStatStreamOutBuffer);
         ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(

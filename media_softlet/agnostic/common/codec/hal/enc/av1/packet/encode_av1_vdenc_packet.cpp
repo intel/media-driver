@@ -2416,32 +2416,6 @@ namespace encode{
         debugInterface->m_bufferDumpFrameNum = m_statusReport->GetReportedCount();
         debugInterface->m_frameType          = encodeStatusMfx->pictureCodingType;
 
-        // VDENC frame statistics streamout
-        uint32_t      vdencStatsBufIdx = statusReportData->currOriginalPic.FrameIdx;
-        uint32_t      vdencStatsOffset = 0;
-        MOS_RESOURCE *vdencStatsBuffer = nullptr;
-        RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetTileBasedStatisticsBuffer, vdencStatsBufIdx, vdencStatsBuffer);
-        RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetTileStatsOffset, vdencStatsOffset);
-        if (vdencStatsBuffer != nullptr)
-        {
-            MOS_LOCK_PARAMS lockFlags;
-            MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
-            lockFlags.ReadOnly = 1;
-
-            uint8_t *statsData = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, vdencStatsBuffer, &lockFlags);
-            if (statsData != nullptr)
-            {
-                uint8_t *statsBase = statsData + vdencStatsOffset;
-                debugInterface->DumpData(
-                    statsBase,
-                    CODECHAL_PAGE_SIZE,
-                    CodechalDbgAttr::attrVdencFrameStats,
-                    "VdencFrameStats");
-
-                m_osInterface->pfnUnlockResource(m_osInterface, vdencStatsBuffer);
-            }
-        }
-
         if (m_resVDEncPakObjCmdStreamOutBuffer != nullptr)
         {
             ENCODE_CHK_STATUS_RETURN(debugInterface->DumpBuffer(
