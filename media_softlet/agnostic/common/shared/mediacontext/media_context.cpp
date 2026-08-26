@@ -28,6 +28,7 @@
 //!
 
 #include <bitset>
+#include <memory>
 #include "media_context.h"
 #include "mos_interface.h"
 #include "mos_os_virtualengine_next.h"
@@ -147,13 +148,15 @@ MediaContext::~MediaContext()
         else
         {
             MOS_OS_ASSERTMESSAGE("scalabilityState is nullptr, something must be wrong");
-            return;
+            // Skip this entry only. Returning here would abandon the remaining
+            // entries and leak their scalability states.
+            continue;
         }
 
         if (!m_osInterface || !m_osInterface->pOsContext)
         {
             MOS_OS_ASSERTMESSAGE("m_osInterface and OsContext cannot be nullptr");
-            return;
+            continue;
         }
 
         if (curAttribute.gpuContext != MOS_GPU_CONTEXT_INVALID_HANDLE)
@@ -165,7 +168,7 @@ MediaContext::~MediaContext()
                 if (status != MOS_STATUS_SUCCESS)
                 {
                     MOS_OS_NORMALMESSAGE("Gpu Context destory failed, something must be wrong");
-                    return;
+                    continue;
                 }
             }
             else
@@ -176,14 +179,14 @@ MediaContext::~MediaContext()
                 if (status != MOS_STATUS_SUCCESS)
                 {
                     MOS_OS_NORMALMESSAGE("Gpu Context destory failed, something must be wrong");
-                    return;
+                    continue;
                 }
             }
         }
         else
         {
             MOS_OS_ASSERTMESSAGE("Invalid gpu Context handle in entry, something must be wrong");
-            return;
+            continue;
         }
 #if !EMUL
         // Be compatible to legacy MOS
@@ -343,12 +346,32 @@ MOS_STATUS MediaContext::CreateContext(MediaFunction func, T params, uint32_t& i
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    // Create scalabilityState
+    // Create scalabilityState. It only becomes reachable for destruction once newAttr has
+    // been pushed into m_gpuContextAttributeTable, so keep sole ownership in a unique_ptr
+    // until that point: every early return below then releases it instead of orphaning it
+    // and the resources it owns. The deleter mirrors the cleanup in ~MediaContext() --
+    // Destroy() releases the gpu context creation option and the virtual engine interface,
+    // neither of which the scalability state destructor covers.
     MOS_GPUCTX_CREATOPTIONS_ENHANCED option;
-    MediaScalabilityFactory<T> scalabilityFactory;
-    newAttr.scalabilityState = scalabilityFactory.CreateScalability(
-        m_componentType, params, m_hwInterface, this, &option);
-    if (newAttr.scalabilityState == nullptr)
+    MediaScalabilityFactory<T>       scalabilityFactory;
+
+    auto releaseScalabilityState = [this](MediaScalability *state)
+    {
+        if (state->Destroy() != MOS_STATUS_SUCCESS)
+        {
+            MOS_OS_ASSERTMESSAGE("scalabilityState destroy fail.");
+        }
+        MOS_Delete(state);
+        // set legacy MOS ve interface to null to be compatible to legacy MOS
+        if (m_osInterface)
+        {
+            m_osInterface->pVEInterf = nullptr;
+        }
+    };
+    std::unique_ptr<MediaScalability, decltype(releaseScalabilityState)> scalabilityState(
+        scalabilityFactory.CreateScalability(m_componentType, params, m_hwInterface, this, &option),
+        releaseScalabilityState);
+    if (scalabilityState == nullptr)
     {
         MOS_OS_ASSERTMESSAGE("Failed to create scalability state");
         return MOS_STATUS_NO_SPACE;
@@ -374,8 +397,12 @@ MOS_STATUS MediaContext::CreateContext(MediaFunction func, T params, uint32_t& i
         newAttr.ctxForLegacyMos, node, newAttr.gpuContext, option.ProtectMode, option.RAMode);
 
     // Add entry to the table
+    newAttr.scalabilityState = scalabilityState.get();
     indexReturn = m_gpuContextAttributeTable.size();
     m_gpuContextAttributeTable.push_back(newAttr);
+
+    // The table owns the scalability state from here on
+    scalabilityState.release();
 
     if (func == VeboxVppFunc || func == ComputeVppFunc)
     {
