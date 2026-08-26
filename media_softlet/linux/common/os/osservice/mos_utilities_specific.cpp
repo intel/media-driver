@@ -1814,59 +1814,15 @@ MOS_STATUS MosUtilities::MosReadEnvVariable(
     return MOS_STATUS_INVALID_PARAMETER;
 }
 
-static bool IsValidSessionId(const std::string &s)
-{
-    static const size_t maxLen = 64;
-    if (s.empty() || s.size() > maxLen)
-    {
-        return false;
-    }
-    for (char c : s)
-    {
-        bool isAlnum = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
-        if (!isAlnum && c != '_' && c != '-')
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
 std::string MosUtilities::MosGetRegKeySuffix(UFKEY_NEXT rootKey, const std::string &gatePath)
 {
-    // Linux stores all settings in one global file (m_szUserFeatureFileNext) with no per-suffix
-    // sections, so nothing writes the gate here and this returns the PID in practice. Defined to
-    // keep the OS-agnostic caller in media_user_setting_configure.cpp link-compatible on Linux.
-    std::string suffix = std::to_string(MosUtilities::MosGetPid());
-
-    RegBufferMap regBufferMap{};
-    MosUtilities::MosInitializeReg(regBufferMap);
-
-    UFKEY_NEXT gateKey = {};
-    if (MosUtilities::MosOpenRegKey(rootKey, gatePath, KEY_READ, &gateKey, regBufferMap) == MOS_STATUS_SUCCESS)
-    {
-        MediaUserSetting::Value gateValue(static_cast<uint32_t>(0));
-        bool gateOn = MosUtilities::MosGetRegValue(gateKey, __MEDIA_USER_FEATURE_VALUE_SESSION_ID_REG_PATH_ENABLE,
-                          MOS_USER_FEATURE_VALUE_TYPE_UINT32, gateValue, regBufferMap) == MOS_STATUS_SUCCESS &&
-                      gateValue.Get<uint32_t>() == 1;
-        MosUtilities::MosCloseRegKey(gateKey);
-
-        if (gateOn)
-        {
-            char *envVal = getenv("MEDIA_SESSION_ID");
-            if (envVal != nullptr && IsValidSessionId(envVal))
-            {
-                suffix = envVal;
-            }
-            else if (envVal != nullptr)
-            {
-                MOS_OS_NORMALMESSAGE("MEDIA_SESSION_ID='%s' is set but invalid; falling back to the PID suffix.", envVal);
-            }
-        }
-    }
-
-    MosUtilities::MosUninitializeReg(regBufferMap);
-    return suffix;
+    // Stub. This OS keeps all settings in one flat text file with only [config]/[report] sections,
+    // so there is no key scoping to resolve and the suffixed lookup is never taken. Per-process
+    // isolation comes from GFX_FEATURE_FILE_NEXT / GFX_FEATURE_FILE_REPORT instead. Defined only
+    // to keep the OS-agnostic caller in media_user_setting_configure.cpp linkable.
+    MOS_UNUSED(rootKey);
+    MOS_UNUSED(gatePath);
+    return std::to_string(MosUtilities::MosGetPid());
 }
 
 bool MosUtilities::MosEnvVariableEqual(
