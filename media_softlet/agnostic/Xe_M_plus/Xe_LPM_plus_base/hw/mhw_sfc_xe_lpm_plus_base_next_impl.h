@@ -63,7 +63,7 @@ public:
 
     MOS_STATUS SetOutputSurfaceFormatType(
         mhw::sfc::xe_lpm_plus_next::Cmd::SFC_STATE_CMD *cmd,
-        SFC_STATE_PAR                          params,
+        const SFC_STATE_PAR                    &params,
         PMHW_SFC_OUT_SURFACE_PARAMS            pOutSurface,
         bool                                   &bInterleaveChroma,
         uint16_t                               &wUYOffset)
@@ -155,7 +155,7 @@ public:
 
     MOS_STATUS SetOutputFrameSurface(
         mhw::sfc::xe_lpm_plus_next::Cmd::SFC_STATE_CMD *cmd,
-        SFC_STATE_PAR                          params,
+        const SFC_STATE_PAR                    &params,
         PMHW_SFC_OUT_SURFACE_PARAMS            pOutSurface)
     {
         MHW_CHK_NULL_RETURN(cmd);
@@ -188,7 +188,7 @@ public:
         uint16_t                               wUXOffset,
         uint16_t                               wVYOffset,
         uint16_t                               wVXOffset,
-        SFC_STATE_PAR                          params,
+        const SFC_STATE_PAR                    &params,
         PMHW_SFC_OUT_SURFACE_PARAMS            pOutSurface)
     {
         MHW_CHK_NULL_RETURN(cmd);

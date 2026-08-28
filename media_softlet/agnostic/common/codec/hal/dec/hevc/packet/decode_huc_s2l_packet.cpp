@@ -332,7 +332,7 @@ namespace decode {
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS HucS2lPkt::AddCmd_HUC_STREAM_OBJECT(MOS_COMMAND_BUFFER &cmdBuffer, CODEC_HEVC_SLICE_PARAMS sliceParams)
+    MOS_STATUS HucS2lPkt::AddCmd_HUC_STREAM_OBJECT(MOS_COMMAND_BUFFER &cmdBuffer, const CODEC_HEVC_SLICE_PARAMS &sliceParams)
     {
         DECODE_FUNC_CALL();
        

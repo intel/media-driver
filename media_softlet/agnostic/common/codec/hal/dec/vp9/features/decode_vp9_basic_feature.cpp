@@ -442,6 +442,11 @@ MOS_STATUS Vp9BasicFeature::SetPictureStructs()
     m_destSurface.dwWidth  = m_vp9PicParams->FrameWidthMinus1 + 1;
     m_destSurface.dwHeight = m_vp9PicParams->FrameHeightMinus1 + 1;
 
+    if (m_destSurface.dwPitch != 0)
+    {
+        DECODE_CHK_COND((uint32_t)(m_destSurface.dwPitch * m_destSurface.dwHeight) < (m_width * m_height),
+            "The RT surface size is smaller than decoded picture size, insufficient surface size will cause read/write access violation.");
+    }
 
     //update MV temp buffer index
    if (!m_osInterface->pfnIsMismatchOrderProgrammingSupported())

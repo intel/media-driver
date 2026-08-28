@@ -1140,6 +1140,9 @@ namespace decode
     {
         DECODE_FUNC_CALL();
 
+        DECODE_CHK_COND(m_vvcPicParams->m_ppsNumExpTileColumnsMinus1 >= vvcMaxTileColNum, "Error detected: exp tile column number out of range!\n");
+        DECODE_CHK_COND(m_vvcPicParams->m_ppsNumExpTileRowsMinus1 >= vvcMaxTileRowNum, "Error detected: exp tile row number out of range!\n");
+
         MOS_ZeroMemory(m_tileRow, sizeof(m_tileRow));
         MOS_ZeroMemory(m_tileCol, sizeof(m_tileCol));
 
@@ -1594,6 +1597,7 @@ namespace decode
     MOS_STATUS VvcBasicFeature::UpdateNumRefForList()
     {
         DECODE_FUNC_CALL();
+        MOS_STATUS res = MOS_STATUS_SUCCESS;
         if (m_vvcPicParams->m_ppsFlags.m_fields.m_ppsRplInfoInPhFlag > 0)
         {
             //List0:
@@ -1603,6 +1607,12 @@ namespace decode
             }
             else
             {
+                if (m_vvcPicParams->m_rplSpsIndex0 >= vvcSpsCandidateRpl1Offset)
+                {
+                    DECODE_ASSERTMESSAGE("Error detected: m_rplSpsIndex0 = %d out of range [0, %d].\n", m_vvcPicParams->m_rplSpsIndex0, vvcSpsCandidateRpl1Offset - 1);
+                    res = MOS_STATUS_INVALID_PARAMETER;
+                }
+                DECODE_CHK_STATUS(res);
                 m_numRefForList0 = m_rplParams[m_vvcPicParams->m_rplSpsIndex0].m_numRefEntries;
             }
             //List1:
@@ -1612,6 +1622,12 @@ namespace decode
             }
             else
             {
+                if (m_vvcPicParams->m_rplSpsIndex1 >= vvcSpsCandidateRpl1Offset)
+                {
+                    DECODE_ASSERTMESSAGE("Error detected: m_rplSpsIndex1 = %d out of range [0, %d].\n", m_vvcPicParams->m_rplSpsIndex1, vvcSpsCandidateRpl1Offset - 1);
+                    res = MOS_STATUS_INVALID_PARAMETER;
+                }
+                DECODE_CHK_STATUS(res);
                 m_numRefForList1 = m_rplParams[m_vvcPicParams->m_rplSpsIndex1 + vvcSpsCandidateRpl1Offset].m_numRefEntries;
             }
         }

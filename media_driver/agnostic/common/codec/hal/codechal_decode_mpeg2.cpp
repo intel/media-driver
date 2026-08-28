@@ -131,7 +131,7 @@ MOS_STATUS CodechalDecodeMpeg2::InsertDummySlices(
         // slice header uses 4 bytes
         CODECHAL_DECODE_CHK_STATUS_RETURN(CopyDataSurface(
             sizeof(CODECHAL_DECODE_MPEG2_WaDummyBitstream),
-            m_resMpeg2DummyBistream,
+            &m_resMpeg2DummyBistream,
             &m_resCopiedDataBuffer[m_currCopiedData],
             &m_dummySliceDataOffset));
 
@@ -202,7 +202,7 @@ MOS_STATUS CodechalDecodeMpeg2::InsertDummySlices(
 
 MOS_STATUS CodechalDecodeMpeg2::CopyDataSurface(
     uint32_t                        dataSize,
-    MOS_RESOURCE                    sourceSurface,
+    PMOS_RESOURCE                   sourceSurface,
     PMOS_RESOURCE                   copiedSurface,
     uint32_t                        *currOffset)
 {
@@ -235,7 +235,7 @@ MOS_STATUS CodechalDecodeMpeg2::CopyDataSurface(
     {
         CodechalDataCopyParams dataCopyParams;
         MOS_ZeroMemory(&dataCopyParams, sizeof(CodechalDataCopyParams));
-        dataCopyParams.srcResource = &sourceSurface;
+        dataCopyParams.srcResource = sourceSurface;
         dataCopyParams.srcSize = size;
         dataCopyParams.srcOffset = 0;
         dataCopyParams.dstResource = copiedSurface;
@@ -273,7 +273,7 @@ MOS_STATUS CodechalDecodeMpeg2::CopyDataSurface(
     // Use huc stream out to do the copy
     CODECHAL_DECODE_CHK_STATUS_RETURN(HucCopy(
         &cmdBuffer,                // pCmdBuffer
-        &sourceSurface,            // presSrc
+        sourceSurface,             // presSrc
         copiedSurface,             // presDst
         size,                      // u32CopyLength
         0,                         // u32CopyInputOffset
@@ -668,7 +668,7 @@ MOS_STATUS CodechalDecodeMpeg2::SetFrameStates ()
         {
             CODECHAL_DECODE_CHK_STATUS_RETURN(CopyDataSurface(
                 m_dataSize,
-                m_resDataBuffer,
+                &m_resDataBuffer,
                 &m_resCopiedDataBuffer[m_currCopiedData],
                 &m_copiedDataOffset));
         }

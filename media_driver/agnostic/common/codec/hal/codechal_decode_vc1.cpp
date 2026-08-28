@@ -4123,7 +4123,9 @@ MOS_STATUS CodechalDecodeVc1::DecodePrimitiveLevelIT()
     m_fieldPolarity = vc1MbState.bFieldPolarity;
 
     // skipped MBs at the end
-    uint16_t skippedMBs = m_picWidthInMb * frameFieldHeightInMb - mb[mbCount - 1].mb_address - 1;
+    uint32_t totalMBs = m_picWidthInMb * frameFieldHeightInMb;
+    CODECHAL_DECODE_CHK_COND_RETURN(mb[mbCount - 1].mb_address >= totalMBs, "Invalid mb_address from bitstream.");
+    uint16_t skippedMBs = totalMBs - mb[mbCount - 1].mb_address - 1;
 
     while (skippedMBs--)
     {

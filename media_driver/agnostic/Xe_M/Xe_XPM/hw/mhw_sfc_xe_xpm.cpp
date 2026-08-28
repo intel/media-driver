@@ -669,7 +669,7 @@ MOS_STATUS MhwSfcInterfaceXe_Xpm::AddSfcState(
 
                 if (Xlandingpoint >= (double)(tile_endX - Xoffset))
                 {
-                    dest_endX[i] = dest_cntX - 1;
+                    dest_endX[i] = (dest_cntX > 0) ? (dest_cntX - 1) : 0;
                     break;
                 }
                 else

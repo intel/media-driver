@@ -186,7 +186,7 @@ namespace decode
         virtual MHW_SETPAR_DECL_HDR(HUC_IND_OBJ_BASE_ADDR_STATE);
         virtual MHW_SETPAR_DECL_HDR(HUC_VIRTUAL_ADDR_STATE);
 
-        virtual MOS_STATUS AddCmd_HUC_STREAM_OBJECT(MOS_COMMAND_BUFFER &cmdBuffer, CODEC_HEVC_SLICE_PARAMS sliceParams);
+        virtual MOS_STATUS AddCmd_HUC_STREAM_OBJECT(MOS_COMMAND_BUFFER &cmdBuffer, const CODEC_HEVC_SLICE_PARAMS &sliceParams);
         virtual MOS_STATUS AddCmd_HUC_START(MOS_COMMAND_BUFFER &cmdBuffer, bool laststreamobject);
         virtual MOS_STATUS AddCmd_HUC_PIPE_MODE_SELECT(MOS_COMMAND_BUFFER &cmdBuffer);
         virtual MOS_STATUS AddCmd_HUC_IMEM_STATE(MOS_COMMAND_BUFFER &cmdBuffer);

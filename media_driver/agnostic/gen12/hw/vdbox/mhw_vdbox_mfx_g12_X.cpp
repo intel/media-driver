@@ -761,7 +761,7 @@ MOS_STATUS MhwVdboxMfxInterfaceG12::AddMfxSurfaceCmd(
 
     if (cmd.DW3.TiledSurface)
     {
-        cmd.DW3.TileWalk = (params->psSurface->TileType);
+        cmd.DW3.TileWalk = IS_Y_MAJOR_TILE_FORMAT(params->psSurface->TileType) ? 1 : 0;
     }
 
     if (params->psSurface->Format == Format_P8) // monochrome format

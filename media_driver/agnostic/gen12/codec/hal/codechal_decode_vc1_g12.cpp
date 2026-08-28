@@ -1029,7 +1029,9 @@ MOS_STATUS CodechalDecodeVc1G12::DecodePrimitiveLevelIT()
     m_fieldPolarity = vc1MbState.bFieldPolarity;
 
     // skipped MBs at the end
-    uint16_t skippedMBs = m_picWidthInMb * frameFieldHeightInMb - mb[mbCount - 1].mb_address - 1;
+    uint32_t totalMBs   = m_picWidthInMb * frameFieldHeightInMb;
+    uint16_t skippedMBs = (totalMBs > (uint32_t)mb[mbCount - 1].mb_address + 1) ?
+        (uint16_t)(totalMBs - mb[mbCount - 1].mb_address - 1) : 0;
 
     while (skippedMBs--)
     {

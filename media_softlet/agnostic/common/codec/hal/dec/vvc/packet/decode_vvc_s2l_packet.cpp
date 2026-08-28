@@ -1033,7 +1033,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS VvcDecodeS2LPkt::AddCmd_HUC_STREAM_OBJECT(MOS_COMMAND_BUFFER &cmdBuffer, CodecVvcSliceParams sliceParams)
+    MOS_STATUS VvcDecodeS2LPkt::AddCmd_HUC_STREAM_OBJECT(MOS_COMMAND_BUFFER &cmdBuffer, const CodecVvcSliceParams &sliceParams)
     {
         DECODE_FUNC_CALL();
 

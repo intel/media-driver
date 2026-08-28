@@ -53,7 +53,7 @@ public:
 
     MOS_STATUS SetOutputSurfaceFormatType(
         typename cmd_t::SFC_STATE_CMD *cmd,
-        SFC_STATE_PAR                          params,
+        const SFC_STATE_PAR                    &params,
         PMHW_SFC_OUT_SURFACE_PARAMS            pOutSurface,
         bool                                   &bInterleaveChroma,
         uint16_t                               &wUYOffset)
@@ -181,7 +181,7 @@ public:
 
     MOS_STATUS SetOutputFrameSurface(
         typename cmd_t::SFC_STATE_CMD *cmd,
-        SFC_STATE_PAR                          params,
+        const SFC_STATE_PAR                    &params,
         PMHW_SFC_OUT_SURFACE_PARAMS            pOutSurface)
     {
         MHW_CHK_NULL_RETURN(cmd);
@@ -207,7 +207,7 @@ public:
         uint16_t                               wUXOffset,
         uint16_t                               wVYOffset,
         uint16_t                               wVXOffset,
-        SFC_STATE_PAR                          params,
+        const SFC_STATE_PAR                    &params,
         PMHW_SFC_OUT_SURFACE_PARAMS            pOutSurface)
     {
         MHW_CHK_NULL_RETURN(cmd);
