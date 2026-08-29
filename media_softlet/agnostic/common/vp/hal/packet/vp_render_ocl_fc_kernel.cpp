@@ -99,6 +99,8 @@ MOS_STATUS VpRenderOclFcKernel::Init(VpRenderKernel &kernel)
 
     m_curbeLocation.size = kernel.GetCurbeSize();
 
+    m_kernelPerThreadArgInfo = kernel.GetKernelPerThreadArgInfo();
+
     m_inlineData.resize(m_kernelEnv.uInlineDataPayloadSize);
 
     return MOS_STATUS_SUCCESS;
@@ -279,6 +281,15 @@ MOS_STATUS VpRenderOclFcKernel::GetCurbeState(void *&curbe, uint32_t &curbeLengt
             }
             break;
         case ARG_KIND_INLINE:
+            if (arg.addressMode == AddressingModeStateful && arg.implicitArgType == ValueType)
+            {
+                if (arg.uOffsetInPayload + arg.uSize > m_kernelEnv.uInlineDataPayloadSize)
+                {
+                    uint32_t inlinePartSize = m_kernelEnv.uInlineDataPayloadSize - arg.uOffsetInPayload;
+                    MOS_SecureMemcpy(pCurbe, arg.uSize - inlinePartSize, (uint8_t *)arg.pData + inlinePartSize, arg.uSize - inlinePartSize);
+                    VP_RENDER_NORMALMESSAGE("Setting Partial Curbe State KernelID %d, index %d , value %d, argKind %d", m_kernelId, arg.uIndex, *(uint32_t *)arg.pData, arg.eArgKind);
+                }
+            }
             break;
         case ARG_KIND_SAMPLER:
             if (arg.addressMode == AddressingModeBindless)
@@ -446,7 +457,7 @@ MOS_STATUS VpRenderOclFcKernel::GetWalkerSetting(KERNEL_WALKER_PARAMS &walkerPar
             KRN_ARG &arg = handle.second;
             if (arg.eArgKind == ARG_KIND_INLINE)
             {
-                VP_PUBLIC_CHK_STATUS_RETURN(SetInlineDataParameter(arg, m_inlineData.data()));
+                VP_PUBLIC_CHK_STATUS_RETURN(SetInlineDataParameter(arg, m_inlineData.data(), m_inlineData.size()));
             }
         }
     }
@@ -518,7 +529,18 @@ MOS_STATUS VpRenderOclFcKernel::SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpac
     {
         m_walkerParam.isEmitInlineParameter = true;
         m_walkerParam.isGenerateLocalID     = true;
-        m_walkerParam.emitLocal             = MHW_EMIT_LOCAL_XYZ;
+        if (m_renderHal && m_kernelPerThreadArgInfo.localIdSize == m_renderHal->grfSize)
+        {
+            m_walkerParam.emitLocal = MHW_EMIT_LOCAL_X;
+        }
+        else if (m_renderHal && m_kernelPerThreadArgInfo.localIdSize == 2 * m_renderHal->grfSize)
+        {
+            m_walkerParam.emitLocal = MHW_EMIT_LOCAL_XY;
+        }
+        else
+        {
+            m_walkerParam.emitLocal = MHW_EMIT_LOCAL_XYZ;
+        }
     }
 
     return MOS_STATUS_SUCCESS;

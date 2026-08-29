@@ -592,10 +592,10 @@ protected:
 
     virtual MOS_STATUS SetTuningFlag(PKERNEL_TUNING_PARAMS tuningParams);
 
-    virtual MOS_STATUS SetInlineDataParameter(KRN_ARG arg, uint8_t *inlineData);
+    virtual MOS_STATUS SetInlineDataParameter(KRN_ARG arg, uint8_t *inlineData, uint32_t inlineDataSize = 0);
 
     virtual MOS_STATUS SetBindlessSamplerToResourceList(KRN_ARG &arg, uint32_t samplerIndex);
-    virtual MOS_STATUS SetBindlessSurfaceStateToResourceList(KRN_ARG &arg);
+    virtual MOS_STATUS SetBindlessSurfaceStateToResourceList(KRN_ARG &arg, bool isInline = false);
 
     bool IsLocalIdGeneratedByRuntime(KRN_EXECUTE_ENV &krnEnv, KRN_PER_THREAD_ARG_INFO &perThreadInfo, uint32_t localWidth, uint32_t localHeight, uint32_t localDepth);
 

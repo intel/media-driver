@@ -70,6 +70,7 @@ protected:
     int32_t                      m_nearestSamplerIndex = -1;
     std ::vector<uint8_t>        m_inlineData          = {};
     OCL_FC_KERNEL_CONFIG         m_kernelConfig        = {};
+    KRN_PER_THREAD_ARG_INFO      m_kernelPerThreadArgInfo = {};
 
 MEDIA_CLASS_DEFINE_END(vp__VpRenderOclFcKernel)
 };

@@ -170,6 +170,7 @@ protected:
             float low;
             float high;
         } lumaKey;
+        uint32_t                       reserved;
     } OCL_FC_KRN_IMAGE_PARAM;
 
     typedef struct _OCL_FC_KRN_TARGET_PARAM

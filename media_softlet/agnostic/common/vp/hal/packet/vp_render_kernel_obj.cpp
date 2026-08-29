@@ -709,11 +709,19 @@ MOS_STATUS VpRenderKernelObj::UpdateCurbeStateHeapInfo(PMOS_RESOURCE stateHeap, 
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderKernelObj::SetInlineDataParameter(KRN_ARG arg, uint8_t* inlineData)
+MOS_STATUS VpRenderKernelObj::SetInlineDataParameter(KRN_ARG arg, uint8_t *inlineData, uint32_t inlineDataSize)
 {
     VP_FUNC_CALL();
     VP_RENDER_CHK_NULL_RETURN(inlineData);
-    if (arg.implicitArgType == IndirectDataPtr)
+    if (arg.addressMode == AddressingModeBindless)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(SetBindlessSurfaceStateToResourceList(arg, true));
+        VP_RENDER_NORMALMESSAGE("Setting Inline Data Bindless Surface, KernelID %d, index %d, argKind %d",
+            m_kernelId,
+            arg.uIndex,
+            arg.eArgKind);
+    }
+    else if (arg.implicitArgType == IndirectDataPtr)
     {
         VP_RENDER_CHK_NULL_RETURN(m_curbeLocation.stateHeap);
         MHW_INDIRECT_STATE_RESOURCE_PARAMS params = {};
@@ -734,7 +742,14 @@ MOS_STATUS VpRenderKernelObj::SetInlineDataParameter(KRN_ARG arg, uint8_t* inlin
     {
         if (arg.pData != nullptr)
         {
-            MOS_SecureMemcpy(inlineData + arg.uOffsetInPayload, arg.uSize, arg.pData, arg.uSize);
+            uint32_t inlinePartSize = arg.uSize;
+            if (inlineDataSize > 0)
+            {
+                // If the inlineDataSize is 0, it doesn't mean it is really zero. It means the size is not passed down in legacy code.
+                VP_PUBLIC_CHK_VALUE_RETURN(arg.uOffsetInPayload < inlineDataSize, true);
+                inlinePartSize = MOS_MIN(arg.uSize, inlineDataSize - arg.uOffsetInPayload);
+            }
+            MOS_SecureMemcpy(inlineData + arg.uOffsetInPayload, inlinePartSize, arg.pData, inlinePartSize);
             VP_RENDER_NORMALMESSAGE("Setting Inline Data KernelID %d, index %d , value %d, argKind %d", m_kernelId, arg.uIndex, *(uint32_t *)arg.pData, arg.eArgKind);
         }
         else
@@ -769,7 +784,7 @@ MOS_STATUS VpRenderKernelObj::SetBindlessSamplerToResourceList(KRN_ARG &arg, uin
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderKernelObj::SetBindlessSurfaceStateToResourceList(KRN_ARG &arg)
+MOS_STATUS VpRenderKernelObj::SetBindlessSurfaceStateToResourceList(KRN_ARG &arg, bool isInline)
 {
     auto surfMapHandle = m_argIndexSurfMap.find(arg.uIndex);
     VP_PUBLIC_CHK_NOT_FOUND_RETURN(surfMapHandle, &m_argIndexSurfMap);
@@ -799,7 +814,14 @@ MOS_STATUS VpRenderKernelObj::SetBindlessSurfaceStateToResourceList(KRN_ARG &arg
     params.dumpSize        = surfStateLocation.size;
     params.resourceBasePtr = surfStateLocation.statePtr;
 #endif
-    m_curbeResourceList.push_back(params);
+    if (isInline)
+    {
+        m_inlineResourceList.push_back(params);
+    }
+    else
+    {
+        m_curbeResourceList.push_back(params);
+    }
     
     return MOS_STATUS_SUCCESS;
 }
