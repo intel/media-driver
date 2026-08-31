@@ -194,6 +194,9 @@ static bool ptlDeviceB082 = DeviceInfoFactory<GfxDeviceInfo>::
 static bool ptlDeviceB083 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0xB083, &ptlInfo);
 
+static bool ptlDeviceB084 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0xB084, &ptlInfo);
+
 static bool ptlDeviceB08F = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0xB08F, &ptlInfo);
 
