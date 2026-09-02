@@ -578,9 +578,12 @@ namespace decode
         MOS_SecureMemcpy(hucVvcS2LPicBss.tileCodingParam.m_tileRow, sizeof(TileRowDesc) * vvcMaxTileRowNum, m_vvcBasicFeature->m_tileRow, sizeof(TileRowDesc) * vvcMaxTileRowNum);
         MOS_SecureMemcpy(hucVvcS2LPicBss.tileCodingParam.m_tileCol, sizeof(TileColDesc) * vvcMaxTileColNum, m_vvcBasicFeature->m_tileCol, sizeof(TileColDesc) * vvcMaxTileColNum);
         
-        MOS_SecureMemcpy(&hucVvcS2LPicBss.m_vvcLmcsData, sizeof(CodecVvcLmcsData), &m_vvcBasicFeature->m_lmcsApsArray[m_vvcPicParams->m_phLmcsApsId], sizeof(CodecVvcLmcsData));
-        MOS_SecureMemcpy(&hucVvcS2LPicBss.m_vvcLmcsShapeInfo, sizeof(ApsLmcsReshapeInfo), &m_vvcBasicFeature->m_lmcsReshaperInfo[m_vvcPicParams->m_phLmcsApsId], sizeof(ApsLmcsReshapeInfo));
-
+        if (m_vvcPicParams->m_phLmcsApsId < vvcMaxLmcsNum)
+        {
+            MOS_SecureMemcpy(&hucVvcS2LPicBss.m_vvcLmcsData, sizeof(CodecVvcLmcsData), &m_vvcBasicFeature->m_lmcsApsArray[m_vvcPicParams->m_phLmcsApsId], sizeof(CodecVvcLmcsData));
+            MOS_SecureMemcpy(&hucVvcS2LPicBss.m_vvcLmcsShapeInfo, sizeof(ApsLmcsReshapeInfo), &m_vvcBasicFeature->m_lmcsReshaperInfo[m_vvcPicParams->m_phLmcsApsId], sizeof(ApsLmcsReshapeInfo));
+        }
+        
         for (uint8_t i = 0; i < 8; i++)
         {
             hucVvcS2LPicBss.m_alfChromaNumAltFiltersMinus1[i] = m_vvcBasicFeature->m_alfApsArray[i].m_alfChromaNumAltFiltersMinus1;
@@ -790,6 +793,11 @@ namespace decode
      MOS_STATUS VvcDecodeS2LPkt::ConstructLmcsReshaper() const
     {
         DECODE_FUNC_CALL()
+
+        if (m_vvcPicParams->m_phLmcsApsId >= vvcMaxLmcsNum)
+        {
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
 
         int32_t  reshapeLUTSize = 1 << (m_vvcPicParams->m_spsBitdepthMinus8 + 8);
         int32_t  pwlFwdLUTsize  = vvcPicCodeCwBins;

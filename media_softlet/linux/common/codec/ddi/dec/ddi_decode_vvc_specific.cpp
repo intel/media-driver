@@ -1220,7 +1220,15 @@ VAStatus DdiDecodeVvc::ParseSliceParams(
         DDI_CODEC_ASSERTMESSAGE("numSlices = %d exceeds max size = %d", numSlices, vvcMaxSliceNum);
         return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
     }
-    
+
+    // Check cumulative slice count to prevent buffer overflow
+    if (m_decodeCtx->DecodeParams.m_numSlices > vvcMaxSliceNum - numSlices)
+    {
+        DDI_CODEC_ASSERTMESSAGE("Cumulative slice count exceeds limit: m_numSlices = %d, numSlices = %d, vvcMaxSliceNum = %d",
+                          m_decodeCtx->DecodeParams.m_numSlices, numSlices, vvcMaxSliceNum);
+        return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
+    }
+
     MOS_ZeroMemory(pVvcSliceParams, (numSlices * sizeof(CodecVvcSliceParams)));
 
     uint32_t sliceBaseOffset = GetBsBufOffset(m_groupIndex);
