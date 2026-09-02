@@ -18,7 +18,7 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.11)
 include (${CMAKE_CURRENT_LIST_DIR}/cmrt_utils.cmake)
 
 
@@ -90,9 +90,9 @@ set(CMRT_DEFINES ${CMRT_DEFINES} VPHAL ISTDLIB_UMD CM_RT_EXPORTS)
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
   set(CMRT_DEFINES ${CMRT_DEFINES} __CT__)
 endif()
-set_target_properties( igfxcmrt PROPERTIES 
-  FOLDER CM_RT 
-  COMPILE_DEFINITIONS "${CMRT_DEFINES}" 
+set_target_properties( igfxcmrt PROPERTIES
+  FOLDER CM_RT
+  COMPILE_DEFINITIONS "${CMRT_DEFINES}"
   )
 
 # set the version
