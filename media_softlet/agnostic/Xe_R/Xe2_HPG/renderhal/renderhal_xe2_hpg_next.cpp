@@ -256,7 +256,7 @@ MOS_STATUS XRenderHal_Interface_Xe2_Hpg_Next::SetupSurfaceState(
         SurfStateParams.bTiledSurface         = pSurfaceEntry->bTiledSurface;
         SurfStateParams.bTileWalk             = pSurfaceEntry->bTileWalk;
         SurfStateParams.dwCacheabilityControl = pRenderHal->pfnGetSurfaceMemoryObjectControl(pRenderHal, pParams);
-        SurfStateParams.RotationMode          = g_cLookup_RotationMode_hpg_base[pRenderHalSurface->Rotation];
+        SurfStateParams.RotationMode          = g_cLookup_RotationMode_Next[pRenderHalSurface->Rotation];
         SurfStateParams.TileModeGMM           = pSurface->TileModeGMM;
         SurfStateParams.bGMMTileEnabled       = pSurface->bGMMTileEnabled;
 

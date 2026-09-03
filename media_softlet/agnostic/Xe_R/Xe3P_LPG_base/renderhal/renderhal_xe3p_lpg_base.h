@@ -31,13 +31,9 @@
 
 #include "renderhal_platform_interface_next.h"
 
-struct MHW_VFE_PARAMS_XE3P_LPG_BASE : MHW_VFE_PARAMS
-{
-    bool  bFusedEuDispatch                  = 0;
-    uint32_t numOfWalkers                   = 0;
-    bool  enableSingleSliceDispatchCcsMode  = 0;
-    uint32_t scratchStateOffset             = 0;            //!< Surface state offset of scratch space buffer.
-};
+// MHW_VFE_PARAMS_NEXT, the L3 CNTLREG value, the nano second per tick constant and
+// g_cLookup_RotationMode_Next now live in renderhal_platform_interface_next.h,
+// shared with the other platforms deriving from XRenderHal_Platform_Interface_Next.
 
 class XRenderHal_Interface_Xe3P_Lpg_Base : public XRenderHal_Platform_Interface_Next
 {
@@ -86,22 +82,6 @@ public:
         PMOS_COMMAND_BUFFER  pCmdBuffer) override;
 
     //!
-    //! \brief    Convert To Nano Seconds
-    //! \details  Convert to Nano Seconds
-    //! \param    PRENDERHAL_INTERFACE pRenderHal
-    //!           [in] Pointer to Hardware Interface Structure
-    //! \param    uint64_t iTicks
-    //!           [in] Ticks
-    //! \param    uint64_t *piNs
-    //!           [in] Nano Seconds
-    //! \return   void
-    //!
-    void ConvertToNanoSeconds(
-        PRENDERHAL_INTERFACE pRenderHal,
-        uint64_t             iTicks,
-        uint64_t *           piNs) override;
-
-    //!
     //! \brief    Initialize the State Heap Settings per platform
     //! \param    PRENDERHAL_INTERFACE    pRenderHal
     //!           [out] Pointer to PRENDERHAL_INTERFACE
@@ -109,74 +89,6 @@ public:
     //!
     void InitStateHeapSettings(
         PRENDERHAL_INTERFACE pRenderHal) override;
-
-    //!
-    //! \brief    Enables L3 cacheing flag and sets related registers/values
-    //! \param    PRENDERHAL_INTERFACE    pRenderHal
-    //!           [in]  Pointer to Hardware Interface
-    //! \param    pCacheSettings
-    //!           [in] L3 Cache Configurations
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    MOS_STATUS EnableL3Caching(
-        PRENDERHAL_INTERFACE         pRenderHal,
-        PRENDERHAL_L3_CACHE_SETTINGS pCacheSettings) override;
-
-    //! \brief      Set L3 cache override config parameters
-    //! \param      [in] pRenderHal
-    //!             Pointer to RenderHal Interface Structure
-    //! \param      [in,out] pCacheSettings
-    //!             Pointer to pCacheSettings
-    //! \param      [in] bEnableSLM
-    //!             Flag to enable SLM
-    //! \return     MOS_STATUS
-    //!             MOS_STATUS_SUCCESS if success. Error code otherwise
-    //!
-    MOS_STATUS SetCacheOverrideParams(
-        PRENDERHAL_INTERFACE         pRenderHal,
-        PRENDERHAL_L3_CACHE_SETTINGS pCacheSettings,
-        bool                         bEnableSLM) override;
-
-    //!
-    //! \brief      Get the pointer to the MHW_VFE_PARAMS
-    //! \return     MHW_VFE_PARAMS*
-    //!             pointer to the MHW_VFE_PARAMS
-    //!
-    MHW_VFE_PARAMS *GetVfeStateParameters() override { return &m_vfeStateParams; }
-
-    //!
-    //! \brief      enable/disable the fusedEUDispatch flag in the VFE_PARAMS
-    //! \return     no return value
-    //!
-    void SetFusedEUDispatch(bool enable) override;
-
-    //!
-    //! \brief    Sets states of scratch space buffer.
-    //! \param    [in] renderHal
-    //!           Pointer to Hardware Interface
-    //! \param    [in] indexOfBindingTable
-    //!           Index of the binding table in use
-    //! \return   MOS_STATUS
-    //!
-    MOS_STATUS SetScratchSpaceBufferState(
-        RENDERHAL_INTERFACE     *renderHal,
-        uint32_t                indexOfBindingTable);
-
-    //!
-    //! \brief      set the number of walkers in the VFE_PARAMS
-    //! \return     MOS_STATUS_SUCCESS
-    //!
-    MOS_STATUS SetNumOfWalkers(uint32_t numOfWalkers);
-
-    //!
-    //! \brief      enable/disable the single slice dispatch flag in the VFE_PARAMS
-    //! \return     no return value
-    //!
-    void SetSingleSliceDispatchCcsMode(bool enable)
-    {
-        m_vfeStateParams.enableSingleSliceDispatchCcsMode = enable;
-    }
 
     bool IsL8FormatSupported() override
     {
@@ -200,8 +112,6 @@ public:
 protected:
     XRenderHal_Interface_Xe3P_Lpg_Base() {}
     virtual ~XRenderHal_Interface_Xe3P_Lpg_Base() {}
-
-    MHW_VFE_PARAMS_XE3P_LPG_BASE m_vfeStateParams;
 
 MEDIA_CLASS_DEFINE_END(XRenderHal_Interface_Xe3P_Lpg_Base)
 };

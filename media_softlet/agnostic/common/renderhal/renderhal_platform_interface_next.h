@@ -51,6 +51,26 @@ typedef struct _RENDERHAL_GENERIC_PROLOG_PARAMS_NEXT : _RENDERHAL_GENERIC_PROLOG
     MOS_VIRTUALENGINE_HINT_PARAMS VEngineHintParams = {{0}, 0, {{0}, {0}, {0}, {0}}, {0, 0, 0, 0}};
 } RENDERHAL_GENERIC_PROLOG_PARAMS_NEXT, *PRENDERHAL_GENERIC_PROLOG_PARAMS_NEXT;
 
+//! \brief    VFE parameters shared by the platforms deriving from
+//!           XRenderHal_Platform_Interface_Next
+struct MHW_VFE_PARAMS_NEXT : MHW_VFE_PARAMS
+{
+    bool     bFusedEuDispatch                  = 0;
+    uint32_t numOfWalkers                      = 0;
+    bool     enableSingleSliceDispatchCcsMode  = 0;
+    uint32_t scratchStateOffset                = 0;  //!< Surface state offset of scratch space buffer.
+};
+
+//! \brief      SLM     URB     DC      RO      Rest/L3 Client Pool
+//!              0    96(fixed) 0       0       320 (KB chunks based on GT2)
+#define RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_NEXT_RENDERHAL (0x00000200)
+
+//! \brief      83.333 nano seconds per tick in render engine
+#define RENDERHAL_NS_PER_TICK_RENDER_NEXT (83.333)
+
+//! \brief      Rotation mode lookup, indexed by MHW_ROTATION
+extern const uint32_t g_cLookup_RotationMode_Next[8];
+
 class XRenderHal_Platform_Interface_Next : public XRenderHal_Platform_Interface, public mhw::render::Itf::ParSetting
 {
 public:
@@ -464,6 +484,87 @@ public:
     //!
     virtual bool IsL8FormatSupported();
 
+    //!
+    //! \brief    Convert Ticks to Nano Seconds
+    //! \param    [in] pRenderHal
+    //!           Pointer to Hardware Interface Structure
+    //! \param    [in] iTicks
+    //!           Ticks
+    //! \param    [out] piNs
+    //!           Nano Seconds
+    //! \return   void
+    //!
+    void ConvertToNanoSeconds(
+        PRENDERHAL_INTERFACE pRenderHal,
+        uint64_t             iTicks,
+        uint64_t            *piNs) override;
+
+    //!
+    //! \brief    Enables L3 cacheing flag and sets related registers/values
+    //! \param    [in] pRenderHal
+    //!           Pointer to Hardware Interface
+    //! \param    [in] pCacheSettings
+    //!           L3 Cache Configurations
+    //! \return   MOS_STATUS
+    //!
+    virtual MOS_STATUS EnableL3Caching(
+        PRENDERHAL_INTERFACE         pRenderHal,
+        PRENDERHAL_L3_CACHE_SETTINGS pCacheSettings) override;
+
+    //!
+    //! \brief    Set L3 cache override config parameters
+    //! \param    [in] pRenderHal
+    //!           Pointer to RenderHal Interface Structure
+    //! \param    [in,out] pCacheSettings
+    //!           Pointer to pCacheSettings
+    //! \param    [in] bEnableSLM
+    //!           Flag to enable SLM
+    //! \return   MOS_STATUS
+    //!
+    virtual MOS_STATUS SetCacheOverrideParams(
+        PRENDERHAL_INTERFACE         pRenderHal,
+        PRENDERHAL_L3_CACHE_SETTINGS pCacheSettings,
+        bool                         bEnableSLM) override;
+
+    //!
+    //! \brief    Get the pointer to the MHW_VFE_PARAMS
+    //! \return   MHW_VFE_PARAMS*
+    //!
+    virtual MHW_VFE_PARAMS *GetVfeStateParameters() override { return &m_vfeStateParams; }
+
+    //!
+    //! \brief    Enable/disable the fusedEUDispatch flag in the VFE_PARAMS
+    //! \return   no return value
+    //!
+    virtual void SetFusedEUDispatch(bool enable) override;
+
+    //!
+    //! \brief    Set the number of walkers in the VFE_PARAMS
+    //! \return   MOS_STATUS_SUCCESS
+    //!
+    MOS_STATUS SetNumOfWalkers(uint32_t numOfWalkers);
+
+    //!
+    //! \brief    Enable/disable the single slice dispatch flag in the VFE_PARAMS
+    //! \return   no return value
+    //!
+    void SetSingleSliceDispatchCcsMode(bool enable)
+    {
+        m_vfeStateParams.enableSingleSliceDispatchCcsMode = enable;
+    }
+
+    //!
+    //! \brief    Sets states of scratch space buffer.
+    //! \param    [in] renderHal
+    //!           Pointer to render HAL Interface.
+    //! \param    [in] indexOfBindingTable
+    //!           Index of the binding table in use.
+    //! \return   MOS_STATUS
+    //!
+    MOS_STATUS SetScratchSpaceBufferState(
+        RENDERHAL_INTERFACE *renderHal,
+        uint32_t             indexOfBindingTable);
+
     std::shared_ptr<mhw::mi::Itf> GetMhwMiItf();
 
     MHW_SETPAR_DECL_HDR(STATE_BASE_ADDRESS);
@@ -486,6 +587,7 @@ protected:
     MOS_RESOURCE                      m_scratchSpaceResource;
     std::shared_ptr<mhw::render::Itf> m_renderItf = nullptr;
     std::shared_ptr<mhw::mi::Itf>     m_miItf     = nullptr;
+    MHW_VFE_PARAMS_NEXT               m_vfeStateParams;
 
 MEDIA_CLASS_DEFINE_END(XRenderHal_Platform_Interface_Next)
 };

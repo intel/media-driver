@@ -46,9 +46,154 @@
 #include "vp_utils.h"
 #include "media_perf_profiler.h"
 
+const uint32_t g_cLookup_RotationMode_Next[8] =
+{
+    ROTATION_IDENTITY,  // 0 - MHW_ROTATION_IDENTITY
+    ROTATION_90,        // 1 - MHW_ROTATION_90
+    ROTATION_180,       // 2 - MHW_ROTATION_180
+    ROTATION_270,       // 3 - MHW_ROTATION_270
+    ROTATION_IDENTITY,  // 4 - MHW_MIRROR_HORIZONTAL
+    ROTATION_180,       // 5 - MHW_MIRROR_VERTICAL
+    ROTATION_270,       // 6 - MHW_ROTATE_90_MIRROR_VERTICAL
+    ROTATION_90         // 7 - MHW_ROTATE_90_MIRROR_HORIZONTAL
+};
+
+static const uint32_t FIXED_SCRATCH_SPACE_BUFFER_INDEX = 6;
+
 XRenderHal_Platform_Interface_Next::XRenderHal_Platform_Interface_Next()
 {
     MOS_ZeroMemory(&m_scratchSpaceResource, sizeof(m_scratchSpaceResource));
+}
+
+void XRenderHal_Platform_Interface_Next::ConvertToNanoSeconds(
+    PRENDERHAL_INTERFACE                 pRenderHal,
+    uint64_t                            iTicks,
+    uint64_t                            *piNs)
+{
+    //-----------------------------
+    MHW_RENDERHAL_UNUSED(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(piNs);
+    //-----------------------------
+    *piNs = (uint64_t)(iTicks * RENDERHAL_NS_PER_TICK_RENDER_NEXT);
+}
+
+MOS_STATUS XRenderHal_Platform_Interface_Next::EnableL3Caching(
+    PRENDERHAL_INTERFACE         pRenderHal,
+    PRENDERHAL_L3_CACHE_SETTINGS pCacheSettings)
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS                              eStatus = MOS_STATUS_SUCCESS;
+    mhw::render::MHW_RENDER_ENGINE_L3_CACHE_SETTINGS cacheConfig = {};
+
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_renderItf);
+
+    if (nullptr == pCacheSettings)
+    {
+        MHW_RENDERHAL_CHK_STATUS_RETURN(m_renderItf->EnableL3Caching(nullptr));
+        return eStatus;
+    }
+    cacheConfig.dwCntlReg = RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_NEXT_RENDERHAL;
+    // Override L3 cache configuration
+    if (pCacheSettings->bOverride)
+    {
+        if (pCacheSettings->bCntlRegOverride)
+        {
+            cacheConfig.dwCntlReg = pCacheSettings->dwCntlReg;
+        }
+    }
+    MHW_RENDERHAL_CHK_STATUS_RETURN(m_renderItf->EnableL3Caching(&cacheConfig));
+
+    return eStatus;
+}
+
+MOS_STATUS XRenderHal_Platform_Interface_Next::SetCacheOverrideParams(
+    PRENDERHAL_INTERFACE            pRenderHal,
+    PRENDERHAL_L3_CACHE_SETTINGS    pCacheSettings,
+    bool                            bEnableSLM)
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    MHW_RENDERHAL_CHK_NULL_RETURN(pCacheSettings);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+
+    pCacheSettings->dwCntlReg = RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_NEXT_RENDERHAL;
+
+    pCacheSettings->bCntlRegOverride = true;
+
+    return eStatus;
+}
+
+void XRenderHal_Platform_Interface_Next::SetFusedEUDispatch(bool enable)
+{
+    m_vfeStateParams.bFusedEuDispatch = enable? true : false;
+}
+
+MOS_STATUS XRenderHal_Platform_Interface_Next::SetNumOfWalkers(uint32_t numOfWalkers)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    // value: [0,1] - One or two active walkers per context.
+    if (numOfWalkers > 2)
+    {
+        m_vfeStateParams.numOfWalkers = 1;
+    }
+    else if (numOfWalkers > 0)
+    {
+        m_vfeStateParams.numOfWalkers = numOfWalkers - 1;
+    }
+    return eStatus;
+}
+
+MOS_STATUS XRenderHal_Platform_Interface_Next::SetScratchSpaceBufferState(
+    RENDERHAL_INTERFACE *renderHal,
+    uint32_t indexOfBindingTable)
+{
+    if (m_scratchSpaceResource.iSize <= 0)
+    {
+        return MOS_STATUS_SUCCESS;  // Scratch space is not allocated. No need to set states.
+    }
+
+    RENDERHAL_SURFACE renderhal_surface;
+    MOS_ZeroMemory(&renderhal_surface, sizeof(renderhal_surface));
+    renderhal_surface.OsSurface.OsResource = m_scratchSpaceResource;
+    renderhal_surface.OsSurface.dwWidth = m_scratchSpaceResource.iSize;
+    renderhal_surface.OsSurface.dwHeight = 1;
+    renderhal_surface.OsSurface.Format = Format_RAW;
+    renderhal_surface.OsSurface.Type = MOS_GFXRES_SCRATCH;
+    renderhal_surface.rcSrc.right = m_scratchSpaceResource.iSize;;
+    renderhal_surface.rcSrc.bottom = 1;
+    renderhal_surface.rcDst = renderhal_surface.rcSrc;
+
+    MOS_STATUS result = renderHal->pOsInterface->pfnRegisterResource(
+        renderHal->pOsInterface, &(renderhal_surface.OsSurface.OsResource),
+        true, true);
+    if (MOS_STATUS_SUCCESS != result)
+    {
+        return result;
+    }
+
+    RENDERHAL_SURFACE_STATE_PARAMS renderhal_surface_state_param;
+    MOS_ZeroMemory(&renderhal_surface_state_param,
+                   sizeof(renderhal_surface_state_param));
+    renderhal_surface_state_param.isOutput = 1;
+    renderhal_surface_state_param.MemObjCtl = 2;
+
+    RENDERHAL_SURFACE_STATE_ENTRY *renderhal_surface_state_entry = nullptr;
+    renderHal->pfnSetupBufferSurfaceState(renderHal, &renderhal_surface,
+                                          &renderhal_surface_state_param,
+                                          &renderhal_surface_state_entry);
+    m_vfeStateParams.scratchStateOffset
+            = renderhal_surface_state_entry->dwSurfStateOffset;
+
+    renderHal->pfnBindSurfaceState(renderHal,
+                                   indexOfBindingTable,
+                                   FIXED_SCRATCH_SPACE_BUFFER_INDEX,
+                                   renderhal_surface_state_entry);
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS XRenderHal_Platform_Interface_Next::AddPipelineSelectCmd(

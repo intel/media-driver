@@ -33,22 +33,9 @@
 #include "mhw_render_hwcmd_xe_hpg.h"
 #include "mhw_state_heap_xe_hpg.h"
 
-extern const uint32_t g_cLookup_RotationMode_hpg_base[8];
-
-struct MHW_VFE_PARAMS_XE_HPG : MHW_VFE_PARAMS
-{
-    bool  bFusedEuDispatch = 0;
-    uint32_t numOfWalkers = 0;
-    bool  enableSingleSliceDispatchCcsMode = 0;
-
-    // Surface state offset of scratch space buffer.
-    uint32_t scratchStateOffset = 0;
-};
-
-//! \brief      for Xe_HPM VP and MDF
-//!              SLM     URB     DC      RO      Rest/L3 Client Pool
-//!               0    96(fixed) 0       0       320 (KB chunks based on GT2)
-#define RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_XE_HPG_BASE_RENDERHAL (0x00000200)
+// MHW_VFE_PARAMS_NEXT, the L3 CNTLREG value, the nano second per tick constant and
+// g_cLookup_RotationMode_Next now live in renderhal_platform_interface_next.h,
+// shared with the other platforms deriving from XRenderHal_Platform_Interface_Next.
 
 class XRenderHal_Interface_Xe_Hpg_Base : public XRenderHal_Platform_Interface_Next
 {
@@ -80,22 +67,6 @@ public:
         PRENDERHAL_OFFSET_OVERRIDE      pOffsetOverride) override;
 
     //!
-    //! \brief    Convert To Nano Seconds
-    //! \details  Convert to Nano Seconds
-    //! \param    PRENDERHAL_INTERFACE pRenderHal
-    //!           [in] Pointer to Hardware Interface Structure
-    //! \param    uint64_t iTicks
-    //!           [in] Ticks
-    //! \param    uint64_t *piNs
-    //!           [in] Nano Seconds
-    //! \return   void
-    //!
-    void ConvertToNanoSeconds(
-        PRENDERHAL_INTERFACE pRenderHal,
-        uint64_t             iTicks,
-        uint64_t *           piNs) override;
-
-    //!
     //! \brief    Initialize the State Heap Settings per platform
     //! \param    PRENDERHAL_INTERFACE    pRenderHal
     //!           [out] Pointer to PRENDERHAL_INTERFACE
@@ -103,62 +74,6 @@ public:
     //!
     void InitStateHeapSettings(
         PRENDERHAL_INTERFACE pRenderHal) override;
-
-    //!
-    //! \brief    Enables L3 cacheing flag and sets related registers/values
-    //! \param    PRENDERHAL_INTERFACE    pRenderHal
-    //!           [in]  Pointer to Hardware Interface
-    //! \param    pCacheSettings
-    //!           [in] L3 Cache Configurations
-    //! \return   MOS_STATUS
-    //!           MOS_STATUS_SUCCESS if success, else fail reason
-    //!
-    virtual MOS_STATUS EnableL3Caching(
-        PRENDERHAL_INTERFACE         pRenderHal,
-        PRENDERHAL_L3_CACHE_SETTINGS pCacheSettings) override;
-
-    //!
-    //! \brief      Get the pointer to the MHW_VFE_PARAMS
-    //! \return     MHW_VFE_PARAMS*
-    //!             pointer to the MHW_VFE_PARAMS
-    //!
-    virtual MHW_VFE_PARAMS *GetVfeStateParameters() override { return &m_vfeStateParams; }
-
-    //!
-    //! \brief      enable/disable the fusedEUDispatch flag in the VFE_PARAMS
-    //! \return     no return value
-    //!
-    virtual void SetFusedEUDispatch(bool enable) override;
-
-    //!
-    //! \brief      set the number of walkers in the VFE_PARAMS
-    //! \return     MOS_STATUS_SUCCESS
-    //!
-    MOS_STATUS SetNumOfWalkers(uint32_t numOfWalkers);
-
-    //!
-    //! \brief      enable/disable the single slice dispatch flag in the VFE_PARAMS
-    //! \return     no return value
-    //!
-    void SetSingleSliceDispatchCcsMode(bool enable)
-    {
-        m_vfeStateParams.enableSingleSliceDispatchCcsMode = enable;
-    };
-
-    //! \brief      Set L3 cache override config parameters
-    //! \param      [in] pRenderHal
-    //!             Pointer to RenderHal Interface Structure
-    //! \param      [in,out] pCacheSettings
-    //!             Pointer to pCacheSettings
-    //! \param      [in] bEnableSLM
-    //!             Flag to enable SLM
-    //! \return     MOS_STATUS
-    //!             MOS_STATUS_SUCCESS if success. Error code otherwise
-    //!
-    virtual MOS_STATUS SetCacheOverrideParams(
-        PRENDERHAL_INTERFACE         pRenderHal,
-        PRENDERHAL_L3_CACHE_SETTINGS pCacheSettings,
-        bool                         bEnableSLM) override;
 
     //! \brief      Get the size of Render Surface State Command
     //! \return     size_t
@@ -177,16 +92,6 @@ public:
     //!             the size of binding table state command
     virtual size_t GetBTStateCmdSize() override { return mhw_state_heap_xe_hpg::BINDING_TABLE_STATE_CMD::byteSize; }
 
-    //! \brief    Sets states of scratch space buffer.
-    //! \param    Pointer to RENDERHAL_INTERFACE renderHal
-    //!           [in] Pointer to render HAL Interface.
-    //! \param    indexOfBindingTable
-    //!           [in] Index of the binding table in use.
-    //! \return   MOS_STATUS
-    MOS_STATUS SetScratchSpaceBufferState(
-        RENDERHAL_INTERFACE *renderHal,
-        uint32_t             indexOfBindingTable);
-
     virtual uint32_t GetGrfSize() override
     {
         return 32;
@@ -197,8 +102,6 @@ public:
 protected:
     XRenderHal_Interface_Xe_Hpg_Base();
     virtual ~XRenderHal_Interface_Xe_Hpg_Base() {}
-
-    MHW_VFE_PARAMS_XE_HPG m_vfeStateParams;
 
     mhw::render::xe_hpg::Cmd::PALETTE_ENTRY_CMD
         m_paletteData[RENDERHAL_PALETTE_MAX][RENDERHAL_PALETTE_ENTRIES_MAX];

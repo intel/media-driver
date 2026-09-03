@@ -30,16 +30,6 @@
 #include "media_packet.h"
 #include "media_feature.h"
 
-//! \brief      for Xe3P_LPG_Base VP and MDF
-//!              SLM     URB     DC      RO      Rest/L3 Client Pool
-//!               0    96(fixed) 0       0       320 (KB chunks based on GT2)
-#define RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_XE3P_LPG_BASE_RENDERHAL (0x00000200)
-
-//!
-//! \brief Nano seconds per tick in render engine
-//!
-#define RENDERHAL_NS_PER_TICK_RENDER_XE3P_LPG_BASE        (83.333)
-
 //!
 //! \brief      GSH settings for Xe3p_lpg_base
 //!
@@ -90,18 +80,6 @@ extern const RENDERHAL_ENLARGE_PARAMS g_cRenderHal_Enlarge_State_Heap_Settings_A
     ENLARGE_KERNEL_HEAP_XE3P_LPG_BASE,           //!< iKernelHeapSize
     ENLARGE_CURBE_SIZE_XE3P_LPG_BASE,            //!< iCurbeSize
     ENLARGED_MEDIA_IDS_XE3P_LPG_BASE             //!< iMediaIDs
-};
-
-const uint32_t g_cLookup_RotationMode_xe3p_lpg_base[8] = 
-{
-    ROTATION_IDENTITY,  // 0 - MHW_ROTATION_IDENTITY
-    ROTATION_90,        // 1 - MHW_ROTATION_90
-    ROTATION_180,       // 2 - MHW_ROTATION_180
-    ROTATION_270,       // 3 - MHW_ROTATION_270
-    ROTATION_IDENTITY,  // 4 - MHW_MIRROR_HORIZONTAL
-    ROTATION_180,       // 5 - MHW_MIRROR_VERTICAL
-    ROTATION_270,       // 6 - MHW_ROTATE_90_MIRROR_VERTICAL
-    ROTATION_90         // 7 - MHW_ROTATE_90_MIRROR_HORIZONTAL
 };
 
 //!
@@ -194,7 +172,7 @@ MOS_STATUS XRenderHal_Interface_Xe3P_Lpg_Base::SetupSurfaceState(
         SurfStateParams.bTiledSurface         = pSurfaceEntry->bTiledSurface;
         SurfStateParams.bTileWalk             = pSurfaceEntry->bTileWalk;
         SurfStateParams.dwCacheabilityControl = pRenderHal->pfnGetSurfaceMemoryObjectControl(pRenderHal, pParams);
-        SurfStateParams.RotationMode          = g_cLookup_RotationMode_xe3p_lpg_base[pRenderHalSurface->Rotation];
+        SurfStateParams.RotationMode          = g_cLookup_RotationMode_Next[pRenderHalSurface->Rotation];
         SurfStateParams.TileModeGMM           = pSurface->TileModeGMM;
         SurfStateParams.bGMMTileEnabled       = pSurface->bGMMTileEnabled;
 
@@ -404,30 +382,6 @@ MOS_STATUS XRenderHal_Interface_Xe3P_Lpg_Base::SendStateComputeMode(
 }
 
 //!
-//! \brief    Convert To Nano Seconds
-//! \details  Convert to Nano Seconds
-//! \param    PRENDERHAL_INTERFACE pRenderHal
-//!           [in] Pointer to Hardware Interface Structure
-//! \param    uint64_t iTicks
-//!           [in] Ticks
-//! \param    uint64_t *piNs
-//!           [in] Nano Seconds
-//! \return   void
-//!
-void XRenderHal_Interface_Xe3P_Lpg_Base::ConvertToNanoSeconds(
-    PRENDERHAL_INTERFACE                 pRenderHal,
-    uint64_t                            iTicks,
-    uint64_t                            *piNs)
-{
-    //-----------------------------
-    MHW_RENDERHAL_UNUSED(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(piNs);
-    //-----------------------------
-    *piNs = (uint64_t)(iTicks * RENDERHAL_NS_PER_TICK_RENDER_XE3P_LPG_BASE);
-}
-
-//!
 //! \brief    Initialize the State Heap Settings per platform
 //! \param    PRENDERHAL_STATE_HEAP_SETTINGS pSettings
 //!           [out] Pointer to PRENDERHAL_STATE_HEAP_SETTINGSStructure
@@ -443,145 +397,6 @@ void XRenderHal_Interface_Xe3P_Lpg_Base::InitStateHeapSettings(
     pRenderHal->enlargeStateHeapSettingsForAdv = g_cRenderHal_Enlarge_State_Heap_Settings_Adv_xe3p_lpg_base;
 }
 
-//!
-//! \brief    Enables L3 cacheing flag and sets related registers/values
-//! \param    PRENDERHAL_INTERFACE    pRenderHal
-//!           [in]  Pointer to Hardware Interface
-//! \param    pCacheSettings
-//!           [in] L3 Cache Configurations
-//! \return   MOS_STATUS
-//!           MOS_STATUS_SUCCESS if success, else fail reason
-//!
-MOS_STATUS XRenderHal_Interface_Xe3P_Lpg_Base::EnableL3Caching(
-    PRENDERHAL_INTERFACE         pRenderHal,
-    PRENDERHAL_L3_CACHE_SETTINGS pCacheSettings)
-{
-    VP_FUNC_CALL();
-
-    MOS_STATUS                              eStatus = MOS_STATUS_SUCCESS;
-    mhw::render::MHW_RENDER_ENGINE_L3_CACHE_SETTINGS cacheConfig = {};
-
-    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
-    MHW_RENDERHAL_CHK_NULL_RETURN(m_renderItf);
-
-    if (nullptr == pCacheSettings)
-    {
-        MHW_RENDERHAL_CHK_STATUS_RETURN(m_renderItf->EnableL3Caching(nullptr));
-        return eStatus;
-    }
-    cacheConfig.dwCntlReg = RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_XE3P_LPG_BASE_RENDERHAL;
-    // Override L3 cache configuration
-    if (pCacheSettings->bOverride)
-    {
-        if (pCacheSettings->bCntlRegOverride)
-        {
-            cacheConfig.dwCntlReg = pCacheSettings->dwCntlReg;
-        }
-    }
-    MHW_RENDERHAL_CHK_STATUS_RETURN(m_renderItf->EnableL3Caching(&cacheConfig));
-    
-    return eStatus;
-}
-
-void XRenderHal_Interface_Xe3P_Lpg_Base::SetFusedEUDispatch(bool enable)
-{
-    m_vfeStateParams.bFusedEuDispatch = enable? true : false;
-}
-
-static const uint32_t FIXED_SCRATCH_SPACE_BUFFER_INDEX = 6;
-
-MOS_STATUS XRenderHal_Interface_Xe3P_Lpg_Base::SetScratchSpaceBufferState(
-    RENDERHAL_INTERFACE     *renderHal,
-    uint32_t                indexOfBindingTable)
-{
-    if (m_scratchSpaceResource.iSize <= 0)
-    {
-        return MOS_STATUS_SUCCESS;  // Scratch space is not allocated. No need to set states.
-    }
-
-    RENDERHAL_SURFACE renderhal_surface;
-    MOS_ZeroMemory(&renderhal_surface, sizeof(renderhal_surface));
-    renderhal_surface.OsSurface.OsResource = m_scratchSpaceResource;
-    renderhal_surface.OsSurface.dwWidth = m_scratchSpaceResource.iSize;
-    renderhal_surface.OsSurface.dwHeight = 1;
-    renderhal_surface.OsSurface.Format = Format_RAW;
-    renderhal_surface.OsSurface.Type = MOS_GFXRES_SCRATCH;
-    renderhal_surface.rcSrc.right = m_scratchSpaceResource.iSize;;
-    renderhal_surface.rcSrc.bottom = 1;
-    renderhal_surface.rcDst = renderhal_surface.rcSrc;
-
-    MOS_STATUS result = renderHal->pOsInterface->pfnRegisterResource(
-        renderHal->pOsInterface, &(renderhal_surface.OsSurface.OsResource),
-        true, true);
-    if (MOS_STATUS_SUCCESS != result)
-    {
-        return result;
-    }
-
-    RENDERHAL_SURFACE_STATE_PARAMS renderhal_surface_state_param;
-    MOS_ZeroMemory(&renderhal_surface_state_param,
-                   sizeof(renderhal_surface_state_param));
-    renderhal_surface_state_param.isOutput = 1;
-    renderhal_surface_state_param.MemObjCtl = 2;
-
-    RENDERHAL_SURFACE_STATE_ENTRY *renderhal_surface_state_entry = nullptr;
-    renderHal->pfnSetupBufferSurfaceState(renderHal, &renderhal_surface,
-                                          &renderhal_surface_state_param,
-                                          &renderhal_surface_state_entry);
-    m_vfeStateParams.scratchStateOffset
-            = renderhal_surface_state_entry->dwSurfStateOffset;
-
-    renderHal->pfnBindSurfaceState(renderHal,
-                                   indexOfBindingTable,
-                                   FIXED_SCRATCH_SPACE_BUFFER_INDEX,
-                                   renderhal_surface_state_entry);
-    return MOS_STATUS_SUCCESS;
-}
-
-MOS_STATUS XRenderHal_Interface_Xe3P_Lpg_Base::SetNumOfWalkers(uint32_t numOfWalkers)
-{
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-    // value: [0,1] - One or two active walkers per context.
-    if (numOfWalkers > 2)
-    {
-        m_vfeStateParams.numOfWalkers = 1;
-    }
-    else if (numOfWalkers > 0)
-    {
-        m_vfeStateParams.numOfWalkers = numOfWalkers - 1;
-    }
-    return eStatus;
-}
-
-//! \brief      Set L3 cache override config parameters
-//! \param      [in] pRenderHal
-//!             Pointer to RenderHal Interface Structure
-//! \param      [in,out] pCacheSettings
-//!             Pointer to pCacheSettings
-//! \param      [in] bEnableSLM
-//!             Flag to enable SLM
-//! \return     MOS_STATUS
-//!             MOS_STATUS_SUCCESS if success. Error code otherwise
-//!
-MOS_STATUS XRenderHal_Interface_Xe3P_Lpg_Base::SetCacheOverrideParams(
-    PRENDERHAL_INTERFACE            pRenderHal,
-    PRENDERHAL_L3_CACHE_SETTINGS    pCacheSettings,
-    bool                            bEnableSLM)
-{
-    VP_FUNC_CALL();
-
-    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
-    MHW_RENDERHAL_CHK_NULL_RETURN(pCacheSettings);
-    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
-
-    pCacheSettings->dwCntlReg = RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_XE3P_LPG_BASE_RENDERHAL;
-
-    pCacheSettings->bCntlRegOverride = true;
-
-    return eStatus;
-}
-
 MHW_SETPAR_DECL_SRC(CFE_STATE, XRenderHal_Interface_Xe3P_Lpg_Base)
 {
     // Remove CFE STATE
@@ -591,7 +406,7 @@ MHW_SETPAR_DECL_SRC(CFE_STATE, XRenderHal_Interface_Xe3P_Lpg_Base)
 MHW_SETPAR_DECL_SRC(COMPUTE_WALKER, XRenderHal_Interface_Xe3P_Lpg_Base)
 {
     MHW_VFE_PARAMS* pVfeStateParams     = nullptr;
-    MHW_VFE_PARAMS_XE3P_LPG_BASE* paramsNext   = nullptr;
+    MHW_VFE_PARAMS_NEXT* paramsNext   = nullptr;
     pVfeStateParams                     = nullptr;
 
     MHW_RENDERHAL_CHK_NULL_RETURN(m_renderHal);
@@ -611,7 +426,7 @@ MHW_SETPAR_DECL_SRC(COMPUTE_WALKER, XRenderHal_Interface_Xe3P_Lpg_Base)
         params.cfeState.dwMaximumNumberofThreads = (pVfeStateParams->dwMaximumNumberofThreads) ? pVfeStateParams->dwMaximumNumberofThreads - 1 : m_renderHal->pHwCaps->dwMaxThreads - 1;
     }
 
-    paramsNext = dynamic_cast<MHW_VFE_PARAMS_XE3P_LPG_BASE*>(pVfeStateParams);
+    paramsNext = dynamic_cast<MHW_VFE_PARAMS_NEXT*>(pVfeStateParams);
     if (paramsNext != nullptr)
     {
         params.cfeState.FusedEuDispatch   = paramsNext->bFusedEuDispatch ? false : true;  // disabled if DW3.FusedEuDispath = 1

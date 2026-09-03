@@ -1,4 +1,4 @@
-# Copyright (c) 2024, Intel Corporation
+# Copyright (c) 2026, Intel Corporation
 
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -18,34 +18,27 @@
 # ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 # OTHER DEALINGS IN THE SOFTWARE.
 
-# This folder is only for render engine related files!
-# Do not add other files here.
-
-# Platform independent render engine MHW base layers. Included unconditionally
-# so that a platform leaf can derive from them regardless of which platform
-# subdirectory it lives in.
-media_include_subdirectory(hw)
-
-if(XE_HPG OR XE_LPG)
-    media_include_subdirectory(Xe_HPG_Base)
-    media_include_subdirectory(Xe_HPG)
-endif()
-
-if(XE2_HPG)
-    media_include_subdirectory(Xe2_HPG)
-endif()
-
-if(XE3P_LPG)
-    media_include_subdirectory(Xe3P_LPG_base)
-    media_include_subdirectory(Xe3P_LPG)
-endif()
-
-set(MEDIA_BIN_HEADERS_
-    ${MEDIA_BIN_HEADERS_}
-    ${CMAKE_CURRENT_LIST_DIR}/media_bin_register_xe_hpg.h
+set(TMP_RENDER_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_render_xe3p_m_plus_base_impl.h
 )
 
-set(MEDIA_BIN_INCLUDE_DIR
-    ${MEDIA_BIN_INCLUDE_DIR}
+set(TMP_STATE_HEAP_HEADERS_
+    ${CMAKE_CURRENT_LIST_DIR}/mhw_state_heap_xe3p_m_plus_base.h
+)
+
+set(SOFTLET_MHW_RENDER_HEADERS_
+    ${SOFTLET_MHW_RENDER_HEADERS_}
+    ${TMP_RENDER_HEADERS_}
+    ${TMP_STATE_HEAP_HEADERS_}
+)
+
+source_group("MHW\\Render Engine" FILES ${TMP_RENDER_HEADERS_})
+source_group("MHW\\State Heap" FILES ${TMP_STATE_HEAP_HEADERS_})
+
+set(TMP_RENDER_HEADERS_ "")
+set(TMP_STATE_HEAP_HEADERS_ "")
+
+set(SOFTLET_MHW_RENDER_PRIVATE_INCLUDE_DIRS_
+    ${SOFTLET_MHW_RENDER_PRIVATE_INCLUDE_DIRS_}
     ${CMAKE_CURRENT_LIST_DIR}
 )
