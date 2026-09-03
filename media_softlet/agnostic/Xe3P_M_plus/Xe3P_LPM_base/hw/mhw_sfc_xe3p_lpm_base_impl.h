@@ -336,7 +336,7 @@ public:
             resourceParams.pdwCmd          = &(cmd.DW63_64.Value[0]);
             resourceParams.dwLocationInCmd = 63;
             resourceParams.HwCommandType   = MOS_SFC_STATE;
-            resourceParams.bIsWritable     = true;
+            resourceParams.bIsWritable     = false;
             InitMocsParams(resourceParams, &cmd.DW65.Value, 1, 6);
             MHW_CHK_STATUS_RETURN(this->AddResourceToCmd(
                 pOsInterface,
