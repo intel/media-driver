@@ -51,6 +51,14 @@ VAStatus DdiDecodeAv1::ParseTileParams(
         return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
     }
 
+    // Check cumulative tile count to prevent buffer overflow
+    if (m_decodeCtx->DecodeParams.m_numSlices > av1MaxTileNum - numTiles)
+    {
+        DDI_CODEC_ASSERTMESSAGE("Cumulative tile count exceeds limit: m_numSlices = %d, numTiles = %d, av1MaxTileNum = %d",
+                          m_decodeCtx->DecodeParams.m_numSlices, numTiles, av1MaxTileNum);
+        return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
+    }
+
     pTileCtrl  = slcParam;
     tileParams = (CodecAv1TileParams*)(m_decodeCtx->DecodeParams.m_sliceParams);
     tileParams += m_decodeCtx->DecodeParams.m_numSlices;
@@ -782,6 +790,16 @@ VAStatus DdiDecodeAv1::AllocSliceControlBuffer(
                           buf->uiNumElements, av1MaxTileNum);
         return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
     }
+
+    // Check cumulative slice count to prevent buffer overflow
+    if (bufMgr->dwNumSliceControl > av1MaxTileNum - buf->uiNumElements)
+    {
+        DDI_CODEC_ASSERTMESSAGE("Cumulative slice count exceeds limit: dwNumSliceControl = %d, uiNumElements = %d, cumulative = %d, av1MaxTileNum = %d",
+                          bufMgr->dwNumSliceControl, buf->uiNumElements,
+                          bufMgr->dwNumSliceControl + buf->uiNumElements, av1MaxTileNum);
+        return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
+    }
+
     buf->pData = (uint8_t*)codec_Param_AV1->pVASliceParameterBufferAV1;
     buf->uiOffset = bufMgr->dwNumSliceControl * sizeof(VASliceParameterBufferAV1);
 

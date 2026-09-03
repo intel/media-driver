@@ -626,12 +626,15 @@ namespace decode{
             for (auto ref = 0; ref < av1NumInterRefFrames; ref++)
             {
                 uint8_t refPicIndex = m_av1PicParams->m_refFrameIdx[ref];
-                if (!CodecHal_PictureIsInvalid(m_av1PicParams->m_refFrameMap[refPicIndex]))
+                if (refPicIndex < av1TotalRefsPerFrame && !CodecHal_PictureIsInvalid(m_av1PicParams->m_refFrameMap[refPicIndex]))
                 {
                     uint8_t refFrameIdx = m_av1PicParams->m_refFrameMap[refPicIndex].FrameIdx;
-                    for (auto i = 0; i < 7; i++)
+                    if (refFrameIdx < CODECHAL_MAX_DPB_NUM_AV1)
                     {
-                       params.savedRefOrderHints[ref][i] = m_av1BasicFeature->m_refFrames.m_refList[refFrameIdx]->m_refOrderHint[i];
+                        for (auto i = 0; i < 7; i++)
+                        {
+                           params.savedRefOrderHints[ref][i] = m_av1BasicFeature->m_refFrames.m_refList[refFrameIdx]->m_refOrderHint[i];
+                        }
                     }
                 }
             }
@@ -1034,10 +1037,13 @@ namespace decode{
                 uint8_t refPicIndex = m_av1PicParams->m_refFrameIdx[refFrame - lastFrame]; //0 corresponds to LAST_FRAME
                 PCODEC_PICTURE refFrameList = &(m_av1PicParams->m_refFrameMap[0]);
 
-                if (!CodecHal_PictureIsInvalid(refFrameList[refPicIndex]))
+                if (refPicIndex < av1TotalRefsPerFrame && !CodecHal_PictureIsInvalid(refFrameList[refPicIndex]))
                 {
                     uint8_t refFrameIdx = refFrameList[refPicIndex].FrameIdx;
-                    refFrameOffset = m_av1BasicFeature->m_refFrames.m_refList[refFrameIdx]->m_orderHint;
+                    if (refFrameIdx < CODECHAL_MAX_DPB_NUM_AV1)
+                    {
+                        refFrameOffset = m_av1BasicFeature->m_refFrames.m_refList[refFrameIdx]->m_orderHint;
+                    }
                 }
 
                 int32_t frameOffset = (int32_t)m_av1PicParams->m_orderHint;

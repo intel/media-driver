@@ -68,11 +68,17 @@ namespace decode
 
         DECODE_CHK_STATUS(UpdateCurFrame(picParams));
 
-        uint8_t refPicIndex = picParams.m_refFrameIdx[picParams.m_primaryRefFrame];
-        auto refPic = picParams.m_refFrameMap[refPicIndex];
-        if (!CodecHal_PictureIsInvalid(refPic))
+        if (picParams.m_primaryRefFrame < av1NumInterRefFrames)
         {
-            m_prevFrameIdx = refPic.FrameIdx;
+            uint8_t refPicIndex = picParams.m_refFrameIdx[picParams.m_primaryRefFrame];
+            if (refPicIndex < av1TotalRefsPerFrame)
+            {
+                auto refPic = picParams.m_refFrameMap[refPicIndex];
+                if (!CodecHal_PictureIsInvalid(refPic))
+                {
+                    m_prevFrameIdx = refPic.FrameIdx;
+                }
+            }
         }
 
         if (picParams.m_picInfoFlags.m_fields.m_largeScaleTile && picParams.m_anchorFrameList != nullptr)
@@ -313,10 +319,13 @@ namespace decode
             for (auto i = 0; i < av1NumInterRefFrames; i++)
             {
                 auto index = picParams.m_refFrameIdx[i];
-                if (!CodecHal_PictureIsInvalid(picParams.m_refFrameMap[index]))
+                if (index < av1TotalRefsPerFrame && !CodecHal_PictureIsInvalid(picParams.m_refFrameMap[index]))
                 {
                     uint8_t frameIdx = picParams.m_refFrameMap[index].FrameIdx;
-                    m_currRefList->m_refOrderHint[i] = m_refList[frameIdx]->m_orderHint;
+                    if (frameIdx < CODECHAL_MAX_DPB_NUM_AV1)
+                    {
+                        m_currRefList->m_refOrderHint[i] = m_refList[frameIdx]->m_orderHint;
+                    }
                 }
             }
         }
@@ -361,10 +370,13 @@ namespace decode
             uint8_t refPicIndex = picParams.m_refFrameIdx[i];//i=0 corresponds to LAST_FRAME.
             const CODEC_PICTURE*  refFrameList = &(picParams.m_refFrameMap[0]);
 
-            if (!CodecHal_PictureIsInvalid(refFrameList[refPicIndex]))
+            if (refPicIndex < av1TotalRefsPerFrame && !CodecHal_PictureIsInvalid(refFrameList[refPicIndex]))
             {
                 uint8_t refFrameIdx = refFrameList[refPicIndex].FrameIdx;
-                refOffset = m_refList[refFrameIdx]->m_orderHint;
+                if (refFrameIdx < CODECHAL_MAX_DPB_NUM_AV1)
+                {
+                    refOffset = m_refList[refFrameIdx]->m_orderHint;
+                }
             }
 
             if (GetRelativeDist(picParams, refOffset, curFrameOffset) < 0)
@@ -406,10 +418,13 @@ namespace decode
             uint8_t refPicIndex = picParams.m_refFrameIdx[i]; //i=0 corresponds to LAST_FRAME.
             const CODEC_PICTURE* refFrameList = &(picParams.m_refFrameMap[0]);
 
-            if (!CodecHal_PictureIsInvalid(refFrameList[refPicIndex]))
+            if (refPicIndex < av1TotalRefsPerFrame && !CodecHal_PictureIsInvalid(refFrameList[refPicIndex]))
             {
                 uint8_t refFrameIdx = refFrameList[refPicIndex].FrameIdx;
-                refOffset = m_refList[refFrameIdx]->m_orderHint;
+                if (refFrameIdx < CODECHAL_MAX_DPB_NUM_AV1)
+                {
+                    refOffset = m_refList[refFrameIdx]->m_orderHint;
+                }
             }
 
             if ((refFrameOffset[0] != -1 &&
@@ -459,9 +474,9 @@ namespace decode
         for (auto ref = 0; ref < av1NumInterRefFrames; ref++)
         {
             uint8_t refPicIndex = picParams.m_refFrameIdx[ref];
-            int8_t refFrameIdx = picParams.m_refFrameMap[refPicIndex].FrameIdx;
+            int8_t refFrameIdx = (refPicIndex < av1TotalRefsPerFrame) ? picParams.m_refFrameMap[refPicIndex].FrameIdx : -1;
             refBufIdx[ref] = refFrameIdx;
-            if (refFrameIdx >= 0)
+            if (refFrameIdx >= 0 && refFrameIdx < CODECHAL_MAX_DPB_NUM_AV1)
             {
                 refOrderHint[ref] = m_refList[refFrameIdx]->m_orderHint;
             }
@@ -472,14 +487,17 @@ namespace decode
         if(refBufIdx[lastFrame - lastFrame] >= 0)
         {
             uint8_t refPicIndex = picParams.m_refFrameIdx[0];//0 corresponds to LAST_FRAME
-            if (!CodecHal_PictureIsInvalid(picParams.m_refFrameMap[refPicIndex]))
+            if (refPicIndex < av1TotalRefsPerFrame && !CodecHal_PictureIsInvalid(picParams.m_refFrameMap[refPicIndex]))
             {
                 uint8_t refFrameIdx = picParams.m_refFrameMap[refPicIndex].FrameIdx;
-                if (!(m_refList[refFrameIdx]->m_refOrderHint[altRefFrame - lastFrame] == refOrderHint[goldenFrame - lastFrame]))
+                if (refFrameIdx < CODECHAL_MAX_DPB_NUM_AV1)
                 {
-                    MotionFieldProjection(picParams, lastFrame, 2);
+                    if (!(m_refList[refFrameIdx]->m_refOrderHint[altRefFrame - lastFrame] == refOrderHint[goldenFrame - lastFrame]))
+                    {
+                        MotionFieldProjection(picParams, lastFrame, 2);
+                    }
+                    --refStamp;
                 }
-                --refStamp;
             }
         }
 
@@ -527,12 +545,16 @@ namespace decode
         uint8_t refFrameIdx = m_basicFeature->m_invalidFrameIndex;
         uint32_t miCols = 0, miRows = 0, refFrameType = 0;
 
-        if (!CodecHal_PictureIsInvalid(picParams.m_refFrameMap[refPicIndex]))
+        if (refPicIndex < av1TotalRefsPerFrame && !CodecHal_PictureIsInvalid(picParams.m_refFrameMap[refPicIndex]))
         {
-            refFrameIdx     = picParams.m_refFrameMap[refPicIndex].FrameIdx;
-            miCols          = m_refList[refFrameIdx]->m_miCols;
-            miRows          = m_refList[refFrameIdx]->m_miRows;
-            refFrameType    = m_refList[refFrameIdx]->m_frameType;
+            uint8_t candidateFrameIdx = picParams.m_refFrameMap[refPicIndex].FrameIdx;
+            if (candidateFrameIdx < CODECHAL_MAX_DPB_NUM_AV1)
+            {
+                refFrameIdx     = candidateFrameIdx;
+                miCols          = m_refList[refFrameIdx]->m_miCols;
+                miRows          = m_refList[refFrameIdx]->m_miRows;
+                refFrameType    = m_refList[refFrameIdx]->m_frameType;
+            }
         }
 
         if ((refFrameIdx == m_basicFeature->m_invalidFrameIndex) || (refFrameType == intraOnlyFrame || refFrameType == keyFrame) ||
