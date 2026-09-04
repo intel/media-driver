@@ -100,6 +100,7 @@ VAStatus MediaCapsTableSpecific::Init(DDI_MEDIA_CONTEXT *mediaCtx)
             int32_t numAttribList = attriblist->size();
             if(componentData && componentData->size() != 0)
             {
+                m_configList.reserve(componentData->size());
                 for(int i = 0; i < componentData->size(); i++)
                 {
                     auto configData = componentData->at(i);
