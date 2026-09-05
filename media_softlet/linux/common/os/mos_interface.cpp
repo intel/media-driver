@@ -1828,10 +1828,23 @@ MOS_STATUS MosInterface::AllocateResource(
 
         GraphicsResourceNext::CreateParams createParams(params);
         auto eStatus = resource->pGfxResourceNext->Allocate(streamState->osDeviceContext, createParams);
-        MOS_OS_CHK_STATUS_MESSAGE_RETURN(eStatus, "Allocate graphic resource failed");
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_OS_ASSERTMESSAGE("Allocate graphic resource failed");
+            // Allocate() releases whatever it allocated internally on failure, only the
+            // GraphicsResource object itself needs to be destroyed here.
+            MOS_Delete(resource->pGfxResourceNext);
+            return eStatus;
+        }
 
         eStatus = resource->pGfxResourceNext->ConvertToMosResource(resource);
-        MOS_OS_CHK_STATUS_MESSAGE_RETURN(eStatus, "Convert graphic resource failed");
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_OS_ASSERTMESSAGE("Convert graphic resource failed");
+            resource->pGfxResourceNext->Free(streamState->osDeviceContext);
+            MOS_Delete(resource->pGfxResourceNext);
+            return eStatus;
+        }
     }
     else
     {
