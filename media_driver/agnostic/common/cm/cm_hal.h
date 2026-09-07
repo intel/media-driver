@@ -579,19 +579,19 @@ struct CM_HAL_WAVEFRONT26Z_DISPATCH_INFO
 //*-----------------------------------------------------------------------------
 struct CM_HAL_KERNEL_THREADSPACE_PARAM
 {
+    CM_HAL_DEPENDENCY dependencyInfo;       // [in] Kernel dependency
+    CM_HAL_DEPENDENCY dependencyVectors;    // [in] for engineering build
+    CM_WALKING_PARAMETERS walkingParams;    // [in] for engineering build
+    PCM_HAL_SCOREBOARD threadCoordinates;  // [in]
+    uint32_t colorCountMinusOne;            // [in] for color count minus one
     uint16_t threadSpaceWidth;             // [in] Kernel Threadspace width
     uint16_t threadSpaceHeight;            // [in] Kernel Threadspace height
     CM_DEPENDENCY_PATTERN patternType;      // [in] Kernel dependency as enum
-    CM_HAL_DEPENDENCY dependencyInfo;       // [in] Kernel dependency
-    PCM_HAL_SCOREBOARD threadCoordinates;  // [in]
     uint8_t reuseBBUpdateMask;              // [in]
     CM_HAL_WAVEFRONT26Z_DISPATCH_INFO dispatchInfo;  // [in]
     uint8_t globalDependencyMask;           // [in] dependency mask in gloabal dependency vectors
     uint8_t walkingParamsValid;             // [in] for engineering build
-    CM_WALKING_PARAMETERS walkingParams;    // [in] for engineering build
     uint8_t dependencyVectorsValid;         // [in] for engineering build
-    CM_HAL_DEPENDENCY dependencyVectors;    // [in] for engineering build
-    uint32_t colorCountMinusOne;            // [in] for color count minus one
     CM_MW_GROUP_SELECT groupSelect;         // [in] for group select on BDW+
     CM_HAL_BB_DIRTY_STATUS bbDirtyStatus;   // [in] batch buffer dirty status
     CM_WALKING_PATTERN walkingPattern;      // [in] media walking pattern as enum

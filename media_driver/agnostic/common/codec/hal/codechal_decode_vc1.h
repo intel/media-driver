@@ -153,12 +153,12 @@ typedef struct _CODECHAL_DECODE_VC1_BITSTREAM
 {
     uint8_t*    pOriginalBitBuffer;                                   // pointer to the original capsuted bitstream
     uint8_t*    pOriginalBufferEnd;                                   // pointer to the end of the original uncapsuted bitstream
-    uint32_t    u32ZeroNum;                                           // number of continuous zeros before the current bype.
-    uint32_t    u32ProcessedBitNum;                                   // number of bits being processed from initiation
-    uint8_t     CacheBuffer[CODECHAL_DECODE_VC1_BITSTRM_BUF_LEN + 4]; // cache buffer of uncapsuted raw bitstream
     uint32_t*   pu32Cache;                                            // pointer to the cache buffer
     uint32_t*   pu32CacheEnd;                                         // pointer to the updating end of the cache buffer
     uint32_t*   pu32CacheDataEnd;                                     // pointer to the last valid uint32_t of the cache buffer
+    uint32_t    u32ZeroNum;                                           // number of continuous zeros before the current bype.
+    uint32_t    u32ProcessedBitNum;                                   // number of bits being processed from initiation
+    uint8_t     CacheBuffer[CODECHAL_DECODE_VC1_BITSTRM_BUF_LEN + 4]; // cache buffer of uncapsuted raw bitstream
     int32_t     iBitOffset;                                           // offset = 32 is the MSB, offset = 1 is the LSB.
     int32_t     iBitOffsetEnd;                                        // bit offset of the last valid uint32_t
     bool        bIsEBDU;                                              // 1 if it is EBDU and emulation prevention bytes are present.

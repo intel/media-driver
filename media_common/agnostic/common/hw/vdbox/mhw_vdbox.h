@@ -276,24 +276,24 @@ using PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS = MHW_VDBOX_PIPE_MODE_SELECT_PARAMS * ;
 
 typedef struct _MHW_VDBOX_SURFACE_PARAMS
 {
-    uint32_t                    Mode;
     PMOS_SURFACE                psSurface;              // 2D surface parameters
+    uint32_t                    Mode;
+    uint32_t                    dwUVPlaneAlignment;
+    uint32_t                    dwActualWidth;
+    uint32_t                    dwActualHeight;
+    uint32_t                    dwReconSurfHeight;
+    uint32_t                    dwCompressionFormat;
+    MOS_MEMCOMP_STATE           mmcState;
+    uint8_t                     mmcSkipMask;
     uint8_t                     ucVDirection;
     uint8_t                     ChromaType;
     uint8_t                     ucSurfaceStateId;
     uint8_t                     ucBitDepthLumaMinus8;
     uint8_t                     ucBitDepthChromaMinus8;
-    uint32_t                    dwUVPlaneAlignment;
     bool                        bDisplayFormatSwizzle;
     bool                        bSrc8Pak10Mode;
     bool                        bColorSpaceSelection;
     bool                        bVdencDynamicScaling;
-    uint32_t                    dwActualWidth;
-    uint32_t                    dwActualHeight;
-    uint32_t                    dwReconSurfHeight;
-    MOS_MEMCOMP_STATE           mmcState;
-    uint8_t                     mmcSkipMask;
-    uint32_t                    dwCompressionFormat;
     uint8_t                     refsMmcEnable;
     uint8_t                     refsMmcType;
 } MHW_VDBOX_SURFACE_PARAMS, *PMHW_VDBOX_SURFACE_PARAMS;

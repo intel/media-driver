@@ -316,16 +316,16 @@ typedef struct _MHW_VDBOX_AVC_DPB_PARAMS
 
 typedef struct _MHW_VDBOX_AVC_DIRECTMODE_PARAMS
 {
-    CODEC_PICTURE                   CurrPic;
-    bool                            isEncode;
-    uint32_t                        uiUsedForReferenceFlags;
     PMOS_RESOURCE                   presAvcDmvBuffers;
-    uint8_t                         ucAvcDmvIdx;
     PCODEC_AVC_DMV_LIST             pAvcDmvList;
     PCODEC_PIC_ID                   pAvcPicIdx;
     void                            **avcRefList;
+    CODEC_PICTURE                   CurrPic;
+    uint32_t                        uiUsedForReferenceFlags;
+    bool                            isEncode;
     bool                            bPicIdRemappingInUse;
     int32_t                         CurrFieldOrderCnt[2];
+    uint8_t                         ucAvcDmvIdx;
     bool                            bDisableDmvBuffers;
     PMOS_RESOURCE                   presMvcDummyDmvBuffer;
 } MHW_VDBOX_AVC_DIRECTMODE_PARAMS, *PMHW_VDBOX_AVC_DIRECTMODE_PARAMS;
