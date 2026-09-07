@@ -2424,11 +2424,13 @@ namespace vISA
         //!
         Function(const Function& other) {
             fields = other.fields;
+            variable_reloc_symtab.reserve(other.variable_reloc_symtab.size());
             for (RelocationInfo *r : other.variable_reloc_symtab) {
                 RelocationInfo *s = new RelocationInfo();
                 *s = *r;
                 variable_reloc_symtab.push_back(s);
             }
+            function_reloc_symtab.reserve(other.function_reloc_symtab.size());
             for (RelocationInfo *r : other.function_reloc_symtab) {
                 RelocationInfo *s = new RelocationInfo();
                 *s = *r;
@@ -2446,6 +2448,7 @@ namespace vISA
                 fields = other.fields;
                 for (RelocationInfo *r : variable_reloc_symtab)
                     delete r;
+                variable_reloc_symtab.reserve(other.variable_reloc_symtab.size());
                 for (RelocationInfo *r : other.variable_reloc_symtab) {
                     RelocationInfo *s = new RelocationInfo();
                     *s = *r;
@@ -2453,6 +2456,7 @@ namespace vISA
                 }
                 for (RelocationInfo *r : function_reloc_symtab)
                     delete r;
+                function_reloc_symtab.reserve(other.function_reloc_symtab.size());
                 for (RelocationInfo *r : other.function_reloc_symtab) {
                     RelocationInfo *s = new RelocationInfo();
                     *s = *r;
@@ -2801,6 +2805,7 @@ namespace vISA
         //!
         GlobalVariable(const GlobalVariable& other) {
             fields = other.fields;
+            attribute_info.reserve(other.attribute_info.size());
             for (AttributeInfo *r : other.attribute_info) {
                 AttributeInfo *s = new AttributeInfo();
                 *s = *r;
@@ -2818,6 +2823,7 @@ namespace vISA
                 fields = other.fields;
                 for (AttributeInfo *r : attribute_info)
                     delete r;
+                attribute_info.reserve(other.attribute_info.size());
                 for (AttributeInfo *r : other.attribute_info) {
                     AttributeInfo *s = new AttributeInfo();
                     *s = *r;
@@ -4669,16 +4675,19 @@ namespace vISA
         //!
         Kernel(const Kernel& other) {
             fields = other.fields;
+            variable_reloc_symtab.reserve(other.variable_reloc_symtab.size());
             for (RelocationInfo *r : other.variable_reloc_symtab) {
                 RelocationInfo *s = new RelocationInfo();
                 *s = *r;
                 variable_reloc_symtab.push_back(s);
             }
+            function_reloc_symtab.reserve(other.function_reloc_symtab.size());
             for (RelocationInfo *r : other.function_reloc_symtab) {
                 RelocationInfo *s = new RelocationInfo();
                 *s = *r;
                 function_reloc_symtab.push_back(s);
             }
+            gen_binary_info.reserve(other.gen_binary_info.size());
             for (GenBinary *r : other.gen_binary_info) {
                 GenBinary *s = new GenBinary();
                 *s = *r;
@@ -4696,6 +4705,7 @@ namespace vISA
                 fields = other.fields;
                 for (RelocationInfo *r : variable_reloc_symtab)
                     delete r;
+                variable_reloc_symtab.reserve(other.variable_reloc_symtab.size());
                 for (RelocationInfo *r : other.variable_reloc_symtab) {
                     RelocationInfo *s = new RelocationInfo();
                     *s = *r;
@@ -4703,6 +4713,7 @@ namespace vISA
                 }
                 for (RelocationInfo *r : function_reloc_symtab)
                     delete r;
+                function_reloc_symtab.reserve(other.function_reloc_symtab.size());
                 for (RelocationInfo *r : other.function_reloc_symtab) {
                     RelocationInfo *s = new RelocationInfo();
                     *s = *r;
@@ -4710,6 +4721,7 @@ namespace vISA
                 }
                 for (GenBinary *r : gen_binary_info)
                     delete r;
+                gen_binary_info.reserve(other.gen_binary_info.size());
                 for (GenBinary *r : other.gen_binary_info) {
                     GenBinary *s = new GenBinary();
                     *s = *r;
@@ -5117,16 +5129,19 @@ namespace vISA
         //!
         Header(const Header& other) {
             fields = other.fields;
+            kernel_info.reserve(other.kernel_info.size());
             for (Kernel *r : other.kernel_info) {
                 Kernel *s = new Kernel();
                 *s = *r;
                 kernel_info.push_back(s);
             }
+            file_scope_var_info.reserve(other.file_scope_var_info.size());
             for (GlobalVariable *r : other.file_scope_var_info) {
                 GlobalVariable *s = new GlobalVariable();
                 *s = *r;
                 file_scope_var_info.push_back(s);
             }
+            function_info.reserve(other.function_info.size());
             for (Function *r : other.function_info) {
                 Function *s = new Function();
                 *s = *r;
@@ -5144,6 +5159,7 @@ namespace vISA
                 fields = other.fields;
                 for (Kernel *r : kernel_info)
                     delete r;
+                kernel_info.reserve(other.kernel_info.size());
                 for (Kernel *r : other.kernel_info) {
                     Kernel *s = new Kernel();
                     *s = *r;
@@ -5151,6 +5167,7 @@ namespace vISA
                 }
                 for (GlobalVariable *r : file_scope_var_info)
                     delete r;
+                file_scope_var_info.reserve(other.file_scope_var_info.size());
                 for (GlobalVariable *r : other.file_scope_var_info) {
                     GlobalVariable *s = new GlobalVariable();
                     *s = *r;
@@ -5158,6 +5175,7 @@ namespace vISA
                 }
                 for (Function *r : function_info)
                     delete r;
+                function_info.reserve(other.function_info.size());
                 for (Function *r : other.function_info) {
                     Function *s = new Function();
                     *s = *r;

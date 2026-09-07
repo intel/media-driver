@@ -76,6 +76,7 @@ int Test_QueryConfigProfiles(VADriverContextP ctx, vector<FeatureID> &queriedFea
         }
         else
         {
+            queriedFeatureIDTable.reserve(num_entrypoint);
             for (int j = 0; j < num_entrypoint; j++)
             {
                 queriedFeatureIDTable.push_back({profile, entrypoints[j]});
