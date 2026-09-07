@@ -32,12 +32,7 @@
 #include "codec_def_common_jpeg.h"
 #include "codec_def_common_mpeg2.h"
 
-#ifdef IGFX_MFX_INTERFACE_EXT_SUPPORT
-#include "mhw_vdbox_mfx_cmdpar_ext.h"
 #define __MHW_VDBOX_MFX_WRAPPER_EXT(STUFF) STUFF
-#else
-#define __MHW_VDBOX_MFX_WRAPPER_EXT(STUFF)
-#endif
 
 namespace mhw
 {
@@ -62,6 +57,53 @@ enum SURFACE_FORMAT
     SURFACE_FORMAT_R8UNORM_CRCB     = 11,  //!< Sample_8x8 Only
     SURFACE_FORMAT_Y8UNORM          = 12,  //!< Sample_8x8 Only
 };
+
+enum SURFACE_FORMAT_EXT
+{
+    SURFACE_FORMAT_P010             = 13,  //!< P010 for 420 10 bits
+    SURFACE_FORMAT_Y216             = 14,  //!< Y216 for 422 10 bit (upto 16 bit)
+    SURFACE_FORMAT_Y210V            = 14,  //!< Y210 Variant
+};
+
+#define MFX_AVC_IMG_STATE_EXT        \
+    uint8_t minFrameWSize = 0;       \
+    uint8_t loadSlicePointerFlag = 0;\
+    uint8_t tqchromadisable = 1;     \
+    uint8_t pakQpShift = 0;          \
+    uint8_t nonfirstpassflag = 0;    \
+    uint8_t minframewsizeunits = 0;  \
+    uint8_t granularCrcPoison = 0; \
+    uint8_t poisonNthGranularCrc = 0; \
+    uint8_t granularCrcStreamoutEnable = 0; \
+    uint8_t granularCrcStreaminEnable  = 0
+
+#define MFX_AVC_SLICE_STATE_EXT                \
+    uint8_t rateControlCounterEnable = 0;      \
+    uint8_t rcTriggleMode = 0;                 \
+    uint8_t rcStableTolerance = 0;             \
+    uint8_t rcPanicEnable = 0;                 \
+    uint8_t mbTypeDirectConversionDis = 0;     \
+    uint8_t mbTypeSkipConversionDis = 0;       \
+    uint8_t compressBitstreamOutputDisFlag = 0;\
+    uint8_t streamID10 = 0;                    \
+    uint8_t magnitudeQpMaxNegativeModifier = 0;\
+    uint8_t magnitudeQpMaxPositiveModifier = 0;\
+    uint8_t shrinkParamShrinkResistance = 0;   \
+    uint8_t shrinkParamShrinkInit = 0;         \
+    uint8_t growParamGrowResistance = 0;       \
+    uint8_t correct6 = 0;                      \
+    uint8_t correct5 = 0;                      \
+    uint8_t correct4 = 0;                      \
+    uint8_t correct3 = 0;                      \
+    uint8_t correct2 = 0;                      \
+    uint8_t correct1 = 0
+
+#define MFX_SURFACE_STATE_EXT              \
+    uint8_t variantSurfaceFormatEnable = 0;
+
+#define MFX_PIPE_BUF_ADDR_STATE_EXT        \
+    PMOS_RESOURCE granularCRCStreaminBuffer; \
+    PMOS_RESOURCE granularCRCStreamoutBuffer;
 
 //!
 //! \enum     MfxDecoderModeSelect
