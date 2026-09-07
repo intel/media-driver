@@ -371,6 +371,9 @@ MOS_STATUS VpRenderAiKernel::GetKernelSurfaceParam(bool isBTI, SURFACE_PARAMS &s
     }
     pRenderSurfaceParams->isOutput        = surfParam.isOutput;
     pRenderSurfaceParams->usePackedPlanar = surfParam.usePackedPlanar;
+    // Overrides b2PlaneNV12NeededByKernel above: resolves to RENDERHAL_PLANES_R8 (1 entry,
+    // R8_UNORM) for kernels that read luma only and so declare one arg per frame.
+    pRenderSurfaceParams->bUseSinglePlane = surfParam.useSinglePlane;
 
     auto surf = m_surfaceGroup->find(surfType);
     if (m_surfaceGroup->end() == surf)

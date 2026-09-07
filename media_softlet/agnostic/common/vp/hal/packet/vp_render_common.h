@@ -152,6 +152,7 @@ typedef struct MOS_ALIGNED(16) _SURFACE_PARAMS
     bool        combineChannelY;
     uint32_t    planeIndex;
     bool        usePackedPlanar;
+    bool        useSinglePlane;  // bind a planar surface as one R8_UNORM luma plane (1 BTI)
 } SURFACE_PARAMS, *PSURFACE_PARAMS;
 using KERNEL_ARG_INDEX_SURFACE_MAP = std::map<uint32_t, SURFACE_PARAMS>;
 
