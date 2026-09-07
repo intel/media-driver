@@ -227,6 +227,12 @@ MOS_STATUS EncodePipeline::InitUserSetting(MediaUserSettingSharedPtr userSetting
         false);
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
+        "DisableTilebToTile4",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        false);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "Encode Raw Surface Tile",
         MediaUserSetting::Group::Sequence,
         int32_t(0),

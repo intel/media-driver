@@ -208,6 +208,8 @@ public:
 
     bool m_chromaPrefetchDisable = true;
 
+    bool m_disableTileBToTile4 = false;
+
 protected:
     //!
     //! \brief  Update the parameters of tracked buffers

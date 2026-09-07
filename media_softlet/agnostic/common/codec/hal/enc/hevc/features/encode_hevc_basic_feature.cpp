@@ -868,6 +868,11 @@ MHW_SETPAR_DECL_SRC(VDENC_REF_SURFACE_STATE, HevcBasicFeature)
         params.vOffset = m_rawSurfaceToPak->dwHeight;
     }
 
+    if (!m_disableTileBToTile4 && params.tileType == MOS_TILE_B && params.tileModeGmm == MOS_TILE_X_GMM)
+    {
+        params.tileModeGmm = MOS_TILE_4_GMM;
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 

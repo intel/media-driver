@@ -257,6 +257,11 @@ namespace encode
         params.psPostDeblockSurface = &m_basicFeature->m_reconSurface;
         params.psRawSurface         = m_basicFeature->m_preEncRawSurface;
 
+        if (!m_basicFeature->m_disableTileBToTile4 && m_basicFeature->m_reconSurface.TileType == MOS_TILE_B && m_basicFeature->m_reconSurface.TileModeGMM == MOS_TILE_X_GMM)
+        {
+            params.overrideTileBToTile4 = true;
+        }
+
         params.presMetadataLineBuffer       = m_resMetadataLineBuffer;
         params.presMetadataTileLineBuffer   = m_resMetadataTileLineBuffer;
         params.presMetadataTileColumnBuffer = m_resMetadataTileColumnBuffer;

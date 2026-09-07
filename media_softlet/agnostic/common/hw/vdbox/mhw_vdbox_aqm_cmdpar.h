@@ -101,6 +101,7 @@ struct _MHW_PAR_T(AQM_PIPE_BUF_ADDR_STATE)
     MOS_MEMCOMP_STATE AqmPipeBufAddrStatePar3    = {};
     PMOS_RESOURCE     AqmPipeBufAddrStatePar4[5] = {};
     MOS_MEMCOMP_STATE AqmPipeBufAddrStatePar5[5] = {};
+    bool              overrideTileBToTile4       = false;
 };
 
 struct _MHW_PAR_T(AQM_TILE_CODING)

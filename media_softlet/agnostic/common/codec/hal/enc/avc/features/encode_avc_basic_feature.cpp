@@ -1256,6 +1256,11 @@ MHW_SETPAR_DECL_SRC(VDENC_REF_SURFACE_STATE, AvcBasicFeature)
         params.vOffset = m_rawSurfaceToPak->dwHeight;
     }
 
+    if (!m_disableTileBToTile4 && params.tileType == MOS_TILE_B && params.tileModeGmm == MOS_TILE_X_GMM)
+    {
+        params.tileModeGmm = MOS_TILE_4_GMM;
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1595,6 +1600,11 @@ MHW_SETPAR_DECL_SRC(MFX_SURFACE_STATE, AvcBasicFeature)
     ENCODE_CHK_NULL_RETURN(psSurface);
 
     params.tilemode         = MhwGetHwTileType(psSurface->TileType, psSurface->TileModeGMM, psSurface->bGMMTileEnabled);
+    if (!m_disableTileBToTile4 && params.surfaceId == CODECHAL_MFX_REF_SURFACE_ID &&
+        psSurface->TileType == MOS_TILE_B && psSurface->TileModeGMM == MOS_TILE_X_GMM)
+    {
+        params.tilemode = MOS_TILE_4_GMM;
+    }
     params.surfacePitch     = psSurface->dwPitch - 1;
     params.interleaveChroma = psSurface->Format == Format_P8 ? 0 : 1;
     params.surfaceFormat    = MosToMediaStateFormat(psSurface->Format);

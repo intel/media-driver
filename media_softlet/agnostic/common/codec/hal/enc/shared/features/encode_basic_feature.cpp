@@ -95,6 +95,14 @@ MOS_STATUS EncodeBasicFeature::Init(void *setting)
     m_enableTileStitchByHW = outValue.Get<bool>();
 
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        m_disableTileBToTile4,
+        "DisableTilebToTile4",
+        MediaUserSetting::Group::Sequence);
+#endif
+
     if (m_osInterface != nullptr)
     {
         //If Wa_16025947269 is set, disable chroma prefetch

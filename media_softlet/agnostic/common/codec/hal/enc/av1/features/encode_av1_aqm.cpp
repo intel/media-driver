@@ -198,6 +198,11 @@ MHW_SETPAR_DECL_SRC(AQM_PIPE_BUF_ADDR_STATE, Av1EncodeAqm)
             params.surfaceRawBuffer     = &m_basicFeature->m_rawSurfaceToEnc->OsResource;
             params.surfaceReconBuffer   = &(&m_basicFeature->m_reconSurface)->OsResource;
 
+            if (!m_basicFeature->m_disableTileBToTile4 && m_basicFeature->m_reconSurface.TileType == MOS_TILE_B && m_basicFeature->m_reconSurface.TileModeGMM == MOS_TILE_X_GMM)
+            {
+                params.overrideTileBToTile4 = true;
+            }
+
             if (mmcEnabled)
             {
                 ENCODE_CHK_STATUS_RETURN(basicFeature->m_mmcState->GetSurfaceMmcState(const_cast<PMOS_SURFACE>(&m_basicFeature->m_rawSurface), &params.mmcStateRawSurf));

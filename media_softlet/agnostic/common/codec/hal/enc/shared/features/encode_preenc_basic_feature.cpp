@@ -482,6 +482,11 @@ MHW_SETPAR_DECL_SRC(VDENC_REF_SURFACE_STATE, PreEncBasicFeature)
     params.height      = m_oriFrameHeight;
     params.width       = m_oriFrameWidth;
 
+    if (!m_disableTileBToTile4 && params.tileType == MOS_TILE_B && params.tileModeGmm == MOS_TILE_X_GMM)
+    {
+        params.tileModeGmm = MOS_TILE_4_GMM;
+    }
+
     if (m_reconSurface.Format == Format_Y410 || m_reconSurface.Format == Format_444P || m_reconSurface.Format == Format_AYUV)
     {
         if (m_reconSurface.Format == Format_Y410)

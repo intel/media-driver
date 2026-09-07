@@ -1811,6 +1811,11 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, Vp9VdencPkt)
 
     m_basicFeature->m_ref.MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params);
 
+    if (!m_basicFeature->m_disableTileBToTile4 && m_basicFeature->m_reconSurface.TileType == MOS_TILE_B && m_basicFeature->m_reconSurface.TileModeGMM == MOS_TILE_X_GMM)
+    {
+        params.overrideTileBToTile4 = true;
+    }
+
     ENCODE_CHK_NULL_RETURN(m_mmcState);
 
     if (m_mmcState->IsMmcEnabled())
@@ -1849,6 +1854,11 @@ MHW_SETPAR_DECL_SRC(VDENC_REF_SURFACE_STATE, Vp9VdencPkt)
     params.vOffset     = surfParams->YoffsetForVplane;
     params.height      = surfParams->dwHeight;
     params.width       = surfParams->dwWidth;
+
+    if (!m_basicFeature->m_disableTileBToTile4 && params.tileType == MOS_TILE_B && params.tileModeGmm == MOS_TILE_X_GMM)
+    {
+        params.tileModeGmm = MOS_TILE_4_GMM;
+    }
 
     if (surfParams->Format == Format_Y410 || surfParams->Format == Format_444P || surfParams->Format == Format_AYUV)
     {

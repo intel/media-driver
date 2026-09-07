@@ -781,6 +781,11 @@ MHW_SETPAR_DECL_SRC(VDENC_REF_SURFACE_STATE, Av1BasicFeature)
         params.vOffset = MOS_ALIGN_CEIL(m_rawSurfaceToPak->dwHeight, 8);
     }
 
+    if (!m_disableTileBToTile4 && params.tileType == MOS_TILE_B && params.tileModeGmm == MOS_TILE_X_GMM)
+    {
+        params.tileModeGmm = MOS_TILE_4_GMM;
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1136,6 +1141,11 @@ MHW_SETPAR_DECL_SRC(AVP_PIPE_BUF_ADDR_STATE, Av1BasicFeature)
     params.dsPictureSourceBuffer   = const_cast<PMOS_RESOURCE>(&m_rawSurfaceToEnc->OsResource);
 
     MHW_CHK_STATUS_RETURN(m_ref.MHW_SETPAR_F(AVP_PIPE_BUF_ADDR_STATE)(params));
+
+    if (!m_disableTileBToTile4 && m_reconSurface.TileType == MOS_TILE_B && m_reconSurface.TileModeGMM == MOS_TILE_X_GMM)
+    {
+        params.overrideTileBToTile4 = true;
+    }
 
     return MOS_STATUS_SUCCESS;
 }
