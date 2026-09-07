@@ -661,6 +661,9 @@ VAStatus MediaLibvaUtilNext::CreateExternalSurface(
     {
         gmmCustomParams.Usage = GMM_RESOURCE_USAGE_STAGING; //temp WA for some application wrongly use flags for user ptr
         gmmCustomParams.Type = RESOURCE_1D;
+        // The buffer is allocated by the application on the CPU, so it is always CPU cacheable.
+        // GMM needs this to hand back the coherent PAT index for the user ptr binding.
+        gmmCustomParams.Flags.Info.Cacheable = 1;
     }
 
     if (params.bMemCompEnable)

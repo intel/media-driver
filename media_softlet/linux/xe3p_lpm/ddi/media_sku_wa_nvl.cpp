@@ -243,6 +243,16 @@ static bool InitNvlMediaSkuExt(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrAV1VLDLSTDecoding, 1);
     MEDIA_WR_SKU(skuTable, FtrMediaIPSeparation , 1);
 
+    // App-Transient caching (14019952775) is available from the Xe3p render IP onward.
+    // GMM only programs the App-Transient PAT entries when PAT centric cache policy is on, so
+    // the two are enabled together. Both are scoped to the App-Transient platforms so that the
+    // cache setting of earlier platforms stays unchanged.
+    if (devInfo->renderFamily >= IGFX_XE3P_CORE)
+    {
+        MEDIA_WR_SKU(skuTable, FtrPATCentricCachePolicy, 1);
+        MEDIA_WR_SKU(skuTable, FtrAppTransientCaching, 1);
+    }
+
     return true;
 }
 

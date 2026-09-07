@@ -207,6 +207,23 @@ MOS_STATUS GraphicsResourceSpecificNext::Allocate(OsContextNext* osContextPtr, C
     }
 
     gmmParams.Flags.Info.Cacheable        = params.m_flags.bCacheable;
+
+    if (nullptr != params.m_pSystemMemory)
+    {
+        // The backing system memory comes from a standard CPU allocator,
+        // whose CPU-side mapping is WB (write-back) and cacheable by default.
+        // GMM relies on this to return the coherent PAT index for the user_ptr binding.
+        gmmParams.Flags.Info.Cacheable = true;
+
+        // Use STAGING for user_ptr when App-Transient caching is enabled.
+        // STAGING preserves the WB device cache attribute required by GMM
+        // to assign the App-Transient PAT (XA + 1-way coherency).
+        if (MEDIA_IS_SKU(pOsContextSpecific->GetSkuTable(), FtrAppTransientCaching))
+        {
+            gmmParams.Usage = GMM_RESOURCE_USAGE_STAGING;
+        }
+    }
+
     GMM_RESOURCE_INFO*  gmmResourceInfoPtr = pOsContextSpecific->GetGmmClientContext()->CreateResInfoObject(&gmmParams);
 
     if (gmmResourceInfoPtr == nullptr)

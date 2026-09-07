@@ -131,6 +131,16 @@ static bool InitNvlShadowSku(struct GfxDeviceInfo *devInfo,
     skuTable->FtrTileY = 0;
     skuTable->FtrFlatPhysCCS = 1;
 
+    // App-Transient caching (14019952775) is available from the Xe3p render IP onward.
+    // GMM only programs the App-Transient PAT entries when PAT centric cache policy is on, so
+    // the two are enabled together. Both are scoped to the App-Transient platforms so that the
+    // cache setting of earlier platforms stays unchanged.
+    if (devInfo->renderFamily >= IGFX_XE3P_CORE)
+    {
+        skuTable->FtrPATCentricCachePolicy = 1;
+        skuTable->FtrAppTransientCaching   = 1;
+    }
+
     return true;
 }
 
