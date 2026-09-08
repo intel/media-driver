@@ -100,8 +100,9 @@ protected:
     MOS_STATUS GetCSCExecutionCaps(SwFilter* feature, bool isCamPipeWithBayerInput);
     bool IsSfcSupported(MOS_FORMAT format);
     MOS_STATUS GetScalingExecutionCaps(SwFilter* feature, bool isDIEnabled);
-    MOS_STATUS GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled, bool isDIEnabled);
-    MOS_STATUS GetScalingExecutionCapsHdr(SwFilter *feature);
+    MOS_STATUS GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled, bool isDIEnabled, bool isFullRgbG10P709Output = false);
+    MOS_STATUS GetScalingExecutionCapsHdr(SwFilter *feature, SwFilter *csc);
+    bool IsFullFP16G10P709Output(SwFilter *csc);
     bool IsSfcRotationSupported(FeatureParamRotMir *rotationParams);
     MOS_STATUS GetRotationExecutionCaps(SwFilter* feature);
     virtual MOS_STATUS GetDenoiseExecutionCaps(SwFilter* feature);

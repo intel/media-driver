@@ -568,7 +568,8 @@ MOS_STATUS Policy::GetExecutionCapsForSingleFeature(FeatureType featureType, SwF
         hdr = dynamic_cast<SwFilterHdr *>(swFilterPipe.GetSwFilter(FeatureType(FeatureTypeHdr)));
         if (hdr)
         {
-            VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCapsHdr(feature));
+            // Csc is needed to tell whether the output is scRGB, which must not fall back to render.
+            VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCapsHdr(feature, swFilterPipe.GetSwFilter(FeatureTypeCsc)));
         }
         else
         {
@@ -1360,10 +1361,24 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature, bool isCamPipeWithBaye
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Policy::GetScalingExecutionCapsHdr(SwFilter *feature)
+bool Policy::IsFullFP16G10P709Output(SwFilter *csc)
 {
     VP_FUNC_CALL();
-    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, true, false));
+
+    SwFilterCsc *cscFilter = dynamic_cast<SwFilterCsc *>(csc);
+    if (nullptr == cscFilter)
+    {
+        return false;
+    }
+
+    FeatureParamCsc &cscParams = cscFilter->GetSwFilterParams();
+    return cscParams.isFullRgbG10P709 && IS_RGB64_FLOAT_FORMAT(cscParams.formatOutput);
+}
+
+MOS_STATUS Policy::GetScalingExecutionCapsHdr(SwFilter *feature, SwFilter *csc)
+{
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_STATUS_RETURN(GetScalingExecutionCaps(feature, true, false, IsFullFP16G10P709Output(csc)));
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1374,7 +1389,7 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isDIEnabled)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled, bool isDIEnabled)
+MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled, bool isDIEnabled, bool isFullRgbG10P709Output)
 {
     VP_FUNC_CALL();
 
@@ -1672,11 +1687,23 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
               OUT_OF_BOUNDS(dwOutputSurfaceWidth, dwSfcOutputMinWidth, dwSfcMaxWidth)   ||
               OUT_OF_BOUNDS(dwOutputSurfaceHeight, dwDstMinHeight, dwSfcMaxHeight)))
         {
+            // For scRGB output (RGB64 float + GAMMA_1P0), the PQ/gamma EOTF, the BT2020->P709 CCM and the
+            // 80-nit FP16 gain are applied by the SFC FP16 output block only (SFC_STATE Fp16OutputEnable +
+            // EOTF/CCM indirect state). FC has no equivalent, so falling the scaling back to render leaves
+            // the post-HDR CSC on FC, which applies a plain scale/offset instead. Keep such cases on SFC
+            // and let 2 pass SFC scaling cover [1/16, 1/8) and (8, 16].
+            bool forceSfcMultiPassForHdr = isHdrEnabled && isFullRgbG10P709Output &&
+                                           m_hwCaps.m_rules.sfcMultiPassSupport.scaling.enable;
+            if (forceSfcMultiPassForHdr)
+            {
+                VP_PUBLIC_NORMALMESSAGE("Keep scaling on SFC for scRGB output. fScaleX %f, fScaleY %f", fScaleX, fScaleY);
+            }
+
             if ((m_hwCaps.m_rules.sfcMultiPassSupport.scaling.enable             &&
                 (OUT_OF_BOUNDS(fScaleX, fScaleMin2Pass, fScaleMax2Pass)          ||
                  OUT_OF_BOUNDS(fScaleY, fScaleMin2Pass, fScaleMax2Pass)))        ||
                 ((!m_hwCaps.m_rules.sfcMultiPassSupport.scaling.enable           ||
-                  isHdrEnabled)                                                  &&   // Ve HDR + (8, 16] && [1/16, 1/8) scaling on render, not use 2 Pass SFC for scaling,
+                  (isHdrEnabled && !forceSfcMultiPassForHdr))                    &&   // Ve HDR + (8, 16] && [1/16, 1/8) scaling on render, not use 2 Pass SFC for scaling,
                 (OUT_OF_BOUNDS(fScaleX, fScaleMin, fScaleMax)                    ||   // since A10R10G10B10/ARGB8 cannot be used as the input of vebox when global IECP being enabled.
                  OUT_OF_BOUNDS(fScaleY, fScaleMin, fScaleMax)))                  ||
                 (scalingParams->scalingPreference == VPHAL_SCALING_PREFER_COMP))
