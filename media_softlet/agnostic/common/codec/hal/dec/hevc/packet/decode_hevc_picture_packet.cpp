@@ -345,7 +345,7 @@ namespace decode
 
         uint8_t      chromaType             = m_hevcPicParams->chroma_format_idc;
         uint8_t      ucBitDepthLumaMinus8   = m_hevcPicParams->bit_depth_luma_minus8;
-        uint8_t      ucBitDepthChromaMinus8 = m_hevcPicParams->bit_depth_luma_minus8;
+        uint8_t      ucBitDepthChromaMinus8 = m_hevcPicParams->bit_depth_chroma_minus8;
         uint32_t     dwUVPlaneAlignment     = 1 << (m_hevcPicParams->log2_min_luma_coding_block_size_minus3 + 3);
         PMOS_SURFACE psSurface              = &m_hevcBasicFeature->m_destSurface; // For HEVC decode, reference should be same format as dest surface
         MHW_MI_CHK_NULL(psSurface);

@@ -252,7 +252,7 @@ namespace decode
 
         uint8_t chromaType             = m_avcPicParams->seq_fields.chroma_format_idc;
         uint8_t ucBitDepthLumaMinus8   = m_avcPicParams->bit_depth_luma_minus8;
-        uint8_t ucBitDepthChromaMinus8 = m_avcPicParams->bit_depth_luma_minus8;
+        uint8_t ucBitDepthChromaMinus8 = m_avcPicParams->bit_depth_chroma_minus8;
         PMOS_SURFACE psSurface         = &m_avcBasicFeature->m_destSurface;
 
         if ((chromaType == avcChromaFormatMono || chromaType == avcChromaFormat420) && psSurface->Format == Format_NV12)
