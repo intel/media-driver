@@ -2281,23 +2281,6 @@ MOS_STATUS Mos_AddCommand(
 MOS_USER_FEATURE_KEY_PATH_INFO *Mos_GetDeviceUfPathInfo(
     PMOS_CONTEXT mosContext);
 
-
-#if !EMUL
-//!
-//! \brief    Get memory object based on resource usage
-//! \details  Get memory object based on resource usage
-//! \param    MOS_HW_RESOURCE_DEF MosUsage
-//!           [in] Current usage for resource
-//!           [in] Gmm client context
-//! \return   MEMORY_OBJECT_CONTROL_STATE
-//!           Populated memory object
-//!
-MEMORY_OBJECT_CONTROL_STATE Mos_CachePolicyGetMemoryObject(
-    MOS_HW_RESOURCE_DEF MosUsage,
-    GMM_CLIENT_CONTEXT  *pGmmClientContext);
-
-#endif
-
 #ifdef __cplusplus
 }
 #endif
