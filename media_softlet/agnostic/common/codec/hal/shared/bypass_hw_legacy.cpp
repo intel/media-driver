@@ -90,6 +90,41 @@ MOS_STATUS BypassHwLegacy::FetchDummyVdNode(
     uint8_t            bitDepth,
     uint8_t            targetUsage)
 {
+    // Call sites that have not migrated have no VdboxTypePref to offer, so this overload
+    // keeps the original approximation: encode needs a full VDBox, decode does not. It agrees
+    // with the pipeline-preference rule for AVC/HEVC/AV1 in both directions and differs only
+    // for VVC decode, which is why the 9-parameter overload exists.
+    return FetchDummyVdNodeInternal(
+        gpuNode, codec, isEncode, isEncode, width, height, chromaFormat, bitDepth, targetUsage);
+}
+
+MOS_STATUS BypassHwLegacy::FetchDummyVdNode(
+    MOS_GPU_NODE      &gpuNode,
+    CODECHAL_STANDARD  codec,
+    bool               isEncode,
+    VdboxTypePref      pipelineVdboxTypePref,
+    uint32_t           width,
+    uint32_t           height,
+    uint8_t            chromaFormat,
+    uint8_t            bitDepth,
+    uint8_t            targetUsage)
+{
+    return FetchDummyVdNodeInternal(
+        gpuNode, codec, isEncode, (pipelineVdboxTypePref == MOS_VDBOX_PREFER_FULL),
+        width, height, chromaFormat, bitDepth, targetUsage);
+}
+
+MOS_STATUS BypassHwLegacy::FetchDummyVdNodeInternal(
+    MOS_GPU_NODE      &gpuNode,
+    CODECHAL_STANDARD  codec,
+    bool               isEncode,
+    bool               needFullVdbox,
+    uint32_t           width,
+    uint32_t           height,
+    uint8_t            chromaFormat,
+    uint8_t            bitDepth,
+    uint8_t            targetUsage)
+{
 #if (_DEBUG || _RELEASE_INTERNAL)
     // Re-entrance guard: reuse existing slot
     if (m_claimedSlotIndex >= 0)
@@ -112,7 +147,10 @@ MOS_STATUS BypassHwLegacy::FetchDummyVdNode(
 
     bool isScalable = LookupScalabilityFromConfig(codec, isEncode, width, height, chromaFormat, bitDepth, targetUsage);
 
-    MOS_STATUS eStatus = osDevCtx->SelectAndClaimDummyVdSlot(isEncode, isScalable, gpuNode, m_claimedSlotIndex);
+    // isScalable is passed through as configured even when needFullVdbox is set. Downgrading a
+    // scalable request here would also disable legitimate scalable encode on non-slim SKUs; on a
+    // slim topology the pool's own eligibility filter is what collapses the group claim.
+    MOS_STATUS eStatus = osDevCtx->SelectAndClaimDummyVdSlot(isEncode, needFullVdbox, isScalable, gpuNode, m_claimedSlotIndex);
     if (eStatus != MOS_STATUS_SUCCESS)
     {
         return eStatus;
@@ -123,6 +161,7 @@ MOS_STATUS BypassHwLegacy::FetchDummyVdNode(
     MOS_UNUSED(gpuNode);
     MOS_UNUSED(codec);
     MOS_UNUSED(isEncode);
+    MOS_UNUSED(needFullVdbox);
     MOS_UNUSED(width);
     MOS_UNUSED(height);
     MOS_UNUSED(chromaFormat);

@@ -426,7 +426,12 @@ public:
 
     //!
     //! \brief  Select and claim the least-loaded dummy VDBox slot (thread-safe)
+    //! \details Takes the mutex, then dispatches on the pool topology fixed at init time:
+    //!          a slim-VDBox SKU (FtrWithSlimVdbox) uses the Tiered selector, every other
+    //!          SKU uses the Uniform selector whose behaviour is unchanged from before.
     //! \param  [in]      isEncode        true for encode pipeline, false for decode
+    //! \param  [in]      needFullVdbox   true when the pipeline needs a full-capability VDBox
+    //!                                   (ignored entirely on a non-slim topology)
     //! \param  [in,out]  isScalable      On entry: caller's intent (from config). On exit: whether
     //!                                   scalable path was actually taken (set to false when
     //!                                   vdCount < 2 forces fallback to standard path)
@@ -436,6 +441,7 @@ public:
     //!
     MOS_STATUS SelectAndClaimDummyVdSlot(
         bool          isEncode,
+        bool          needFullVdbox,
         bool         &isScalable,
         MOS_GPU_NODE &gpuNode,
         int32_t      &claimedSlotIndex);
@@ -517,15 +523,45 @@ public:
         MOS_ZeroMemory(m_slotRefCount, sizeof(m_slotRefCount));
         m_startSlotCounterDecode = DUMMY_VDBOX_NUM_MAX - 1;
         m_startSlotCounterEncode = 0;
+        m_hasSlimVdboxTopology   = false;
     }
 
 protected:
+    //!
+    //! \brief  Slot selection for a uniform pool: every slot can serve every pipeline.
+    //! \details Byte-for-byte the pre-existing algorithm. Reached on every SKU that does
+    //!          not set FtrWithSlimVdbox, so their behaviour is unchanged.
+    //! \note   Caller must already hold GetDummyVdboxMutex().
+    //!
+    MOS_STATUS SelectAndClaimDummyVdSlotUniform(
+        bool          isEncode,
+        bool         &isScalable,
+        MOS_GPU_NODE &gpuNode,
+        int32_t      &claimedSlotIndex);
+
+    //!
+    //! \brief  Slot selection for a tiered pool: slim VDBoxes and full-capability engines
+    //!         are distinct tiers, and needFullVdbox picks which tier a pipeline belongs to.
+    //! \details Round-robin fairness, the scalable VD group claim, and the least-loaded scan
+    //!          are all evaluated over the eligible tier only. A decode pipeline may spill
+    //!          onto the full-capability tier when that tier is strictly less loaded; a
+    //!          needFullVdbox pipeline has no such spill and hard-fails if its tier is empty.
+    //! \note   Caller must already hold GetDummyVdboxMutex().
+    //!
+    MOS_STATUS SelectAndClaimDummyVdSlotTiered(
+        bool          isEncode,
+        bool          needFullVdbox,
+        bool         &isScalable,
+        MOS_GPU_NODE &gpuNode,
+        int32_t      &claimedSlotIndex);
+
     bool         m_dummyVdboxInitialized = false;                       //!< Set on first Initialize() call
     DummyVdboxInfo m_dummyVdboxArray[DUMMY_VDBOX_NUM_MAX] = {};         //!< Per-slot engine info
     uint32_t     m_dummyVdboxCount = 0;                                 //!< Number of active slots
     uint32_t     m_slotRefCount[DUMMY_VDBOX_NUM_MAX] = {};              //!< Per-slot active pipeline count
     uint32_t     m_startSlotCounterDecode = DUMMY_VDBOX_NUM_MAX - 1;    //!< Decode: VEBox-first
     uint32_t     m_startSlotCounterEncode = 0;                          //!< Encode: VDBox-first
+    bool         m_hasSlimVdboxTopology = false;                        //!< FtrWithSlimVdbox latched at init; selects Tiered vs Uniform
 #endif // (_DEBUG || _RELEASE_INTERNAL)
 
 MEDIA_CLASS_DEFINE_END(OsContextNext)

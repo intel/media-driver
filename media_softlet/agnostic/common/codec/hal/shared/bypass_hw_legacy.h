@@ -92,6 +92,37 @@ public:
         uint8_t             targetUsage);
 
     //!
+    //! \brief  Claim a dummy VDBox slot, deciding VDBox capability from the pipeline's own preference
+    //! \details Overload of the above, distinguished by arity. `isEncode` alone is not a sound
+    //!          proxy for "needs a full-capability VDBox": VVC decode is decode yet structurally
+    //!          requires a full VDBox, because VvcPipeline overrides GetDefaultVdboxTypePref() to
+    //!          MOS_VDBOX_PREFER_FULL while other legacy decode inherits MOS_VDBOX_PREFER_SLIM.
+    //!          Callers that have already resolved m_pipelineVdboxTypePref should pass it here.
+    //!          The 8-parameter overload is retained unchanged for call sites that have not
+    //!          migrated; grepping this overload's call sites gives the migration progress.
+    //! \param  [out] gpuNode                Assigned GPU node (VIDEO or VE)
+    //! \param  [in]  codec                  Codec standard enum
+    //! \param  [in]  isEncode               true for encode, false for decode
+    //! \param  [in]  pipelineVdboxTypePref  VDBox preference already resolved by the pipeline
+    //! \param  [in]  width                  Frame width
+    //! \param  [in]  height                 Frame height
+    //! \param  [in]  chromaFormat           Chroma format (420/422/444)
+    //! \param  [in]  bitDepth               Bit depth (8/10/12)
+    //! \param  [in]  targetUsage            Target usage (1-7 encode, 0 decode)
+    //! \return MOS_STATUS
+    //!
+    MOS_STATUS FetchDummyVdNode(
+        MOS_GPU_NODE       &gpuNode,
+        CODECHAL_STANDARD   codec,
+        bool                isEncode,
+        VdboxTypePref       pipelineVdboxTypePref,
+        uint32_t            width,
+        uint32_t            height,
+        uint8_t             chromaFormat,
+        uint8_t             bitDepth,
+        uint8_t             targetUsage);
+
+    //!
     //! \brief  Set pipeline characteristics for config file repeat count lookup
     //! \param  [in] codecStandard  Codec standard enum
     //! \param  [in] chromaFormat   Chroma subsampling (420/422/444)
@@ -183,6 +214,21 @@ public:
     static std::vector<RepeatCountEntry> s_configEntries;
 
 private:
+    //! \brief  Shared body of both FetchDummyVdNode overloads
+    //! \details The two public overloads differ only in how they derive needFullVdbox; every
+    //!          other step (re-entrance guard, scalability lookup, the claim itself) is identical,
+    //!          so it lives here once rather than being duplicated per overload.
+    MOS_STATUS FetchDummyVdNodeInternal(
+        MOS_GPU_NODE       &gpuNode,
+        CODECHAL_STANDARD   codec,
+        bool                isEncode,
+        bool                needFullVdbox,
+        uint32_t            width,
+        uint32_t            height,
+        uint8_t             chromaFormat,
+        uint8_t             bitDepth,
+        uint8_t             targetUsage);
+
     //! \brief  Get OsContextNext from m_osInterface
     OsContextNext *GetOsDeviceContext();
 
