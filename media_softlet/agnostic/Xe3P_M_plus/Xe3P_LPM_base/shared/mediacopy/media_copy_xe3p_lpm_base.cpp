@@ -28,6 +28,7 @@
 #include "media_copy_xe3p_lpm_base.h"
 #include "media_debug_dumper.h"
 #include "media_copy_common.h"
+#include "mos_solo_generic.h"
 
 MediaCopyStateXe3P_Lpm_Base::MediaCopyStateXe3P_Lpm_Base():
     MediaCopyBaseState()
@@ -92,12 +93,16 @@ MOS_STATUS MediaCopyStateXe3P_Lpm_Base::FeatureSupport(PMOS_RESOURCE src,
                                                     MCPY_STATE_PARAMS &mcpy_dst,
                                                     MCPY_ENGINE_CAPS  &caps)
 {
+    MCPY_CHK_NULL_RETURN(m_osInterface);
+
     caps.engineVebox  = true;
     caps.engineBlt    = true;
     caps.engineRender = false;
 
-    if (m_osInterface &&
-        MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrMainCopyRemoved))
+    MEDIA_FEATURE_TABLE *pSkuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
+
+    if (Mos_Solo_IsEnabled(m_osInterface->pOsContext) ||
+        (pSkuTable && (MEDIA_IS_SKU(pSkuTable, FtrMainCopyRemoved) || MEDIA_IS_SKU(pSkuTable, FtrDisableGtIpSubmissions))))
     {
         caps.engineBlt = false;
     }
