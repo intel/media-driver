@@ -2150,6 +2150,16 @@ MOS_STATUS CodechalVdencVp9StateG12::GetStatusReport(
         return eStatus;
     }
 
+    if (encodeStatusReport->bitstreamSize > m_bitstreamUpperBound)
+    {
+        eStatus = MOS_STATUS_INVALID_FILE_SIZE;
+        CODECHAL_ENCODE_ASSERTMESSAGE("Error: Invalid bitstream size reported by tile status");
+        encodeStatusReport->CodecStatus = CODECHAL_STATUS_ERROR;
+        encodeStatusReport->bitstreamSize = 0;
+        StatusReportCleanup(encodeStatusReport, tileStatusReport, presTileSizeStatusReport, m_osInterface, nullptr, nullptr);
+        return eStatus;
+    }
+
     uint8_t* bufPtr = (uint8_t*)MOS_AllocAndZeroMemory(encodeStatusReport->bitstreamSize);
     uint8_t* tempBsBuffer = bufPtr;
     CODECHAL_ENCODE_CHK_NULL_RETURN(tempBsBuffer);

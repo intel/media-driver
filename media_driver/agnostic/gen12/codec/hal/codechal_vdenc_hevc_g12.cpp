@@ -1991,7 +1991,7 @@ MOS_STATUS CodechalVdencHevcStateG12::GetStatusReport(
             encodeStatusReport->NumberSlices += (uint8_t)tileStatusReport[i].Hcp_Slice_Count_Tile;
             uint16_t prevCumulativeSliceSize = 0;
             // HW writes out a DW for each slice size. Copy in place the DW into 16bit fields expected by App
-            for (uint32_t idx = 0; idx < tileStatusReport[i].Hcp_Slice_Count_Tile; idx++)
+            for (uint32_t idx = 0; idx < tileStatusReport[i].Hcp_Slice_Count_Tile && sliceCount < m_maxNumSlicesSupported; idx++)
             {
                 // PAK output the sliceSize at 16DW intervals. 
                 CODECHAL_ENCODE_CHK_NULL_RETURN(&sliceSize[sliceCount * 16]);
@@ -2881,11 +2881,11 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
     }
 
     MHW_VDBOX_SURFACE_PARAMS srcSurfaceParams;
-    SetHcpSrcSurfaceParams(srcSurfaceParams);
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(SetHcpSrcSurfaceParams(srcSurfaceParams), release_func);
     CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &srcSurfaceParams), release_func);
 
     MHW_VDBOX_SURFACE_PARAMS reconSurfaceParams{};
-    SetHcpReconSurfaceParams(reconSurfaceParams);
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(SetHcpReconSurfaceParams(reconSurfaceParams), release_func);
 
     // Recon P010v MMC state set from RC for compression write
     MOS_MEMCOMP_STATE tempMmcState = reconSurfaceParams.mmcState;
@@ -2897,7 +2897,7 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
     CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &reconSurfaceParams), release_func); //this is for Recon surf cmd set
 
     MHW_VDBOX_SURFACE_PARAMS refSurfaceParams{};
-    SetHcpRefSurfaceParams(refSurfaceParams);  //it set MMC state and MMCFormat
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(SetHcpRefSurfaceParams(refSurfaceParams), release_func);  //it set MMC state and MMCFormat
 
     // Add the surface state for reference picture, GEN12 HW change
     *m_pipeBufAddrParams = {};

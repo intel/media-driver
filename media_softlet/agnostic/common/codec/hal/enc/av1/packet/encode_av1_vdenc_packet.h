@@ -361,11 +361,11 @@ protected:
 
     virtual MOS_STATUS PrepareHWMetaData(MOS_COMMAND_BUFFER *cmdBuffer);
 
-    virtual MOS_STATUS PrepareHWMetaDataFromStreamout(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset resourceOffset, const AV1MetaDataOffset AV1ResourceOffset);
+    virtual MOS_STATUS PrepareHWMetaDataFromStreamout(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset &resourceOffset, const AV1MetaDataOffset &AV1ResourceOffset);
 
     virtual MOS_STATUS PrepareHWMetaDataFromRegister(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset resourceOffset);
 
-    virtual MOS_STATUS PrepareHWMetaDataFromDriver(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset resourceOffset, const AV1MetaDataOffset AV1ResourceOffset);
+    virtual MOS_STATUS PrepareHWMetaDataFromDriver(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset &resourceOffset, const AV1MetaDataOffset &AV1ResourceOffset);
 
     virtual MOS_STATUS readBRCMetaDataFromSLBB(MOS_COMMAND_BUFFER *cmdBuffer, PMOS_RESOURCE presDst, uint32_t dstOffset, PMOS_RESOURCE presSrc, uint32_t srcOffset, uint32_t significantBits);
 

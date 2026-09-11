@@ -523,6 +523,16 @@ MOS_STATUS Vp9PakIntegratePkt::SetupTilesStatusData(void *mfxStatus, void *statu
         return MOS_STATUS_SUCCESS;
     }
 
+    if (statusReportData->bitstreamSize > m_basicFeature->m_bitstreamSize)
+    {
+        statusReportData->codecStatus   = CODECHAL_STATUS_ERROR;
+        statusReportData->bitstreamSize = 0;
+        // Clean-up the tile status report buffer
+        MOS_ZeroMemory(tileStatusReport, sizeof(tileStatusReport[0]) * statusReportData->numberTilesInFrame);
+        m_allocator->UnLock(tileSizeStatusBuffer);
+        return MOS_STATUS_INVALID_FILE_SIZE;
+    }
+
     uint8_t *bufPtr       = (uint8_t *)MOS_AllocAndZeroMemory(statusReportData->bitstreamSize);
     uint8_t *tempBsBuffer = bufPtr;
 

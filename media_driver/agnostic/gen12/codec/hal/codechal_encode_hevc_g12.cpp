@@ -136,16 +136,16 @@ MOS_STATUS CodechalEncHevcStateG12::AddHcpSurfaceStateCmds(MOS_COMMAND_BUFFER *c
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     MHW_VDBOX_SURFACE_PARAMS srcSurfaceParams;
-    SetHcpSrcSurfaceParams(srcSurfaceParams);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetHcpSrcSurfaceParams(srcSurfaceParams));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(cmdBuffer, &srcSurfaceParams));
 
     MHW_VDBOX_SURFACE_PARAMS reconSurfaceParams;
-    SetHcpReconSurfaceParams(reconSurfaceParams);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetHcpReconSurfaceParams(reconSurfaceParams));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(cmdBuffer, &reconSurfaceParams));
 
     // Add the surface state for reference picture, GEN12 HW change
     MHW_VDBOX_SURFACE_PARAMS refSurfaceParams;
-    SetHcpRefSurfaceParams(refSurfaceParams);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetHcpRefSurfaceParams(refSurfaceParams));
 
     if (m_mmcState->IsMmcEnabled())
     {

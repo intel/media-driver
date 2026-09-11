@@ -1925,7 +1925,7 @@ namespace encode{
 
         return MOS_STATUS_SUCCESS;
     }
-    MOS_STATUS Av1VdencPkt::PrepareHWMetaDataFromStreamout(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset resourceOffset, const AV1MetaDataOffset AV1ResourceOffset)
+    MOS_STATUS Av1VdencPkt::PrepareHWMetaDataFromStreamout(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset &resourceOffset, const AV1MetaDataOffset &AV1ResourceOffset)
     {
         ENCODE_FUNC_CALL();
         uint32_t tileNum     = 0;
@@ -2027,7 +2027,7 @@ namespace encode{
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS Av1VdencPkt::PrepareHWMetaDataFromDriver(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset resourceOffset, const AV1MetaDataOffset AV1ResourceOffset)
+    MOS_STATUS Av1VdencPkt::PrepareHWMetaDataFromDriver(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset &resourceOffset, const AV1MetaDataOffset &AV1ResourceOffset)
     {
         ENCODE_FUNC_CALL();
 

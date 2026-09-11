@@ -2294,10 +2294,10 @@ MOS_STATUS CodechalVdencHevcState::ExecutePictureLevel()
     }
 
     MHW_VDBOX_SURFACE_PARAMS srcSurfaceParams;
-    SetHcpSrcSurfaceParams(srcSurfaceParams);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetHcpSrcSurfaceParams(srcSurfaceParams));
 
     MHW_VDBOX_SURFACE_PARAMS reconSurfaceParams;
-    SetHcpReconSurfaceParams(reconSurfaceParams);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetHcpReconSurfaceParams(reconSurfaceParams));
 
     *m_pipeBufAddrParams = {};
     SetHcpPipeBufAddrParams(*m_pipeBufAddrParams);

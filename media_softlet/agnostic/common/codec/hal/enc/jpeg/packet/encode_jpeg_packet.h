@@ -233,9 +233,9 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS GenerateSizeTable(
-        uint8_t  bits[],
-        uint8_t  huffSize[],
-        uint8_t &lastK);
+        const uint8_t bits[],
+        uint8_t       huffSize[],
+        uint8_t       &lastK);
 
     //!
     //! \brief    Generate table of Huffman codes, implemented based on Flowchart in figure C.2 in JPEG spec
@@ -268,10 +268,10 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS OrderCodes(
-        uint8_t  huffVal[],
-        uint8_t  huffSize[],
-        uint16_t huffCode[],
-        uint8_t  lastK);
+        const uint8_t huffVal[],
+        uint8_t       huffSize[],
+        uint16_t      huffCode[],
+        uint8_t       lastK);
 
     //!
     //! \brief    Convert Huffman data to table, including 3 steps: Step 1 - Generate size table, Step2 - Generate code table, Step 3 - Order codes.
@@ -285,7 +285,7 @@ protected:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS ConvertHuffDataToTable(
-        CodecEncodeJpegHuffData huffmanData,
+        const CodecEncodeJpegHuffData &huffmanData,
         EncodeJpegHuffTable *huffmanTable);
 
     //!

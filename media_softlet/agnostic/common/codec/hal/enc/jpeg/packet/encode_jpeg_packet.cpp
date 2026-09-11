@@ -1107,9 +1107,9 @@ namespace encode {
 
     // Implemented based on Flowchart in figure C.1 in JPEG spec
     MOS_STATUS JpegPkt::GenerateSizeTable(
-        uint8_t  bits[],
-        uint8_t  huffSize[],
-        uint8_t &lastK)
+        const uint8_t bits[],
+        uint8_t       huffSize[],
+        uint8_t       &lastK)
     {
         ENCODE_FUNC_CALL();
 
@@ -1172,10 +1172,10 @@ namespace encode {
 
     // Implemented based on Flowchart in figure C.3 in JPEG spec
     MOS_STATUS JpegPkt::OrderCodes(
-        uint8_t  huffVal[],
-        uint8_t  huffSize[],
-        uint16_t huffCode[],
-        uint8_t  lastK)
+        const uint8_t huffVal[],
+        uint8_t       huffSize[],
+        uint16_t      huffCode[],
+        uint8_t       lastK)
     {
         ENCODE_FUNC_CALL();
 
@@ -1208,7 +1208,7 @@ namespace encode {
     }
 
     MOS_STATUS JpegPkt::ConvertHuffDataToTable(
-        CodecEncodeJpegHuffData      huffmanData,
+        const CodecEncodeJpegHuffData &huffmanData,
         EncodeJpegHuffTable *   huffmanTable)
     {
         ENCODE_FUNC_CALL();

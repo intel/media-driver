@@ -342,11 +342,11 @@ MOS_STATUS CodechalEncHevcState::AddHcpSurfaceStateCmds(MOS_COMMAND_BUFFER* cmdB
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     MHW_VDBOX_SURFACE_PARAMS srcSurfaceParams;
-    SetHcpSrcSurfaceParams(srcSurfaceParams);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetHcpSrcSurfaceParams(srcSurfaceParams));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(cmdBuffer, &srcSurfaceParams));
 
     MHW_VDBOX_SURFACE_PARAMS reconSurfaceParams;
-    SetHcpReconSurfaceParams(reconSurfaceParams);
+    CODECHAL_ENCODE_CHK_STATUS_RETURN(SetHcpReconSurfaceParams(reconSurfaceParams));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(cmdBuffer, &reconSurfaceParams));
 
     return eStatus;

@@ -754,7 +754,7 @@ namespace encode {
                 statusReportData->numberSlices += (uint8_t)tileStatusReport[i].Hcp_Slice_Count_Tile;
                 uint16_t prevCumulativeSliceSize = 0;
                 // HW writes out a DW for each slice size. Copy in place the DW into 16bit fields expected by App
-                for (uint32_t idx = 0; idx < tileStatusReport[i].Hcp_Slice_Count_Tile; idx++)
+                for (uint32_t idx = 0; idx < tileStatusReport[i].Hcp_Slice_Count_Tile && sliceCount < CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6; idx++)
                 {
                     // PAK output the sliceSize at 16DW intervals.
                     ENCODE_CHK_NULL_RETURN(&sliceSize[sliceCount * 16]);

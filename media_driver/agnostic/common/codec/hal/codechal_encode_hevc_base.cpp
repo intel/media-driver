@@ -2388,7 +2388,7 @@ void CodechalEncodeHevcBase::SetHcpPipeModeSelectParams(MHW_VDBOX_PIPE_MODE_SELE
     }
 }
 
-void CodechalEncodeHevcBase::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAMS& srcSurfaceParams)
+MOS_STATUS CodechalEncodeHevcBase::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAMS& srcSurfaceParams)
 {
     MOS_ZeroMemory(&srcSurfaceParams, sizeof(srcSurfaceParams));
     srcSurfaceParams.Mode = m_mode;
@@ -2401,10 +2401,10 @@ void CodechalEncodeHevcBase::SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAMS& sr
     srcSurfaceParams.bSrc8Pak10Mode         = false; //No usage for 8->10 bit encode
     srcSurfaceParams.dwActualHeight = ((m_hevcSeqParams->wFrameHeightInMinCbMinus1 + 1) << (m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3));
 
-    m_mmcState->SetSurfaceState(&srcSurfaceParams);
+    return m_mmcState->SetSurfaceState(&srcSurfaceParams);
 }
 
-void CodechalEncodeHevcBase::SetHcpReconSurfaceParams(MHW_VDBOX_SURFACE_PARAMS& reconSurfaceParams)
+MOS_STATUS CodechalEncodeHevcBase::SetHcpReconSurfaceParams(MHW_VDBOX_SURFACE_PARAMS& reconSurfaceParams)
 {
     MOS_ZeroMemory(&reconSurfaceParams, sizeof(reconSurfaceParams));
     reconSurfaceParams.Mode = m_mode;
@@ -2416,10 +2416,10 @@ void CodechalEncodeHevcBase::SetHcpReconSurfaceParams(MHW_VDBOX_SURFACE_PARAMS& 
     reconSurfaceParams.dwActualHeight         = ((m_hevcSeqParams->wFrameHeightInMinCbMinus1 + 1) << (m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3));
     reconSurfaceParams.dwReconSurfHeight = m_rawSurfaceToPak->dwHeight;
 
-    m_mmcState->SetSurfaceState(&reconSurfaceParams);
+    return m_mmcState->SetSurfaceState(&reconSurfaceParams);
 }
 
-void CodechalEncodeHevcBase::SetHcpRefSurfaceParams(MHW_VDBOX_SURFACE_PARAMS &refSurfaceParams)
+MOS_STATUS CodechalEncodeHevcBase::SetHcpRefSurfaceParams(MHW_VDBOX_SURFACE_PARAMS &refSurfaceParams)
 {
     MOS_ZeroMemory(&refSurfaceParams, sizeof(refSurfaceParams));
     refSurfaceParams.Mode                     = m_mode;
@@ -2431,7 +2431,7 @@ void CodechalEncodeHevcBase::SetHcpRefSurfaceParams(MHW_VDBOX_SURFACE_PARAMS &re
     refSurfaceParams.dwActualHeight           = ((m_hevcSeqParams->wFrameHeightInMinCbMinus1 + 1) << (m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3));
     refSurfaceParams.dwReconSurfHeight        = m_rawSurfaceToPak->dwHeight;
 
-    m_mmcState->SetSurfaceState(&refSurfaceParams);
+    return m_mmcState->SetSurfaceState(&refSurfaceParams);
 }
 
 void CodechalEncodeHevcBase::SetHcpPipeBufAddrParams(MHW_VDBOX_PIPE_BUF_ADDR_PARAMS& pipeBufAddrParams)
