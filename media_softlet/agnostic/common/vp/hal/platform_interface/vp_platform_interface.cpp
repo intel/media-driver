@@ -596,7 +596,7 @@ MOS_STATUS VpPlatformInterface::InitializeDelayedKernels(DelayLoadedKernelType t
             if (it->kernelType == type)
             {
                 VP_PUBLIC_CHK_STATUS_RETURN(InitVpCmKernels(it->kernelBin, it->kernelBinSize, it->postfix, it->payloadOffset));
-                m_vpDelayLoadedBinaryList.erase(it);
+                it = m_vpDelayLoadedBinaryList.erase(it);
             }
             else
             {

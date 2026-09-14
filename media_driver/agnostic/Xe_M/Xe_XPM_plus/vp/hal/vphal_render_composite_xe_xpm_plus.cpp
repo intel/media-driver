@@ -260,8 +260,11 @@ bool CompositeStateXe_Xpm_Plus::RenderBufferComputeWalker(
     pdwDestXYBottomRight = (uint32_t*)(&pDPWalkerStatic->DW14);
 
     // GRF7.0-7, GRF8.0-7
+    // MEDIA_DP_FC_STATIC_DATA (DW13-DW15) only stores single-layer (Layer0) fields;
+    // writing more than 1 layer here overruns the struct.
+    VPHAL_RENDER_ASSERT(pBbArgs->iLayers <= 1);
     for (iLayers = 0;
-         iLayers < pBbArgs->iLayers;
+         iLayers < MOS_MIN(pBbArgs->iLayers, 1);
          iLayers++, pdwDestXYBottomRight++, pdwDestXYTopLeft++)
     {
         *pdwDestXYTopLeft     = (pBbArgs->rcDst[iLayers].top    << 16 ) |

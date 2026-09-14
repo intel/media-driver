@@ -730,7 +730,11 @@ MOS_STATUS VpPipeline::ExecuteSingleswFilterPipe(VpSinglePipeContext *singlePipe
 
     eStatus = featureManagerNext->InitPacketPipe(*pipe, *pPacketPipe);
     m_vpInterface->GetSwFilterPipeFactory().Destory(pipe);
-    VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(eStatus));
+    if (MOS_FAILED(eStatus))
+    {
+        m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
+        return chkStatusHandler(eStatus);
+    }
 
     // Update output pipe mode.
     singlePipeCtx->SetOutputPipeMode(pPacketPipe->GetOutputPipeMode());

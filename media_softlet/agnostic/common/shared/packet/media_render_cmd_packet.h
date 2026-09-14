@@ -271,7 +271,7 @@ public:
         std::vector<RENDERHAL_STATE_LOCATION> &stateLocations);
 
     virtual uint32_t SetBufferForHwAccess(
-        MOS_BUFFER                      buffer,
+        MOS_BUFFER                      &buffer,
         PRENDERHAL_SURFACE_NEXT         pRenderSurface,
         PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
         bool                            bWrite);
@@ -317,7 +317,7 @@ protected:
         PRENDERHAL_SURFACE pRenderSurface);
 
     virtual MOS_STATUS InitRenderHalBuffer(
-        MOS_BUFFER         surface,
+        const MOS_BUFFER  &surface,
         PRENDERHAL_SURFACE pRenderSurface);
 
     virtual void OcaDumpDbgInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext)

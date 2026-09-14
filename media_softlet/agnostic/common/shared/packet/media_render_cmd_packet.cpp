@@ -1014,7 +1014,7 @@ MOS_STATUS RenderCmdPacket::SetBufferForHwAccess(
     return eStatus;
 }
 
-uint32_t RenderCmdPacket::SetBufferForHwAccess(MOS_BUFFER buffer, PRENDERHAL_SURFACE_NEXT pRenderSurface, PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams, bool bWrite)
+uint32_t RenderCmdPacket::SetBufferForHwAccess(MOS_BUFFER &buffer, PRENDERHAL_SURFACE_NEXT pRenderSurface, PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams, bool bWrite)
 {
     RENDERHAL_SURFACE              RenderHalSurface;
     RENDERHAL_SURFACE_STATE_PARAMS SurfaceParam;
@@ -1360,7 +1360,7 @@ MOS_STATUS RenderCmdPacket::InitRenderHalSurface(MOS_SURFACE surface, PRENDERHAL
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS RenderCmdPacket::InitRenderHalBuffer(MOS_BUFFER surface, PRENDERHAL_SURFACE pRenderSurface)
+MOS_STATUS RenderCmdPacket::InitRenderHalBuffer(const MOS_BUFFER &surface, PRENDERHAL_SURFACE pRenderSurface)
 {
     RENDER_PACKET_CHK_NULL_RETURN(pRenderSurface);
     pRenderSurface->OsSurface.OsResource = surface.OsResource;
