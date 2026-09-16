@@ -76,12 +76,16 @@ MOS_STATUS OsContextNext::InitDummyVdboxSlots()
                                                                 MOS_GPU_NODE_VIDEO2;
         m_dummyVdboxArray[i].m_sfcEnabled = true;
         m_dummyVdboxArray[i].m_isSlimVd   = isSlimVdboxSku && (i < realCount);
+        MOS_OS_NORMALMESSAGE("NullHW: Dummy VDBox slot %u initialized with node=%d, isSlimVd=%d", i, m_dummyVdboxArray[i].m_node, m_dummyVdboxArray[i].m_isSlimVd);
     }
     MOS_ZeroMemory(m_slotRefCount, sizeof(m_slotRefCount));
     m_startSlotCounterDecode = DUMMY_VDBOX_NUM_MAX - 1;
     m_startSlotCounterEncode = 0;
     m_hasSlimVdboxTopology   = isSlimVdboxSku;
     m_dummyVdboxInitialized  = true;
+
+    MOS_OS_NORMALMESSAGE("NullHW: Dummy VDBox pool initialized - fakeCount=%u, realCount=%u, startSlotEncode=%u, startSlotDecode=%u, hasSlimVdboxTopology=%d",
+        fakeCount, realCount, m_startSlotCounterEncode, m_startSlotCounterDecode, m_hasSlimVdboxTopology);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -120,6 +124,8 @@ MOS_STATUS OsContextNext::SelectAndClaimDummyVdSlot(
 
     if (!m_dummyVdboxInitialized || m_dummyVdboxCount == 0)
     {
+        MOS_OS_WARNINGMESSAGE("NullHW: Cannot select dummy VDBox slot - pool not initialized (initialized=%d, count=%u)",
+            m_dummyVdboxInitialized, m_dummyVdboxCount);
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
@@ -175,7 +181,10 @@ MOS_STATUS OsContextNext::SelectAndClaimDummyVdSlotUniform(
             }
 
             if (bestSlot < 0)
+            {
+                MOS_OS_WARNINGMESSAGE("NullHW: Scalable slot selection found no eligible VD slot (isEncode=%d)", isEncode);
                 return MOS_STATUS_INVALID_PARAMETER;
+            }
 
             for (uint32_t i = 0; i < m_dummyVdboxCount; i++)
             {
@@ -186,10 +195,18 @@ MOS_STATUS OsContextNext::SelectAndClaimDummyVdSlotUniform(
 
             claimedSlotIndex = bestSlot;
             gpuNode          = m_dummyVdboxArray[bestSlot].m_node;
+
+            MOS_OS_NORMALMESSAGE("NullHW: Claimed scalable slot set, primary slot=%d (node=%d), isEncode=%d", claimedSlotIndex, gpuNode, isEncode);
+            for (uint32_t i = 0; i < m_dummyVdboxCount; i++)
+            {
+                MOS_OS_VERBOSEMESSAGE("NullHW: Slot %u state - node=%d, isSlimVd=%d, refCount=%u",
+                    i, m_dummyVdboxArray[i].m_node, m_dummyVdboxArray[i].m_isSlimVd, m_slotRefCount[i]);
+            }
             return MOS_STATUS_SUCCESS;
         }
 
         // vdCount < 2: config requested scalable but not enough VD engines — fall back
+        MOS_OS_WARNINGMESSAGE("NullHW: Scalability requested but only %u VD slot(s) available - falling back to non-scalable single-slot selection", vdCount);
         isScalable = false;
     }
 
@@ -207,11 +224,21 @@ MOS_STATUS OsContextNext::SelectAndClaimDummyVdSlotUniform(
     }
 
     if (bestSlot < 0)
+    {
+        MOS_OS_WARNINGMESSAGE("NullHW: Standard slot selection found no eligible slot (isEncode=%d)", isEncode);
         return MOS_STATUS_INVALID_PARAMETER;
+    }
 
     m_slotRefCount[bestSlot]++;
     claimedSlotIndex = bestSlot;
     gpuNode          = m_dummyVdboxArray[bestSlot].m_node;
+
+    MOS_OS_NORMALMESSAGE("NullHW: Claimed slot %d (node=%d) for %s, effectiveStart=%u", claimedSlotIndex, gpuNode, isEncode ? "encode" : "decode", effectiveStart);
+    for (uint32_t i = 0; i < m_dummyVdboxCount; i++)
+    {
+        MOS_OS_VERBOSEMESSAGE("NullHW: Slot %u state - node=%d, isSlimVd=%d, refCount=%u",
+            i, m_dummyVdboxArray[i].m_node, m_dummyVdboxArray[i].m_isSlimVd, m_slotRefCount[i]);
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -285,7 +312,11 @@ MOS_STATUS OsContextNext::SelectAndClaimDummyVdSlotTiered(
             }
 
             if (bestSlot < 0)
+            {
+                MOS_OS_WARNINGMESSAGE("NullHW: Tiered scalable slot selection found no eligible VD slot (isEncode=%d, needFullVdbox=%d)",
+                    isEncode, needFullVdbox);
                 return MOS_STATUS_INVALID_PARAMETER;
+            }
 
             // This bumps only the ELIGIBLE VD slots, while ReleaseDummyVdSlot decrements every
             // VD slot without consulting the tier. The two agree because InitDummyVdboxSlots
@@ -301,10 +332,20 @@ MOS_STATUS OsContextNext::SelectAndClaimDummyVdSlotTiered(
 
             claimedSlotIndex = bestSlot;
             gpuNode          = m_dummyVdboxArray[bestSlot].m_node;
+
+            MOS_OS_NORMALMESSAGE("NullHW: Claimed tiered scalable slot set, primary slot=%d (node=%d, isSlimVd=%d), isEncode=%d, needFullVdbox=%d",
+                claimedSlotIndex, gpuNode, m_dummyVdboxArray[bestSlot].m_isSlimVd, isEncode, needFullVdbox);
+            for (uint32_t i = 0; i < m_dummyVdboxCount; i++)
+            {
+                MOS_OS_VERBOSEMESSAGE("NullHW: Slot %u state - node=%d, isSlimVd=%d, refCount=%u",
+                    i, m_dummyVdboxArray[i].m_node, m_dummyVdboxArray[i].m_isSlimVd, m_slotRefCount[i]);
+            }
             return MOS_STATUS_SUCCESS;
         }
 
         // vdCount < 2: the eligible tier has too few VD engines for a scalable claim
+        MOS_OS_WARNINGMESSAGE("NullHW: Scalability requested but only %u eligible VD slot(s) available for needFullVdbox=%d - falling back to non-scalable single-slot selection",
+            vdCount, needFullVdbox);
         isScalable = false;
     }
 
@@ -337,6 +378,8 @@ MOS_STATUS OsContextNext::SelectAndClaimDummyVdSlotTiered(
         // A slim-tier pipeline spills onto the full tier only when that tier is strictly
         // less loaded. Strict '>' keeps a tie on the slim tier, so there is no oscillation.
         bestSlot = fallbackBest;
+        MOS_OS_NORMALMESSAGE("NullHW: Tiered slot selection spilled to fallback tier - slot=%d (eligibleMinRef=%u > fallbackMinRef=%u)",
+            bestSlot, eligibleMinRef, fallbackMinRef);
     }
     else if (needFullVdbox && eligibleBest < 0)
     {
@@ -352,11 +395,23 @@ MOS_STATUS OsContextNext::SelectAndClaimDummyVdSlotTiered(
     }
 
     if (bestSlot < 0)
+    {
+        MOS_OS_WARNINGMESSAGE("NullHW: Tiered standard slot selection found no eligible slot (isEncode=%d, needFullVdbox=%d)",
+            isEncode, needFullVdbox);
         return MOS_STATUS_INVALID_PARAMETER;
+    }
 
     m_slotRefCount[bestSlot]++;
     claimedSlotIndex = bestSlot;
     gpuNode          = m_dummyVdboxArray[bestSlot].m_node;
+
+    MOS_OS_NORMALMESSAGE("NullHW: Claimed tiered slot %d (node=%d, isSlimVd=%d) for %s, needFullVdbox=%d, effectiveStart=%u",
+        claimedSlotIndex, gpuNode, m_dummyVdboxArray[bestSlot].m_isSlimVd, isEncode ? "encode" : "decode", needFullVdbox, effectiveStart);
+    for (uint32_t i = 0; i < m_dummyVdboxCount; i++)
+    {
+        MOS_OS_VERBOSEMESSAGE("NullHW: Slot %u state - node=%d, isSlimVd=%d, refCount=%u",
+            i, m_dummyVdboxArray[i].m_node, m_dummyVdboxArray[i].m_isSlimVd, m_slotRefCount[i]);
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -366,7 +421,10 @@ void OsContextNext::ReleaseDummyVdSlot(int32_t slotIndex, bool isScalable)
     std::lock_guard<std::mutex> lock(GetDummyVdboxMutex());
 
     if (slotIndex < 0 || slotIndex >= static_cast<int32_t>(m_dummyVdboxCount))
+    {
+        MOS_OS_WARNINGMESSAGE("NullHW: Ignoring release of out-of-range slot index %d (count=%u)", slotIndex, m_dummyVdboxCount);
         return;
+    }
 
     if (isScalable)
     {
@@ -384,6 +442,12 @@ void OsContextNext::ReleaseDummyVdSlot(int32_t slotIndex, bool isScalable)
     {
         if (m_slotRefCount[slotIndex] > 0)
             m_slotRefCount[slotIndex]--;
+    }
+
+    MOS_OS_NORMALMESSAGE("NullHW: Released slot %d (isScalable=%d)", slotIndex, isScalable);
+    for (uint32_t i = 0; i < m_dummyVdboxCount; i++)
+    {
+        MOS_OS_VERBOSEMESSAGE("NullHW: Slot %u state - node=%d, refCount=%u", i, m_dummyVdboxArray[i].m_node, m_slotRefCount[i]);
     }
 
     // If this release drains the whole pool back to idle, restore both
@@ -405,6 +469,8 @@ void OsContextNext::ReleaseDummyVdSlot(int32_t slotIndex, bool isScalable)
     {
         m_startSlotCounterEncode = 0;
         m_startSlotCounterDecode = DUMMY_VDBOX_NUM_MAX - 1;
+        MOS_OS_VERBOSEMESSAGE("NullHW: Dummy VDBox pool fully drained - reset startSlotEncode=%u, startSlotDecode=%u",
+            m_startSlotCounterEncode, m_startSlotCounterDecode);
     }
 }
 
