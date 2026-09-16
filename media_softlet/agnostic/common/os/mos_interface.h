@@ -309,6 +309,17 @@ public:
     static GMM_CLIENT_CONTEXT *GetGmmClientContext(
         MOS_STREAM_HANDLE streamState);
 
+    static uint64_t GetGmmExtDevice(
+        MOS_STREAM_HANDLE streamState);
+
+    static uint32_t GetMediaSurfaceCompressionFormat(
+        MOS_STREAM_HANDLE streamState,
+        GMM_RESOURCE_FORMAT gmmResFmt);
+
+    static bool IsPlanar(
+        MOS_STREAM_HANDLE   streamState,
+        GMM_RESOURCE_FORMAT gmmResFmt);
+
     //!
     //! \brief  Get PAT index from gmm
     //!
@@ -918,7 +929,8 @@ public:
     //!     
     static MEMORY_OBJECT_CONTROL_STATE GetCachePolicyMemoryObject(
         GMM_CLIENT_CONTEXT *gmmClientContext,
-        MOS_HW_RESOURCE_DEF mosUsage);
+        MOS_HW_RESOURCE_DEF mosUsage,
+        uint64_t gmmExtDevice = 0);
 
     //!
     //! \brief    Get default Cache Policy Memory Object
@@ -933,7 +945,8 @@ public:
     //!           The cache policy memory object got from MOS interface
     //!
     static MEMORY_OBJECT_CONTROL_STATE GetDefaultCachePolicyMemoryObject(
-        GMM_CLIENT_CONTEXT *gmmClientContext);
+        GMM_CLIENT_CONTEXT *gmmClientContext,
+        uint64_t gmmExtDevice = 0);
 
     //!
     //! \brief    Get Cache Policy Memory Object
@@ -951,7 +964,8 @@ public:
     //!
     static MEMORY_OBJECT_CONTROL_STATE GetGmmCachePolicyMemoryObject(
         GMM_CLIENT_CONTEXT      *gmmClientContext,
-        GMM_RESOURCE_USAGE_TYPE gmmUsage);
+        GMM_RESOURCE_USAGE_TYPE gmmUsage,
+        uint64_t gmmExtDevice = 0);
 
     //!
     //! \brief    Get Cache Policy L1 Config

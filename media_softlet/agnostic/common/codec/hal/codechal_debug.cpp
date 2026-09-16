@@ -1913,7 +1913,7 @@ CodechalDebugInterface::CodechalDebugInterface()
             hasAuxSurf = false;
         }
 
-        isPlanar = !!(m_osInterface->pfnGetGmmClientContext(m_osInterface)->IsPlanar(surface->OsResource.pGmmResInfo->GetResourceFormat()));
+        isPlanar = (m_osInterface->pfnIsPlanar) ? m_osInterface->pfnIsPlanar(m_osInterface, surface->OsResource.pGmmResInfo->GetResourceFormat()) : false;
 
         MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
         lockFlags.ReadOnly     = 1;

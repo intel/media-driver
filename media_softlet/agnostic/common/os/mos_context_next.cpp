@@ -97,3 +97,27 @@ MOS_STATUS OsContextNext::NullHwDestroy()
 
     return MOS_STATUS_SUCCESS;
 }
+
+GMM_RESOURCE_INFO *OsContextNext::GmmCreateResInfoObject(GMM_RESCREATE_PARAMS *pCreateParams)
+{
+    return m_gmmClientContext ? m_gmmClientContext->CreateResInfoObject(pCreateParams) : nullptr;
+}
+
+void OsContextNext::GmmDestroyResInfoObject(GMM_RESOURCE_INFO *pResInfo)
+{
+    if (m_gmmClientContext)
+    {
+        m_gmmClientContext->DestroyResInfoObject(pResInfo);
+    }
+}
+
+uint8_t OsContextNext::GmmIsPlanar(GMM_RESOURCE_FORMAT format)
+{
+    return m_gmmClientContext ? m_gmmClientContext->IsPlanar(format) : 0;
+}
+
+uint8_t OsContextNext::GmmIsUVPacked(GMM_RESOURCE_FORMAT format)
+{
+    return m_gmmClientContext ? m_gmmClientContext->IsUVPacked(format) : 0;
+}
+

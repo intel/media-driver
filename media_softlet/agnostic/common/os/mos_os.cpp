@@ -878,11 +878,12 @@ MEMORY_OBJECT_CONTROL_STATE Mos_GetResourceCachePolicyMemoryObject(
     }
 
     auto gmmClientContext = osInterface->pfnGetGmmClientContext(osInterface);
+    uint64_t gmmExtDevice = (osInterface->pfnGetGmmExtDevice) ? osInterface->pfnGetGmmExtDevice(osInterface) : 0;
 
     if(resource->bConvertedFromDDIResource &&
        resource->mocsMosResUsageType >= MOS_HW_RESOURCE_USAGE_MEDIA_BATCH_BUFFERS)
     {
-        memObjCtrlState = MosInterface::GetCachePolicyMemoryObject(gmmClientContext, resource->mocsMosResUsageType);
+        memObjCtrlState = MosInterface::GetCachePolicyMemoryObject(gmmClientContext, resource->mocsMosResUsageType, gmmExtDevice);
     }
 #if !EMUL
     GMM_RESOURCE_USAGE_TYPE usage = MosInterface::GetGmmResourceUsageType(resource->mocsMosResUsageType);
@@ -891,10 +892,10 @@ MEMORY_OBJECT_CONTROL_STATE Mos_GetResourceCachePolicyMemoryObject(
         usage = MosInterface::GetGmmResourceUsageType(MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC);
     }
     if ((memObjCtrlState.DwordValue == 0) &&
-        !gmmClientContext->GetCachePolicyElement(usage).Initialized)
+        (!gmmClientContext || !gmmClientContext->GetCachePolicyElement(usage).Initialized))
 #endif
     {
-        memObjCtrlState = MosInterface::GetDefaultCachePolicyMemoryObject(gmmClientContext);
+        memObjCtrlState = MosInterface::GetDefaultCachePolicyMemoryObject(gmmClientContext, gmmExtDevice);
     }
     return memObjCtrlState;
 }

@@ -127,7 +127,7 @@ MOS_STATUS VpRenderKernelObj::InitRenderHalSurfaceCMF(MOS_SURFACE* src, PRENDERH
     gmmResFmt = pGmmResourceInfo->GetResourceFormat();
     uint32_t          MmcFormat = 0;
 
-    MmcFormat = static_cast<uint32_t>(osInterface->pfnGetGmmClientContext(osInterface)->GetMediaSurfaceStateCompressionFormat(gmmResFmt));
+    MmcFormat = (osInterface->pfnGetMediaSurfaceCompressionFormat) ? osInterface->pfnGetMediaSurfaceCompressionFormat(osInterface, gmmResFmt) : 0;
 
     if (MmcFormat > 0x1F)
     {

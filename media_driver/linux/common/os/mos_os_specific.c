@@ -1771,6 +1771,71 @@ GMM_CLIENT_CONTEXT *Mos_Specific_GetGmmClientContext(
     return nullptr;
 }
 
+uint64_t Mos_Specific_GetGmmExtDevice(
+    PMOS_INTERFACE pOsInterface)
+{
+    if (pOsInterface == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("OsInterface is null.");
+        return 0;
+    }
+
+    if (pOsInterface->apoMosEnabled)
+    {
+        return MosInterface::GetGmmExtDevice(pOsInterface->osStreamState);
+    }
+
+    return 0;
+}
+
+uint32_t Mos_Specific_GetMediaSurfaceCompressionFormat(
+    PMOS_INTERFACE pOsInterface,
+    GMM_RESOURCE_FORMAT gmmResFmt)
+{
+    if (pOsInterface == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("OsInterface is null.");
+        return 0;
+    }
+
+    if (pOsInterface->apoMosEnabled)
+    {
+        return MosInterface::GetMediaSurfaceCompressionFormat(pOsInterface->osStreamState, gmmResFmt);
+    }
+
+    GMM_CLIENT_CONTEXT *gmmClientContext = Mos_Specific_GetGmmClientContext(pOsInterface);
+    if (gmmClientContext)
+    {
+        return static_cast<uint32_t>(gmmClientContext->GetMediaSurfaceStateCompressionFormat(gmmResFmt));
+    }
+
+    return 0;
+}
+
+bool Mos_Specific_IsPlanar(
+    PMOS_INTERFACE      pOsInterface,
+    GMM_RESOURCE_FORMAT gmmResFmt)
+{
+    if (pOsInterface == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("OsInterface is null.");
+        return false;
+    }
+
+    if (pOsInterface->apoMosEnabled)
+    {
+        return MosInterface::IsPlanar(pOsInterface->osStreamState, gmmResFmt);
+    }
+
+    GMM_CLIENT_CONTEXT *gmmClientContext = Mos_Specific_GetGmmClientContext(pOsInterface);
+    if (gmmClientContext)
+    {
+        return gmmClientContext->IsPlanar(gmmResFmt);
+    }
+
+    return false;
+}
+
 //!
 //! \brief    Get Platform
 //! \details  Get platform info
@@ -7171,6 +7236,9 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnSetEncodePakContext                    = Mos_Specific_SetEncodePakContext;
     pOsInterface->pfnSetEncodeEncContext                    = Mos_Specific_SetEncodeEncContext;
     pOsInterface->pfnGetGmmClientContext                    = Mos_Specific_GetGmmClientContext;
+    pOsInterface->pfnGetGmmExtDevice                         = Mos_Specific_GetGmmExtDevice;
+    pOsInterface->pfnGetMediaSurfaceCompressionFormat       = Mos_Specific_GetMediaSurfaceCompressionFormat;
+    pOsInterface->pfnIsPlanar                               = Mos_Specific_IsPlanar;
 
     pOsInterface->pfnGetPlatform                            = Mos_Specific_GetPlatform;
     pOsInterface->pfnDestroy                                = Mos_Specific_Destroy;

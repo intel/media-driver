@@ -347,7 +347,7 @@ MOS_STATUS VpRenderHVSKernel::SetupSurfaceState()
             ////set mem object control for cache
             //kernelSurfaceParam.surfaceOverwriteParams.renderSurfaceParams.MemObjCtl = (osInterface->pfnCachePolicyGetMemoryObject(
             //            MOS_MP_RESOURCE_USAGE_DEFAULT,
-            //            osInterface->pfnGetGmmClientContext(osInterface))).DwordValue;
+            //            osInterface)).DwordValue;
 
             m_surfaceState.emplace(*(SurfaceType *)arg.pData, kernelSurfaceParam);
         }

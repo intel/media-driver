@@ -42,6 +42,9 @@
 class MosOcaRTLogMgr;
 class MosMockAdaptor;
 
+struct GMM_RESCREATE_PARAMS_REC;
+typedef struct GMM_RESCREATE_PARAMS_REC GMM_RESCREATE_PARAMS;
+
 class OsContextNext
 {
 protected:
@@ -224,6 +227,19 @@ public:
     //! \return Cmd buffer manager
     //!
     GMM_CLIENT_CONTEXT *GetGmmClientContext() { return m_gmmClientContext; }
+
+    virtual uint64_t GetGmmExtDevice() const { return 0; }
+
+    virtual uint32_t GetGmmExtLibStage() const { return 0; }
+
+    virtual uint32_t IsGmmLibExtEnabled() const { return 0; }
+
+    virtual bool UseGmmExtPath() const { return false; }
+
+    virtual GMM_RESOURCE_INFO *GmmCreateResInfoObject(GMM_RESCREATE_PARAMS *pCreateParams);
+    virtual void               GmmDestroyResInfoObject(GMM_RESOURCE_INFO *pResInfo);
+    virtual uint8_t            GmmIsPlanar(GMM_RESOURCE_FORMAT format);
+    virtual uint8_t            GmmIsUVPacked(GMM_RESOURCE_FORMAT format);
 
     //!
     //! \brief  Get MosDecompression

@@ -1444,7 +1444,8 @@ MOS_HW_RESOURCE_DEF MosInterface::GmmToMosResourceUsageType(
 
 MEMORY_OBJECT_CONTROL_STATE MosInterface::GetGmmCachePolicyMemoryObject(
     GMM_CLIENT_CONTEXT      *gmmClientContext,
-    GMM_RESOURCE_USAGE_TYPE gmmUsage)
+    GMM_RESOURCE_USAGE_TYPE gmmUsage,
+    uint64_t gmmExtDevice)
 {
     MOS_OS_FUNCTION_ENTER;
     if (!gmmClientContext)
@@ -1463,7 +1464,8 @@ MEMORY_OBJECT_CONTROL_STATE MosInterface::GetGmmCachePolicyMemoryObject(
 }
 
 MEMORY_OBJECT_CONTROL_STATE MosInterface::GetDefaultCachePolicyMemoryObject(
-    GMM_CLIENT_CONTEXT *gmmClientContext)
+    GMM_CLIENT_CONTEXT *gmmClientContext,
+    uint64_t gmmExtDevice)
 {
     MOS_OS_FUNCTION_ENTER;
     if (!gmmClientContext)
@@ -1489,7 +1491,8 @@ MEMORY_OBJECT_CONTROL_STATE MosInterface::GetDefaultCachePolicyMemoryObject(
 
 MEMORY_OBJECT_CONTROL_STATE MosInterface::GetCachePolicyMemoryObject(
     GMM_CLIENT_CONTEXT *gmmClientContext,
-    MOS_HW_RESOURCE_DEF mosUsage)
+    MOS_HW_RESOURCE_DEF mosUsage,
+    uint64_t gmmExtDevice)
 {
     MOS_OS_FUNCTION_ENTER;
 
@@ -2945,6 +2948,43 @@ GMM_CLIENT_CONTEXT *MosInterface::GetGmmClientContext(
     }
 
     return nullptr;
+}
+
+uint64_t MosInterface::GetGmmExtDevice(
+    MOS_STREAM_HANDLE streamState)
+{
+    MOS_OS_FUNCTION_ENTER;
+    return 0;
+}
+
+uint32_t MosInterface::GetMediaSurfaceCompressionFormat(
+    MOS_STREAM_HANDLE streamState,
+    GMM_RESOURCE_FORMAT gmmResFmt)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    auto gmmClientContext = GetGmmClientContext(streamState);
+    if (gmmClientContext)
+    {
+        return static_cast<uint32_t>(gmmClientContext->GetMediaSurfaceStateCompressionFormat(gmmResFmt));
+    }
+
+    return 0;
+}
+
+bool MosInterface::IsPlanar(
+    MOS_STREAM_HANDLE   streamState,
+    GMM_RESOURCE_FORMAT gmmResFmt)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    auto gmmClientContext = GetGmmClientContext(streamState);
+    if (gmmClientContext)
+    {
+        return gmmClientContext->IsPlanar(gmmResFmt);
+    }
+
+    return false;
 }
 
 unsigned int MosInterface::GetPATIndexFromGmm(

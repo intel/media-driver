@@ -859,6 +859,17 @@ typedef struct _MOS_INTERFACE
         GMM_CLIENT_CONTEXT          *pGmmClientContext,
         GMM_RESOURCE_USAGE_TYPE     Usage);
 
+    uint64_t (* pfnGetGmmExtDevice)(
+        PMOS_INTERFACE              pOsInterface);
+
+    uint32_t (* pfnGetMediaSurfaceCompressionFormat) (
+        PMOS_INTERFACE              pOsInterface,
+        GMM_RESOURCE_FORMAT         gmmResFmt);
+
+    bool (* pfnIsPlanar)(
+        PMOS_INTERFACE              pOsInterface,
+        GMM_RESOURCE_FORMAT         gmmResFmt);
+  
     MOS_STATUS (* pfnIsGpuContextValid) (
         PMOS_INTERFACE              pOsInterface,
         MOS_GPU_CONTEXT             GpuContext);

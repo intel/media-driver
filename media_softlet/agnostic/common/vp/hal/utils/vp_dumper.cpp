@@ -1392,7 +1392,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
 
         resourceIndex = 0;
         pSurfaceBase  = pData;
-        isPlanar      = (pOsInterface->pfnGetGmmClientContext(pOsInterface)->IsPlanar(pSurface->OsResource.pGmmResInfo->GetResourceFormat()) != 0);
+        isPlanar      = (pOsInterface->pfnIsPlanar) ? pOsInterface->pfnIsPlanar(pOsInterface, pSurface->OsResource.pGmmResInfo->GetResourceFormat()) : false;
         auxDataY      = (uint8_t*)pSurfaceBase + pSurface->OsResource.pGmmResInfo->GetPlanarAuxOffset(resourceIndex, GMM_AUX_Y_CCS);
         auxDataUV     = (uint8_t*)pSurfaceBase + pSurface->OsResource.pGmmResInfo->GetPlanarAuxOffset(resourceIndex, GMM_AUX_UV_CCS);
         if (isPlanar)
