@@ -92,6 +92,17 @@ VAStatus DdiDecodeVvc::ParsePicParams(
         DDI_CODEC_NORMALMESSAGE("CurrPic.FrameIdx is out of range.");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
+    // Record the current frame's VA surface ID for stale-reference detection.
+    // RecListSurfaceID is initialized to VA_INVALID_ID for all entries; entries
+    // are reset to VA_INVALID_ID when the app destroys the surface (via the RT
+    // table update path).  If we later find a reference slot whose recorded ID
+    // is VA_INVALID_ID it means the app freed that surface — treat it as
+    // unavailable so the VVC HAL substitutes a safe resource via
+    // UpdateUnavailableRefFrames().
+    if (pVvcPicParams->m_currPic.FrameIdx < CODEC_AVC_NUM_UNCOMPRESSED_SURFACE)
+    {
+        m_decodeCtx->RecListSurfaceID[pVvcPicParams->m_currPic.FrameIdx] = picParam->CurrPic.picture_id;
+    }
 
     // Set up reference frames
     MOS_ZeroMemory(m_refListFlags, sizeof(m_refListFlags));
@@ -107,6 +118,22 @@ VAStatus DdiDecodeVvc::ParsePicParams(
         if(pVvcPicParams->m_refFrameList[i].FrameIdx > CODEC_MAX_DPB_NUM_VVC)
         {
             pVvcPicParams->m_refFrameList[i].FrameIdx = CODEC_MAX_DPB_NUM_VVC;
+        }
+    }
+    // Invalidate references whose backing VA surface has been freed or reused.
+    // PICTURE_UNAVAILABLE_FRAME (not PICTURE_INVALID) is used because
+    // UpdateUnavailableRefFrames() in decode_vvc_reference_frames.cpp checks
+    // exclusively for PICTURE_UNAVAILABLE_FRAME and substitutes the slot with
+    // the current frame's resource, giving the hardware a valid surface.
+    // PICTURE_INVALID is not checked anywhere in the VVC HAL reference path and
+    // would leave the stale GPU resource in use.
+    for (auto i = 0; i < vvcMaxNumRefFrame; i++)
+    {
+        uint8_t refIdx = pVvcPicParams->m_refFrameList[i].FrameIdx;
+        if (refIdx < CODEC_AVC_NUM_UNCOMPRESSED_SURFACE &&
+            VA_INVALID_ID == m_decodeCtx->RecListSurfaceID[refIdx])
+        {
+            pVvcPicParams->m_refFrameList[i].PicFlags = PICTURE_UNAVAILABLE_FRAME;
         }
     }
 
