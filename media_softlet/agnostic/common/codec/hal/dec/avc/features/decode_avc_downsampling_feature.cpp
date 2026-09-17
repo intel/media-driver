@@ -52,7 +52,7 @@ MOS_STATUS AvcDownSamplingFeature::GetRefFrameList(std::vector<uint32_t> &refFra
         avcBasicFeature->m_refFrames.GetActiveReferenceList(*avcBasicFeature->m_avcPicParams);
 
     refFrameList.clear();
-
+    refFrameList.reserve(activeRefList.size());
     for (uint8_t frameIdx : activeRefList)
     {
         refFrameList.push_back(frameIdx);
