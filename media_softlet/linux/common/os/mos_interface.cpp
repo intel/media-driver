@@ -2699,7 +2699,7 @@ MOS_STATUS MosInterface::MediaCopyResource2D(
     };
 
     // If mmd device not registered, use media vebopx copy.
-    if (lbdMemDecomp() != MOS_STATUS_SUCCESS && mosDecompression && !mosDecompression->GetMediaMemDecompState())
+    if (lbdMemDecomp() != MOS_STATUS_SUCCESS && mosDecompression && !(*mosDecompression->GetMediaMemDecompState()))
     {
         MOS_OS_CRITICALMESSAGE("MMD device not registered. Use media copy instead.");
         status = MosInterface::UnifiedMediaCopyResource(streamState, inputResource, outputResource, MCPY_METHOD_BALANCE);
@@ -2745,7 +2745,7 @@ MOS_STATUS MosInterface::MonoSurfaceCopy(
     };
 
     // If mmd device not registered, use media vebopx copy.
-    if (lbdMemDecomp() != MOS_STATUS_SUCCESS && mosDecompression && !mosDecompression->GetMediaMemDecompState())
+    if (lbdMemDecomp() != MOS_STATUS_SUCCESS && mosDecompression && !(*mosDecompression->GetMediaMemDecompState()))
     {
         MOS_OS_CRITICALMESSAGE("MMD device not registered. Use media copy instead.");
         MOS_SURFACE inputResInfo, outputResInfo;
@@ -2776,10 +2776,12 @@ MOS_STATUS MosInterface::MonoSurfaceCopy(
         inputResource->pGmmResInfo->OverrideBaseWidth(copyWidth / pixelInByte);
         inputResource->pGmmResInfo->OverridePitch(copyWidth);
         inputResource->pGmmResInfo->OverrideBaseHeight(copyHeight);
+        inputResource->Format = overrideFormat;
         outputResource->pGmmResInfo->OverrideSurfaceFormat(MosInterface::MosFmtToGmmFmt(overrideFormat));
         outputResource->pGmmResInfo->OverrideBaseWidth(copyWidth / pixelInByte);
         outputResource->pGmmResInfo->OverridePitch(copyWidth);
         outputResource->pGmmResInfo->OverrideBaseHeight(copyHeight);
+        outputResource->Format = overrideFormat;
 
         uint32_t inOffset           = inputResource->dwOffsetForMono;
         uint32_t outOffset          = outputResource->dwOffsetForMono;
@@ -2790,12 +2792,14 @@ MOS_STATUS MosInterface::MonoSurfaceCopy(
 
         inputResource->pGmmResInfo->OverrideSurfaceFormat(MosInterface::MosFmtToGmmFmt(bkIn.format));
         inputResource->pGmmResInfo->OverrideBaseWidth(bkIn.width);
-        inputResource->pGmmResInfo->OverrideBaseWidth(bkIn.pitch);
+        inputResource->pGmmResInfo->OverridePitch(bkIn.pitch);
         inputResource->pGmmResInfo->OverrideBaseHeight(bkIn.height);
+        inputResource->Format = bkIn.format;
         outputResource->pGmmResInfo->OverrideSurfaceFormat(MosInterface::MosFmtToGmmFmt(bkOut.format));
         outputResource->pGmmResInfo->OverrideBaseWidth(bkOut.width);
-        outputResource->pGmmResInfo->OverrideBaseWidth(bkOut.pitch);
+        outputResource->pGmmResInfo->OverridePitch(bkOut.pitch);
         outputResource->pGmmResInfo->OverrideBaseHeight(bkOut.height);
+        outputResource->Format = bkOut.format;
 
         inputResource->dwOffsetForMono  = inOffset;
         outputResource->dwOffsetForMono = outOffset;
