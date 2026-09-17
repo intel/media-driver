@@ -85,8 +85,6 @@ typedef struct _MHW_VDBOX_HCP_BUFFER_SIZE_PARAMS
 
 typedef struct _MHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS
 {
-    uint8_t    ucMaxBitDepth;
-    uint8_t    ucChromaFormat;
     uint32_t   dwPicWidth;
     uint32_t   dwPicHeight;
     uint32_t   dwPicWidthAlloced;
@@ -95,6 +93,8 @@ typedef struct _MHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS
     uint32_t   dwCtbLog2SizeYMax;
     uint32_t   dwFrameSize;
     uint32_t   dwFrameSizeAlloced;
+    uint8_t    ucMaxBitDepth;
+    uint8_t    ucChromaFormat;
     bool       bNeedBiggerSize;
 }MHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS, *PMHW_VDBOX_HCP_BUFFER_REALLOC_PARAMS;
 

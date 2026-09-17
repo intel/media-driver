@@ -474,8 +474,8 @@ struct VvcS2lExtraBss
             int32_t m_numCtusInCurrSlice;  //!< number of CTUs in current slice
 
             //Rect slices params
-            uint16_t m_tileIdx;             //!< tile index corresponding to the first CTU in the slice
             uint32_t m_numSlicesInTile;     //!< number of slices in current tile for the special case of multiple slices inside a single tile
+            uint16_t m_tileIdx;             //!< tile index corresponding to the first CTU in the slice
             uint16_t m_sliceWidthInTiles;   //!< slice width in units of tiles
             uint16_t m_sliceHeightInTiles;  //!< slice height in units of tiles
             uint16_t m_sliceHeightInCtu;    //!< slice height in units of CTUs for the special case of multiple slices inside a single tile
