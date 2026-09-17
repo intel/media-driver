@@ -101,12 +101,10 @@ if ("${AVC_Encode_VME_Supported}" STREQUAL "yes" OR "${AVC_Encode_VDEnc_Supporte
         set (TMP_3_SOURCES_
             ${TMP_3_SOURCES_}
             ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_avc_g9.cpp
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_fei_avc_g9.cpp
         )
         set (TMP_3_HEADERS_
             ${TMP_3_HEADERS_}
             ${CMAKE_CURRENT_LIST_DIR}/codechal_encode_avc_g9.h
-            ${CMAKE_CURRENT_LIST_DIR}/codechal_fei_avc_g9.h
         )
     endif ()
 
