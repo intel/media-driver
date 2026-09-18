@@ -241,7 +241,8 @@ MOS_STATUS VpAiFilter::InitKrnParams(AI_KERNEL_PARAMS &krnParams, SwFilterPipe &
             krnArg.addressMode   = kernelArg.addressMode;
             bool bInit           = true;
 
-            if (kernelArg.addressMode == AddressingModeBindless && kernelArg.eArgKind == ARG_KIND_SURFACE)
+            if (kernelArg.addressMode == AddressingModeBindless &&
+                (kernelArg.eArgKind == ARG_KIND_SURFACE || kernelArg.eArgKind == ARG_KIND_INLINE))
             {
                 SURFACE_PARAMS surfaceParam = {};
                 VP_PUBLIC_CHK_NULL_RETURN(singleLayerSetting.pfnSetStatefulSurface);

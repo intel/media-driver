@@ -471,7 +471,8 @@ MOS_STATUS VpRenderAiKernel::SetupSurfaceState()
     {
         KRN_ARG &arg = handle.second;
 
-        if (arg.addressMode != AddressingModeBindless || arg.eArgKind != ARG_KIND_SURFACE)
+        if (arg.addressMode != AddressingModeBindless ||
+            (arg.eArgKind != ARG_KIND_SURFACE && arg.eArgKind != ARG_KIND_INLINE))
         {
             continue;
         }
