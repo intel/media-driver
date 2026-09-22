@@ -107,6 +107,21 @@ MOS_STATUS HevcBasicFeature::Init(void *setting)
 #endif  // _DEBUG || _RELEASE_INTERNAL
     m_hevcRDOQPerfDisabled = outValue.Get<bool>();
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MediaUserSetting::Value roundingValue;
+    ReadUserSetting(
+        m_userSettingPtr,
+        roundingValue,
+        "HEVC VDEnc Rounding Enable",
+        MediaUserSetting::Group::Sequence);
+    m_hevcVdencRoundingPrecisionEnabled = roundingValue.Get<bool>();
+    ReportUserSettingForDebug(
+        m_userSettingPtr,
+        "HEVC VDEnc Rounding Enable",
+        m_hevcVdencRoundingPrecisionEnabled,
+        MediaUserSetting::Group::Sequence);
+#endif
+
     ENCODE_CHK_STATUS_RETURN(Init422State());
 
     return MOS_STATUS_SUCCESS;
@@ -148,22 +163,6 @@ MOS_STATUS HevcBasicFeature::Update(void *params)
 
     ENCODE_CHK_STATUS_RETURN(SetPictureStructs());
     ENCODE_CHK_STATUS_RETURN(SetSliceStructs());
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-    // To enable rounding precision here
-    MediaUserSetting::Value outValue;
-    ReadUserSetting(
-        m_userSettingPtr,
-        outValue,
-        "HEVC VDEnc Rounding Enable",
-        MediaUserSetting::Group::Sequence);
-    m_hevcVdencRoundingPrecisionEnabled = outValue.Get<bool>();
-    ReportUserSettingForDebug(
-        m_userSettingPtr,
-        "HEVC VDEnc Rounding Enable",
-        m_hevcVdencRoundingPrecisionEnabled,
-        MediaUserSetting::Group::Sequence);
-#endif
 
     ENCODE_CHK_STATUS_RETURN(SetRoundingValues());
 

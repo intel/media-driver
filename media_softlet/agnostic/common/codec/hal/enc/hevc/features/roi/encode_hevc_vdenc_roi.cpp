@@ -215,13 +215,17 @@ MOS_STATUS HevcVdencRoi::Update(void *params)
         MOS_SafeFreeMemory(m_streamInTemp);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-        ENCODE_CHK_NULL_RETURN(m_hwInterface);
-        ENCODE_CHK_NULL_RETURN(m_hwInterface->GetOsInterface());
-        ReportUserSettingForDebug(
-            m_userSettingPtr ,
-            "HEVC VDEnc Force Delta QP Enable",
-            m_roiMode,
-            MediaUserSetting::Group::Sequence);
+        if (m_roiModeReported != (int8_t)m_roiMode)
+        {
+            ENCODE_CHK_NULL_RETURN(m_hwInterface);
+            ENCODE_CHK_NULL_RETURN(m_hwInterface->GetOsInterface());
+            ReportUserSettingForDebug(
+                m_userSettingPtr ,
+                "HEVC VDEnc Force Delta QP Enable",
+                m_roiMode,
+                MediaUserSetting::Group::Sequence);
+            m_roiModeReported = (int8_t)m_roiMode;
+        }
 #endif
 
         if (hevcPicParams->CodingType == I_TYPE)

@@ -176,11 +176,15 @@ MOS_STATUS EncodeBasicFeature::Update(void *params)
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    ReportUserSettingForDebug(
-        m_userSettingPtr,
-        "Encode Raw Surface Tile",
-        m_rawSurface.TileType,
-        MediaUserSetting::Group::Sequence);
+    if (m_rawSurfaceTileTypeReported != (int32_t)m_rawSurface.TileType)
+    {
+        ReportUserSettingForDebug(
+            m_userSettingPtr,
+            "Encode Raw Surface Tile",
+            m_rawSurface.TileType,
+            MediaUserSetting::Group::Sequence);
+        m_rawSurfaceTileTypeReported = (int32_t)m_rawSurface.TileType;
+    }
 #endif
 
     m_rawSurfaceToEnc     =

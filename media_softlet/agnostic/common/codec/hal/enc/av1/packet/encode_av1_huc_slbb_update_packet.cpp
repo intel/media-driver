@@ -79,6 +79,25 @@ MOS_STATUS AV1HucSLBBUpdatePkt::Init()
     m_basicFeature = dynamic_cast<Av1BasicFeature *>(m_featureManager->GetFeature(Av1FeatureIDs::basicFeature));
     ENCODE_CHK_NULL_RETURN(m_basicFeature);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    MediaUserSetting::Value outValue;
+
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        outValue,
+        "AV1 Encode RDO Enable",
+        MediaUserSetting::Group::Sequence);
+    m_rdoEnable = outValue.Get<bool>();
+
+    outValue = MediaUserSetting::Value();
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        outValue,
+        "Disable VDEnc Chroma vs Luma VMAF Optimization",
+        MediaUserSetting::Group::Sequence);
+    m_chromaVmafRegkeyDisabled = outValue.Get<bool>();
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -227,15 +246,7 @@ MOS_STATUS AV1HucSLBBUpdatePkt::SetDmem() const
     dmem->isLowDelay = m_basicFeature->m_ref.IsLowDelay() ? 1 : 0;
     dmem->TargetUsage = (uint8_t)m_basicFeature->m_av1SeqParams->TargetUsage;
 #if (_DEBUG || _RELEASE_INTERNAL)
-    {
-        MediaUserSetting::Value outValue;
-        ReadUserSettingForDebug(
-            m_userSettingPtr,
-            outValue,
-            "AV1 Encode RDO Enable",
-            MediaUserSetting::Group::Sequence);
-        dmem->RdoEnable = outValue.Get<bool>() ? 1 : 0;
-    }
+    dmem->RdoEnable = m_rdoEnable ? 1 : 0;
 #else
     dmem->RdoEnable = 0;
 #endif
@@ -297,15 +308,7 @@ MOS_STATUS AV1HucSLBBUpdatePkt::SetDmem() const
     // must NOT touch the PAK chroma QP path (AVP_PIC_STATE DW5, programmed from the same DDI).
     bool chromaVmafRegkeyDisabled = false;
 #if (_DEBUG || _RELEASE_INTERNAL)
-    {
-        MediaUserSetting::Value outValue;
-        ReadUserSettingForDebug(
-            m_userSettingPtr,
-            outValue,
-            "Disable VDEnc Chroma vs Luma VMAF Optimization",
-            MediaUserSetting::Group::Sequence);
-        chromaVmafRegkeyDisabled = outValue.Get<bool>();
-    }
+    chromaVmafRegkeyDisabled = m_chromaVmafRegkeyDisabled;
 #endif
     dmem->ChromaQpOffset = ComputeChromaQpOffset(
         m_basicFeature->m_av1PicParams->u_dc_delta_q,
@@ -495,10 +498,8 @@ MOS_STATUS AV1HucSLBBUpdatePkt::ConstructBatchBuffer()
     // Calculate total SLBB size
     slbData.slbSize = (uint16_t)constructedCmdBuf.iOffset - slbData.avpSegmentStateOffset;
     
-    // Store SlbData structure
-    auto basicFeature = dynamic_cast<Av1BasicFeature *>(m_featureManager->GetFeature(Av1FeatureIDs::basicFeature));
-    ENCODE_CHK_NULL_RETURN(basicFeature);
-    basicFeature->SetSLBData(slbData);
+    // Store SlbData structure.
+    m_basicFeature->SetSLBData(slbData);
     
     // Unlock buffer
     m_allocator->UnLock(batchBuffer);

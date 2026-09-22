@@ -307,6 +307,13 @@ protected:
     //!
     uint32_t m_slbbConstDataBufferSize = 2048;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //!
+    //! \brief  Sequence-scope debug overrides, read in Init().
+    bool m_rdoEnable                = false;
+    bool m_chromaVmafRegkeyDisabled = false;
+#endif
+
 MEDIA_CLASS_DEFINE_END(encode__AV1HucSLBBUpdatePkt)
 };
 

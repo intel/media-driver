@@ -80,20 +80,10 @@ namespace encode
         const auto& seqParams = *m_basicFeature->m_av1SeqParams;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-        ReportUserSetting(
-            m_userSettingPtr,
-            "Encode RateControl Method",
-            m_rcMode,
-            MediaUserSetting::Group::Sequence);
-        
         ENCODE_CHK_NULL_RETURN(m_basicFeature->m_av1PicParams);
-        MediaUserSetting::Value outValue;
-        ReadUserSetting(
-            m_userSettingPtr,
-            outValue,
-            "Adaptive TU Enable",
-            MediaUserSetting::Group::Sequence);
-        m_basicFeature->m_av1PicParams->AdaptiveTUEnabled |= outValue.Get<uint8_t>(); 
+        // The regkey work itself lives in SetSequenceStructs(); PicParams is refreshed
+        // every frame, so only the OR belongs here.
+        m_basicFeature->m_av1PicParams->AdaptiveTUEnabled |= m_adaptiveTUEnableRegkey;
 #endif
         return MOS_STATUS_SUCCESS;
     }
@@ -677,6 +667,22 @@ namespace encode
         m_brcInit = m_brcEnabled && m_basicFeature->m_resolutionChanged;
 
         m_rcMode = m_brcEnabled? m_basicFeature->m_av1SeqParams->RateControlMethod : 0;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        ReportUserSetting(
+            m_userSettingPtr,
+            "Encode RateControl Method",
+            m_rcMode,
+            MediaUserSetting::Group::Sequence);
+
+        MediaUserSetting::Value outValue;
+        ReadUserSetting(
+            m_userSettingPtr,
+            outValue,
+            "Adaptive TU Enable",
+            MediaUserSetting::Group::Sequence);
+        m_adaptiveTUEnableRegkey = outValue.Get<uint8_t>();
+#endif
 
         if (m_rcMode == RATECONTROL_CQL || m_rcMode == RATECONTROL_QVBR)
         {

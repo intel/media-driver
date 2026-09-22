@@ -112,11 +112,15 @@ MOS_STATUS HevcEncodeCqp::Update(void *params)
     UpdateRDOQCfg();
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    ReportUserSettingForDebug(
-        m_userSettingPtr,
-        "HEVC RDOQ Enable",
-        m_rdoqEnable,
-        MediaUserSetting::Group::Sequence);
+    if (m_rdoqEnableReported != (int8_t)m_rdoqEnable)
+    {
+        ReportUserSettingForDebug(
+            m_userSettingPtr,
+            "HEVC RDOQ Enable",
+            m_rdoqEnable,
+            MediaUserSetting::Group::Sequence);
+        m_rdoqEnableReported = (int8_t)m_rdoqEnable;
+    }
 #endif
 
     return MOS_STATUS_SUCCESS;

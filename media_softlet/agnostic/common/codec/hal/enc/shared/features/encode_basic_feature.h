@@ -154,6 +154,9 @@ public:
     PMOS_SURFACE                m_rawSurfaceToPak = nullptr;
     PMOS_SURFACE                m_rawSurfaceToEnc = nullptr;       //!< raw surf to enc
     MOS_SURFACE                 m_rawSurface = {};                 //!< Pointer to MOS_SURFACE of raw surface
+#if (_DEBUG || _RELEASE_INTERNAL)
+    int32_t                     m_rawSurfaceTileTypeReported = -1; //!< Last raw surface TileType reported, -1 if never
+#endif
     MOS_SURFACE                 m_reconSurface = {};               //!< Pointer to MOS_SURFACE of reconstructed surface
     MOS_RESOURCE                m_resBitstreamBuffer = {};         //!< Pointer to MOS_SURFACE of bitstream surface
     PMOS_RESOURCE               m_resMetadataBuffer = nullptr;

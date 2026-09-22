@@ -245,6 +245,9 @@ protected:
     bool m_isArbRoi          = false;    //!< Whether is Adaptive Region Boost ROI
     bool m_roiMode           = false;    //!< 0 Force qp mode, 1 force delta qp mode
     bool m_isArbRoiSupported = true;     //!< Whether is Adaptive Region Boost ROI Supported
+#if (_DEBUG || _RELEASE_INTERNAL)
+    int8_t m_roiModeReported = -1;       //!< Last m_roiMode reported, -1 if never
+#endif
 
     PMOS_RESOURCE      m_streamIn = nullptr; //!< Stream in buffer
     uint8_t *          m_streamInTemp = nullptr;

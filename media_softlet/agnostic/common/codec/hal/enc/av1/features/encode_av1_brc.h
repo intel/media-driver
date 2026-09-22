@@ -205,6 +205,12 @@ enum AV1_BRC_FRAME_TYPE
 
         uint8_t  m_rcMode  = 0;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+        //! \brief "Adaptive TU Enable" override, read per sequence in SetSequenceStructs()
+        //!        and OR'd into PicParams every frame by Update().
+        uint8_t m_adaptiveTUEnableRegkey = 0;
+#endif
+
         bool m_brcInit              = true;   //!< BRC init flag
         bool m_brcReset             = false;  //!< BRC reset flag
         bool m_brcEnabled           = false;  //!< BRC enable flag

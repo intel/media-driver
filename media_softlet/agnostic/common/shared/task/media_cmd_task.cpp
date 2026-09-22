@@ -176,7 +176,7 @@ MOS_STATUS CmdTask::Submit(bool immediateSubmit, MediaScalability *scalability, 
     MEDIA_CHK_STATUS_RETURN(scalability->SubmitCmdBuffer(&cmdBuffer));
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    for (auto prop : m_packets)
+    for (auto &prop : m_packets)
     {
         MEDIA_CHK_STATUS_RETURN(scalability->UpdateState(&prop.stateProperty));
 
