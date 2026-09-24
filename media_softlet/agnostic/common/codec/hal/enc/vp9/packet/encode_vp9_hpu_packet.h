@@ -86,7 +86,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS PatchHucProbCommands(MOS_COMMAND_BUFFER *commandBuffer, uint8_t packetPhase = otherPacket);
+    virtual MOS_STATUS PatchHucProbCommands(MOS_COMMAND_BUFFER *commandBuffer, uint8_t packetPhase = otherPacket);
 
     //!
     //! \brief  Calculate Command Size
