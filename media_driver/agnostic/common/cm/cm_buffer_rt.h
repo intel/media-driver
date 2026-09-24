@@ -108,17 +108,17 @@ public:
 
     void SetSize(size_t size);
 
-    bool IsUpSurface();
+    bool IsUpSurface() const;
 
-    bool IsSVMSurface();
+    bool IsSVMSurface() const;
 
     virtual bool IsCMRTAllocatedSVMBuffer();
 
-    bool IsConditionalSurface();
+    bool IsConditionalSurface() const;
 
-    uint32_t GetConditionalCompareValue();
+    uint32_t GetConditionalCompareValue() const;
 
-    bool IsCompareMaskEnabled();
+    bool IsCompareMaskEnabled() const;
 
     uint32_t GetBufferType() { return m_bufferType; }
 

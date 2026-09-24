@@ -41,15 +41,15 @@ public:
     static int32_t Create( CmKernelRT* kernel, CmKernelData*& kernelData );
     static int32_t Destroy( CmKernelData* &kernelData );
 
-    int32_t GetCmKernel( CmKernelRT*& kernel );
+    int32_t GetCmKernel( CmKernelRT*& kernel ) const;
     int32_t SetKernelDataSize(int32_t value);
-    int32_t GetKernelDataSize();
+    int32_t GetKernelDataSize() const;
     uint32_t Acquire(void);
     uint32_t SafeRelease(void);
 
     virtual PCM_HAL_KERNEL_PARAM GetHalCmKernelData( );
-    bool IsInUse( void );
-    uint32_t GetKernelCurbeSize( void );
+    bool IsInUse( void ) const;
+    uint32_t GetKernelCurbeSize( void ) const;
     int32_t ResetStatus( void );
 
 protected:
@@ -57,7 +57,7 @@ protected:
     CmKernelData( CmKernelRT* kernel );
     ~CmKernelData( void );
 
-    int32_t Initialize( void );
+    static int32_t Initialize( void );
 
     uint32_t     m_kerneldatasize;
     CmKernelRT*  m_kernel;

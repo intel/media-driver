@@ -72,12 +72,12 @@ void CmTimer::Stop()
     return;
 }
 
-float CmTimer::TotalMilliSecond()
+float CmTimer::TotalMilliSecond() const
 {
     return (float)m_cycles*(float)1000.0 / (float)m_freq.QuadPart;
 }
 
-std::string CmTimer::ToString()
+std::string CmTimer::ToString() const
 {
     std::ostringstream  oss;
     oss << m_funcName << " Duration " << TotalMilliSecond() << std::endl;

@@ -111,7 +111,7 @@ Output:
 
 \*****************************************************************************/
 
-void* CmDynamicArray::GetElement( const uint32_t index )
+void* CmDynamicArray::GetElement( const uint32_t index ) const
 {
     void* element;
 
@@ -180,7 +180,7 @@ Output:
 
 \*****************************************************************************/
 
-uint32_t CmDynamicArray::GetSize( void )
+uint32_t CmDynamicArray::GetSize( void ) const
 {
     const uint32_t size = m_usedSize;
     return size;
@@ -357,7 +357,7 @@ Output:
     uint32_t length
 
 \*****************************************************************************/
-uint32_t CmDynamicArray::GetMaxSize( void )
+uint32_t CmDynamicArray::GetMaxSize( void ) const
 {
     return m_actualSize;
 }
@@ -378,7 +378,7 @@ Output:
 
 \*****************************************************************************/
 
-bool CmDynamicArray::IsValidIndex( const uint32_t index )
+bool CmDynamicArray::IsValidIndex( const uint32_t index ) const
 {
     return ( index < GetSize() );
 }

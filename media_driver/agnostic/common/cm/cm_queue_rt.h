@@ -85,7 +85,7 @@ public:
         return element;
     }
 
-    CmTaskInternal *Top()
+    CmTaskInternal *Top() const
     {
         CmTaskInternal *element = nullptr;
         if (mQueue.empty())
@@ -99,9 +99,9 @@ public:
         return element;
     }
 
-    bool IsEmpty() { return mQueue.empty(); }
+    bool IsEmpty() const { return mQueue.empty(); }
 
-    int GetCount() { return mQueue.size(); }
+    int GetCount() const { return mQueue.size(); }
 
 private:
     std::queue<CmTaskInternal*> mQueue;
@@ -224,11 +224,11 @@ public:
 
     int32_t FlushTaskWithoutSync(bool flushBlocked = false);
 
-    int32_t GetTaskCount(uint32_t &numTasks);
+    int32_t GetTaskCount(uint32_t &numTasks) const;
 
     virtual int32_t TouchFlushedTasks();
 
-    int32_t GetTaskHasThreadArg(CmKernelRT *kernelArray[],
+    static int32_t GetTaskHasThreadArg(CmKernelRT *kernelArray[],
                                 uint32_t numKernels,
                                 bool &threadArgExists);
     virtual int32_t CleanQueue();
@@ -310,7 +310,7 @@ protected:
 
     int32_t AddGPUCopyKernel(CM_GPUCOPY_KERNEL* &kernelParam);
 
-    int32_t GetGPUCopyKrnID(uint32_t widthInByte,
+    static int32_t GetGPUCopyKrnID(uint32_t widthInByte,
                             uint32_t height,
                             CM_SURFACE_FORMAT format,
                             CM_GPUCOPY_DIRECTION copyDirection,
