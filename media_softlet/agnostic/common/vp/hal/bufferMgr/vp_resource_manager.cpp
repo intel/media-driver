@@ -960,7 +960,6 @@ MOS_STATUS VpResourceManager::AssignIntermediaSurface(VP_EXECUTE_CAPS& caps, SwF
 
     VP_SURFACE *outputSurface = executedFilters.GetSurface(false, 0);
     VP_SURFACE *intermediaSurface = nullptr;
-    VP_SURFACE_PARAMS params            = {};
     if (outputSurface)
     {
         // No need intermedia surface.
@@ -979,6 +978,7 @@ MOS_STATUS VpResourceManager::AssignIntermediaSurface(VP_EXECUTE_CAPS& caps, SwF
         }
         bool allocated = false;
         // Get surface parameter.
+        VP_SURFACE_PARAMS params = {};
         GetIntermediaOutputSurfaceParams(caps, params, executedFilters);
 
         VP_PUBLIC_CHK_STATUS_RETURN(m_allocator.ReAllocateSurface(
