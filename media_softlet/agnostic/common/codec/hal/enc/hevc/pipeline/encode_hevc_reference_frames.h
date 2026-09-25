@@ -31,6 +31,7 @@
 #include "mhw_vdbox_vdenc_itf.h"
 #include "mhw_vdbox_hcp_itf.h"
 #include "encode_mem_compression.h"
+#include "codechal_debug.h"
 
 namespace encode
 {
