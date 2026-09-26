@@ -436,13 +436,7 @@ MOS_STATUS CodechalInterfacesG9Skl::Initialize(
 #if defined (_AVC_ENCODE_VME_SUPPORTED) || defined (_AVC_ENCODE_VDENC_SUPPORTED)
         if (info->Mode == CODECHAL_ENCODE_MODE_AVC)
         {
-            if (CodecHalIsFeiEncode(info->CodecFunction))
-            {
-            #ifdef _AVC_ENCODE_VME_SUPPORTED
-                encoder = MOS_New(Encode::AvcFei, hwInterface, debugInterface, info);
-            #endif
-            }
-            else if (CodecHalUsesVdencEngine(info->CodecFunction))
+            if (CodecHalUsesVdencEngine(info->CodecFunction))
             {
             #ifdef _AVC_ENCODE_VDENC_SUPPORTED
                 encoder = MOS_New(Encode::AvcVdenc, hwInterface, debugInterface, info);
