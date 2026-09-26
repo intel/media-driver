@@ -55,28 +55,39 @@ typedef enum _CODECHAL_WALKER_DEGREE
 
 typedef struct _CODECHAL_WALKER_CODEC_PARAMS
 {
+    CODECHAL_WALKER_DEGREE  WalkerDegree;
     uint32_t                WalkerMode;
-    bool                    bUseScoreboard;
     uint32_t                dwResolutionX;
     uint32_t                dwResolutionY;
-    bool                    bNoDependency;
-    CODECHAL_WALKER_DEGREE  WalkerDegree;
-    bool                    bUseVerticalRasterScan;
     uint32_t                wPictureCodingType;
+    uint32_t                bDirectSpatialMVPredFlag;
+    uint32_t                dwNumSlices;
+    uint32_t                ScoreboardMask;
+    bool                    bUseScoreboard;
+    bool                    bNoDependency;
+    bool                    bUseVerticalRasterScan;
     bool                    bMbEncIFrameDistInUse;
     bool                    bMbaff;
-    uint32_t                bDirectSpatialMVPredFlag;
     bool                    bColorbitSupported;
-    uint32_t                dwNumSlices;
     uint16_t                usSliceHeight;
     bool                    bGroupIdSelectSupported;
     uint8_t                 ucGroupId;
-    uint32_t                ScoreboardMask;
     uint16_t                usTotalThreadNumPerLcu; //Used by Gen10 HEVC
 } CODECHAL_WALKER_CODEC_PARAMS, *PCODECHAL_WALKER_CODEC_PARAMS;
 
 typedef struct _CODECHAL_SURFACE_CODEC_PARAMS
 {
+    PMOS_SURFACE                psSurface;              // 2D surface parameters
+    PMOS_RESOURCE               presBuffer;             // Buffer parameters
+    uint32_t                    dwSize;                 // Buffer size
+    uint32_t                    dwOffset;               // Buffer offset
+    uint32_t                    dwBindingTableOffset;   // Binding table offset for given surface
+    uint32_t                    dwUVBindingTableOffset; // Binding table offset for the UV plane
+    uint32_t                    dwVerticalLineStride;
+    uint32_t                    dwVerticalLineStrideOffset;
+    uint8_t                     ucVDirection;
+    uint32_t                    dwCacheabilityControl;
+    uint32_t                    ChromaType;
     uint32_t                    Mode;
     bool                        bIs2DSurface;
     bool                        bUseUVPlane;
@@ -90,18 +101,7 @@ typedef struct _CODECHAL_SURFACE_CODEC_PARAMS
     bool                        bRenderTarget;
     bool                        bIsWritable;
     bool                        bUseHalfHeight;
-    PMOS_SURFACE                psSurface;              // 2D surface parameters
-    PMOS_RESOURCE               presBuffer;             // Buffer parameters
-    uint32_t                    dwSize;                 // Buffer size
-    uint32_t                    dwOffset;               // Buffer offset
-    uint32_t                    dwBindingTableOffset;   // Binding table offset for given surface
-    uint32_t                    dwUVBindingTableOffset; // Binding table offset for the UV plane
-    uint32_t                    dwVerticalLineStride;
-    uint32_t                    dwVerticalLineStrideOffset;
-    uint8_t                     ucVDirection;
-    uint32_t                    dwCacheabilityControl;
     bool                        bForceChromaFormat;
-    uint32_t                    ChromaType;
     bool                        bRawSurface;
     uint8_t                     ucSurfaceStateId;
 
