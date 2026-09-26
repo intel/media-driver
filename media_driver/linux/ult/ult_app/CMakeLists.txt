@@ -21,14 +21,11 @@ cmake_minimum_required(VERSION 3.1)
 
 project(devult)
 
-add_subdirectory(googletest)
-
 set(agnostic_cm_tests ../../../agnostic/ult/cm)
 
 set(INTERNAL_INC_PATH
     ../inc
     ./cm
-    ./googletest/include
     ./gpu_cmd
     ${agnostic_cm_tests}
     ../../../linux/common/cp/shared
@@ -59,7 +56,7 @@ else ()
 endif ()
 
 add_executable(devult ${SOURCES})
-target_link_libraries(devult libgtest libdl.so)
+target_link_libraries(devult gtest libdl.so)
 target_include_directories(devult BEFORE PRIVATE
     ${SOFTLET_MOS_PREPEND_INCLUDE_DIRS_}
     ${MOS_PUBLIC_INCLUDE_DIRS_}     ${SOFTLET_MOS_PUBLIC_INCLUDE_DIRS_}
