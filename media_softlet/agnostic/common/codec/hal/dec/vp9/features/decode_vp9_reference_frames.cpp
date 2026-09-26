@@ -188,6 +188,7 @@ namespace decode
         DECODE_FUNC_CALL();
 
         m_activeReferenceList.clear();
+        m_activeReferenceList.reserve(CODECHAL_MAX_CUR_NUM_REF_FRAME_VP9);
         for (auto i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_VP9; i++)
         {
             m_activeReferenceList.push_back(picParams.RefFrameList[i].FrameIdx);
