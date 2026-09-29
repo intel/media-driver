@@ -242,6 +242,7 @@ public:
         }
 
         GetWatchdogThreshold(this->m_osItf);
+        SetManualResetThreshold(this->m_osItf);
 
         return MOS_STATUS_SUCCESS;
     }
@@ -329,10 +330,16 @@ public:
         par = {};
         par.dwData = MHW_MI_WATCHDOG_COUNTS_PER_MILLISECOND * MediaResetParam.watchdogCountThreshold *
             (this->m_osItf->bSimIsActive ? 2 : 1);
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_useManualThreshold)
+        {
+            par.dwData = MediaResetParam.watchdogCountThreshold;
+        }
+#endif
         par.dwRegister = MediaResetParam.watchdogCountThresholdOffset;
         MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer);
 
-        MHW_VERBOSEMESSAGE("MediaReset Threshold is %d for register 0x%x", MediaResetParam.watchdogCountThreshold * (this->m_osItf->bSimIsActive ? 2 : 1), par.dwRegister);
+        MHW_VERBOSEMESSAGE("MediaReset Threshold is %d for register 0x%x", par.dwData, par.dwRegister);
 
         //Start Watchdog Timer
         auto& par1 = MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
@@ -707,6 +714,10 @@ protected:
         uint32_t watchdogCountCtrlOffset     = 0;
         uint32_t watchdogCountThresholdOffset = 0;
     } MediaResetParam;
+    //! \brief If true, the media reset threshold is written to the watchdog
+    //!        threshold register as a raw HW counter, bypassing ms-to-count
+    //!        conversion. Controlled by the Force media reset threshold key.
+    bool m_useManualThreshold = false;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     //! \brief Device-scope watchdog-threshold override, read in the constructor.
@@ -855,6 +866,25 @@ protected:
 #endif
     }
 
+    //! \brief    Read the Force media reset threshold setting. When enabled,
+    //!           Media Reset TH is written as a raw HW counter instead of being
+    //!           converted from milliseconds.
+    void SetManualResetThreshold(PMOS_INTERFACE osInterface)
+    {
+        MediaUserSetting::Value outValue;
+        MediaUserSettingSharedPtr userSettingPtr = osInterface->pfnGetUserSettingInstance(osInterface);
+        MHW_CHK_NULL_NO_STATUS_RETURN(userSettingPtr);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        ReadUserSettingForDebug(
+            userSettingPtr,
+            outValue,
+            __MEDIA_USER_FEATURE_VALUE_FORCE_RESET_THRESHOLD,
+            MediaUserSetting::Group::Device);
+        m_useManualThreshold = outValue.Get<bool>();
+#endif
+    }
+
     //! \brief    Set decoder-specific watchdog threshold based on resolution.
     //!           Override in platform implementations for different threshold tiers.
     virtual void SetDecoderWatchdogThreshold(uint32_t frameWidth, uint32_t frameHeight, uint32_t codecMode)
@@ -908,6 +938,7 @@ protected:
         MediaResetParam.watchdogCountThreshold = MHW_MI_DEFAULT_WATCHDOG_THRESHOLD_IN_MS;
 
         GetWatchdogThreshold(this->m_osItf);
+        SetManualResetThreshold(this->m_osItf);
 
         if (this->m_osItf->bUsesGfxAddress)
         {
