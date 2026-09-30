@@ -3214,6 +3214,22 @@ MOS_STATUS Policy::BuildExecuteCaps(SwFilterPipe& featurePipe, VP_EXECUTE_CAPS &
 
     VP_PUBLIC_CHK_STATUS_RETURN(InitExecuteCaps(caps, engineCapsInputPipe, engineCapsOutputPipe));
 
+    // Deferring rotation to a following FC pass makes this hdr kernel pass a non-final one. It must
+    // not claim the output pipe features, otherwise UpdateFeatureOutputPipe rejects the pipe for
+    // still holding input features, and no intermedia surface would be allocated for it.
+    if (caps.bRenderHdr && caps.bOutputPipeFeatureInuse)
+    {
+        for (uint32_t i = 0; i < featurePipe.GetSurfaceCount(true); ++i)
+        {
+            if (IsHdrKernelRotationDeferNeeded(caps, featurePipe, true, i))
+            {
+                caps.bOutputPipeFeatureInuse = false;
+                VP_PUBLIC_NORMALMESSAGE("Clear bOutputPipeFeatureInuse, rotation is deferred to FC pass.");
+                break;
+            }
+        }
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -3818,6 +3834,95 @@ MOS_STATUS Policy::SetupExecuteFilter(SwFilterPipe& featurePipe, std::vector<int
     return MOS_STATUS_SUCCESS;
 }
 
+bool Policy::IsHdrKernelRotationDeferNeeded(VP_EXECUTE_CAPS caps, SwFilterPipe &featurePipe, bool isInputPipe, uint32_t pipeIndex)
+{
+    VP_FUNC_CALL();
+
+    if (!caps.bRenderHdr || !isInputPipe)
+    {
+        return false;
+    }
+
+    SwFilterSubPipe *subPipe = featurePipe.GetSwFilterSubPipe(isInputPipe, pipeIndex);
+    if (nullptr == subPipe)
+    {
+        return false;
+    }
+
+    SwFilterRotMir *rotMir = dynamic_cast<SwFilterRotMir *>(subPipe->GetSwFilter(FeatureTypeRotMir));
+    if (nullptr == rotMir || VPHAL_ROTATION_IDENTITY == rotMir->GetSwFilterParams().rotation)
+    {
+        return false;
+    }
+
+    VP_SURFACE *inputSurf = featurePipe.GetSurface(isInputPipe, pipeIndex);
+    if (nullptr == inputSurf || nullptr == inputSurf->osSurface)
+    {
+        return false;
+    }
+
+    return Format_P010 != inputSurf->osSurface->Format;
+}
+
+MOS_STATUS Policy::DeferFeatureForHdrKernelRotation(FeatureType filterID, SwFilter *feature, SwFilterPipe &executedFilters,
+                                    bool isInputPipe, uint32_t executePipeIndex)
+{
+    VP_FUNC_CALL();
+    VP_PUBLIC_CHK_NULL_RETURN(feature);
+
+    if (FeatureTypeRotMir == filterID)
+    {
+        // Leave rotation in the feature pipe so the next pass picks it up on FC.
+        feature->SetFeatureType(FeatureTypeRotMir);
+        feature->GetFilterEngineCaps().usedForNextPass = 1;
+        VP_PUBLIC_NORMALMESSAGE("Defer rotation to FC pass, since hdr kernel does not rotate this format correctly.");
+        return MOS_STATUS_SUCCESS;
+    }
+
+    // SwFilterScaling::Update rejects a scaling filter with rotationNeeded set when no rotation
+    // filter is in the same pass. So the hdr kernel pass gets a 1:1 clone (same geometry as the
+    // source); the original, still showing real scale and rotation, is deferred to FC.
+    SwFilterScaling *scaling2ndPass = dynamic_cast<SwFilterScaling *>(feature);
+    VP_PUBLIC_CHK_NULL_RETURN(scaling2ndPass);
+    SwFilterScaling *scaling1stPass = (SwFilterScaling *)feature->Clone();
+    VP_PUBLIC_CHK_NULL_RETURN(scaling1stPass);
+
+    scaling1stPass->GetFilterEngineCaps() = scaling2ndPass->GetFilterEngineCaps();
+    scaling1stPass->SetFeatureType(scaling2ndPass->GetFeatureType());
+
+    FeatureParamScaling &params1stPass = scaling1stPass->GetSwFilterParams();
+
+    params1stPass.rotation.rotationNeeded = false;
+    params1stPass.output.dwWidth          = params1stPass.input.dwWidth;
+    params1stPass.output.dwHeight         = params1stPass.input.dwHeight;
+    params1stPass.input.rcDst             = params1stPass.input.rcSrc;
+    params1stPass.output.rcSrc            = params1stPass.input.rcSrc;
+    params1stPass.output.rcDst            = params1stPass.input.rcSrc;
+    params1stPass.output.rcMaxSrc         = params1stPass.input.rcSrc;
+
+    // SetupFilterResource snapshots this surface into the surface group before
+    // executedFilters->Update() would rewrite its rcDst, so the 1:1 destination must be set here
+    // directly, or the hdr kernel only covers the original target rectangle of the intermedia surface.
+    VP_SURFACE *inputSurf = executedFilters.GetSurface(isInputPipe, executePipeIndex);
+    if (inputSurf)
+    {
+        inputSurf->rcDst = inputSurf->rcSrc;
+    }
+
+    VP_PUBLIC_NORMALMESSAGE("Hdr kernel + FC rotation: 1st pass is 1:1 on %dx%d, scaling and rotation done by FC in 2nd pass.",
+        params1stPass.input.dwWidth, params1stPass.input.dwHeight);
+
+    // Parameters of the 2nd pass filter are deliberately left unchanged: the intermedia surface has
+    // the same geometry as the source, so the original scaling parameters still show it.
+    scaling2ndPass->SetFeatureType(FeatureTypeScaling);
+    scaling2ndPass->GetFilterEngineCaps().value           = 0;
+    scaling2ndPass->GetFilterEngineCaps().usedForNextPass = 1;
+
+    VP_PUBLIC_CHK_STATUS_RETURN(executedFilters.AddSwFilterUnordered(scaling1stPass, isInputPipe, executePipeIndex));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS Policy::UpdateFeaturePipe(SwFilterPipe &featurePipe, uint32_t pipeIndex, SwFilterPipe &executedFilters, uint32_t executePipeIndex,
                                     bool isInputPipe, VP_EXECUTE_CAPS& caps)
 {
@@ -3826,6 +3931,9 @@ MOS_STATUS Policy::UpdateFeaturePipe(SwFilterPipe &featurePipe, uint32_t pipeInd
     uint32_t featureSelected = 0;
 
     VP_PUBLIC_CHK_NULL_RETURN(featureSubPipe);
+
+    bool deferRotationToFc = IsHdrKernelRotationDeferNeeded(caps, featurePipe, isInputPipe, pipeIndex);
+
     // Move swfilter from feature sub pipe to params.executedFilters
     for (auto filterID : m_featurePool)
     {
@@ -3836,6 +3944,13 @@ MOS_STATUS Policy::UpdateFeaturePipe(SwFilterPipe &featurePipe, uint32_t pipeInd
 
             if (engineCaps->usedForNextPass)
             {
+                continue;
+            }
+
+            if (deferRotationToFc && (FeatureTypeRotMir == filterID || FeatureTypeScaling == filterID))
+            {
+                VP_PUBLIC_CHK_STATUS_RETURN(DeferFeatureForHdrKernelRotation(FeatureType(filterID), feature,
+                    executedFilters, isInputPipe, executePipeIndex));
                 continue;
             }
 

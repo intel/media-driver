@@ -135,6 +135,11 @@ protected:
     MOS_STATUS UpdateFeaturePipe(SwFilterPipe &featurePipe, uint32_t pipeIndex, SwFilterPipe &executedFilters, uint32_t executePipeIndex,
                                 bool isInputPipe, VP_EXECUTE_CAPS& caps);
 
+    // Hdr kernel only rotates P010 correctly. For other formats rotation is left to a following FC pass.
+    bool IsHdrKernelRotationDeferNeeded(VP_EXECUTE_CAPS caps, SwFilterPipe &featurePipe, bool isInputPipe, uint32_t pipeIndex);
+    MOS_STATUS DeferFeatureForHdrKernelRotation(FeatureType filterID, SwFilter *feature, SwFilterPipe &executedFilters,
+                                bool isInputPipe, uint32_t executePipeIndex);
+
     MOS_STATUS UpdateFeaturePipeSingleLayer(SwFilterPipe &featurePipe, uint32_t pipeIndex, SwFilterPipe &executedFilters, uint32_t executePipeIndex, VP_EXECUTE_CAPS& caps);
     MOS_STATUS UpdateFeatureOutputPipe(std::vector<int> &layerIndexes, SwFilterPipe &featurePipe, SwFilterPipe &executedFilters, VP_EXECUTE_CAPS& caps);
     MOS_STATUS BuildFilters(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params);
