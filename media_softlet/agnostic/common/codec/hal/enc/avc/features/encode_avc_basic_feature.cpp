@@ -1261,6 +1261,11 @@ MHW_SETPAR_DECL_SRC(VDENC_REF_SURFACE_STATE, AvcBasicFeature)
         params.tileModeGmm = MOS_TILE_4_GMM;
     }
 
+    if (ShouldForceReconTile64ToTile4(m_reconSurface))
+    {
+        params.tileModeGmm = MOS_TILE_4_GMM;
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1602,6 +1607,10 @@ MHW_SETPAR_DECL_SRC(MFX_SURFACE_STATE, AvcBasicFeature)
     params.tilemode         = MhwGetHwTileType(psSurface->TileType, psSurface->TileModeGMM, psSurface->bGMMTileEnabled);
     if (!m_disableTileBToTile4 && params.surfaceId == CODECHAL_MFX_REF_SURFACE_ID &&
         psSurface->TileType == MOS_TILE_B && psSurface->TileModeGMM == MOS_TILE_X_GMM)
+    {
+        params.tilemode = MOS_TILE_4_GMM;
+    }
+    if (params.surfaceId == CODECHAL_MFX_REF_SURFACE_ID && ShouldForceReconTile64ToTile4(*psSurface))
     {
         params.tilemode = MOS_TILE_4_GMM;
     }

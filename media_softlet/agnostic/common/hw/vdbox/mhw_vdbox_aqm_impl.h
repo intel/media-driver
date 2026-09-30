@@ -167,9 +167,9 @@ protected:
 
             cmd.ReconstructedPixelsFrameBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.mmcStateReconSurf);
             cmd.ReconstructedPixelsFrameBufferAddressAttributes.DW0.CompressionType                    = MmcRcEnabled(params.mmcStateReconSurf);
-            cmd.ReconstructedPixelsFrameBufferAddressAttributes.DW0.Tilemode                           = (params.overrideTileBToTile4 && details.TileType == MOS_TILE_B)
-                                                                                                                                               ? MOS_TILE_4_GMM
-                                                                                                                                               : MhwGetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+            cmd.ReconstructedPixelsFrameBufferAddressAttributes.DW0.Tilemode                           = MhwGetHwTileTypeWithOverride(
+                details.TileType, details.TileModeGMM, details.bGMMTileEnabled,
+                params.forceTile64ReconToTile4, params.overrideTileBToTile4);
 
             resourceParams.presResource    = params.surfaceReconBuffer;
             resourceParams.dwOffset        = 0;

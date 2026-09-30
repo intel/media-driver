@@ -3308,6 +3308,8 @@ MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFE
             params.overrideTileBToTile4 = true;
         }
 
+        params.forceTile64ReconToTile4 = m_basicFeature->ShouldForceReconTile64ToTile4(m_basicFeature->m_reconSurface);
+
         return MOS_STATUS_SUCCESS;
     }
 

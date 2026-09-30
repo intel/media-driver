@@ -1816,6 +1816,8 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, Vp9VdencPkt)
         params.overrideTileBToTile4 = true;
     }
 
+    params.forceTile64ReconToTile4 = m_basicFeature->ShouldForceReconTile64ToTile4(m_basicFeature->m_reconSurface);
+
     ENCODE_CHK_NULL_RETURN(m_mmcState);
 
     if (m_mmcState->IsMmcEnabled())
@@ -1856,6 +1858,11 @@ MHW_SETPAR_DECL_SRC(VDENC_REF_SURFACE_STATE, Vp9VdencPkt)
     params.width       = surfParams->dwWidth;
 
     if (!m_basicFeature->m_disableTileBToTile4 && params.tileType == MOS_TILE_B && params.tileModeGmm == MOS_TILE_X_GMM)
+    {
+        params.tileModeGmm = MOS_TILE_4_GMM;
+    }
+
+    if (m_basicFeature->ShouldForceReconTile64ToTile4(*surfParams))
     {
         params.tileModeGmm = MOS_TILE_4_GMM;
     }

@@ -101,6 +101,12 @@ MOS_STATUS EncodeBasicFeature::Init(void *setting)
         m_disableTileBToTile4,
         "DisableTilebToTile4",
         MediaUserSetting::Group::Sequence);
+
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        m_forceTile64ReconToTile4,
+        "ForceTile64ReconSurfaceToTile4",
+        MediaUserSetting::Group::Sequence);
 #endif
 
     if (m_osInterface != nullptr)

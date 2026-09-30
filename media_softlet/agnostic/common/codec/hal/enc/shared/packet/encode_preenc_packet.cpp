@@ -262,6 +262,8 @@ namespace encode
             params.overrideTileBToTile4 = true;
         }
 
+        params.forceTile64ReconToTile4 = m_basicFeature->ShouldForceReconTile64ToTile4(m_basicFeature->m_reconSurface);
+
         params.presMetadataLineBuffer       = m_resMetadataLineBuffer;
         params.presMetadataTileLineBuffer   = m_resMetadataTileLineBuffer;
         params.presMetadataTileColumnBuffer = m_resMetadataTileColumnBuffer;

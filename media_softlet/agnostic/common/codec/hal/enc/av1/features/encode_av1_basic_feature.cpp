@@ -786,6 +786,11 @@ MHW_SETPAR_DECL_SRC(VDENC_REF_SURFACE_STATE, Av1BasicFeature)
         params.tileModeGmm = MOS_TILE_4_GMM;
     }
 
+    if (ShouldForceReconTile64ToTile4(*surface))
+    {
+        params.tileModeGmm = MOS_TILE_4_GMM;
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1146,6 +1151,8 @@ MHW_SETPAR_DECL_SRC(AVP_PIPE_BUF_ADDR_STATE, Av1BasicFeature)
     {
         params.overrideTileBToTile4 = true;
     }
+
+    params.forceTile64ReconToTile4 = ShouldForceReconTile64ToTile4(m_reconSurface);
 
     return MOS_STATUS_SUCCESS;
 }

@@ -1458,9 +1458,9 @@ protected:
         cmd.DecodedPictureMemoryAddressAttributes.DW0.CompressionType                    = MmcRcEnabled(params.PreDeblockSurfMmcState) ? 1 : 0;
         //cmd.DecodedPictureMemoryAddressAttributes.DW0.BaseAddressTiledResourceMode       = Mhw_ConvertToTRMode(params->psPreDeblockSurface->TileType);
 
-        cmd.DecodedPictureMemoryAddressAttributes.DW0.TileMode = (params.overrideTileBToTile4 && params.psPreDeblockSurface->TileType == MOS_TILE_B)
-                                                                   ? MOS_TILE_4_GMM
-                                                                   : MhwGetHwTileType(params.psPreDeblockSurface->TileType, params.psPreDeblockSurface->TileModeGMM, params.psPreDeblockSurface->bGMMTileEnabled);
+        cmd.DecodedPictureMemoryAddressAttributes.DW0.TileMode = MhwGetHwTileTypeWithOverride(
+            params.psPreDeblockSurface->TileType, params.psPreDeblockSurface->TileModeGMM, params.psPreDeblockSurface->bGMMTileEnabled,
+            params.forceTile64ReconToTile4, params.overrideTileBToTile4);
 
         resourceParams.presResource    = &(params.psPreDeblockSurface->OsResource);
         resourceParams.dwOffset        = params.psPreDeblockSurface->dwOffset;
@@ -1684,9 +1684,9 @@ protected:
 
                 if (firstRefPic)
                 {
-                    cmd.ReferencePictureBaseAddressMemoryAddressAttributes.DW0.TileMode = (params.overrideTileBToTile4 && details.TileType == MOS_TILE_B)
-                                                                                              ? MOS_TILE_4_GMM
-                                                                                              : MhwGetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+                    cmd.ReferencePictureBaseAddressMemoryAddressAttributes.DW0.TileMode = MhwGetHwTileTypeWithOverride(
+                        details.TileType, details.TileModeGMM, details.bGMMTileEnabled,
+                        params.forceTile64ReconToTile4, params.overrideTileBToTile4);
                     firstRefPic                                                         = false;
                 }
 
@@ -2080,9 +2080,9 @@ protected:
         details.Format            = Format_Invalid;
         MEDIA_WA_TABLE *m_waTable = this->m_osItf->pfnGetWaTable(this->m_osItf);
         MHW_MI_CHK_STATUS(this->m_osItf->pfnGetResourceInfo(this->m_osItf, &params.psPreDeblockSurface->OsResource, &details));
-        cmd.DecodedPictureMemoryAddressAttributes.DW0.TileMode = (params.overrideTileBToTile4 && details.TileType == MOS_TILE_B)
-                                                                   ? MOS_TILE_4_GMM
-                                                                   : MhwGetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+        cmd.DecodedPictureMemoryAddressAttributes.DW0.TileMode = MhwGetHwTileTypeWithOverride(
+            details.TileType, details.TileModeGMM, details.bGMMTileEnabled,
+            params.forceTile64ReconToTile4, params.overrideTileBToTile4);
 
         for (uint32_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
         {

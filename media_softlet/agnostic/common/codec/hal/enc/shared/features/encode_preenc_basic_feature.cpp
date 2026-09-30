@@ -487,6 +487,11 @@ MHW_SETPAR_DECL_SRC(VDENC_REF_SURFACE_STATE, PreEncBasicFeature)
         params.tileModeGmm = MOS_TILE_4_GMM;
     }
 
+    if (ShouldForceReconTile64ToTile4(m_reconSurface))
+    {
+        params.tileModeGmm = MOS_TILE_4_GMM;
+    }
+
     if (m_reconSurface.Format == Format_Y410 || m_reconSurface.Format == Format_444P || m_reconSurface.Format == Format_AYUV)
     {
         if (m_reconSurface.Format == Format_Y410)

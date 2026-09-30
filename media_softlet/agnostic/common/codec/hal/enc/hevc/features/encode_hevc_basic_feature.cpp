@@ -872,6 +872,11 @@ MHW_SETPAR_DECL_SRC(VDENC_REF_SURFACE_STATE, HevcBasicFeature)
         params.tileModeGmm = MOS_TILE_4_GMM;
     }
 
+    if (ShouldForceReconTile64ToTile4(m_reconSurface))
+    {
+        params.tileModeGmm = MOS_TILE_4_GMM;
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 

@@ -1056,9 +1056,9 @@ protected:
                 {
                     cmd.ReferenceFrameBufferBaseAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.mmcStatePreDeblock);
                     cmd.ReferenceFrameBufferBaseAddressAttributes.DW0.CompressionType                    = MmcRcEnabled(params.mmcStatePreDeblock);
-                    cmd.ReferenceFrameBufferBaseAddressAttributes.DW0.TileMode                           = (params.overrideTileBToTile4 && details.TileType == MOS_TILE_B)
-                                                                                                               ? MOS_TILE_4_GMM
-                                                                                                               : MhwGetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+                    cmd.ReferenceFrameBufferBaseAddressAttributes.DW0.TileMode                           = MhwGetHwTileTypeWithOverride(
+                        details.TileType, details.TileModeGMM, details.bGMMTileEnabled,
+                        params.forceTile64ReconToTile4, params.overrideTileBToTile4);
                     firstRefPic                                                                          = false;
                 }
 
@@ -1081,9 +1081,9 @@ protected:
         //Decoded Output Frame Buffer
         cmd.DecodedOutputFrameBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.mmcStatePreDeblock);
         cmd.DecodedOutputFrameBufferAddressAttributes.DW0.CompressionType                    = MmcRcEnabled(params.mmcStatePreDeblock);
-        cmd.DecodedOutputFrameBufferAddressAttributes.DW0.TileMode                           = (params.overrideTileBToTile4 && params.decodedPic->TileType == MOS_TILE_B)
-                                                                                                                                       ? MOS_TILE_4_GMM
-                                                                                                                                       : MhwGetHwTileType(params.decodedPic->TileType, params.decodedPic->TileModeGMM, params.decodedPic->bGMMTileEnabled);
+        cmd.DecodedOutputFrameBufferAddressAttributes.DW0.TileMode                           = MhwGetHwTileTypeWithOverride(
+            params.decodedPic->TileType, params.decodedPic->TileModeGMM, params.decodedPic->bGMMTileEnabled,
+            params.forceTile64ReconToTile4, params.overrideTileBToTile4);
 
         resourceParams.presResource    = &(params.decodedPic->OsResource);
         resourceParams.dwOffset        = params.decodedPic->dwOffset;

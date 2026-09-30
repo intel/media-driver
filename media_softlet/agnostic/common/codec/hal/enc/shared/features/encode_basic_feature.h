@@ -213,6 +213,26 @@ public:
 
     bool m_disableTileBToTile4 = false;
 
+    bool m_forceTile64ReconToTile4 = true;                              //!< [ForceTile64ReconSurfaceToTile4] Force non-420-8bit encode recon/ref surfaces from Tile64 to Tile4 (default on)
+
+    //!
+    //! \brief  Shared "non-420-8bit" format predicate used by every VDBOX encode engine
+    //! \return true when the encode output is 420 8-bit (the only format the HW allows on Tile64 refs)
+    //!
+    bool Is420_8bit() const
+    {
+        return (m_chromaFormat == HCP_CHROMA_FORMAT_YUV420 && m_bitDepth == 8);
+    }
+
+    //!
+    //! \brief  Shared producer-side decision: should this recon/ref surface be forced Tile64 -> Tile4?
+    //! \return true iff the force is enabled, the format is non-420-8bit, and the surface is Tile64
+    //!
+    bool ShouldForceReconTile64ToTile4(const MOS_SURFACE &surf) const
+    {
+        return m_forceTile64ReconToTile4 && !Is420_8bit() && surf.TileModeGMM == MOS_TILE_64_GMM;
+    }
+
 protected:
     //!
     //! \brief  Update the parameters of tracked buffers

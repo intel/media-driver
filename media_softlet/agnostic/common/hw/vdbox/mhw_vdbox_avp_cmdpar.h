@@ -390,6 +390,7 @@ struct _MHW_PAR_T(AVP_PIPE_BUF_ADDR_STATE)
     PMOS_RESOURCE     filmGrainSampleTemplateBuffer    = nullptr;
     PMOS_RESOURCE     filmGrainOutputSurface           = nullptr;
     bool              overrideTileBToTile4             = false;
+    bool              forceTile64ReconToTile4          = false;  //!< Force non-420-8bit encode recon/ref from Tile64 to Tile4 (encode-only; decode leaves false)
 };
 
 struct _MHW_PAR_T(AVP_INTER_PRED_STATE)

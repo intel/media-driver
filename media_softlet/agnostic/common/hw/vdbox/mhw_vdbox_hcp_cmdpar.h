@@ -547,6 +547,7 @@ struct _MHW_PAR_T(HCP_PIPE_BUF_ADDR_STATE)
     PMOS_RESOURCE presCABACSyntaxStreamOutBuffer       = nullptr;
     PMOS_RESOURCE presCABACSyntaxStreamOutMaxAddr      = nullptr;
     bool          overrideTileBToTile4                 = false;
+    bool          forceTile64ReconToTile4              = false;  //!< Force non-420-8bit encode recon/ref from Tile64 to Tile4 (encode-only; decode leaves false)
 };
 
 struct _MHW_PAR_T(HCP_PAK_INSERT_OBJECT)

@@ -203,6 +203,8 @@ MHW_SETPAR_DECL_SRC(AQM_PIPE_BUF_ADDR_STATE, Av1EncodeAqm)
                 params.overrideTileBToTile4 = true;
             }
 
+            params.forceTile64ReconToTile4 = m_basicFeature->ShouldForceReconTile64ToTile4(m_basicFeature->m_reconSurface);
+
             if (mmcEnabled)
             {
                 ENCODE_CHK_STATUS_RETURN(basicFeature->m_mmcState->GetSurfaceMmcState(const_cast<PMOS_SURFACE>(&m_basicFeature->m_rawSurface), &params.mmcStateRawSurf));
