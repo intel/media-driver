@@ -329,10 +329,16 @@ public:
         par = {};
         par.dwData = MHW_MI_WATCHDOG_COUNTS_PER_MILLISECOND * MediaResetParam.watchdogCountThreshold *
             (this->m_osItf->bSimIsActive ? 2 : 1);
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_useManualThreshold)
+        {
+            par.dwData = MediaResetParam.watchdogCountThreshold;
+        }
+#endif
         par.dwRegister = MediaResetParam.watchdogCountThresholdOffset;
         MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer);
 
-        MHW_VERBOSEMESSAGE("MediaReset Threshold is %d for register 0x%x", MediaResetParam.watchdogCountThreshold * (this->m_osItf->bSimIsActive ? 2 : 1), par.dwRegister);
+        MHW_VERBOSEMESSAGE("MediaReset Threshold is %d for register 0x%x", par.dwData, par.dwRegister);
 
         //Start Watchdog Timer
         auto& par1 = MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
@@ -711,6 +717,9 @@ protected:
 #if (_DEBUG || _RELEASE_INTERNAL)
     //! \brief Device-scope watchdog-threshold override, read in the constructor.
     uint32_t m_watchdogThresholdOverride = 0;
+    //! \brief Device-scope "Force media reset threshold" flag, read in the constructor.
+    //!        When set, the threshold is written as a raw HW counter without ms conversion.
+    bool m_useManualThreshold = false;
 #endif
 
     //! \brief Watchdog timer register offsets per engine, initialized by platform.
@@ -946,6 +955,11 @@ public:
             m_userSettingPtr,
             m_watchdogThresholdOverride,
             __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_TH,
+            MediaUserSetting::Group::Device);
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            m_useManualThreshold,
+            __MEDIA_USER_FEATURE_VALUE_FORCE_RESET_THRESHOLD,
             MediaUserSetting::Group::Device);
 #endif
     }
