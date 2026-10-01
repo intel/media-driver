@@ -95,6 +95,14 @@ typedef struct _PIPECONTRL_PARAMS
 
 typedef struct _KERNEL_WALKER_PARAMS
 {
+    uint8_t*                            inlineData;
+    PMHW_INLINE_DATA_PARAMS             inlineDataParamBase;
+    uint32_t                            inlineDataLength;
+    uint32_t                            inlineDataParamSize;
+    uint32_t                            slmSize;
+    bool                                isEmitInlineParameter;
+    bool                                hasBarrier;
+
     int32_t                             iBindingTable;
     int32_t                             iMediaID;
     int32_t                             iCurbeOffset;
@@ -111,10 +119,6 @@ typedef struct _KERNEL_WALKER_PARAMS
     bool                                isGroupStartInvolvedInGroupSize;    // true if group start need be involved in the group size.
     bool                                calculateBlockXYByAlignedRect;      // true if iBlocksX/iBlocksY is calculated by alignedRect in RenderCmdPacket instead of kernel object.
     bool                                forcePreferredSLMZero;              // true if preferredSLM need force to 0.
-
-    bool                                isEmitInlineParameter;
-    uint32_t                            inlineDataLength;
-    uint8_t*                            inlineData;
 
     uint32_t                            threadWidth;
     uint32_t                            threadHeight;

@@ -100,6 +100,8 @@ struct MhwVdboxAvpPakInsertObjParams
 {
     PBSBuffer pBsBuffer;
     // also reuse dwBitSize for passing SrcDataEndingBitInclusion when (pEncoder->bLastPicInStream || pEncoder->bLastPicInSeq)
+    uint32_t *        pdwMpeg2PicHeaderTotalBufferSize;
+    uint32_t *        pdwMpeg2PicHeaderDataStartOffset;
     uint32_t          dwBitSize;
     uint32_t          dwOffset;
     uint32_t          uiSkipEmulationCheckCount;
@@ -110,8 +112,6 @@ struct MhwVdboxAvpPakInsertObjParams
     bool              bSetLastPicInStreamData;
     bool              bSliceHeaderIndicator;
     bool              bHeaderLengthExcludeFrmSize;
-    uint32_t *        pdwMpeg2PicHeaderTotalBufferSize;
-    uint32_t *        pdwMpeg2PicHeaderDataStartOffset;
     bool              bResetBitstreamStartingPos;
     uint32_t          m_endOfHeaderInsertion;
     uint32_t          dwLastPicInSeqData;
@@ -196,15 +196,15 @@ public:
 
 struct MhwVdboxAvpBufferSizeParams
 {
-    uint8_t                         m_bitDepthIdc;
     uint32_t                        m_picWidth;                // picWidth in SB
     uint32_t                        m_picHeight;               // picHeight in SB
     uint32_t                        m_tileWidth;               // tileWidth in SB
     uint32_t                        m_bufferSize;
-    bool                            m_isSb128x128;
     uint32_t                        m_curFrameTileNum;
     uint32_t                        m_numTileCol;
     uint8_t                         m_numOfActivePipes;
+    uint8_t                         m_bitDepthIdc;
+    bool                            m_isSb128x128;
 };
 
 struct MhwVdboxAvpBufferReallocParams
