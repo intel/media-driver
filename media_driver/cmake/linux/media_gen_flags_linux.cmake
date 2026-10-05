@@ -118,7 +118,7 @@ endif()
 
 option(LNL "Enable LNL support" ON)
 
-if(LNL)
+if(LNL OR CRI)
     option(XE2_LPM_SUPPORT "Enable XE2_LPM support" ON)
 endif()
 
@@ -135,11 +135,11 @@ if(CRI)
     add_definitions(-DIGFX_CRI_SUPPORTED)
 endif()
 
-if(LNL OR BMG OR NVL)
+if(LNL OR BMG OR NVL OR CRI)
     option(XE2_HPG "Enable XE2_HPG support" ON)
 endif()
 
-if(LNL)
+if(LNL OR CRI)
     option(Xe2_M_plus "Enable Xe2_M_plus support" ON)
 endif()
 
