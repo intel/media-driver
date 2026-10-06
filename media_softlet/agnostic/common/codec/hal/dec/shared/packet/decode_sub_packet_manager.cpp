@@ -66,7 +66,7 @@ MOS_STATUS DecodeSubPacketManager::Init()
 {
     for (auto subPacket : m_subPacketList)
     {
-        subPacket.second->Init();
+        DECODE_CHK_STATUS(subPacket.second->Init());
     }
     return MOS_STATUS_SUCCESS;
 }
