@@ -410,6 +410,24 @@ MOS_STATUS HevcBasicFeature::NumEntryPointOffsetsCheck(uint32_t sliceIdx)
                 return MOS_STATUS_INVALID_PARAMETER;
             }
         }
+
+        /* The formulas above are derived straight from the HEVC spec (WPP/tile math) and can permit
+           values above the actual capacity of entry_point_offset_minus1[CODEC_HEVC_MAX_ENTRY_POINT_OFFSETS].
+           EntryOffsetToSubsetArray is also never validated anywhere else, even though it carries the same
+           documented [0..540] range as num_entry_point_offsets. Both are used together as
+           entry_point_offset_minus1[EntryOffsetToSubsetArray .. EntryOffsetToSubsetArray + num_entry_point_offsets],
+           so bound the pair against the real array capacity here. */
+        if (m_hevcSliceParams[sliceIdx].EntryOffsetToSubsetArray >= CODEC_HEVC_MAX_ENTRY_POINT_OFFSETS ||
+            m_hevcSliceParams[sliceIdx].num_entry_point_offsets >
+                CODEC_HEVC_MAX_ENTRY_POINT_OFFSETS - 1 - m_hevcSliceParams[sliceIdx].EntryOffsetToSubsetArray)
+        {
+            DECODE_ASSERTMESSAGE(
+                "EntryOffsetToSubsetArray %d + num_entry_point_offsets %d exceeds entry_point_offset_minus1[] capacity %d\n",
+                m_hevcSliceParams[sliceIdx].EntryOffsetToSubsetArray,
+                m_hevcSliceParams[sliceIdx].num_entry_point_offsets,
+                CODEC_HEVC_MAX_ENTRY_POINT_OFFSETS);
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
     }
     return MOS_STATUS_SUCCESS;
 }

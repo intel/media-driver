@@ -723,7 +723,7 @@ std::ostream &operator<<(std::ostream &oss, const CODEC_HEVC_SUBSET_PARAMS &cr)
 {
     const CODEC_HEVC_SUBSET_PARAMS *subsetsParams = &cr;
 
-    for (uint16_t i = 0; i < 440; i++)
+    for (uint16_t i = 0; i < CODEC_HEVC_MAX_ENTRY_POINT_OFFSETS; i++)
     {
         oss << "entry_point_offset_minus1[" << +i << "]: " << +subsetsParams->entry_point_offset_minus1[i] << std::endl;
     }
