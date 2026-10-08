@@ -21,6 +21,7 @@
 */
 
 #include "cm_include.h"
+#include <stdlib.h>
 #include "cm_printf_host.h"
 #include "cm_debug.h"
 #include "cm_mem.h"
