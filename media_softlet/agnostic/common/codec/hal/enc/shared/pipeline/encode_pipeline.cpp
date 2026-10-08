@@ -302,7 +302,7 @@ MOS_STATUS EncodePipeline::WaitForBatchBufferComplete()
 {
     ENCODE_CHK_NULL_RETURN(m_statusReport);
 
-    const uint32_t completedFrames = m_statusReport->GetCompletedCount();
+    uint32_t completedFrames = m_statusReport->GetCompletedCount();
 
     if (!m_hwInterface->IsSimActive() &&
         m_recycledBufStatusNum[m_currRecycledBufIdx] > completedFrames)
@@ -318,6 +318,7 @@ MOS_STATUS EncodePipeline::WaitForBatchBufferComplete()
             }
 
             MosUtilities::MosSleep(MHW_EVENT_TIMEOUT_MS);
+            completedFrames = m_statusReport->GetCompletedCount();
         }
 
         ENCODE_VERBOSEMESSAGE("Waited for %d ms", (MHW_TIMEOUT_MS_DEFAULT - waitMs));
