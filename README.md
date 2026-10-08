@@ -97,8 +97,8 @@ Media driver contains three components as below
 - **Video processing** supports several popular features by hardware-based video processor(VEBox/SFC) and shader(media kernel) based solution together.
 
 Media driver supports below two builds
-- **Full Feature Build** is ***default*** driver build, which supports all feature by hardware accelerator and close source shaders(media kernel binaries). Most of OSVs(like RHEL/SUSE/fedora) are using this build.
-- **Free Kernel Build**, enables fully open source shaders(media kernels) and hardware features but the features would be limited.
+- **Full Feature Build** is ***default*** driver build, which supports all feature by hardware accelerator and close source shaders(media kernel binaries).
+- **Free Kernel Build**, enables fully open source shaders(media kernels) and hardware features but the features would be limited. Some OSVs ship this build by default for legal reasons; for example Fedora and RHEL(EPEL) package it as `intel-media-driver-free`, and provide the Full Feature Build only through third-party repositories (such as RPM Fusion non-free) or Intel's own graphics repository.
 
 About Ubuntu/Debian OSV, they provide [intel-media-va-driver-non-free](https://packages.ubuntu.com/search?keywords=intel-media-driver-non-free&searchon=sourcenames) (Full feature build) and [intel-media-va-driver](https://packages.ubuntu.com/search?keywords=intel-media-driver&searchon=sourcenames) (Free kernel build) two packages. ***Free*** here means open source kernel but not related to fee need to pay. You could refer to [build options](https://github.com/intel/media-driver?tab=readme-ov-file#build-options) for more detail.
 
