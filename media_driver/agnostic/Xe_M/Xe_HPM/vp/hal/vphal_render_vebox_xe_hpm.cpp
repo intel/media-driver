@@ -71,6 +71,7 @@ VPHAL_VEBOX_STATE_XE_HPM::VPHAL_VEBOX_STATE_XE_HPM(
         veboxMaxPipeNum = gtSystemInfo->MaxVECS;
     }
 
+    m_veCmdBuffers.reserve(veboxMaxPipeNum);
     for (i = 0; i < veboxMaxPipeNum; i++)
     {
         PMOS_COMMAND_BUFFER pCmdBuffer = (PMOS_COMMAND_BUFFER)MOS_AllocAndZeroMemory(sizeof(MOS_COMMAND_BUFFER));

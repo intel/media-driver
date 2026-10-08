@@ -91,6 +91,7 @@ static int64_t __xe_bufmgr_debug__;
     }
 
 #define MOS_XE_GET_VALUES_FROM_MAP(map_datas, v_datas)                          \
+    v_datas.reserve(map_datas.size());                                           \
     for (auto &it : map_datas)                                                  \
     {                                                                           \
         v_datas.push_back(it.second);                                           \

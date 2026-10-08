@@ -157,6 +157,7 @@ public:
     void OverwriteSteppingTable(const char **newTable, int len)
     {
         m_steppingTable.clear();
+        m_steppingTable.reserve(len);
         for (int i = 0; i < len; i ++)
         {
             m_steppingTable.push_back(newTable[i]);

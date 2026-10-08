@@ -53,11 +53,13 @@ ISAfile::ISAfile(const ISAfile& other) {
     errorIndex = other.errorIndex;
     header = new Header(other.version);
     *header = *other.header;
+    kernel_data.reserve(other.kernel_data.size());
     for (KernelBody *kb : other.kernel_data) {
         KernelBody *kb2 = new KernelBody(other.version);
         *kb2 = *kb;
         kernel_data.push_back(kb2);
     }
+    function_data.reserve(other.function_data.size());
     for (FunctionBody *fb : other.function_data) {
         FunctionBody *fb2 = new FunctionBody(other.version);
         *fb2 = *fb;
@@ -90,8 +92,10 @@ ISAfile& ISAfile::operator= (const ISAfile& other) {
             delete kb;
         for (FunctionBody *fb : function_data)
             delete fb;
+        kernel_data.reserve(other.kernel_data.size());
         for (KernelBody *kb : other.kernel_data)
             kernel_data.push_back(&*kb);
+        function_data.reserve(other.function_data.size());
         for (FunctionBody *fb : other.function_data)
             function_data.push_back(&*fb);
     }
@@ -133,6 +137,7 @@ bool ISAfile::loadHeader() {
 
 bool ISAfile::loadKernelData() {
     const uint8_t *p = 0;
+    kernel_data.reserve(header->getKernelInfo().size());
     for (Kernel *k : header->getKernelInfo()) {
         KernelBody *kb = new KernelBody(version);
         p = kb->parse(data + k->getOffset(), end, this);
@@ -148,6 +153,7 @@ bool ISAfile::loadKernelData() {
 
 bool ISAfile::loadFunctionData() {
     const uint8_t *p = 0;
+    function_data.reserve(header->getFunctionInfo().size());
     for (Function *f : header->getFunctionInfo()) {
         FunctionBody *fb = new FunctionBody(version);
         p = fb->parse(data + f->getOffset(), end, this);
@@ -270,6 +276,7 @@ bool ISAfile::writeToFile(const char *filename, std::vector<uint8_t> &originalBu
                 setError("Error writing GEN binary into ISA file, bad offset from original file", 0);
                 return false;
             }
+            buffer.reserve(g->getBinarySize());
             for (uint32_t b = 0; b < g->getBinarySize(); b++) {
                 buffer.push_back(static_cast<char>(originalBuffer[offset + b]));
             }
@@ -285,14 +292,17 @@ void ISAfile::addToBuffer(Field &field, std::vector<char> &buffer) {
     switch (field.type) {
     case Datatype::ONE: buffer.push_back(field.ui8[0]); break;
     case Datatype::TWO: buffer.push_back(field.ui8[0]); buffer.push_back(field.ui8[1]); break;
-    case Datatype::FOUR: buffer.push_back(field.ui8[0]); buffer.push_back(field.ui8[1]);
+    case Datatype::FOUR: buffer.reserve(4);
+        buffer.push_back(field.ui8[0]); buffer.push_back(field.ui8[1]);
         buffer.push_back(field.ui8[2]); buffer.push_back(field.ui8[3]); break;
-    case Datatype::EIGHT: buffer.push_back(field.ui8[0]); buffer.push_back(field.ui8[1]);
+    case Datatype::EIGHT: buffer.reserve(8);
+        buffer.push_back(field.ui8[0]); buffer.push_back(field.ui8[1]);
         buffer.push_back(field.ui8[2]); buffer.push_back(field.ui8[3]);
         buffer.push_back(field.ui8[4]); buffer.push_back(field.ui8[5]);
         buffer.push_back(field.ui8[6]); buffer.push_back(field.ui8[7]); break;
     case Datatype::VARCHAR:
     {
+        buffer.reserve(field.size);
         for (unsigned i = 0; i < field.size; i++) {
             buffer.push_back(static_cast<char>(field.varchar[i]));
         }
@@ -300,6 +310,7 @@ void ISAfile::addToBuffer(Field &field, std::vector<char> &buffer) {
     }
     case Datatype::VARCHAR_POOL:
     {
+        buffer.reserve(field.size);
         for (unsigned i = 0; i < field.size; i++) {
             buffer.push_back(static_cast<char>(field.varchar[i]));
         }
@@ -307,6 +318,7 @@ void ISAfile::addToBuffer(Field &field, std::vector<char> &buffer) {
     }
     case Datatype::GDATA:
     {
+        buffer.reserve(field.size);
         for (unsigned i = 0; i < field.size; i++) {
             buffer.push_back(static_cast<char>(field.gdata[i]));
         }
