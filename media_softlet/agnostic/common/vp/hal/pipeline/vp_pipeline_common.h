@@ -210,6 +210,7 @@ struct _VP_EXECUTE_CAPS
             uint64_t bSfcScaling    : 1;   // Sfc Scaling Needed
             uint64_t bSfcIef        : 1;   // Sfc Details Needed
             uint64_t b1stPassOfSfc2PassScaling : 1; // 1st pass of sfc 2pass scaling
+            uint64_t bSfcThenFcScaling : 1; // 1st pass (sfc, clamped to its native ratio range) of sfc+fc scaling
 
             // Render Features
             uint64_t bComposite     : 1;
@@ -271,6 +272,8 @@ typedef struct _VP_EngineEntry
             uint64_t diProcess2ndField : 1;
             uint64_t sfc2PassScalingNeededX : 1;
             uint64_t sfc2PassScalingNeededY : 1;
+            uint64_t sfcNativeThenFcNeededX : 1; // ratio beyond sfc's native range: sfc scales to the boundary, fc the rest
+            uint64_t sfcNativeThenFcNeededY : 1;
             uint64_t usedForNextPass : 1;       // true if current feature should be bypassed for current pass and be processed during next pass.
             uint64_t sfcNotSupported : 1;       // true if sfc cannot be selected.
             uint64_t veboxNotSupported : 1;     // true if vebox cannot be selected.

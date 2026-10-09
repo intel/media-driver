@@ -225,6 +225,8 @@ public:
 
 private:
     uint32_t Get1stPassScaledSize(uint32_t input, uint32_t output, bool is2PassNeeded, uint32_t alignUnit);
+    uint32_t GetSfcNativeBoundaryScaledSize(uint32_t input, uint32_t output, bool isNativeThenFcNeeded,
+                                    float scaleMin, float scaleMax, uint32_t alignUnit);
 
     PacketParamFactory<VpSfcScalingParameter> m_PacketParamFactory;
 

@@ -1689,21 +1689,16 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
         {
             // For scRGB output (RGB64 float + GAMMA_1P0), the PQ/gamma EOTF, the BT2020->P709 CCM and the
             // 80-nit FP16 gain are applied by the SFC FP16 output block only (SFC_STATE Fp16OutputEnable +
-            // EOTF/CCM indirect state). FC has no equivalent, so falling the scaling back to render leaves
-            // the post-HDR CSC on FC, which applies a plain scale/offset instead. Keep such cases on SFC
-            // and let 2 pass SFC scaling cover [1/16, 1/8) and (8, 16].
-            bool forceSfcMultiPassForHdr = isHdrEnabled && isFullRgbG10P709Output &&
-                                           m_hwCaps.m_rules.sfcMultiPassSupport.scaling.enable;
-            if (forceSfcMultiPassForHdr)
-            {
-                VP_PUBLIC_NORMALMESSAGE("Keep scaling on SFC for scRGB output. fScaleX %f, fScaleY %f", fScaleX, fScaleY);
-            }
+            // EOTF/CCM indirect state). FC has no equivalent, so falling back to render loses that
+            // processing. Keep such cases on SFC regardless of ratio; scaling beyond SFC's native range
+            // is deferred to FC in a following pass.
+            bool isFp16HdrScaling = isHdrEnabled && isFullRgbG10P709Output;
 
-            if ((m_hwCaps.m_rules.sfcMultiPassSupport.scaling.enable             &&
+            if ((!isFp16HdrScaling && m_hwCaps.m_rules.sfcMultiPassSupport.scaling.enable &&
                 (OUT_OF_BOUNDS(fScaleX, fScaleMin2Pass, fScaleMax2Pass)          ||
                  OUT_OF_BOUNDS(fScaleY, fScaleMin2Pass, fScaleMax2Pass)))        ||
-                ((!m_hwCaps.m_rules.sfcMultiPassSupport.scaling.enable           ||
-                  (isHdrEnabled && !forceSfcMultiPassForHdr))                    &&   // Ve HDR + (8, 16] && [1/16, 1/8) scaling on render, not use 2 Pass SFC for scaling,
+                (!isFp16HdrScaling &&
+                 (!m_hwCaps.m_rules.sfcMultiPassSupport.scaling.enable || isHdrEnabled) &&   // Ve HDR + (8, 16] && [1/16, 1/8) scaling on render, not use 2 Pass SFC for scaling,
                 (OUT_OF_BOUNDS(fScaleX, fScaleMin, fScaleMax)                    ||   // since A10R10G10B10/ARGB8 cannot be used as the input of vebox when global IECP being enabled.
                  OUT_OF_BOUNDS(fScaleY, fScaleMin, fScaleMax)))                  ||
                 (scalingParams->scalingPreference == VPHAL_SCALING_PREFER_COMP))
@@ -1745,6 +1740,16 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
                     // Set sfcNotSupported to 1 to avoid SFC being selected without scaling filter.
                     scalingEngine->sfcNotSupported = 1;
                     VP_PUBLIC_NORMALMESSAGE("VPOutputPipe will be render(0) since force 2 pass scaling + DI switch to render path.");
+                }
+                else if (isFp16HdrScaling && multiPassNeeded)
+                {
+                    // Scale on SFC up to its native range (the FP16 block is needed), the rest on FC.
+                    scalingEngine->SfcNeeded              = 1;
+                    scalingEngine->sfcNativeThenFcNeededX = sfc2PassScalingNeededX ? 1 : 0;
+                    scalingEngine->sfcNativeThenFcNeededY = sfc2PassScalingNeededY ? 1 : 0;
+                    // Not the final pass: keeps InitExecuteCaps from claiming bOutputPipeFeatureInuse.
+                    scalingEngine->multiPassNeeded        = multiPassNeeded;
+                    VP_PUBLIC_NORMALMESSAGE("Sfc + Fc scaling selected for fp16 scRGB output. fScaleX %f, fScaleY %f", fScaleX, fScaleY);
                 }
                 else if (!m_hwCaps.m_rules.isAvsSamplerSupported && scalingParams->isPrimary && isAlphaSettingSupportedBySfc)
                 {
@@ -4288,6 +4293,10 @@ MOS_STATUS Policy::UpdateExeCaps(SwFilter* feature, VP_EXECUTE_CAPS& caps, Engin
             if (feature->GetFilterEngineCaps().sfc2PassScalingNeededX || feature->GetFilterEngineCaps().sfc2PassScalingNeededY)
             {
                 caps.b1stPassOfSfc2PassScaling = true;
+            }
+            else if (feature->GetFilterEngineCaps().sfcNativeThenFcNeededX || feature->GetFilterEngineCaps().sfcNativeThenFcNeededY)
+            {
+                caps.bSfcThenFcScaling = true;
             }
             feature->SetFeatureType(FeatureType(FEATURE_TYPE_EXECUTE(Scaling, Sfc)));
             break;

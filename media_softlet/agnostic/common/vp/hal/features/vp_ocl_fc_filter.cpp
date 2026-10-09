@@ -1046,7 +1046,7 @@ MOS_STATUS VpOclFcFilter::GenerateFcCommonKrnParam(OCL_FC_COMP_PARAM &compParam,
     OCL_FC_KRN_TARGET_PARAM             targetParam = {};
     for (uint32_t i = 0; i < compParam.layerNumber; ++i)
     {
-        VP_RENDER_CHK_STATUS_RETURN(GenerateInputImageParam(compParam.inputLayersParam[i], compParam.mainCSpace, imageParams.at(i)));
+        VP_RENDER_CHK_STATUS_RETURN(GenerateInputImageParam(compParam.inputLayersParam[i], compParam.mainCSpace, compParam.outputLayerParam.surf, imageParams.at(i)));
     }
     VP_RENDER_CHK_STATUS_RETURN(GenerateTargetParam(compParam, targetParam));
     PrintKrnParam(imageParams, targetParam);
@@ -2272,7 +2272,7 @@ MOS_STATUS VpOclFcFilter::GetBitNumber(MOS_FORMAT format, uint8_t *pOriginBitNum
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpOclFcFilter::GenerateInputImageParam(OCL_FC_LAYER_PARAM &layer, VPHAL_CSPACE mainCSpace, OCL_FC_KRN_IMAGE_PARAM &imageParam)
+MOS_STATUS VpOclFcFilter::GenerateInputImageParam(OCL_FC_LAYER_PARAM &layer, VPHAL_CSPACE mainCSpace, VP_SURFACE *outputSurf, OCL_FC_KRN_IMAGE_PARAM &imageParam)
 {
     VP_FUNC_CALL();
     VP_PUBLIC_CHK_NULL_RETURN(layer.surf);
@@ -2297,6 +2297,12 @@ MOS_STATUS VpOclFcFilter::GenerateInputImageParam(OCL_FC_LAYER_PARAM &layer, VPH
         imageParam.lumaKey.low  = -1.f;
         imageParam.lumaKey.high = -1.f;
     }
+
+    // fp16 scRGB target: values can exceed 1.0, so the kernel must not clamp the post-csc value to [0,1].
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(outputSurf->osSurface);
+    imageParam.extendedRange = (IS_RGB64_FLOAT_FORMAT(outputSurf->osSurface->Format) &&
+                                VPHAL_GAMMA_1P0 == outputSurf->GammaType) ? 1 : 0;
 
     return MOS_STATUS_SUCCESS;
 }

@@ -170,7 +170,7 @@ protected:
             float low;
             float high;
         } lumaKey;
-        uint32_t                       reserved;
+        uint32_t                       extendedRange;
     } OCL_FC_KRN_IMAGE_PARAM;
 
     typedef struct _OCL_FC_KRN_TARGET_PARAM
@@ -262,7 +262,7 @@ protected:
     MOS_STATUS GetBitNumber(MOS_FORMAT format, uint8_t *pOriginBitNumber, uint8_t *pStoredBitNumber, uint8_t *pAlphaBitNumber);
 
     //OCL FC common kernel input image parameter generate
-    MOS_STATUS GenerateInputImageParam(OCL_FC_LAYER_PARAM &layer, VPHAL_CSPACE mainCSpace, OCL_FC_KRN_IMAGE_PARAM &imageParam);
+    MOS_STATUS GenerateInputImageParam(OCL_FC_LAYER_PARAM &layer, VPHAL_CSPACE mainCSpace, VP_SURFACE *outputSurf, OCL_FC_KRN_IMAGE_PARAM &imageParam);
     MOS_STATUS ConvertProcampAndCscToKrnParam(VPHAL_CSPACE srcColorSpace, VPHAL_CSPACE dstColorSpace, OCL_FC_KRN_CSC_MATRIX &csc, VPHAL_PROCAMP_PARAMS &procampParams);
     MOS_STATUS GenerateProcampCscMatrix(VPHAL_CSPACE srcColorSpace, VPHAL_CSPACE dstColorSpace, float *cscMatrix, VPHAL_PROCAMP_PARAMS &procampParams);
     MOS_STATUS ConvertScalingRotToKrnParam(RECT &rcSrc, RECT &rcDst, VPHAL_SCALING_MODE scalingMode, uint32_t inputWidth, uint32_t inputHeight, VPHAL_ROTATION rotation, OCL_FC_KRN_SCALE_PARAM &scaling, uint8_t &samplerType, OCL_FC_KRN_COORD_SHIFT_PARAM &coordShift);

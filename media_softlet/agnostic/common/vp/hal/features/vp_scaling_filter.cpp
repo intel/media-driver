@@ -942,6 +942,28 @@ uint32_t PolicySfcScalingHandler::Get1stPassScaledSize(uint32_t input, uint32_t 
     return scaledSize;
 }
 
+uint32_t PolicySfcScalingHandler::GetSfcNativeBoundaryScaledSize(uint32_t input, uint32_t output, bool isNativeThenFcNeeded,
+                                float scaleMin, float scaleMax, uint32_t alignUnit)
+{
+    VP_FUNC_CALL();
+
+    if (!isNativeThenFcNeeded)
+    {
+        return output;
+    }
+
+    // Scale as far as sfc's native ratio range allows without overshooting the real target;
+    // fc scales the remainder in the following pass. Round inward so the ratio stays inside the range.
+    if (input >= output)
+    {
+        return MOS_ALIGN_CEIL(MOS_MAX(output, (uint32_t)ceil(input * scaleMin)), alignUnit);
+    }
+    else
+    {
+        return MOS_ALIGN_FLOOR(MOS_MIN(output, (uint32_t)(input * scaleMax)), alignUnit);
+    }
+}
+
 MOS_STATUS PolicySfcScalingHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &feature, SwFilterPipe &featurePipe, SwFilterPipe &executePipe, bool isInputPipe, int index)
 {
     VP_FUNC_CALL();
@@ -949,7 +971,78 @@ MOS_STATUS PolicySfcScalingHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFi
     SwFilterScaling *featureScaling = dynamic_cast<SwFilterScaling *>(&feature);
     VP_PUBLIC_CHK_NULL_RETURN(featureScaling);
 
-    if (caps.b1stPassOfSfc2PassScaling)
+    if (caps.bSfcThenFcScaling)
+    {
+        uint32_t         widthAlignUnit  = 0;
+        uint32_t         heightAlignUnit = 0;
+        PVP_MHWINTERFACE hwInterface     = featureScaling->GetHwInterface();
+        VP_PUBLIC_CHK_NULL_RETURN(hwInterface);
+        VP_PUBLIC_CHK_NULL_RETURN(hwInterface->m_vpPlatformInterface);
+        hwInterface->m_vpPlatformInterface->GetInputFrameWidthHeightAlignUnit(hwInterface, widthAlignUnit, heightAlignUnit, false, CODECHAL_STANDARD_MAX, jpegYUV400);
+
+        SwFilterScaling *filter2ndPass = featureScaling;
+        SwFilterScaling *filter1ndPass = (SwFilterScaling *)feature.Clone();
+
+        VP_PUBLIC_CHK_NULL_RETURN(filter1ndPass);
+        VP_PUBLIC_CHK_NULL_RETURN(filter2ndPass);
+
+        filter1ndPass->GetFilterEngineCaps() = filter2ndPass->GetFilterEngineCaps();
+        filter1ndPass->SetFeatureType(filter2ndPass->GetFeatureType());
+
+        FeatureParamScaling &params2ndPass = filter2ndPass->GetSwFilterParams();
+        FeatureParamScaling &params1stPass = filter1ndPass->GetSwFilterParams();
+
+        uint32_t inputWidth   = params1stPass.input.rcSrc.right  - params1stPass.input.rcSrc.left;
+        uint32_t inputHeight  = params1stPass.input.rcSrc.bottom - params1stPass.input.rcSrc.top;
+        uint32_t outputWidth  = params1stPass.input.rcDst.right  - params1stPass.input.rcDst.left;
+        uint32_t outputHeight = params1stPass.input.rcDst.bottom - params1stPass.input.rcDst.top;
+
+        // Same native ratio bounds as the sfcNativeThenFcNeededX/Y decision in Policy::GetScalingExecutionCaps.
+        float fScaleMin = m_hwCaps.m_sfcHwEntry[params1stPass.formatInput].minScalingRatio;
+        float fScaleMax = m_hwCaps.m_sfcHwEntry[params1stPass.formatInput].maxScalingRatio;
+
+        uint32_t scaledWidth  = GetSfcNativeBoundaryScaledSize(inputWidth, outputWidth,
+            filter1ndPass->GetFilterEngineCaps().sfcNativeThenFcNeededX, fScaleMin, fScaleMax, widthAlignUnit);
+        uint32_t scaledHeight = GetSfcNativeBoundaryScaledSize(inputHeight, outputHeight,
+            filter1ndPass->GetFilterEngineCaps().sfcNativeThenFcNeededY, fScaleMin, fScaleMax, heightAlignUnit);
+
+        VP_PUBLIC_NORMALMESSAGE("Sfc + Fc scaling setting: (%dx%d)->(%dx%d)->(%dx%d)",
+            inputWidth, inputHeight, scaledWidth, scaledHeight, outputWidth, outputHeight);
+
+        params1stPass.input.rcDst.left   = 0;
+        params1stPass.input.rcDst.right  = scaledWidth;
+        params1stPass.input.rcDst.top    = 0;
+        params1stPass.input.rcDst.bottom = scaledHeight;
+
+        params1stPass.output.dwWidth   = scaledWidth;
+        params1stPass.output.dwHeight  = scaledHeight;
+        params1stPass.output.rcSrc     = params1stPass.input.rcDst;
+        params1stPass.output.rcDst     = params1stPass.input.rcDst;
+        params1stPass.output.rcMaxSrc  = params1stPass.output.rcSrc;
+
+        params2ndPass.input.dwWidth  = params1stPass.output.dwWidth;
+        params2ndPass.input.dwHeight = params1stPass.output.dwHeight;
+        params2ndPass.input.rcSrc    = params1stPass.input.rcDst;
+        params2ndPass.input.rcMaxSrc = params2ndPass.input.rcSrc;
+
+        if (params2ndPass.interlacedScalingType == ISCALING_INTERLEAVED_TO_FIELD)
+        {
+            params2ndPass.input.dwHeight        = params2ndPass.input.dwHeight / 2;
+            params2ndPass.input.rcSrc.bottom    = params2ndPass.input.rcSrc.bottom / 2;
+            params2ndPass.input.rcMaxSrc.bottom = params2ndPass.input.rcMaxSrc.bottom / 2;
+        }
+
+        // 2nd pass on fc: hdr/csc/fp16 are done by the sfc 1st pass, only the remaining scale is left.
+        filter2ndPass->SetFeatureType(FeatureTypeScaling);
+        filter2ndPass->GetFilterEngineCaps().value           = 0;
+        filter2ndPass->GetFilterEngineCaps().bEnabled        = 1;
+        filter2ndPass->GetFilterEngineCaps().RenderNeeded    = 1;
+        filter2ndPass->GetFilterEngineCaps().fcSupported     = 1;
+        filter2ndPass->GetFilterEngineCaps().usedForNextPass = 1;
+
+        executePipe.AddSwFilterUnordered(filter1ndPass, isInputPipe, index);
+    }
+    else if (caps.b1stPassOfSfc2PassScaling)
     {
         uint32_t         widthAlignUnit  = 0;
         uint32_t         heightAlignUnit = 0;

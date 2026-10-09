@@ -509,7 +509,10 @@ MOS_STATUS VpRenderOclFcKernel::SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpac
             {
                 if (arg.pData != nullptr)
                 {
-                    MOS_SecureMemcpy(m_inlineData.data() + arg.uOffsetInPayload, arg.uSize, arg.pData, arg.uSize);
+                    // An arg may straddle the end of the inline data; the rest goes to curbe in GetCurbeState.
+                    VP_PUBLIC_CHK_VALUE_RETURN(arg.uOffsetInPayload < m_inlineData.size(), true);
+                    uint32_t inlinePartSize = MOS_MIN(arg.uSize, (uint32_t)m_inlineData.size() - arg.uOffsetInPayload);
+                    MOS_SecureMemcpy(m_inlineData.data() + arg.uOffsetInPayload, inlinePartSize, arg.pData, inlinePartSize);
                     VP_RENDER_NORMALMESSAGE("Setting Inline Data KernelID %d, index %d , value %d, argKind %d", m_kernelId, arg.uIndex, *(uint32_t *)arg.pData, arg.eArgKind);
                 }
                 else

@@ -352,7 +352,7 @@ MOS_STATUS PolicySfcRotMirHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFil
     SwFilterRotMir *featureRotMir = dynamic_cast<SwFilterRotMir *>(&feature);
     VP_PUBLIC_CHK_NULL_RETURN(featureRotMir);
 
-    if (caps.b1stPassOfSfc2PassScaling)
+    if (caps.b1stPassOfSfc2PassScaling || caps.bSfcThenFcScaling)
     {
         SwFilterRotMir *filter2ndPass = featureRotMir;
         SwFilterRotMir *filter1ndPass = (SwFilterRotMir *)feature.Clone();
@@ -364,6 +364,14 @@ MOS_STATUS PolicySfcRotMirHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFil
 
         // Clear engine caps for filter in 2nd pass.
         filter2ndPass->SetFeatureType(FeatureTypeRotMir);
+        if (caps.bSfcThenFcScaling)
+        {
+            // The 2nd pass is fc, which rotates together with the remaining scaling.
+            filter2ndPass->GetFilterEngineCaps().value        = 0;
+            filter2ndPass->GetFilterEngineCaps().bEnabled     = 1;
+            filter2ndPass->GetFilterEngineCaps().RenderNeeded = 1;
+            filter2ndPass->GetFilterEngineCaps().fcSupported  = 1;
+        }
         filter2ndPass->GetFilterEngineCaps().usedForNextPass = 1;
 
         executePipe.AddSwFilterUnordered(filter1ndPass, isInputPipe, index);
