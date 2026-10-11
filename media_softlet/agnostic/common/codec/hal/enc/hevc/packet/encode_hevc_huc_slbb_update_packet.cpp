@@ -636,6 +636,18 @@ namespace encode
             }
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_NOOP)(&constructedCmdBuf));
 
+            // Add MI_NOOPs to align VDENC_HEVC_VP9_TILE_SLICE_STATE with CODECHAL_CACHELINE_SIZE,
+            // the same way AV1 does in Av1HucSlbbUpdatePkt::AddVdencTileSliceBaseOnTile().
+            // The per-slice tail alignment below then makes TILE_SLICE + MI_BATCH_BUFFER_END
+            // occupy exactly two cachelines, so the HuC SLBB Update kernel can read and write
+            // the command with RegionReadDMA/RegionWriteDMA, which are 64-byte granular.
+            uint32_t tileSliceAlignSize = MOS_ALIGN_CEIL(constructedCmdBuf.iOffset, CODECHAL_CACHELINE_SIZE) - constructedCmdBuf.iOffset;
+            for (uint32_t i = 0; i < (tileSliceAlignSize / sizeof(uint32_t)); i++)
+            {
+                ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_NOOP)(&constructedCmdBuf));
+            }
+            m_hevcBasicFeature->m_vdencBatchBufferPerSliceVarSize[slcCount] += tileSliceAlignSize;
+
             if (slcCount == 0)
             {
                 m_tileSliceStateOffsetInBytes = constructedCmdBuf.iOffset;
@@ -700,7 +712,8 @@ namespace encode
         MOS_ZeroMemory(dmem, sizeof(HucHevcSlbbUpdateDmem));
 
         // Validate structure size matches HuC DMEM layout
-        ENCODE_ASSERT(sizeof(HucHevcSlbbUpdateDmem) == 66);
+        // 66 bytes of Sections 1-7 plus 142 bytes of Section 8.
+        ENCODE_ASSERT(sizeof(HucHevcSlbbUpdateDmem) == 208);
 
         // Calculate SLBB Size
         dmem->slbbSize = (uint16_t)m_slbDataSizeInBytes;
@@ -793,6 +806,19 @@ namespace encode
         // Populate Command Metadata
         ENCODE_CHK_COND_RETURN((m_numTiles > UINT16_MAX), "Tile count exceeds uint16_t range");
         dmem->tileNum = (uint16_t)m_numTiles;
+
+        uint32_t numSlices = m_hevcBasicFeature->m_numSlices;
+        ENCODE_CHK_COND_RETURN((numSlices > ENCODE_HEVC_VDENC_NUM_MAX_SLICES),
+            "Slice count exceeds ENCODE_HEVC_VDENC_NUM_MAX_SLICES");
+
+        // per-slice VDENC_HEVC_VP9_TILE_SLICE_STATE offsets.
+        for (uint32_t i = 0; i < numSlices; i++)
+        {
+            dmem->tileSliceOffset[i] = (uint16_t)m_hevcBasicFeature->m_vdencBatchBufferTileSliceStart[i];
+        }
+
+        // Number of slices
+        dmem->numSlices = (uint8_t)numSlices;
 
         // Populate Encoding Parameters
         dmem->codingType = (uint8_t)m_hevcBasicFeature->m_hevcPicParams->CodingType;

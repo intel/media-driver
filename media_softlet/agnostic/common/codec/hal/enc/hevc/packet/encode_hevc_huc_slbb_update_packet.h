@@ -135,14 +135,15 @@ namespace encode
 
         //!
         //! \brief  HuC HEVC SLBB Update DMEM structure
-        //! \details Compact structure layout matching hevc_slbb_update.h specification (68 bytes total):
+        //! \details Compact structure layout matching hevc_slbb_update.h specification (208 bytes total):
         //!          Section 1: SLBB Size (2 bytes)
         //!          Section 2: Group1 Command Offsets (6 bytes)
         //!          Section 3: Group2 Command Offsets (8 bytes)
         //!          Section 4: Group3 Command Offsets (12 bytes)
         //!          Section 5: Command Metadata (2 bytes)
-        //!          Section 6: Reserved Fields (30 bytes)
+        //!          Section 6: Reserved + CMD2 Parameters (28 bytes)
         //!          Section 7: Encoding Parameters (8 bytes)
+        //!          Section 8: Per-slice TILE_SLICE offsets (142 bytes)
         //!
         struct HucHevcSlbbUpdateDmem
         {
@@ -172,7 +173,10 @@ namespace encode
                 uint16_t tileNum;                           //!< Total number of tiles in the frame
 
                 // Section 6: Reserved + CMD2 Parameters (28 bytes)
-                uint16_t reserved[4];                       //!< Reserved for future expansion
+                uint8_t  numSlices;                         //!< Number of slices
+                uint8_t  reservedPad2;                      //!< Explicit padding so reserved[] keeps its 2-byte alignment and
+                                                            //!< its original offset.
+                uint16_t reserved[3];                       //!< Reserved for future expansion
                 uint8_t  Wa_16025947269;                    //!< Wa_16025947269: gate the protected VDENC_CMD2 DW52 bit
                                                             //!< (TU1/TU2 only). 1 = WA active, HuC keeps TU-table value;
                                                             //!< 0 = HW fix in place, HuC forces field to 0.
@@ -207,6 +211,16 @@ namespace encode
                 uint16_t bGopSize;                          //!< Group of pictures size
                 uint8_t depth;                              //!< Encoding depth/hierarchy level
                 uint8_t  scenarioInfo;                      //!< Encoding scenario (from SeqParams)
+
+                //! Absolute SLBB byte offset of each slice's VDENC_HEVC_VP9_TILE_SLICE_STATE.
+                //! Only [0, numSlices) is meaningful. Must be strictly ascending,
+                //! 64-byte aligned, and no more than 1KB apart: the kernel takes
+                //! consecutive entries as slice boundaries and uses the distance
+                //! between them as a DMA length into a 1KB staging buffer. It
+                //! enforces only that distance, and a violation stops its walk —
+                //! so a bad entry costs every slice after it, not just its own.
+                uint16_t tileSliceOffset[ENCODE_HEVC_VDENC_NUM_MAX_SLICES];  //!< 140 bytes
+                uint16_t reservedTail;                      //!< Pad to 208 bytes / DWORD alignment
         };
 
         //!
