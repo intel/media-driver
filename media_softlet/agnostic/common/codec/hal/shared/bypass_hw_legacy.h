@@ -24,7 +24,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //!
 //! \file     bypass_hw_legacy.h
-//! \brief    Hardware bypass utility class for legacy codecs (HEVC/AVC/AV1)
+//! \brief    Hardware bypass utility class for legacy codecs (HEVC/AVC/AV1/VVC)
 //! \details  Mirrors BypassHW operations using MhwMiInterface (media_common) instead of
 //!           mhw::HwItfMgr (code-gen path). Shared slot state stored in OsContextNext.
 //!
@@ -47,7 +47,7 @@ class OsContextNext;
 
 //!
 //! \class    BypassHwLegacy
-//! \brief    Hardware bypass for legacy codecs (HEVC/AVC/AV1 decode+encode)
+//! \brief    Hardware bypass for legacy codecs (HEVC/AVC/AV1 decode+encode, VVC decode)
 //! \details  Uses MhwMiInterface for MI commands. Per-pipeline slot index held locally;
 //!           all shared slot state lives in OsContextNext. Two-phase cleanup:
 //!           Destroy() must be called explicitly before MOS_Delete().

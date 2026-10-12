@@ -24,7 +24,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //!
 //! \file     bypass_hw_legacy.cpp
-//! \brief    Implementation of BypassHwLegacy for legacy codecs (HEVC/AVC/AV1)
+//! \brief    Implementation of BypassHwLegacy for legacy codecs (HEVC/AVC/AV1/VVC)
 //!
 
 #include "bypass_hw_legacy.h"
@@ -404,6 +404,8 @@ std::string BypassHwLegacy::MapCodecName(CODECHAL_STANDARD codec)
         return "avc";
     case CODECHAL_AV1:
         return "av1";
+    case CODECHAL_VVC:
+        return "vvc";
     default:
         return "";
     }

@@ -1043,14 +1043,20 @@ namespace decode{
         auto &mfxWaitParams               = m_miItf->MHW_GETPAR_F(MFX_WAIT)();
         mfxWaitParams                     = {};
         mfxWaitParams.iStallVdboxPipeline = true;
-        DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+        if (!m_osInterface->bNullHwIsEnabled)
+        {
+            DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+        }
 
         DECODE_CHK_NULL(m_vvcpItf);
         SETPAR_AND_ADDCMD(VVCP_PIPE_MODE_SELECT, m_vvcpItf, &cmdBuffer);
 
         mfxWaitParams                     = {};
         mfxWaitParams.iStallVdboxPipeline = true;
-        DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+        if (!m_osInterface->bNullHwIsEnabled)
+        {
+            DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+        }
 
         return MOS_STATUS_SUCCESS;
     }

@@ -59,7 +59,15 @@ namespace decode
         scalPars.numVdbox           = m_numVdbox;
         scalPars.vdboxTypePref = m_pipelineVdboxTypePref;
 
-        m_mediaContext->SwitchContext(VdboxDecodeFunc, &scalPars, &m_scalability);
+        if (GetBypassHWLegacy())
+        {
+            MediaFunction decFunc = (m_bypassHWLegacyGpuNode == MOS_GPU_NODE_VE) ? VeboxVppFunc : VdboxDecodeFunc;
+            DECODE_CHK_STATUS(m_mediaContext->SwitchContext(decFunc, &scalPars, &m_scalability));
+        }
+        else
+        {
+            DECODE_CHK_STATUS(m_mediaContext->SwitchContext(VdboxDecodeFunc, &scalPars, &m_scalability));
+        }
         DECODE_CHK_NULL(m_scalability);
 
         m_decodeContext = m_osInterface->pfnGetGpuContext(m_osInterface);

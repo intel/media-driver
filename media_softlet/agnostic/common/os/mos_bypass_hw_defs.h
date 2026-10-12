@@ -54,7 +54,7 @@ struct DummyVdboxInfo
 //!
 struct RepeatCountEntry
 {
-    std::string codec;        //!< Codec name (e.g. "av1", "avc", "hevc")
+    std::string codec;        //!< Codec name (e.g. "av1", "avc", "hevc", "vvc")
     std::string direction;    //!< "decode" or "encode"
     std::string subsampling;  //!< "420", "422", or "444"
     uint32_t    width;        //!< Frame width in pixels (e.g. 3840)

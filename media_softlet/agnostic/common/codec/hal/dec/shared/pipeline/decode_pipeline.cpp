@@ -230,6 +230,7 @@ MOS_STATUS DecodePipeline::Initialize(void *settings)
                 m_bypassHWLegacyGpuNode,
                 static_cast<CODECHAL_STANDARD>(codecSettings->standard),
                 false,
+                m_pipelineVdboxTypePref,
                 codecSettings->width,
                 codecSettings->height,
                 static_cast<uint8_t>(codecSettings->chromaFormat),

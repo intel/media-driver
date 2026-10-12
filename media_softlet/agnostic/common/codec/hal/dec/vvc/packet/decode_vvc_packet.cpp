@@ -69,6 +69,13 @@ MOS_STATUS VvcDecodePkt::Init()
     DECODE_CHK_STATUS(m_slicePkt->CalculateCommandSize(m_sliceStatesSize, m_slicePatchListSize));
     DECODE_CHK_STATUS(m_slicePkt->CalculateTileCommandSize(m_tileStateSize, m_tilePatchListSize));
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_vvcPipeline->GetBypassHWLegacy())
+    {
+        m_bypassHwLegacyEnabled = true;
+    }
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -284,6 +291,12 @@ MOS_STATUS VvcDecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* 
         StoreEngineId(cmdBuffer, decode::DecodeStatusReportType::CsEngineIdOffset_0);
     }
 #endif
+
+    if (m_vvcPipeline->GetBypassHWLegacy())
+    {
+        DECODE_CHK_STATUS(m_vvcPipeline->GetBypassHWLegacy()->AddNullHwProxyCmd(cmdBuffer, false));
+        DECODE_CHK_STATUS(m_vvcPipeline->GetBypassHWLegacy()->StartPredicate(cmdBuffer));
+    }
     return MOS_STATUS_SUCCESS;
 }
 
@@ -293,9 +306,11 @@ MOS_STATUS VvcDecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cm
 
     DECODE_CHK_NULL(cmdBuffer);
 
+    if (m_vvcPipeline->GetBypassHWLegacy())
+    {
+        DECODE_CHK_STATUS(m_vvcPipeline->GetBypassHWLegacy()->StopPredicate(cmdBuffer));
+    }
     DECODE_CHK_STATUS(ReadVvcpStatus(m_statusReport, *cmdBuffer));
-#if (_DEBUG || _RELEASE_INTERNAL)
-#endif
     DECODE_CHK_STATUS(MediaPacket::EndStatusReportNext(srType, cmdBuffer));
 
     MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
@@ -428,7 +443,10 @@ MOS_STATUS VvcDecodePkt::PackPictureLevelCmds(MOS_COMMAND_BUFFER& cmdBuffer)
         }
     }
 
-    DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_BATCH_BUFFER_START(&cmdBuffer, m_picBatchBuf));
+    if (!m_osInterface->bNullHwIsEnabled)
+    {
+        DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_BATCH_BUFFER_START(&cmdBuffer, m_picBatchBuf));
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -454,7 +472,11 @@ MOS_STATUS VvcDecodePkt::PackS2LSliceLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer)
         auto buf = m_vvcPipeline->GetSliceLvlCmdBuffer();
         DECODE_CHK_NULL(buf);
         buf->dwOffset = m_vvcPipeline->GetSliceLvlBufSize() * sliceIdx;
-        DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_BATCH_BUFFER_START(&cmdBuffer, buf)); //Jump to Slice Batch Buffer
+        // Slice level BB is programmed by HuC, which does not run under NullHW
+        if (!m_osInterface->bNullHwIsEnabled)
+        {
+            DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_BATCH_BUFFER_START(&cmdBuffer, buf)); //Jump to Slice Batch Buffer
+        }
         DECODE_CHK_STATUS(VdMemoryFlush(cmdBuffer));
         DECODE_CHK_STATUS(VdPipelineFlush(cmdBuffer));
     }
