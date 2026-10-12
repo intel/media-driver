@@ -5732,9 +5732,10 @@ protected:
 
     void CreateCUs()
     {
-        uint32_t size  = m_size / 2;
-        uint32_t level = m_level + 1;
+        const uint32_t size  = m_size / 2;
+        const uint32_t level = m_level + 1;
 
+        m_childBlocks.reserve(4);
         m_childBlocks.emplace_back(m_ctb, m_x, m_y, level, m_ctbLog2Size);
         m_childBlocks.emplace_back(m_ctb, m_x + size, m_y, level, m_ctbLog2Size);
         m_childBlocks.emplace_back(m_ctb, m_x, m_y + size, level, m_ctbLog2Size);

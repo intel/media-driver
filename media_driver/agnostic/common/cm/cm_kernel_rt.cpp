@@ -1907,6 +1907,7 @@ int32_t CmKernelRT::SetArgsInternal( CM_KERNEL_INTERNAL_ARG_TYPE nArgType, uint3
         {
             size = numSamplers * sizeof(unsigned int);
 
+            sampler_index_array.reserve(numSamplers);
             for (unsigned int i = 0; i < numSamplers; i++)
             {
                 SamplerIndex* samplerIndex = (SamplerIndex*)value + i;
