@@ -158,18 +158,6 @@ namespace encode {
         bool isTileReplayEnabled = false;
         RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, FeatureIDs::encodeTile, IsTileReplayEnabled, isTileReplayEnabled);
 
-        MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
-        ENCODE_CHK_NULL_RETURN(perfProfiler);
-        ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd(
-            (void *)m_pipeline, m_osInterface, m_miItf, commandBuffer));
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (m_bypassHwLegacyEnabled)
-        {
-            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StartPredicate(commandBuffer));
-        }
-#endif
-
         if (m_vdencHucUsed || (m_basicFeature->m_enableTileStitchByHW && (isTileReplayEnabled || m_pipeline->GetPipeNum() > 1)))
         {
             // Huc basic
@@ -262,18 +250,7 @@ namespace encode {
                 ReadBrcPakStatistics(cmdBuffer, &readBrcPakStatsParams);
             }
         }
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (m_bypassHwLegacyEnabled)
-        {
-            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StopPredicate(cmdBuffer));
-        }
-#endif
         ENCODE_CHK_STATUS_RETURN(MediaPacket::EndStatusReportNext(srType, cmdBuffer));
-
-        MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
-        ENCODE_CHK_NULL_RETURN(perfProfiler);
-        ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectEndCmd(
-            (void *)m_pipeline, m_osInterface, m_miItf, cmdBuffer));
 
         return MOS_STATUS_SUCCESS;
     }

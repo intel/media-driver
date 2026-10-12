@@ -305,13 +305,7 @@ MOS_STATUS HevcDecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER*
         DECODE_CHK_NULL(m_phase);
         StoreEngineId(cmdBuffer, decode::DecodeStatusReportType::CsEngineIdOffset_0, m_phase->GetPipe());
     }
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (m_bypassHwLegacyEnabled)
-    {
-        DECODE_CHK_STATUS(m_hevcPipeline->GetBypassHWLegacy()->AddNullHwProxyCmd(cmdBuffer, false));
-        DECODE_CHK_STATUS(m_hevcPipeline->GetBypassHWLegacy()->StartPredicate(cmdBuffer));
-    }
-#endif
+
     // Add command counter commands for debug
     if (m_debugPkt != nullptr)
     {
@@ -320,6 +314,14 @@ MOS_STATUS HevcDecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER*
 #endif
 
     DECODE_CHK_STATUS(MediaPacket::StartStatusReportNext(srType, cmdBuffer));
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_bypassHwLegacyEnabled)
+    {
+        DECODE_CHK_STATUS(m_hevcPipeline->GetBypassHWLegacy()->AddNullHwProxyCmd(cmdBuffer, false));
+        DECODE_CHK_STATUS(m_hevcPipeline->GetBypassHWLegacy()->StartPredicate(cmdBuffer));
+    }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }

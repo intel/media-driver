@@ -523,6 +523,13 @@ namespace encode
 
         ENCODE_CHK_STATUS_RETURN(EnsureAllCommandsExecuted(cmdBuffer));
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_bypassHwLegacyEnabled)
+        {
+            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StopPredicate(&cmdBuffer));
+        }
+#endif
+
         ENCODE_CHK_STATUS_RETURN(ReadHcpStatus(m_vdboxIndex, m_statusReport, cmdBuffer));
         // BRC PAK statistics different for each pass
         if (feature->IsBRCEnabled())
@@ -2006,13 +2013,6 @@ MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFE
     {
         ENCODE_FUNC_CALL();
         ENCODE_CHK_NULL_RETURN(cmdBuffer);
-
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (m_bypassHwLegacyEnabled)
-        {
-            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StopPredicate(cmdBuffer));
-        }
-#endif
 
         ENCODE_CHK_STATUS_RETURN(MediaPacket::EndStatusReportNext(srType, cmdBuffer));
 

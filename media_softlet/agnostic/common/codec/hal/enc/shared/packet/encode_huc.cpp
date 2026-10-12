@@ -284,6 +284,13 @@ namespace encode
 
         ENCODE_CHK_STATUS_RETURN(StartPerfCollect(*cmdBuffer));
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_bypassHwLegacyEnabled)
+        {
+            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StartPredicate(cmdBuffer));
+        }
+#endif
+
         ENCODE_CHK_STATUS_RETURN(AddAllCmds_HUC_IMEM_STATE(cmdBuffer));
         ENCODE_CHK_STATUS_RETURN(AddAllCmds_HUC_PIPE_MODE_SELECT(cmdBuffer));
 
@@ -300,6 +307,13 @@ namespace encode
 
         SETPAR_AND_ADDCMD(VD_PIPELINE_FLUSH, m_vdencItf, cmdBuffer);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_bypassHwLegacyEnabled)
+        {
+            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StopPredicate(cmdBuffer));
+        }
+#endif
+
         // Flush the engine to ensure memory written out
         auto &flushDwParams                         = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
         flushDwParams                               = {};
@@ -307,6 +321,7 @@ namespace encode
         HUC_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
 
         ENCODE_CHK_STATUS_RETURN(EndPerfCollect(*cmdBuffer));
+
         HUC_CHK_STATUS_RETURN(StoreHuCStatusRegister(cmdBuffer));
 
         return MOS_STATUS_SUCCESS;

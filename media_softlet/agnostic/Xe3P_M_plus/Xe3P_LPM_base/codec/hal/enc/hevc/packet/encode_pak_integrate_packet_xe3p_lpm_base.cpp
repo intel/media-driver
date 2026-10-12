@@ -173,6 +173,7 @@ namespace encode
         HUC_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer));
 
         ENCODE_CHK_STATUS_RETURN(EndPerfCollect(*cmdBuffer));
+
         HUC_CHK_STATUS_RETURN(StoreHuCStatusRegister(cmdBuffer));
 
         return MOS_STATUS_SUCCESS;
