@@ -70,6 +70,26 @@ public:
         this->InitCsMocsSettings();
     };
 
+    void SetEncoderWatchdogThreshold(uint32_t frameWidth, uint32_t frameHeight, uint32_t codecMode) override
+    {
+        if ((frameWidth * frameHeight) >= (7680 * 4320))
+        {
+            this->MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_16K_WATCHDOG_THRESHOLD_IN_MS_PLUS;
+        }
+        else if ((frameWidth * frameHeight) >= (3840 * 2160))
+        {
+            this->MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_8K_WATCHDOG_THRESHOLD_IN_MS_PLUS;
+        }
+        else if ((frameWidth * frameHeight) >= (1920 * 1080))
+        {
+            this->MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_4K_WATCHDOG_THRESHOLD_IN_MS_PLUS;
+        }
+        else
+        {
+            this->MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_FHD_WATCHDOG_THRESHOLD_IN_MS_PLUS;
+        }
+    }
+
     void SetDecoderWatchdogThreshold(uint32_t frameWidth, uint32_t frameHeight, uint32_t codecMode) override
     {
         if ((frameWidth * frameHeight) > (7680 * 4320))

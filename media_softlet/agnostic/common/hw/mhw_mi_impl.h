@@ -219,22 +219,7 @@ public:
         }
         else if (isEncoder)
         {
-            if ((frameWidth * frameHeight) >= (7680 * 4320))
-            {
-                MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_16K_WATCHDOG_THRESHOLD_IN_MS;
-            }
-            else if ((frameWidth * frameHeight) >= (3840 * 2160))
-            {
-                MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_8K_WATCHDOG_THRESHOLD_IN_MS;
-            }
-            else if ((frameWidth * frameHeight) >= (1920 * 1080))
-            {
-                MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_4K_WATCHDOG_THRESHOLD_IN_MS;
-            }
-            else
-            {
-                MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_FHD_WATCHDOG_THRESHOLD_IN_MS;
-            }
+            SetEncoderWatchdogThreshold(frameWidth, frameHeight, codecMode);
         }
         else
         {
@@ -862,6 +847,28 @@ protected:
             MediaResetParam.watchdogCountThreshold = m_watchdogThresholdOverride;
         }
 #endif
+    }
+
+    //! \brief    Set encoder-specific watchdog threshold based on resolution.
+    //!           Override in platform implementations for different threshold tiers.
+    virtual void SetEncoderWatchdogThreshold(uint32_t frameWidth, uint32_t frameHeight, uint32_t codecMode)
+    {
+        if ((frameWidth * frameHeight) >= (7680 * 4320))
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_16K_WATCHDOG_THRESHOLD_IN_MS;
+        }
+        else if ((frameWidth * frameHeight) >= (3840 * 2160))
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_8K_WATCHDOG_THRESHOLD_IN_MS;
+        }
+        else if ((frameWidth * frameHeight) >= (1920 * 1080))
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_4K_WATCHDOG_THRESHOLD_IN_MS;
+        }
+        else
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_FHD_WATCHDOG_THRESHOLD_IN_MS;
+        }
     }
 
     //! \brief    Set decoder-specific watchdog threshold based on resolution.
