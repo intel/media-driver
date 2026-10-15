@@ -2002,7 +2002,10 @@ MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFE
         ENCODE_CHK_NULL_RETURN(cmdBuffer);
 
         ENCODE_CHK_STATUS_RETURN(MediaPacket::StartStatusReportNext(srType, cmdBuffer));
-        m_encodecp->StartCpStatusReport(cmdBuffer);
+        if (m_encodecp)
+        {
+            m_encodecp->StartCpStatusReport(cmdBuffer);
+        }
 
         return MOS_STATUS_SUCCESS;
     }
@@ -2150,7 +2153,7 @@ MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFE
 
         EncodeStatusMfx *       encodeStatusMfx  = (EncodeStatusMfx *)mfxStatus;
         EncodeStatusReportData *statusReportData = (EncodeStatusReportData *)statusReport;
-        if (statusReportData->hwCtr)
+        if (statusReportData->hwCtr && m_encodecp)
         {
             m_encodecp->UpdateCpStatusReport(statusReport);
         }

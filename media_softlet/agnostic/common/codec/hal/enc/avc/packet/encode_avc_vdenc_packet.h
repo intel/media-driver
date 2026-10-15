@@ -460,7 +460,7 @@ protected:
     CodechalHwInterfaceNext  *m_hwInterface     = nullptr;
     AvcBasicFeature          *m_basicFeature    = nullptr;
     EncodeMemComp            *m_mmcState        = nullptr;
-    EncodeCp                 *m_encodecp        = nullptr;
+    EncodeCpInterface         *m_encodecp        = nullptr;
 
     std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf = nullptr;
     std::shared_ptr<mhw::vdbox::mfx::Itf>   m_mfxItf   = nullptr;

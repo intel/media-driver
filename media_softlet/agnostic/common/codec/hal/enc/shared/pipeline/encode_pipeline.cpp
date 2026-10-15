@@ -112,9 +112,13 @@ MOS_STATUS EncodePipeline::Initialize(void *settings)
 
     m_featureManager->SetUserSettingPtr(m_userSettingPtr);
 
-    m_encodecp = MOS_New(EncodeCp, m_hwInterface);
-    m_encodecp->RegisterParams(codecSettings);
-    bool cpenable = m_encodecp->isCpEnabled();
+    m_encodecp = Create_EncodeCpInterface(m_hwInterface);
+    bool cpenable = false;
+    if (m_encodecp)
+    {
+        m_encodecp->RegisterParams(codecSettings);
+        cpenable = m_encodecp->isCpEnabled();
+    }
 
     ENCODE_CHK_STATUS_RETURN(m_featureManager->Init(codecSettings));
 
@@ -126,7 +130,10 @@ MOS_STATUS EncodePipeline::Initialize(void *settings)
     ENCODE_CHK_NULL_RETURN(m_statusReport);
     ENCODE_CHK_STATUS_RETURN(m_statusReport->Create());
 
-    m_encodecp->setStatusReport(m_statusReport);
+    if (m_encodecp)
+    {
+        m_encodecp->setStatusReport(m_statusReport);
+    }
 
     ENCODE_CHK_COND_RETURN(
         SlimVdboxPrefInconsistent(m_skuTable, m_pipelineVdboxTypePref),
@@ -155,7 +162,8 @@ MOS_STATUS EncodePipeline::Uninitialize()
 
     MOS_Delete(m_mediaContext);
 
-    MOS_Delete(m_encodecp);
+    Delete_EncodeCpInterface(m_encodecp);
+    m_encodecp = nullptr;
 
     MOS_Delete(m_statusReport);
 
@@ -239,7 +247,10 @@ MOS_STATUS EncodePipeline::Prepare(void *params)
     ENCODE_CHK_NULL_RETURN(m_featureManager);
     ENCODE_CHK_STATUS_RETURN(m_featureManager->CheckFeatures(params));
     ENCODE_CHK_STATUS_RETURN(m_featureManager->Update(params));
-    m_encodecp->UpdateParams(true);
+    if (m_encodecp)
+    {
+        m_encodecp->UpdateParams(true);
+    }
 
     ENCODE_CHK_STATUS_RETURN(WaitForBatchBufferComplete());
 

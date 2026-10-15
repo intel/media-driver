@@ -38,7 +38,7 @@
 #include "encode_tracked_buffer.h"
 #include "encode_recycle_resource.h"
 #include "encode_mem_compression.h"
-#include "encodecp.h"
+#include "encodecp_interface.h"
 #include "encode_packet_utilities.h"
 #include "encode_scalability_defs.h"
 #include "bypass_hw_legacy.h"
@@ -99,7 +99,7 @@ public:
     //!         pointer of m_statusReportDebugInterface
     //!
     CodechalDebugInterface *GetStatusReportDebugInterface() const { return m_statusReportDebugInterface; }
-    EncodeCp *               GetEncodeCp() { return m_encodecp; }
+    EncodeCpInterface *      GetEncodeCp() { return m_encodecp; }
 
     //!
     //! \brief  Update frame tracking flag
@@ -343,7 +343,7 @@ protected:
     TrackedBuffer *      m_trackedBuf  = nullptr;
     RecycleResource *    m_recycleBuf  = nullptr;
     EncodeMemComp *      m_mmcState    = nullptr;
-    EncodeCp *           m_encodecp    = nullptr;
+    EncodeCpInterface *  m_encodecp    = nullptr;
     PacketUtilities *    m_packetUtilities = nullptr;
     BypassHwLegacy *     m_bypassHWLegacy = nullptr;
     MOS_GPU_NODE         m_bypassHWLegacyGpuNode = MOS_GPU_NODE_VIDEO;

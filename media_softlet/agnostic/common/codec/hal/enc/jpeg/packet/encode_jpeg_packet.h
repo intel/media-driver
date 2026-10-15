@@ -429,7 +429,7 @@ protected:
     JpegPackerFeature       *m_jpgPkrFeature  = nullptr;
     MediaFeatureManager     *m_featureManager = nullptr;
     EncodeMemComp           *m_mmcState       = nullptr;
-    EncodeCp                *m_encodecp       = nullptr;
+    EncodeCpInterface        *m_encodecp       = nullptr;
     CodechalDebugInterface  *m_debugInterface = nullptr;
 
     std::shared_ptr<mhw::vdbox::mfx::Itf>   m_mfxItf   = nullptr;

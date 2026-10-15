@@ -581,7 +581,7 @@ namespace encode
         CodechalHwInterfaceNext *     m_hwInterface       = nullptr;
         HevcBasicFeature *        m_basicFeature      = nullptr;  //!< Encode parameters used in each frame
         EncodeMemComp *           m_mmcState          = nullptr;
-        EncodeCp *                m_encodecp          = nullptr;
+        EncodeCpInterface *       m_encodecp          = nullptr;
         PacketUtilities *         m_packetUtilities   = nullptr;
 
         SubmitState m_submitState = submitFrameByDefault;

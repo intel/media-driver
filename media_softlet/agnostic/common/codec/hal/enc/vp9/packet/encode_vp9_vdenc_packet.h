@@ -30,7 +30,7 @@
 #include "media_cmd_packet.h"
 #include "encode_vp9_vdenc_pipeline.h"
 #include "encode_status_report.h"
-#include "encodecp.h"
+#include "encodecp_interface.h"
 
 namespace encode
 {
@@ -541,7 +541,7 @@ protected:
     MediaFeatureManager *     m_featureManager    = nullptr;  //!< Interface of feature manager
     Vp9BasicFeature *         m_basicFeature      = nullptr;  //!< Encode parameters used in each frame
     EncodeMemComp *           m_mmcState          = nullptr;  //!< Interface of codec media memory comp
-    EncodeCp *                m_encodecp          = nullptr;  //!< Interface of encode CP
+    EncodeCpInterface *       m_encodecp          = nullptr;  //!< Interface of encode CP
 
     std::shared_ptr<mhw::vdbox::hcp::Itf> m_hcpInterfaceNew     = nullptr;  //!< Interface of MHW
     std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencInterfaceNew = nullptr;  //!< Interface of MHW

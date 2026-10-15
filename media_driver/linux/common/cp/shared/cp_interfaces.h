@@ -44,6 +44,7 @@ struct DDI_MEDIA_CONTEXT;
 #endif
 #include "cp_streamout_interface.h"
 #include "decodecp_interface.h"
+#include "encodecp_interface.h"
 
 #define CP_INTERFACE            1
 
@@ -200,6 +201,27 @@ public:
     //!          DecodeCpInterface
     //!
     virtual void Delete_DecodeCpInterface(DecodeCpInterface *pInterface) = 0;
+
+    //!
+    //! \brief   Create EncodeCpInterface Object
+    //!          Must use Delete_EncodeCpInterface to delete created Object to avoid ULT Memory Leak errors
+    //!
+    //! \param   [in] hwInterface
+    //!          CodechalHwInterfaceNext*
+    //!
+    //! \return  encode::EncodeCpInterface*
+    //!          Return CP Wrapper Object
+    //!
+    virtual encode::EncodeCpInterface *Create_EncodeCpInterface(
+        CodechalHwInterfaceNext *hwInterface) = 0;
+
+    //!
+    //! \brief   Delete the EncodeCpInterface Object
+    //!
+    //! \param   [in] pInterface
+    //!          encode::EncodeCpInterface
+    //!
+    virtual void Delete_EncodeCpInterface(encode::EncodeCpInterface *pInterface) = 0;
 
     MEDIA_CLASS_DEFINE_END(CpInterfaces)
 };
