@@ -1074,11 +1074,17 @@ mos_context_destroy_xe(struct mos_linux_context *ctx)
     struct drm_xe_exec_queue_destroy exec_queue_destroy;
     int ret;
     bufmgr_gem->m_lock.lock();
-    bufmgr_gem->sync_obj_rw_lock.lock();
+    // A null timeline has never reached EXEC. Keep registry removal under
+    // m_lock, but do not wait for unrelated contexts' syncobj readers.
+    const bool skip_empty_sync_lock =
+        context->timeline_dep == nullptr;
+    if (!skip_empty_sync_lock)
+        bufmgr_gem->sync_obj_rw_lock.lock();
     mos_sync_destroy_timeline_dep(bufmgr_gem->fd, context->timeline_dep);
     context->timeline_dep = nullptr;
     bufmgr_gem->global_ctx_info.erase(context->dummy_exec_queue_id);
-    bufmgr_gem->sync_obj_rw_lock.unlock();
+    if (!skip_empty_sync_lock)
+        bufmgr_gem->sync_obj_rw_lock.unlock();
     bufmgr_gem->m_lock.unlock();
 
     if (INVALID_EXEC_QUEUE_ID == ctx->ctx_id)
