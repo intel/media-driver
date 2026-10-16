@@ -414,6 +414,11 @@ struct _MHW_PAR_T(STATE_COMPUTE_MODE)
     bool     enableLargeGrf                          = false;
     uint32_t forceEuThreadSchedulingMode             = 0;
     bool     enableVariableRegisterSizeAllocationVrt = false;
+    //! Declare 32-byte render surface state objects to hardware. Defaults to
+    //! false so every existing caller and platform keeps legacy behavior with
+    //! no edit; only platforms whose command class carries the 32-byte
+    //! descriptor set this, after reading the feature SKU bit.
+    bool     surfaceStateMode                        = false;
 };
 
 }  // namespace render

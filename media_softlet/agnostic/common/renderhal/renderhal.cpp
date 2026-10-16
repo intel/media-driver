@@ -7310,10 +7310,13 @@ MOS_STATUS RenderHal_SendSurfaceStateEntry(
         MOS_SecureMemcpy(pdwCmd, pRenderHal->pHwSizes->dwSizeSurfaceState,
             pSurfaceState, pRenderHal->pHwSizes->dwSizeSurfaceState);
 
-        // Patch offset is 8 DW from the surface state base
-        pdwCmd += 8;
-        iSurfaceStateOffset += 8 * sizeof(uint32_t);
-        locationInCmd = 8;
+        // Patch offset is taken from the platform rather than hardcoded: the
+        // surface base address sits at DWord 8 in the 64-byte descriptor and at
+        // DWord 0 in the 32-byte one.
+        const uint32_t patchDwOffset = pRenderHal->pRenderHalPltInterface->GetSurfaceStateBaseAddrPatchDwOffset();
+        pdwCmd += patchDwOffset;
+        iSurfaceStateOffset += patchDwOffset * sizeof(uint32_t);
+        locationInCmd = patchDwOffset;
     }
     else
     {

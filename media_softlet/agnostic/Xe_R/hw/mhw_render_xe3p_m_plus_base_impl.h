@@ -181,6 +181,22 @@ public:
         cmd.DW1.EuThreadSchedulingModeOverride = params.forceEuThreadSchedulingMode;
         cmd.DW1.EnableVariableRegisterSizeAllocationVrt = cmd_t::STATE_COMPUTE_MODE_CMD::ENABLE_VARIABLE_REGISTER_SIZE_ALLOCATIONVRT_ENABLE;
 
+        if (params.surfaceStateMode)
+        {
+            // STATE_COMPUTE_MODE is a masked-write command: the value bit alone
+            // has no effect, and the mask bit alone explicitly programs the
+            // legacy mode. Both halves are required, and either one on its own
+            // is descriptor corruption that still compiles.
+            cmd.DW2.SurfaceStateMode = cmd_t::STATE_COMPUTE_MODE_CMD::SURFACE_STATE_MODE_CONSECUTIVE32BYTE;
+
+            // Mask2 is DW2 bits 16..31, so bit N *within Mask2* is the enable for
+            // value bit N. The 5 below is therefore the same bit position as
+            // SurfaceStateMode above and not an absolute DWord bit - it lands at
+            // DW2 bit 21. Read-modify-write, because the mask half already
+            // carries enables for the fields programmed earlier in this function.
+            cmd.DW2.Mask2 |= (1 << 5);
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 

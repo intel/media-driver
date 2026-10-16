@@ -177,6 +177,93 @@ public:
         return eStatus;
     }
 
+    //! \brief    Translate a legacy surface type to this platform's encoding.
+    //! \details  The two encodings share only SCRATCH, so this is done by name.
+    //!           A raw copy mis-encodes in a way that spot-checking hides:
+    //!           SCRATCH is a fixed point and looks right, while legacy NULL
+    //!           (7) must become 0, and legacy SREBUF (5) is the value BUFFER
+    //!           now occupies.
+    MOS_STATUS GetSurfaceTypeEncoding(uint32_t legacyType, uint32_t &encoded)
+    {
+        using Cmd = RENDER_SURFACE_STATE_CMD;
+
+        switch (legacyType)
+        {
+        case GFX3DSTATE_SURFACETYPE_1D:
+            encoded = Cmd::SURFACE_TYPE_SURFTYPE1D;
+            break;
+        case GFX3DSTATE_SURFACETYPE_2D:
+            encoded = Cmd::SURFACE_TYPE_SURFTYPE2D;
+            break;
+        case GFX3DSTATE_SURFACETYPE_3D:
+            encoded = Cmd::SURFACE_TYPE_SURFTYPE3D;
+            break;
+        case GFX3DSTATE_SURFACETYPE_CUBE:
+            encoded = Cmd::SURFACE_TYPE_SURFTYPECUBE;
+            break;
+        case GFX3DSTATE_SURFACETYPE_BUFFER:
+            encoded = Cmd::SURFACE_TYPE_SURFTYPEBUFFER;
+            break;
+        case GFX3DSTATE_SURFACETYPE_SCRATCH:
+            encoded = Cmd::SURFACE_TYPE_SURFTYPESCRATCH;
+            break;
+        case GFX3DSTATE_SURFACETYPE_NULL:
+            encoded = Cmd::SURFACE_TYPE_SURFTYPENULL;
+            break;
+        default:
+            // SREBUF has no counterpart in the new encoding. Mapping it to
+            // BUFFER would be a guess, and media does not produce it, so fail
+            // loudly rather than encode something plausible.
+            MHW_ASSERTMESSAGE("Unsupported surface type %d\n", legacyType);
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    //! \brief    Translate a GMM tile mode to this platform's encoding.
+    //! \details  The field widens to 3 bits and is re-encoded without a common
+    //!           prefix, so copying the legacy value silently mis-tiles - legacy
+    //!           2 is X major, but 2 here is Tile64_Auto.
+    MOS_STATUS GetTileModeEncoding(PMHW_SURFACE_STATE_PARAMS pParams, uint32_t &encoded)
+    {
+        using Cmd = RENDER_SURFACE_STATE_CMD;
+
+        if (!pParams->bGMMTileEnabled)
+        {
+            // The legacy non-GMM branch encoded X major or Y major from
+            // bTileWalk. Neither tiling exists on this generation, so the
+            // branch is unreachable; if it is ever taken, the input is wrong
+            // upstream and there is no value that would be correct here.
+            if (pParams->bTiledSurface)
+            {
+                MHW_ASSERTMESSAGE("X/Y major tiling does not exist on this platform\n");
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+
+            encoded = Cmd::TILE_MODE_LINEAR;
+            return MOS_STATUS_SUCCESS;
+        }
+
+        switch (pParams->TileModeGMM)
+        {
+        case MOS_TILE_LINEAR_GMM:
+            encoded = Cmd::TILE_MODE_LINEAR;
+            break;
+        case MOS_TILE_4_GMM:
+            encoded = Cmd::TILE_MODE_TILE4;
+            break;
+        case MOS_TILE_64_GMM:
+            encoded = Cmd::TILE_MODE_TILE64_AUTO;
+            break;
+        default:
+            MHW_ASSERTMESSAGE("Unsupported GMM tile mode %d\n", pParams->TileModeGMM);
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        return MOS_STATUS_SUCCESS;
+    }
+
     MOS_STATUS SetSurfaceStateEntry(
             PMHW_SURFACE_STATE_PARAMS   pParams)
     {
@@ -185,8 +272,6 @@ public:
             MHW_ASSERTMESSAGE("Invalid parameter\n");
             return MOS_STATUS_INVALID_PARAMETER;
         }
-
-        uint32_t TileMode = (pParams->bGMMTileEnabled) ? pParams->TileModeGMM : ((pParams->bTiledSurface) ? ((pParams->bTileWalk == 0) ? 2 /*x-tile*/ : 3 /*y-tile*/) : 0); /*linear*/
 
         // Obtain the Pointer to the Surface state from SSH Buffer
 
@@ -197,72 +282,224 @@ public:
         // Initialize Surface State
         *pSurfaceState = RENDER_SURFACE_STATE_CMD();
 
-        pSurfaceState->DW0.SurfaceType                = pParams->SurfaceType3D;
-        pSurfaceState->DW0.SurfaceFormat              = pParams->dwFormat;
-        pSurfaceState->DW0.TileMode                   = TileMode;
-        pSurfaceState->DW0.VerticalLineStride         = pParams->bVerticalLineStride;
-        pSurfaceState->DW0.VerticalLineStrideOffset   = pParams->bVerticalLineStrideOffset;
-        pSurfaceState->DW0.SurfaceHorizontalAlignment = 1;
-        pSurfaceState->DW0.SurfaceVerticalAlignment   = 1;
+        // The buffer and image blocks overlay the same two QWords, so the
+        // discriminators have to be chosen before any geometry is written.
+        const bool isBuffer = (pParams->SurfaceType3D == GFX3DSTATE_SURFACETYPE_BUFFER) ||
+                              (pParams->SurfaceType3D == GFX3DSTATE_SURFACETYPE_SCRATCH);
 
-        pSurfaceState->DW1.MemoryObjectControlState = pParams->dwCacheabilityControl;
-        if (pParams->SurfaceType3D == GFX3DSTATE_SURFACETYPE_BUFFER)
-        {  // Buffer resources - use original width/height/pitch/depth
-            pSurfaceState->DW2.Width        = pParams->dwWidth;
-            pSurfaceState->DW2.Height       = pParams->dwHeight;
-            pSurfaceState->DW3.SurfacePitch = pParams->dwPitch;
-            pSurfaceState->DW3.Depth        = pParams->dwDepth;
+        // The mip-tail start LOD now lives in the mipped sub-block, and the
+        // decoder forces it to 0xF whenever that block is absent. Media's
+        // normal shape is non-mipped, so honouring the existing sentinel means
+        // also declaring the surface mipped - otherwise the mip-tail fix this
+        // sentinel exists for becomes a silent no-op.
+        const bool isMipped = !isBuffer &&
+                              (pParams->MipTailStartLOD & MHW_MIP_TAIL_START_LOD_ENABLED_MASK) != 0;
+
+        // Encoded geometry. The -1 bias is per field and asymmetric: width,
+        // height, pitch and depth were already biased on the image path and
+        // must not be biased twice, while the UV-plane Y offset gains a bias
+        // that did not exist in the 64-byte layout.
+        const uint32_t encodedWidth  = pParams->dwWidth - 1;
+        const uint32_t encodedHeight = pParams->dwHeight - 1;
+        const uint32_t encodedDepth  = pParams->dwDepth - 1;
+
+        // Render target view extent is no longer a field; hardware derives it
+        // as Depth >> MipCountLOD, so depth carries the pre-bias. Media always
+        // programs a single LOD and array element, which collapses the general
+        // formula to the plain encoded depth, but the general form is written
+        // out so it stays correct if mip programming is ever added.
+        const uint32_t mipCountLod         = 0;
+        const uint32_t minimumArrayElement = 0;
+        const uint32_t rtvExtent           = MOS_MIN(encodedDepth,
+                                                (encodedDepth + minimumArrayElement) << mipCountLod);
+
+        // Selects the array/volume half of the QW2 union. The offsets and the
+        // QPitch occupy the same bits, so writing both - as the 64-byte body
+        // did - is guaranteed corruption here. Media's dominant shape is 2D
+        // with depth 1, which encodes to depth 0 and keeps the offsets.
+        const bool isArrayOrVolume =
+            (pParams->SurfaceType3D == GFX3DSTATE_SURFACETYPE_3D) ||
+            (pParams->SurfaceType3D == GFX3DSTATE_SURFACETYPE_CUBE) ||
+            (((pParams->SurfaceType3D == GFX3DSTATE_SURFACETYPE_1D) ||
+              (pParams->SurfaceType3D == GFX3DSTATE_SURFACETYPE_2D)) && encodedDepth > 0);
+
+        // A mipped surface has no UV-plane offset fields, and a planar surface
+        // needs them. In the 64-byte layout both groups were flat and could
+        // coexist; here the combination cannot be expressed, so reject it
+        // rather than encode one of them over the other.
+        if (isMipped && (pParams->dwXOffsetForU || pParams->dwYOffsetForU ||
+                         pParams->bSeperateUVPlane || pParams->bInterleaveChroma))
+        {
+            MHW_ASSERTMESSAGE("A mipped planar surface cannot be described in 32 bytes\n");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        uint32_t surfaceType = 0;
+        MHW_MI_CHK_STATUS(GetSurfaceTypeEncoding(pParams->SurfaceType3D, surfaceType));
+
+        // ---- Common block (QW1) -------------------------------------------
+
+        pSurfaceState->QW1.SurfaceType   = surfaceType;
+        pSurfaceState->QW1.SurfaceFormat = pParams->dwFormat;
+
+        // Memory object control state is now a 3-bit index rather than the
+        // 7-bit packed field. The legacy parameter packs the index at bits 6:1.
+        const uint32_t mocsIndex = (pParams->dwCacheabilityControl >> 1) & 0x3F;
+        if (mocsIndex > 7)
+        {
+            MHW_ASSERTMESSAGE("MOCS index %d exceeds the 3-bit field\n", mocsIndex);
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+        pSurfaceState->QW1.MemoryObjectControlState = mocsIndex;
+
+        // The bit adjacent to the field above is reserved in the 64-byte layout
+        // and real here. Nothing in the render path is protected content, so it
+        // must stay clear; the assignment above is a bitfield write and cannot
+        // spill into it, and the whole QWord was cleared at function entry.
+        // Left to that clear rather than re-stated.
+
+        pSurfaceState->QW1.SurfacePitch = isBuffer ? pParams->dwPitch : (pParams->dwPitch - 1);
+
+        pSurfaceState->QW1.L1CacheControl = pParams->L1CacheConfig;
+
+        // These four belong to an adjacent cache feature that shares this
+        // descriptor. Zero is the non-disabled state for both Disable bits, so
+        // the effect is benign, but the value is a deliberate choice and not
+        // padding.
+        pSurfaceState->QW1.DisableL15Cacheability              = 0;
+        pSurfaceState->QW1.DisableLscBacking                   = 0;
+        pSurfaceState->QW1.L1Evict1PartialValidCounterSize      = 0;
+        pSurfaceState->QW1.L1TagHitPartialValidMissCounterSize  = 0;
+        pSurfaceState->QW1.EnableSamplerRouteToLsc               = 0;
+
+        // ---- Geometry (QW2) ------------------------------------------------
+
+        if (isBuffer)
+        {
+            // Buffer size is a single 64-bit field now. Shared code still
+            // produces the legacy splice across width, height and depth, so
+            // reassemble it here rather than widening the shared parameter
+            // struct. This caps buffer size at 32 bits, which is irrelevant
+            // for media.
+            pSurfaceState->QW2.Obj2.BufferSize =
+                ((uint64_t)(pParams->dwWidth  & 0x0000007F))        |
+                ((uint64_t)(pParams->dwHeight & 0x00003FFF) << 7)   |
+                ((uint64_t)(pParams->dwDepth  & 0x000007FF) << 21);
         }
         else
         {
-            pSurfaceState->DW1.SurfaceQpitch = pParams->dwQPitch >> 2;
-            pSurfaceState->DW2.Width         = pParams->dwWidth - 1;
-            pSurfaceState->DW2.Height        = pParams->dwHeight - 1;
-            pSurfaceState->DW3.SurfacePitch  = pParams->dwPitch - 1;
-            pSurfaceState->DW3.Depth         = pParams->dwDepth - 1;
+            uint32_t tileMode = 0;
+            MHW_MI_CHK_STATUS(GetTileModeEncoding(pParams, tileMode));
+
+            // Common image fields. Obj0 and Obj1 place these identically, so
+            // writing them through Obj0 covers both halves of the union.
+            pSurfaceState->QW2.Obj0.Width                = encodedWidth;
+            pSurfaceState->QW2.Obj0.Height               = encodedHeight;
+            pSurfaceState->QW2.Obj0.TileMode             = tileMode;
+            pSurfaceState->QW2.Obj0.MippedSurface        = isMipped ? 1 : 0;
+            pSurfaceState->QW2.Obj0.SurfaceArrayOrVolume = isArrayOrVolume ? 1 : 0;
+            pSurfaceState->QW2.Obj0.DepthStencilResource = 0;
+
+            // Belongs to a separate tiling feature that shares this
+            // descriptor; media does not opt in.
+            pSurfaceState->QW2.Obj0.EnableNextGenTiling = 0;
+
+            if (isArrayOrVolume)
+            {
+                pSurfaceState->QW2.Obj0.Depth = rtvExtent;
+                // The field stores bits 16:2 of a row count, so the existing
+                // shift by 2 is the correct unit conversion.
+                pSurfaceState->QW2.Obj0.SurfaceQpitch = pParams->dwQPitch >> 2;
+            }
+            else
+            {
+                // X offset narrows to 5 bits in units of 4 pixels, so the
+                // maximum drops from 508 to 124 pixels. Hardware already
+                // requires a zero X offset for every surface shape media
+                // produces except Tile4 non-planar 2D.
+                const uint32_t xOffset = (uint32_t)pParams->iXOffset >> 2;
+                if (xOffset > 31)
+                {
+                    MHW_ASSERTMESSAGE("X offset %d exceeds the 5-bit field\n", xOffset);
+                    return MOS_STATUS_INVALID_PARAMETER;
+                }
+                pSurfaceState->QW2.Obj1.XOffset = xOffset;
+                pSurfaceState->QW2.Obj1.YOffset = (uint32_t)pParams->iYOffset >> 2;
+            }
+        }
+
+        // ---- Mip / MSAA / planar block (QW3) -------------------------------
+
+        if (isBuffer)
+        {
+            pSurfaceState->QW3.Obj3.AppendBuffer         = 0;
+            pSurfaceState->QW3.Obj3.AppendCounterAddress = 0;
+        }
+        else
+        {
+            pSurfaceState->QW3.Obj0.SurfaceHorizontalAlignment = 1;
+            pSurfaceState->QW3.Obj0.SurfaceVerticalAlignment   = 1;
+            pSurfaceState->QW3.Obj0.MinimumArrayElement        = minimumArrayElement;
+
+            if (isMipped)
+            {
+                pSurfaceState->QW3.Obj0.MipTailStartLod =
+                    pParams->MipTailStartLOD & (~MHW_MIP_TAIL_START_LOD_ENABLED_MASK);
+
+                // Every other mipped field must be zero. A non-zero mip region
+                // log2 dimension means procedural texture here, not a larger
+                // mip region.
+                pSurfaceState->QW3.Obj0.BaseMipLevel          = 0;
+                pSurfaceState->QW3.Obj0.MipCountLod           = mipCountLod;
+                pSurfaceState->QW3.Obj0.SurfaceMinLod         = 0;
+                pSurfaceState->QW3.Obj0.ResourceMinLod        = 0;
+                pSurfaceState->QW3.Obj0.MipRegionWidthInLog2  = 0;
+                pSurfaceState->QW3.Obj0.MipRegionHeightInLog2 = 0;
+                pSurfaceState->QW3.Obj0.MipRegionDepthInLog2  = 0;
+            }
+            else
+            {
+                // Media is always single-sampled, which selects the planar
+                // half of the non-mipped union.
+                pSurfaceState->QW3.Obj2.MsaaEnable = 0;
+
+                pSurfaceState->QW3.Obj2.VerticalLineStride       = pParams->bVerticalLineStride;
+                pSurfaceState->QW3.Obj2.VerticalLineStrideOffset = pParams->bVerticalLineStrideOffset;
+
+                // The X offset is a plain 14-bit value, but the Y offset is
+                // biased here and was not in the 64-byte layout. Without the
+                // bias the chroma plane lands one row low.
+                pSurfaceState->QW3.Obj2.XOffsetForUOrUvPlane = pParams->dwXOffsetForU;
+                pSurfaceState->QW3.Obj2.YOffsetForUOrUvPlane =
+                    (pParams->dwYOffsetForU > 0) ? (pParams->dwYOffsetForU - 1) : 0;
+            }
         }
 
         MT_LOG6(MT_VP_MHW_CACHE_MOCS_TABLE, MT_NORMAL, MT_VP_MHW_CACHE_MEMORY_OBJECT_NAME, *((int64_t *)"SurfaceState"),
-                    MT_VP_MHW_CACHE_MEMORY_OBJECT_SURFACE_TYPE, pSurfaceState->DW0.SurfaceType, MT_VP_MHW_CACHE_MEMORY_OBJECT_SURFACE_WIDTH, pSurfaceState->DW2.Width,
-                    MT_VP_MHW_CACHE_MEMORY_OBJECT_SURFACE_HEIGHT,  pSurfaceState->DW2.Height, MT_VP_MHW_CACHE_MEMORY_OBJECT_SURFACE_FORMAT, pSurfaceState->DW0.SurfaceFormat,
+                    MT_VP_MHW_CACHE_MEMORY_OBJECT_SURFACE_TYPE, surfaceType, MT_VP_MHW_CACHE_MEMORY_OBJECT_SURFACE_WIDTH, encodedWidth,
+                    MT_VP_MHW_CACHE_MEMORY_OBJECT_SURFACE_HEIGHT,  encodedHeight, MT_VP_MHW_CACHE_MEMORY_OBJECT_SURFACE_FORMAT, pParams->dwFormat,
                     MT_VP_MHW_CACHE_MEMORY_OBJECT_CONTROL_STATE, pParams->dwCacheabilityControl);
         MHW_NORMALMESSAGE("Feature Graph: Cache settings of Render SurfaceState: SurfaceType is %d, Surface width is %d, Surface height is %d,\
-                    Surface format is %d, SurfaceMemoryObjectControlState %d, Index to Mocs table %d",pSurfaceState->DW0.SurfaceType, pSurfaceState->DW2.Width,
-                   pSurfaceState->DW2.Height, pSurfaceState->DW0.SurfaceFormat, pParams->dwCacheabilityControl, (pParams->dwCacheabilityControl >> 1) & 0x0000003f);
-
-        pSurfaceState->DW4.RenderTargetAndSampleUnormRotation = pParams->RotationMode;
-        pSurfaceState->DW5.XOffset                            = pParams->iXOffset >> 2;
-        pSurfaceState->DW5.YOffset                            = pParams->iYOffset >> 2;
-        pSurfaceState->DW6.Obj2.SeparateUvPlaneEnable         = pParams->bSeperateUVPlane;
-        pSurfaceState->DW6.Obj2.HalfPitchForChroma            = pParams->bHalfPitchChroma;
-        pSurfaceState->DW6.Obj2.XOffsetForUOrUvPlane          = pParams->dwXOffsetForU;
-        pSurfaceState->DW6.Obj2.YOffsetForUOrUvPlane          = pParams->dwYOffsetForU;
-
-        // Set L1 Cache control
-        pSurfaceState->DW5.L1CacheControl = pParams->L1CacheConfig;
-
-        if (pParams->MipTailStartLOD & MHW_MIP_TAIL_START_LOD_ENABLED_MASK)
-        {
-            pSurfaceState->DW5.MipTailStartLod = pParams->MipTailStartLOD & (~MHW_MIP_TAIL_START_LOD_ENABLED_MASK);
-        }
+                    Surface format is %d, SurfaceMemoryObjectControlState %d, Index to Mocs table %d", surfaceType, encodedWidth,
+                   encodedHeight, pParams->dwFormat, pParams->dwCacheabilityControl, mocsIndex);
 
         // R8B8G8A8 is designed to represent media AYUV format.
         // But from Gen10+ 3D sampler doesn't support R8B8G8A8 format any more.
         // Use R8G8B8A8 + Channel Select to fake it.
         if (pParams->dwFormat == MHW_GFX3DSTATE_SURFACEFORMAT_R8B8G8A8_UNORM)
         {
-            pSurfaceState->DW0.SurfaceFormat            = MHW_GFX3DSTATE_SURFACEFORMAT_R8G8B8A8_UNORM;
-            pSurfaceState->DW7.ShaderChannelSelectAlpha = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_ALPHA_ALPHA;
-            pSurfaceState->DW7.ShaderChannelSelectBlue  = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_GREEN_GREEN;
-            pSurfaceState->DW7.ShaderChannelSelectGreen = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_BLUE;
-            pSurfaceState->DW7.ShaderChannelSelectRed   = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_RED_RED;
+            pSurfaceState->QW1.SurfaceFormat            = MHW_GFX3DSTATE_SURFACEFORMAT_R8G8B8A8_UNORM;
+            pSurfaceState->QW1.ShaderChannelSelectAlpha = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_ALPHA_ALPHA;
+            pSurfaceState->QW1.ShaderChannelSelectBlue  = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_GREEN_GREEN;
+            pSurfaceState->QW1.ShaderChannelSelectGreen = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_BLUE;
+            pSurfaceState->QW1.ShaderChannelSelectRed   = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_RED_RED;
         }
         else
         {
-            pSurfaceState->DW7.ShaderChannelSelectAlpha = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_ALPHA_ALPHA;
-            pSurfaceState->DW7.ShaderChannelSelectBlue  = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_BLUE;
-            pSurfaceState->DW7.ShaderChannelSelectGreen = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_GREEN_GREEN;
-            pSurfaceState->DW7.ShaderChannelSelectRed   = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_RED_RED;
+            pSurfaceState->QW1.ShaderChannelSelectAlpha = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_ALPHA_ALPHA;
+            pSurfaceState->QW1.ShaderChannelSelectBlue  = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_BLUE;
+            pSurfaceState->QW1.ShaderChannelSelectGreen = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_GREEN_GREEN;
+            pSurfaceState->QW1.ShaderChannelSelectRed   = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_RED_RED;
         }
 
         // The newer border color mode is much simpler to support in HW as no filtering of
@@ -274,27 +511,23 @@ public:
             SetMissingShaderChannels(pSurfaceState, pParams->dwFormat);
         }
 
-        if (pParams->MmcState == MOS_MEMCOMP_MC)
+        // The V-plane offsets, the separate-UV-plane enable, the half-pitch-for
+        // -chroma bit and the sampler-unorm rotation no longer exist in this
+        // descriptor and are deliberately dropped rather than relocated.
+        if (pParams->MmcState == MOS_MEMCOMP_MC || pParams->MmcState == MOS_MEMCOMP_RC)
         {
-            pSurfaceState->DW10_11.Obj1.XOffsetForVPlane = pParams->dwXOffsetForV;
-            pSurfaceState->DW10_11.Obj0.YOffsetForVPlane = pParams->dwYOffsetForV;
-            pSurfaceState->DW12.CompressionFormat        = pParams->dwCompressionFormat;
-        }
-        else if (pParams->MmcState == MOS_MEMCOMP_RC)
-        {
-            pSurfaceState->DW12.CompressionFormat               = pParams->dwCompressionFormat;
-        }
-        else
-        {
-            pSurfaceState->DW10_11.Obj1.XOffsetForVPlane = pParams->dwXOffsetForV;
-            pSurfaceState->DW10_11.Obj0.YOffsetForVPlane = pParams->dwYOffsetForV;
+            pSurfaceState->QW1.CompressionFormat = pParams->dwCompressionFormat;
         }
 
-        pSurfaceState->DW8_9.SurfaceBaseAddress = 0;
+        pSurfaceState->QW0.SurfaceBaseAddress = 0;
 
-        // Return offset and pointer for patching
-        pParams->pdwCmd          = (uint32_t *)&(pSurfaceState->DW8_9.SurfaceBaseAddress);
-        pParams->dwLocationInCmd = 8;
+        // Return offset and pointer for patching. The base address moved to the
+        // first QWord, so the offset is 0 rather than 8. This is one of two
+        // independent places that describe where the base address sits; the
+        // other applies an offset while copying into indirect state. Fixing
+        // only one of them still corrupts.
+        pParams->pdwCmd          = (uint32_t *)&(pSurfaceState->QW0.SurfaceBaseAddress);
+        pParams->dwLocationInCmd = 0;
 
         return MOS_STATUS_SUCCESS;
     }
@@ -701,9 +934,9 @@ public:
         {
             // A8_UNORM must be forced to 0.0 which is the default for the newer border color anyway.
         case MHW_GFX3DSTATE_SURFACEFORMAT_A8_UNORM:
-            pSurfaceState->DW7.ShaderChannelSelectRed   = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_RED_ZERO;
-            pSurfaceState->DW7.ShaderChannelSelectGreen = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_GREEN_ZERO;
-            pSurfaceState->DW7.ShaderChannelSelectBlue  = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_ZERO;
+            pSurfaceState->QW1.ShaderChannelSelectRed   = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_RED_ZERO;
+            pSurfaceState->QW1.ShaderChannelSelectGreen = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_GREEN_ZERO;
+            pSurfaceState->QW1.ShaderChannelSelectBlue  = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_ZERO;
             break;
         case MHW_GFX3DSTATE_SURFACEFORMAT_R64G64_FLOAT:
         case MHW_GFX3DSTATE_SURFACEFORMAT_R32G32_FLOAT:
@@ -717,8 +950,8 @@ public:
         case MHW_GFX3DSTATE_SURFACEFORMAT_R16G16_USCALED:
         case MHW_GFX3DSTATE_SURFACEFORMAT_R8G8_SSCALED:
         case MHW_GFX3DSTATE_SURFACEFORMAT_R8G8_USCALED:
-            pSurfaceState->DW7.ShaderChannelSelectBlue  = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_ONE;
-            pSurfaceState->DW7.ShaderChannelSelectAlpha = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_ALPHA_ONE;
+            pSurfaceState->QW1.ShaderChannelSelectBlue  = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_ONE;
+            pSurfaceState->QW1.ShaderChannelSelectAlpha = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_ALPHA_ONE;
             break;
         case MHW_GFX3DSTATE_SURFACEFORMAT_R32G32B32_UNORM:
         case MHW_GFX3DSTATE_SURFACEFORMAT_R32G32B32_SNORM:
@@ -730,7 +963,7 @@ public:
         case MHW_GFX3DSTATE_SURFACEFORMAT_R16G16B16_SSCALED:
         case MHW_GFX3DSTATE_SURFACEFORMAT_R16G16B16_USCALED:
         case MHW_GFX3DSTATE_SURFACEFORMAT_YCRCB_SWAPY:
-            pSurfaceState->DW7.ShaderChannelSelectAlpha = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_ALPHA_ONE;
+            pSurfaceState->QW1.ShaderChannelSelectAlpha = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_ALPHA_ONE;
             break;
         case MHW_GFX3DSTATE_SURFACEFORMAT_R32_FLOAT_X8X24_TYPELESS:
         case MHW_GFX3DSTATE_SURFACEFORMAT_R64_FLOAT:
@@ -742,23 +975,23 @@ public:
         case MHW_GFX3DSTATE_SURFACEFORMAT_R16_USCALED:
         case MHW_GFX3DSTATE_SURFACEFORMAT_R8_SSCALED:
         case MHW_GFX3DSTATE_SURFACEFORMAT_R8_USCALED:
-            pSurfaceState->DW7.ShaderChannelSelectGreen = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_GREEN_ONE;
-            pSurfaceState->DW7.ShaderChannelSelectBlue  = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_ONE;
-            pSurfaceState->DW7.ShaderChannelSelectAlpha = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_ALPHA_ONE;
+            pSurfaceState->QW1.ShaderChannelSelectGreen = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_GREEN_ONE;
+            pSurfaceState->QW1.ShaderChannelSelectBlue  = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_ONE;
+            pSurfaceState->QW1.ShaderChannelSelectAlpha = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_ALPHA_ONE;
             break;
         case MHW_GFX3DSTATE_SURFACEFORMAT_X32_TYPELESS_G8X24_UINT:
-            pSurfaceState->DW7.ShaderChannelSelectRed   = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_RED_ONE;
-            pSurfaceState->DW7.ShaderChannelSelectBlue  = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_ONE;
-            pSurfaceState->DW7.ShaderChannelSelectAlpha = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_ALPHA_ONE;
+            pSurfaceState->QW1.ShaderChannelSelectRed   = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_RED_ONE;
+            pSurfaceState->QW1.ShaderChannelSelectBlue  = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_ONE;
+            pSurfaceState->QW1.ShaderChannelSelectAlpha = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_ALPHA_ONE;
             break;
         case MHW_GFX3DSTATE_SURFACEFORMAT_A32X32_FLOAT:
         case MHW_GFX3DSTATE_SURFACEFORMAT_A24X8_UNORM:
         case MHW_GFX3DSTATE_SURFACEFORMAT_A32_FLOAT:
         case MHW_GFX3DSTATE_SURFACEFORMAT_A16_UNORM:
         case MHW_GFX3DSTATE_SURFACEFORMAT_A16_FLOAT:
-            pSurfaceState->DW7.ShaderChannelSelectRed   = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_RED_ONE;
-            pSurfaceState->DW7.ShaderChannelSelectGreen = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_GREEN_ONE;
-            pSurfaceState->DW7.ShaderChannelSelectBlue  = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_ONE;
+            pSurfaceState->QW1.ShaderChannelSelectRed   = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_RED_ONE;
+            pSurfaceState->QW1.ShaderChannelSelectGreen = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_GREEN_ONE;
+            pSurfaceState->QW1.ShaderChannelSelectBlue  = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_ONE;
             break;
         case MHW_GFX3DSTATE_SURFACEFORMAT_R16G16_UNORM:
         case MHW_GFX3DSTATE_SURFACEFORMAT_R16G16_SNORM:
@@ -771,7 +1004,7 @@ public:
         case MHW_GFX3DSTATE_SURFACEFORMAT_R8G8_UINT:
         case MHW_GFX3DSTATE_SURFACEFORMAT_BC5_UNORM:
         case MHW_GFX3DSTATE_SURFACEFORMAT_BC5_SNORM:
-            pSurfaceState->DW7.ShaderChannelSelectBlue = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_ONE;
+            pSurfaceState->QW1.ShaderChannelSelectBlue = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_ONE;
             break;
         case MHW_GFX3DSTATE_SURFACEFORMAT_R32_SINT:
         case MHW_GFX3DSTATE_SURFACEFORMAT_R32_UINT:
@@ -788,12 +1021,12 @@ public:
         case MHW_GFX3DSTATE_SURFACEFORMAT_R8_UINT:
         case MHW_GFX3DSTATE_SURFACEFORMAT_BC4_UNORM:
         case MHW_GFX3DSTATE_SURFACEFORMAT_BC4_SNORM:
-            pSurfaceState->DW7.ShaderChannelSelectGreen = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_GREEN_ONE;
-            pSurfaceState->DW7.ShaderChannelSelectBlue  = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_ONE;
+            pSurfaceState->QW1.ShaderChannelSelectGreen = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_GREEN_ONE;
+            pSurfaceState->QW1.ShaderChannelSelectBlue  = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_ONE;
             break;
         case MHW_GFX3DSTATE_SURFACEFORMAT_X24_TYPELESS_G8_UINT:
-            pSurfaceState->DW7.ShaderChannelSelectRed  = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_RED_ONE;
-            pSurfaceState->DW7.ShaderChannelSelectBlue = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_ONE;
+            pSurfaceState->QW1.ShaderChannelSelectRed  = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_RED_ONE;
+            pSurfaceState->QW1.ShaderChannelSelectBlue = RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_ONE;
             break;
         default:
             break;
