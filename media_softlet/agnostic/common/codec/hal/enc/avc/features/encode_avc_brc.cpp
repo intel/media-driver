@@ -586,6 +586,7 @@ MOS_STATUS AvcEncodeBRC::SetDmemForUpdate(void *params, uint16_t currPass, bool 
     auto avcPicParams = m_basicFeature->m_picParam;
 
     hucVdencBrcUpdateDmem->BRCFunc_U8 = 1;   // Update:1
+    hucVdencBrcUpdateDmem->UPD_LaDataBufferEnabled_U8 = (avcSeqParams->LookaheadDepth && m_basicFeature->m_laDataBufferEnabled) ? 1 : 0;
 
     if (!m_brcInit && (currPass == 0))
     {

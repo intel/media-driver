@@ -41,7 +41,8 @@ class AvcEncodeBRC;
 struct VdencAvcHucBrcUpdateDmem
 {
     uint8_t     BRCFunc_U8;                           // =1 for Update, other values are reserved for future use
-    uint8_t     RSVD[2];
+    uint8_t     UPD_LaDataBufferEnabled_U8;           // 1: LA data buffer (region 13) is bound
+    uint8_t     RSVD;
     uint8_t     UPD_LADsRatio;
     uint32_t    UPD_TARGETSIZE_U32;                   // refer to AVC BRC for calculation
     uint32_t    UPD_FRAMENUM_U32;                     // frame number

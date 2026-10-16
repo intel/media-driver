@@ -297,6 +297,7 @@ namespace encode
         hucVdencBrcUpdateDmem->CMD1_StartInBytes             = (uint16_t)m_hwInterface->m_vdencBatchBuffer1stGroupSize;
         hucVdencBrcUpdateDmem->PIC_STATE_StartInBytes        = (uint16_t)m_basicFeature->m_picStateCmdStartInBytes;
         hucVdencBrcUpdateDmem->CMD2_StartInBytes             = (uint16_t)m_cmd2StartInBytes;
+        hucVdencBrcUpdateDmem->UPD_LaDataBufferEnabled_U8    = (m_basicFeature->m_hevcSeqParams->LookaheadDepth && m_basicFeature->m_laDataBufferEnabled) ? 1 : 0;
 
         if (m_basicFeature->m_prevStoreData != m_basicFeature->m_frameNum)
         {

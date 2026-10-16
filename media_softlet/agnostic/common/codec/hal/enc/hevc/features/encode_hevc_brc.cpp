@@ -300,6 +300,8 @@ namespace encode
         hucVdencBrcUpdateDmem->UPD_GopPicSize = m_basicFeature->m_hevcSeqParams->GopPicSize;
         hucVdencBrcUpdateDmem->UPD_LADsRatio = m_basicFeature->m_hevcSeqParams->FastPassRatio;
 
+        hucVdencBrcUpdateDmem->UPD_GopOpt_U8 = m_basicFeature->m_hevcSeqParams->GopOptFlag;
+
         return MOS_STATUS_SUCCESS;
     }
 

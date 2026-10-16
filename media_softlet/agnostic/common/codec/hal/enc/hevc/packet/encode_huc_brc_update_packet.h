@@ -127,8 +127,10 @@ namespace encode
         uint8_t     UPD_AdaptiveTUEnabled        = 0;
         uint16_t    UPD_GopPicSize               = 0;
         uint8_t     UPD_LADsRatio                = 0;
+        uint8_t     UPD_GopOpt_U8                = 0;  // 0 open GOP, 1 close GOP, 2 strict GOP
 
-        uint8_t     RSVD[39] = {};  // 64 bytes aligned
+        uint8_t     UPD_LaDataBufferEnabled_U8 = 0;  // 1: LA data buffer (region 13) is bound
+        uint8_t     RSVD[37] = {};  // 64 bytes aligned
     };
     C_ASSERT(256 == sizeof(VdencHevcHucBrcUpdateDmem));
 
