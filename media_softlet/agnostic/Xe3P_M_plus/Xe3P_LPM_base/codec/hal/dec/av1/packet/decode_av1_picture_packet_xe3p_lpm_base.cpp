@@ -148,17 +148,17 @@ namespace decode
             m_miItf->MHW_GETSIZE_F(VD_CONTROL_STATE)() * 2;
 
         patchListMaxSize =
-            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::VD_PIPELINE_FLUSH_CMD) +
-            PATCH_LIST_COMMAND(mhw::mi::Itf::MI_FLUSH_DW_CMD) +
-            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_PIPE_MODE_SELECT_CMD) +
-            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_SURFACE_STATE_CMD) * 11 +
-            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_PIPE_BUF_ADDR_STATE_CMD) +
-            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_IND_OBJ_BASE_ADDR_STATE_CMD) +
-            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_SEGMENT_STATE_CMD) * 8 +
-            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_INTER_PRED_STATE_CMD) +
-            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_INLOOP_FILTER_STATE_CMD) +
-            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_FILM_GRAIN_STATE_CMD) +
-            PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_PIC_STATE_CMD);
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::VD_PIPELINE_FLUSH_CMD)) +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::mi::Itf::MI_FLUSH_DW_CMD)) +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_PIPE_MODE_SELECT_CMD)) +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_SURFACE_STATE_CMD)) * 11 +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_PIPE_BUF_ADDR_STATE_CMD)) +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_IND_OBJ_BASE_ADDR_STATE_CMD)) +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_SEGMENT_STATE_CMD)) * 8 +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_INTER_PRED_STATE_CMD)) +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_INLOOP_FILTER_STATE_CMD)) +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_FILM_GRAIN_STATE_CMD)) +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::avp::Itf::AVP_PIC_STATE_CMD));
 
         if (params->bSfcInUse)
         {
