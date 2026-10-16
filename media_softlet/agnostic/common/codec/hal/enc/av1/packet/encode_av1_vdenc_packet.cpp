@@ -1290,13 +1290,6 @@ namespace encode{
     {
         params.pakObjCmdStreamOut = m_vdencPakObjCmdStreamOutEnabled;
 
-        // needs to be enabled for 1st pass in multi-pass case
-        // This bit is ignored if PAK only second pass is enabled.
-        if ((m_pipeline->GetCurrentPass() == 0) && !m_pipeline->IsLastPass())
-        {
-            params.pakObjCmdStreamOut = true;
-        }
-
         return MOS_STATUS_SUCCESS;
     }
 
