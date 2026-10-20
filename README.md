@@ -85,7 +85,7 @@ export LIBVA_DRIVER_NAME=iHD
 - MTLx (MTL: Meteor Lake, ARL-S/H: Arrow Lake)
 - LNL (Lunar Lake)
 - BMG (Battlemage)
-- PTL (Pather Lake)
+- PTL (Panther Lake)
 - NVL (Nova Lake)
 - CRI (Crescent Island)
 
