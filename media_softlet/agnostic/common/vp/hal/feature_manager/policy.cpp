@@ -1091,6 +1091,16 @@ bool Policy::IsAlphaSettingSupportedBySfc(MOS_FORMAT formatInput, MOS_FORMAT for
                 VP_PUBLIC_NORMALMESSAGE("Ignore VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM for Y410.");
                 return true;
             }
+            // Only FC keeps source alpha for Y416/AYUV. If render is disabled there is no fallback,
+            // so ignore Alpha Source Mode and let sfc handle it rather than failing the job.
+            if ((Format_Y416 == formatOutput || Format_AYUV == formatOutput) &&
+                m_vpInterface.GetHwInterface() &&
+                m_vpInterface.GetHwInterface()->m_vpPlatformInterface &&
+                m_vpInterface.GetHwInterface()->m_vpPlatformInterface->IsRenderDisabled())
+            {
+                VP_PUBLIC_NORMALMESSAGE("Ignore VPHAL_ALPHA_FILL_MODE_SOURCE_STREAM for Y416/AYUV since render is disabled.");
+                return true;
+            }
             return false;
         }
         else
