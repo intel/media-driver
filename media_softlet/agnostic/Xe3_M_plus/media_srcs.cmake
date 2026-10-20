@@ -19,6 +19,6 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(Xe3_LPM_base)
-if(PTL)
+if(PTL OR CRI)
     media_include_subdirectory(Xe3_LPM)
 endif()
