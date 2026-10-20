@@ -488,6 +488,44 @@ VAStatus DdiDecodeAvc::RenderPicture(
     return va;
 }
 
+MOS_FORMAT DdiDecodeAvc::GetFormat()
+{
+    DDI_CODEC_FUNC_ENTER;
+
+    MOS_FORMAT Format = Format_NV12;
+    DDI_CODEC_RENDER_TARGET_TABLE *rtTbl = &(m_decodeCtx->RTtbl);
+    CodechalDecodeParams  *decodeParams  = &m_decodeCtx->DecodeParams;
+    CODEC_AVC_PIC_PARAMS *picParams      = (CODEC_AVC_PIC_PARAMS *)decodeParams->m_picParams;
+
+    uint8_t chromaType             = picParams->seq_fields.chroma_format_idc;
+    uint8_t ucBitDepthLumaMinus8   = picParams->bit_depth_luma_minus8;
+    uint8_t ucBitDepthChromaMinus8 = picParams->bit_depth_chroma_minus8;
+
+    if ((chromaType == avcChromaFormatMono || chromaType == avcChromaFormat420) && rtTbl->pCurrentRT->format == Media_Format_NV12)
+    {
+        if (ucBitDepthLumaMinus8 == 0 && ucBitDepthChromaMinus8 == 0)
+        {
+            Format = Format_NV12; //420 8 bit
+        }
+    }
+    else if (chromaType == avcChromaFormat420 && rtTbl->pCurrentRT->format == Media_Format_P010)
+    {
+        if (ucBitDepthLumaMinus8 == 2 && ucBitDepthChromaMinus8 == 2)
+        {
+            Format = Format_P010; //420 10 bit
+        }
+    }
+    else if (chromaType == avcChromaFormat422 && rtTbl->pCurrentRT->format == Media_Format_Y210)
+    {
+         if (ucBitDepthLumaMinus8 == 2 && ucBitDepthChromaMinus8 == 2)
+         {
+             Format = Format_Y210; // 422 10 bit
+         }
+    }
+
+    return Format;
+}
+
 VAStatus DdiDecodeAvc::SetDecodeParams()
 {
     DDI_CODEC_FUNC_ENTER;
@@ -630,6 +668,16 @@ VAStatus DdiDecodeAvc::CodecHalInit(
     m_codechalSettings->intelEntrypointInUse = false;
 
     m_codechalSettings->lumaChromaDepth = CODECHAL_LUMA_CHROMA_DEPTH_8_BITS;
+
+#if VA_CHECK_VERSION(1, 18, 0)
+    if (m_ddiDecodeAttr->profile == VAProfileH264High10
+#if VA_CHECK_VERSION(1, 23, 0)
+        || m_ddiDecodeAttr->profile == VAProfileH264High422
+#endif
+    ) {
+        m_codechalSettings->lumaChromaDepth |= CODECHAL_LUMA_CHROMA_DEPTH_10_BITS;
+    }
+#endif
 
     m_codechalSettings->mode     = CODECHAL_DECODE_MODE_AVCVLD;
     m_codechalSettings->standard = CODECHAL_AVC;
