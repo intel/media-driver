@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2023, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,7 @@
 #include "decode_utils.h"
 #include "decode_common_feature_defs.h"
 #include "decode_hevc_mem_compression_xe3_lpm_base.h"
+#include "decode_hevc_aqm_packet_xe3_lpm_base.h"
 
 namespace decode {
 
@@ -95,23 +96,6 @@ MOS_STATUS HevcPipelineXe3_Lpm_Base::InitScalabOption(HevcBasicFeature &basicFea
     MOS_ZeroMemory(&scalPars, sizeof(scalPars));
     DECODE_CHK_STATUS(InitContexOption(scalPars));
     scalPars.isSCC         = (basicFeature.m_hevcSccPicParams != nullptr);
-#ifdef _DECODE_PROCESSING_SUPPORTED
-    DecodeDownSamplingFeature* downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature*>(
-        m_featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
-    if (downSamplingFeature != nullptr && downSamplingFeature->IsEnabled())
-    {
-        scalPars.usingSfc = true;
-        if (!MEDIA_IS_SKU(m_skuTable, FtrSfcScalability))
-        {
-            scalPars.disableScalability = true;
-        }
-    }
-    //Disable Scalability when histogram is enabled
-    if (downSamplingFeature != nullptr && (downSamplingFeature->m_histogramDestSurf || downSamplingFeature->m_histogramDebug))
-    {
-        scalPars.disableScalability = true;
-    }
-#endif
     scalPars.maxTileColumn = HEVC_NUM_MAX_TILE_COLUMN;
     scalPars.maxTileRow    = HEVC_NUM_MAX_TILE_ROW;
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -253,6 +237,12 @@ MOS_STATUS HevcPipelineXe3_Lpm_Base::Prepare(void *params)
             inputParameters.numUsedVdbox               = m_numVdbox;
             inputParameters.numSlices                  = m_basicFeature->m_numSlices;
             inputParameters.currDecodedPicRes          = m_basicFeature->m_destSurface.OsResource;
+
+            CODECHAL_DEBUG_TOOL(
+                if (m_streamout != nullptr) {
+                    DECODE_CHK_STATUS(m_streamout->InitStatusReportParam(inputParameters));
+                });
+
 #if (_DEBUG || _RELEASE_INTERNAL)
 #ifdef _DECODE_PROCESSING_SUPPORTED
             DecodeDownSamplingFeature* downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature*>(
@@ -352,9 +342,8 @@ MOS_STATUS HevcPipelineXe3_Lpm_Base::Initialize(void *settings)
 {
     DECODE_FUNC_CALL();
     DECODE_CHK_STATUS(HevcPipeline::Initialize(settings));
-#ifdef _MMC_SUPPORTED
+
     DECODE_CHK_STATUS(InitMmcState());
-#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -387,12 +376,10 @@ MOS_STATUS HevcPipelineXe3_Lpm_Base::Uninitialize()
         pair.second->Destroy();
     }
 
-#ifdef _MMC_SUPPORTED
     if (m_mmcState != nullptr)
     {
         MOS_Delete(m_mmcState);
     }
-#endif
 
     return HevcPipeline::Uninitialize();
 }
@@ -442,10 +429,16 @@ MOS_STATUS HevcPipelineXe3_Lpm_Base::CreateSubPackets(DecodeSubPacketManager& su
     DECODE_CHK_STATUS(subPacketManager.Register(
                         DecodePacketId(this, hevcTileSubPacketId), *tileDecodePkt));
 
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    HevcDecodeAqmPktXe3LpmBase *aqmDecodePkt = MOS_New(HevcDecodeAqmPktXe3LpmBase, this, m_hwInterface);
+    DECODE_CHK_NULL(aqmDecodePkt);
+    DECODE_CHK_STATUS(subPacketManager.Register(
+        DecodePacketId(this, hevcDecodeAqmId), *aqmDecodePkt));
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
-#ifdef _MMC_SUPPORTED
 MOS_STATUS HevcPipelineXe3_Lpm_Base::InitMmcState()
 {
     DECODE_FUNC_CALL();
@@ -456,7 +449,6 @@ MOS_STATUS HevcPipelineXe3_Lpm_Base::InitMmcState()
     DECODE_CHK_STATUS(m_basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
     return MOS_STATUS_SUCCESS;
 }
-#endif
 
 #if USE_CODECHAL_DEBUG_TOOL
 MOS_STATUS HevcPipelineXe3_Lpm_Base::DumpParams(HevcBasicFeature &basicFeature)

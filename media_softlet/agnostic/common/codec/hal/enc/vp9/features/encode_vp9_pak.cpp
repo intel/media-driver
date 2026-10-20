@@ -281,8 +281,9 @@ MOS_STATUS Vp9EncodePak::ConstructPicStateBatchBuffer(EncodePipeline* pipeline)
         return eStatus;
     }
 
-    constructedCmdBuf.iOffset += 24; // padding for alignment on 64
-    constructedCmdBuf.iRemaining -= 24;
+    uint32_t padding = MOS_ALIGN_CEIL(constructedCmdBuf.iOffset, 64) - constructedCmdBuf.iOffset;
+    constructedCmdBuf.iOffset += padding;  // padding for alignment on 64
+    constructedCmdBuf.iRemaining -= padding;
     if ((constructedCmdBuf.iOffset != m_vdencPicStateSecondLevelBatchBufferSize) &&
         (constructedCmdBuf.iRemaining < 0))
     {

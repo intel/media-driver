@@ -98,6 +98,10 @@ namespace encode {
             copyMemMemParams.dwDstOffset = i;
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuf));
         }
+        // Make Flush DW call to make sure all previous work is done
+        auto &flushDwParams = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+        flushDwParams       = {};
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuf));
         return eStatus;
     }
 

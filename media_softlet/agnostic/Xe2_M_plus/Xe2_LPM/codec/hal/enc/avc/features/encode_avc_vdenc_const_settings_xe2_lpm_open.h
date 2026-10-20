@@ -21,7 +21,7 @@
 */
 
 //!
-//! \file     encode_avc_vdenc_const_settings_xe2_hpm_open.h
+//! \file     encode_avc_vdenc_const_settings_xe2_lpm_open.h
 //! \brief    Defines the opensource avc const settings
 //! \details  The encode feature manager is further sub-divided by platform type
 //!           this file is for the base interface which is shared by all components.

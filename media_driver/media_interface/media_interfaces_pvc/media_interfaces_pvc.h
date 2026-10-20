@@ -111,7 +111,7 @@
 #endif
 #ifdef _HEVC_ENCODE_VDENC_SUPPORTED
 #include "codechal_vdenc_hevc_xe_xpm.h"
-#ifdef _APOGEIOS_SUPPORTED
+#ifdef _MEDIA_RESERVED
 #include "encode_hevc_vdenc_pipeline_adapter_xe_xpm_plus.h"
 #endif
 #endif
@@ -141,8 +141,6 @@
 class MhwInterfacesPvc : public MhwInterfaces
 {
 public:
-    MhwVdboxAvpInterface *m_avpInterface = nullptr;
-
     using Mi        = MhwMiInterfaceXe_Xpm_Base;
     using Cp        = MhwCpInterface;
     using Render    = MhwRenderInterfaceXe_Hpc;

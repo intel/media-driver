@@ -58,6 +58,7 @@ public:
         Av1BackAnnotation,
         Av1Superres,
         EncodeCheckHucLoad,
+        HucSLBBUpdate,
     };
 
 protected:

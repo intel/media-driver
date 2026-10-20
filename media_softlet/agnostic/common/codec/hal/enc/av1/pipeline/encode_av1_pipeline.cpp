@@ -231,9 +231,9 @@ MOS_STATUS Av1Pipeline::DumpSeqParams(
 
     oss << "order_hint_bits_minus_1 = " << +seqParams->order_hint_bits_minus_1 << std::endl;
     oss << "LookaheadDepth = " << +seqParams->LookaheadDepth << std::endl;
-    oss << "TargetFrameSizeConfidence = " << +seqParams->TargetFrameSizeConfidence << std::endl;
-    oss << "Reserved8b2 = " << +seqParams->Reserved8b2 << std::endl;
-    oss << "Reserved8b3 = " << +seqParams->Reserved8b3 << std::endl;
+    oss << "reserved8b_fg = " << +seqParams->reserved8b_fg << std::endl; // FGLookaheadDepth
+    oss << "FastPassRatio = " << +seqParams->FastPassRatio << std::endl;
+    oss << "FastPassDsType = " << +seqParams->FastPassDsType << std::endl;
 
     for (uint8_t i = 0; i < 8; i++)
     {
@@ -321,6 +321,7 @@ MOS_STATUS Av1Pipeline::DumpPicParams(
     oss << "LongTermReference = " << +picParams->PicFlags.fields.LongTermReference << std::endl;
     oss << "allow_intrabc = " << +picParams->PicFlags.fields.allow_intrabc << std::endl;
     oss << "PaletteModeEnable = " << +picParams->PicFlags.fields.PaletteModeEnable << std::endl;
+    oss << "EnableDeltaQP = " << +picParams->PicFlags.fields.EnableDeltaQP << std::endl;
     oss << "Reserved2 = " << +picParams->PicFlags.fields.Reserved2 << std::endl;
     oss << "PicFlags.value = " << +picParams->PicFlags.value << std::endl;
 

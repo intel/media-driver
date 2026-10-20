@@ -300,7 +300,8 @@ public:
     SwFilterAiBaseHandler(VpInterface &vpInterface) : SwFilterFeatureHandler(vpInterface, Type), m_swFilterFactory(vpInterface) {};
     virtual ~SwFilterAiBaseHandler();
     virtual SwFilter  *CreateSwFilter();
-    virtual MOS_STATUS InitializePipeIntermediateSurface(PVPHAL_SURFACE vphalSurf, bool isNpuSahred = false);
+    virtual MOS_STATUS InitializePipeIntermediateSurface(PVPHAL_SURFACE vphalSurf, bool isNpuShared = false);
+    virtual MOS_STATUS UpdatePipeIntermediateSurface(PVPHAL_SURFACE vphalSurf);
 
     // This need to be implemented by derived class
     virtual bool IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputPipe, int surfIndex, SwFilterPipeType pipeType) = 0;
@@ -319,7 +320,6 @@ protected:
 
 protected:
     SwFilterFactory<SwFilterClassType> m_swFilterFactory;
-    std::set<VP_SURFACE *> m_pipeIntermediateVpSurfaces;
 
 MEDIA_CLASS_DEFINE_END(vp__SwFilterAiBaseHandler)
 };
@@ -327,18 +327,6 @@ MEDIA_CLASS_DEFINE_END(vp__SwFilterAiBaseHandler)
 template <class SwFilterClassType, FeatureType Type>
 SwFilterAiBaseHandler<SwFilterClassType, Type>::~SwFilterAiBaseHandler()
 {
-    for (auto vpSurf : m_pipeIntermediateVpSurfaces)
-    {
-        if (vpSurf->zeNpuHostMem)
-        {
-            m_vpInterface.GetAllocator().DestroyNpuBuffer(vpSurf);
-        }
-        else
-        {
-            m_vpInterface.GetAllocator().DestroyVpSurface(vpSurf);
-        }
-    }
-    m_pipeIntermediateVpSurfaces.clear();
 }
 
 template <class SwFilterClassType, FeatureType Type>
@@ -356,9 +344,36 @@ SwFilter *SwFilterAiBaseHandler<SwFilterClassType, Type>::CreateSwFilter()
 }
 
 template <class SwFilterClassType, FeatureType Type>
-MOS_STATUS SwFilterAiBaseHandler<SwFilterClassType, Type>::InitializePipeIntermediateSurface(PVPHAL_SURFACE vphalSurf, bool isNpuSahred)
+MOS_STATUS SwFilterAiBaseHandler<SwFilterClassType, Type>::UpdatePipeIntermediateSurface(PVPHAL_SURFACE vphalSurf)
 {
     VP_PUBLIC_CHK_NULL_RETURN(vphalSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(vphalSurf->pPipeIntermediateSurface);
+    PVP_SURFACE surface = vphalSurf->pPipeIntermediateSurface;
+
+    surface->ColorSpace     = vphalSurf->ColorSpace;
+    surface->ExtendedGamut  = vphalSurf->ExtendedGamut;
+    surface->Palette        = vphalSurf->Palette;
+    surface->bQueryVariance = vphalSurf->bQueryVariance;
+    surface->FrameID        = vphalSurf->FrameID;
+    surface->uFwdRefCount   = vphalSurf->uFwdRefCount;
+    surface->uBwdRefCount   = vphalSurf->uBwdRefCount;
+    surface->pFwdRef        = vphalSurf->pFwdRef;
+    surface->pBwdRef        = vphalSurf->pBwdRef;
+    surface->SurfType       = vphalSurf->SurfType;
+    surface->SampleType     = vphalSurf->SampleType;
+    surface->ChromaSiting   = vphalSurf->ChromaSiting;
+    surface->rcSrc          = vphalSurf->rcSrc;
+    surface->rcDst          = vphalSurf->rcDst;
+    surface->rcMaxSrc       = vphalSurf->rcMaxSrc;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+template <class SwFilterClassType, FeatureType Type>
+MOS_STATUS SwFilterAiBaseHandler<SwFilterClassType, Type>::InitializePipeIntermediateSurface(PVPHAL_SURFACE vphalSurf, bool isNpuShared)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(vphalSurf);
+    VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetPrimaryResourceManager());
     if (!Mos_ResourceIsNull(&vphalSurf->OsResource))
     {
         //this is not an empty vphal surface or the pipeline intermediate surface has already been initialized
@@ -368,7 +383,7 @@ MOS_STATUS SwFilterAiBaseHandler<SwFilterClassType, Type>::InitializePipeInterme
     bool        allocated       = false;
     PVP_SURFACE originVpSurface = vphalSurf->pPipeIntermediateSurface;
 
-    if (isNpuSahred)
+    if (isNpuShared)
     {
         uint32_t size = MOS_MAX(1, vphalSurf->dwWidth) * MOS_MAX(1, vphalSurf->dwHeight);
         VP_PUBLIC_CHK_STATUS_RETURN(m_vpInterface.GetAllocator().ReAllocateNpuBuffer(vphalSurf->pPipeIntermediateSurface, "VpPipelineNpuIntermediateSurface", size, allocated));
@@ -382,11 +397,7 @@ MOS_STATUS SwFilterAiBaseHandler<SwFilterClassType, Type>::InitializePipeInterme
             allocated));
     }
 
-    if (allocated)
-    {
-        m_pipeIntermediateVpSurfaces.erase(originVpSurface);
-    }
-    m_pipeIntermediateVpSurfaces.insert(vphalSurf->pPipeIntermediateSurface);
+    VP_PUBLIC_CHK_STATUS_RETURN(m_vpInterface.GetPrimaryResourceManager()->EmplaceCrossPipeContextResource(vphalSurf->pPipeIntermediateSurface, allocated ? originVpSurface : nullptr));
 
     return MOS_STATUS_SUCCESS;
 }

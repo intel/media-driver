@@ -37,7 +37,7 @@ namespace decode
 {
     MOS_STATUS Av1DecodePktXe3_Lpm_Base::Init()
     {
-        Av1DecodePkt::Init();
+        DECODE_CHK_STATUS(Av1DecodePkt::Init());
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
         DecodeSubPacket *subPacket = m_av1Pipeline->GetSubPacket(DecodePacketId(m_av1Pipeline, av1DecodeAqmId));
@@ -190,7 +190,7 @@ namespace decode
             DECODE_CHK_STATUS(VdPipelineFlush(cmdBuffer));
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-            if (m_aqmPkt && m_aqmPkt->m_downSampling->m_aqmHistogramEnable && m_isLastTileInPartialFrm)
+            if (m_aqmPkt && m_isLastTileInPartialFrm)
             {
                 m_aqmPkt->Flush(cmdBuffer);
             }
@@ -206,7 +206,6 @@ namespace decode
             DECODE_CHK_STATUS(UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer));
         }
 
-#ifdef _MMC_SUPPORTED
         CODECHAL_DEBUG_TOOL(
             if (m_mmcState) {
                 if (m_av1BasicFeature->m_filmGrainEnabled)
@@ -218,7 +217,6 @@ namespace decode
                     m_mmcState->UpdateUserFeatureKey(&(m_av1BasicFeature->m_destSurface));
                 }
             })
-#endif
 
         if ((isLastTileInFullFrm || !m_av1Pipeline->FrameBasedDecodingInUse()) &&
             !m_osInterface->pfnIsMismatchOrderProgrammingSupported())

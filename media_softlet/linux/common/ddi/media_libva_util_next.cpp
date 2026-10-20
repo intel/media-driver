@@ -163,6 +163,7 @@ VAStatus MediaLibvaUtilNext::SetDefaultTileFormat(
         case Media_Format_Y412:
 #endif
         case Media_Format_Y416:
+        case Media_Format_Y416_X16B16G16R16:
         case Media_Format_Y8:
         case Media_Format_Y16S:
         case Media_Format_Y16U:
@@ -220,11 +221,9 @@ void MediaLibvaUtilNext::InitSurfaceAllocateParams(
     params.format         = format;
     params.cpTag          = 0;
     params.memType        = memType;
-#ifdef _MMC_SUPPORTED
+
     params.bMemCompEnable = true;
-#else
-    params.bMemCompEnable = false;
-#endif
+
     params.bMemCompRC     = false;
     return;
 }
@@ -653,10 +652,18 @@ VAStatus MediaLibvaUtilNext::CreateExternalSurface(
 
     GMM_RESCREATE_CUSTOM_PARAMS_2 gmmCustomParams;
     MOS_ZeroMemory(&gmmCustomParams, sizeof(gmmCustomParams));
+    gmmCustomParams.Usage = GMM_RESOURCE_USAGE_STAGING;
+    if ((VA_SURFACE_EXTBUF_DESC_UNCACHED & mediaSurface->pSurfDesc->uiFlags) || (VA_SURFACE_EXTBUF_DESC_WC & mediaSurface->pSurfDesc->uiFlags))
+    {
+        gmmCustomParams.Usage = GMM_RESOURCE_USAGE_UNKNOWN;
+    }
     if (VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR == mediaSurface->pSurfDesc->uiVaMemType)
     {
-        gmmCustomParams.Usage = GMM_RESOURCE_USAGE_STAGING;
+        gmmCustomParams.Usage = GMM_RESOURCE_USAGE_STAGING; //temp WA for some application wrongly use flags for user ptr
         gmmCustomParams.Type = RESOURCE_1D;
+        // The buffer is allocated by the application on the CPU, so it is always CPU cacheable.
+        // GMM needs this to hand back the coherent PAT index for the user ptr binding.
+        gmmCustomParams.Flags.Info.Cacheable = 1;
     }
 
     if (params.bMemCompEnable)
@@ -823,12 +830,9 @@ VAStatus MediaLibvaUtilNext::GenerateGmmParamsForInternalSurface(
                     }
                 }
             }
-            // For ARGB surface, always allocate it as tile4.
-            // This is a WA for ExportSurfaceHandle because modifer for tile64 isn't defined.
-            if ((params.format == Media_Format_A8R8G8B8 || 
-                params.format == Media_Format_B10G10R10A2 || 
-                params.format == Media_Format_A8B8G8R8 ||
-                params.format == Media_Format_X8R8G8B8) && !MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrTileY))
+            // For RGB surfaces, always allocate as tile4.
+            // This is a WA for ExportSurfaceHandle because modifier for tile64 isn't defined for RGB formats.
+            if (IS_RGB_DDI_MEDIA_FORMAT(params.format) && !MEDIA_IS_SKU(&mediaDrvCtx->SkuTable, FtrTileY))
             {
                 gmmParams.Flags.Info.Tile4 = true;
             }
@@ -1171,6 +1175,7 @@ GMM_RESOURCE_FORMAT MediaLibvaUtilNext::ConvertMediaFmtToGmmFmt(DDI_MEDIA_FORMAT
         case Media_Format_Y16U       : return GMM_FORMAT_MEDIA_Y16_UNORM;
         case Media_Format_A16R16G16B16: return GMM_FORMAT_B16G16R16A16_UNORM;
         case Media_Format_A16B16G16R16: return GMM_FORMAT_R16G16B16A16_UNORM;
+        case Media_Format_Y416_X16B16G16R16: return GMM_FORMAT_R16G16B16A16_UNORM;
         default                      : return GMM_FORMAT_INVALID;
     }
 }
@@ -1573,6 +1578,7 @@ void* MediaLibvaUtilNext::LockBuffer(DDI_MEDIA_BUFFER *buf, uint32_t flag)
         }
         else
         {
+            DDI_CHK_NULL(buf->bo, "nullptr buf->bo", nullptr);
             if (buf->pMediaCtx->bIsAtomSOC)
             {
                 mos_bo_map_gtt(buf->bo);
@@ -2447,7 +2453,8 @@ MOS_FORMAT MediaLibvaUtilNext::GetFormatFromMediaFormat(DDI_MEDIA_FORMAT mediaFo
         {Media_Format_VYUY, Format_VYUY},
         {Media_Format_YVYU, Format_YVYU},
         {Media_Format_A16R16G16B16, Format_A16R16G16B16},
-        {Media_Format_A16B16G16R16, Format_A16B16G16R16}
+        {Media_Format_A16B16G16R16, Format_A16B16G16R16},
+        {Media_Format_Y416_X16B16G16R16, Format_A16B16G16R16}
     };
     auto it = ddiFormatToMediaFormatMap.find(mediaFormat);
     if(it != ddiFormatToMediaFormatMap.end())

@@ -284,6 +284,7 @@ MOS_STATUS MemoryBlockManager::RegisterHeap(uint32_t heapId, uint32_t size , boo
         {
             MOS_Delete(heap);
             MOS_Delete(adjacencyListBegin);
+            MOS_Delete(block);
             HEAP_CHK_STATUS(MOS_STATUS_NULL_POINTER);
         }
         managedHeap->m_heap = heap;

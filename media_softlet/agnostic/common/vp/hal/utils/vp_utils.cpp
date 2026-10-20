@@ -21,6 +21,7 @@
 */
 
 #include <cmath>
+#include <array>
 #include "vp_utils.h"
 #include "vp_common.h"
 #include "hal_kerneldll_next.h"
@@ -409,6 +410,31 @@ bool VpUtils::GetCscMatrixForRender8BitWithCoeff(
     return bResult;
 }
 
+MOS_STATUS VpUtils::GetPixelWithCSCForColorFillFloat(
+    float                 input[4],
+    float                 output[4],
+    VPHAL_CSPACE          srcCspace,
+    VPHAL_CSPACE          dstCspace)
+{
+    if (srcCspace == dstCspace)
+    {
+        VP_PUBLIC_NORMALMESSAGE("Set input color to output color for fp16 usage.");
+        // no conversion needed
+        output[0] = input[0];
+        output[1] = input[1];
+        output[2] = input[2];
+        output[3] = input[3];
+    }
+    else
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Not support this colorspace convert for Float Colorfill. Source Color Space: %d, Target Color Space: %d.",
+            srcCspace,
+            dstCspace);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS VpUtils::GetPixelWithCSCForColorFill(
     VPHAL_COLOR_SAMPLE_8 &input,
     float                 output[4],
@@ -567,6 +593,219 @@ MOS_STATUS VpUtils::GetNormalizedCSCMatrix(
         cscMatrix[3] /= 255.f;
         cscMatrix[7] /= 255.f;
         cscMatrix[11] /= 255.f;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpUtils::GetRgbRangeAndOffset(
+    VPHAL_CSPACE cspace,
+    float& rgbOffset,
+    float& rgbExcursion)
+{
+    switch (cspace)
+    {
+    case CSpace_sRGB:
+    case CSpace_BT2020_RGB:
+        rgbOffset    = 0.0f;
+        rgbExcursion = 255.0f;
+        break;
+
+    case CSpace_stRGB:
+    case CSpace_BT2020_stRGB:
+        rgbOffset    = 16.0f;
+        rgbExcursion = 219.0f;
+        break;
+
+    default:
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
+    rgbOffset /= 255.0f;
+    rgbExcursion /= 255.0f;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpUtils::GetYuvRangeAndOffset(
+    VPHAL_CSPACE cspace,
+    float& lumaOffset,
+    float& lumaExcursion,
+    float& chromaZero,
+    float& chromaExcursion)
+{
+    switch (cspace)
+    {
+    case CSpace_BT601_FullRange:
+    case CSpace_BT709_FullRange:
+    case CSpace_BT601Gray_FullRange:
+    case CSpace_BT2020_FullRange:
+        lumaOffset      = 0.0f;
+        lumaExcursion   = 255.0f;
+        chromaZero      = 128.0f;
+        chromaExcursion = 255.0f;
+        break;
+
+    case CSpace_BT601:
+    case CSpace_BT709:
+    case CSpace_xvYCC601:  // since matrix is the same as 601, use the same range
+    case CSpace_xvYCC709:  // since matrix is the same as 709, use the same range
+    case CSpace_BT601Gray:
+    case CSpace_BT2020:
+        lumaOffset      = 16.0f;
+        lumaExcursion   = 219.0f;
+        chromaZero      = 128.0f;
+        chromaExcursion = 224.0f;
+        break;
+
+    default:
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
+    lumaOffset /= 255.0f;
+    lumaExcursion /= 255.0f;
+    chromaZero /= 255.0f;
+    chromaExcursion /= 255.0f;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpUtils::GetCscMatrixForHDR(
+    VPHAL_CSPACE src,
+    VPHAL_CSPACE dst,
+    bool         swapChannel,
+    float       *outMatrix)
+{
+    static auto TransferRgbToYuvMatrix = [](VPHAL_CSPACE src, VPHAL_CSPACE dst, std::array<float, 12> &transferMatrix, float *outMatrix) -> MOS_STATUS {
+        float Y_o = 0.0f, Y_e = 0.0f, C_z = 0.0f, C_e = 0.0f;
+        float R_o = 0.0f, R_e = 0.0f;
+        VP_FUNC_CALL();
+        VP_PUBLIC_CHK_NULL_RETURN(outMatrix);
+
+        VP_PUBLIC_CHK_STATUS_RETURN(GetRgbRangeAndOffset(src, R_o, R_e));
+        VP_PUBLIC_CHK_STATUS_RETURN(GetYuvRangeAndOffset(dst, Y_o, Y_e, C_z, C_e));
+
+        if (R_e == 0.0f)
+        {
+            VP_RENDER_ASSERTMESSAGE("R_e = %f  should not be zero.", R_e);
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+        // multiplication of + onwards
+        outMatrix[0]  = transferMatrix[0] * Y_e / R_e;
+        outMatrix[1]  = transferMatrix[1] * Y_e / R_e;
+        outMatrix[2]  = transferMatrix[2] * Y_e / R_e;
+        outMatrix[4]  = transferMatrix[4] * C_e / R_e;
+        outMatrix[5]  = transferMatrix[5] * C_e / R_e;
+        outMatrix[6]  = transferMatrix[6] * C_e / R_e;
+        outMatrix[8]  = transferMatrix[8] * C_e / R_e;
+        outMatrix[9]  = transferMatrix[9] * C_e / R_e;
+        outMatrix[10] = transferMatrix[10] * C_e / R_e;
+
+        outMatrix[7]  = Y_o - Y_e * R_o / R_e;
+        outMatrix[3]  = C_z;
+        outMatrix[11] = C_z;
+
+        return MOS_STATUS_SUCCESS;
+    };
+
+    static auto TransferYuvToRgbMatrix = [](VPHAL_CSPACE src, VPHAL_CSPACE dst, std::array<float, 12> &transferMatrix, float *outMatrix) -> MOS_STATUS {
+        float      Y_o = 0.0f, Y_e = 0.0f, C_z = 0.0f, C_e = 0.0f;
+        float      R_o = 0.0f, R_e = 0.0f;
+
+        VP_PUBLIC_CHK_NULL_RETURN(outMatrix);
+
+        VP_PUBLIC_CHK_STATUS_RETURN(GetRgbRangeAndOffset(dst, R_o, R_e));
+        VP_PUBLIC_CHK_STATUS_RETURN(GetYuvRangeAndOffset(src, Y_o, Y_e, C_z, C_e));
+
+        // after + (3x3)(3x3)
+        if (Y_e == 0.0f || C_e == 0.0f)
+        {
+            VP_RENDER_ASSERTMESSAGE("Y_e = %f and C_e = %f, should not be zero.", Y_e, C_e);
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+        outMatrix[0]  = transferMatrix[0] * R_e / Y_e;
+        outMatrix[4]  = transferMatrix[4] * R_e / Y_e;
+        outMatrix[8]  = transferMatrix[8] * R_e / Y_e;
+        outMatrix[1]  = transferMatrix[1] * R_e / C_e;
+        outMatrix[5]  = transferMatrix[5] * R_e / C_e;
+        outMatrix[9]  = transferMatrix[9] * R_e / C_e;
+        outMatrix[2]  = transferMatrix[2] * R_e / C_e;
+        outMatrix[6]  = transferMatrix[6] * R_e / C_e;
+        outMatrix[10] = transferMatrix[10] * R_e / C_e;
+
+        // (3x1) - (3x3)(3x3)(3x1)
+        outMatrix[3]   = R_o - (outMatrix[0] * Y_o + outMatrix[1] * C_z + outMatrix[2] * C_z);
+        outMatrix[7]   = R_o - (outMatrix[4] * Y_o + outMatrix[5] * C_z + outMatrix[6] * C_z);
+        outMatrix[11]  = R_o - (outMatrix[8] * Y_o + outMatrix[9] * C_z + outMatrix[10] * C_z);
+
+        return MOS_STATUS_SUCCESS;
+    };
+
+    std::array<float, 12> tempMatrix;
+    if (dst == CSpace_sRGB)
+    {
+        if (src == CSpace_BT601)
+        {
+            tempMatrix = {1.000000f, 0.000000f, 1.402000f, 0.000000f, 1.000000f, -0.344136f, -0.714136f, 0.000000f, 1.000000f, 1.772000f, 0.000000f, 0.000000f};
+        }
+        else if (src == CSpace_BT709)
+        {
+            tempMatrix = {1.000000f, 0.000000f, 1.574800f, 0.000000f, 1.000000f, -0.187324f, -0.468124f, 0.000000f, 1.000000f, 1.855600f, 0.000000f, 0.000000f};
+        }
+        else if (src == CSpace_BT2020)
+        {
+            tempMatrix = {1.000000f, 0.000000f, 1.474600f, 0.000000f, 1.000000f, -0.164550f, -0.571350f, 0.000000f, 1.000000f, 1.881400f, 0.000000f, 0.000000f};
+        }
+        else
+        {
+            VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
+        VP_PUBLIC_CHK_STATUS_RETURN(TransferYuvToRgbMatrix(src, dst, tempMatrix, outMatrix));
+    }
+    else if (src == CSpace_sRGB)
+    {
+        if (dst == CSpace_BT601)
+        {
+            if (swapChannel)
+            {
+                tempMatrix = {0.500000f, -0.418688f, -0.081312f, 0.000000f, 0.299000f, 0.587000f, 0.114000f, 0.000000f, -0.168736f, -0.331264f, 0.500000f, 0.000000f};
+            }
+            else
+            {
+                tempMatrix = {-0.331264f, -0.168736f, 0.500000f, 0.000000f, 0.587000f, 0.299000f, 0.114000f, 0.000000f, -0.418688f, 0.500000f, -0.081312f, 0.000000f};
+            }
+        }
+        else if (dst == CSpace_BT709 || dst == CSpace_BT709_FullRange)
+        {
+            if (swapChannel)
+            {
+                tempMatrix = {0.500000f, -0.454153f, -0.045847f, 0.000000f, 0.212600f, 0.715200f, 0.072200f, 0.000000f, -0.114572f, -0.385428f, 0.500000f, 0.000000f};
+            }
+            else
+            {
+                tempMatrix = {-0.385428f, -0.114572f, 0.500000f, 0.000000f, 0.715200f, 0.212600f, 0.072200f, 0.000000f, -0.454153f, 0.500000f, -0.045847f, 0.000000f};
+            }
+        }
+        else if (dst == CSpace_BT2020)
+        {
+            if (swapChannel)
+            {
+                tempMatrix = {0.500000f, -0.459786f, -0.040214f, 0.000000f, 0.262700f, 0.678000f, 0.059300f, 0.000000f, -0.139630f, -0.360370f, 0.500000f, 0.000000f};
+            }
+            else
+            {
+                tempMatrix = {-0.360370f, -0.139630f, 0.500000f, 0.000000f, 0.678000f, 0.262700f, 0.059300f, 0.000000f, -0.459786f, 0.500000f, -0.040214f, 0.000000f};
+            }
+        }
+        else
+        {
+            VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
+        VP_PUBLIC_CHK_STATUS_RETURN(TransferRgbToYuvMatrix(src, dst, tempMatrix, outMatrix));
+    }
+    else
+    {
+        VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
     }
 
     return MOS_STATUS_SUCCESS;

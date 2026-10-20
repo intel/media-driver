@@ -33,6 +33,9 @@
 #include "encode_vdenc_lpla_analysis.h"
 #include "encode_hevc_vdenc_lpla_enc.h"
 #include "encode_hevc_header_packer.h"
+#if _KERNEL_RESERVED
+#include "encode_saliency_feature.h"
+#endif
 
 namespace encode
 {
@@ -271,6 +274,13 @@ namespace encode
             params.regionParams[12].presRegion = const_cast<PMOS_RESOURCE>(&m_vdencReadBatchBufferTU7[m_pipeline->m_currRecycledBufIdx][currentPass]);  // Region 12 - Input SLB Buffer (Input TU7)
         }
 
+        if (m_basicFeature->m_hevcSeqParams->LookaheadDepth && m_basicFeature->m_laDataBufferEnabled)
+        {
+            ENCODE_CHK_NULL_RETURN(m_basicFeature->m_LaDataBuffer);
+            ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSkipResourceSync(m_basicFeature->m_LaDataBuffer));
+            params.regionParams[13].presRegion = m_basicFeature->m_LaDataBuffer;
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -287,6 +297,7 @@ namespace encode
         hucVdencBrcUpdateDmem->CMD1_StartInBytes             = (uint16_t)m_hwInterface->m_vdencBatchBuffer1stGroupSize;
         hucVdencBrcUpdateDmem->PIC_STATE_StartInBytes        = (uint16_t)m_basicFeature->m_picStateCmdStartInBytes;
         hucVdencBrcUpdateDmem->CMD2_StartInBytes             = (uint16_t)m_cmd2StartInBytes;
+        hucVdencBrcUpdateDmem->UPD_LaDataBufferEnabled_U8    = (m_basicFeature->m_hevcSeqParams->LookaheadDepth && m_basicFeature->m_laDataBufferEnabled) ? 1 : 0;
 
         if (m_basicFeature->m_prevStoreData != m_basicFeature->m_frameNum)
         {
@@ -683,8 +694,14 @@ namespace encode
         {
             auto original_TU = m_basicFeature->m_targetUsage;
             m_basicFeature->m_targetUsage = m_basicFeature->m_hevcSeqParams->TargetUsage = 7;
+
+            auto cqpFeature = dynamic_cast<HevcEncodeCqp *>(m_featureManager->GetFeature(HevcFeatureIDs::hevcCqpFeature));
+            ENCODE_CHK_NULL_RETURN(cqpFeature);
+            bool original_RDOQ = cqpFeature->IsRDOQEnabled();
+            cqpFeature->SetRDOQ(false);            
             ENCODE_CHK_STATUS_RETURN(ConstructBatchBufferHuCBRC(&m_vdencReadBatchBufferTU7[m_pipeline->m_currRecycledBufIdx][m_pipeline->GetCurrentPass()]));
             m_basicFeature->m_targetUsage = m_basicFeature->m_hevcSeqParams->TargetUsage = original_TU;
+            cqpFeature->SetRDOQ(original_RDOQ);
         }
 
         bool firstTaskInPhase = packetPhase & firstPacket;
@@ -840,6 +857,14 @@ namespace encode
         // set HCP_PIC_STATE command
         SETPAR_AND_ADDCMD(HCP_PIC_STATE, m_hcpItf, &constructedCmdBuf);
         m_cmd2StartInBytes = constructedCmdBuf.iOffset;
+
+#if _KERNEL_RESERVED
+        auto saliencyFeature = dynamic_cast<EncodeSaliencyFeature *>(m_featureManager->GetFeature(FeatureIDs::saliencyFeature));
+        if (saliencyFeature)
+        {
+            saliencyFeature->m_brcQpOffset = m_cmd2StartInBytes;
+        }
+#endif
 
         SETPAR_AND_ADDCMD(VDENC_CMD2, m_vdencItf, &constructedCmdBuf);
 
@@ -1107,7 +1132,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(HCP_PIPE_MODE_SELECT, HucBrcUpdatePkt)
     {
-        params.codecStandardSelect = CodecHal_GetStandardFromMode(m_basicFeature->m_mode) - CODECHAL_HCP_BASE;
+        params.codecStandardSelect = CODEC_STANDARD_SELECT_HEVC;
         params.bStreamOutEnabled   = true;
         params.bVdencEnabled       = true;
         params.multiEngineMode     = MHW_VDBOX_HCP_MULTI_ENGINE_MODE_FE_LEGACY;

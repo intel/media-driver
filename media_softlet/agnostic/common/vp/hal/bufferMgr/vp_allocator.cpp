@@ -327,6 +327,8 @@ VP_SURFACE *VpAllocator::AllocateVpSurface(VPHAL_SURFACE &vphalSurf)
 
     // Initialize other parameters in vp surface according to vphal surface.
     surf->ColorSpace                            = vphalSurf.ColorSpace;
+    surf->GammaType                             = vphalSurf.GammaType;
+    VP_PUBLIC_NORMALMESSAGE("AllocateVpSurface: copy GammaType %d alongside ColorSpace %d", surf->GammaType, surf->ColorSpace);
     surf->ExtendedGamut                         = vphalSurf.ExtendedGamut;
     surf->Palette                               = vphalSurf.Palette;
     surf->bQueryVariance                        = vphalSurf.bQueryVariance;
@@ -456,6 +458,55 @@ VP_SURFACE *VpAllocator::AllocateVpSurface()
     return surf;
 }
 
+VP_SURFACE *VpAllocator::AllocateVpSurface(MOS_RESOURCE &resource)
+{
+    VP_FUNC_CALL();
+    if (Mos_ResourceIsNull(&resource))
+    {
+        return nullptr;
+    }
+
+    VP_SURFACE *surf = MOS_New(VP_SURFACE);
+
+    if (nullptr == surf)
+    {
+        return nullptr;
+    }
+
+    surf->osSurface = MOS_New(MOS_SURFACE);
+    if (nullptr == surf->osSurface)
+    {
+        MOS_Delete(surf);
+        return nullptr;
+    }
+
+    surf->isResourceOwner = false;
+    surf->Clean();
+
+    // Initialize the mos surface in vp surface structure.
+    MOS_SURFACE &osSurface = *surf->osSurface;
+    MOS_ZeroMemory(&osSurface, sizeof(MOS_SURFACE));
+
+    // Set input parameters dwArraySlice, dwMipSlice and S3dChannel if needed later.
+    osSurface.Format     = Format_Invalid;
+    osSurface.OsResource = resource;
+
+    if (MOS_FAILED(m_allocator->GetSurfaceInfo(&osSurface.OsResource, &osSurface)))
+    {
+        MOS_Delete(surf->osSurface);
+        MOS_Delete(surf);
+        return nullptr;
+    }
+
+    if (MOS_FAILED(SetMmcFlags(osSurface)))
+    {
+        VP_PUBLIC_ASSERTMESSAGE("Set mmc flags failed during AllocateVpSurface!");
+        DestroyVpSurface(surf);
+        return nullptr;
+    }
+    return surf;
+}
+
 // Copy surface info from src to dst. dst shares the resource of src.
 MOS_STATUS VpAllocator::CopyVpSurface(VP_SURFACE &dst, VP_SURFACE &src)
 {
@@ -503,8 +554,8 @@ MOS_STATUS VpAllocator::DestroyVpSurface(VP_SURFACE* &surface, bool deferredDest
     {
 #if !EMUL
     MT_LOG5(MT_VP_HAL_DESTROY_SURF, MT_NORMAL,
-        MT_VP_HAL_SURF_ALLOC_PARAM_PTR, *(int64_t *)(&surface),
-        MT_VP_HAL_SURF_ALLOC_PARAM_MOS_SURF_PTR, *(int64_t *)(&surface->osSurface),
+        MT_VP_HAL_SURF_ALLOC_PARAM_PTR, (int64_t)surface,
+        MT_VP_HAL_SURF_ALLOC_PARAM_MOS_SURF_PTR, (int64_t)surface->osSurface,
         MT_VP_HAL_SURF_ALLOC_PARAM_IS_RES_OWNER, surface->isResourceOwner,
         MT_VP_HAL_SURF_ALLOC_PARAM_HANDLE, static_cast<int64_t>(surface->GetAllocationHandle(m_osInterface)),
         MT_VP_HAL_SURF_ALLOC_PARAM_SIZE, static_cast<int64_t>(surface->osSurface->OsResource.pGmmResInfo ? surface->osSurface->OsResource.pGmmResInfo->GetSizeAllocation() : 0));
@@ -832,6 +883,8 @@ MOS_STATUS VpAllocator::ReAllocateNpuBuffer(
     uint32_t     size,
     bool        &allocated)
 {
+    VP_FUNC_CALL();
+
     allocated = false;
     VP_PUBLIC_CHK_NULL_RETURN(m_osInterface);
     VP_PUBLIC_CHK_NULL_RETURN(m_osInterface->npuInterface);
@@ -1000,6 +1053,14 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
     allocParams.Flags.bNotLockable = isNotLockable;
     allocParams.pSystemMemory      = systemMemory;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Set SubAllocation flag for Volume resources (3DLUT surfaces)
+    if (allocParams.Type == MOS_GFXRES_VOLUME)
+    {
+        allocParams.Flags.bSubAllocation = true;
+    }
+#endif
+
     surface = AllocateVpSurface(allocParams, zeroOnAllocate);
     VP_PUBLIC_CHK_NULL_RETURN(surface);
     VP_PUBLIC_CHK_NULL_RETURN(surface->osSurface);
@@ -1035,8 +1096,8 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
 
 #if !EMUL
     MT_LOG6(MT_VP_HAL_REALLOC_SURF, MT_NORMAL,
-        MT_VP_HAL_SURF_ALLOC_PARAM_PTR, *(int64_t *)(&surface),
-        MT_VP_HAL_SURF_ALLOC_PARAM_MOS_SURF_PTR, *(int64_t *)(&surface->osSurface),
+        MT_VP_HAL_SURF_ALLOC_PARAM_PTR, (int64_t)surface,
+        MT_VP_HAL_SURF_ALLOC_PARAM_MOS_SURF_PTR, (int64_t)surface->osSurface,
         MT_VP_HAL_SURF_ALLOC_PARAM_IS_RES_OWNER, surface->isResourceOwner,
         MT_VP_HAL_SURF_ALLOC_PARAM_HANDLE, static_cast<int64_t>(surface->GetAllocationHandle(m_osInterface)),
         MT_VP_HAL_SURF_ALLOC_PARAM_SIZE, static_cast<int64_t>(surface->osSurface->OsResource.pGmmResInfo ? surface->osSurface->OsResource.pGmmResInfo->GetSizeAllocation() : 0),
@@ -1158,15 +1219,13 @@ MOS_STATUS VpAllocator::ReAllocateVpSurfaceWithSameConfigOfVphalSurface(
 
     MOS_GFXRES_TYPE     defaultResType  = MOS_GFXRES_INVALID;
     MOS_TILE_TYPE       defaultTileType = MOS_TILE_LINEAR;
-    MOS_HW_RESOURCE_DEF resUsageType    = MOS_HW_RESOURCE_DEF_MAX;
+    MOS_HW_RESOURCE_DEF resUsageType    = MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_RENDER;
     MOS_TILE_MODE_GMM   tileModeByForce = MOS_TILE_UNSET_GMM;
     if (Mos_ResourceIsNull(&vphalSurface->OsResource))
     {
         bool isBuffer   = (vphalSurface->Format == Format_Buffer || vphalSurface->Format == Format_RAW);
         defaultResType  = isBuffer ? MOS_GFXRES_BUFFER : MOS_GFXRES_2D;
         defaultTileType = isBuffer ? MOS_TILE_LINEAR : MOS_TILE_Y;
-        resUsageType    = vphalSurface->OsResource.mocsMosResUsageType;
-        tileModeByForce = vphalSurface->OsResource.TileModeGMM;
     }
     else
     {
@@ -1193,6 +1252,8 @@ MOS_STATUS VpAllocator::ReAllocateVpSurfaceWithSameConfigOfVphalSurface(
 
     // Initialize other parameters in vp surface according to vphal surface.
     surface->ColorSpace     = vphalSurface->ColorSpace;
+    surface->GammaType      = vphalSurface->GammaType;
+    VP_PUBLIC_NORMALMESSAGE("ReAllocateVpSurfaceWithSameConfigOfVphalSurface: copy GammaType %d alongside ColorSpace %d", surface->GammaType, surface->ColorSpace);
     surface->ExtendedGamut  = vphalSurface->ExtendedGamut;
     surface->Palette        = vphalSurface->Palette;
     surface->bQueryVariance = vphalSurface->bQueryVariance;
@@ -1563,6 +1624,7 @@ MOS_STATUS VP_SURFACE::Clean()
 
     isResourceOwner     = false;
     ColorSpace          = CSpace_Any;
+    GammaType           = VPHAL_GAMMA_NONE;
     ChromaSiting        = 0;
     bQueryVariance      = 0;
     FrameID             = 0;

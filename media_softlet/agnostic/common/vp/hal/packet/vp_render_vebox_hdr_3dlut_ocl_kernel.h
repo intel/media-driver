@@ -40,6 +40,7 @@ public:
 
     virtual MOS_STATUS Init(VpRenderKernel& kernel);
     virtual MOS_STATUS GetCurbeState(void *&curbe, uint32_t &curbeLength) override;
+    virtual MOS_STATUS GetInlineData(uint8_t *inlineData);
 
     virtual MOS_STATUS FreeCurbe(void*& curbe) override
     {
@@ -62,16 +63,17 @@ public:
 protected:
     virtual MOS_STATUS SetupSurfaceState() override;
     virtual MOS_STATUS CpPrepareResources() override;
-    virtual MOS_STATUS SetupStatelessBuffer() override;
     virtual MOS_STATUS SetWalkerSetting(KERNEL_THREAD_SPACE &threadSpace, bool bSyncFlag, bool flushL1 = false);
     virtual MOS_STATUS SetKernelArgs(KERNEL_ARGS &kernelArgs, VP_PACKET_SHARED_CONTEXT *sharedContext);
     virtual MOS_STATUS SetKernelConfigs(KERNEL_CONFIGS &kernelConfigs) override;
     virtual void       DumpSurfaces();
 
+    PRENDERHAL_INTERFACE m_renderHal = nullptr;
+
     //kernel Arguments
     KERNEL_ARGS          m_kernelArgs  = {};
     KERNEL_WALKER_PARAMS m_walkerParam = {};
-    uint8_t              m_inlineData[32] = {};
+    std ::vector<uint8_t> m_inlineData = {};
 
     float           m_ccmMatrix[VP_CCM_MATRIX_SIZE] = {0.0};
     uint32_t        m_maxDisplayLum         = 1000;         //!< Maximum Display Luminance
@@ -79,9 +81,9 @@ protected:
     VPHAL_HDR_MODE  m_hdrMode               = VPHAL_HDR_MODE_NONE;
     uint32_t        m_hdrLutSize            = LUT65_SEG_SIZE;
     void*           m_curbe                 = nullptr;
-    uint32_t        m_curbeSize              = 0;
     KERNEL_BTIS                  m_kernelBtis                    = {};
     KRN_EXECUTE_ENV              m_kernelEnv                     = {};
+    KRN_PER_THREAD_ARG_INFO      m_kernelPerThreadArgInfo        = {};
     KERNEL_ARG_INDEX_SURFACE_MAP m_argIndexSurfMap  = {};
 
     MEDIA_CLASS_DEFINE_END(vp__VpRenderHdr3DLutOclKernel)

@@ -60,8 +60,7 @@ public:
     //!
     static bool RegisterDevice(KeyType key, Type value)
     {
-        std::pair<iterator, bool> result =
-            GetCreators().insert(std::make_pair(key, value));
+        std::pair<iterator, bool> result = GetCreators().emplace(key, value);
 
         return result.second;
     }

@@ -90,35 +90,19 @@ public:
                 __MEDIA_USER_FEATURE_VALUE_VEBOX_SPLIT_RATIO,
                 MediaUserSetting::Group::Device);
         }
+        bool enableReport = false;
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            enableReport,
+            __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_ID_REPORT,
+            MediaUserSetting::Group::Sequence);
+        if (enableReport)
+        {
+            m_veboxIdReportEnabled = true;
+            m_veboxSettings.uiEngineDataSize = MHW_PAGE_SIZE;
+        }
 #endif
     };
-
-    static __inline uint32_t MosGetHWTileType(MOS_TILE_TYPE tileType, MOS_TILE_MODE_GMM tileModeGMM, bool gmmTileEnabled)
-    {
-        uint32_t tileMode = 0;
-
-        if (gmmTileEnabled)
-        {
-            return tileModeGMM;
-        }
-
-        switch (tileType)
-        {
-        case MOS_TILE_LINEAR:
-            tileMode = 0;
-            break;
-        case MOS_TILE_YS:
-            tileMode = 1;
-            break;
-        case MOS_TILE_X:
-            tileMode = 2;
-            break;
-        default:
-            tileMode = 3;
-            break;
-        }
-        return tileMode;
-    }
 
     MOS_STATUS UpdateVeboxSync() override
     {
@@ -393,6 +377,30 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
+    const MHW_VEBOX_CHROMA_PARAMS &GetChromaParams() const
+    {
+        return m_chromaParams;
+    }
+
+    bool GetTGNEEnable() const
+    {
+        return bTGNEEnable;
+    }
+
+    uint32_t GetChromaStadThreshold() const
+    {
+        return dwChromaStadTh;
+    }
+
+    uint32_t GetLumaStadThreshold() const
+    {
+        return dwLumaStadTh;
+    }
+
+    uint32_t Get4X4TGNEThresholdCount() const
+    {
+        return dw4X4TGNEThCnt;
+    }
 
     void RefreshVeboxSync()
     {
@@ -841,7 +849,9 @@ public:
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_STATUS ValidateVeboxScalabilityConfig()
     {
-        MEDIA_SYSTEM_INFO* pGtSystemInfo = nullptr;
+        MHW_FUNCTION_ENTER;
+
+        MEDIA_ENGINE_INFO mediaSysInfo = {};
         MOS_FORCE_VEBOX   eForceVebox;
         bool              bScalableVEMode;
         bool              bUseVE1, bUseVE2, bUseVE3, bUseVE4;
@@ -849,10 +859,10 @@ public:
 
         MHW_CHK_NULL_RETURN(this->m_osItf);
 
-        eForceVebox     = this->m_osItf->eForceVebox;
+        eForceVebox = this->m_osItf->eForceVebox;
         bScalableVEMode = ((this->m_osItf->bVeboxScalabilityMode) ? true : false);
-        pGtSystemInfo = this->m_osItf->pfnGetGtSystemInfo(this->m_osItf);
-        MHW_CHK_NULL_RETURN(pGtSystemInfo);
+        eStatus = this->m_osItf->pfnGetMediaEngineInfo(this->m_osItf, mediaSysInfo);
+        MHW_CHK_STATUS_RETURN(eStatus);
 
         if (eForceVebox != MOS_FORCE_VEBOX_NONE &&
             eForceVebox != MOS_FORCE_VEBOX_1 &&
@@ -873,15 +883,13 @@ public:
         {
             eStatus = MOS_STATUS_INVALID_PARAMETER;
             MHW_ASSERTMESSAGE("eForceVebox value is not consistent with scalability mode.");
-
             return eStatus;
         }
 
-        if (bScalableVEMode && !m_veboxScalabilitySupported)
+        if (bScalableVEMode && !this->m_veboxScalabilitySupported)
         {
             eStatus = MOS_STATUS_INVALID_PARAMETER;
             MHW_ASSERTMESSAGE("scalability mode is not allowed on current platform!");
-
             return eStatus;
         }
 
@@ -898,11 +906,12 @@ public:
             MHW_VEBOX_IS_VEBOX_SPECIFIED_IN_CONFIG(eForceVebox, MOS_FORCE_VEBOX_4, MOS_FORCEVEBOX_VEBOXID_BITSNUM, MOS_FORCEVEBOX_MASK, bUseVE4);
         }
 
-        if (!pGtSystemInfo->VEBoxInfo.IsValid ||
-            (uint32_t)(bUseVE1 + bUseVE2 + bUseVE3 + bUseVE4) > pGtSystemInfo->VEBoxInfo.NumberOfVEBoxEnabled)
+        if (!mediaSysInfo.VEBoxInfo.IsValid ||
+            (uint32_t)(bUseVE1 + bUseVE2 + bUseVE3 + bUseVE4) > mediaSysInfo.VEBoxInfo.NumberOfVEBoxEnabled)
         {
             eStatus = MOS_STATUS_INVALID_PARAMETER;
             MHW_ASSERTMESSAGE("the forced VEBOX is not enabled in current platform.");
+            return eStatus;
         }
 
         return eStatus;
@@ -1031,7 +1040,7 @@ public:
         return m_veboxScalabilitywith4K;
     }
 
-    MOS_STATUS Add1DLutState(void *&surface, PMHW_1DLUT_PARAMS p1DLutParams) override
+    MOS_STATUS Add1DLutState(void *surface, PMHW_1DLUT_PARAMS p1DLutParams) override
     {
         return MOS_STATUS_SUCCESS;
     }

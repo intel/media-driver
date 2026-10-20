@@ -1596,9 +1596,9 @@ public:
     //! \param    [in, out] srcSurfaceParams
     //!           HCP_SURFACE_PARAMS for source picture
     //!
-    //! \return   void
+    //! \return   MOS_STATUS
     //!
-    virtual void SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAMS& srcSurfaceParams);
+    virtual MOS_STATUS SetHcpSrcSurfaceParams(MHW_VDBOX_SURFACE_PARAMS& srcSurfaceParams);
 
     //!
     //! \brief    Set HCP_SURFACE_PARAMS for recon picture
@@ -1606,9 +1606,9 @@ public:
     //! \param    [in, out] reconSurfaceParams
     //!           HCP_SURFACE_PARAMS for recon picture
     //!
-    //! \return   void
+    //! \return   MOS_STATUS
     //!
-    virtual void SetHcpReconSurfaceParams(MHW_VDBOX_SURFACE_PARAMS &reconSurfaceParams);
+    virtual MOS_STATUS SetHcpReconSurfaceParams(MHW_VDBOX_SURFACE_PARAMS &reconSurfaceParams);
 
     //!
     //! \brief    Set HCP_SURFACE_PARAMS for reference picture
@@ -1616,9 +1616,9 @@ public:
     //! \param    [in, out] refSurfaceParams
     //!           HCP_SURFACE_PARAMS for reference picture
     //!
-    //! \return   void
+    //! \return   MOS_STATUS
     //!
-    virtual void SetHcpRefSurfaceParams(MHW_VDBOX_SURFACE_PARAMS &refSurfaceParams);
+    virtual MOS_STATUS SetHcpRefSurfaceParams(MHW_VDBOX_SURFACE_PARAMS &refSurfaceParams);
 
     //!
     //! \brief    Set HCP_PIPE_BUF_ADDR parameters

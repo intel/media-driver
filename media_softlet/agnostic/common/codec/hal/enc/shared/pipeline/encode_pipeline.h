@@ -38,9 +38,10 @@
 #include "encode_tracked_buffer.h"
 #include "encode_recycle_resource.h"
 #include "encode_mem_compression.h"
-#include "encodecp.h"
+#include "encodecp_interface.h"
 #include "encode_packet_utilities.h"
 #include "encode_scalability_defs.h"
+#include "bypass_hw_legacy.h"
 
 #define CONSTRUCTPACKETID(_componentId, _subComponentId, _packetId) \
     (_componentId << 24 | _subComponentId << 16 | _packetId)
@@ -98,13 +99,17 @@ public:
     //!         pointer of m_statusReportDebugInterface
     //!
     CodechalDebugInterface *GetStatusReportDebugInterface() const { return m_statusReportDebugInterface; }
-    EncodeCp *               GetEncodeCp() { return m_encodecp; }
+    EncodeCpInterface *      GetEncodeCp() { return m_encodecp; }
 
     //!
     //! \brief  Update frame tracking flag
     //! \return void
     //!
     void SetFrameTrackingForMultiTaskPhase();
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    virtual ::BypassHwLegacy *GetBypassHW() const { return nullptr; }
+#endif
 
     enum ComponentPacketIds
     {
@@ -321,6 +326,8 @@ public:
     MOS_STATUS ReportErrorFlag(PMOS_RESOURCE pMetadataBuffer,
         uint32_t size, uint32_t offset, uint32_t flag);
 
+    BypassHwLegacy *GetBypassHWLegacy() const { return m_bypassHWLegacy; }
+
 #define CODECHAL_ENCODE_RECYCLED_BUFFER_NUM 6
 #define VDENC_BRC_NUM_OF_PASSES 2
 
@@ -336,9 +343,10 @@ protected:
     TrackedBuffer *      m_trackedBuf  = nullptr;
     RecycleResource *    m_recycleBuf  = nullptr;
     EncodeMemComp *      m_mmcState    = nullptr;
-    EncodeCp *           m_encodecp    = nullptr;
+    EncodeCpInterface *  m_encodecp    = nullptr;
     PacketUtilities *    m_packetUtilities = nullptr;
-
+    BypassHwLegacy *     m_bypassHWLegacy = nullptr;
+    MOS_GPU_NODE         m_bypassHWLegacyGpuNode = MOS_GPU_NODE_VIDEO;
     CodechalDebugInterface *m_statusReportDebugInterface = nullptr;  //!< Interface used for debug dumps in status report callback function
 
     uint8_t m_numVdbox = 0;
@@ -349,6 +357,8 @@ protected:
     uint32_t m_recycledBufStatusNum[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM] = {0};  //!< Recycled buffer status num list
 
     std::shared_ptr<EncodeScalabilityPars> m_scalPars = nullptr;
+
+    VdboxTypePref m_pipelineVdboxTypePref = MOS_VDBOX_PREFER_NONE;
 
 MEDIA_CLASS_DEFINE_END(encode__EncodePipeline)
 };

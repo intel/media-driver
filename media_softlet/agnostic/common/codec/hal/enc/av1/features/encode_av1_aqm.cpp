@@ -27,6 +27,7 @@
 #include "encode_av1_aqm.h"
 #include "encode_av1_vdenc_feature_manager.h"
 #include "encode_av1_basic_feature.h"
+#include "encode_av1_fastpass.h"
 
 namespace encode
 {
@@ -44,8 +45,18 @@ Av1EncodeAqm::Av1EncodeAqm(MediaFeatureManager *featureManager,
 
 MOS_STATUS Av1EncodeAqm::Update(void *params)
 {
+    ENCODE_FUNC_CALL();
     auto basicFeature   = dynamic_cast<Av1BasicFeature *>(m_basicFeature);
     ENCODE_CHK_NULL_RETURN(basicFeature);
+
+    auto fastPassFeature = dynamic_cast<Av1FastPass *>(m_featureManager->GetFeature(Av1FeatureIDs::av1FastPass));
+    if (fastPassFeature && fastPassFeature->IsEnabled())
+    {
+        m_useFastPass = true;
+        m_dsWidth     = fastPassFeature->GetFastPassDsWidth();
+        m_dsHeight    = fastPassFeature->GetFastPassDsHeight();
+    }
+
     if (basicFeature->m_av1PicParams->QualityInfoSupportFlags.fields.enable_frame
         || basicFeature->m_av1PicParams->QualityInfoSupportFlags.fields.enable_block)
     {
@@ -54,13 +65,22 @@ MOS_STATUS Av1EncodeAqm::Update(void *params)
 
     m_numTiles          = basicFeature->m_av1PicParams->tile_rows * basicFeature->m_av1PicParams->tile_cols;
     m_tileBasedEngine   = m_numTiles > 1 ? true : false;
-    for (uint32_t tileIdx = 0; tileIdx < m_numTiles && tileIdx < ENCODE_VDENC_MAX_TILE_NUM; tileIdx++)
+    if (m_useFastPass && m_numTiles == 1)
     {
-        EncodeTileData tileData = {};
-        RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetTileByIndex, tileData, tileIdx);
-        m_tile_width[tileIdx]       = (tileData.tileWidthInMinCbMinus1 + 1) * av1MinBlockWidth;
-        m_tile_height[tileIdx]      = (tileData.tileHeightInMinCbMinus1 + 1) * av1MinBlockWidth;
+        m_tile_width[0]  = (uint16_t)m_dsWidth;
+        m_tile_height[0] = (uint16_t)m_dsHeight;
     }
+    else
+    {
+        for (uint32_t tileIdx = 0; tileIdx < m_numTiles && tileIdx < ENCODE_VDENC_MAX_TILE_NUM; tileIdx++)
+        {
+            EncodeTileData tileData = {};
+            RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetTileByIndex, tileData, tileIdx);
+            m_tile_width[tileIdx]  = (tileData.tileWidthInMinCbMinus1 + 1) * av1MinBlockWidth;
+            m_tile_height[tileIdx] = (tileData.tileHeightInMinCbMinus1 + 1) * av1MinBlockWidth;
+        }
+    }
+
 #if USE_CODECHAL_DEBUG_TOOL
     auto displayOrderInSeq = basicFeature->m_ref.GetFrameDisplayOrder();
     m_frameIdxQueue.push(displayOrderInSeq);
@@ -71,6 +91,7 @@ MOS_STATUS Av1EncodeAqm::Update(void *params)
 
 MHW_SETPAR_DECL_SRC(AQM_PIC_STATE, Av1EncodeAqm)
 {
+    ENCODE_FUNC_CALL();
     ENCODE_CHK_STATUS_RETURN(EncodeAqmFeature::MHW_SETPAR_F(AQM_PIC_STATE)(params));
 
     params.lcuSize   = LCU_SIZE_64X64;
@@ -81,6 +102,7 @@ MHW_SETPAR_DECL_SRC(AQM_PIC_STATE, Av1EncodeAqm)
 
 MHW_SETPAR_DECL_SRC(AVP_PIC_STATE, Av1EncodeAqm)
 {
+    ENCODE_FUNC_CALL();
 
     params.VdaqmEnable = m_enabled;
 
@@ -89,6 +111,7 @@ MHW_SETPAR_DECL_SRC(AVP_PIC_STATE, Av1EncodeAqm)
 
 MHW_SETPAR_DECL_SRC(AQM_TILE_CODING, Av1EncodeAqm)
 {
+    ENCODE_FUNC_CALL();
     auto encFeatureManager = dynamic_cast<EncodeAv1VdencFeatureManager *>(m_featureManager);
     ENCODE_CHK_NULL_RETURN(encFeatureManager);
 
@@ -102,8 +125,8 @@ MHW_SETPAR_DECL_SRC(AQM_TILE_CODING, Av1EncodeAqm)
     params.tileId               = av1TileInfo.tileId;
     params.tileColPositionInSb  = av1TileInfo.tileColPositionInSb;
     params.tileRowPositionInSb  = av1TileInfo.tileRowPositionInSb;
-    params.tileWidthInSbMinus1  = av1TileInfo.tileWidthInSbMinus1;
-    params.tileHeightInSbMinus1 = av1TileInfo.tileHeightInSbMinus1;
+    params.tileWidthInSbMinus1  = m_useFastPass ? (MOS_ROUNDUP_DIVIDE(m_dsWidth, av1SuperBlockWidth) - 1): av1TileInfo.tileWidthInSbMinus1;
+    params.tileHeightInSbMinus1 = m_useFastPass ? (MOS_ROUNDUP_DIVIDE(m_dsHeight, av1SuperBlockHeight) - 1) : av1TileInfo.tileHeightInSbMinus1;
     params.tileNum              = av1TileInfo.tileId;
     params.tileGroupId          = av1TileInfo.tileGroupId;
 
@@ -112,6 +135,7 @@ MHW_SETPAR_DECL_SRC(AQM_TILE_CODING, Av1EncodeAqm)
 
 MHW_SETPAR_DECL_SRC(AQM_SLICE_STATE, Av1EncodeAqm)
 {
+    ENCODE_FUNC_CALL();
     auto encFeatureManager = dynamic_cast<EncodeAv1VdencFeatureManager *>(m_featureManager);
     ENCODE_CHK_NULL_RETURN(encFeatureManager);
 
@@ -124,9 +148,9 @@ MHW_SETPAR_DECL_SRC(AQM_SLICE_STATE, Av1EncodeAqm)
 
     params.tileSliceStartLcuMbX     = av1TileInfo.tileStartXInLCU;
     params.tileSliceStartLcuMbY     = av1TileInfo.tileStartYInLCU;
-    params.nextTileSliceStartLcuMbX = av1TileInfo.tileEndXInLCU;
-    params.nextTileSliceStartLcuMbY = av1TileInfo.tileEndYInLCU;
-
+    params.nextTileSliceStartLcuMbX = m_useFastPass ? ((m_dsWidth + (av1SuperBlockWidth - 1)) / av1SuperBlockWidth) : av1TileInfo.tileEndXInLCU;
+    params.nextTileSliceStartLcuMbY = m_useFastPass ? ((m_dsHeight + (av1SuperBlockHeight - 1)) / av1SuperBlockHeight) : av1TileInfo.tileEndYInLCU;
+   
     return MOS_STATUS_SUCCESS;
 }
 
@@ -147,6 +171,7 @@ MHW_SETPAR_DECL_SRC(VD_PIPELINE_FLUSH, Av1EncodeAqm)
 
 MHW_SETPAR_DECL_SRC(AQM_PIPE_BUF_ADDR_STATE, Av1EncodeAqm)
 {
+    ENCODE_FUNC_CALL();
     auto aqmFeature     = dynamic_cast<Av1EncodeAqm*>(m_featureManager->GetFeature(Av1FeatureIDs::av1Aqm));
     ENCODE_CHK_NULL_RETURN(aqmFeature);
 
@@ -173,6 +198,13 @@ MHW_SETPAR_DECL_SRC(AQM_PIPE_BUF_ADDR_STATE, Av1EncodeAqm)
             params.surfaceRawBuffer     = &m_basicFeature->m_rawSurfaceToEnc->OsResource;
             params.surfaceReconBuffer   = &(&m_basicFeature->m_reconSurface)->OsResource;
 
+            if (!m_basicFeature->m_disableTileBToTile4 && m_basicFeature->m_reconSurface.TileType == MOS_TILE_B && m_basicFeature->m_reconSurface.TileModeGMM == MOS_TILE_X_GMM)
+            {
+                params.overrideTileBToTile4 = true;
+            }
+
+            params.forceTile64ReconToTile4 = m_basicFeature->ShouldForceReconTile64ToTile4(m_basicFeature->m_reconSurface);
+
             if (mmcEnabled)
             {
                 ENCODE_CHK_STATUS_RETURN(basicFeature->m_mmcState->GetSurfaceMmcState(const_cast<PMOS_SURFACE>(&m_basicFeature->m_rawSurface), &params.mmcStateRawSurf));
@@ -193,6 +225,7 @@ MHW_SETPAR_DECL_SRC(AQM_PIPE_BUF_ADDR_STATE, Av1EncodeAqm)
 
 MHW_SETPAR_DECL_SRC(AQM_SURFACE_STATE, Av1EncodeAqm)
 {
+    ENCODE_FUNC_CALL();
     auto basicFeature = dynamic_cast<Av1BasicFeature*>(m_basicFeature);
     ENCODE_CHK_NULL_RETURN(basicFeature);
 

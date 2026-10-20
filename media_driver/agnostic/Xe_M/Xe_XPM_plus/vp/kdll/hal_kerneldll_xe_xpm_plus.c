@@ -192,7 +192,7 @@ bool KernelDll_FindRule_Xe_Xpm_Plus(
 
                 // Match current layer rotation
                 case RID_IsLayerRotation:
-                    if (pSearchState->pFilter->rotation == (VPHAL_ROTATION) pRuleEntry->value)
+                    if (pSearchState->pFilter->rotation == (MEDIA_ROTATION) pRuleEntry->value)
                     {
                         continue;
                     }
@@ -255,7 +255,7 @@ bool KernelDll_FindRule_Xe_Xpm_Plus(
 
                 // Match Src0 rotation
                 case RID_IsSrc0Rotation:
-                    if (pSearchState->src0_rotation == (VPHAL_ROTATION) pRuleEntry->value)
+                    if (pSearchState->src0_rotation == (MEDIA_ROTATION) pRuleEntry->value)
                     {
                         continue;
                     }

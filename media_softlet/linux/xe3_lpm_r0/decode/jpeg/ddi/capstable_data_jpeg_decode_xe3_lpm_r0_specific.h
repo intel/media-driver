@@ -48,7 +48,7 @@ static const AttribList attribList_VAProfileJPEGBaseline_VAEntrypointVLD_Xe3_Lpm
 {
    {VAConfigAttribRTFormat, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV411 | VA_RT_FORMAT_RGB16 | VA_RT_FORMAT_RGB32},
    {VAConfigAttribDecSliceMode, VA_DEC_SLICE_MODE_NORMAL},
-   {VAConfigAttribDecProcessing, VA_DEC_PROCESSING},
+   {VAConfigAttribDecProcessing, VA_DEC_PROCESSING_NONE},
    {VAConfigAttribMaxPictureWidth, CODEC_16K_MAX_PIC_WIDTH},
    {VAConfigAttribMaxPictureHeight, CODEC_16K_MAX_PIC_HEIGHT},
    {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
@@ -72,7 +72,13 @@ static ProfileSurfaceAttribInfo surfaceAttribInfo_VAProfileJPEGBaseline_VAEntryp
   {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_RGBP}}},
   {VASurfaceAttribMaxWidth,    VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_WIDTH}}},
   {VASurfaceAttribMaxHeight,   VA_SURFACE_ATTRIB_GETTABLE, {VAGenericValueTypeInteger, {CODEC_16K_MAX_PIC_HEIGHT}}},
-  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_SURFACE_ATTRIB_MEM_TYPE_VA | VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2}}}
+  {VASurfaceAttribMemoryType,  VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {
+#if VA_CHECK_VERSION(1, 21, 0)
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3 |
+#endif
+        VA_SURFACE_ATTRIB_MEM_TYPE_VA | 
+        VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2
+    }}}
 };
 
 //!

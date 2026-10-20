@@ -243,7 +243,7 @@ public:
     //!
     MOS_STATUS          CopyDataSurface(
         uint32_t                        dataSize,
-        MOS_RESOURCE                    sourceSurface,
+        PMOS_RESOURCE                   sourceSurface,
         PMOS_RESOURCE                   copiedSurface,
         uint32_t                        *currOffset);
 

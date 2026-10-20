@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -119,12 +119,20 @@ void *BufferQueue::AllocateResource()
         {
             MOS_SURFACE* surface = nullptr;
             surface = m_allocator->AllocateSurface(m_allocParam, false, MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE);
-            m_allocator->GetSurfaceInfo(surface);
+            if (surface == nullptr)
+            {
+                return nullptr;
+            }
+            MOS_STATUS eStatus = m_allocator->GetSurfaceInfo(surface);
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                return nullptr;
+            }
             return surface;
         }
         else if (m_resourceType == ResourceType::bufferResource)
         {
-            return m_allocator->AllocateResource(m_allocParam, true);
+            return m_allocator->AllocateResource(m_allocParam, !m_allocParam.Flags.bNotLockable);
         }
         else
         {

@@ -894,7 +894,18 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_G11_X::AddSamplerStateData(
         mhw_state_heap_g11_X::SAMPLER_STATE_CMD          unormSampler;
         mhw_state_heap_g11_X::SAMPLER_INDIRECT_STATE_CMD indirectState;
 
+        // indirectState is scratch space consumed entirely within this block:
+        // SetSamplerState writes to it via pParam->Unorm.pIndirectState and the
+        // result is copied out below. The pointer never outlives indirectState,
+        // so suppress GCC's false-positive dangling-pointer warning (GCC 16+).
+#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ >= 12)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdangling-pointer"
+#endif
         pParam->Unorm.pIndirectState = &indirectState;
+#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ >= 12)
+#pragma GCC diagnostic pop
+#endif
 
         MHW_MI_CHK_STATUS(SetSamplerState(&unormSampler, pParam));
 

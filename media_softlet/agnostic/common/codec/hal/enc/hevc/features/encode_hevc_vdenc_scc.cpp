@@ -62,7 +62,8 @@ namespace encode
         ENCODE_FUNC_CALL();
 
         CodechalSetting* codecSettings = (CodechalSetting*)settings;
-        m_enableSCC = codecSettings->isSCCEnabled;
+        m_sccEnabledInSeq = codecSettings->isSCCEnabled;
+        m_enableSCC = m_sccEnabledInSeq;
         m_mmcEnabled = codecSettings->isMmcEnabled;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -88,7 +89,7 @@ namespace encode
         auto hevcFeature = dynamic_cast<HevcBasicFeature *>(m_basicFeature);
         ENCODE_CHK_NULL_RETURN(hevcFeature);
 
-        m_enableSCC = m_enableSCC && (hevcFeature->m_hevcPicParams->pps_curr_pic_ref_enabled_flag || hevcFeature->m_hevcSeqParams->palette_mode_enabled_flag);
+        m_enableSCC = m_sccEnabledInSeq && (hevcFeature->m_hevcPicParams->pps_curr_pic_ref_enabled_flag || hevcFeature->m_hevcSeqParams->palette_mode_enabled_flag);
         // Error concealment, disable IBC if slice coding type is I type
         if (m_enableSCC && hevcFeature->m_hevcPicParams->pps_curr_pic_ref_enabled_flag)
         {
@@ -101,7 +102,7 @@ namespace encode
                 }
             }
         }
-        m_enableSCC = m_enableSCC && (hevcFeature->m_hevcPicParams->pps_curr_pic_ref_enabled_flag || hevcFeature->m_hevcSeqParams->palette_mode_enabled_flag);
+        m_enableSCC = m_sccEnabledInSeq && (hevcFeature->m_hevcPicParams->pps_curr_pic_ref_enabled_flag || hevcFeature->m_hevcSeqParams->palette_mode_enabled_flag);
         return MOS_STATUS_SUCCESS;
     }
 

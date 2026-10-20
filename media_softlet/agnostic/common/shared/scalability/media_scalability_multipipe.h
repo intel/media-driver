@@ -46,6 +46,13 @@ public:
     virtual ~MediaScalabilityMultiPipe(){};
 
     //!
+    //! \brief  Destroy the media scalability multipipe
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS Destroy() override;
+
+    //!
     //! \brief  Update the media scalability mulitipipe state mode
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
@@ -53,11 +60,93 @@ public:
     virtual MOS_STATUS UpdateState(void *statePars);
 
 protected:
+    //!
+    //! \brief  Allocate GPU memory resources for NativeFence barrier counters
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS AllocateNativeFenceCounters();
+
+    //!
+    //! \brief  Implement NativeFence barrier sync algorithm using counterChild and counterParent
+    //! \param  [in] cmdBuffer
+    //!         Pointer to command buffer
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS SyncPipesWithNativeFence(PMOS_COMMAND_BUFFER cmdBuffer);
+
+    //!
+    //! \brief  Send MI_ATOMIC command (virtual function for derived class override)
+    //! \param  [in] resource
+    //!         Resource to perform atomic operation on
+    //! \param  [in] offset
+    //!         Offset within the resource
+    //! \param  [in] immData
+    //!         Immediate data for atomic operation
+    //! \param  [in] opCode
+    //!         Atomic operation code
+    //! \param  [in] cmdBuffer
+    //!         Pointer to command buffer
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SendMiAtomicCmd(
+        PMOS_RESOURCE               resource,
+        uint32_t                    offset,
+        uint32_t                    immData,
+        MHW_COMMON_MI_ATOMIC_OPCODE opCode,
+        PMOS_COMMAND_BUFFER         cmdBuffer) = 0;
+
+    //!
+    //! \brief  Send MI_SEMAPHORE_WAIT command (virtual function for derived class override)
+    //! \param  [in] semaMem
+    //!         Semaphore memory resource
+    //! \param  [in] offset
+    //!         Offset within the semaphore memory
+    //! \param  [in] semaData
+    //!         Semaphore data to compare
+    //! \param  [in] opCode
+    //!         Comparison operation code
+    //! \param  [in] cmdBuffer
+    //!         Pointer to command buffer
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SendMiSemaphoreWaitCmd(
+        PMOS_RESOURCE                             semaMem,
+        uint32_t                                  offset,
+        uint32_t                                  semaData,
+        MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION opCode,
+        PMOS_COMMAND_BUFFER                       cmdBuffer) = 0;
+
+    //!
+    //! \brief  Send MI_STORE_DATA_IMM command (virtual function for derived class override)
+    //! \param  [in] resource
+    //!         Resource to store data to
+    //! \param  [in] offset
+    //!         Offset within the resource
+    //! \param  [in] value
+    //!         Immediate value to store
+    //! \param  [in] cmdBuffer
+    //!         Pointer to command buffer
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SendMiStoreDataImmCmd(
+        PMOS_RESOURCE       resource,
+        uint32_t            offset,
+        uint32_t            value,
+        PMOS_COMMAND_BUFFER cmdBuffer) = 0;
+
     inline bool IsFirstPipe() { return (m_currentPipe == 0) ? true : false; }
     inline bool IsFirstPass() { return (m_currentPass == 0) ? true : false; }
     inline bool IsLastPipe() { return (m_currentPipe == (m_pipeNum - 1)) ? true : false; }
 
     inline bool IsPipeReadyToSubmit() { return (m_currentPipe == (m_pipeIndexForSubmit - 1)) ? true : false; }
+
+    MOS_RESOURCE m_counterChild = {};  //!< NativeFence: Child-to-parent completion counter (N-1 children increment to signal)
+    MOS_RESOURCE m_counterParent = {}; //!< NativeFence: Parent-to-child go signal counter (parent increments to 1 to release)
 
 MEDIA_CLASS_DEFINE_END(MediaScalabilityMultiPipe)
 };

@@ -69,11 +69,9 @@ namespace encode {
         m_jpgPkrFeature = dynamic_cast<JpegPackerFeature *>(m_featureManager->GetFeature(JpegFeatureIDs::jpegPackerFeature));
         ENCODE_CHK_NULL_RETURN(m_jpgPkrFeature);
 
-#ifdef _MMC_SUPPORTED
         m_mmcState = m_pipeline->GetMmcState();
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         m_basicFeature->m_mmcState = m_mmcState;
-#endif
 
         ENCODE_CHK_STATUS_RETURN(m_statusReport->RegistObserver(this));
 
@@ -146,7 +144,7 @@ namespace encode {
         EncodeStatusMfx        *encodeStatusMfx  = (EncodeStatusMfx *)mfxStatus;
         EncodeStatusReportData *statusReportData = (EncodeStatusReportData *)statusReport;
 
-        if (statusReportData->hwCtr)
+        if (statusReportData->hwCtr && m_encodecp)
         {
             m_encodecp->UpdateCpStatusReport(statusReport);
         }
@@ -347,10 +345,8 @@ namespace encode {
         cmdBuffer.Attributes.dwNumRequestedEUs         = m_hwInterface->m_numRequestedEus;
         cmdBuffer.Attributes.bValidPowerGatingRequest  = true;
 
-#ifdef _MMC_SUPPORTED
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(&cmdBuffer, false));
-#endif
 
         MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
         MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
@@ -370,7 +366,10 @@ namespace encode {
         ENCODE_CHK_NULL_RETURN(cmdBuffer);
 
         ENCODE_CHK_STATUS_RETURN(MediaPacket::StartStatusReportNext(srType, cmdBuffer));
-        m_encodecp->StartCpStatusReport(cmdBuffer);
+        if (m_encodecp)
+        {
+            m_encodecp->StartCpStatusReport(cmdBuffer);
+        }
 
         MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
         ENCODE_CHK_NULL_RETURN(perfProfiler);
@@ -1111,9 +1110,9 @@ namespace encode {
 
     // Implemented based on Flowchart in figure C.1 in JPEG spec
     MOS_STATUS JpegPkt::GenerateSizeTable(
-        uint8_t  bits[],
-        uint8_t  huffSize[],
-        uint8_t &lastK)
+        const uint8_t bits[],
+        uint8_t       huffSize[],
+        uint8_t       &lastK)
     {
         ENCODE_FUNC_CALL();
 
@@ -1176,10 +1175,10 @@ namespace encode {
 
     // Implemented based on Flowchart in figure C.3 in JPEG spec
     MOS_STATUS JpegPkt::OrderCodes(
-        uint8_t  huffVal[],
-        uint8_t  huffSize[],
-        uint16_t huffCode[],
-        uint8_t  lastK)
+        const uint8_t huffVal[],
+        uint8_t       huffSize[],
+        uint16_t      huffCode[],
+        uint8_t       lastK)
     {
         ENCODE_FUNC_CALL();
 
@@ -1212,7 +1211,7 @@ namespace encode {
     }
 
     MOS_STATUS JpegPkt::ConvertHuffDataToTable(
-        CodecEncodeJpegHuffData      huffmanData,
+        const CodecEncodeJpegHuffData &huffmanData,
         EncodeJpegHuffTable *   huffmanTable)
     {
         ENCODE_FUNC_CALL();

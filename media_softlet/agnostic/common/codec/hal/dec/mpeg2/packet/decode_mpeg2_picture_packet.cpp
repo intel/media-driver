@@ -77,10 +77,8 @@ MOS_STATUS Mpeg2DecodePicPkt::Prepare()
     m_mpeg2PicParams = m_mpeg2BasicFeature->m_mpeg2PicParams;
     DECODE_CHK_NULL(m_mpeg2PicParams);
 
-#ifdef _MMC_SUPPORTED
     m_mmcState = m_mpeg2Pipeline->GetMmcState();
     DECODE_CHK_NULL(m_mmcState);
-#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -157,11 +155,9 @@ MHW_SETPAR_DECL_SRC(MFX_SURFACE_STATE, Mpeg2DecodePicPkt)
     // set cmd function
     MOS_SURFACE *psSurface = &m_mpeg2BasicFeature->m_destSurface;
 
-#ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(m_mmcState->SetSurfaceMmcState(&(m_mpeg2BasicFeature->m_destSurface)));
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(psSurface, &params.mmcState));
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(psSurface, &params.compressionFormat));
-#endif
 
     params.height           = psSurface->dwHeight - 1;
     params.width            = psSurface->dwWidth - 1;
@@ -169,7 +165,7 @@ MHW_SETPAR_DECL_SRC(MFX_SURFACE_STATE, Mpeg2DecodePicPkt)
     params.interleaveChroma = 1;
     params.surfaceFormat    = SURFACE_FORMAT_PLANAR4208;
 
-    params.tilemode = m_mfxItf->MosGetHWTileType(psSurface->TileType, psSurface->TileModeGMM, psSurface->bGMMTileEnabled);
+    params.tilemode = MhwGetHwTileType(psSurface->TileType, psSurface->TileModeGMM, psSurface->bGMMTileEnabled);
 
     uint32_t uvPlaneAlignment = MHW_VDBOX_MFX_UV_PLANE_ALIGNMENT_LEGACY;
     if (params.surfaceId == CODECHAL_MFX_SRC_SURFACE_ID)
@@ -249,19 +245,15 @@ MHW_SETPAR_DECL_SRC(MFX_PIPE_BUF_ADDR_STATE, Mpeg2DecodePicPkt)
         }
     }
 
-#ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(params.psPreDeblockSurface, &params.PreDeblockSurfMmcState));
-#endif
 
     DECODE_CHK_STATUS(FixMfxPipeBufAddrParams());
 
     CODECHAL_DEBUG_TOOL(DumpResources(params));
 
-#ifdef _MMC_SUPPORTED
     Mpeg2DecodeMemComp *mpeg2DecodeMemComp = dynamic_cast<Mpeg2DecodeMemComp *>(m_mmcState);
     DECODE_CHK_NULL(mpeg2DecodeMemComp);
-    DECODE_CHK_STATUS(mpeg2DecodeMemComp->CheckReferenceList(*m_mpeg2BasicFeature, params.PreDeblockSurfMmcState, params.PostDeblockSurfMmcState));
-#endif
+    DECODE_CHK_STATUS(mpeg2DecodeMemComp->CheckReferenceList(*m_mpeg2BasicFeature, params.PreDeblockSurfMmcState, params.PostDeblockSurfMmcState, params.presReferences));
 
     return MOS_STATUS_SUCCESS;
 }

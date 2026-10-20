@@ -36,6 +36,13 @@ public:
     virtual MOS_STATUS                  Wait()        = 0;
     virtual std::unique_ptr<CmdPackage> Clone() const = 0;
     virtual bool                        Releaseable() { return true; };
+    virtual bool                        IsAsyncExecute() { return false; };
+};
+
+enum class HYBRID_MGR_SUBMIT_MODE
+{
+    ASYNC = 0,
+    SYNC  = 1
 };
 
 class HybridCmdMgr
@@ -48,11 +55,16 @@ public:
     MOS_STATUS StartThread();
     MOS_STATUS StopThread();
     bool       Enabled();
+    MOS_STATUS SetSubmitMode(HYBRID_MGR_SUBMIT_MODE submitMode);
 
 private:
     void Consumer();
+    MOS_STATUS SubmitPackageInAsync(std::unique_ptr<CmdPackage> cmdPackage);
+    MOS_STATUS SubmitPackageInSync(std::unique_ptr<CmdPackage> cmdPackage);
 
 private:
+    HYBRID_MGR_SUBMIT_MODE m_submitMode = HYBRID_MGR_SUBMIT_MODE::ASYNC;
+
     std::queue<std::unique_ptr<CmdPackage>>  m_queue;
     std::unique_ptr<CmdPackage>              m_lastCmdPackage   = nullptr;
     std::mutex                               m_queueMutex       = {};

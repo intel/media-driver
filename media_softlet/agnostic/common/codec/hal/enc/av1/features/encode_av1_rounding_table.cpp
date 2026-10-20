@@ -62,7 +62,7 @@ MHW_SETPAR_DECL_SRC(VDENC_CMD2, Av1EncodeRoundingTable)
     auto av1BasicFeature = dynamic_cast<Av1BasicFeature *>(m_basicFeature);
     ENCODE_CHK_NULL_RETURN(av1BasicFeature);
 
-    if (av1BasicFeature->m_roundingMethod == 2)
+    if (av1BasicFeature->m_roundingMethod == RoundingMethod::lookUpTableRounding)
     {
         ENCODE_CHK_NULL_RETURN(av1BasicFeature->m_av1PicParams);
         ENCODE_CHK_NULL_RETURN(av1BasicFeature->m_av1SeqParams);
@@ -129,8 +129,8 @@ MHW_SETPAR_DECL_SRC(VDENC_CMD2, Av1EncodeRoundingTable)
 #else
         params.extSettings.emplace_back(
             [av1BasicFeature](uint32_t *data) {
-                uint8_t tmp0 = av1BasicFeature->m_par65Intra & 0xf;
-                uint8_t tmp1 = av1BasicFeature->m_par65Inter & 0xf;
+                uint32_t tmp0 = av1BasicFeature->m_par65Intra & 0xf;
+                uint32_t tmp1 = av1BasicFeature->m_par65Inter & 0xf;
                 data[32] |= (tmp1 << 16);
                 data[32] |= (tmp1 << 20);
                 data[32] |= (tmp0 << 24);

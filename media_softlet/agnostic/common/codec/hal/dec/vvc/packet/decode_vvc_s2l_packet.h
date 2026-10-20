@@ -597,7 +597,7 @@ public:
         uint32_t &commandBufferSize,
         uint32_t &requestedPatchListSize) override;
 
-    uint32_t GetSliceBatchOffset(uint32_t sliceNum);
+    virtual uint32_t GetSliceBatchOffset(uint32_t sliceNum);
 
     //!
     //! \brief  Get Packet Name
@@ -612,7 +612,7 @@ public:
     virtual MHW_SETPAR_DECL_HDR(HUC_IND_OBJ_BASE_ADDR_STATE);
     virtual MHW_SETPAR_DECL_HDR(HUC_VIRTUAL_ADDR_STATE);
 
-    virtual MOS_STATUS AddCmd_HUC_STREAM_OBJECT(MOS_COMMAND_BUFFER &cmdBuffer, CodecVvcSliceParams sliceParams);
+    virtual MOS_STATUS AddCmd_HUC_STREAM_OBJECT(MOS_COMMAND_BUFFER &cmdBuffer, const CodecVvcSliceParams &sliceParams);
     virtual MOS_STATUS AddCmd_HUC_START(MOS_COMMAND_BUFFER &cmdBuffer, bool laststreamobject);
     virtual MOS_STATUS AddCmd_HUC_PIPE_MODE_SELECT(MOS_COMMAND_BUFFER &cmdBuffer);
     virtual MOS_STATUS AddCmd_HUC_IMEM_STATE(MOS_COMMAND_BUFFER &cmdBuffer);
@@ -680,7 +680,6 @@ protected:
     DecodeAllocator                      *m_allocator       = nullptr;
     PMOS_INTERFACE                        m_osInterface     = nullptr;
     CodechalHwInterfaceNext              *m_hwInterface     = nullptr;
-    DecodeBasicFeature                   *m_basicFeature    = nullptr;
     DecodeCpInterface                    *m_decodecp        = nullptr;
     std::shared_ptr<mhw::vdbox::huc::Itf> m_hucItf          = nullptr;
 

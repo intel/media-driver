@@ -341,6 +341,11 @@ public:
         return false;
     }
 
+    virtual uint32_t GetGrfSize() override
+    {
+        return 32;
+    }
+
 protected:
     //!
     //! \brief    Get L3 control register value with SLM enabled

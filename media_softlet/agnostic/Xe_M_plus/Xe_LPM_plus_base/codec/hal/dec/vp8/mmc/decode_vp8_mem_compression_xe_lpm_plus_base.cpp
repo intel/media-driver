@@ -29,7 +29,6 @@
 
 #include "decode_vp8_mem_compression_xe_lpm_plus_base.h"
 
-#ifdef _MMC_SUPPORTED
 namespace decode
 {
     Vp8DecodeMemCompXe_Lpm_Plus_Base::Vp8DecodeMemCompXe_Lpm_Plus_Base(CodechalHwInterfaceNext *hwInterface)
@@ -37,4 +36,3 @@ namespace decode
     {
     }
 }
-#endif

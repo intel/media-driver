@@ -120,6 +120,7 @@ public:
 
     bool IsBufferRowstoreCacheEnabled(VvcpBufferType bufferType) override
     {
+        MHW_FUNCTION_ENTER;
 
         bool rowstoreCacheEnabled = false;
         switch (bufferType)
@@ -345,7 +346,6 @@ protected:
         m_cpItf = cpItf;
 
         InitRowstoreUserFeatureSettings();
-        InitMmioRegisters();
     }
 
     virtual ~Impl()
@@ -391,7 +391,6 @@ protected:
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC] = {};  //!< Cacheability settings
 private:
 
-    MmioRegistersVvcp                m_mmioRegisters[MHW_VDBOX_NODE_MAX]                        = {};     //!< VVCP mmio registers
     bool                             m_rowstoreCachingSupported                                 = false;  //!< Flag to indicate if row store cache is supported
 
     void InitRowstoreUserFeatureSettings()
@@ -595,11 +594,6 @@ private:
         }
     }
 
-    void InitMmioRegisters()
-    {
-        // TODO: Enalbe VVC new mechanism for MMIO
-    }
-
 protected:
     
     _MHW_SETCMD_OVERRIDE_DECL(VVCP_VD_CONTROL_STATE)
@@ -658,7 +652,7 @@ protected:
         // Decoded Output Frame Buffer
         cmd.DecodedPictureMemoryAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables =
             GetMocsValue(MOS_CODEC_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC);
-        cmd.DecodedPictureMemoryAddressAttributes.DW0.Tilemode = GetHwTileType(params.decodedPic->TileType, params.decodedPic->TileModeGMM, params.decodedPic->bGMMTileEnabled);
+        cmd.DecodedPictureMemoryAddressAttributes.DW0.Tilemode = MhwGetHwTileType(params.decodedPic->TileType, params.decodedPic->TileModeGMM, params.decodedPic->bGMMTileEnabled);
 
         resourceParams.presResource    = &(params.decodedPic->OsResource);
         resourceParams.dwOffset        = params.decodedPic->dwOffset;
@@ -680,7 +674,7 @@ protected:
                 MOS_SURFACE details = {};
                 details.Format = Format_Invalid;
                 MHW_MI_CHK_STATUS(m_osItf->pfnGetResourceInfo(m_osItf, params.references[i], &details));
-                cmd.ReferencePicture[i].ReferencePictureMemoryAddressAttributes.DW0.Tilemode = GetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+                cmd.ReferencePicture[i].ReferencePictureMemoryAddressAttributes.DW0.Tilemode = MhwGetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
                 cmd.ReferencePicture[i].ReferencePictureMemoryAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables =
                     GetMocsValue(MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC);
 

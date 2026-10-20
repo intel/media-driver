@@ -109,7 +109,7 @@ typedef struct _CODEC_AVC_PIC_PARAMS
             uint32_t            frame_mbs_only_flag                    : 1; //!< Same as AVC syntax element.
             uint32_t            mb_adaptive_frame_field_flag           : 1; //!< Same as AVC syntax element.
             uint32_t            direct_8x8_inference_flag              : 1; //!< Same as AVC syntax element.
-            uint32_t                                                   : 1;
+            uint32_t            Reserved6                              : 1;
             uint32_t            log2_max_frame_num_minus4              : 4; //!< Same as AVC syntax element.
             uint32_t            pic_order_cnt_type                     : 2; //!< Same as AVC syntax element.
             uint32_t            log2_max_pic_order_cnt_lsb_minus4      : 4; //!< Same as AVC syntax element.

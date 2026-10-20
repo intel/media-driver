@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2023, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -82,6 +82,7 @@ namespace decode
 
     protected:
         virtual MOS_STATUS VdInit(MOS_COMMAND_BUFFER &cmdBuffer);
+        virtual MOS_STATUS AllocateVariableResources() override;
 
         //!
         //! \brief    Calculate picture state command size

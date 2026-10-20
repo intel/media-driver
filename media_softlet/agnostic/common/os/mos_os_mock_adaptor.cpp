@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -35,14 +35,18 @@
 #define TGL_B0_REV_ID 0x01
 #define TGL_C0_REV_ID 0x02
 
-bool  MosMockAdaptor::m_enabled = false;
-PRODUCT_FAMILY MosMockAdaptor::m_productFamily = {};
-std::string MosMockAdaptor::m_stepping = {};
-uint16_t MosMockAdaptor::m_deviceId = 0;
-MosMockAdaptor *MosMockAdaptor::m_mocAdaptor = nullptr;
-
 MosMockAdaptor::MosMockAdaptor()
 {
+    m_pPlatform     = nullptr;
+    m_pWaTable      = nullptr;
+    m_pSkuTable     = nullptr;
+    m_pGtSystemInfo = nullptr;
+    m_productFamily = {};
+    m_stepping      = "";
+    m_deviceId      = 0;
+    m_numOfVdbox     = 1;
+    m_numOfRealVdbox = 0;
+    m_enabled        = false;
 }
 
 MosMockAdaptor::~MosMockAdaptor()
@@ -88,6 +92,16 @@ MOS_STATUS MosMockAdaptor::RegkeyRead(PMOS_CONTEXT osContext)
         MediaUserSetting::Group::Device);
     m_deviceId = (uint16_t)value;
 
+    value = 0;
+    ReadUserSettingForDebug(
+        userSettingPtr,
+        value,
+        __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_PIPE,
+        MediaUserSetting::Group::Device);
+    // bits [7:0] = total simulated VDBox count (fake + real); bits [15:8] = real VDBox count (mapped to VIDEO/VIDEO2)
+    m_numOfVdbox     = (uint16_t)(value & 0xFF);
+    m_numOfRealVdbox = (uint16_t)((value >> 8) & 0xFF);
+
     return eStatus;
 }
 
@@ -111,15 +125,13 @@ MOS_STATUS MosMockAdaptor::Init(
     nullHwEnabled = (value) ? true : false;
     osDeviceContext->SetNullHwIsEnabled(nullHwEnabled);
 
-    if (nullHwEnabled && !m_enabled) {
-        m_enabled = true;
+    // Per-Context: Only initialize if not already enabled for this instance
+    if (nullHwEnabled && !m_enabled)
+    {
+        m_enabled = true;  // Set flag to prevent re-initialization
 
         MOS_OS_CHK_STATUS_RETURN(RegkeyRead(osContext));
-
-        m_mocAdaptor = MOS_New(MosMockAdaptorSpecific);
-        MOS_OS_CHK_NULL_RETURN(m_mocAdaptor);
-
-        eStatus = m_mocAdaptor->Initialize(osContext);
+        eStatus = Initialize(osContext);
     }
 
     return eStatus;
@@ -127,12 +139,8 @@ MOS_STATUS MosMockAdaptor::Init(
 
 MOS_STATUS MosMockAdaptor::Destroy()
 {
-    if (m_mocAdaptor != nullptr)
-    {
-        MOS_Delete(m_mocAdaptor);
-        m_mocAdaptor = nullptr;
-    }
-
+    // Per-Context: Simply reset the enabled flag
+    // The object itself will be deleted by OsContextNext
     m_enabled = false;
 
     return MOS_STATUS_SUCCESS;
@@ -161,6 +169,8 @@ MOS_STATUS MosMockAdaptor::InitContext(
         MOS_OS_ASSERTMESSAGE("Unsupported platform!");
         eStatus = MOS_STATUS_PLATFORM_NOT_SUPPORTED;
     }
+
+    m_pGtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled = m_numOfVdbox;
 
     return eStatus;
 }

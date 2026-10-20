@@ -30,9 +30,76 @@
 
 #include "mhw_mi_itf.h"
 #include "mhw_impl.h"
+#include "mos_os_cp_interface_specific.h"
 
 #ifdef IGFX_MI_INTERFACE_EXT_SUPPORT
 #include "mhw_mi_impl_ext.h"
+#endif
+
+// Common MMIO register defines used by base Impl<cmd_t> methods.
+// Platform-specific headers (mhw_mmio_xe*_lpm*.h) define these same values;
+// the #ifndef guards allow the platform definition to take precedence when
+// the platform header is included first.
+#ifndef M_MMIO_MAX_RELATIVE_OFFSET
+#define M_MMIO_MAX_RELATIVE_OFFSET                   0x3FFF
+#define M_MMIO_MEDIA_LOW_OFFSET                      0x1C0000
+#define M_MMIO_MEDIA_HIGH_OFFSET                     0x200000
+#endif
+
+#ifndef M_MMIO_RCS_HW_FE_REMAP_RANGE_BEGIN
+#define M_MMIO_RCS_HW_FE_REMAP_RANGE_BEGIN           0x2000
+#define M_MMIO_RCS_HW_FE_REMAP_RANGE_END             0x27FF
+#define M_MMIO_RCS_AUX_TBL_REMAP_RANGE_BEGIN         0x4200
+#define M_MMIO_RCS_AUX_TBL_REMAP_RANGE_END           0x420F
+#define M_MMIO_RCS_TRTT_REMAP_RANGE_BEGIN            0x4400
+#define M_MMIO_RCS_TRTT_REMAP_RANGE_END              0x441F
+#endif
+
+#ifndef M_MMIO_CCS0_HW_FRONT_END_BASE_BEGIN
+#define M_MMIO_CCS0_HW_FRONT_END_BASE_BEGIN          0x1A000
+#define M_MMIO_CCS0_HW_FRONT_END_BASE_END            0x1A7FF
+#define M_MMIO_CCS1_HW_FRONT_END_BASE_BEGIN          0x1C000
+#define M_MMIO_CCS1_HW_FRONT_END_BASE_END            0x1C7FF
+#define M_MMIO_CCS2_HW_FRONT_END_BASE_BEGIN          0x1E000
+#define M_MMIO_CCS2_HW_FRONT_END_BASE_END            0x1E7FF
+#define M_MMIO_CCS3_HW_FRONT_END_BASE_BEGIN          0x26000
+#define M_MMIO_CCS3_HW_FRONT_END_BASE_END            0x267FF
+#endif
+
+#ifndef M_MMIO_RCS_AUX_TABLE_BASE_LOW
+#define M_MMIO_RCS_AUX_TABLE_BASE_LOW                0x4200
+#define M_MMIO_RCS_AUX_TABLE_BASE_HIGH               0x4204
+#define M_MMIO_RCS_AUX_TABLE_INVALIDATE              0x4208
+#endif
+
+#ifndef M_MMIO_VD0_AUX_TABLE_BASE_LOW
+#define M_MMIO_VD0_AUX_TABLE_BASE_LOW                0x4210
+#define M_MMIO_VD0_AUX_TABLE_BASE_HIGH               0x4214
+#define M_MMIO_VD0_AUX_TABLE_INVALIDATE              0x4218
+#define M_MMIO_VD1_AUX_TABLE_BASE_LOW                0x4220
+#define M_MMIO_VD1_AUX_TABLE_BASE_HIGH               0x4224
+#define M_MMIO_VD1_AUX_TABLE_INVALIDATE              0x4228
+#define M_MMIO_VD2_AUX_TABLE_BASE_LOW                0x4290
+#define M_MMIO_VD2_AUX_TABLE_BASE_HIGH               0x4294
+#define M_MMIO_VD2_AUX_TABLE_INVALIDATE              0x4298
+#define M_MMIO_VD3_AUX_TABLE_BASE_LOW                0x42A0
+#define M_MMIO_VD3_AUX_TABLE_BASE_HIGH               0x42A4
+#define M_MMIO_VD3_AUX_TABLE_INVALIDATE              0x42A8
+#endif
+
+#ifndef M_MMIO_VE0_AUX_TABLE_BASE_LOW
+#define M_MMIO_VE0_AUX_TABLE_BASE_LOW                0x4230
+#define M_MMIO_VE0_AUX_TABLE_BASE_HIGH               0x4234
+#define M_MMIO_VE0_AUX_TABLE_INVALIDATE              0x4238
+#define M_MMIO_VE1_AUX_TABLE_BASE_LOW                0x42B0
+#define M_MMIO_VE1_AUX_TABLE_BASE_HIGH               0x42B4
+#define M_MMIO_VE1_AUX_TABLE_INVALIDATE              0x42B8
+#endif
+
+#ifndef M_MMIO_CCS0_AUX_TABLE_BASE_LOW
+#define M_MMIO_CCS0_AUX_TABLE_BASE_LOW               0x42C0
+#define M_MMIO_CCS0_AUX_TABLE_BASE_HIGH              0x42C4
+#define M_MMIO_CCS0_AUX_TABLE_INVALIDATE             0x42C8
 #endif
 
 namespace mhw
@@ -136,23 +203,163 @@ public:
         return formattedOpCode;
     }
 
-    MOS_STATUS SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight, bool isEncoder, uint32_t codecMode) override
+    MOS_STATUS SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight, bool isEncoder, uint32_t codecMode, bool isTee) override
     {
+        MHW_FUNCTION_ENTER;
+        MHW_MI_CHK_NULL(this->m_osItf);
+        if (this->m_osItf->bMediaReset == false ||
+            this->m_osItf->umdMediaResetEnable == false)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+
+        if (isTee)
+        {
+            MHW_MI_CHK_STATUS(SetTeeWatchdogThreshold());
+        }
+        else if (isEncoder)
+        {
+            SetEncoderWatchdogThreshold(frameWidth, frameHeight, codecMode);
+        }
+        else
+        {
+            SetDecoderWatchdogThreshold(frameWidth, frameHeight, codecMode);
+        }
+
+        GetWatchdogThreshold(this->m_osItf);
+
         return MOS_STATUS_SUCCESS;
     }
 
     MOS_STATUS SetWatchdogTimerRegisterOffset(MOS_GPU_CONTEXT gpuContext) override
     {
+        MHW_FUNCTION_ENTER;
+
+        switch (gpuContext)
+        {
+            // RCS
+        case MOS_GPU_CONTEXT_RENDER:
+        case MOS_GPU_CONTEXT_RENDER2:
+        case MOS_GPU_CONTEXT_RENDER3:
+        case MOS_GPU_CONTEXT_RENDER4:
+        case MOS_GPU_CONTEXT_COMPUTE:
+        case MOS_GPU_CONTEXT_CM_COMPUTE:
+        case MOS_GPU_CONTEXT_RENDER_RA:
+        case MOS_GPU_CONTEXT_COMPUTE_RA:
+            MediaResetParam.watchdogCountCtrlOffset      = m_watchdogOffsets.ctrlRcs;
+            MediaResetParam.watchdogCountThresholdOffset = m_watchdogOffsets.thresholdRcs;
+            break;
+            // VCS0
+        case MOS_GPU_CONTEXT_VIDEO:
+        case MOS_GPU_CONTEXT_VIDEO2:
+        case MOS_GPU_CONTEXT_VIDEO3:
+        case MOS_GPU_CONTEXT_VIDEO4:
+        case MOS_GPU_CONTEXT_VIDEO5:
+        case MOS_GPU_CONTEXT_VIDEO6:
+        case MOS_GPU_CONTEXT_VIDEO7:
+        case MOS_GPU_CONTEXT_VIDEO_DEC_FULL:
+        case MOS_GPU_CONTEXT_VIDEO_ENC_FULL:
+            MediaResetParam.watchdogCountCtrlOffset      = m_watchdogOffsets.ctrlVcs0;
+            MediaResetParam.watchdogCountThresholdOffset = m_watchdogOffsets.thresholdVcs0;
+            break;
+            // VCS1
+        case MOS_GPU_CONTEXT_VDBOX2_VIDEO:
+        case MOS_GPU_CONTEXT_VDBOX2_VIDEO2:
+        case MOS_GPU_CONTEXT_VDBOX2_VIDEO3:
+            MediaResetParam.watchdogCountCtrlOffset      = m_watchdogOffsets.ctrlVcs1;
+            MediaResetParam.watchdogCountThresholdOffset = m_watchdogOffsets.thresholdVcs1;
+            break;
+            // VECS
+        case MOS_GPU_CONTEXT_VEBOX:
+            MediaResetParam.watchdogCountCtrlOffset      = m_watchdogOffsets.ctrlVecs;
+            MediaResetParam.watchdogCountThresholdOffset = m_watchdogOffsets.thresholdVecs;
+            break;
+            // TEE
+        case MOS_GPU_CONTEXT_TEE:
+            MediaResetParam.watchdogCountCtrlOffset      = m_watchdogOffsets.teecsCtrl;
+            MediaResetParam.watchdogCountThresholdOffset = m_watchdogOffsets.thresholdTeecs;
+            break;
+            // Default
+        default:
+            break;
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 
     MOS_STATUS AddWatchdogTimerStartCmd(PMOS_COMMAND_BUFFER cmdBuffer) override
     {
+        MOS_GPU_CONTEXT gpuContext;
+
+        MHW_FUNCTION_ENTER;
+        MHW_MI_CHK_NULL(this->m_osItf);
+        if (this->m_osItf->bMediaReset == false ||
+            this->m_osItf->umdMediaResetEnable == false)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+
+        MHW_MI_CHK_NULL(cmdBuffer);
+
+        // Set Watchdog Timer Register Offset
+        gpuContext = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+        MHW_MI_CHK_STATUS(SetWatchdogTimerRegisterOffset(gpuContext));
+
+        // Send Stop before Start is to help recover from incorrect wdt state if previous submission
+        // cause hang and not have a chance to execute the stop cmd in the end of batch buffer.
+        MHW_MI_CHK_STATUS(AddWatchdogTimerStopCmd(cmdBuffer));
+
+        //Configure Watchdog timer Threshold
+        auto& par = MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
+        par = {};
+        par.dwData = MHW_MI_WATCHDOG_COUNTS_PER_MILLISECOND * MediaResetParam.watchdogCountThreshold *
+            (this->m_osItf->bSimIsActive ? 2 : 1);
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_useManualThreshold)
+        {
+            par.dwData = MediaResetParam.watchdogCountThreshold;
+        }
+#endif
+        par.dwRegister = MediaResetParam.watchdogCountThresholdOffset;
+        MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer);
+
+        MHW_VERBOSEMESSAGE("MediaReset Threshold is %d for register 0x%x", par.dwData, par.dwRegister);
+
+        //Start Watchdog Timer
+        auto& par1 = MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
+        par1 = {};
+        par1.dwData     = MHW_MI_WATCHDOG_ENABLE_COUNTER;
+        par1.dwRegister = MediaResetParam.watchdogCountCtrlOffset;
+        MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer);
+
         return MOS_STATUS_SUCCESS;
     }
 
     MOS_STATUS AddWatchdogTimerStopCmd(PMOS_COMMAND_BUFFER cmdBuffer) override
     {
+        MOS_GPU_CONTEXT gpuContext;
+
+        MHW_FUNCTION_ENTER;
+        MHW_MI_CHK_NULL(this->m_osItf);
+        if (this->m_osItf->bMediaReset == false ||
+            this->m_osItf->umdMediaResetEnable == false)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+
+        MHW_MI_CHK_NULL(cmdBuffer);
+
+        // Set Watchdog Timer Register Offset
+        gpuContext = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+        MHW_MI_CHK_STATUS(SetWatchdogTimerRegisterOffset(gpuContext));
+
+        //Stop Watchdog Timer
+        auto& par = MHW_GETPAR_F(MI_LOAD_REGISTER_IMM)();
+        par = {};
+        par.dwData     = MHW_MI_WATCHDOG_DISABLE_COUNTER;
+        par.dwRegister = MediaResetParam.watchdogCountCtrlOffset;
+        MHW_ADDCMD_F(MI_LOAD_REGISTER_IMM)(cmdBuffer);
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -160,6 +367,88 @@ public:
         PMOS_COMMAND_BUFFER             cmdBuffer,
         PMHW_BATCH_BUFFER               batchBuffer) override
     {
+        MHW_FUNCTION_ENTER;
+
+        if (cmdBuffer == nullptr && batchBuffer == nullptr)
+        {
+            MHW_ASSERTMESSAGE("There was no valid buffer to add the HW command to.");
+            return MOS_STATUS_NULL_POINTER;
+        }
+
+        auto waTable = this->m_osItf->pfnGetWaTable(this->m_osItf);
+        MHW_MI_CHK_NULL(waTable);
+
+        // This WA does not apply for video or other engines, render requirement only
+        bool isRender =
+            MOS_RCS_ENGINE_USED(this->m_osItf->pfnGetGpuContext(this->m_osItf));
+
+        if (isRender &&
+            (MEDIA_IS_WA(waTable, WaMSFWithNoWatermarkTSGHang) ||
+            MEDIA_IS_WA(waTable, WaAddMediaStateFlushCmd)))
+        {
+            auto& params = MHW_GETPAR_F(MEDIA_STATE_FLUSH)();
+            params = {};
+            MHW_ADDCMD_F(MEDIA_STATE_FLUSH)(cmdBuffer, batchBuffer);
+        }
+
+        // Mhw_CommonMi_AddMiBatchBufferEnd() is designed to handle both 1st level
+        // and 2nd level BB.  It inserts MI_BATCH_BUFFER_END in both cases.
+        // However, since the 2nd level BB always returens to the 1st level BB and
+        // no chained BB scenario in Media, Epilog is only needed in the 1st level BB.
+        // Therefre, here only the 1st level BB case needs an Epilog inserted.
+        if (cmdBuffer && cmdBuffer->is1stLvlBB)
+        {
+            MHW_MI_CHK_STATUS(m_cpInterface->AddEpilog(this->m_osItf, cmdBuffer));
+        }
+
+        auto& params = MHW_GETPAR_F(MI_BATCH_BUFFER_END)();
+        params = {};
+        MHW_ADDCMD_F(MI_BATCH_BUFFER_END)(cmdBuffer, batchBuffer);
+
+        if (!cmdBuffer) // Don't need BB not nullptr chk b/c if both are nullptr it won't get this far
+        {
+#if (_DEBUG || _RELEASE_INTERNAL)
+            batchBuffer->iLastCurrent = batchBuffer->iCurrent;
+#endif
+        }
+
+        // Send End Marker command
+        if (this->m_osItf->pfnIsSetMarkerEnabled(this->m_osItf) && cmdBuffer && cmdBuffer->is1stLvlBB)
+        {
+            PMOS_RESOURCE   resMarker = nullptr;
+            resMarker = this->m_osItf->pfnGetMarkerResource(this->m_osItf);
+            MHW_MI_CHK_NULL(resMarker);
+
+            if (isRender)
+            {
+                // Send pipe_control to get the timestamp
+                auto& params = MHW_GETPAR_F(PIPE_CONTROL)();
+                params = {};
+                params.presDest = resMarker;
+                params.dwResourceOffset = sizeof(uint64_t);
+                params.dwPostSyncOp = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+                params.dwFlushMode = MHW_FLUSH_WRITE_CACHE;
+                MHW_ADDCMD_F(PIPE_CONTROL)(cmdBuffer, batchBuffer);
+            }
+            else
+            {
+                // Send flush_dw to get the timestamp
+                auto& params = MHW_GETPAR_F(MI_FLUSH_DW)();
+                params = {};
+                params.pOsResource = resMarker;
+                params.dwResourceOffset = sizeof(uint64_t);
+                params.postSyncOperation = MHW_FLUSH_WRITE_TIMESTAMP_REG;
+                params.bQWordEnable = 1;
+                MHW_ADDCMD_F(MI_FLUSH_DW)(cmdBuffer, batchBuffer);
+            }
+
+            if (!this->m_osItf->apoMosEnabled)
+            {
+                MOS_SafeFreeMemory(resMarker);
+            }
+        }
+        MHW_MI_CHK_STATUS(this->m_osItf->osCpInterface->PermeateBBPatchForHM());
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -267,7 +556,91 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    virtual uint32_t GetMmioInterfaces(MHW_MMIO_REGISTER_OPCODE opCode) override = 0;
+    virtual uint32_t GetMmioInterfaces(MHW_MMIO_REGISTER_OPCODE opCode) override
+    {
+        uint32_t mmioRegisters = MHW_MMIO_RCS_AUX_TABLE_NONE;
+
+        switch (opCode)
+        {
+        case MHW_MMIO_RCS_AUX_TABLE_BASE_LOW:
+            mmioRegisters = M_MMIO_RCS_AUX_TABLE_BASE_LOW;
+            break;
+        case MHW_MMIO_RCS_AUX_TABLE_BASE_HIGH:
+            mmioRegisters = M_MMIO_RCS_AUX_TABLE_BASE_HIGH;
+            break;
+        case MHW_MMIO_RCS_AUX_TABLE_INVALIDATE:
+            mmioRegisters = M_MMIO_RCS_AUX_TABLE_INVALIDATE;
+            break;
+        case MHW_MMIO_VD0_AUX_TABLE_BASE_LOW:
+            mmioRegisters = M_MMIO_VD0_AUX_TABLE_BASE_LOW;
+            break;
+        case MHW_MMIO_VD0_AUX_TABLE_BASE_HIGH:
+            mmioRegisters = M_MMIO_VD0_AUX_TABLE_BASE_HIGH;
+            break;
+        case MHW_MMIO_VD0_AUX_TABLE_INVALIDATE:
+            mmioRegisters = M_MMIO_VD0_AUX_TABLE_INVALIDATE;
+            break;
+        case MHW_MMIO_VD1_AUX_TABLE_BASE_LOW:
+            mmioRegisters = M_MMIO_VD1_AUX_TABLE_BASE_LOW;
+            break;
+        case MHW_MMIO_VD1_AUX_TABLE_BASE_HIGH:
+            mmioRegisters = M_MMIO_VD1_AUX_TABLE_BASE_HIGH;
+            break;
+        case MHW_MMIO_VD1_AUX_TABLE_INVALIDATE:
+            mmioRegisters = M_MMIO_VD1_AUX_TABLE_INVALIDATE;
+            break;
+        case MHW_MMIO_VD2_AUX_TABLE_BASE_LOW:
+            mmioRegisters = M_MMIO_VD2_AUX_TABLE_BASE_LOW;
+            break;
+        case MHW_MMIO_VD2_AUX_TABLE_BASE_HIGH:
+            mmioRegisters = M_MMIO_VD2_AUX_TABLE_BASE_HIGH;
+            break;
+        case MHW_MMIO_VD2_AUX_TABLE_INVALIDATE:
+            mmioRegisters = M_MMIO_VD2_AUX_TABLE_INVALIDATE;
+            break;
+        case MHW_MMIO_VD3_AUX_TABLE_BASE_LOW:
+            mmioRegisters = M_MMIO_VD3_AUX_TABLE_BASE_LOW;
+            break;
+        case MHW_MMIO_VD3_AUX_TABLE_BASE_HIGH:
+            mmioRegisters = M_MMIO_VD3_AUX_TABLE_BASE_HIGH;
+            break;
+        case MHW_MMIO_VD3_AUX_TABLE_INVALIDATE:
+            mmioRegisters = M_MMIO_VD3_AUX_TABLE_INVALIDATE;
+            break;
+        case MHW_MMIO_VE0_AUX_TABLE_BASE_LOW:
+            mmioRegisters = M_MMIO_VE0_AUX_TABLE_BASE_LOW;
+            break;
+        case MHW_MMIO_VE0_AUX_TABLE_BASE_HIGH:
+            mmioRegisters = M_MMIO_VE0_AUX_TABLE_BASE_HIGH;
+            break;
+        case MHW_MMIO_VE0_AUX_TABLE_INVALIDATE:
+            mmioRegisters = M_MMIO_VE0_AUX_TABLE_INVALIDATE;
+            break;
+        case MHW_MMIO_VE1_AUX_TABLE_BASE_LOW:
+            mmioRegisters = M_MMIO_VE1_AUX_TABLE_BASE_LOW;
+            break;
+        case MHW_MMIO_VE1_AUX_TABLE_BASE_HIGH:
+            mmioRegisters = M_MMIO_VE1_AUX_TABLE_BASE_HIGH;
+            break;
+        case MHW_MMIO_VE1_AUX_TABLE_INVALIDATE:
+            mmioRegisters = M_MMIO_VE1_AUX_TABLE_INVALIDATE;
+            break;
+        case MHW_MMIO_CCS0_AUX_TABLE_BASE_LOW:
+            mmioRegisters = M_MMIO_CCS0_AUX_TABLE_BASE_LOW;
+            break;
+        case MHW_MMIO_CCS0_AUX_TABLE_BASE_HIGH:
+            mmioRegisters = M_MMIO_CCS0_AUX_TABLE_BASE_HIGH;
+            break;
+        case MHW_MMIO_CCS0_AUX_TABLE_INVALIDATE:
+            mmioRegisters = M_MMIO_CCS0_AUX_TABLE_INVALIDATE;
+            break;
+        default:
+            MHW_ASSERTMESSAGE("Invalid mmio data provided");
+            break;
+        }
+
+        return mmioRegisters;
+    }
 
     MOS_STATUS AddProtectedProlog(MOS_COMMAND_BUFFER *cmdBuffer) override
     {
@@ -317,10 +690,285 @@ protected:
 
     MHW_MI_MMIOREGISTERS    m_mmioRegisters = {};
     MhwCpInterface          *m_cpInterface  = nullptr;
+
+    //! \brief Indicates the MediaReset Parameter.
+    struct
+    {
+        uint32_t watchdogCountThreshold      = 0;
+        uint32_t watchdogCountCtrlOffset     = 0;
+        uint32_t watchdogCountThresholdOffset = 0;
+    } MediaResetParam;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //! \brief Device-scope watchdog-threshold override, read in the constructor.
+    uint32_t m_watchdogThresholdOverride = 0;
+    //! \brief Device-scope "Force media reset threshold" flag, read in the constructor.
+    //!        When set, the threshold is written as a raw HW counter without ms conversion.
+    bool m_useManualThreshold = false;
+#endif
+
+    //! \brief Watchdog timer register offsets per engine, initialized by platform.
+    struct
+    {
+        uint32_t ctrlRcs      = 0;
+        uint32_t thresholdRcs = 0;
+        uint32_t ctrlVcs0      = 0;
+        uint32_t thresholdVcs0 = 0;
+        uint32_t ctrlVcs1      = 0;
+        uint32_t thresholdVcs1 = 0;
+        uint32_t ctrlVecs      = 0;
+        uint32_t thresholdVecs = 0;
+        uint32_t teecsCtrl      = 0;
+        uint32_t thresholdTeecs = 0;
+    } m_watchdogOffsets;
+
+    bool                        m_enableCsMocsGT    = false;
+    bool                        m_enableCsMocsMedia = false;
+    MEMORY_OBJECT_CONTROL_STATE m_csMocsMemCtrl     = {};
+
+    //! \brief    Query the SKU-gated per-command-streamer MOCS settings and cache
+    //!           the GMM-resolved memory object once, at construction time.
+    void InitCsMocsSettings()
+    {
+        if (nullptr == this->m_osItf)
+        {
+            return;
+        }
+
+        m_enableCsMocsGT    = MEDIA_IS_SKU(this->m_osItf->pfnGetSkuTable(this->m_osItf), FtrCommandStreamerPerCommandMocsGT);
+        m_enableCsMocsMedia = MEDIA_IS_SKU(this->m_osItf->pfnGetSkuTable(this->m_osItf), FtrCommandStreamerPerCommandMocsMedia);
+
+#if !EMUL
+        if (m_enableCsMocsGT || m_enableCsMocsMedia)
+        {
+            GMM_CLIENT_CONTEXT *gmmClientContext = this->m_osItf->pfnGetGmmClientContext(this->m_osItf);
+            if (gmmClientContext && this->m_osItf->pfnGetGmmCachePolicyMemoryObject)
+            {
+                m_csMocsMemCtrl = this->m_osItf->pfnGetGmmCachePolicyMemoryObject(gmmClientContext, GMM_RESOURCE_USAGE_COMMAND_STREAMER);
+            }
+        }
+#endif
+    }
+
+    //! \brief    Return the cached per-command-streamer MOCS index, gated by the
+    //!           SKU flag matching the current engine context.
+    //! \param    [in] isGtEngineContext
+    //!           true for GT (render/compute) engine context, false for media engine context.
+    //! \param    [out] mocsIndex
+    //!           Set to the GMM-resolved MOCS index only when the return value is true.
+    //! \return   bool
+    //!           True if the corresponding SKU flag is enabled and mocsIndex was set.
+    bool TryGetCsMocsIndex(bool isGtEngineContext, uint32_t &mocsIndex)
+    {
+        if (isGtEngineContext ? m_enableCsMocsGT : m_enableCsMocsMedia)
+        {
+            mocsIndex = m_csMocsMemCtrl.Gen12.Index;
+            return true;
+        }
+        return false;
+    }
+
+    //!
+    //! \brief    Check RCS and CCS remap offset
+    //! \details  Check if a RCS register offset is set and remap it to RCS/CCS register offset if so.
+    //! \param    [in] reg
+    //!           Register to be checked and converted
+    //! \return   bool
+    //!           Return true if it is RCS register
+    //!
+    bool IsRemappingMMIO(uint32_t &reg)
+    {
+        if (nullptr == this->m_osItf)
+        {
+            MHW_ASSERTMESSAGE("invalid m_osInterface for RemappingMMIO");
+            return false;
+        }
+        MOS_GPU_CONTEXT gpuContext = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+
+        if (MOS_RCS_ENGINE_USED(gpuContext) &&
+            ((M_MMIO_RCS_HW_FE_REMAP_RANGE_BEGIN <= reg && reg <= M_MMIO_RCS_HW_FE_REMAP_RANGE_END)
+           ||(M_MMIO_RCS_AUX_TBL_REMAP_RANGE_BEGIN <= reg && reg <= M_MMIO_RCS_AUX_TBL_REMAP_RANGE_END)
+           ||(M_MMIO_RCS_TRTT_REMAP_RANGE_BEGIN <= reg && reg <= M_MMIO_RCS_TRTT_REMAP_RANGE_END)
+           ||(M_MMIO_CCS0_HW_FRONT_END_BASE_BEGIN <= reg && reg <= M_MMIO_CCS0_HW_FRONT_END_BASE_END)
+           ||(M_MMIO_CCS1_HW_FRONT_END_BASE_BEGIN <= reg && reg <= M_MMIO_CCS1_HW_FRONT_END_BASE_END)
+           ||(M_MMIO_CCS2_HW_FRONT_END_BASE_BEGIN <= reg && reg <= M_MMIO_CCS2_HW_FRONT_END_BASE_END)
+           ||(M_MMIO_CCS3_HW_FRONT_END_BASE_BEGIN <= reg && reg <= M_MMIO_CCS3_HW_FRONT_END_BASE_END)))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    bool IsRelativeMMIO(uint32_t &reg)
+    {
+        if (nullptr == this->m_osItf)
+        {
+            MHW_ASSERTMESSAGE("invalid m_osInterface for RelativeMMIO");
+            return false;
+        }
+        MOS_GPU_CONTEXT gpuContext = this->m_osItf->pfnGetGpuContext(this->m_osItf);
+
+        if ((MOS_VCS_ENGINE_USED(gpuContext) ||
+             MOS_VECS_ENGINE_USED(gpuContext) ||
+             MOS_TEECS_ENGINE_USED(gpuContext)) &&
+            (reg >= M_MMIO_MEDIA_LOW_OFFSET && reg < M_MMIO_MEDIA_HIGH_OFFSET))
+        {
+            reg &= M_MMIO_MAX_RELATIVE_OFFSET;
+            return true;
+        }
+        return false;
+    }
+
+    //! \brief    Set TEE watchdog threshold for the trusted execution engine.
+    //!           Called only when isTee is true in SetWatchdogTimerThreshold.
+    //!           The default implementation applies to all platforms that use
+    //!           the trusted execution engine for protected content.
+    //!           Platforms that do not exercise the isTee path are unaffected
+    //!           since this function is never called for them.
+    //!           Do NOT override this to return an error -- doing so will cause
+    //!           SetWatchdogTimerThreshold to fail via MHW_MI_CHK_STATUS and
+    //!           break TEE initialization on platforms that need it.
+    virtual MOS_STATUS SetTeeWatchdogThreshold()
+    {
+        MediaResetParam.watchdogCountThreshold = WATCHDOG_TEE_DEFAULT_WATCHDOG_THRESHOLD_IN_MS;
+        return MOS_STATUS_SUCCESS;
+    }
+
+    virtual void GetWatchdogThreshold(PMOS_INTERFACE osInterface)
+    {
+#if (_DEBUG || _RELEASE_INTERNAL)
+        // User feature override of the watchdog timer threshold. The key is Group::Device,
+        // so it is read once in the constructor -- see m_watchdogThresholdOverride.
+        if (m_watchdogThresholdOverride != 0)
+        {
+            MediaResetParam.watchdogCountThreshold = m_watchdogThresholdOverride;
+        }
+#endif
+    }
+
+    //! \brief    Set encoder-specific watchdog threshold based on resolution.
+    //!           Override in platform implementations for different threshold tiers.
+    virtual void SetEncoderWatchdogThreshold(uint32_t frameWidth, uint32_t frameHeight, uint32_t codecMode)
+    {
+        if ((frameWidth * frameHeight) >= (7680 * 4320))
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_16K_WATCHDOG_THRESHOLD_IN_MS;
+        }
+        else if ((frameWidth * frameHeight) >= (3840 * 2160))
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_8K_WATCHDOG_THRESHOLD_IN_MS;
+        }
+        else if ((frameWidth * frameHeight) >= (1920 * 1080))
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_4K_WATCHDOG_THRESHOLD_IN_MS;
+        }
+        else
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_ENCODER_FHD_WATCHDOG_THRESHOLD_IN_MS;
+        }
+    }
+
+    //! \brief    Set decoder-specific watchdog threshold based on resolution.
+    //!           Override in platform implementations for different threshold tiers.
+    virtual void SetDecoderWatchdogThreshold(uint32_t frameWidth, uint32_t frameHeight, uint32_t codecMode)
+    {
+        // Default: Group A behavior
+        if ((frameWidth * frameHeight) >= (7680 * 4320))
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_8K_WATCHDOG_THRESHOLD_IN_MS;
+        }
+        else if ((frameWidth * frameHeight) >= (3840 * 2160))
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_4K_WATCHDOG_THRESHOLD_IN_MS;
+        }
+        else
+        {
+            MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_720P_WATCHDOG_THRESHOLD_IN_MS;
+        }
+
+        if ((CODECHAL_STANDARD)codecMode == CODECHAL_AV1)
+        {
+            // This is temporary solution to address the inappropriate threshold setting for high bit-rate AV1 decode.
+            // The final solution will incorporate bitstream size, increasing the setting when the bit-rate is high.
+            MediaResetParam.watchdogCountThreshold = MHW_MI_DECODER_AV1_WATCHDOG_THRESHOLD_IN_MS;
+        }
+    }
+
+    void InitMhwMiInterface()
+    {
+        MHW_FUNCTION_ENTER;
+
+        UseGlobalGtt    = {};
+        MediaResetParam = {};
+
+        if (this->m_osItf == nullptr)
+        {
+            MHW_ASSERTMESSAGE("Invalid input pointers provided");
+            return;
+        }
+
+        if (!this->m_osItf->bUsesGfxAddress && !this->m_osItf->bUsesPatchList)
+        {
+            MHW_ASSERTMESSAGE("No valid addressing mode indicated");
+            return;
+        }
+
+        UseGlobalGtt.m_cs =
+            UseGlobalGtt.m_vcs =
+            UseGlobalGtt.m_vecs = MEDIA_IS_WA(this->m_osItf->pfnGetWaTable(this->m_osItf), WaForceGlobalGTT) ||
+            !MEDIA_IS_SKU(this->m_osItf->pfnGetSkuTable(this->m_osItf), FtrPPGTT);
+
+        MediaResetParam.watchdogCountThreshold = MHW_MI_DEFAULT_WATCHDOG_THRESHOLD_IN_MS;
+
+        GetWatchdogThreshold(this->m_osItf);
+
+        if (this->m_osItf->bUsesGfxAddress)
+        {
+            AddResourceToCmd = Mhw_AddResourceToCmd_GfxAddress;
+        }
+        else // if (pOsInterface->bUsesPatchList)
+        {
+            AddResourceToCmd = Mhw_AddResourceToCmd_PatchList;
+        }
+    }
+
+    void InitMmioRegisters()
+    {
+        MHW_FUNCTION_ENTER;
+        MHW_MI_MMIOREGISTERS* mmioRegisters = &m_mmioRegisters;
+
+        mmioRegisters->generalPurposeRegister0LoOffset  = GP_REGISTER0_LO_OFFSET;
+        mmioRegisters->generalPurposeRegister0HiOffset  = GP_REGISTER0_HI_OFFSET;
+        mmioRegisters->generalPurposeRegister4LoOffset  = GP_REGISTER4_LO_OFFSET;
+        mmioRegisters->generalPurposeRegister4HiOffset  = GP_REGISTER4_HI_OFFSET;
+        mmioRegisters->generalPurposeRegister11LoOffset = GP_REGISTER11_LO_OFFSET;
+        mmioRegisters->generalPurposeRegister11HiOffset = GP_REGISTER11_HI_OFFSET;
+        mmioRegisters->generalPurposeRegister12LoOffset = GP_REGISTER12_LO_OFFSET;
+        mmioRegisters->generalPurposeRegister12HiOffset = GP_REGISTER12_HI_OFFSET;
+    }
+
 public:
     Impl(PMOS_INTERFACE osItf) : mhw::Impl(osItf)
     {
         MHW_FUNCTION_ENTER;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        // Group::Device key -- its scope is this object's lifetime, so read it here rather
+        // than on every GetWatchdogThreshold() call from the per-frame encode path.
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            m_watchdogThresholdOverride,
+            __MEDIA_USER_FEATURE_VALUE_MEDIA_RESET_TH,
+            MediaUserSetting::Group::Device);
+        ReadUserSettingForDebug(
+            m_userSettingPtr,
+            m_useManualThreshold,
+            __MEDIA_USER_FEATURE_VALUE_FORCE_RESET_THRESHOLD,
+            MediaUserSetting::Group::Device);
+#endif
     }
     _MHW_SETCMD_OVERRIDE_DECL(MI_SEMAPHORE_SIGNAL)
     {
@@ -363,9 +1011,17 @@ public:
         cmd.DW0.WaitMode           = params.bPollingWaitMode;
         cmd.DW0.CompareOperation   = params.CompareOperation;
         cmd.DW1.SemaphoreDataDword = params.dwSemaphoreData;
+        cmd.DW4.WaitTokenNumber    = params.waitTokenNumber;
 
         return MOS_STATUS_SUCCESS;
     }
+
+#ifdef _MEDIA_RESERVED
+    _MHW_SETCMD_OVERRIDE_DECL(MI_SEMAPHORE_WAIT_64)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+#endif
 
     _MHW_SETCMD_OVERRIDE_DECL(PIPE_CONTROL)
     {

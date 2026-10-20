@@ -95,9 +95,8 @@ MOS_STATUS JpegPipelineXe2_Lpm_Base::Initialize(void *settings)
     DECODE_FUNC_CALL();
 
     DECODE_CHK_STATUS(JpegPipeline::Initialize(settings));
-#ifdef _MMC_SUPPORTED
+
     DECODE_CHK_STATUS(InitMmcState());
-#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -192,6 +191,12 @@ MOS_STATUS JpegPipelineXe2_Lpm_Base::Prepare(void *params)
             inputParameters.currOriginalPic            = m_basicFeature->m_curRenderPic;
             inputParameters.currDecodedPicRes          = m_basicFeature->m_destSurface.OsResource;
             inputParameters.numUsedVdbox               = m_numVdbox;
+
+            CODECHAL_DEBUG_TOOL(
+                if (m_streamout != nullptr) {
+                    DECODE_CHK_STATUS(m_streamout->InitStatusReportParam(inputParameters));
+                });
+
 #if (_DEBUG || _RELEASE_INTERNAL)
 #ifdef _DECODE_PROCESSING_SUPPORTED
             DecodeDownSamplingFeature *downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature *>(
@@ -229,12 +234,11 @@ MOS_STATUS JpegPipelineXe2_Lpm_Base::Execute()
 
 #if (_DEBUG || _RELEASE_INTERNAL)
             DECODE_CHK_STATUS(StatusCheck());
-#ifdef _MMC_SUPPORTED
+
             if (m_mmcState != nullptr)
             {
                 m_mmcState->ReportSurfaceMmcMode(&(m_basicFeature->m_destSurface));
             }
-#endif
 #endif
             // Only update user features for the first frame.
             if (m_basicFeature->m_frameNum == 0)
@@ -252,7 +256,6 @@ MOS_STATUS JpegPipelineXe2_Lpm_Base::Execute()
     return MOS_STATUS_SUCCESS;
 }
 
-#ifdef _MMC_SUPPORTED
 MOS_STATUS JpegPipelineXe2_Lpm_Base::InitMmcState()
 {
     DECODE_FUNC_CALL();
@@ -265,7 +268,6 @@ MOS_STATUS JpegPipelineXe2_Lpm_Base::InitMmcState()
 
     return MOS_STATUS_SUCCESS;
 }
-#endif
 
 MOS_STATUS JpegPipelineXe2_Lpm_Base::UserFeatureReport()
 {

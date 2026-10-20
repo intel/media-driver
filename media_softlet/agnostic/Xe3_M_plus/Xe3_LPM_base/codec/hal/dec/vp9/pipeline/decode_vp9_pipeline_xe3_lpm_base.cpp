@@ -104,6 +104,12 @@ MOS_STATUS Vp9PipelineXe3_Lpm_Base::Prepare(void *params)
             inputParameters.currOriginalPic            = m_basicFeature->m_curRenderPic;
             inputParameters.currDecodedPicRes          = m_basicFeature->m_destSurface.OsResource;
             inputParameters.numUsedVdbox               = m_numVdbox;
+
+            CODECHAL_DEBUG_TOOL(
+                if (m_streamout != nullptr) {
+                    DECODE_CHK_STATUS(m_streamout->InitStatusReportParam(inputParameters));
+                });
+
 #if (_DEBUG || _RELEASE_INTERNAL)
 #ifdef _DECODE_PROCESSING_SUPPORTED
             DecodeDownSamplingFeature *downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature *>(
@@ -208,9 +214,8 @@ MOS_STATUS Vp9PipelineXe3_Lpm_Base::Initialize(void *settings)
     DECODE_FUNC_CALL();
 
     DECODE_CHK_STATUS(Vp9Pipeline::Initialize(settings));
-#ifdef _MMC_SUPPORTED
+
     DECODE_CHK_STATUS(InitMmcState());
-#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -271,12 +276,11 @@ MOS_STATUS Vp9PipelineXe3_Lpm_Base::CreateSubPackets(DecodeSubPacketManager &sub
 
 MOS_STATUS Vp9PipelineXe3_Lpm_Base::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
     DECODE_CHK_NULL(m_hwInterface);
     m_mmcState = MOS_New(Vp9DecodeMemCompXe3_Lpm_Base, m_hwInterface);
     DECODE_CHK_NULL(m_mmcState);
     DECODE_CHK_STATUS(m_basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -330,24 +334,6 @@ MOS_STATUS Vp9PipelineXe3_Lpm_Base::InitContexOption(Vp9BasicFeature &basicFeatu
         ReadUserFeature(m_userSettingPtr, "HCP Decode Always Frame Split", MediaUserSetting::Group::Sequence).Get<bool>();
     scalPars.userPipeNum =
         ReadUserFeature(m_userSettingPtr, "HCP Decode User Pipe Num", MediaUserSetting::Group::Sequence).Get<uint8_t>();
-#endif
-
-#ifdef _DECODE_PROCESSING_SUPPORTED
-    DecodeDownSamplingFeature *downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature *>(
-        m_featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
-    if (downSamplingFeature != nullptr && downSamplingFeature->IsEnabled())
-    {
-        scalPars.usingSfc = true;
-        if (!MEDIA_IS_SKU(m_skuTable, FtrSfcScalability))
-        {
-            scalPars.disableScalability = true;
-        }
-    }
-    //Disable Scalability when histogram is enabled
-    if (downSamplingFeature != nullptr && (downSamplingFeature->m_histogramDestSurf || downSamplingFeature->m_histogramDebug))
-    {
-        scalPars.disableScalability = true;
-    }
 #endif
 
     DECODE_CHK_STATUS(m_scalabOption.SetScalabilityOption(&scalPars));

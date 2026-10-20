@@ -34,9 +34,7 @@
 #include "mos_os_virtualengine_next.h"
 #include "mos_interface.h"
 #include "mos_os_cp_interface_specific.h"
-#ifdef ENABLE_XE_KMD
 #include "mos_gpucontext_specific_next_xe.h"
-#endif
 
 #define MI_BATCHBUFFER_END 0x05000000
 static pthread_mutex_t command_dump_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -119,12 +117,11 @@ GpuContextNext *GpuContextSpecificNext::Create(
     {
         return MOS_New(GpuContextSpecificNext, gpuNode, cmdBufMgr, reusedContext);
     }
-#ifdef ENABLE_XE_KMD
     else if (DEVICE_TYPE_XE == type)
     {
         return MOS_New(GpuContextSpecificNextXe, gpuNode, cmdBufMgr, reusedContext);
     }
-#endif
+
     return nullptr;
 }
 
@@ -786,6 +783,7 @@ MOS_STATUS GpuContextSpecificNext::SetPatchEntry(
     m_patchLocationList[m_currentNumPatchLocations].uiWriteOperation = params->bWrite ? true: false;
     m_patchLocationList[m_currentNumPatchLocations].cmdBo            =
                 params->cmdBuffer != nullptr ? params->cmdBuffer->OsResource.bo : nullptr;
+    m_patchLocationList[m_currentNumPatchLocations].patchType        = (uint32_t)params->patchType;
 
     if (streamState->osCpInterface &&
         streamState->osCpInterface->IsHMEnabled())
@@ -888,8 +886,8 @@ MOS_STATUS GpuContextSpecificNext::GetCommandBuffer(
 
         // util now, we got new command buffer from CmdBufMgr, next step to fill in the input command buffer
         MOS_OS_CHK_STATUS_RETURN(cmdBuf->GetResource()->ConvertToMosResource(&comamndBuffer->OsResource));
-        comamndBuffer->pCmdBase   = (uint32_t *)cmdBuf->GetLockAddr();
-        comamndBuffer->pCmdPtr    = (uint32_t *)cmdBuf->GetLockAddr();
+        comamndBuffer->pCmdBase   = (uint32_t *)cmdBuf->GetResource()->GetLockedAddr();
+        comamndBuffer->pCmdPtr    = (uint32_t *)cmdBuf->GetResource()->GetLockedAddr();
         comamndBuffer->iOffset    = 0;
         comamndBuffer->iRemaining = cmdBuf->GetCmdBufSize();
         comamndBuffer->iCmdIndex  = m_nextFetchIndex;

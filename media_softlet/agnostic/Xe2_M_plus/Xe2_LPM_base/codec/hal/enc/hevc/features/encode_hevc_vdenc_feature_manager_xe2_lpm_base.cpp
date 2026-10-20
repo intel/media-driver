@@ -30,6 +30,9 @@
 #include "encode_hevc_vdenc_feature_manager_xe2_lpm_base.h"
 #include "encode_hevc_aqm.h"
 #include "encode_hevc_basic_feature_xe2_lpm_base.h"
+#if _KERNEL_RESERVED
+#include "encode_hevc_vdenc_saliency.h"
+#endif
 
 namespace encode
 {
@@ -87,6 +90,11 @@ MOS_STATUS EncodeHevcVdencFeatureManagerXe2_Lpm_Base::CreateFeatures(void *const
 
     HevcEncodeAqm *hevcAqm = MOS_New(HevcEncodeAqm, this, m_allocator, m_hwInterface, constSettings);
     ENCODE_CHK_STATUS_RETURN(RegisterFeatures(HevcFeatureIDs::hevcAqm, hevcAqm, {HevcPipeline::encodePreEncPacket}));
+
+#if _KERNEL_RESERVED
+    HevcVdencSaliency *hevcSaliency = MOS_New(HevcVdencSaliency, this, m_allocator, m_hwInterface, constSettings);
+    ENCODE_CHK_STATUS_RETURN(RegisterFeatures(FeatureIDs::saliencyFeature, hevcSaliency, {HevcPipeline::encodePreEncPacket}));
+#endif
 
     return MOS_STATUS_SUCCESS;
 }

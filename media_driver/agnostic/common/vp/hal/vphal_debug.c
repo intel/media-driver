@@ -3466,7 +3466,10 @@ MOS_STATUS VphalParameterDumper::DumpRenderParameter(
     {
         VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t<VPHAL_COLORFILL_PARAMS>\n"));
         VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t\t<bYCbCr>%d</bYCbCr>\n", pRenderParams->pColorFillParams->bYCbCr));
+        VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t\t<COLOR Float Enable=\"integer\">%d</COLOR>\n", pRenderParams->pColorFillParams->isFloat));
         VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t\t<COLOR type=\"integer\">%08x</COLOR>\n", pRenderParams->pColorFillParams->Color));
+        VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t\t<COLOR Float type=\"integer\">%f, %f, %f, %f</COLOR>\n", 
+            pRenderParams->pColorFillParams->ColorFloat[0], pRenderParams->pColorFillParams->ColorFloat[1], pRenderParams->pColorFillParams->ColorFloat[2], pRenderParams->pColorFillParams->ColorFloat[3]));
         VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t\t<CSPACE>%s</CSPACE>\n", GetColorSpaceStr(pRenderParams->pColorFillParams->CSpace)));
         VPHAL_DEBUG_CHK_STATUS(VphalDumperTool::AppendString(false, &pcOutContents, "\t\t</VPHAL_COLORFILL_PARAMS>\n"));
     }

@@ -65,7 +65,8 @@ namespace encode
         uint16_t     INIT_GopB1;                  // number of B1 frames in the GOP
         uint16_t     INIT_GopB2;                  // number of B2 frames in the GOP
         uint16_t     INIT_GopB3;                  // number of B3 frames in the GOP
-        uint16_t     RSVD16[7];                   // mbz
+        uint16_t     INIT_GopPicSize;             // accurate GOP picture size
+        uint16_t     RSVD16[6];                   // mbz
 
         int8_t       INIT_InstRateThreshP0[4];   // instant rate threshold for P frame, 4 elements
         int8_t       Reserved2[4];               // mbz

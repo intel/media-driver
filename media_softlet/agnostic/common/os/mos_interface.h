@@ -309,6 +309,17 @@ public:
     static GMM_CLIENT_CONTEXT *GetGmmClientContext(
         MOS_STREAM_HANDLE streamState);
 
+    static uint64_t GetGmmExtDevice(
+        MOS_STREAM_HANDLE streamState);
+
+    static uint32_t GetMediaSurfaceCompressionFormat(
+        MOS_STREAM_HANDLE streamState,
+        GMM_RESOURCE_FORMAT gmmResFmt);
+
+    static bool IsPlanar(
+        MOS_STREAM_HANDLE   streamState,
+        GMM_RESOURCE_FORMAT gmmResFmt);
+
     //!
     //! \brief  Get PAT index from gmm
     //!
@@ -509,6 +520,35 @@ public:
         const char            *filePathPrefix);
 
     //!
+    //! \brief    Add Indirect state
+    //!
+    //! \param    [in] streamState
+    //!           Handle of Os Stream State
+    //! \param    [in] stateSize
+    //!           Size of the state
+    //! \param    [in] pIndirectState
+    //!           ptr to the sys memory of state
+    //! \param    [in] gfxAddressBottom
+    //!           ptr which store bottom gfx address of the state
+    //! \param    [in] gfxAddressTop
+    //!           ptr which store top gfx address of the state
+    //! \param    [in] stateName
+    //!           Name of the state
+    //!
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful, otherwise failed
+    //!
+    static MOS_STATUS AddIndirectState(
+        MOS_STREAM_HANDLE streamState,
+        uint32_t          stateSize,
+        uint32_t         *pIndirectState,
+        uint32_t         *gfxAddressBottom,
+        uint32_t         *gfxAddressTop,
+        const char       *stateName,
+        uint32_t          gfxAddressBottomValue,
+        uint32_t          gfxAddressTopValue);
+
+    //!
     //! \brief    Dump Command Buffer
     //! \details  [Cmd Buffer Interface] Dump an existing cmd buffer
     //! \details  Caller: HAL only
@@ -528,6 +568,10 @@ public:
     static MOS_STATUS DumpCommandBuffer(
         MOS_STREAM_HANDLE streamState,
         COMMAND_BUFFER_HANDLE cmdBuffer);
+
+    static MOS_STATUS DumpSyncCommandBuffer(
+        OsContextNext          *osContext,
+        GpuContextSpecificNext *gpuContext);
 #endif  // MOS_COMMAND_BUFFER_DUMP_SUPPORTED
 
     //!
@@ -885,7 +929,8 @@ public:
     //!     
     static MEMORY_OBJECT_CONTROL_STATE GetCachePolicyMemoryObject(
         GMM_CLIENT_CONTEXT *gmmClientContext,
-        MOS_HW_RESOURCE_DEF mosUsage);
+        MOS_HW_RESOURCE_DEF mosUsage,
+        uint64_t gmmExtDevice = 0);
 
     //!
     //! \brief    Get default Cache Policy Memory Object
@@ -900,7 +945,8 @@ public:
     //!           The cache policy memory object got from MOS interface
     //!
     static MEMORY_OBJECT_CONTROL_STATE GetDefaultCachePolicyMemoryObject(
-        GMM_CLIENT_CONTEXT *gmmClientContext);
+        GMM_CLIENT_CONTEXT *gmmClientContext,
+        uint64_t gmmExtDevice = 0);
 
     //!
     //! \brief    Get Cache Policy Memory Object
@@ -918,7 +964,8 @@ public:
     //!
     static MEMORY_OBJECT_CONTROL_STATE GetGmmCachePolicyMemoryObject(
         GMM_CLIENT_CONTEXT      *gmmClientContext,
-        GMM_RESOURCE_USAGE_TYPE gmmUsage);
+        GMM_RESOURCE_USAGE_TYPE gmmUsage,
+        uint64_t gmmExtDevice = 0);
 
     //!
     //! \brief    Get Cache Policy L1 Config
@@ -1983,6 +2030,20 @@ public:
         uint64_t       gpuCtxOnHybridCmd);
 
     //!
+    //! \brief    Set Hybrid Cmd Submit Mode
+    //! \details  Set Hybrid Cmd Submit Mode
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] ptr to pOsInterface
+    //! \param    uint64_t hybridMgrSubmitMode
+    //!           hybridMgrSubmitMode
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS
+    //!
+    static MOS_STATUS SetHybridCmdMgrSubmitMode(
+        PMOS_INTERFACE pOsInterface,
+        uint64_t       hybridMgrSubmitMode);
+
+    //!
     //! \brief    Start the Cmd Consumer
     //! \details  Start the Cmd Consumer
     //! \param    PMOS_INTERFACE pOsInterface
@@ -2368,7 +2429,8 @@ public:
 
     static void SetIsTrinityEnabled(bool bTrinity);
 
-    static bool IsGpuSyncByCmd(MOS_STREAM_HANDLE streamState);
+    static bool IsGpuSyncByCmd(MOS_STREAM_HANDLE streamState, GPU_CONTEXT_HANDLE gpuContextHandle);
+
 private:
     //!
     //! \brief    Init per stream parameters

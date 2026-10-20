@@ -45,6 +45,8 @@ struct VP_PACKET_SHARED_CONTEXT
         uint32_t globalNoiseLevel_Spatial   = 0;  //!< Global Spatial Noise Level for Y
         uint32_t globalNoiseLevelU_Spatial  = 0;  //!< Global Spatial Noise Level for U
         uint32_t globalNoiseLevelV_Spatial  = 0;  //!< Global Spatial Noise Level for V
+        bool     bChromaUTgneValid          = true;
+        bool     bChromaVTgneValid          = true;
     } tgneParams;
 
     struct

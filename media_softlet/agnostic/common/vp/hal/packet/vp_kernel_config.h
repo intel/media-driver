@@ -27,6 +27,7 @@
 #include "renderhal.h"
 #include "hal_kerneldll_next.h"
 #include "media_class_trace.h"
+#include "vp_common_defs.h"
 
 #define VP_USE_MEDIA_THREADS_MAX    0
 // Compositing Block size
@@ -49,6 +50,13 @@ enum DelayLoadedKernelType
 };
 
 namespace vp {
+
+struct RENDERHAL_ENLARGE_OVERWRITE_PARAM
+{
+    bool                     needOverwrite = false;
+    RENDERHAL_ENLARGE_PARAMS params        = {};
+};
+
 class VpKernelConfig
 {
 public:
@@ -71,8 +79,22 @@ public:
         return false;
     }
 
+    // This Funcion should be used in media_platform_interfaces InitPlatformKernelBinary
+    MOS_STATUS SetRenderEnlargeOverwriteParams(RENDERHAL_ENLARGE_PARAMS &enlargeParams)
+    {
+        m_renderEnlargeOverwrite.needOverwrite = true;
+        m_renderEnlargeOverwrite.params        = enlargeParams;
+        return MOS_STATUS_SUCCESS;
+    }
+
+    RENDERHAL_ENLARGE_OVERWRITE_PARAM& GetRenderEnlargeOverwriteParams()
+    {
+        return m_renderEnlargeOverwrite;
+    }
+
 protected:
     std::map<VpKernelID, RENDERHAL_KERNEL_PARAM> m_kernelParams;    // Kernel params.
+    RENDERHAL_ENLARGE_OVERWRITE_PARAM            m_renderEnlargeOverwrite = {};
 
 MEDIA_CLASS_DEFINE_END(vp__VpKernelConfig)
 };

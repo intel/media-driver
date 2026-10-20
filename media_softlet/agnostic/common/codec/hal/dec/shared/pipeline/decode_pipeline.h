@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2024, Intel Corporation
+* Copyright (c) 2018-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -42,6 +42,7 @@
 #include "decode_mem_compression.h"
 #include "decode_downsampling_feature.h"
 #include "codechal_oca_debug.h"
+#include "bypass_hw_legacy.h"
 
 namespace decode {
 
@@ -319,6 +320,41 @@ public:
     //!
     virtual MOS_STATUS SetDecodeFormat(bool isShortFormat ){ return MOS_STATUS_UNIMPLEMENTED; };
 
+    //!
+    //! \brief  CRC output enable. Returns false in release builds.
+    //! \return bool
+    //!         true if enabled, else false
+    //!
+    bool GetMemDataAccessCrcOutputEnable()
+    {
+#if (_DEBUG || _RELEASE_INTERNAL)
+        return m_memDataAccessCrcOutputEnable;
+#else
+        return false;
+#endif
+    }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //!
+    //! \brief  Read the CRC output enable regkey and update internal state.
+    //!         Called from platform-specific debug packet ext Init() so that
+    //!         CRC enable is only active on platforms that support it.
+    //!
+    void InitMemDataAccessCrcOutputEnable();
+
+    //!
+    //! \brief  Get Vdbox command counter override value
+    //! \return uint32_t
+    //!         command counter override value
+    //!
+    uint32_t GetVdboxCommandCounterOverride()
+    {
+        return m_vdboxCommandCounterOverride;
+    }
+#endif
+
+    BypassHwLegacy *GetBypassHWLegacy() const { return m_bypassHWLegacy; }
+
 protected:
     //!
     //! \brief  Initialize the decode pipeline
@@ -349,6 +385,26 @@ protected:
     //!         Return the number of Vdbox
     //!
     virtual uint8_t GetSystemVdboxNumber();
+
+    //!
+    //! \brief  Natural class default VDBox routing preference
+    //! \return VdboxTypePref
+    //!
+    virtual VdboxTypePref GetDefaultVdboxTypePref() const;
+
+    //!
+    //! \brief  Resolve the pipeline VDBox routing preference
+    //!
+    void EvaluateVdboxTypePref();
+
+public:
+    //!
+    //! \brief  Resolved pipeline VDBox routing preference
+    //! \return VdboxTypePref
+    //!
+    VdboxTypePref GetPipelineVdboxTypePref() const { return m_pipelineVdboxTypePref; }
+
+protected:
 
     //!
     //! \brief  Create status report
@@ -486,6 +542,8 @@ protected:
     //!
     MOS_STATUS CreateSubPipeLineManager(CodechalSetting* codecSettings);
 
+    void TraceDecodeFrameInfo();
+
     //!
     //! \brief  Create sub packet manager
     //! \param  [in] codecSettings
@@ -516,6 +574,7 @@ protected:
     DecodeStreamOut*        m_streamout = nullptr;      //!< Decode input bitstream
 
     uint8_t                 m_numVdbox  = 0;            //!< Number of Vdbox
+    VdboxTypePref           m_pipelineVdboxTypePref = MOS_VDBOX_PREFER_NONE;
 
     bool                    m_singleTaskPhaseSupported = true; //!< Indicates whether sumbit packets in single phase
 
@@ -525,9 +584,13 @@ protected:
 #if (_DEBUG || _RELEASE_INTERNAL)
     uint32_t                m_statusCheckCount = 0;     //!< count for status check
     uint32_t                m_delayMiliseconds = 0;     //!< miliseconds delay after each frame
+    uint32_t                m_memDataAccessCrcOutputEnable  = 0;     //!< mem data access crc output enable
+    uint32_t                m_vdboxCommandCounterOverride = 0;  //!< vdbox command counter override
 #endif
 
     PMOS_SURFACE            m_tempOutputSurf = nullptr;
+    BypassHwLegacy *        m_bypassHWLegacy        = nullptr;
+    MOS_GPU_NODE            m_bypassHWLegacyGpuNode = MOS_GPU_NODE_VIDEO;
 
 MEDIA_CLASS_DEFINE_END(decode__DecodePipeline)
 };

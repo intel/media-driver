@@ -31,7 +31,7 @@
 #include "codec_def_common_encode.h"
 #include "mhw_vdbox_cmdpar.h"
 
-#if IGFX_AQM_INTERFACE_EXT_SUPPORT
+#if _MEDIA_RESERVED
 #include "mhw_vdbox_aqm_cmdpar_ext.h"
 #define __MHW_VDBOX_AQM_WRAPPER(STUFF)
 #define __MHW_VDBOX_AQM_WRAPPER_EXT(STUFF) STUFF
@@ -101,6 +101,8 @@ struct _MHW_PAR_T(AQM_PIPE_BUF_ADDR_STATE)
     MOS_MEMCOMP_STATE AqmPipeBufAddrStatePar3    = {};
     PMOS_RESOURCE     AqmPipeBufAddrStatePar4[5] = {};
     MOS_MEMCOMP_STATE AqmPipeBufAddrStatePar5[5] = {};
+    bool              overrideTileBToTile4       = false;
+    bool              forceTile64ReconToTile4    = false;  //!< Force non-420-8bit encode recon/ref from Tile64 to Tile4 (encode-only; decode leaves false)
 };
 
 struct _MHW_PAR_T(AQM_TILE_CODING)
@@ -158,7 +160,7 @@ struct _MHW_PAR_T(AQM_HIST_BUFF_ADDR_STATE)
     bool          memoryCompressionEnable          = 0;
     uint8_t       arbitrationPriorityControl       = 0;
     uint8_t       indexToMOCSTable                 = 0;
-    bool          encryptData                    = 0;
+    bool          reserved                         = 0;
     PMOS_RESOURCE AqmYChannelHistogramOutputBuffer = nullptr;
     PMOS_RESOURCE AqmUChannelHistogramOutputBuffer = nullptr;
     PMOS_RESOURCE AqmVChannelHistogramOutputBuffer = nullptr;

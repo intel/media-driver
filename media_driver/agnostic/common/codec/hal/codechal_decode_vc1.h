@@ -219,16 +219,16 @@ typedef struct _CODECHAL_DECODE_VC1_OLP_STATIC_DATA
             uint32_t   Profile                         : 1;
             uint32_t   RangeExpansionFlag              : 1;    // Simple & Main Profile only
             uint32_t   PictureUpsamplingFlag           : 2;    // 2:H, 3:V
-            uint32_t                                   : 1;
+            uint32_t   Reserved4                       : 1;
             uint32_t   InterlaceFieldFlag              : 1;
-            uint32_t                                   : 2;
+            uint32_t   Reserved6                       : 2;
             uint32_t   RangeMapUV                      : 3;
             uint32_t   RangeMapUVFlag                  : 1;
             uint32_t   RangeMapY                       : 3;
             uint32_t   RangeMapYFlag                   : 1;
-            uint32_t                                   : 4;
+            uint32_t   Reserved16                      : 4;
             uint32_t   ComponentFlag                   : 1;
-            uint32_t                                   : 11;
+            uint32_t   Reserved21                      : 11;
         };
         struct
         {

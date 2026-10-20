@@ -146,7 +146,7 @@ MOS_STATUS CodechalKernelBase::CreateKernelState(
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_kernelBinary);
 
     CODECHAL_ENCODE_CHK_NULL_RETURN((*kernelState) = MOS_New(MHW_KERNEL_STATE));
-    m_kernelStatePool.insert(std::make_pair(kernelIndex, *kernelState));
+    m_kernelStatePool.emplace(kernelIndex, *kernelState);
 
     CODECHAL_KERNEL_HEADER kernelHeader = {};
     uint32_t               kernelSize = 0;
@@ -319,7 +319,7 @@ MOS_STATUS CodechalKernelBase::AllocateSurface(PMOS_ALLOC_GFXRES_PARAMS param, P
 {
     CODECHAL_ENCODE_CHK_NULL_RETURN(param);
     CODECHAL_ENCODE_CHK_NULL_RETURN(surface);
-    m_surfacePool.insert(std::make_pair(surfaceId, surface));
+    m_surfacePool.emplace(surfaceId, surface);
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(
         m_osInterface->pfnAllocateResource(

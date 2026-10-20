@@ -198,10 +198,10 @@ static uint16_t PakQPInputTable[160 * 18] =
 MOS_STATUS CodechalEncodeVp8::InitMmcState()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
-#ifdef _MMC_SUPPORTED
+
     m_mmcState = MOS_New(CodechalMmcEncodeVp8, m_hwInterface, this);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

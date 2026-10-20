@@ -93,7 +93,6 @@ protected:
     //!
     virtual MOS_STATUS CreateSubPackets(DecodeSubPacketManager& subPacketManager, CodechalSetting &codecSettings) override;
 
-#ifdef _MMC_SUPPORTED
     //!
     //! \brief    Initialize MMC state
     //!
@@ -101,7 +100,6 @@ protected:
     //!           MOS_STATUS_SUCCESS if success
     //!
     virtual MOS_STATUS InitMmcState();
-#endif
 
     //!
     //! \brief  Initialize media context for decode pipeline

@@ -527,7 +527,6 @@ MOS_STATUS CodechalEncodeCscDsG12::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
         MOS_CODEC_RESOURCE_USAGE_ORIGINAL_UNCOMPRESSED_PICTURE_ENCODE,
         (codechalL3 | codechalLLC));
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_encoder->m_mmcState);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_encoder->m_mmcState->SetSurfaceParams(&surfaceParams));
 
@@ -538,7 +537,6 @@ MOS_STATUS CodechalEncodeCscDsG12::SendSurfaceCsc(PMOS_COMMAND_BUFFER cmdBuffer)
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnDecompResource(m_osInterface, &surfaceParams.psSurface->OsResource));
         surfaceParams.psSurface->MmcState = MOS_MEMCOMP_DISABLED;
     }
-#endif
 
     surfaceParams.dwBindingTableOffset = cscSrcYPlane;
     surfaceParams.dwUVBindingTableOffset = cscSrcUVPlane;

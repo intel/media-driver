@@ -84,7 +84,7 @@ struct VpSettings
     int32_t  mediaStates;
     int32_t  sameSampleThreshold;
     uint32_t disableDnDi;             //!< For validation purpose
-    uint32_t kernelUpdate;            //!< For VEBox Copy and Update kernels
+    uint32_t kernelUpdate;            //!< For VEBox Copy and Update kernels, Not needed for XE HPG+.
     uint32_t disableHdr;              //!< Disable Hdr
     uint32_t veboxParallelExecution;  //!< Control VEBox parallel execution with render engine
     bool     clearVideoViewMode;      //!< Perf Optimize for ClearVideoView DDI
@@ -187,6 +187,21 @@ public:
     virtual bool IsOclFCEnabled()
     {
         return false;
+    }
+
+    //!
+    //! \brief    Allocate a render-param surface (pSrc[]/pTarget[]).
+    //! \details  The ext pipeline overrides this to allocate the larger
+    //!           VPHAL_SURFACE_EXT so ext feature handlers (SR3/LACE/ACE) can safely
+    //!           access ext-only fields. Base pipelines allocate the base struct.
+    //!           Defined inline so ULT/stub link closures that do not link
+    //!           vp_base.cpp still resolve it.
+    //! \return   PVPHAL_SURFACE
+    //!           Allocated surface, or nullptr on failure.
+    //!
+    virtual PVPHAL_SURFACE AllocateVphalSurface()
+    {
+        return MOS_New(VPHAL_SURFACE);
     }
 
 protected:

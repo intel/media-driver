@@ -42,4 +42,7 @@
 #define __MEDIA_USER_FEATURE_VALUE_DISABLE_KMD_WATCHDOG "Disable KMD Watchdog"
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_VM_BIND       "Enable VM Bind"
 
+// Reg key for Pxp
+#define __MEDIA_USER_FEATURE_VALUE_PXP_SIDELOAD_HUC_MANIFEST "SideloadHucManifest"
+
 #endif // __MOS_UTIL_USER_FEATURE_KEYS_SPECIFIC_H__

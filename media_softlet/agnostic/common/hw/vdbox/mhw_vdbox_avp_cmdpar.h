@@ -34,7 +34,7 @@
 #include "mhw_vdbox.h"
 #include "mhw_vdbox_cmdpar.h"
 
-#ifdef IGFX_AVP_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_avp_cmdpar_ext.h"
 #define __MHW_VDBOX_AVP_WRAPPER(STUFF)
 #define __MHW_VDBOX_AVP_WRAPPER_EXT(STUFF) STUFF
@@ -389,8 +389,8 @@ struct _MHW_PAR_T(AVP_PIPE_BUF_ADDR_STATE)
     PMOS_RESOURCE     filmGrainTileColumnDataBuffer    = nullptr;
     PMOS_RESOURCE     filmGrainSampleTemplateBuffer    = nullptr;
     PMOS_RESOURCE     filmGrainOutputSurface           = nullptr;
-
-    PMOS_RESOURCE     AvpPipeBufAddrStatePar0          = nullptr;
+    bool              overrideTileBToTile4             = false;
+    bool              forceTile64ReconToTile4          = false;  //!< Force non-420-8bit encode recon/ref from Tile64 to Tile4 (encode-only; decode leaves false)
 };
 
 struct _MHW_PAR_T(AVP_INTER_PRED_STATE)

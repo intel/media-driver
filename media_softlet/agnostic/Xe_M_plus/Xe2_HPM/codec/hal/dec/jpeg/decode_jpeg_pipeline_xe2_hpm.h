@@ -48,8 +48,6 @@ public:
     virtual ~JpegPipelineXe2_Hpm(){};
 
 protected:
-
-#ifdef _MMC_SUPPORTED
     //!
     //! \brief    Initialize MMC state
     //!
@@ -57,7 +55,6 @@ protected:
     //!           MOS_STATUS_SUCCESS if success
     //!
     virtual MOS_STATUS InitMmcState() override;
-#endif
 
 MEDIA_CLASS_DEFINE_END(decode__JpegPipelineXe2_Hpm)
 };

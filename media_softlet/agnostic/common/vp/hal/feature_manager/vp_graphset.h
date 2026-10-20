@@ -64,6 +64,11 @@ public:
         GraphHandle *&graphHandle);
 
 protected:
+#if (_DEBUG || _RELEASE_INTERNAL)
+    virtual MOS_STATUS LoadGraphForDebug() { return MOS_STATUS_SUCCESS; };
+#endif
+
+protected:
     GRAPH_POOL                        *m_graphPool    = nullptr;
     PVP_MHWINTERFACE                   m_hwInterface  = nullptr;
     PMOS_INTERFACE                     m_osInterface  = nullptr;

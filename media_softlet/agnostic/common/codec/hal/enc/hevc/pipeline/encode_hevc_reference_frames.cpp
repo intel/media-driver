@@ -493,7 +493,53 @@ MOS_STATUS HevcReferenceFrames::SetSlotForRecNotFiltered(unsigned char &slotForR
     }
     return MOS_STATUS_SUCCESS;
 }
+#if USE_CODECHAL_DEBUG_TOOL
+MOS_STATUS HevcReferenceFrames::DumpReferences(CodechalDebugInterface& debugInterface)
+{
+    ENCODE_FUNC_CALL();
 
+    auto sliceParams = m_basicFeature->m_hevcSliceParams;
+    ENCODE_CHK_NULL_RETURN(sliceParams);
+
+    const CODEC_PICTURE *l0RefFrameList = sliceParams->RefPicList[LIST_0];
+    for (uint8_t refIdx = 0; refIdx <= sliceParams->num_ref_idx_l0_active_minus1; refIdx++)
+    {
+        CODEC_PICTURE refPic = l0RefFrameList[refIdx];
+
+        if (!CodecHal_PictureIsInvalid(refPic) && m_picIdx[refPic.FrameIdx].bValid)
+        {
+            // L0 references
+            uint8_t refPicIdx = m_picIdx[refPic.FrameIdx].ucPicIdx;
+            ENCODE_CHK_STATUS_RETURN(debugInterface.DumpYUVSurface(
+                &m_refList[refPicIdx]->sRefReconBuffer,
+                CodechalDbgAttr::attrReferenceSurfaces,
+                ("RefSurfL0" + std::to_string((int)refIdx)).c_str()));
+        }
+    }
+
+    if (sliceParams->slice_type == encodeHevcBSlice)
+    {
+        const CODEC_PICTURE *l1RefFrameList = sliceParams->RefPicList[LIST_1];
+        for (uint8_t refIdx = 0; refIdx <= sliceParams->num_ref_idx_l1_active_minus1; refIdx++)
+        {
+            CODEC_PICTURE refPic = l1RefFrameList[refIdx];
+
+            if (!CodecHal_PictureIsInvalid(refPic) && m_picIdx[refPic.FrameIdx].bValid && encodeHevcPSlice != sliceParams->slice_type)
+            {
+                // L1 references
+                uint8_t refPicIdx = m_picIdx[refPic.FrameIdx].ucPicIdx;
+                ENCODE_CHK_STATUS_RETURN(debugInterface.DumpYUVSurface(
+                    &m_refList[refPicIdx]->sRefReconBuffer,
+                    CodechalDbgAttr::attrReferenceSurfaces,
+                    ("RefSurfL1" + std::to_string((int)refIdx)).c_str()));
+            }
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+
+}
+#endif
 MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, HevcReferenceFrames)
 {
     ENCODE_FUNC_CALL();
@@ -635,7 +681,6 @@ MHW_SETPAR_DECL_SRC(HCP_SURFACE_STATE, HevcReferenceFrames)
 {
     ENCODE_FUNC_CALL();
 
-#ifdef _MMC_SUPPORTED
     ENCODE_CHK_NULL_RETURN(m_mmcState);
     if (m_mmcState->IsMmcEnabled())
     {
@@ -670,7 +715,6 @@ MHW_SETPAR_DECL_SRC(HCP_SURFACE_STATE, HevcReferenceFrames)
             }
         }
     }
-#endif
 
     return MOS_STATUS_SUCCESS;
 }

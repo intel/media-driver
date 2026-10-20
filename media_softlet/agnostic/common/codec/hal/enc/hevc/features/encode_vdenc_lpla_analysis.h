@@ -200,7 +200,7 @@ namespace encode
     };
     //!
     //! \struct    VdencHevcLaStats
-    //! \brief     Vdenc HEVC lookahead info for BRC
+    //! \brief     Vdenc HEVC lookahead info base structure
     //!
     struct VdencHevcLaStats
     {
@@ -208,7 +208,26 @@ namespace encode
         uint32_t frameByteCount = 0;
         uint32_t headerBitCount = 0;
         uint32_t intraCuCount = 0;
+    };
+
+    //!
+    //! \struct    VdencHevcLaStatsForLAKernel
+    //! \brief     Vdenc HEVC lookahead info for LA Kernel
+    //!
+    struct VdencHevcLaStatsForLAKernel : VdencHevcLaStats
+    {
         uint32_t reserved[4];
+    };
+
+    //!
+    //! \struct    VdencHevcLaStatsForBRCKernel
+    //! \brief     Vdenc HEVC lookahead info for BRC Kernel
+    //!
+    struct VdencHevcLaStatsForBRCKernel : VdencHevcLaStats
+    {
+        uint32_t frameNumber        = 0;
+        uint32_t rhoDomainStats[76] = {};
+        uint32_t reserved[39]       = {};
     };
 
     //!
@@ -351,7 +370,7 @@ namespace encode
         MOS_STATUS StoreLookaheadStatistics(MOS_COMMAND_BUFFER &cmdBuffer, MHW_VDBOX_NODE_IND vdboxIndex);
 
         //!
-        //! \brief    Read stats from VDEnc for lookahead
+        //! \brief    Read stats from VDEnc and PAK to la stats buffer
         //!
         //! \param    [in] cmdBuffer
         //!            Pointer to command buffer
@@ -359,7 +378,7 @@ namespace encode
         //! \return   MOS_STATUS
         //!           MOS_STATUS_SUCCESS if success, else fail reason
         //!
-        MOS_STATUS StoreVdencStatistics(MOS_COMMAND_BUFFER &cmdBuffer, uint8_t index);
+        MOS_STATUS StoreLookaheadData(MOS_COMMAND_BUFFER &cmdBuffer, PMOS_RESOURCE resource, uint32_t offset, MHW_VDBOX_NODE_IND vdboxIndex);
 
         MOS_STATUS SetLaUpdateDmemParameters(HUC_DMEM_STATE_PAR_ALIAS &dmemParams,
             uint8_t currRecycledBufIdx, uint16_t curPass, uint16_t numPasses);
@@ -479,6 +498,7 @@ namespace encode
 
         MOS_STATUS StreaminZigZagToLinearMap( uint32_t  streamInWidth,  uint32_t  x, uint32_t  y, uint32_t *offset, uint32_t *xyOffset);
 
+        EncoderParams                     *m_encodeParams  = nullptr;
         CODEC_HEVC_ENCODE_SEQUENCE_PARAMS *m_hevcSeqParams = nullptr;  //!< Pointer to sequence parameter
         CODEC_HEVC_ENCODE_PICTURE_PARAMS  *m_hevcPicParams = nullptr;  //!< Pointer to picture parameter
         CODEC_HEVC_ENCODE_SLICE_PARAMS *m_hevcSliceParams = nullptr; //!< Pointer to slice parameter
@@ -529,8 +549,8 @@ namespace encode
         PMOS_RESOURCE              m_vdencLaUpdateDmemBuffer[CODECHAL_ENCODE_RECYCLED_BUFFER_NUM][CODECHAL_LPLA_NUM_OF_PASSES] = {};  //!< VDEnc Lookahead Update DMEM buffer
         uint32_t                   m_statsBuffer[600][4]                                                                       = {};
         bool                       m_useDSData = false;
-        bool                       m_bLastPicFlagFirstIn                                                                       = true;
-
+        bool                       m_bLastPicFlagFirstIn    = true;
+        bool                       m_skipAnalysisKernelCall = false;                                                                 
     MEDIA_CLASS_DEFINE_END(encode__VdencLplaAnalysis)
     };
 } // namespace encode

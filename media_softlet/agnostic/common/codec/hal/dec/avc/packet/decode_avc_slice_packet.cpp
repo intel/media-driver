@@ -208,7 +208,7 @@ MOS_STATUS AvcDecodeSlcPkt::AddCmd_AVC_BSD_OBJECT(MOS_COMMAND_BUFFER &cmdBuffer,
     m_LastsliceFlag   = parSlice.isLastSlice;
     if (parSlice.shortFormatInUse)
     {
-        if (parSlice.fullFrameData)
+        if (parSlice.fullFrameData || m_avcBasicFeature->m_avcd4ByteNalStartCodeSupport)
         {
             m_IndirectBsdDataLength       = parSlice.Length;
             m_IndirectBsdDataStartAddress = sliceParams->slice_data_offset;
@@ -410,14 +410,14 @@ MOS_STATUS AvcDecodeSlcPkt::AddCmd_AVC_SLICE_Addr(MOS_COMMAND_BUFFER &cmdBuffer,
     auto &parSlice           = m_mfxItf->MHW_GETPAR_F(MFX_AVC_SLICE_STATE)();
     auto &parSliceAddr       = m_mfxItf->MHW_GETPAR_F(MFD_AVC_SLICEADDR)();
     parSliceAddr.decodeInUse = true;
-    if (parSlice.fullFrameData)
+    if (parSlice.fullFrameData || m_avcBasicFeature->m_avcd4ByteNalStartCodeSupport)
     {
-        parSliceAddr.IndirectBsdDataLength       = parSlice.nextLength;
+        parSliceAddr.IndirectBsdDataLength       = MOS_MIN(parSlice.nextLength, CODEC_AVC_SLICE_MIN_NUM_BYTES_LOAD);
         parSliceAddr.IndirectBsdDataStartAddress = parSlice.nextOffset;
     }
     else
     {
-        parSliceAddr.IndirectBsdDataLength       = parSlice.nextLength + 1 - m_osInterface->dwNumNalUnitBytesIncluded;
+        parSliceAddr.IndirectBsdDataLength       = MOS_MIN(parSlice.nextLength + 1 - m_osInterface->dwNumNalUnitBytesIncluded, CODEC_AVC_SLICE_MIN_NUM_BYTES_LOAD);
         parSliceAddr.IndirectBsdDataStartAddress = parSlice.nextOffset - 1 + m_osInterface->dwNumNalUnitBytesIncluded;
     }
     parSliceAddr.presDataBuffer       = parSlice.presDataBuffer;

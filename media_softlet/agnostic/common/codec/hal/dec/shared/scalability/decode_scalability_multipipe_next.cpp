@@ -119,6 +119,9 @@ MOS_STATUS DecodeScalabilityMultiPipeNext::AllocateSemaphore()
 
     m_semaphoreIndex = 0;
 
+    DECODE_NORMALMESSAGE("Decode: Allocating NativeFence counters");
+    SCALABILITY_CHK_STATUS_RETURN(AllocateNativeFenceCounters());
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -165,10 +168,6 @@ MOS_STATUS DecodeScalabilityMultiPipeNext::Initialize(const MediaScalabilityOpti
     SCALABILITY_CHK_NULL_RETURN(gpuCtxCreateOption);
     gpuCtxCreateOption->LRCACount = decodeScalabilityOption->GetLRCACount();
     gpuCtxCreateOption->UsingSFC  = decodeScalabilityOption->IsUsingSFC();
-    if (decodeScalabilityOption->IsUsingSlimVdbox())
-    {
-        gpuCtxCreateOption->Flags |=  (1 << 2);
-    }
 #if (_DEBUG || _RELEASE_INTERNAL)
     if (m_osInterface->bEnableDbgOvrdInVE)
     {
@@ -207,7 +206,7 @@ MOS_STATUS DecodeScalabilityMultiPipeNext::Destroy()
 {
     SCALABILITY_FUNCTION_ENTER;
 
-    SCALABILITY_CHK_STATUS_RETURN(MediaScalability::Destroy());
+    SCALABILITY_CHK_STATUS_RETURN(MediaScalabilityMultiPipe::Destroy());
 
     if (m_gpuCtxCreateOption)
     {
@@ -340,7 +339,7 @@ MOS_STATUS DecodeScalabilityMultiPipeNext::GetCmdBuffer(PMOS_COMMAND_BUFFER cmdB
     auto &scdryCmdBuffer = m_secondaryCmdBuffers[secondaryIdx];
     SCALABILITY_CHK_STATUS_RETURN(m_osInterface->pfnGetCommandBuffer(m_osInterface, &scdryCmdBuffer, bufIdx));
 
-    if (m_osInterface->apoMosEnabled || m_osInterface->apoMosForLegacyRuntime)
+    if (m_osInterface->apoMosEnabled)
     {
         SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState);
         SCALABILITY_CHK_NULL_RETURN(m_osInterface->osStreamState->virtualEngineInterface);
@@ -549,6 +548,16 @@ MOS_STATUS DecodeScalabilityMultiPipeNext::SyncOnePipeWaitOthers(PMOS_COMMAND_BU
 MOS_STATUS DecodeScalabilityMultiPipeNext::SyncPipe(uint32_t syncType, uint32_t semaphoreId, PMOS_COMMAND_BUFFER cmdBuffer)
 {
     SCALABILITY_FUNCTION_ENTER;
+
+    // Check if NativeFence is enabled
+    if (MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrNativeFence))
+    {
+        SCALABILITY_VERBOSEMESSAGE("DecodeScalabilityMultiPipeNext::SyncPipe - NativeFence enabled, using barrier sync");
+        return SyncPipesWithNativeFence(cmdBuffer);
+    }
+
+    // Legacy sync logic when NativeFence is disabled
+    SCALABILITY_VERBOSEMESSAGE("DecodeScalabilityMultiPipeNext::SyncPipe - NativeFence disabled, using legacy sync");
     if (syncType == syncAllPipes)
     {
         return SyncAllPipes(cmdBuffer);
@@ -561,6 +570,53 @@ MOS_STATUS DecodeScalabilityMultiPipeNext::SyncPipe(uint32_t syncType, uint32_t 
     {
         return MOS_STATUS_INVALID_PARAMETER;
     }
+}
+
+MOS_STATUS DecodeScalabilityMultiPipeNext::SendMiAtomicCmd(
+    PMOS_RESOURCE               resource,
+    uint32_t                    offset,
+    uint32_t                    immData,
+    MHW_COMMON_MI_ATOMIC_OPCODE opCode,
+    PMOS_COMMAND_BUFFER         cmdBuffer)
+{
+    SCALABILITY_FUNCTION_ENTER;
+    SCALABILITY_CHK_NULL_RETURN(m_hwInterface);
+    SCALABILITY_CHK_NULL_RETURN(resource);
+    SCALABILITY_CHK_NULL_RETURN(cmdBuffer);
+
+    // Call existing m_hwInterface method instead of m_miItf directly
+    return m_hwInterface->SendMiAtomicDwordCmd(resource, immData, opCode, cmdBuffer);
+}
+
+MOS_STATUS DecodeScalabilityMultiPipeNext::SendMiSemaphoreWaitCmd(
+    PMOS_RESOURCE                             semaMem,
+    uint32_t                                  offset,
+    uint32_t                                  semaData,
+    MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION opCode,
+    PMOS_COMMAND_BUFFER                       cmdBuffer)
+{
+    SCALABILITY_FUNCTION_ENTER;
+    SCALABILITY_CHK_NULL_RETURN(m_hwInterface);
+    SCALABILITY_CHK_NULL_RETURN(semaMem);
+    SCALABILITY_CHK_NULL_RETURN(cmdBuffer);
+
+    // Call existing m_hwInterface method instead of m_miItf directly
+    return m_hwInterface->SendHwSemaphoreWaitCmd(semaMem, semaData, opCode, cmdBuffer);
+}
+
+MOS_STATUS DecodeScalabilityMultiPipeNext::SendMiStoreDataImmCmd(
+    PMOS_RESOURCE       resource,
+    uint32_t            offset,
+    uint32_t            value,
+    PMOS_COMMAND_BUFFER cmdBuffer)
+{
+    SCALABILITY_FUNCTION_ENTER;
+    SCALABILITY_CHK_NULL_RETURN(m_hwInterface);
+    SCALABILITY_CHK_NULL_RETURN(resource);
+    SCALABILITY_CHK_NULL_RETURN(cmdBuffer);
+
+    // Call existing m_hwInterface method instead of m_miItf directly
+    return m_hwInterface->SendMiStoreDataImm(resource, value, cmdBuffer);
 }
 
 MOS_STATUS DecodeScalabilityMultiPipeNext::ResetSemaphore(uint32_t syncType, uint32_t semaphoreId, PMOS_COMMAND_BUFFER cmdBuffer)

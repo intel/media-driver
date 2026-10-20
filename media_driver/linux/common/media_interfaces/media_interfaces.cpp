@@ -315,7 +315,7 @@ Codechal* CodechalDevice::CreateFactory(
 
     return codechalDevice;
 }
-#ifdef _MMC_SUPPORTED
+
 void* MmdDevice::CreateFactory(
     PMOS_CONTEXT    osDriverContext)
 {
@@ -404,7 +404,6 @@ MhwInterfaces* MmdDevice::CreateMhwInterface(PMOS_INTERFACE osInterface)
 
     return mhw;
 }
-#endif
 
 void* McpyDevice::CreateFactory(
     PMOS_CONTEXT    osDriverContext)

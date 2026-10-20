@@ -30,6 +30,10 @@
 #include "vp_render_cmd_packet.h"
 #include "vp_npu_cmd_packet.h"
 
+#ifdef _MEDIA_RESERVED
+#include "sw_filter_vfi.h"
+#endif
+
 namespace vp
 {
 
@@ -39,6 +43,7 @@ void AI_KERNEL_PARAM::Init()
     kernelName.clear();
     threadWidth  = 0;
     threadHeight = 0;
+    threadDepth  = 0;
     localWidth   = 0;
     localHeight  = 0;
     kernelStatefulSurfaces.clear();
@@ -82,7 +87,7 @@ MOS_STATUS VpAiFilter::Destroy()
         {
             for (auto &krnArgHandle : singleLayerKrnArgMapHandle.second)
             {
-                KRN_ARG &krnArg = krnArgHandle.second;
+                KRN_ARG &krnArg = krnArgHandle.second.krnArg;
                 MOS_FreeMemAndSetNull(krnArg.pData);
             }
             singleLayerKrnArgMapHandle.second.clear();
@@ -102,6 +107,22 @@ MOS_STATUS VpAiFilter::SetExecuteEngineCaps(
 
     m_executingPipe = executingPipe;
     m_executeCaps   = vpExecuteCaps;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpAiFilter::SetConfig(SwFilterPipe &executingPipe, AI_KERNEL_CONFIG &config)
+{
+    SwFilterSubPipe *subPipe = executingPipe.GetSwFilterSubPipe(true, 0);
+    VP_PUBLIC_CHK_NULL_RETURN(subPipe);
+
+    SwFilterAiBase *ai = nullptr;
+    VP_PUBLIC_CHK_STATUS_RETURN(subPipe->GetAiSwFilter(ai));
+    VP_PUBLIC_CHK_NULL_RETURN(ai)
+
+    FeatureParamAi &swAiParam = ai->GetSwFilterParams();
+    config.perfTag            = swAiParam.perfTag;
+    config.featureType        = swAiParam.featureType;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -128,7 +149,7 @@ MOS_STATUS VpAiFilter::CalculateEngineParams(VpGraphManager *graphManager)
         }
 
         VP_PUBLIC_CHK_STATUS_RETURN(InitKrnParams(m_renderAiParams->ai_kernelParams, *m_executingPipe));
-
+        VP_PUBLIC_CHK_STATUS_RETURN(SetConfig(*m_executingPipe, m_renderAiParams->ai_kernelConfig));
     }
     else if (m_executeCaps.bNpu)
     {
@@ -160,11 +181,11 @@ MOS_STATUS VpAiFilter::InitKrnParams(AI_KERNEL_PARAMS &krnParams, SwFilterPipe &
     auto            multiLayerKrnArgMapHandle = m_featureAiKrnArgMap.find(ai->GetFeatureType());
     if (multiLayerKrnArgMapHandle == m_featureAiKrnArgMap.end())
     {
-        MULTI_LAYERS_KERNEL_INDEX_ARG_MAP multiLayerKrnArgMap = {};
-        multiLayerKrnArgMapHandle                             = m_featureAiKrnArgMap.insert(std::make_pair(ai->GetFeatureType(), multiLayerKrnArgMap)).first;
+        AI_MULTI_LAYERS_KERNEL_INDEX_ARG_MAP multiLayerKrnArgMap = {};
+        multiLayerKrnArgMapHandle                                = m_featureAiKrnArgMap.insert(std::make_pair(ai->GetFeatureType(), multiLayerKrnArgMap)).first;
         VP_PUBLIC_CHK_NOT_FOUND_RETURN(multiLayerKrnArgMapHandle, &m_featureAiKrnArgMap);
     }
-    MULTI_LAYERS_KERNEL_INDEX_ARG_MAP &multiLayerKrnArgMap = multiLayerKrnArgMapHandle->second;
+    AI_MULTI_LAYERS_KERNEL_INDEX_ARG_MAP &multiLayerKrnArgMap = multiLayerKrnArgMapHandle->second;
 
     uint32_t startIndex = (swAiParam.stageIndex == 0) ? 0 : ((swAiParam.stageIndex - 1) < swAiParam.splitGroupIndex.size() ? swAiParam.splitGroupIndex.at(swAiParam.stageIndex - 1) : 0);
     uint32_t endIndex   = swAiParam.stageIndex < swAiParam.splitGroupIndex.size() ? swAiParam.splitGroupIndex.at(swAiParam.stageIndex) : swAiParam.settings.size();
@@ -178,8 +199,8 @@ MOS_STATUS VpAiFilter::InitKrnParams(AI_KERNEL_PARAMS &krnParams, SwFilterPipe &
         auto singleLayerKrnArgMapHandle = multiLayerKrnArgMap.find(layerIndex);
         if (singleLayerKrnArgMapHandle == multiLayerKrnArgMap.end())
         {
-            KERNEL_INDEX_ARG_MAP singleLayerKrnArgMap = {};
-            singleLayerKrnArgMapHandle                = multiLayerKrnArgMap.insert(std::make_pair(layerIndex, singleLayerKrnArgMap)).first;
+            AI_KERNEL_INDEX_ARG_MAP singleLayerKrnArgMap = {};
+            singleLayerKrnArgMapHandle                   = multiLayerKrnArgMap.insert(std::make_pair(layerIndex, singleLayerKrnArgMap)).first;
             VP_PUBLIC_CHK_NOT_FOUND_RETURN(singleLayerKrnArgMapHandle, &multiLayerKrnArgMap);
         }
         if (layerIndex >= swAiParam.settings.size())
@@ -195,6 +216,7 @@ MOS_STATUS VpAiFilter::InitKrnParams(AI_KERNEL_PARAMS &krnParams, SwFilterPipe &
         kernelParam.kernelName   = singleLayerSetting.kernelName;
         kernelParam.threadWidth  = singleLayerSetting.groupWidth;
         kernelParam.threadHeight = singleLayerSetting.groupHeight;
+        kernelParam.threadDepth  = singleLayerSetting.groupDepth;
         kernelParam.localWidth   = singleLayerSetting.localWidth;
         kernelParam.localHeight  = singleLayerSetting.localHeight;
 
@@ -203,7 +225,7 @@ MOS_STATUS VpAiFilter::InitKrnParams(AI_KERNEL_PARAMS &krnParams, SwFilterPipe &
         KERNEL_BTIS kernelBtis = handle->second.GetKernelBtis();
         KERNEL_ARGS kernelArgs = handle->second.GetKernelArgs();
 
-        KERNEL_INDEX_ARG_MAP &singleLayerKrnArgMap = singleLayerKrnArgMapHandle->second;
+        AI_KERNEL_INDEX_ARG_MAP &singleLayerKrnArgMap = singleLayerKrnArgMapHandle->second;
 
         for (auto const &kernelArg : kernelArgs)
         {
@@ -211,55 +233,69 @@ MOS_STATUS VpAiFilter::InitKrnParams(AI_KERNEL_PARAMS &krnParams, SwFilterPipe &
             auto     krnArgHandle = singleLayerKrnArgMap.find(argIndex);
             if (krnArgHandle == singleLayerKrnArgMap.end())
             {
-                KRN_ARG krnArg = {};
-                krnArgHandle   = singleLayerKrnArgMap.insert(std::make_pair(argIndex, krnArg)).first;
+                AI_KRN_ARG krnArg = {};
+                krnArgHandle      = singleLayerKrnArgMap.insert(std::make_pair(argIndex, krnArg)).first;
                 VP_PUBLIC_CHK_NOT_FOUND_RETURN(krnArgHandle, &singleLayerKrnArgMap);
             }
-            KRN_ARG &krnArg    = krnArgHandle->second;
-            krnArg.uIndex      = kernelArg.uIndex;
-            krnArg.eArgKind    = kernelArg.eArgKind;
-            krnArg.uSize       = kernelArg.uSize;
-            krnArg.addressMode = kernelArg.addressMode;
-            bool bInit         = true;
+            AI_KRN_ARG &aiKrnArg = krnArgHandle->second;
+            KRN_ARG    &krnArg   = aiKrnArg.krnArg;
+            krnArg.uIndex        = kernelArg.uIndex;
+            krnArg.eArgKind      = kernelArg.eArgKind;
+            krnArg.uSize         = kernelArg.uSize;
+            krnArg.addressMode   = kernelArg.addressMode;
+            bool bInit           = true;
 
-            if (kernelArg.addressMode == AddressingModeStateless)
+            if (kernelArg.addressMode == AddressingModeBindless &&
+                (kernelArg.eArgKind == ARG_KIND_SURFACE || kernelArg.eArgKind == ARG_KIND_INLINE))
             {
-                if (krnArg.pData == nullptr)
+                SURFACE_PARAMS surfaceParam = {};
+                VP_PUBLIC_CHK_NULL_RETURN(singleLayerSetting.pfnSetStatefulSurface);
+                VP_PUBLIC_CHK_STATUS_RETURN(singleLayerSetting.pfnSetStatefulSurface(kernelArg.uIndex, executingPipe, surfaceParam, bInit));
+
+                if (bInit)
                 {
-                    krnArg.uSize = kernelArg.uSize;
-                    krnArg.pData = MOS_AllocAndZeroMemory(sizeof(SURFACE_PARAMS));
-                    VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
+                    kernelParam.kernelStatefulSurfaces.insert(std::make_pair(kernelArg.uIndex, surfaceParam));
                 }
-                else
-                {
-                    MOS_ZeroMemory(krnArg.pData, sizeof(SURFACE_PARAMS));
-                }
-                VP_PUBLIC_CHK_NULL_RETURN(singleLayerSetting.pfnSetStatelessSurface);
-                VP_PUBLIC_CHK_STATUS_RETURN(singleLayerSetting.pfnSetStatelessSurface(kernelArg.uIndex, executingPipe, *(PSURFACE_PARAMS)krnArg.pData, bInit));
             }
             else
             {
-                if (krnArg.pData == nullptr)
+                uint32_t allocateSize = (kernelArg.addressMode == AddressingModeStateless ? sizeof(SURFACE_PARAMS) : kernelArg.uSize);
+
+                if(krnArg.pData != nullptr)
                 {
-                    if (kernelArg.uSize > 0)
+                    if (aiKrnArg.reservedSize != allocateSize)
                     {
-                        krnArg.uSize = kernelArg.uSize;
-                        krnArg.pData = MOS_AllocAndZeroMemory(kernelArg.uSize);
-                        VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
+                        aiKrnArg.reservedSize = 0;
+                        MOS_FreeMemAndSetNull(krnArg.pData);
                     }
+                    else
+                    {
+                        MOS_ZeroMemory(krnArg.pData, aiKrnArg.reservedSize);
+                    }
+                }
+
+                if (krnArg.pData == nullptr && allocateSize > 0)
+                {
+                    aiKrnArg.reservedSize = allocateSize;
+                    krnArg.pData          = MOS_AllocAndZeroMemory(allocateSize);
+                    VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
+                }
+
+                if (kernelArg.addressMode == AddressingModeStateless)
+                {
+                    VP_PUBLIC_CHK_NULL_RETURN(singleLayerSetting.pfnSetStatelessSurface);
+                    VP_PUBLIC_CHK_STATUS_RETURN(singleLayerSetting.pfnSetStatelessSurface(kernelArg.uIndex, executingPipe, *(PSURFACE_PARAMS)krnArg.pData, bInit));
                 }
                 else
                 {
-                    VP_PUBLIC_CHK_VALUE_RETURN(krnArg.uSize, kernelArg.uSize);
-                    MOS_ZeroMemory(krnArg.pData, krnArg.uSize);
+                    VP_PUBLIC_CHK_NULL_RETURN(singleLayerSetting.pfnSetKernelArg);
+                    VP_PUBLIC_CHK_STATUS_RETURN(singleLayerSetting.pfnSetKernelArg(kernelArg.uIndex, executingPipe, krnArg.pData, bInit));
                 }
-                VP_PUBLIC_CHK_NULL_RETURN(singleLayerSetting.pfnSetKernelArg);
-                VP_PUBLIC_CHK_STATUS_RETURN(singleLayerSetting.pfnSetKernelArg(kernelArg.uIndex, executingPipe, krnArg.pData, bInit));
-            }
 
-            if (bInit)
-            {
-                kernelParam.kernelArgs.push_back(krnArg);
+                if (bInit)
+                {
+                    kernelParam.kernelArgs.push_back(krnArg);
+                }
             }
         }
 
@@ -276,9 +312,11 @@ MOS_STATUS VpAiFilter::InitKrnParams(AI_KERNEL_PARAMS &krnParams, SwFilterPipe &
                 kernelParam.kernelStatefulSurfaces.insert(std::make_pair(uIndex, surfaceParam));
             }
         }
-        krnParams.push_back(kernelParam);
+        VP_PUBLIC_NORMALMESSAGE("InitKrnParams: stageIndex=%u layerIndex=%u kernel=%s kernelBtisFromPool=%zu statefulSurfacesBound=%zu kernelArgsBound=%zu",
+            swAiParam.stageIndex, layerIndex, kernelParam.kernelName.c_str(),
+            kernelBtis.size(), kernelParam.kernelStatefulSurfaces.size(), kernelParam.kernelArgs.size());
+        krnParams.push_back(std::move(kernelParam));
     }
-    
     return MOS_STATUS_SUCCESS;
 }
 
@@ -542,7 +580,12 @@ MOS_STATUS PolicyAiHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &fe
         SwFilterAiBase *filter2ndPass = featureAI;
         VP_PUBLIC_CHK_NULL_RETURN(filter2ndPass);
         FeatureParamAi &params2ndPass = filter2ndPass->GetSwFilterParams();
-        
+        uint32_t        settingIndex  = param.splitGroupIndex.at(params2ndPass.stageIndex); //the setting index of 2nd filter
+        if (settingIndex >= param.settings.size())
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
+
         SwFilterAiBase *filter1ndPass = (SwFilterAiBase *)feature.Clone();
         VP_PUBLIC_CHK_NULL_RETURN(filter1ndPass);
         filter1ndPass->GetFilterEngineCaps() = filter2ndPass->GetFilterEngineCaps();
@@ -551,11 +594,6 @@ MOS_STATUS PolicyAiHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &fe
 
         params2ndPass.stageIndex += 1;
         // Clear engine caps for filter in 2nd pass
-        uint32_t settingIndex = param.splitGroupIndex.at(params2ndPass.stageIndex - 1);
-        if (settingIndex >= param.settings.size())
-        {
-            VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
-        }
         filter2ndPass->SetFeatureType(FeatureType(filter2ndPass->GetFeatureType() & FEATURE_TYPE_MASK));
         filter2ndPass->SetRenderTargetType(RenderTargetTypeSurface);
         filter2ndPass->GetFilterEngineCaps().value           = 0;
@@ -580,7 +618,15 @@ MOS_STATUS PolicyAiHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS caps, SwFilter &fe
     }
     else
     {
-        return PolicyFeatureHandler::UpdateFeaturePipe(caps, feature, featurePipe, executePipe, isInputPipe, index);
+        VP_PUBLIC_CHK_STATUS_RETURN(PolicyFeatureHandler::UpdateFeaturePipe(caps, feature, featurePipe, executePipe, isInputPipe, index));
+
+#ifdef _MEDIA_RESERVED
+        SwFilterVFI *vfi = dynamic_cast<SwFilterVFI *>(&feature);
+        if (vfi != nullptr)
+        {
+            VP_PUBLIC_CHK_STATUS_RETURN(vfi->PrepareFinalStage(caps, featurePipe, executePipe, isInputPipe, index));
+        }
+#endif
     }
 
     return MOS_STATUS_SUCCESS;

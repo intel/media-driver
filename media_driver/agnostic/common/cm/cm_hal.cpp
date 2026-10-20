@@ -10508,6 +10508,8 @@ MOS_STATUS HalCm_Create(
         MOS_GPU_NODE_VE,
         &createOption));
 
+    state->osInterface->pfnSetGpuContext(state->osInterface, MOS_GPU_CONTEXT_VEBOX);
+
     // Allocate/Initialize CM Rendering Interface
     state->renderHal = (PRENDERHAL_INTERFACE_LEGACY)
                                 MOS_AllocAndZeroMemory(sizeof(RENDERHAL_INTERFACE_LEGACY));

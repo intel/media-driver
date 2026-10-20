@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2022, Intel Corporation
+* Copyright (c) 2019-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -58,7 +58,7 @@ public:
         return m_osInterface;
     }
 
-    MOS_STATUS CreateReferenceBeforeLoopFilter();
+    virtual MOS_STATUS CreateReferenceBeforeLoopFilter();
 
     bool IsLastSlice(uint32_t sliceIdx);
     bool IsIndependentSlice(uint32_t sliceIdx);
@@ -104,6 +104,7 @@ protected:
     MOS_STATUS NumEntryPointOffsetsCheck(uint32_t sliceIdx);
     MOS_STATUS ReferenceParamCheck(uint32_t sliceIdx);
     MOS_STATUS CollocatedRefIdxCheck(uint32_t sliceIdx);
+    MOS_STATUS SurfaceSizeCheck(void *params);
 
     PMOS_INTERFACE        m_osInterface  = nullptr;
 

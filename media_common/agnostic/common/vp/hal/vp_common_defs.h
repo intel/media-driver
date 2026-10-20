@@ -28,6 +28,8 @@
 #ifndef __VP_COMMON_DEFS_H__
 #define __VP_COMMON_DEFS_H__
 
+#include <cstdint>
+#include "mos_defs.h"
 #include "media_common_defs.h"
 
 #define ADDRESS_PAGE_ALIGNMENT_MASK_X64 0xFFFFFFFFFFFFF000ULL
@@ -201,6 +203,9 @@ enum VpKernelIDNext
     kernelHdr3DLutCalc = vpKernelIDNextBase,
     kernelHdr3DLutCalcOcl,
     kernelHVSCalc,
+    kernelHdrMandatoryLite,
+
+    //Add New Kernel ID Here
 
     // AI Common
     kernelAiCommon,
@@ -208,13 +213,16 @@ enum VpKernelIDNext
 
     vpKernelIDNextMax
 };
+C_ASSERT(kernelAiCommonEnd == vpKernelIDNextMax - 1);
 
 //!
 //! \brief Base VP graph list
 //!
 enum VP_GRAPH_ID
 {
-    VP_GRAPH_ID_INVALID = 0
+    VP_GRAPH_ID_INVALID = 0,
+
+    VP_GRAPH_ID_BASE_MAX
 };
 
 typedef struct _VPHAL_COMPOSITE_CACHE_CNTL
@@ -393,9 +401,26 @@ typedef enum _VPHAL_GAMMA_TYPE
     VPHAL_GAMMA_SMPTE_ST2084,
     VPHAL_GAMMA_BT1886,
     VPHAL_GAMMA_SRGB,
+    VPHAL_GAMMA_1P0,
+    VPHAL_GAMMA_2P2,
+    VPHAL_GAMMA_2P4,
+    VPHAL_GAMMA_HLG,
     VPHAL_GAMMA_Count
 } VPHAL_GAMMA_TYPE;
-C_ASSERT(VPHAL_GAMMA_Count == 5);  //!< When adding, update assert
+C_ASSERT(VPHAL_GAMMA_Count == 9);  //!< When adding, update assert
+
+//!
+//! \def VPHAL_GAMMA_IS_NONLINEAR(gammaType)
+//! Check if the gamma type is a nonlinear transfer function
+//!
+#define VPHAL_GAMMA_IS_NONLINEAR(gammaType) ((gammaType) != VPHAL_GAMMA_NONE && (gammaType) != VPHAL_GAMMA_1P0)
+
+//!
+//! \def VPHAL_IS_NONLINEAR_FP16(surface)
+//! Check if the surface is FP16 output carrying a nonlinear gamma type
+//!
+#define VPHAL_IS_NONLINEAR_FP16(surface) (((surface)->Format == Format_A16B16G16R16F || (surface)->Format == Format_A16R16G16B16F) && \
+                                          VPHAL_GAMMA_IS_NONLINEAR((surface)->GammaType))
 
 //!
 //! \def IS_COLOR_SPACE_BT2020_YUV(_a)
@@ -413,6 +438,40 @@ C_ASSERT(VPHAL_GAMMA_Count == 5);  //!< When adding, update assert
 
 #define IS_COLOR_SPACE_BT709_RGB(_a) (_a == CSpace_sRGB || \
                                       _a == CSpace_stRGB)
+
+//!
+//! \def IS_COLOR_SPACE_BT709_YUV(_a)
+//! Check if the color space is BT709 YUV
+//!
+#define IS_COLOR_SPACE_BT709_YUV(_a) (_a == CSpace_BT709 || \
+                                      _a == CSpace_BT709_FullRange || \
+                                      _a == CSpace_xvYCC709)
+
+//!
+//! \def IS_COLOR_SPACE_BT601(_a)
+//! Check if the color space is BT601
+//!
+#define IS_COLOR_SPACE_BT601(_a)     (_a == CSpace_BT601 || \
+                                      _a == CSpace_BT601_FullRange || \
+                                      _a == CSpace_xvYCC601 || \
+                                      _a == CSpace_BT601Gray || \
+                                      _a == CSpace_BT601Gray_FullRange)
+
+//!
+//! \def IS_COLOR_SPACE_BT709(_a)
+//! Check if the color space is BT709 (RGB incl. sRGB/stRGB, or YUV)
+//!
+#define IS_COLOR_SPACE_BT709(_a)     (IS_COLOR_SPACE_BT709_YUV(_a) || \
+                                      IS_COLOR_SPACE_BT709_RGB(_a))
+
+//!
+//! \def CSPACE_SAME_PRIMARIES_FAMILY(_a, _b)
+//! Check if two color spaces belong to the same primaries family (BT601 / BT709 / BT2020)
+//!
+#define CSPACE_SAME_PRIMARIES_FAMILY(_a, _b) \
+    ( (IS_COLOR_SPACE_BT601(_a)  && IS_COLOR_SPACE_BT601(_b))  || \
+      (IS_COLOR_SPACE_BT709(_a)  && IS_COLOR_SPACE_BT709(_b))  || \
+      (IS_COLOR_SPACE_BT2020(_a) && IS_COLOR_SPACE_BT2020(_b)) )
 
 //!
 //! \def IS_COLOR_SPACE_BT2020(_a)
@@ -932,8 +991,10 @@ typedef struct _VPHAL_3DLUT_PARAMS
     uint32_t       ChannelMapping     = 0;        // Channel Mapping for the 3DLUT input to 3DLUT output.
     uint16_t       BitDepthPerChannel = 0;        // Bit Depth Per Channel(4 channels for 3DLUT).
     uint16_t       ByteCountPerEntry  = 0;        // Byte Count Per Entry including reserved bytes.
+    uint16_t       MappingMode        = 0;        // Mapping Mode
 
     VPHAL_3DLUT_INTERPOLATION InterpolationMethod = VPHAL_3DLUT_INTERPOLATION_DEFAULT;  // VEBox 3DLut interpolation mode
+    bool bUpdated = true;  // True when 3DLut content changed, default true for backward compatibility 
 } VPHAL_3DLUT_PARAMS, *PVPHAL_3DLUT_PARAMS;
 
 //!
@@ -978,7 +1039,9 @@ typedef struct _VPHAL_VIDEO_COLOR_RGBA
 typedef struct _VPHAL_COLORFILL_PARAMS
 {
     bool         bYCbCr                 = false;
+    bool         isFloat                = false;
     uint32_t     Color                  = 0;
+    float        ColorFloat[4]          = {0.0f};
     VPHAL_VIDEO_COLOR_RGBA Color1       = {};
     VPHAL_CSPACE CSpace                 = CSpace_None;
     bool         bDisableColorfillinSFC = false;
@@ -1020,6 +1083,18 @@ typedef enum _VPHAL_SPLIT_SCREEN_DEMO_POSITION
     SPLIT_SCREEN_DEMO_BOTTOM,
     SPLIT_SCREEN_DEMO_END_POS_LIST
 } VPHAL_SPLIT_SCREEN_DEMO_POSITION;
+
+//!
+//! Structure VPHAL_RENDER_COMMAND_STREAM_TYPE
+//! \brief RCS or CCS
+//!
+typedef enum _VPHAL_RENDER_COMMAND_STREAM_TYPE
+{
+    VPHAL_RENDER_COMMAND_STREAM_DEFAULT = 0,
+    VPHAL_RENDER_COMMAND_STREAM_CCS     = 1,
+    VPHAL_RENDER_COMMAND_STREAM_RCS     = 2
+    
+} VPHAL_RENDER_COMMAND_STREAM_TYPE;
 
 //!
 //! Structure VPHAL_SPLIT_SCREEN_DEMO_MODE_PARAMS
@@ -1089,8 +1164,19 @@ struct VPHAL_RENDER_PARAMS
     bool bOptimizeCpuTiming = false;  //!< Optimize Cpu Timing
 
     bool bForceToRender = false;  // Force to render to perform scaling.
+    VPHAL_RENDER_COMMAND_STREAM_TYPE renderCommandStreamType = VPHAL_RENDER_COMMAND_STREAM_DEFAULT;  // CCS or RCS to Use
 
     HANDLE gpuAppTaskEvent;  //!< GPU App task event
+
+#if defined(LINUX) && !defined(WDDM_LINUX)
+    //!< Enable High Quality / Super Resolution mode (SR3) on Linux.
+    //!< TODO: DDI layer (ddi_vp_functions.cpp) must set this from a libva signal before
+    //!< SR3 can trigger. Suggested hook: VA_FILTER_SCALING_HQ in VAProcPipelineParameterBuffer::filter_flags
+    //!< (already parsed at ddi_vp_functions.cpp:4189 — extend that case to set
+    //!< vpHalRenderParams->isHighQualityModeEnabled = true). Or introduce a dedicated
+    //!< VAProcFilterSuperResolution buffer for richer control.
+    bool isHighQualityModeEnabled = false;
+#endif
 
     VPHAL_RENDER_PARAMS() : uSrcCount(0),
                             pSrc(),
@@ -1116,6 +1202,9 @@ struct VPHAL_RENDER_PARAMS
                             bUseVEHdrSfc(false),
                             bNonFirstFrame(false),
                             gpuAppTaskEvent(nullptr)
+#if defined(LINUX) && !defined(WDDM_LINUX)
+                            , isHighQualityModeEnabled(false)
+#endif
     {
     }
 };

@@ -23,15 +23,9 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mcpy_next.h
     ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_codechal_next.h
     ${CMAKE_CURRENT_LIST_DIR}/skuwa_factory.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mmd_next.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_huc_kernel_source.h
 )
-
- if(${MMC_Supported} STREQUAL "yes")
-    set(TMP_HEADERS_
-        ${TMP_HEADERS_}
-        ${CMAKE_CURRENT_LIST_DIR}/media_interfaces_mmd_next.h
-    )
-endif()
-
 
 set(SOFTLET_COMMON_SOURCES_
     ${SOFTLET_COMMON_SOURCES_}

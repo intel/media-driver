@@ -38,6 +38,7 @@
 const char * const MosUtilDebug::m_mosLogLevelName[MOS_MESSAGE_LVL_COUNT] = {
     "",          // DISABLED
     "CRITICAL",
+    "WARNING ",
     "NORMAL  ",
     "VERBOSE ",
     "ENTER   ",
@@ -232,6 +233,7 @@ void MosUtilDebug::MosMessageInitComponent(MOS_COMPONENT_ID compID, MediaUserSet
     const char                                  *bySubComponentsKey = nullptr;
     const char                                  *subComponentsKey = nullptr;
     MOS_STATUS                                  eStatus = MOS_STATUS_SUCCESS;
+    uint32_t                                    compLevel = 0;
 
     if (compID >= MOS_COMPONENT_COUNT )
     {
@@ -259,7 +261,17 @@ void MosUtilDebug::MosMessageInitComponent(MOS_COMPONENT_ID compID, MediaUserSet
     }
 
     // Extract the 3-bit message level and 1-bit assert flag setting for this component.
-    MosSetCompMessageLevel(compID, (MOS_MESSAGE_LEVEL) (uiCompUserFeatureSetting & 0x7));
+    // Extract the 4th bit message level to enable the WARNING message (take effect when log enabled)
+    compLevel = uiCompUserFeatureSetting & 0x7;
+    if (compLevel > 1)
+    {
+        compLevel = compLevel + 1;
+    }
+    else if ((uiCompUserFeatureSetting & 0x10) && (compLevel == 1))
+    {
+        compLevel = 2;
+    }
+    MosSetCompMessageLevel(compID, (MOS_MESSAGE_LEVEL) compLevel);
     MosCompAssertEnableDisable(compID, (uiCompUserFeatureSetting >> 3) & 0x1);
 
     // Check if sub-components should be set seperately.
@@ -303,10 +315,20 @@ void MosUtilDebug::MosMessageInitComponent(MOS_COMPONENT_ID compID, MediaUserSet
         {
             // Extract the 3-bit message level and 1-bit assert flag setting for each sub-comp
             // from the user feature key and populate to the MOS message params structure
-            MosSetSubCompMessageLevel(compID, i, (MOS_MESSAGE_LEVEL)(uiSubCompUserFeatureSetting & 0x7));
+            // Extract the 4th bit message level to enable the WARNING message (take effect when log enabled)
+            compLevel = uiSubCompUserFeatureSetting & 0x7;
+            if (compLevel > 1)
+            {
+                compLevel = compLevel + 1;
+            }
+            else if ((uiSubCompUserFeatureSetting & 0x10) && (compLevel == 1))
+            {
+                compLevel = 2;
+            }
+            MosSetSubCompMessageLevel(compID, i, (MOS_MESSAGE_LEVEL)compLevel);
             MosSubCompAssertEnableDisable(compID, i, (uiSubCompUserFeatureSetting >> 3) & 0x1);
 
-            uiSubCompUserFeatureSetting = (uiSubCompUserFeatureSetting >> 4);
+            uiSubCompUserFeatureSetting = (uiSubCompUserFeatureSetting >> 5);
         }
     }
 }
@@ -496,9 +518,8 @@ void MosUtilDebug::MosMessageInit(MediaUserSettingSharedPtr userSettingPtr)
 
         if (MosUtilities::m_mosUltFlag && (*MosUtilities::m_mosUltFlag))
         {
-            MosSetCompMessageLevelAll(MOS_MESSAGE_LVL_DISABLED);
-            MosSetCompMessageLevel(MOS_COMPONENT_OS, MOS_MESSAGE_LVL_CRITICAL);
-            MosSetCompMessageLevel(MOS_COMPONENT_VP, MOS_MESSAGE_LVL_CRITICAL);
+            // set all msg level
+            MosSetCompMessageLevelAll(MOS_MESSAGE_LVL_CRITICAL);
             m_mosMsgParams.bUseOutputDebugString = 1;
             m_mosMsgParams.components[MOS_COMPONENT_OS].bBySubComponent = 0;
             MosCompAssertEnableDisable(MOS_COMPONENT_CM, 0);

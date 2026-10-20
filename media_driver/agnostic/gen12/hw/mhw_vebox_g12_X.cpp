@@ -1060,7 +1060,7 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxState(
     cmd.DW1.Fp16ModeEnable               = pVeboxMode->Fp16ModeEnable;
     cmd.DW1.StateSurfaceControlBits      = (pOsInterface->pfnCachePolicyGetMemoryObject(
                                             MOS_MP_RESOURCE_USAGE_DEFAULT,
-                                            pOsInterface->pfnGetGmmClientContext(pOsInterface))).DwordValue;
+                                            pOsInterface)).DwordValue;
 
     cmd.DW17.EncDataControlFor3DLUT       = 0;
 
@@ -1113,7 +1113,7 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxDiIecp(
         {
             pVeboxDiIecpCmdParams->CurrInputSurfCtrl.Value = pOsInterface->pfnCachePolicyGetMemoryObject(
                 MOS_MHW_GMM_RESOURCE_USAGE_CAMERA_CAPTURE,
-                pOsInterface->pfnGetGmmClientContext(pOsInterface)).DwordValue;
+                pOsInterface).DwordValue;
             MHW_NORMALMESSAGE(" disable the CameraCapture input caches ");
         }
     #endif
@@ -3070,7 +3070,7 @@ MOS_STATUS MhwVeboxInterfaceG12::AddVeboxTilingConvert(
     veboxOutputSurfCtrlBits.DW0.IndexToMemoryObjectControlStateMocsTables =
         (m_osInterface->pfnCachePolicyGetMemoryObject(
             MOS_MP_RESOURCE_USAGE_DEFAULT,
-            m_osInterface->pfnGetGmmClientContext(m_osInterface))).Gen12.Index;
+            m_osInterface)).Gen12.Index;
 
     // Set Input surface compression status
     if (inSurParams->CompressionMode != MOS_MMC_DISABLED)

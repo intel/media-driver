@@ -46,6 +46,7 @@ namespace decode
 
         m_downSampling = dynamic_cast<Av1DownSamplingFeatureXe3_Lpm_Base *>(
             featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
+        DECODE_CHK_NULL(m_downSampling);
 
         return MOS_STATUS_SUCCESS;
     }
@@ -55,7 +56,7 @@ namespace decode
         DECODE_FUNC_CALL();
 
 #ifdef _MEDIA_RESERVED
-        if (m_downSampling->m_histogramDestSurf || m_downSampling->m_histogramDebug)
+        if (m_aqmItf && m_downSampling->IsVDAQMHistogramEnabled())
         {
             SETPAR_AND_ADDCMD(AQM_VD_CONTROL_STATE, m_aqmItf, &cmdBuffer);
             SETPAR_AND_ADDCMD(AQM_HIST_STATE, m_aqmItf, &cmdBuffer);
@@ -72,7 +73,7 @@ namespace decode
         DECODE_FUNC_CALL();
 
 #ifdef _MEDIA_RESERVED
-        if (m_downSampling->m_histogramDestSurf || m_downSampling->m_histogramDebug)
+        if (m_aqmItf && m_downSampling->IsVDAQMHistogramEnabled())
         {
             SETPAR_AND_ADDCMD(AQM_HIST_FLUSH, m_aqmItf, &cmdBuffer);
         }
@@ -83,15 +84,21 @@ namespace decode
 
     MHW_SETPAR_DECL_SRC(AQM_HIST_BUFF_ADDR_STATE, Av1DecodeAqmPktXe3LpmBase)
     {
-        if (m_downSampling->m_histogramDestSurf || m_downSampling->m_histogramDebug)
+        if (m_downSampling->IsVDAQMHistogramEnabled())
         {
             Av1DecodeAqmPkt::MHW_SETPAR_F(AQM_HIST_BUFF_ADDR_STATE)(params);
 
-            params.AqmUChannelHistogramOutputBuffer = &m_downSampling->m_histogramBufferU->OsResource;
-            params.AqmVChannelHistogramOutputBuffer = &m_downSampling->m_histogramBufferV->OsResource;
+            if (m_downSampling->m_histogramBufferU)
+            {
+                params.AqmUChannelHistogramOutputBuffer = &m_downSampling->m_histogramBufferU->OsResource;
+            }
+            if (m_downSampling->m_histogramBufferV)
+            {
+                params.AqmVChannelHistogramOutputBuffer = &m_downSampling->m_histogramBufferV->OsResource;
+            }
             params.AqmStatisticsSummaryOutputBuffer = &m_downSampling->m_histogramStatisticsSummary->OsResource;
-            params.MetadataStreamoutOutputBuffer    = &m_downSampling->m_histogramMataDataStreamOut->OsResource;
-            params.MetadataStreaminInputBuffer      = &m_downSampling->m_histogramMataDataStreamIn->OsResource;
+            params.MetadataStreamoutOutputBuffer    = &m_downSampling->m_histogramMetaDataStreamOut->OsResource;
+            params.MetadataStreaminInputBuffer      = &m_downSampling->m_histogramMetaDataStreamIn->OsResource;
         }
 
         return MOS_STATUS_SUCCESS;

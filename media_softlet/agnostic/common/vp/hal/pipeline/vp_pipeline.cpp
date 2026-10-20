@@ -396,6 +396,10 @@ MOS_STATUS VpPipeline::Init(void *mhwInterface)
     VP_PUBLIC_CHK_STATUS_RETURN(CreateVpKernelSets());
     VP_PUBLIC_CHK_STATUS_RETURN(CreateVpGraphSets());
     VP_PUBLIC_CHK_STATUS_RETURN(CreateVpGraphManager());
+    if (m_osInterface && m_osInterface->pfnSetHybridMgrSubmitMode && m_userFeatureControl)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(m_osInterface->pfnSetHybridMgrSubmitMode(m_osInterface, m_userFeatureControl->GetHybridMgrSubmitMode()));
+    }
     // Create active tasks
     MediaTask *pTask = GetTask(MediaTask::TaskType::cmdTask);
     VP_PUBLIC_CHK_NULL_RETURN(pTask);
@@ -618,6 +622,10 @@ MOS_STATUS VpPipeline::ExecuteVpPipeline()
         VP_PUBLIC_CHK_NULL_RETURN(singlePipeCtx->GetVpResourceManager());
         VP_PUBLIC_CHK_STATUS_RETURN(m_vpInterface->SwitchResourceManager(singlePipeCtx->GetVpResourceManager()));
 
+        // For multi swFilterPipe cases, it may need to udpate userFeatureControl pipe by pipe
+        VP_PUBLIC_CHK_NULL_RETURN(m_userFeatureControl);
+        m_userFeatureControl->UpdateOnNewPipe(pipe, swFilterPipes.size());
+
         VP_PUBLIC_CHK_STATUS_RETURN(ExecuteSingleswFilterPipe(singlePipeCtx, pipe, pPacketPipe, featureManagerNext));
         // FrameCounter will be increased inside ExecuteSingleswFilterPipe, so m_vpPipeContexts[pipeIdx]->GetFrameCounter() - 1 is needed.
         MT_LOG2(MT_VP_FEATURE_GRAPH_EXECUTE_SINGLE_VPPIPELINE_END, MT_NORMAL,
@@ -695,7 +703,7 @@ MOS_STATUS VpPipeline::ExecuteSingleswFilterPipe(VpSinglePipeContext *singlePipe
         singlePipeCtx->SetOutputPipeMode(pipeReused->GetOutputPipeMode());
         singlePipeCtx->SetIsVeboxFeatureInuse(pipeReused->IsVeboxFeatureInuse());
         // MediaPipeline::m_statusReport is always nullptr in VP APO path right now.
-        eStatus = pipeReused->Execute(MediaPipeline::m_statusReport, m_scalability, m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox, gpuCtxOnHybridCmd);
+        eStatus = pipeReused->Execute(MediaPipeline::m_statusReport, m_scalability, m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox, gpuCtxOnHybridCmd, frameCounter);
         MT_LOG1(MT_VP_HAL_VEBOXNUM_CHECK, MT_NORMAL, MT_VP_HAL_VEBOX_NUMBER, m_numVebox)
         VP_PUBLIC_NORMALMESSAGE("Vebox Number for check %d", m_numVebox);
         if (MOS_SUCCEEDED(eStatus))
@@ -722,14 +730,20 @@ MOS_STATUS VpPipeline::ExecuteSingleswFilterPipe(VpSinglePipeContext *singlePipe
 
     eStatus = featureManagerNext->InitPacketPipe(*pipe, *pPacketPipe);
     m_vpInterface->GetSwFilterPipeFactory().Destory(pipe);
-    VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(eStatus));
+    if (MOS_FAILED(eStatus))
+    {
+        m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
+        return chkStatusHandler(eStatus);
+    }
 
     // Update output pipe mode.
     singlePipeCtx->SetOutputPipeMode(pPacketPipe->GetOutputPipeMode());
     singlePipeCtx->SetIsVeboxFeatureInuse(pPacketPipe->IsVeboxFeatureInuse());
 
     // MediaPipeline::m_statusReport is always nullptr in VP APO path right now.
-    eStatus = pPacketPipe->Execute(MediaPipeline::m_statusReport, m_scalability, m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox, gpuCtxOnHybridCmd);
+
+    eStatus = pPacketPipe->Execute(MediaPipeline::m_statusReport, m_scalability, m_mediaContext, MOS_VE_SUPPORTED(m_osInterface), m_numVebox, gpuCtxOnHybridCmd, frameCounter);
+
     MT_LOG1(MT_VP_HAL_VEBOXNUM_CHECK, MT_NORMAL, MT_VP_HAL_VEBOX_NUMBER, m_numVebox)
     VP_PUBLIC_NORMALMESSAGE("Vebox Number for check %d", m_numVebox);
     if (MOS_SUCCEEDED(eStatus))
@@ -737,7 +751,7 @@ MOS_STATUS VpPipeline::ExecuteSingleswFilterPipe(VpSinglePipeContext *singlePipe
         VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(packetReuseMgr->UpdatePacketPipeConfig(pPacketPipe)));
         VP_PUBLIC_CHK_STATUS_RETURN(chkStatusHandler(UpdateExecuteStatus(frameCounter)));
     }
-
+    
     m_pPacketPipeFactory->ReturnPacketPipe(pPacketPipe);
     retHandler();
 
@@ -848,6 +862,13 @@ MOS_STATUS VpPipeline::UpdateVeboxNumberforScalability()
     else
     {
         m_forceMultiplePipe = MOS_SCALABILITY_ENABLE_MODE_DEFAULT;
+    }
+
+    VP_PUBLIC_CHK_NULL_RETURN(m_skuTable);
+    if (MEDIA_IS_SKU(m_skuTable, FtrEngineGroupScheduling))
+    {
+        VP_PUBLIC_NORMALMESSAGE("FtrEngineGroupScheduling is set. Disable Scalability!");
+        disableScalability = true;
     }
 
     if (disableScalability == true)
@@ -1037,6 +1058,11 @@ MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
     VP_PUBLIC_CHK_NULL_RETURN(skuTable);
     VP_PUBLIC_CHK_NULL_RETURN(m_userFeatureControl);
 
+    // Reset per-frame so a stale pointer from a prior frame (e.g. Execute() returning
+    // early before it could clear this) can never trigger a copy-back against a
+    // target surface that isn't part of the current frame.
+    m_trueOutputSurfaceForLinearCopyBack = nullptr;
+
     if (m_userFeatureControl->EnabledSFCNv12P010LinearOutput() &&
         MOS_TILE_LINEAR != params->pTarget[0]->TileType &&
         (Format_P010 == params->pTarget[0]->Format || Format_NV12 == params->pTarget[0]->Format) &&
@@ -1047,6 +1073,10 @@ MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
             m_tempTargetSurface = AllocateTempTargetSurface(m_tempTargetSurface);
         }
         VP_PUBLIC_CHK_NULL_RETURN(m_tempTargetSurface);
+
+        bool linearOutputTempSurfCompressionEnabled = (m_userFeatureControl->EnabledSFCLinearOutputTempSurfCompression() != 0);
+        MOS_RESOURCE_MMC_MODE tempSurfMmcMode = linearOutputTempSurfCompressionEnabled ? MOS_MMC_MC : MOS_MMC_DISABLED;
+
         eStatus = m_allocator->ReAllocateSurface(
             m_tempTargetSurface,
             "TempTargetSurface",
@@ -1055,8 +1085,8 @@ MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
             MOS_TILE_LINEAR,
             params->pTarget[0]->dwWidth,
             params->pTarget[0]->dwHeight,
-            false,
-            MOS_MMC_DISABLED,
+            linearOutputTempSurfCompressionEnabled,
+            tempSurfMmcMode,
             &allocated);
 
         m_tempTargetSurface->ColorSpace = params->pTarget[0]->ColorSpace;
@@ -1066,6 +1096,7 @@ MOS_STATUS VpPipeline::SurfaceReplace(PVP_PIPELINE_PARAMS params)
 
         if (eStatus == MOS_STATUS_SUCCESS)
         {
+            m_trueOutputSurfaceForLinearCopyBack = params->pTarget[0];
             params->pTarget[0] = m_tempTargetSurface;    //params is the copy of pcRenderParams which will not cause the memleak,
         }
     }
@@ -1405,6 +1436,18 @@ MOS_STATUS VpPipeline::Execute()
 
     VP_PUBLIC_CHK_STATUS_RETURN(ExecuteVpPipeline())
     VP_PUBLIC_CHK_STATUS_RETURN(UserFeatureReport());
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_tempTargetSurface && m_trueOutputSurfaceForLinearCopyBack)
+    {
+        VP_PUBLIC_CHK_NULL_RETURN(m_mediaCopyWrapper);
+        VP_PUBLIC_CHK_STATUS_RETURN(m_mediaCopyWrapper->MediaCopy(
+            &m_tempTargetSurface->OsResource,
+            &m_trueOutputSurfaceForLinearCopyBack->OsResource,
+            MCPY_METHOD_BALANCE));
+        m_trueOutputSurfaceForLinearCopyBack = nullptr;
+    }
+#endif
 
     bool veboxFeatureInuse = (m_vpPipeContexts.size() >= 1) && (m_vpPipeContexts[0]) && (m_vpPipeContexts[0]->IsVeboxInUse());
     if (m_packetSharedContext && m_packetSharedContext->isVeboxFirstFrame && veboxFeatureInuse)

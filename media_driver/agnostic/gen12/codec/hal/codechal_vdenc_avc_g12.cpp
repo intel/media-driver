@@ -1977,10 +1977,10 @@ MOS_STATUS CodechalVdencAvcStateG12::SendPrologWithFrameTracking(
 MOS_STATUS CodechalVdencAvcStateG12::InitMmcState()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
-#ifdef _MMC_SUPPORTED
+
     m_mmcState = MOS_New(CodechalMmcEncodeAvcG12, m_hwInterface, this);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

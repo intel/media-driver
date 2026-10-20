@@ -397,6 +397,8 @@ static bool InitEhlMediaSku(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_SKU(skuTable, FtrUseSwSwizzling, 1);
 
+    MEDIA_WR_SKU(skuTable, FtrSWMediaReset, 1);
+
     return true;
 }
 

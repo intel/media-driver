@@ -1214,7 +1214,7 @@ MOS_STATUS VpHal_RndrCommonSetBufferSurfaceForHwAccess(
         //set mem object control for cache
         SurfaceParam.MemObjCtl = (pRenderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
             MOS_MP_RESOURCE_USAGE_DEFAULT,
-            pRenderHal->pOsInterface->pfnGetGmmClientContext(pRenderHal->pOsInterface))).DwordValue;
+            pRenderHal->pOsInterface)).DwordValue;
 
         pSurfaceParams = &SurfaceParam;
     }
@@ -1378,7 +1378,7 @@ MOS_STATUS VpHal_CommonSetBufferSurfaceForHwAccess(
         //set mem object control for cache
         SurfaceParam.MemObjCtl = (pRenderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
             MOS_MP_RESOURCE_USAGE_DEFAULT,
-            pRenderHal->pOsInterface->pfnGetGmmClientContext(pRenderHal->pOsInterface))).DwordValue;
+            pRenderHal->pOsInterface)).DwordValue;
 
         pSurfaceParams = &SurfaceParam;
     }

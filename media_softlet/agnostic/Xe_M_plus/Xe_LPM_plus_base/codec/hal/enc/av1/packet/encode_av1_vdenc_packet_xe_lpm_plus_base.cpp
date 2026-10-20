@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2023, Intel Corporation
+* Copyright (c) 2020-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -311,14 +311,14 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::RegisterPostCdef()
     allocParamsForBuffer2D.Format   = Format_NV12;
     allocParamsForBuffer2D.dwWidth  = MOS_ALIGN_CEIL(m_basicFeature->m_frameWidth, av1SuperBlockWidth);
     allocParamsForBuffer2D.dwHeight = MOS_ALIGN_CEIL(m_basicFeature->m_frameHeight, av1SuperBlockHeight);
-#ifdef _MMC_SUPPORTED     
+   
     ENCODE_CHK_NULL_RETURN(m_mmcState);
     if (m_mmcState->IsMmcEnabled())
     {
         allocParamsForBuffer2D.CompressionMode = MOS_MMC_MC;
         allocParamsForBuffer2D.bIsCompressible = true;
     }
-#endif   
+  
     if (m_basicFeature->m_is10Bit)
     {
         // This is temporary fix for Sim specific ( Grits Utility) issue, HW has no restriction for current platform
@@ -373,8 +373,10 @@ MOS_STATUS Av1VdencPktXe_Lpm_Plus_Base::AddOneTileCommands(
 
     auto brcFeature = dynamic_cast<Av1Brc *>(m_featureManager->GetFeature(Av1FeatureIDs::av1BrcFeature));
     ENCODE_CHK_NULL_RETURN(brcFeature);
+    auto basicFeature = dynamic_cast<Av1BasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
+    ENCODE_CHK_NULL_RETURN(basicFeature);
     auto vdenc2ndLevelBatchBuffer = brcFeature->GetVdenc2ndLevelBatchBuffer(m_pipeline->m_currRecycledBufIdx);
-    auto slbbData                 = brcFeature->GetSLBData();
+    auto slbbData                 = basicFeature->GetSLBData();
 
     ENCODE_CHK_STATUS_RETURN(AddAllCmds_AVP_PIPE_MODE_SELECT(tempCmdBuffer));
 

@@ -29,10 +29,11 @@
 #define __MHW_VDBOX_HUC_HWCMD_XE_XPM_PLUS_H__
 
 #pragma once
-#pragma pack(1)
-
 #include <cstdint>
 #include <cstddef>
+
+
+#pragma pack(1)
 
 namespace mhw
 {

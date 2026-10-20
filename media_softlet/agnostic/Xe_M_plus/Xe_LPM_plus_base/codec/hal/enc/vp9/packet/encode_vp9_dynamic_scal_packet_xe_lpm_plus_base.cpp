@@ -706,7 +706,6 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, Vp9DynamicScalPktXe_Lpm_Plus_Base)
 
     m_basicFeature->m_ref.MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params);
 
-#ifdef _MMC_SUPPORTED
     ENCODE_CHK_NULL_RETURN(m_mmcState);
 
     if (m_mmcState->IsMmcEnabled())
@@ -723,7 +722,6 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, Vp9DynamicScalPktXe_Lpm_Plus_Base)
     }
 
     CODECHAL_DEBUG_TOOL(m_basicFeature->m_reconSurface.MmcState = params.PreDeblockSurfMmcState;)
-#endif
 
     return MOS_STATUS_SUCCESS;
 }

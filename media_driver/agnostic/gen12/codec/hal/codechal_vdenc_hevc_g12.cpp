@@ -38,7 +38,7 @@
 #include "codechal_mmc_encode_hevc_g12.h"
 #include "mhw_mmio_g12.h"
 #include "hal_oca_interface.h"
-#ifdef _ENCODE_VDENC_RESERVED
+#ifdef _MEDIA_RESERVED
 #include "codechal_debug_encode_brc.h"
 #endif
 const uint32_t CodechalVdencHevcStateG12::m_VdboxVDENCRegBase[4] = M_VDBOX_VDENC_REG_BASE;
@@ -626,7 +626,7 @@ CodechalVdencHevcStateG12::~CodechalVdencHevcStateG12()
     CODECHAL_DEBUG_TOOL(
         MOS_Delete(m_encodeParState);
     )
-#ifdef _ENCODE_VDENC_RESERVED
+#ifdef _MEDIA_RESERVED
     if (m_rsvdState)
     {
         MOS_Delete(m_rsvdState);
@@ -1991,7 +1991,7 @@ MOS_STATUS CodechalVdencHevcStateG12::GetStatusReport(
             encodeStatusReport->NumberSlices += (uint8_t)tileStatusReport[i].Hcp_Slice_Count_Tile;
             uint16_t prevCumulativeSliceSize = 0;
             // HW writes out a DW for each slice size. Copy in place the DW into 16bit fields expected by App
-            for (uint32_t idx = 0; idx < tileStatusReport[i].Hcp_Slice_Count_Tile; idx++)
+            for (uint32_t idx = 0; idx < tileStatusReport[i].Hcp_Slice_Count_Tile && sliceCount < m_maxNumSlicesSupported; idx++)
             {
                 // PAK output the sliceSize at 16DW intervals. 
                 CODECHAL_ENCODE_CHK_NULL_RETURN(&sliceSize[sliceCount * 16]);
@@ -2881,35 +2881,32 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
     }
 
     MHW_VDBOX_SURFACE_PARAMS srcSurfaceParams;
-    SetHcpSrcSurfaceParams(srcSurfaceParams);
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(SetHcpSrcSurfaceParams(srcSurfaceParams), release_func);
     CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &srcSurfaceParams), release_func);
 
     MHW_VDBOX_SURFACE_PARAMS reconSurfaceParams{};
-    SetHcpReconSurfaceParams(reconSurfaceParams);
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(SetHcpReconSurfaceParams(reconSurfaceParams), release_func);
 
-#ifdef _MMC_SUPPORTED
     // Recon P010v MMC state set from RC for compression write
     MOS_MEMCOMP_STATE tempMmcState = reconSurfaceParams.mmcState;
     if (m_reconSurface.Format == Format_P010 && MmcEnable(tempMmcState))
     {
         reconSurfaceParams.mmcState = MOS_MEMCOMP_RC;
     }
-#endif
+
     CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_hcpInterface->AddHcpSurfaceCmd(&cmdBuffer, &reconSurfaceParams), release_func); //this is for Recon surf cmd set
 
     MHW_VDBOX_SURFACE_PARAMS refSurfaceParams{};
-    SetHcpRefSurfaceParams(refSurfaceParams);  //it set MMC state and MMCFormat
+    CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(SetHcpRefSurfaceParams(refSurfaceParams), release_func);  //it set MMC state and MMCFormat
 
     // Add the surface state for reference picture, GEN12 HW change
     *m_pipeBufAddrParams = {};
     SetHcpPipeBufAddrParams(*m_pipeBufAddrParams); 
 
-#ifdef _MMC_SUPPORTED
     if (m_enableSCC && m_hevcPicParams->pps_curr_pic_ref_enabled_flag)
     {
         refSurfaceParams.mmcSkipMask   = (1 << m_slotForRecNotFiltered); //add this for ref
     }
-#endif
 
     if (m_mmcState->IsMmcEnabled())
     {
@@ -2967,9 +2964,9 @@ MOS_STATUS CodechalVdencHevcStateG12::ExecutePictureLevel()
     SetVdencPipeBufAddrParams(*m_pipeBufAddrParams);
     m_pipeBufAddrParams->pRawSurfParam = &srcSurfaceParams;
     m_pipeBufAddrParams->pDecodedReconParam = &reconSurfaceParams;
-#ifdef _MMC_SUPPORTED
+
     m_mmcState->SetPipeBufAddr(m_pipeBufAddrParams);
-#endif
+
     CODECHAL_ENCODE_CHK_STATUS_WITH_DESTROY_RETURN(m_vdencInterface->AddVdencPipeBufAddrCmd(&cmdBuffer, m_pipeBufAddrParams), release_func);
 
     MHW_VDBOX_HEVC_PIC_STATE_G12 picStateParams;
@@ -4568,9 +4565,8 @@ MOS_STATUS CodechalVdencHevcStateG12::SetDmemHuCBrcInitReset()
     {
         hucVdencBrcInitDmem->GopP_U16 = intraPeriod/m_hevcSeqParams->GopRefDist;
         hucVdencBrcInitDmem->GopB_U16 = hucVdencBrcInitDmem->GopP_U16;
-        hucVdencBrcInitDmem->GopB1_U16 = ((hucVdencBrcInitDmem->GopP_U16 + hucVdencBrcInitDmem->GopB_U16) == intraPeriod) ? 0 : hucVdencBrcInitDmem->GopB_U16 * 2;
-        hucVdencBrcInitDmem->GopB2_U16 = intraPeriod - hucVdencBrcInitDmem->GopP_U16 - hucVdencBrcInitDmem->GopB_U16 - hucVdencBrcInitDmem->GopB1_U16;
-
+        hucVdencBrcInitDmem->GopB1_U16 = ((hucVdencBrcInitDmem->GopP_U16 + hucVdencBrcInitDmem->GopB_U16) >= intraPeriod) ? 0 : hucVdencBrcInitDmem->GopB_U16 * 2;
+        hucVdencBrcInitDmem->GopB2_U16 = ((hucVdencBrcInitDmem->GopP_U16 + hucVdencBrcInitDmem->GopB_U16 + hucVdencBrcInitDmem->GopB1_U16) >= intraPeriod) ? 0 : intraPeriod - hucVdencBrcInitDmem->GopP_U16 - hucVdencBrcInitDmem->GopB_U16 - hucVdencBrcInitDmem->GopB1_U16;
         hucVdencBrcInitDmem->MaxBRCLevel_U8 = hucVdencBrcInitDmem->GopB1_U16 == 0 ? HEVC_BRC_FRAME_TYPE_B : (hucVdencBrcInitDmem->GopB2_U16 == 0 ? HEVC_BRC_FRAME_TYPE_B1 : HEVC_BRC_FRAME_TYPE_B2);
         hucVdencBrcInitDmem->BRCPyramidEnable_U8 = 1;
     }
@@ -5353,7 +5349,7 @@ void CodechalVdencHevcStateG12::SetVdencPipeModeSelectParams(MHW_VDBOX_PIPE_MODE
     // Set lookahead pass flag
     pipeModeSelectParams.bLookaheadPass         = m_lookaheadPass;
 
-#ifdef _ENCODE_VDENC_RESERVED
+#ifdef _MEDIA_RESERVED
     if (m_rsvdState)
     {
         m_rsvdState->SetVdencPipeModeSelectParams(pipeModeSelectParams);
@@ -6436,7 +6432,7 @@ MOS_STATUS CodechalVdencHevcStateG12::Initialize(CodechalSetting * settings)
 
     m_sizeOfHcpPakFrameStats = 9 * CODECHAL_CACHELINE_SIZE;
 
-#ifdef _ENCODE_VDENC_RESERVED
+#ifdef _MEDIA_RESERVED
     InitReserveState(settings);
 #endif
     m_enableSCC = settings->isSCCEnabled;
@@ -7222,7 +7218,6 @@ MOS_STATUS CodechalVdencHevcStateG12::AddHcpPipeBufAddrCmd(
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-#ifdef _MMC_SUPPORTED
     m_mmcState->SetPipeBufAddr(m_pipeBufAddrParams);
     // Recon P010v MMC state set from RC for compression write
     // Reference P010v MMC state set from MC for compression read
@@ -7235,7 +7230,7 @@ MOS_STATUS CodechalVdencHevcStateG12::AddHcpPipeBufAddrCmd(
 
         m_pipeBufAddrParams->PreDeblockSurfMmcState = MOS_MEMCOMP_RC;
     }
-#endif
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpPipeBufAddrCmd(cmdBuffer, m_pipeBufAddrParams));
 
     return eStatus;
@@ -7483,14 +7478,14 @@ MOS_STATUS CodechalVdencHevcStateG12::IsSliceInTile(
 MOS_STATUS CodechalVdencHevcStateG12::InitMmcState()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
-#ifdef _MMC_SUPPORTED
+
     m_mmcState = MOS_New(CodechalMmcEncodeHevcG12, m_hwInterface, this);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
-#ifdef _ENCODE_VDENC_RESERVED
+#ifdef _MEDIA_RESERVED
 MOS_STATUS CodechalVdencHevcStateG12::InitReserveState(CodechalSetting * settings)
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
@@ -7831,10 +7826,8 @@ MOS_STATUS CodechalVdencHevcStateG12::SendPrologWithFrameTracking(
         return eStatus;
     }
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(m_miInterface, cmdBuffer, gpuContext));
-#endif
 
     if (!IsLastPipe())
     {
@@ -8215,7 +8208,7 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCLookaheadInit()
     virtualAddrParams.regionParams[0].presRegion = &m_vdencLaHistoryBuffer;
     virtualAddrParams.regionParams[0].isWritable = true;
 
-#if USE_CODECHAL_DEBUG_TOOL && _ENCODE_VDENC_RESERVED
+#if USE_CODECHAL_DEBUG_TOOL && _MEDIA_RESERVED
     if (m_swLaMode)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHal_DbgCallSwLookaheadImpl(
@@ -8330,7 +8323,7 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCLookaheadUpdate()
     virtualAddrParams.regionParams[2].presRegion = &m_vdencLaDataBuffer;
     virtualAddrParams.regionParams[2].isWritable = true;
 
-#if USE_CODECHAL_DEBUG_TOOL && _ENCODE_VDENC_RESERVED
+#if USE_CODECHAL_DEBUG_TOOL && _MEDIA_RESERVED
     if (m_swLaMode)
     {
         bool isLaAnalysisRequired = true;
@@ -8568,7 +8561,7 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCBrcInitReset()
 
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-#if (_DEBUG || _RELEASE_INTERNAL) && _ENCODE_VDENC_RESERVED
+#if (_DEBUG || _RELEASE_INTERNAL) && _MEDIA_RESERVED
     if (m_swBrcMode != nullptr && !m_enableTileReplay && !m_hevcVdencWeightedPredEnabled)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetDmemHuCBrcInitReset());
@@ -8744,7 +8737,7 @@ MOS_STATUS CodechalVdencHevcStateG12::HuCBrcUpdate()
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(ConstructBatchBufferHuCBRC(&m_vdencReadBatchBuffer[m_currRecycledBufIdx][currentPass]));
 
-#if (_DEBUG || _RELEASE_INTERNAL) && _ENCODE_VDENC_RESERVED
+#if (_DEBUG || _RELEASE_INTERNAL) && _MEDIA_RESERVED
     if (m_swBrcMode != nullptr && !m_enableTileReplay && !m_hevcVdencWeightedPredEnabled)
     {
         CODECHAL_ENCODE_CHK_STATUS_RETURN(SetDmemHuCBrcUpdate());

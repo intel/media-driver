@@ -86,7 +86,7 @@ MOS_STATUS EncodeHevcVdencFeatureManagerXe_Hpm::ValidateASteppingNotSupportedFea
         hevcSeqParams->SliceSizeControl ||
         hevcPicParams->bEnableRollingIntraRefresh)
     {
-        ENCODE_ASSERTMESSAGE("RollingI/SCC/DSS are not supported on A stepping.");
+        ENCODE_WARNINGMESSAGE("RollingI/SCC/DSS are not supported on A stepping.");
         return MOS_STATUS_INVALID_PARAMETER;
     }
 

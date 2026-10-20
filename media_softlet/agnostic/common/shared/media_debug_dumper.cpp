@@ -792,7 +792,7 @@ MOS_STATUS CommonSurfaceDumper::ReAllocateSurface(
     pSurface->CompressionMode = pSrcSurf->CompressionMode;
     pSurface->bIsCompressed   = pSrcSurf->bIsCompressed;
 
-    if (!pOsInterface->apoMosEnabled && !pOsInterface->apoMosForLegacyRuntime)
+    if (!pOsInterface->apoMosEnabled)
     {
         MOS_SURFACE details;
         MOS_ZeroMemory(&details, sizeof(details));

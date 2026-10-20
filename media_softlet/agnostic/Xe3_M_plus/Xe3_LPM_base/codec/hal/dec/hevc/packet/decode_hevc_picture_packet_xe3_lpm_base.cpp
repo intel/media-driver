@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -62,7 +62,7 @@ MOS_STATUS HevcDecodePicPktXe3_Lpm_Base::Execute(MOS_COMMAND_BUFFER &cmdBuffer)
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     if (m_downSamplingFeature != nullptr && m_downSamplingPkt != nullptr &&
-        m_downSamplingFeature->IsEnabled())
+        m_downSamplingFeature->IsEnabled() && !m_downSamplingFeature->IsVDAQMHistogramEnabled())
     {
         if (!IsFrontEndPhase())
         {
@@ -180,11 +180,9 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, HevcDecodePicPktXe3_Lpm_Base)
     params = {};
     DECODE_CHK_STATUS(HevcDecodePicPkt::MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params));
 
-#ifdef _MMC_SUPPORTED
     HevcDecodeMemCompXe3_Lpm_Base *hevcDecodeMemComp = dynamic_cast<HevcDecodeMemCompXe3_Lpm_Base *>(m_mmcState);
     DECODE_CHK_NULL(hevcDecodeMemComp);
     DECODE_CHK_STATUS(hevcDecodeMemComp->CheckReferenceList(*m_hevcBasicFeature, params.PostDeblockSurfMmcState, params.PreDeblockSurfMmcState, params.presReferences));
-#endif
 
     auto decodeMode = m_hevcPipeline->GetDecodeMode();
     if (decodeMode == HevcPipeline::virtualTileDecodeMode ||
@@ -209,6 +207,13 @@ MHW_SETPAR_DECL_SRC(HCP_PIC_STATE, HevcDecodePicPktXe3_Lpm_Base)
     params.pHevcExtPicParams                       = m_hevcRextPicParams;
     params.pHevcSccPicParams                       = m_hevcSccPicParams;
     params.ibcMotionCompensationBufferReferenceIdc = m_hevcBasicFeature->m_refFrames.m_IBCRefIdx;
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    if (m_downSamplingFeature && m_downSamplingFeature->IsVDAQMHistogramEnabled())
+    {
+        params.vdaqmEnable = true;
+    }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }

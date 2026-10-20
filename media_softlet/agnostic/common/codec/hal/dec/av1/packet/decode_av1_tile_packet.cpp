@@ -253,6 +253,13 @@ namespace decode
 
         m_av1BasicFeature->m_frameCompletedFlag = par.lastTileOfFrame;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_av1Pipeline != nullptr)
+        {
+            par.enableAvpDebugMode = m_av1Pipeline->GetMemDataAccessCrcOutputEnable();
+        }
+#endif
+
         DECODE_CHK_STATUS(m_avpItf->MHW_ADDCMD_F(AVP_TILE_CODING)(&cmdBuffer));
 
         return MOS_STATUS_SUCCESS;

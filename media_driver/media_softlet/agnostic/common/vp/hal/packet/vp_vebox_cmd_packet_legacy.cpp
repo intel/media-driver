@@ -2040,11 +2040,7 @@ MOS_STATUS VpVeboxCmdPacketLegacy::RenderVeboxCmd(
     }
     VP_RENDER_CHK_NULL_RETURN(pVeboxHeap);
 
-#ifdef _MMC_SUPPORTED
-
     VP_RENDER_CHK_STATUS_RETURN(setVeboxProCmd(pMhwMiInterface, pVeboxInterface, CmdBuffer));
-
-#endif
 
     // Initialize the scalability
     curPipe    = scalability->GetCurrentPipe();
@@ -2115,11 +2111,8 @@ MOS_STATUS VpVeboxCmdPacketLegacy::RenderVeboxCmd(
         if (bMultipipe)
         {
             // Insert prolog with VE params
-#ifdef _MMC_SUPPORTED
 
             VP_RENDER_CHK_STATUS_RETURN(setVeboxProCmd(pMhwMiInterface, pVeboxInterface, pCmdBufferInUse));
-
-#endif
 
             MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
             MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));

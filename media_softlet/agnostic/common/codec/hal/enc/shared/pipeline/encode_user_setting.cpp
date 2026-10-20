@@ -102,6 +102,20 @@ MOS_STATUS EncodePipeline::InitUserSetting(MediaUserSettingSharedPtr userSetting
 
     DeclareUserSettingKey(
         userSettingPtr,
+        "TF Downscale Method",
+        MediaUserSetting::Group::Sequence,
+        uint32_t(2),
+        false);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
+        "TF preENC TargetUsage",
+        MediaUserSetting::Group::Sequence,
+        uint32_t(4),
+        false);
+
+    DeclareUserSettingKey(
+        userSettingPtr,
         "Enable Frame Tracking",
         MediaUserSetting::Group::Sequence,
         int32_t(1),
@@ -169,6 +183,18 @@ MOS_STATUS EncodePipeline::InitUserSetting(MediaUserSettingSharedPtr userSetting
         MediaUserSetting::Group::Sequence,
         "",
         false);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "SLBB SW Simulation",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        false);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "SLBB SW Simulation Modules Path",
+        MediaUserSetting::Group::Sequence,
+        "",
+        false);
     DeclareUserSettingKey(
         userSettingPtr,
         "TCBRC Quality Boost Mode",
@@ -198,6 +224,18 @@ MOS_STATUS EncodePipeline::InitUserSetting(MediaUserSettingSharedPtr userSetting
         "Fake PBFrame Header Size",
         MediaUserSetting::Group::Sequence,
         int32_t(16),
+        false);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "DisableTilebToTile4",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        false);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "ForceTile64ReconSurfaceToTile4",
+        MediaUserSetting::Group::Sequence,
+        int32_t(1),
         false);
     DeclareUserSettingKeyForDebug(
         userSettingPtr,

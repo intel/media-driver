@@ -1953,10 +1953,9 @@ MOS_STATUS CodecHalAvcEncode_PackSliceHeader(
 
 MOS_STATUS CodechalEncodeAvcBase::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
     m_mmcState = MOS_New(CodechalMmcEncodeAvc, m_hwInterface, this);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

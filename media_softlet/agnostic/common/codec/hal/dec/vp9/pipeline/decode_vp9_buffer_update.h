@@ -102,6 +102,13 @@ protected:
     //!
     MOS_STATUS AllocateSegmentInitBuffer(uint32_t allocSize);
 
+    //!
+    //! \brief  Allocate probability default buffers for key and non-key frames
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS AllocateProbDefaultBuffer();
+
     MOS_STATUS ProbBufFullUpdatewithDrv();
     MOS_STATUS ProbBufferPartialUpdatewithDrv();
     MOS_STATUS ContextBufferInit(uint8_t *ctxBuffer, bool setToKey);
@@ -113,6 +120,8 @@ protected:
 
     HucCopyPktItf     *m_sgementbufferResetPkt = nullptr;  //!< Segment id reset packet
     PMOS_BUFFER        m_segmentInitBuffer     = nullptr; //!< Segment id init buffer
+    PMOS_BUFFER        m_tempVp9ResetFullKeyDefaultProbBuffer = nullptr; //!< Temporary buffer for key frame default probability values
+    PMOS_BUFFER        m_tempVp9ResetFullNonKeyDefaultProbBuffer = nullptr; //!< Temporary buffer for non-key frame default probability values
 
 MEDIA_CLASS_DEFINE_END(decode__DecodeVp9BufferUpdate)
 };

@@ -35,6 +35,7 @@
 #define CODEC_NUM_REF_FRAME_HEVC_WP         3       // number of reference frames used for weighted prediction
 #define CODEC_HEVC_MAX_QP                   51
 #define CODEC_HEVC_MIN_QP_LP                10
+#define CODEC_HEVC_MIN_QP1                  1
 #define HEVC_NUM_MAX_TILE_ROW               22
 #define HEVC_NUM_MAX_TILE_COLUMN            20
 #define CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6  600
@@ -394,12 +395,12 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
             */
             uint32_t        HierarchicalFlag         : 1;
 
-            /*! \brief Indicates if TCBRC is enabled.
+            /*! \brief Indicates if FastPass is enabled.
             *
-            *        \n - 0 : no TCBRC.
-            *        \n - 1 : enable TCBRC if TCBRCSupport in CAP is 1.
+            *        \n - 0 : no FastPass.
+            *        \n - 1 : enable FastPass if FastPassSupport in CAP is 1.
             */
-            uint32_t        TCBRCEnable              : 1;
+            uint32_t        EnableFastPass              : 1;
 
             /*! \brief Indicates if current encodin gis lookahead pass.
             *
@@ -596,6 +597,13 @@ typedef struct _CODEC_HEVC_ENCODE_SEQUENCE_PARAMS
     uint8_t     palette_max_size;
     uint8_t     delta_palette_max_predictor_size;
     uint8_t     FullPassCodecType;  // [0..4]
+    uint8_t     FastPassRatio;
+    uint8_t     FastPassDsType;  // [0..1]
+    uint8_t     long_term_ref_pics_present_flag;
+    uint16_t    reserved16b_crop1; // CropTopOffset
+    uint16_t    reserved16b_crop2; // CropLeftOffset
+    uint16_t    reserved16b_pad1;  // PadBottomOffset
+    uint16_t    reserved16b_pad2;  // PadRightOffset
 } CODEC_HEVC_ENCODE_SEQUENCE_PARAMS, *PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS;
 
 /*! \brief Provides the picture-level parameters of a compressed picture for HEVC decoding.
@@ -732,7 +740,8 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
             uint32_t            pps_deblocking_filter_disabled_flag     : 1;
             uint32_t            bEnableCTULevelReport                   : 1;  // [0..1]
             uint32_t            bEnablePartialFrameUpdate               : 1;
-            uint32_t            reservedbits                            : 3;
+            uint32_t            bEnableSaliencyEncode                   : 1;
+            uint32_t            reservedbits                            : 2;
         };
         uint32_t                PicFlags;
     };
@@ -980,6 +989,7 @@ typedef struct _CODEC_HEVC_ENCODE_PICTURE_PARAMS
     } QualityInfoSupportFlags;
 
     uint8_t AdaptiveTUEnabled;
+    uint8_t reserved8b_dqp; // DeltaQpDcOffset
 } CODEC_HEVC_ENCODE_PICTURE_PARAMS, *PCODEC_HEVC_ENCODE_PICTURE_PARAMS;
 
 /*! \brief Slice-level parameters of a compressed picture for HEVC encoding.

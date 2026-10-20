@@ -69,7 +69,8 @@ MOS_STATUS JpegBasicFeature::Update(void *params)
         &m_destSurface.Format));
 
     uint32_t totalDataLength;
-    
+
+    DECODE_CHK_COND(m_jpegScanParams->NumScans == 0, "No JPEG scan submitted before Update().");
     totalDataLength = m_jpegScanParams->ScanHeader[m_jpegScanParams->NumScans - 1].DataOffset +
                       m_jpegScanParams->ScanHeader[m_jpegScanParams->NumScans - 1].DataLength;
 

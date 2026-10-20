@@ -327,6 +327,10 @@ Cmd::AVP_PIPE_BUF_ADDR_STATE_CMD::AVP_PIPE_BUF_ADDR_STATE_CMD()
 
     memset(&Reserved5920, 0, sizeof(Reserved5920));
 
+    DW212_213.Value[0] = DW212_213.Value[1]          = 0x00000000;
+
+    DW214.Value                                      = 0x00000000;
+
 }
 
 Cmd::AVP_INLOOP_FILTER_STATE_CMD::AVP_INLOOP_FILTER_STATE_CMD()

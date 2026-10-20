@@ -69,7 +69,7 @@ MOS_STATUS MhwSfcInterfaceG9::AddSfcState(
     {
         outputSurfCtrl.Value = pOsInterface->pfnCachePolicyGetMemoryObject(
             MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface_PartialEncSurface,
-            pOsInterface->pfnGetGmmClientContext(pOsInterface)).DwordValue;
+            pOsInterface).DwordValue;
     }
 
     // Check input/output size
@@ -296,12 +296,12 @@ MhwSfcInterfaceG9::MhwSfcInterfaceG9(PMOS_INTERFACE pOsInterface)
 
     m_outputSurfCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
         MOS_MHW_RESOURCE_USAGE_Sfc_CurrentOutputSurface,
-        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
+        m_osInterface).DwordValue;
 
     m_avsLineBufferCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
         MOS_MHW_RESOURCE_USAGE_Sfc_AvsLineBufferSurface,
-        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
+        m_osInterface).DwordValue;
     m_iefLineBufferCtrl.Value = m_osInterface->pfnCachePolicyGetMemoryObject(
         MOS_MHW_RESOURCE_USAGE_Sfc_IefLineBufferSurface,
-        m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
+        m_osInterface).DwordValue;
 }

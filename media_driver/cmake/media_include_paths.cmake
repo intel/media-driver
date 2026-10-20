@@ -29,7 +29,14 @@ include_directories(${BS_DIR_INC}/umKmInc)
 
 # external components' header path which media depends on now
 include_directories(${BS_DIR_SKUWA})
-include_directories(${BS_DIR_GMMLIB}/inc)
+# GMM includes: via interface target on bs_top_cmake builds,
+# or explicit source-tree paths on native Linux (gmm2/staging pkg-config integration is WIP).
+if(NOT TARGET igfx_gmm_interface)
+    include_directories(${BS_DIR_GMMLIB}/inc)
+    include_directories(${BS_DIR_GMMLIBSTAGING}/inc)
+    include_directories(${BS_DIR_GMMLIB2}/public/include)
+    include_directories(${BS_DIR_GMMLIB2}/interface/include)
+endif()
 include_directories(${BS_DIR_SOURCE}/huc/inc)
 endif()
 

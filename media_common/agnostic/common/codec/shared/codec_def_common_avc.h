@@ -43,6 +43,8 @@
 
 #define CODECHAL_ENCODE_VDENC_BRC_CONST_BUFFER_NUM (NUM_PIC_TYPES + 1)  //!< For each frame type + 1 for ref B
 
+#define CODEC_AVC_SLICE_MIN_NUM_BYTES_LOAD   10  // 10 bytes
+
 //!
 //! \enum     CODEC_AVC_WEIGHT_SCALE_SIZE
 //! \brief    Codec AVC weight scale size

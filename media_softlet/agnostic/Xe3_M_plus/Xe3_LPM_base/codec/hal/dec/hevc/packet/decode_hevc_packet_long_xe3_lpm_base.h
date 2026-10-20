@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -30,6 +30,7 @@
 #include "decode_hevc_packet_long.h"
 #include "decode_hevc_tile_packet_xe3_lpm_base.h"
 #include "codec_hw_xe3_lpm_base.h"
+#include "decode_hevc_aqm_packet_xe3_lpm_base.h"
 
 namespace decode
 {
@@ -63,11 +64,16 @@ public:
     //!
     virtual MOS_STATUS Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket) override;
 
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    HevcDecodeAqmPktXe3LpmBase *m_aqmPkt = nullptr;
+#endif
+
 protected:
     MOS_STATUS PackPictureLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer);
     MOS_STATUS PackSliceLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer);
     MOS_STATUS VdMemoryFlush(MOS_COMMAND_BUFFER &cmdBuffer);
     MOS_STATUS VdPipelineFlush(MOS_COMMAND_BUFFER &cmdBuffer);
+    MOS_STATUS VdPipelineFlushAqm(MOS_COMMAND_BUFFER &cmdBuffer);
 
     CodechalHwInterfaceXe3_Lpm_Base *m_hwInterface = nullptr;
     HevcDecodeTilePktXe3_Lpm_Base   *m_tilePkt     = nullptr;

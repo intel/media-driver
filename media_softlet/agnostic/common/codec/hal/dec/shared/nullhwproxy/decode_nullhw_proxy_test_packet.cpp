@@ -53,10 +53,12 @@ namespace decode
             __MEDIA_USER_FEATURE_VALUE_NULLHW_PROXY_REPEAT_COUNT,
             MediaUserSetting::Group::Device);
 
-        if (m_dataStoreBuf == nullptr)
+        MOS_GPU_CONTEXT gpuContext = osInterface->pfnGetGpuContext(osInterface);
+        if (m_dataStoreBufMap.find(gpuContext) == m_dataStoreBufMap.end())
         {
-            m_dataStoreBuf = m_allocator->AllocateBuffer(2 * sizeof(uint32_t), "Store data buffer", resourceInternalReadWriteCache, notLockableVideoMem, true, 0);
-            DECODE_CHK_NULL(m_dataStoreBuf);
+            MOS_BUFFER* dataStoreBuf = m_allocator->AllocateBuffer(2 * sizeof(uint32_t), "Store data buffer", resourceInternalReadWriteCache, notLockableVideoMem, true, 0);
+            DECODE_CHK_NULL(dataStoreBuf);
+            m_dataStoreBufMap[gpuContext] = dataStoreBuf;
         }
         if (m_secondLevelBBArray == nullptr)
         {
@@ -75,10 +77,30 @@ namespace decode
     MOS_STATUS DecodeNullHWProxyTestPkt::Destory()
     {
         DECODE_CHK_NULL(m_allocator);
-        DECODE_CHK_STATUS(m_allocator->Destroy(m_dataStoreBuf));
+        for (auto& pair : m_dataStoreBufMap)
+        {
+            DECODE_CHK_STATUS(m_allocator->Destroy(pair.second));
+        }
+        m_dataStoreBufMap.clear();
         DECODE_CHK_STATUS(m_allocator->Destroy(m_secondLevelBBArray));
 
         return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_BUFFER* DecodeNullHWProxyTestPkt::GetCurrentDataStoreBuf(MOS_INTERFACE *osInterface)
+    {
+        DECODE_FUNC_CALL();
+        if (osInterface == nullptr)
+        {
+            return nullptr;
+        }
+        MOS_GPU_CONTEXT gpuContext = osInterface->pfnGetGpuContext(osInterface);
+        auto it = m_dataStoreBufMap.find(gpuContext);
+        if (it != m_dataStoreBufMap.end())
+        {
+            return it->second;
+        }
+        return nullptr;
     }
 
     MOS_STATUS DecodeNullHWProxyTestPkt::Init2ndLevelCmdBuffer(MHW_BATCH_BUFFER& batchBuffer, uint8_t* batchBufBase)
@@ -158,14 +180,17 @@ namespace decode
         return eStatus;
     }
 
-    MOS_STATUS DecodeNullHWProxyTestPkt::Pack2ndLevelCmds(DecodePipeline* pipeline, MOS_COMMAND_BUFFER& cmdBuffer)
+    MOS_STATUS DecodeNullHWProxyTestPkt::Pack2ndLevelCmds(DecodePipeline* pipeline, MOS_INTERFACE *osInterface, MOS_COMMAND_BUFFER& cmdBuffer)
     {
         DECODE_FUNC_CALL();
+
+        MOS_BUFFER* dataStoreBuf = GetCurrentDataStoreBuf(osInterface);
+        DECODE_CHK_NULL(dataStoreBuf);
 
         // MI_ATOMIC: ADD 1 TO ORIGINAL DATA
         auto &par            = m_miItf->GETPAR_MI_ATOMIC();
         par                  = {};
-        par.pOsResource      = &m_dataStoreBuf->OsResource;
+        par.pOsResource      = &dataStoreBuf->OsResource;
         par.dwResourceOffset = sizeof(uint32_t);
         par.dwDataSize       = sizeof(uint32_t);
         par.Operation        = mhw::mi::MHW_MI_ATOMIC_INC;
@@ -176,7 +201,7 @@ namespace decode
         uint32_t compData = m_repeatCount;
 
         DECODE_CHK_STATUS(SendCondBbEndCmd(
-            &m_dataStoreBuf->OsResource, 0, compData, false, true, compareOperation, &cmdBuffer));
+            &dataStoreBuf->OsResource, 0, compData, false, true, compareOperation, &cmdBuffer));
 
         // Chained BB loop
         auto &chainedBBStartPar = m_miItf->GETPAR_MI_BATCH_BUFFER_START();
@@ -201,10 +226,13 @@ namespace decode
         DECODE_CHK_NULL(osInterface);
         DECODE_CHK_NULL(m_miItf);
 
+        MOS_BUFFER* dataStoreBuf = GetCurrentDataStoreBuf(osInterface);
+        DECODE_CHK_NULL(dataStoreBuf);
+
         // add 2nd level BB before start status reporting
         auto &par            = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
         par                  = {};
-        par.pOsResource      = &m_dataStoreBuf->OsResource;
+        par.pOsResource      = &dataStoreBuf->OsResource;
         par.dwResourceOffset = 0;
         par.dwValue          = 0xFFFFFF;
 
@@ -224,7 +252,7 @@ namespace decode
             DECODE_CHK_NULL(batchBufBase);
             DECODE_CHK_STATUS(Init2ndLevelCmdBuffer(*m_batchBuf, batchBufBase));
             m_statusCheckCmdBuffer.cmdBuf1stLvl = cmdBuffer;
-            DECODE_CHK_STATUS(Pack2ndLevelCmds(pipeline, m_statusCheckCmdBuffer));
+            DECODE_CHK_STATUS(Pack2ndLevelCmds(pipeline, osInterface, m_statusCheckCmdBuffer));
             if (!osInterface->pfnIsMismatchOrderProgrammingSupported())
             {
                 DECODE_CHK_STATUS(m_miItf->AddMiBatchBufferEnd(&m_statusCheckCmdBuffer, nullptr));

@@ -66,6 +66,8 @@ public:
     //!
     bool IsRDOQEnabled() { return m_rdoqEnable; }
 
+    void SetRDOQ(bool rdoqEnabled) { m_rdoqEnable = rdoqEnabled; }
+
     MHW_SETPAR_DECL_HDR(HCP_PIC_STATE);
 
     MHW_SETPAR_DECL_HDR(HCP_PIPE_MODE_SELECT);
@@ -132,6 +134,7 @@ protected:
     bool     m_rdoqEnable           = false;
     uint32_t m_rdoqIntraTuThreshold = 0;
 #if (_DEBUG || _RELEASE_INTERNAL)
+    int8_t   m_rdoqEnableReported           = -1;     //!< Last m_rdoqEnable reported, -1 if never
     bool     m_rdoqIntraTuOverride          = false;  //!< Override RDOQ intra TU or not
     bool     m_rdoqIntraTuDisableOverride   = false;  //!< Override RDOQ intra TU disable
     uint16_t m_rdoqIntraTuThresholdOverride = 0;      //!< Override RDOQ intra TU threshold

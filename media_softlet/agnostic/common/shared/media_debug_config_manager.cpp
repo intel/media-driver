@@ -413,6 +413,10 @@ void MediaDebugConfigMgr::GenerateDefaultConfig(std::string configFileName)
     ofs << "#" << MediaDbgAttr::attrDumpToThreadFolder << ":0" << std::endl;
     ofs << "#" << MediaDbgAttr::attrDumpCmdBufInBinary << ":0" << std::endl;
     ofs << "#" << MediaDbgAttr::attrEnableFastDump << ":1" << std::endl;
+    ofs << "#" << MediaDbgAttr::attrFastDumpAllowDataLoss << ":0" << std::endl;
+    ofs << "#" << MediaDbgAttr::attrFastDumpRenderCpyEn << ":0" << std::endl;
+    ofs << "#" << MediaDbgAttr::attrFastDumpVeCpyEn << ":0" << std::endl;
+    ofs << "#" << MediaDbgAttr::attrFastDumpBltCpyEn << ":0" << std::endl;
     ofs << "#" << MediaDbgAttr::attrStatusReport << ":0" << std::endl;
     ofs << std::endl;
 
@@ -442,6 +446,7 @@ void MediaDebugConfigMgr::GenerateDefaultConfig(std::string configFileName)
     ofs << "##" << MediaDbgAttr::attrForceCmdDumpLvl << ":0" << std::endl;
     ofs << "##" << MediaDbgAttr::attrForceCurbeDumpLvl << ":0" << std::endl;
     ofs << "##" << MediaDbgAttr::attrFrameState << ":0" << std::endl;
+    ofs << "##" << MediaDbgAttr::attrVdencFrameStats << ":0" << std::endl;
     ofs << "##" << MediaDbgAttr::attrBrcPakStats << ":0" << std::endl;
     ofs << "##" << MediaDbgAttr::attrCUStreamout << ":0" << std::endl;
     ofs << "##" << MediaDbgAttr::attrImageState << ":0" << std::endl;

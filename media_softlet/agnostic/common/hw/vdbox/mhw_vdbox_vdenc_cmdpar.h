@@ -392,7 +392,7 @@ struct _MHW_PAR_T(VDENC_AVC_IMG_STATE)
     uint8_t  intraRefreshMbSizeMinusOne             = 0;
     uint8_t  intraRefreshEnableRollingIEnable       = 0;
     uint8_t  intraRefreshMode                       = 0;
-    uint8_t  qpAdjustmentForRollingI                = 0;
+    int8_t   qpAdjustmentForRollingI                = 0;
     uint8_t  roiQpAdjustmentForZone0                = 0;
     uint8_t  roiQpAdjustmentForZone1                = 0;
     uint8_t  roiQpAdjustmentForZone2                = 0;
@@ -410,6 +410,13 @@ struct _MHW_PAR_T(VDENC_AVC_IMG_STATE)
     uint8_t  pocNumberForFwdRef1                    = 0;
     uint8_t  pocNumberForFwdRef2                    = 0;
     uint8_t  pocNumberForBwdRef0                    = 0;
+    uint8_t  plAdaptFrameField                      = 0;
+    uint8_t  currFrmFldPic                          = 0;
+    uint8_t  curPicType                             = 0;
+    uint8_t  fwdRefIdx0FieldType                    = 0;
+    uint8_t  bwdRefIdx0FieldType                    = 0;
+    uint8_t  fwdRefIdx1FieldType                    = 0;
+    uint8_t  fwdRefIdx2FieldType                    = 0;
 
     __MHW_VDBOX_VDENC_WRAPPER(
         std::vector<std::function<MOS_STATUS(uint32_t *)>> extSettings);
@@ -527,6 +534,14 @@ struct _MHW_PAR_T(VDENC_CMD1)
     uint8_t  vdencCmd1Par105[4] = {};
     uint8_t  vdencCmd1Par106[4] = {};
     uint8_t  vdencCmd1Par107    = 0;
+    uint8_t  vdencCmd1Par108    = 0;
+    uint8_t  vdencCmd1Par109    = 0;
+    uint8_t  vdencCmd1Par110    = 0;
+    uint8_t  vdencCmd1Par111    = 0;
+    uint8_t  vdencCmd1Par112    = 0;
+    uint8_t  vdencCmd1Par113    = 0;
+    uint8_t  vdencCmd1Par114    = 0;
+    uint8_t  vdencCmd1Par115    = 0;
 };
 
 struct _MHW_PAR_T(VDENC_CMD2)
@@ -563,11 +578,35 @@ struct _MHW_PAR_T(VDENC_CMD2)
     uint8_t  minQp                            = 0;
     uint8_t  maxQp                            = 255;
     bool     temporalMvEnableForIntegerSearch = false;
+
+    // Temporal MV parameters for AV1 encoder
+    // HAL layer MUST validate these values before assignment
+    
+    // Sequence order hint bits minus 1 (DW67 bits 2:0)
+    // HAL layer MUST validate this value is within [0..7] range before assignment
+    // Valid range: 0-7 (3 bits), used to generate bitmask for computing relative distance between order hints
+    uint8_t  sequenceOrderHintBitsMinus1      = 0;
+    
+    // Active reference bitmask for motion field projection (DW74 bits 31:24)
+    // HAL layer MUST validate max 3 bits set and only at valid positions (0,1,2,4,6,7) before assignment
+    // Valid bit positions: 0(LAST), 1(LAST2), 2(LAST3), 4(BWDREF), 6(ALTREF2), 7(ALTREF)
+    // Priority order for merging: LAST, BWDREF, ALTREF2, ALTREF, LAST2
+    // Bit positions 3 and 5 are reserved and must not be set
+    uint8_t  activeRefBitmaskMfProj           = 0;
+    
+    // Saved order hints array for motion field projection (DW73-85)
+    // HAL layer MUST validate each element is within [0..255] range before assignment
+    // Format: [reference frame index 0-6][7 reference indices of that reference frame]
+    // Each element represents time steps for motion field projection
+    // Index mapping: 0=LAST, 1=LAST2, 2=LAST3, 3=GOLDEN, 4=BWDREF, 5=ALTREF2, 6=ALTREF
+    uint8_t  savedOrderHints[7][7]            = {};
+    uint8_t  refOrderHints[8]                 = {};
+
     uint16_t intraRefreshPos                  = 0;
     uint8_t  intraRefreshMbSizeMinus1         = 1;
     uint8_t  intraRefreshMode                 = 0;
     bool     intraRefresh                     = false;
-    uint8_t  qpAdjustmentForRollingI          = 0;
+    int8_t   qpAdjustmentForRollingI          = 0;
     uint8_t  qpForSegs[8]                     = {};
     bool     vp9DynamicSlice                  = false;
     uint8_t  qpPrimeYDc                       = 0;
@@ -575,6 +614,7 @@ struct _MHW_PAR_T(VDENC_CMD2)
     uint32_t intraRefreshBoundary[3]          = {};
     uint8_t  av1RefId[2][4]                   = {{1, 1, 1, 1}, {1, 1, 1, 1}};
     uint8_t  subPelMode                       = 3;
+    uint8_t  av1EnableIntraEdgeFilter         = 0;
 
     __MHW_VDBOX_VDENC_WRAPPER(
         std::vector<std::function<MOS_STATUS(uint32_t *)>> extSettings);

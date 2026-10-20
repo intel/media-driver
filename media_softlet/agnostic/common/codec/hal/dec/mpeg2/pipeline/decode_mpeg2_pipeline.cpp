@@ -151,12 +151,11 @@ MOS_STATUS Mpeg2Pipeline::UserFeatureReport()
     WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_APOGEIOS_MPEG2D_ENABLE_ID, 1, m_osInterface->pOsContext);
 #endif
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DEBUG_TOOL(
         if (m_mmcState != nullptr) {
             m_mmcState->UpdateUserFeatureKey(&(m_basicFeature->m_destSurface));
         })
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

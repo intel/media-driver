@@ -294,7 +294,7 @@ protected:
     bool m_userFeatureUpdated_post_cdef                 = false;    //!< Inidate if mmc user feature key for post cdef is updated
     bool m_vdencPakObjCmdStreamOutEnabled               = false;    //!< Pakobj stream out enable flag
     PMOS_RESOURCE m_resCumulativeCuCountStreamoutBuffer = nullptr;  //!< Cumulative CU count stream out buffer
-    PMOS_RESOURCE m_vdencIntraRowStoreScratch           = nullptr;
+    PMOS_RESOURCE m_vdencIntraRowStoreScratch[AV1_NUM_OF_DUAL_CTX] = {};  //!< DW77..79, Intra Prediction RowStore Base Address (dual buffer support for dual encoding)
     PMOS_RESOURCE m_vdencTileRowStoreBuffer             = nullptr;  //!< Tile row store buffer
     PMOS_RESOURCE m_resVDEncPakObjCmdStreamOutBuffer    = nullptr;  //!< Resource of Vdenc Pak object command stream out buffer
     PMOS_RESOURCE m_resVDEncStatsBuffer                 = nullptr;  //!< Resource of Vdenc status buffer
@@ -361,11 +361,11 @@ protected:
 
     virtual MOS_STATUS PrepareHWMetaData(MOS_COMMAND_BUFFER *cmdBuffer);
 
-    virtual MOS_STATUS PrepareHWMetaDataFromStreamout(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset resourceOffset, const AV1MetaDataOffset AV1ResourceOffset);
+    virtual MOS_STATUS PrepareHWMetaDataFromStreamout(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset &resourceOffset, const AV1MetaDataOffset &AV1ResourceOffset);
 
     virtual MOS_STATUS PrepareHWMetaDataFromRegister(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset resourceOffset);
 
-    virtual MOS_STATUS PrepareHWMetaDataFromDriver(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset resourceOffset, const AV1MetaDataOffset AV1ResourceOffset);
+    virtual MOS_STATUS PrepareHWMetaDataFromDriver(MOS_COMMAND_BUFFER *cmdBuffer, const MetaDataOffset &resourceOffset, const AV1MetaDataOffset &AV1ResourceOffset);
 
     virtual MOS_STATUS readBRCMetaDataFromSLBB(MOS_COMMAND_BUFFER *cmdBuffer, PMOS_RESOURCE presDst, uint32_t dstOffset, PMOS_RESOURCE presSrc, uint32_t srcOffset, uint32_t significantBits);
 

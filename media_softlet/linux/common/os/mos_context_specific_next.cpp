@@ -316,7 +316,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         osDriverContext->pPerfData = m_perfData;
 
         //It must be done with m_gpuContextMgr ready. Insides it will create gpu context.
-#ifdef _MMC_SUPPORTED
+
         m_mosDecompression = MOS_New(MosDecompression, osDriverContext);
         MOS_OS_CHK_NULL_RETURN(m_mosDecompression);
         osDriverContext->ppMediaMemDecompState = m_mosDecompression->GetMediaMemDecompState();
@@ -325,7 +325,7 @@ MOS_STATUS OsContextSpecificNext::Init(DDI_DEVICE_CONTEXT ddiDriverContext)
         {
             MOS_OS_NORMALMESSAGE("Decomp state creation failed");
         }
-#endif
+
         m_mosMediaCopy = MOS_New(MosMediaCopy, osDriverContext);
         if (nullptr == m_mosMediaCopy)
         {

@@ -84,6 +84,9 @@ MOS_STATUS VpGraphSet::GetGraphObject(
     auto handle = m_cachedGraphs.find(graphId);
     if (handle == m_cachedGraphs.end())
     {
+#if (_DEBUG || _RELEASE_INTERNAL)
+        VP_PUBLIC_CHK_STATUS_RETURN(LoadGraphForDebug());
+#endif
         auto blobHandle = m_graphPool->find(graphId);
         VP_PUBLIC_CHK_NOT_FOUND_RETURN(blobHandle, m_graphPool);
         handle = m_cachedGraphs.emplace(std::piecewise_construct, std::forward_as_tuple(graphId), std::forward_as_tuple()).first;

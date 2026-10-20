@@ -47,6 +47,7 @@ Vp9BasicFeature::Vp9BasicFeature(DecodeAllocator *allocator, void *hwInterface, 
     }
 
     MOS_ZeroMemory(&m_resVp9SegmentIdBuffer, sizeof(m_resVp9SegmentIdBuffer));
+    MOS_ZeroMemory(&m_resVp9FrameStatusBuffer, sizeof(m_resVp9FrameStatusBuffer));
     MOS_ZeroMemory(&m_resVp9MvTemporalBuffer, sizeof(m_resVp9MvTemporalBuffer));
 
     MOS_ZeroMemory(&m_interProbSaved, sizeof(m_interProbSaved));
@@ -78,6 +79,42 @@ Vp9BasicFeature::~Vp9BasicFeature()
         {
             m_allocator->Destroy(m_resVp9SegmentIdBuffer);
         }
+
+        if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+        {
+            if (!m_allocator->ResourceIsNull(&m_resVp9SegmentIdBuffer->OsResource))
+            {
+                m_allocator->Destroy(m_resVp9FrameStatusBuffer);
+            }
+
+            for(uint8_t i = 0; i < CODECHAL_DECODE_VP9_MAX_NUM_REF_FRAME+1; i++)
+            {
+                if (!m_allocator->ResourceIsNull(&m_resVp9MvTemporalBuffer[i]->OsResource))
+                {
+                    m_allocator->Destroy(m_resVp9MvTemporalBuffer[i]);
+                }
+            }
+
+            if (m_resVp9MVPingPongStateBuffer != nullptr)
+            {
+                m_allocator->Destroy(m_resVp9MVPingPongStateBuffer);
+                m_resVp9MVPingPongStateBuffer = nullptr;
+            }
+            if (m_resVp9MVNextStateBuffer != nullptr)
+            {
+                m_allocator->Destroy(m_resVp9MVNextStateBuffer);
+                m_resVp9MVNextStateBuffer = nullptr;
+            }
+        }
+        else{
+            for(uint8_t i = 0; i < CODECHAL_VP9_NUM_MV_BUFFERS; i++)
+            {
+                if (!m_allocator->ResourceIsNull(&m_resVp9MvTemporalBuffer[i]->OsResource))
+                {
+                    m_allocator->Destroy(m_resVp9MvTemporalBuffer[i]);
+                }
+            }
+        }
     }
 }
 
@@ -102,6 +139,37 @@ MOS_STATUS Vp9BasicFeature::Init(void *setting)
     DECODE_CHK_STATUS(m_refFrames.Init(this, *m_allocator));
 
     InitDefaultProbBufferTable();
+
+    // Allocate frame status buffer for mismatch order mode
+    if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+    {
+        m_resVp9FrameStatusBuffer = m_allocator->AllocateBuffer(
+            sizeof(uint32_t),               // dwBytes
+            "Vp9FrameStatusBuffer",         // pBufName
+            resourceInternalReadWriteCache, // ResUsageType
+            lockableVideoMem);              // MemType
+        DECODE_CHK_NULL(m_resVp9FrameStatusBuffer);
+
+        // CPU-initialize the whole DWORD to 0 (non-key) so the very first inter frame reads a clean value.
+        ResourceAutoLock resLock(m_allocator, &m_resVp9FrameStatusBuffer->OsResource);
+        auto             data = (uint8_t *)resLock.LockResourceForWrite();
+        DECODE_CHK_NULL(data);
+        MOS_ZeroMemory(data, sizeof(uint32_t));
+
+        // Allocate ping-pong state buffer: read by MI_COND_BB_END each frame.
+        // GPU-init (STORE_DATA_IMM = 1) is emitted in every key frame's Execute().
+        m_resVp9MVPingPongStateBuffer = m_allocator->AllocateBuffer(
+            sizeof(uint32_t), "Vp9MVPingPongStateBuffer",
+            resourceInternalReadWriteCache, lockableVideoMem);
+        DECODE_CHK_NULL(m_resVp9MVPingPongStateBuffer);
+
+        // Allocate next-state buffer: written by the executing BB via MI_STORE_DATA_IMM.
+        // GPU-init (STORE_DATA_IMM = 0) is also emitted in every key frame's Execute().
+        m_resVp9MVNextStateBuffer = m_allocator->AllocateBuffer(
+            sizeof(uint32_t), "Vp9MVNextStateBuffer",
+            resourceInternalReadWriteCache, lockableVideoMem);
+        DECODE_CHK_NULL(m_resVp9MVNextStateBuffer);
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -374,15 +442,22 @@ MOS_STATUS Vp9BasicFeature::SetPictureStructs()
     m_destSurface.dwWidth  = m_vp9PicParams->FrameWidthMinus1 + 1;
     m_destSurface.dwHeight = m_vp9PicParams->FrameHeightMinus1 + 1;
 
-
-    //update MV temp buffer index
-    if (m_vp9PicParams->PicFlags.fields.frame_type == CODEC_VP9_INTER_FRAME &&
-        !m_vp9PicParams->PicFlags.fields.intra_only)
+    if (m_destSurface.dwPitch != 0)
     {
-        m_curMvTempBufIdx = (m_curMvTempBufIdx + 1) % CODECHAL_VP9_NUM_MV_BUFFERS;
-        m_colMvTempBufIdx = (m_curMvTempBufIdx < 1) ? (CODECHAL_VP9_NUM_MV_BUFFERS - 1) : (m_curMvTempBufIdx - 1);
+        DECODE_CHK_COND((uint32_t)(m_destSurface.dwPitch * m_destSurface.dwHeight) < (m_width * m_height),
+            "The RT surface size is smaller than decoded picture size, insufficient surface size will cause read/write access violation.");
     }
 
+    //update MV temp buffer index
+   if (!m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+    {
+        if (m_vp9PicParams->PicFlags.fields.frame_type == CODEC_VP9_INTER_FRAME &&
+            !m_vp9PicParams->PicFlags.fields.intra_only)
+        {
+            m_curMvTempBufIdx = (m_curMvTempBufIdx + 1) % CODECHAL_VP9_NUM_MV_BUFFERS;
+            m_colMvTempBufIdx = (m_curMvTempBufIdx < 1) ? (CODECHAL_VP9_NUM_MV_BUFFERS - 1) : (m_curMvTempBufIdx - 1);
+        }
+    }
     // Allocate segment buffer
     AllocateSegmentBuffer();
   
@@ -424,6 +499,7 @@ MOS_STATUS Vp9BasicFeature::AllocateVP9MVBuffer()
     uint32_t widthInSb   = MOS_ROUNDUP_DIVIDE(m_width, CODEC_VP9_SUPER_BLOCK_WIDTH);
     uint32_t heightInSb  = MOS_ROUNDUP_DIVIDE(m_height, CODEC_VP9_SUPER_BLOCK_HEIGHT);
     uint8_t  maxBitDepth = 8 + m_vp9DepthIndicator * 2;
+    uint8_t  mvBufferNum = CODECHAL_VP9_NUM_MV_BUFFERS;  // Default to 2 buffers
 
     mhw::vdbox::hcp::HcpBufferSizePar hcpBufSizeParam;
     MOS_ZeroMemory(&hcpBufSizeParam, sizeof(hcpBufSizeParam));
@@ -440,18 +516,53 @@ MOS_STATUS Vp9BasicFeature::AllocateVP9MVBuffer()
         DECODE_ASSERTMESSAGE("Failed to MvBuffer size.");
     }
 
-    for (uint8_t i = 0; i < CODECHAL_VP9_NUM_MV_BUFFERS; i++)
+    // Allocate MV temporal buffers based on platform capability:
+    // - Standard platforms: 2 buffers (ping-pong)
+    // - Mismatch order programming platforms: 9 buffers (one per reference frame + current)
+    // Check if platform supports mismatch order programming
+    if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+    {
+        mvBufferNum = CODECHAL_DECODE_VP9_MAX_NUM_REF_FRAME + 1;  // Use 9 buffers (8 ref frames + 1)
+    }
+
+    for (uint8_t i = 0; i < mvBufferNum; i++)
     {
         if (m_resVp9MvTemporalBuffer[i] == nullptr)
         {
+            // Zero-initialize on first allocation (initOnAllocate=true, initValue=0).
+            // The MV temporal buffer is read as the collocated/previous-frame MV buffer on inter
+            // frames (usePrevInFindMvReferences). The first allocation happens on the key frame via
+            // this nullptr branch, NOT the Resize branch that performs the key-frame fill, so without
+            // this the buffer starts with uninitialized GPU memory. On integrated parts (system memory) that residual is non-deterministic, causing run-to-run decode corruption
+            // that first surfaces at an inter frame.
             m_resVp9MvTemporalBuffer[i] = m_allocator->AllocateBuffer(
-                hcpBufSizeParam.dwBufferSize, "MvTemporalBuffer", resourceInternalReadWriteCache, notLockableVideoMem);
+                hcpBufSizeParam.dwBufferSize, "MvTemporalBuffer", resourceInternalReadWriteCache, lockableVideoMem,
+                true, 0);
             DECODE_CHK_NULL(m_resVp9MvTemporalBuffer[i]);
         }
         else
         {
+            // Record size before Resize so we can detect reallocation (size grew).
+            uint32_t oldBufSize = m_resVp9MvTemporalBuffer[i]->size;
             DECODE_CHK_STATUS(m_allocator->Resize(
-                m_resVp9MvTemporalBuffer[i], hcpBufSizeParam.dwBufferSize, notLockableVideoMem));
+                m_resVp9MvTemporalBuffer[i], hcpBufSizeParam.dwBufferSize, lockableVideoMem));
+
+            // Zero the temporal MV buffer on mismatch-order platform when:
+            //   (a) True key frame (frame_type == KEY): temporal refs from prior sequence invalid.
+            //   (b) Buffer was reallocated due to resolution increase: Resize() pulls from the
+            //       driver heap which may recycle pages from a prior session holding stale MV data
+            //       (0x51 pattern).  In mismatch-order mode, resolution-change "key" frames are
+            //       submitted with frame_type=INTER_FRAME so isKeyFrame is false — the sizeGrew
+            //       guard closes this gap.
+            bool isKeyFrame = (m_vp9PicParams->PicFlags.fields.frame_type != CODEC_VP9_INTER_FRAME ||
+                               m_vp9PicParams->PicFlags.fields.intra_only);
+            bool sizeGrew   = (hcpBufSizeParam.dwBufferSize > oldBufSize);
+            if ((isKeyFrame || sizeGrew) && m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+            {
+                m_osInterface->pfnFillResource(
+                    m_osInterface, &m_resVp9MvTemporalBuffer[i]->OsResource,
+                    hcpBufSizeParam.dwBufferSize, 0);
+            }
         }
     }
 

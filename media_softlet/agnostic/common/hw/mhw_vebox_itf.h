@@ -112,7 +112,7 @@ public:
 
     virtual bool IsVeboxScalabilitywith4K() = 0;
 
-    virtual MOS_STATUS Add1DLutState(void *&surface, PMHW_1DLUT_PARAMS p1DLutParams) = 0;
+    virtual MOS_STATUS Add1DLutState(void *surface, PMHW_1DLUT_PARAMS p1DLutParams) = 0;
 
     virtual MOS_STATUS AddFP16State(PMHW_FP16_PARAMS pFP16Params) = 0;
 #if (_DEBUG || _RELEASE_INTERNAL)

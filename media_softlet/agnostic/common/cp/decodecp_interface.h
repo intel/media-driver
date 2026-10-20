@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2021, Intel Corporation
+* Copyright (c) 2019-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,9 @@
 
 #define DECODE_CP_ASSERTMESSAGE(_message, ...) \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_CODEC, _message, ##__VA_ARGS__)
+
+#define DECODE_CP_WARNINGMESSAGE(_message, ...) \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_CODEC, _message, ##__VA_ARGS__)
 
 #define DECODE_CP_NORMALMESSAGE(_message, ...) \
     MOS_NORMALMESSAGE(MOS_COMPONENT_CP, MOS_CP_SUBCOMP_CODEC, _message, ##__VA_ARGS__)
@@ -116,6 +119,7 @@ public:
         uint32_t dataOffset) = 0;
 
     virtual MOS_STATUS RegisterParams(void *settings)                    = 0;
+    virtual uint32_t   GetTraceInfo()                                    = 0;
     virtual MOS_STATUS UpdateParams(bool input)                          = 0;
     virtual MOS_STATUS SetHucPipeModeSelectParameter(bool& param)        = 0;
     virtual bool       IsStreamOutNeeded()                               = 0;

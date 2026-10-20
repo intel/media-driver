@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2023, Intel Corporation
+* Copyright (c) 2018-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -37,6 +37,9 @@ using MosFormatArray = std::vector<MOS_FORMAT>;
 #define VP_HW_ASSERTMESSAGE(_message, ...)                                        \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_HW, _message, ##__VA_ARGS__)
 
+#define VP_HW_WARNINGMESSAGE(_message, ...)                                       \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_HW, _message, ##__VA_ARGS__)
+
 #define VP_HW_NORMALMESSAGE(_message, ...)                                        \
     MOS_NORMALMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_HW, _message, ##__VA_ARGS__)
 
@@ -64,8 +67,16 @@ using MosFormatArray = std::vector<MOS_FORMAT>;
 #define VP_PUBLIC_ASSERT(_expr)                                                   \
     MOS_ASSERT(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC, _expr)
 
+#if (_DEBUG || _RELEASE_INTERNAL)
 #define VP_PUBLIC_ASSERTMESSAGE(_message, ...)                                    \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC, _message, ##__VA_ARGS__)
+#else
+#define VP_PUBLIC_ASSERTMESSAGE(_message, ...)                                    \
+    OcaOnMosCriticalMessage(MOS_FUNCTION, __LINE__);
+#endif
+
+#define VP_PUBLIC_WARNINGMESSAGE(_message, ...)                                   \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC, _message, ##__VA_ARGS__)
 
 #define VP_PUBLIC_NORMALMESSAGE(_message, ...)                                    \
     MOS_NORMALMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC, _message, ##__VA_ARGS__)
@@ -91,6 +102,63 @@ using MosFormatArray = std::vector<MOS_FORMAT>;
 
 #define VP_PUBLIC_CHK_NULL_RETURN(_ptr)                                           \
     MOS_CHK_NULL_RETURN(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC, _ptr)
+
+#define VP_CHK_NULL_RETURN_VALUE(_ptr, retVal)                                    \
+    MOS_CHK_COND_RETURN_VALUE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC,           \
+        (_ptr == nullptr), retVal, "Invalid (nullptr) Pointer.")
+
+//!
+//! \def VP_PUBLIC_CHK_NULL_DELETE_RETURN(_ptr, ...)
+//!  Check if \a _ptr == nullptr; if so delete the variadic pointer(s) and return MOS_STATUS_NULL_POINTER.
+//!
+#define VP_PUBLIC_CHK_NULL_DELETE_RETURN(_ptr, ...)                               \
+{                                                                                 \
+    if ((_ptr) == nullptr)                                                        \
+    {                                                                             \
+        MOS_ASSERTMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC,               \
+            "Invalid (nullptr) Pointer: " #_ptr);                                \
+        MT_ERR2(MT_ERR_NULL_CHECK, MT_COMPONENT, MOS_COMPONENT_VP,              \
+            MT_SUB_COMPONENT, MOS_VP_SUBCOMP_PUBLIC);                            \
+        _MOS_DELETE_ALL(__VA_ARGS__);                                             \
+        return MOS_STATUS_NULL_POINTER;                                           \
+    }                                                                             \
+}
+
+//!
+//! \def VP_PUBLIC_CHK_NULL_DELETE_RETURN_VALUE(_ptr, retVal, ...)
+//!  Check if \a _ptr == nullptr; if so delete the variadic pointer(s) and return \a retVal.
+//!  \a retVal may be a side-effecting expression, e.g. (*eStatus = MOS_STATUS_NULL_POINTER).
+//!
+#define VP_PUBLIC_CHK_NULL_DELETE_RETURN_VALUE(_ptr, retVal, ...)                              \
+{                                                                                              \
+    if ((_ptr) == nullptr)                                                                     \
+    {                                                                                          \
+        MOS_ASSERTMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC,                            \
+            "Invalid (nullptr) Pointer: " #_ptr);                                             \
+        MT_ERR2(MT_ERR_NULL_CHECK, MT_COMPONENT, MOS_COMPONENT_VP,                           \
+            MT_SUB_COMPONENT, MOS_VP_SUBCOMP_PUBLIC);                                         \
+        _MOS_DELETE_ALL(__VA_ARGS__);                                                          \
+        return (retVal);                                                                       \
+    }                                                                                          \
+}
+
+//!
+//! \def VP_PUBLIC_CHK_STATUS_DELETE_RETURN(_stmt, ...)
+//!  Evaluate \a _stmt; if it fails delete the variadic pointer(s) and return the error status.
+//!
+#define VP_PUBLIC_CHK_STATUS_DELETE_RETURN(_stmt, ...)                                         \
+{                                                                                              \
+    MOS_STATUS _stmtStatus = (MOS_STATUS)(_stmt);                                             \
+    if (_stmtStatus != MOS_STATUS_SUCCESS)                                                     \
+    {                                                                                          \
+        MOS_ASSERTMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC,                            \
+            "MOS returned error, eStatus = 0x%x", _stmtStatus);                              \
+        MT_ERR3(MT_ERR_MOS_STATUS_CHECK, MT_COMPONENT, MOS_COMPONENT_VP,                     \
+            MT_SUB_COMPONENT, MOS_VP_SUBCOMP_PUBLIC, MT_ERROR_CODE, _stmtStatus);            \
+        _MOS_DELETE_ALL(__VA_ARGS__);                                                          \
+        return _stmtStatus;                                                                    \
+    }                                                                                          \
+}
 
 #define VP_PUBLIC_CHK_NULL_NO_STATUS(_ptr)                                        \
     MOS_CHK_NULL_NO_STATUS(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC, _ptr)
@@ -122,6 +190,9 @@ using MosFormatArray = std::vector<MOS_FORMAT>;
 
 #define VP_DEBUG_ASSERTMESSAGE(_message, ...)                                     \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DEBUG, _message, ##__VA_ARGS__)
+
+#define VP_DEBUG_WARNINGMESSAGE(_message, ...)                                    \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DEBUG, _message, ##__VA_ARGS__)
 
 #define VP_DEBUG_NORMALMESSAGE(_message, ...)                                     \
     MOS_NORMALMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DEBUG, _message, ##__VA_ARGS__)
@@ -156,8 +227,16 @@ using MosFormatArray = std::vector<MOS_FORMAT>;
 #define VP_RENDER_ASSERT(_expr)                                                   \
     MOS_ASSERT(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_RENDER, _expr)
 
+#if (_DEBUG || _RELEASE_INTERNAL)
 #define VP_RENDER_ASSERTMESSAGE(_message, ...)                                    \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_RENDER, _message, ##__VA_ARGS__)
+#else
+#define VP_RENDER_ASSERTMESSAGE(_message, ...)                                    \
+    OcaOnMosCriticalMessage(MOS_FUNCTION, __LINE__);
+#endif
+
+#define VP_RENDER_WARNINGMESSAGE(_message, ...)                                   \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_RENDER, _message, ##__VA_ARGS__)
 
 #define VP_RENDER_NORMALMESSAGE(_message, ...)                                    \
     MOS_NORMALMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_RENDER, _message, ##__VA_ARGS__)
@@ -197,6 +276,9 @@ using MosFormatArray = std::vector<MOS_FORMAT>;
 
 #define VP_DDI_ASSERTMESSAGE(_message, ...)                                          \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DDI, _message, ##__VA_ARGS__)
+
+#define VP_DDI_WARNINGMESSAGE(_message, ...)                                         \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DDI, _message, ##__VA_ARGS__)
 
 #define VP_DDI_NORMALMESSAGE(_message, ...)                                          \
     MOS_NORMALMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DDI, _message, ##__VA_ARGS__)
@@ -307,6 +389,8 @@ protected:
 #define __VPHAL_HDR_H2S_RGB_TM                                          "VPHAL H2S TM RGB Based"
 #define __VPHAL_HDR_3DLUT_CPU_PATH                                      "HDR 3DLut Table Use CPU Caculate"
 #define __VPHAL_FORCE_VP_3DLUT_KERNEL_ONLY                              "Force VP 3DLut Kernel Only"
+#define __VPHAL_ENABLE_TEXTURE_3DLUT                                     "Enable Texture 3DLut"
+#define __VPHAL_3DLUT_LAYOUT_CONVERTED                                  "3DLut layout converted"
 
 // Compression
 #define __VPHAL_MMC_ENABLE                                              "VP MMC In Use"
@@ -318,6 +402,8 @@ protected:
 #define __VPHAL_VEBOX_FORCE_VP_MEMCOPY_OUTPUTCOMPRESSED                 "Force VP Memorycopy Outputcompressed"
 #define __VPHAL_ENABLE_SFC_NV12_P010_LINEAR_OUTPUT                      "Enable SFC NV12 P010 Linear Output"
 #define __VPHAL_ENABLE_SFC_RGBP_RGB24_OUTPUT                            "Enable SFC RGBP RGB24 Output"
+#define __VPHAL_ENABLE_SFC_LINEAR_OUTPUT_TEMP_SURF_COMPRESSION          "Enable SFC Linear Output Temp Surf compression"
+#define __VPHAL_SFC_LINEAR_SURFACE_ACCUM_BUFFER_DISABLE                 "VP SFC Linear Surface Accum Buffer Disable"
 
 #define __VPHAL_DBG_PARAM_DUMP_OUTFILE_KEY_NAME                         "outxmlLocation"
 #define __VPHAL_DBG_PARAM_DUMP_START_FRAME_KEY_NAME                     "startxmlFrame"
@@ -342,8 +428,8 @@ protected:
 
 #define __MEDIA_USER_FEATURE_VALUE_ENABLE_VESFC_LINEAR_OUTPUT_BY_TILECONVERT "Enable VESFC Linearoutput By TileConvert"
 
-#define  __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_ID_REPORT              "Enable VEBOX ID REPORT"
-#define  __MEDIA_USER_FEATURE_VALUE_USED_VEBOX_ID                       "USED VEBOX ID"
+#define  __MEDIA_USER_FEATURE_VALUE_ENABLE_VEBOX_ID_REPORT              "Enable VEBOX ID Report"
+#define  __MEDIA_USER_FEATURE_VALUE_USED_VEBOX_ID                       "Used VEBOX ID"
 #define __MEDIA_USER_FEATURE_VALUE_FALLBACK_SCALING_TO_RENDER_8K        "VP Fallback Scaling To Render 8k"
 #define __MEDIA_USER_FEATURE_VALUE_FALLBACK_SCALING_TO_RENDER_8K_REPORT "VP Fallback Scaling To Render 8k Report"
 #endif  //(_DEBUG || _RELEASE_INTERNAL)
@@ -473,6 +559,26 @@ public:
         VPHAL_CSPACE          dstCspace);
 
     //!
+    //! \brief    Performs Color Space Convert for Sample Pixel Float
+    //! \details  Performs Color Space Convert from Src Color Spase to Dst Color Spase
+    //! \param    [out] pOutput
+    //!           Pointer to float
+    //! \param    [in] pInput
+    //!           Pointer to VPHAL_COLOR_SAMPLE_8
+    //! \param    [in] srcCspace
+    //!           Source Color Space
+    //! \param    [in] dstCspace
+    //!           Dest Color Space
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful
+    //!
+    static MOS_STATUS GetPixelWithCSCForColorFillFloat(
+        float                 input[4],
+        float                 output[4],
+        VPHAL_CSPACE          srcCspace,
+        VPHAL_CSPACE          dstCspace);
+
+    //!
     //! \brief    Get Color Space Convert Normalized Matrix
     //! \details  Get Color Space Convert Normalized Matrix
     //! \param    [out] pCSC_Matrix
@@ -488,6 +594,66 @@ public:
         MEDIA_CSPACE src,
         MEDIA_CSPACE dst,
         float        cscMatrix[12]);
+
+    //!
+    //! \brief    Get RGB Range and Offset
+    //! \details  Get RGB Range and Offset
+    //! \param    [in] cspace
+    //!           Color Space
+    //! \param    [out] rgbOffset
+    //!           Offset
+    //! \param    [out] rgbExcursion
+    //!           Range
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful
+    //!
+    static MOS_STATUS GetRgbRangeAndOffset(
+        VPHAL_CSPACE cspace,
+        float       &rgbOffset,
+        float       &rgbExcursion);
+
+    //!
+    //! \brief    Get YUV Range and Offset
+    //! \details  Get YUV Range and Offset
+    //! \param    [in] cspace
+    //!           Color Space
+    //! \param    [out] lumaOffset
+    //!           Offset
+    //! \param    [out] lumaExcursion
+    //!           Range
+    //! \param    [out] chromaZero
+    //!           Offset
+    //! \param    [out] chromaExcursion
+    //!           Range
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful
+    //!
+    static MOS_STATUS GetYuvRangeAndOffset(
+        VPHAL_CSPACE cspace,
+        float       &lumaOffset,
+        float       &lumaExcursion,
+        float       &chromaZero,
+        float       &chromaExcursion);
+
+    //!
+    //! \brief    Get CSC Matrix for HDR
+    //! \details  Get CSC Matrix for HDR
+    //! \param    [in] src
+    //!           Color Space
+    //! \param    [in] dst
+    //!           Color Space
+    //! \param    [in] swapChannel
+    //!           Swap Channel or not
+    //! \param    [out] outMatrix
+    //!           CSC Matrix
+    //! \return   MOS_STATUS
+    //!           Return MOS_STATUS_SUCCESS if successful
+    //!
+    static MOS_STATUS GetCscMatrixForHDR(
+        VPHAL_CSPACE src,
+        VPHAL_CSPACE dst,
+        bool         swapChannel,
+        float       *outMatrix);
 
 private:
     //!

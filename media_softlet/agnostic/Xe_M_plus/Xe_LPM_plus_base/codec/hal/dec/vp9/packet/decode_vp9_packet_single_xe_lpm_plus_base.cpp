@@ -69,7 +69,10 @@ MOS_STATUS Vp9DecodeSinglePktXe_Lpm_Plus_Base::Submit(
         DECODE_CHK_STATUS(PackPictureLevelCmds(*cmdBuffer));
         DECODE_CHK_STATUS(PackSliceLevelCmds(*cmdBuffer));
 
-        DECODE_CHK_STATUS(m_miItf->AddMiBatchBufferEnd(cmdBuffer, nullptr));
+        if (!m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+        {
+            DECODE_CHK_STATUS(m_miItf->AddMiBatchBufferEnd(cmdBuffer, nullptr));
+        }
 
         HalOcaInterfaceNext::On1stLevelBBEnd(*cmdBuffer, *m_osInterface);
 

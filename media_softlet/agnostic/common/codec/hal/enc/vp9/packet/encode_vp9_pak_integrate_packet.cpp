@@ -46,10 +46,9 @@ MOS_STATUS Vp9PakIntegratePkt::Init()
     ENCODE_CHK_STATUS_RETURN(EncodeHucPkt::Init());
 
     ENCODE_CHK_NULL_RETURN(m_pipeline);
-#ifdef _MMC_SUPPORTED
+
     m_mmcState = m_pipeline->GetMmcState();
     ENCODE_CHK_NULL_RETURN(m_mmcState);
-#endif  // __MMC_SUPPORTED
 
     return MOS_STATUS_SUCCESS;
 }
@@ -522,6 +521,16 @@ MOS_STATUS Vp9PakIntegratePkt::SetupTilesStatusData(void *mfxStatus, void *statu
         MOS_ZeroMemory(tileStatusReport, sizeof(tileStatusReport[0]) * statusReportData->numberTilesInFrame);
         m_allocator->UnLock(tileSizeStatusBuffer);
         return MOS_STATUS_SUCCESS;
+    }
+
+    if (statusReportData->bitstreamSize > m_basicFeature->m_bitstreamSize)
+    {
+        statusReportData->codecStatus   = CODECHAL_STATUS_ERROR;
+        statusReportData->bitstreamSize = 0;
+        // Clean-up the tile status report buffer
+        MOS_ZeroMemory(tileStatusReport, sizeof(tileStatusReport[0]) * statusReportData->numberTilesInFrame);
+        m_allocator->UnLock(tileSizeStatusBuffer);
+        return MOS_STATUS_INVALID_FILE_SIZE;
     }
 
     uint8_t *bufPtr       = (uint8_t *)MOS_AllocAndZeroMemory(statusReportData->bitstreamSize);

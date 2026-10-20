@@ -567,8 +567,8 @@ VAStatus DdiDecodeHevc::RenderPicture(
                 if (m_decodeCtx->DecodeParams.m_subsetParams == nullptr)
                     break;
             }
-
-            MOS_SecureMemcpy(m_decodeCtx->DecodeParams.m_subsetParams, dataSize, data, dataSize);
+            size_t copysize =  MOS_MIN(dataSize, sizeof(CODEC_HEVC_SUBSET_PARAMS));
+            MOS_SecureMemcpy(m_decodeCtx->DecodeParams.m_subsetParams, copysize, data,copysize);
 
             break;
         }

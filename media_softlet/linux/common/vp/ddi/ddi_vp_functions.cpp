@@ -47,6 +47,8 @@
 #define VP_MIN_PIC_HEIGHT                   16
 #define QUERY_CAPS_ATTRIBUTE                1                     /* query the actual filter caps attribute in vp module */
 
+#define VA_PROC_MODE_HIGH_QUALITY           3
+
 // ITU-T H.265 Table E.3: Colour Primaries
 #define COLOUR_PRIMARY_BT2020                  9
 #define COLOUR_PRIMARY_BT709                   1
@@ -899,10 +901,13 @@ VAStatus DdiVpFunctions::DdiInitCtx(
         return VA_STATUS_ERROR_ALLOCATION_FAILED;
     }
 
-    // initialize vphal render params
+    // initialize vphal render params.
+    // Allocate via the vphal hook so the ext pipeline gets VPHAL_SURFACE_EXT (its ext
+    // feature handlers - SR3/LACE/ACE - read ext-only fields), while base pipelines get
+    // the base VPHAL_SURFACE. Freed with MOS_Delete in FreeVpHalRenderParams either way.
     for (int32_t surfIndex = 0; surfIndex < VPHAL_MAX_SOURCES; surfIndex++)
     {
-        vpHalRenderParams->pSrc[surfIndex] = MOS_New(VPHAL_SURFACE);
+        vpHalRenderParams->pSrc[surfIndex] = vpCtx->pVpHal->AllocateVphalSurface();
         if( nullptr == vpHalRenderParams->pSrc[surfIndex])
         {
             FreeVpHalRenderParams(vpCtx, vpHalRenderParams);
@@ -912,7 +917,7 @@ VAStatus DdiVpFunctions::DdiInitCtx(
 
     for (int32_t surfIndex = 0; surfIndex < VPHAL_MAX_TARGETS; surfIndex++)
     {
-        vpHalRenderParams->pTarget[surfIndex] = MOS_New(VPHAL_SURFACE);
+        vpHalRenderParams->pTarget[surfIndex] = vpCtx->pVpHal->AllocateVphalSurface();
         if( nullptr == vpHalRenderParams->pTarget[surfIndex])
         {
             FreeVpHalRenderParams(vpCtx, vpHalRenderParams);
@@ -1591,7 +1596,6 @@ void DdiVpFunctions::VpFeatureReport(PVP_CONFIG config, PDDI_VP_CONTEXT vpCtx)
         config->dwCurrentVEFeatureInUse,
         MediaUserSetting::Group::Sequence);
 
-#ifdef _MMC_SUPPORTED
     //VP Primary Surface Compress Mode Report
     ReportUserSetting(
         userSettingPtr,
@@ -1604,7 +1608,7 @@ void DdiVpFunctions::VpFeatureReport(PVP_CONFIG config, PDDI_VP_CONTEXT vpCtx)
         __VPHAL_RT_MMC_COMPRESSMODE,
         config->dwRTCompressMode,
         MediaUserSetting::Group::Sequence);
-#endif
+
     //VP RT Cache Usage
     ReportUserSetting(
         userSettingPtr,
@@ -1626,7 +1630,6 @@ void DdiVpFunctions::VpFeatureReport(PVP_CONFIG config, PDDI_VP_CONTEXT vpCtx)
         config->dwCurrentHdrMode,
         MediaUserSetting::Group::Sequence);
 
-#ifdef _MMC_SUPPORTED
     //VP MMC In Use
     ReportUserSettingForDebug(
         userSettingPtr,
@@ -1648,7 +1651,6 @@ void DdiVpFunctions::VpFeatureReport(PVP_CONFIG config, PDDI_VP_CONTEXT vpCtx)
         config->dwRTCompressible,
         MediaUserSetting::Group::Sequence);
 
-#endif
 #endif //(_DEBUG || _RELEASE_INTERNAL)
 
     if (config->dwCurrentVeboxScalability != config->dwReportedVeboxScalability)
@@ -4014,6 +4016,13 @@ VAStatus DdiVpFunctions::DdiSetProcPipelineParams(
 
     osInterface = vpCtx->pVpHal->GetOsInterface();
     DDI_VP_CHK_NULL(osInterface, "nullptr osInterface.", VA_STATUS_ERROR_INVALID_BUFFER);
+
+#if defined(LINUX) && !defined(WDDM_LINUX)
+    if (static_cast<int>(pipelineParam->processing_mode) == VA_PROC_MODE_HIGH_QUALITY)
+    {
+        vpHalRenderParams->isHighQualityModeEnabled = true;
+    }
+#endif
 
     // increment surface count
     vpHalRenderParams->uSrcCount++;

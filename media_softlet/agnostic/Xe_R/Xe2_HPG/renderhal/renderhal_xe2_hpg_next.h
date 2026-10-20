@@ -42,6 +42,32 @@ public:
     virtual ~XRenderHal_Interface_Xe2_Hpg_Next() {}
 
     //!
+    //! \brief    Setup Surface State
+    //! \details  Setup Surface States for Xe_HPM
+    //! \param    PRENDERHAL_INTERFACE pRenderHal
+    //!           [in] Pointer to Hardware Interface Structure
+    //! \param    PRENDERHAL_SURFACE pRenderHalSurface
+    //!           [in] Pointer to Render Hal Surface
+    //! \param    PRENDERHAL_SURFACE_STATE_PARAMS pParams
+    //!           [in] Pointer to Surface State Params
+    //! \param    int32_t *piNumEntries
+    //!           [out] Pointer to Number of Surface State Entries (Num Planes)
+    //! \param    PRENDERHAL_SURFACE_STATE_ENTRY * ppSurfaceEntries
+    //!           [out] Array of Surface State Entries
+    //! \param    PRENDERHAL_OFFSET_OVERRIDE pOffsetOverride
+    //!           [in] If not nullptr, provides adjustments to Y, UV plane offsets,
+    //!           used for kernel WA in a few cases. nullptr is the most common usage.
+    //! \return   MOS_STATUS
+    //!
+    MOS_STATUS SetupSurfaceState(
+        PRENDERHAL_INTERFACE            pRenderHal,
+        PRENDERHAL_SURFACE              pRenderHalSurface,
+        PRENDERHAL_SURFACE_STATE_PARAMS pParams,
+        int32_t                        *piNumEntries,
+        PRENDERHAL_SURFACE_STATE_ENTRY *ppSurfaceEntries,
+        PRENDERHAL_OFFSET_OVERRIDE      pOffsetOverride) override;
+
+    //!
     //! \brief    Get Render Engine MMC Enable/Disable Flag. Actually the same as Xe_HPG
     //! \param    [in] pRenderHal
     //!           Pointer to Hardware Interface
@@ -75,6 +101,11 @@ public:
     //!
     virtual void InitStateHeapSettings(
         PRENDERHAL_INTERFACE pRenderHal) override;
+
+    virtual uint32_t GetGrfSize() override
+    {
+        return 64;
+    }
 
 MEDIA_CLASS_DEFINE_END(XRenderHal_Interface_Xe2_Hpg_Next)
 };

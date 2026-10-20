@@ -207,6 +207,8 @@ public:
 
     virtual MOS_STATUS SetVdencCmd2Settings() override { return MOS_STATUS_SUCCESS; }
 
+    virtual MOS_STATUS SetVdencStreaminStateSettings() override;
+
 protected:
 
     //!

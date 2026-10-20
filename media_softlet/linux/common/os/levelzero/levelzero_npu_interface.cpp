@@ -44,6 +44,11 @@ MOS_STATUS L0NpuInterface::BuildGraph(L0NpuInterface *npuInterface, uint8_t *blo
     return MOS_STATUS_UNIMPLEMENTED;
 }
 
+MOS_STATUS L0NpuInterface::BuildGraphFromIr(L0NpuInterface *npuInterface, const NpuIrGraphRequest &request, ze_graph_handle_t &graph)
+{
+    return MOS_STATUS_UNIMPLEMENTED;
+}
+
 MOS_STATUS L0NpuInterface::DestroyGraph(L0NpuInterface *npuInterface, ze_graph_handle_t &graph)
 {
     return MOS_STATUS_UNIMPLEMENTED;

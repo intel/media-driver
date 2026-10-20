@@ -9095,14 +9095,10 @@ MOS_STATUS CodechalEncodeAvcEnc::ExecutePreEnc(EncoderParams* encodeParams)
     CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(ExecuteKernelFunctions(),
         "ENC failed.");
 
-#ifndef FEI_ENABLE_CMRT
     // Flush encode eStatus buffer
     CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(ResetStatusReport(),
         "ResetStatusReprot failed.");
-#else
-    CODECHAL_ENCODE_CHK_STATUS_MESSAGE_RETURN(ResetStatusReport(),
-        "ResetStatusReprot failed.");
-#endif
+
     m_disableStatusReport = false;
 
     if (m_firstFrame == false && m_firstTwoFrames == true)

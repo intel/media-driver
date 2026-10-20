@@ -81,6 +81,12 @@ typedef char**                  PPCHAR;                     //!< Pointer to a PC
 
 using MOS_CONTEXT_HANDLE = void *;
 
+enum GmmLibMode : uint32_t
+{
+    GMMLIB_LEGACY   = 0,
+    GMMLIB2_ENABLED = 1
+};
+
 //------------------------------------------------------------------------------
 // SECTION: Macros
 //
@@ -403,6 +409,24 @@ typedef struct _MOS_NULL_RENDERING_FLAGS {
 } MOS_NULL_RENDERING_FLAGS;
 
 //!
+//! \brief Native Fence report Flags
+//!
+typedef struct _NATIVE_FENCE_MODE_REPORT_FLAGS
+{
+    union
+    {
+        struct
+        {
+            uint32_t Disabled : 1;
+            uint32_t SyncByCmd : 1;
+            uint32_t SyncByAPI : 1;
+        };
+        uint32_t Value;
+    };
+} NATIVE_FENCE_MODE_REPORT_FLAGS;
+
+
+//!
 //! \brief GPU Context definitions
 //!
 
@@ -431,7 +455,9 @@ typedef enum _MOS_GPU_CONTEXT
     MOS_GPU_CONTEXT_VIDEO7          = 20, // Decode Node 0 Split 3
     MOS_GPU_CONTEXT_BLT             = 21,
     MOS_GPU_CONTEXT_TEE             = 22, // TEE context
-    MOS_GPU_CONTEXT_MAX             = 23,
+    MOS_GPU_CONTEXT_VIDEO_DEC_FULL  = 23, // Decode on full(type-A) VDBox only
+    MOS_GPU_CONTEXT_VIDEO_ENC_FULL  = 24, // Encode on full(type-A) VDBox only
+    MOS_GPU_CONTEXT_MAX             = 25,
     MOS_GPU_CONTEXT_INVALID_HANDLE  = 0xFFFFA
 } MOS_GPU_CONTEXT, *PMOS_GPU_CONTEXT;
 

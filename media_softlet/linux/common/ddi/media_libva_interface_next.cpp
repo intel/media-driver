@@ -148,7 +148,6 @@ VAStatus MediaLibvaInterfaceNext::HeapInitialize(PDDI_MEDIA_CONTEXT mediaCtx)
     return VA_STATUS_SUCCESS;
 }
 
-#ifdef _MMC_SUPPORTED
 void MediaLibvaInterfaceNext::MediaMemoryDecompressInternal(
     PMOS_CONTEXT  mosCtx,
     PMOS_RESOURCE osResource)
@@ -256,8 +255,6 @@ VAStatus MediaLibvaInterfaceNext::MediaMemoryTileConvertInternal(
     return vaStatus;
 }
 
-#endif
-
 VAStatus MediaLibvaInterfaceNext::Initialize (
     VADriverContextP ctx,
     int32_t          devicefd,
@@ -306,12 +303,11 @@ VAStatus MediaLibvaInterfaceNext::Initialize (
     ctx->pDriverData = (void *)mediaCtx;
     mediaCtx->fd     = devicefd;
 
-#ifdef _MMC_SUPPORTED
     mediaCtx->pfnMemoryDecompress       = MediaMemoryDecompressInternal;
     mediaCtx->pfnMediaMemoryCopy        = MediaMemoryCopyInternal;
     mediaCtx->pfnMediaMemoryCopy2D      = MediaMemoryCopy2DInternal;
     mediaCtx->pfnMediaMemoryTileConvert = MediaMemoryTileConvertInternal;
-#endif
+
     mediaCtx->modularizedGpuCtxEnabled = true;
 
     mediaCtx->m_userSettingPtr  = std::make_shared<MediaUserSetting::MediaUserSetting>();
@@ -348,7 +344,7 @@ VAStatus MediaLibvaInterfaceNext::Initialize (
     mediaCtx->m_tileYFlag               = mosCtx.bTileYFlag;
     mediaCtx->bIsAtomSOC                = mosCtx.bIsAtomSOC;
     mediaCtx->perfData                  = mosCtx.pPerfData;
-#ifdef _MMC_SUPPORTED
+
     if (mosCtx.ppMediaMemDecompState == nullptr)
     {
         DDI_ASSERTMESSAGE("media decomp state is null.");
@@ -356,7 +352,7 @@ VAStatus MediaLibvaInterfaceNext::Initialize (
         return VA_STATUS_ERROR_OPERATION_FAILED;
     }
     mediaCtx->pMediaMemDecompState      = *mosCtx.ppMediaMemDecompState;
-#endif
+
     mediaCtx->pMediaCopyState           = *mosCtx.ppMediaCopyState;
 
     if (HeapInitialize(mediaCtx) != VA_STATUS_SUCCESS)
@@ -1629,7 +1625,10 @@ VAStatus MediaLibvaInterfaceNext::GetImage(
     VASurfaceID targetSurface = VA_INVALID_SURFACE;
     VASurfaceID outputSurface = surface;
 
-    if (inputSurface->format != OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.alpha_mask) ||
+    const bool isRgbInYuvContainer =
+        (vaimg->format.fourcc == VA_FOURCC_Y416) && (vaimg->format.red_mask != 0);
+
+    if (inputSurface->format != OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.alpha_mask, isRgbInYuvContainer) ||
         (width != vaimg->width || height != vaimg->height) &&
         (vaimg->format.fourcc != VA_FOURCC_444P &&
         vaimg->format.fourcc != VA_FOURCC_422V &&
@@ -1642,7 +1641,7 @@ VAStatus MediaLibvaInterfaceNext::GetImage(
         DDI_CHK_RET(vaStatus, "Create VP Context failed.");
 
         //Create target surface for VP pipeline.
-        DDI_MEDIA_FORMAT mediaFmt = OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.fourcc);
+        DDI_MEDIA_FORMAT mediaFmt = OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.fourcc, isRgbInYuvContainer);
         if (mediaFmt == Media_Format_Count)
         {
             DDI_ASSERTMESSAGE("Unsupported surface type.");
@@ -1781,8 +1780,11 @@ VAStatus MediaLibvaInterfaceNext::PutImage(
     DDI_CHK_RET(vaStatus,   "MapBuffer failed.");
     DDI_CHK_NULL(imageData, "nullptr imageData.", VA_STATUS_ERROR_INVALID_IMAGE);
 
+    const bool isRgbInYuvContainer =
+        (vaimg->format.fourcc == VA_FOURCC_Y416) && (vaimg->format.red_mask != 0);
+
     // VP Pipeline will be called for CSC/Scaling if the surface format or data size is not consistent with image.
-    if (mediaSurface->format != OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.alpha_mask) ||
+    if (mediaSurface->format != OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.alpha_mask, isRgbInYuvContainer) ||
         destWidth != srcWidth || destHeight != srcHeight ||
         srcX != 0 || destX != 0 || srcY != 0 || destY != 0)
     {
@@ -1794,7 +1796,7 @@ VAStatus MediaLibvaInterfaceNext::PutImage(
         DDI_CHK_RET(vaStatus, "Create VP Context failed");
 
         //Create temp surface for VP pipeline.
-        DDI_MEDIA_FORMAT mediaFmt = OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.fourcc);
+        DDI_MEDIA_FORMAT mediaFmt = OsFormatToMediaFormat(vaimg->format.fourcc, vaimg->format.fourcc, isRgbInYuvContainer);
         if (mediaFmt == Media_Format_Count)
         {
             DDI_ASSERTMESSAGE("Unsupported surface type.");
@@ -1985,10 +1987,8 @@ VAStatus MediaLibvaInterfaceNext::LockSurface(
 
     DDI_MEDIA_SURFACE *mediaSurface = MediaLibvaCommonNext::GetSurfaceFromVASurfaceID(mediaCtx, surface);
     
-#ifdef _MMC_SUPPORTED
     // Decompress surface is needed
     DDI_CHK_RET(MediaMemoryDecompress(mediaCtx, mediaSurface), "Decompress surface is failed");
-#endif
 
     if (nullptr == mediaSurface)
     {
@@ -2760,6 +2760,16 @@ VAStatus MediaLibvaInterfaceNext::DeriveImage (
     }
     mediaCtx->m_capsNext->PopulateColorMaskInfo(&vaimg->format);
 
+    // Surface is an RGB payload reusing a YUV container fourcc (Y416).
+    if (mediaSurface->format == Media_Format_Y416_X16B16G16R16)
+    {
+        vaimg->format.depth      = 48;          // 16bpc x R/G/B; X channel ignored
+        vaimg->format.red_mask   = 0x0000FFFFu; // R in low 16 bits of low dword
+        vaimg->format.green_mask = 0xFFFF0000u; // G in high 16 bits of low dword
+        vaimg->format.blue_mask  = 0x0000FFFFu; // B is in the high dword (not expressible in 32-bit); reuse pattern as non-zero signal
+        vaimg->format.alpha_mask = 0;           // X channel unused
+    }
+
     buf = MOS_New(DDI_MEDIA_BUFFER);
     if (buf == nullptr)
     {
@@ -3305,7 +3315,8 @@ VAStatus MediaLibvaInterfaceNext::CreateSurfaces2 (
                     expectedFourcc  = externalBufDescripor.pixel_format;
                     width            = externalBufDescripor.width;
                     height           = externalBufDescripor.height;
-                    // the following code is for backward compatible and it will be removed in the future
+                    descFlag         = externalBufDescripor.flags;
+                    // the following code is for backward compatible problem caused by incorrect use of VA_SURFACE_ATTRIB_MEM_TYPE_XXX in application layer. and it will be removed in the future
                     // new implemention should use VASurfaceAttribMemoryType attrib and set its value to VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM
                     if ((externalBufDescripor.flags & VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM )||
                         (externalBufDescripor.flags & VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME)||
@@ -4137,6 +4148,7 @@ VAStatus MediaLibvaInterfaceNext::GenerateVaImgFromMediaFormat(
     case Media_Format_Y412:
 #endif
     case Media_Format_Y416:
+    case Media_Format_Y416_X16B16G16R16:
         vaimg->format.bits_per_pixel    = 64; // packed format [alpha, Y, U, V], 16 bits per channel
         vaimg->num_planes               = 1;
         vaimg->pitches[0]               = mediaSurface->iPitch;
@@ -4442,7 +4454,7 @@ VAStatus MediaLibvaInterfaceNext::RtFormatToOsFormat(uint32_t format, int32_t &e
     return VA_STATUS_SUCCESS;
 }
 
-DDI_MEDIA_FORMAT MediaLibvaInterfaceNext::OsFormatToMediaFormat(int32_t fourcc, int32_t rtformatType)
+DDI_MEDIA_FORMAT MediaLibvaInterfaceNext::OsFormatToMediaFormat(int32_t fourcc, int32_t rtformatType, bool isRgbInYuvContainer)
 {
     switch (fourcc)
     {
@@ -4549,6 +4561,10 @@ DDI_MEDIA_FORMAT MediaLibvaInterfaceNext::OsFormatToMediaFormat(int32_t fourcc, 
             return Media_Format_Y412;
 #endif
         case VA_FOURCC_Y416:
+            if (isRgbInYuvContainer)
+            {
+                return Media_Format_Y416_X16B16G16R16;
+            }
             return Media_Format_Y416;
         case VA_FOURCC_Y8:
             return Media_Format_Y8;
@@ -4562,7 +4578,12 @@ DDI_MEDIA_FORMAT MediaLibvaInterfaceNext::OsFormatToMediaFormat(int32_t fourcc, 
             return Media_Format_A16R16G16B16;
         case VA_FOURCC_ABGR64:
             return Media_Format_A16B16G16R16;
-
+        case VA_FOURCC_XBGR64:
+            if (rtformatType & (VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_YUV444_10))
+            {
+                return Media_Format_Y416_X16B16G16R16;
+            }
+            return Media_Format_Count;
         default:
             return Media_Format_Count;
     }
@@ -4927,6 +4948,10 @@ int32_t MediaLibvaInterfaceNext::MediaFormatToOsFormat(DDI_MEDIA_FORMAT format)
             return VA_FOURCC_ARGB64;
         case Media_Format_A16B16G16R16:
             return VA_FOURCC_ABGR64;
+        case Media_Format_Y416_X16B16G16R16:
+            // Asymmetric reverse mapping: the DDI enum name encodes Y416-container
+            // semantics, so the reverse fourcc is VA_FOURCC_Y416 (not XBGR64).
+            return VA_FOURCC_Y416;
         default:
             return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
     }
@@ -5273,7 +5298,6 @@ VAStatus MediaLibvaInterfaceNext::MediaMemoryDecompress(
           GmmFlags.Info.MediaCompressed)                                          ||
           mediaSurface->pGmmResourceInfo->IsMediaMemoryCompressed(0))
     {
-#ifdef _MMC_SUPPORTED
         MOS_CONTEXT  mosCtx = {};
         MOS_RESOURCE surface;
 
@@ -5308,10 +5332,6 @@ VAStatus MediaLibvaInterfaceNext::MediaMemoryDecompress(
 
         MosUtilities::MosUnlockMutex(&mediaCtx->MemDecompMutex);
         MosUtilities::MosUnlockMutex(&mediaCtx->SurfaceMutex);
-#else
-        vaStatus = VA_STATUS_ERROR_INVALID_SURFACE;
-        DDI_ASSERTMESSAGE("MMC unsupported! [%d].", vaStatus);
-#endif
     }
 
     return vaStatus;

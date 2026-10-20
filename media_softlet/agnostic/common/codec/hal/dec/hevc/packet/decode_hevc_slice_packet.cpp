@@ -584,7 +584,8 @@ namespace decode
         DECODE_FUNC_CALL();
 
         PMOS_RESOURCE buffer      = &(m_hevcBasicFeature->m_resDataBuffer.OsResource);
-        uint32_t      startoffset = m_hevcSliceParams->slice_data_offset;
+        uint32_t      startoffset = 0;
+        uint32_t      slicelength = 0;
 
         const HevcTileCoding::SliceTileInfo *sliceTileInfo = m_hevcBasicFeature->m_tileCoding.GetSliceTileInfo(sliceIdx);
         DECODE_CHK_NULL(sliceTileInfo);
@@ -595,14 +596,16 @@ namespace decode
         if (sliceTileInfo->numTiles > 1)
         {
             startoffset = sliceParams->slice_data_offset + sliceTileInfo->tileArrayBuf[subTileIdx].bsdOffset;
+            slicelength = sliceTileInfo->tileArrayBuf[subTileIdx].bsdLength;
         }
         else
         {
             startoffset = sliceParams->slice_data_offset;
+            slicelength = sliceParams->slice_data_size;
         }
         if(m_decodecp)
         {
-            DECODE_CHK_STATUS(m_decodecp->AddHcpState(&cmdBuffer, buffer, m_hevcSliceParams->slice_data_size, startoffset, sliceIdx));
+            DECODE_CHK_STATUS(m_decodecp->AddHcpState(&cmdBuffer, buffer, slicelength, startoffset, sliceIdx));
         }
 
         return MOS_STATUS_SUCCESS;

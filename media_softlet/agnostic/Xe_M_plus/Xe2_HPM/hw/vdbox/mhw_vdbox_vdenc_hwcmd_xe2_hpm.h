@@ -33,10 +33,11 @@
 #define __MHW_VDBOX_VDENC_HWCMD_XE2_HPM_H__
 
 #pragma once
+#include "mhw_hwcmd.h"
+
 #pragma pack(1)
 
-#include "mhw_hwcmd.h"
-#ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_vdenc_hwcmd_ext.h"
 #endif
 
@@ -748,7 +749,7 @@ struct _VDENC_CMD3_CMD
     static const size_t byteSize = 92;
 };
 
-#ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_vdenc_hwcmd_xe2_hpm_ext.h"
 #else
 struct _VDENC_CMD2_CMD

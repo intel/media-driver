@@ -47,11 +47,9 @@ namespace encode
         ENCODE_CHK_NULL_RETURN(m_basicFeature);
         ENCODE_CHK_STATUS_RETURN(m_basicFeature->GetEncodeMode(m_encodeMode));
 
-#ifdef _MMC_SUPPORTED
         m_mmcState = m_pipeline->GetMmcState();
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         m_basicFeature->m_mmcState = m_mmcState;
-#endif
 
         m_allocator = m_pipeline->GetEncodeAllocator();
         ENCODE_CHK_STATUS_RETURN(AllocateResources());
@@ -185,10 +183,8 @@ namespace encode
 
         ENCODE_FUNC_CALL();
 
-#ifdef _MMC_SUPPORTED
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(&cmdBuffer, false));
-#endif
 
         MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
         MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
@@ -203,6 +199,8 @@ namespace encode
     MOS_STATUS EncodePreEncPacket::AddForceWakeup(MOS_COMMAND_BUFFER &cmdBuffer)
     {
         ENCODE_FUNC_CALL();
+        // NativeFence sync BB may cause preemption and ring idle, so force wakeup after it
+        ENCODE_CHK_STATUS_RETURN(AddNativeFenceSyncBBStartCmd(cmdBuffer));
 
         auto &forceWakeupParams                     = m_miItf->MHW_GETPAR_F(MI_FORCE_WAKEUP)();
         forceWakeupParams                           = {};
@@ -258,6 +256,13 @@ namespace encode
         params.psPreDeblockSurface  = &m_basicFeature->m_reconSurface;
         params.psPostDeblockSurface = &m_basicFeature->m_reconSurface;
         params.psRawSurface         = m_basicFeature->m_preEncRawSurface;
+
+        if (!m_basicFeature->m_disableTileBToTile4 && m_basicFeature->m_reconSurface.TileType == MOS_TILE_B && m_basicFeature->m_reconSurface.TileModeGMM == MOS_TILE_X_GMM)
+        {
+            params.overrideTileBToTile4 = true;
+        }
+
+        params.forceTile64ReconToTile4 = m_basicFeature->ShouldForceReconTile64ToTile4(m_basicFeature->m_reconSurface);
 
         params.presMetadataLineBuffer       = m_resMetadataLineBuffer;
         params.presMetadataTileLineBuffer   = m_resMetadataTileLineBuffer;
@@ -711,7 +716,7 @@ namespace encode
     {
         ENCODE_FUNC_CALL();
 
-        ENCODE_CHK_STATUS_RETURN(m_miItf->SetWatchdogTimerThreshold(m_basicFeature->m_frameWidth, m_basicFeature->m_frameHeight, true));
+        ENCODE_CHK_STATUS_RETURN(m_miItf->SetWatchdogTimerThreshold((uint32_t)m_basicFeature->m_rawSurfaceToEnc->dwWidth, (uint32_t)m_basicFeature->m_rawSurfaceToEnc->dwHeight, true));
 
         SetPerfTag(CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE, (uint16_t)m_basicFeature->m_mode, m_basicFeature->GetPictureCodingType());
 
@@ -868,6 +873,15 @@ namespace encode
 
         MHW_VDBOX_STATE_CMDSIZE_PARAMS stateCmdSizeParams;
 
+        // Determine semaphore wait command size based on hardware capability
+        uint32_t semaphoreWaitSize = 0;
+#ifdef _MEDIA_RESERVED
+        bool isSemaphore64Supported = MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrHwSemaphore64);
+        semaphoreWaitSize = isSemaphore64Supported ? m_miItf->MHW_GETSIZE_F(MI_SEMAPHORE_WAIT_64)() : m_miItf->MHW_GETSIZE_F(MI_SEMAPHORE_WAIT)();
+#else
+        semaphoreWaitSize = m_miItf->MHW_GETSIZE_F(MI_SEMAPHORE_WAIT)();
+#endif
+
         hcpCommandsSize =
             m_vdencItf->MHW_GETSIZE_F(VD_PIPELINE_FLUSH)() +
             m_miItf->MHW_GETSIZE_F(MI_FLUSH_DW)() +
@@ -900,9 +914,9 @@ namespace encode
             m_miItf->MHW_GETSIZE_F(MI_LOAD_REGISTER_MEM)() +        // 1 for RC6 WA
             2 * m_hcpItf->MHW_GETSIZE_F(HCP_PAK_INSERT_OBJECT)() +  // Two PAK insert object commands are for headers before the slice header and the header for the end of stream
             4 * m_miItf->MHW_GETSIZE_F(MI_STORE_DATA_IMM)() +       // two (BRC+reference frame) for clean-up HW semaphore memory and another two for signal it
-            17 * m_miItf->MHW_GETSIZE_F(MI_SEMAPHORE_WAIT)() +      // Use HW wait command for each reference and one wait for current semaphore object
-            m_miItf->MHW_GETSIZE_F(MI_SEMAPHORE_WAIT)() +           // Use HW wait command for each BRC pass
-            +m_miItf->MHW_GETSIZE_F(MI_SEMAPHORE_WAIT)()            // Use HW wait command for each VDBOX
+            17 * semaphoreWaitSize +      // Use HW wait command for each reference and one wait for current semaphore object
+            semaphoreWaitSize +           // Use HW wait command for each BRC pass
+            semaphoreWaitSize             // Use HW wait command for each VDBOX
             + 2 * m_miItf->MHW_GETSIZE_F(MI_STORE_DATA_IMM)()       // One is for reset and another one for set per VDBOX
             + 8 * m_miItf->MHW_GETSIZE_F(MI_COPY_MEM_MEM)()         // Need to copy SSE statistics/ Slice Size overflow into memory
             ;

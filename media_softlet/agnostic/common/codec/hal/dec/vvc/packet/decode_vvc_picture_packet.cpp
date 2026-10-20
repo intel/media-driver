@@ -165,10 +165,9 @@ namespace decode{
         m_vvcPicParams      = m_vvcBasicFeature->m_vvcPicParams;
         DECODE_CHK_NULL(m_vvcPicParams);
 
-#ifdef _MMC_SUPPORTED
         m_mmcState = m_vvcPipeline->GetMmcState();
         DECODE_CHK_NULL(m_mmcState);
-#endif
+
         DECODE_CHK_STATUS(SetRowstoreCachingOffsets());
         DECODE_CHK_STATUS(AllocateVariableResources());
         
@@ -1044,14 +1043,20 @@ namespace decode{
         auto &mfxWaitParams               = m_miItf->MHW_GETPAR_F(MFX_WAIT)();
         mfxWaitParams                     = {};
         mfxWaitParams.iStallVdboxPipeline = true;
-        DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+        if (!m_osInterface->bNullHwIsEnabled)
+        {
+            DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+        }
 
         DECODE_CHK_NULL(m_vvcpItf);
         SETPAR_AND_ADDCMD(VVCP_PIPE_MODE_SELECT, m_vvcpItf, &cmdBuffer);
 
         mfxWaitParams                     = {};
         mfxWaitParams.iStallVdboxPipeline = true;
-        DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+        if (!m_osInterface->bNullHwIsEnabled)
+        {
+            DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+        }
 
         return MOS_STATUS_SUCCESS;
     }
@@ -1144,13 +1149,11 @@ namespace decode{
             psSurface->dwPitch + psSurface->RenderOffset.YUV.U.YOffset,
             uvPlaneAlignment);
 
-#ifdef _MMC_SUPPORTED
         if (params.surfaceId == vvcReconPic)
         {
             DECODE_CHK_STATUS(m_mmcState->SetSurfaceMmcState(&(m_vvcBasicFeature->m_destSurface)));
         }
         DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(psSurface, &params.compressionFormat));
-#endif
 
         if (m_vvcPicParams->m_spsBitdepthMinus8 == 0)
         {

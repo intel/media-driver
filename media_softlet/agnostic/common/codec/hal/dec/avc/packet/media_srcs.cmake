@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022, Intel Corporation
+# Copyright (c) 2021-2025, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@ set(SOFTLET_DECODE_AVC_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_picture_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_downsampling_packet.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_avc_debug_packet.cpp
 )
 
 set(SOFTLET_DECODE_AVC_HEADERS_
@@ -33,6 +34,7 @@ set(SOFTLET_DECODE_AVC_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_slice_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_picture_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_avc_downsampling_packet.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_avc_debug_packet.h
 )
 
 source_group( CodecHalNext\\Shared\\Decode FILES ${SOFTLET_DECODE_AVC_SOURCES_} ${SOFTLET_DECODE_AVC_HEADERS_} )

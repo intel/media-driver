@@ -31,7 +31,11 @@
 #include "decode_vp9_phase_back_end.h"
 #include "decode_vp9_feature_manager.h"
 #include "decode_vp9_buffer_update.h"
+#include "decode_vp9_buffer_update_post.h"
 #include "media_debug_fast_dump.h"
+#if (_DEBUG || _RELEASE_INTERNAL)
+#include "decode_vp9_debug_packet.h"
+#endif
 
 namespace decode
 {
@@ -64,7 +68,15 @@ MOS_STATUS Vp9Pipeline::Initialize(void *settings)
     auto *bufferUpdatePipeline = MOS_New(DecodeVp9BufferUpdate, this, m_task, m_numVdbox);
     DECODE_CHK_NULL(bufferUpdatePipeline);
     DECODE_CHK_STATUS(m_preSubPipeline->Register(*bufferUpdatePipeline));
-    DECODE_CHK_STATUS(bufferUpdatePipeline->Init(*codecSettings));   
+    DECODE_CHK_STATUS(bufferUpdatePipeline->Init(*codecSettings));
+
+    if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+    {
+        auto *bufferPostUpdatePipeline = MOS_New(DecodeVp9BufferUpdatePost, this, m_task, m_numVdbox);
+        DECODE_CHK_NULL(bufferPostUpdatePipeline);
+        DECODE_CHK_STATUS(m_postSubPipeline->Register(*bufferPostUpdatePipeline));
+        DECODE_CHK_STATUS(bufferPostUpdatePipeline->Init(*codecSettings));
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -106,12 +118,11 @@ MOS_STATUS Vp9Pipeline::UserFeatureReport()
     WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_APOGEIOS_VP9D_ENABLE_ID, 1, m_osInterface->pOsContext);
 #endif
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DEBUG_TOOL(
         if (m_mmcState != nullptr) {
             m_mmcState->UpdateUserFeatureKey(&(m_basicFeature->m_destSurface));
         })
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

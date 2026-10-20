@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2023, Intel Corporation
+* Copyright (c) 2020-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -95,17 +95,23 @@ namespace encode {
         m_basicFeature = dynamic_cast<AvcBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
         ENCODE_CHK_NULL_RETURN(m_basicFeature);
 
-#ifdef _MMC_SUPPORTED
         m_mmcState = m_pipeline->GetMmcState();
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         m_basicFeature->m_mmcState = m_mmcState;
-#endif
+
         m_allocator = m_pipeline->GetEncodeAllocator();
         ENCODE_CHK_STATUS_RETURN(AllocateResources());
 
         ENCODE_CHK_STATUS_RETURN(m_statusReport->RegistObserver(this));
 
         m_usePatchList = m_osInterface->bUsesPatchList;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_pipeline->GetBypassHWLegacy())
+        {
+            m_bypassHwLegacyEnabled = true;
+        }
+#endif
 
         return MOS_STATUS_SUCCESS;
     }
@@ -192,6 +198,10 @@ namespace encode {
         ENCODE_CHK_STATUS_RETURN(PatchSliceLevelCommands(cmdBuffer, packetPhase));
 
         ENCODE_CHK_STATUS_RETURN(Mos_Solo_PostProcessEncode(m_osInterface, &m_basicFeature->m_resBitstreamBuffer, &m_basicFeature->m_reconSurface));
+
+#if USE_CODECHAL_DEBUG_TOOL
+        ENCODE_CHK_STATUS_RETURN(DumpReferences());
+#endif
 
         return MOS_STATUS_SUCCESS;
     }
@@ -333,9 +343,15 @@ namespace encode {
             if (!brcFeature->m_swBrc)
             {
 #endif
-            // Insert conditional batch buffer end for HuC valid IMEM loaded check
-            m_pResource = brcFeature->GetHucStatus2Buffer();
-            SETPAR_AND_ADDCMD(MI_CONDITIONAL_BATCH_BUFFER_END, m_miItf, &cmdBuffer);
+#if (_DEBUG || _RELEASE_INTERNAL)
+            // In NullHW mode HuC never runs so HucStatus2=0 would always fire the early-exit.
+            if (!m_bypassHwLegacyEnabled)
+#endif
+            {
+                // Insert conditional batch buffer end for HuC valid IMEM loaded check
+                m_pResource = brcFeature->GetHucStatus2Buffer();
+                SETPAR_AND_ADDCMD(MI_CONDITIONAL_BATCH_BUFFER_END, m_miItf, &cmdBuffer);
+            }
 #if _SW_BRC
             }
 #endif
@@ -350,17 +366,44 @@ namespace encode {
                 ENCODE_CHK_STATUS_RETURN(MediaPacket::UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer));
             }
 
-            // Insert conditional batch buffer end
-            // VDENC uses HuC BRC FW generated semaphore for conditional 2nd pass
-            m_pResource =
-                m_basicFeature->m_recycleBuf->GetBuffer(VdencBrcPakMmioBuffer, 0);
-            SETPAR_AND_ADDCMD(MI_CONDITIONAL_BATCH_BUFFER_END, m_miItf, &cmdBuffer);
+#if (_DEBUG || _RELEASE_INTERNAL)
+            if (!m_bypassHwLegacyEnabled)
+#endif
+            {
+                // Insert conditional batch buffer end
+                // VDENC uses HuC BRC FW generated semaphore for conditional 2nd pass
+                m_pResource =
+                    m_basicFeature->m_recycleBuf->GetBuffer(VdencBrcPakMmioBuffer, 0);
+                SETPAR_AND_ADDCMD(MI_CONDITIONAL_BATCH_BUFFER_END, m_miItf, &cmdBuffer);
+            }
         }
 
         if (m_pipeline->IsFirstPipe())
         {
             ENCODE_CHK_STATUS_RETURN(StartStatusReport(statusReportMfx, &cmdBuffer));
         }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_bypassHwLegacyEnabled)
+        {
+            if (!m_pipeline->GetBypassHWLegacy()->IsPipelineCharacteristicsSet())
+            {
+                // AVC codecSettings->chromaFormat = 0 means default 4:2:0 (not MONOCHROME).
+                // Normalize to HCP_CHROMA_FORMAT_YUV420 (= 1) so cfg file "420" entries match.
+                uint32_t avcChromaFmt = m_basicFeature->m_chromaFormat == 0 ? 1 : m_basicFeature->m_chromaFormat;
+                m_pipeline->GetBypassHWLegacy()->SetPipelineCharacteristics(
+                    CODECHAL_AVC,
+                    avcChromaFmt,
+                    m_basicFeature->m_frameWidth,
+                    m_basicFeature->m_frameHeight,
+                    m_basicFeature->m_bitDepth,
+                    m_seqParam->TargetUsage);
+                m_pipeline->GetBypassHWLegacy()->SetPipelineCharacteristicsFlag();
+            }
+            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->AddNullHwProxyCmd(&cmdBuffer, true));
+            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StartPredicate(&cmdBuffer));
+        }
+#endif
 
         SETPAR_AND_ADDCMD(VDENC_CONTROL_STATE, m_vdencItf, &cmdBuffer);
 
@@ -440,6 +483,17 @@ namespace encode {
             SETPAR_AND_ADDCMD(MFX_AVC_DIRECTMODE_STATE, m_mfxItf, &cmdBuffer);
         }
 
+        // Log previous frame resolution for OCA debugging
+        if (m_osInterface && m_osInterface->pOsContext)
+        {
+            char ocaLogMsg[256] = {};
+            MOS_SecureStringPrint(ocaLogMsg, sizeof(ocaLogMsg), sizeof(ocaLogMsg),
+                "AVC Encode - Previous Frame Resolution: Height=%d, Width=%d",
+                m_basicFeature->m_prevFrameHeight, m_basicFeature->m_prevFrameWidth);
+            HalOcaInterfaceNext::TraceMessage(cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, 
+                ocaLogMsg, sizeof(ocaLogMsg));
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -512,6 +566,14 @@ namespace encode {
         }
 
         ENCODE_CHK_STATUS_RETURN(EnsureAllCommandsExecuted(cmdBuffer));
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_bypassHwLegacyEnabled)
+        {
+            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StopPredicate(&cmdBuffer));
+        }
+#endif
+
         ENCODE_CHK_STATUS_RETURN(PrepareHWMetaData(&cmdBuffer));
         ENCODE_CHK_STATUS_RETURN(ReadMfcStatus(cmdBuffer));
 
@@ -588,7 +650,7 @@ namespace encode {
 
         PMOS_RESOURCE presMetadataBuffer = m_basicFeature->m_resMetadataBuffer;
         MetaDataOffset resourceOffset    = m_basicFeature->m_metaDataOffset;
-        if ((presMetadataBuffer == nullptr) || !m_pipeline->IsLastPass())
+        if (presMetadataBuffer == nullptr)
         {
             return MOS_STATUS_SUCCESS;
         }
@@ -1084,7 +1146,7 @@ namespace encode {
         EncodeStatusMfx *       encodeStatusMfx  = (EncodeStatusMfx *)mfxStatus;
         EncodeStatusReportData *statusReportData = (EncodeStatusReportData *)statusReport;
 
-        if (statusReportData->hwCtr)
+        if (statusReportData->hwCtr && m_encodecp)
         {
             m_encodecp->UpdateCpStatusReport(statusReport);
         }
@@ -1111,7 +1173,10 @@ namespace encode {
         ENCODE_CHK_NULL_RETURN(cmdBuffer);
 
         ENCODE_CHK_STATUS_RETURN(MediaPacket::StartStatusReportNext(srType, cmdBuffer));
-        m_encodecp->StartCpStatusReport(cmdBuffer);
+        if (m_encodecp)
+        {
+            m_encodecp->StartCpStatusReport(cmdBuffer);
+        }
 
         MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
         ENCODE_CHK_NULL_RETURN(perfProfiler);
@@ -1450,10 +1515,8 @@ namespace encode {
             ENCODE_CHK_STATUS_RETURN(packetUtilities->SendMarkerCommand(&cmdBuffer, presSetMarker));
         }
 
-    #ifdef _MMC_SUPPORTED
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(&cmdBuffer, false));
-    #endif
 
         MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
         MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
@@ -1529,9 +1592,17 @@ namespace encode {
         ENCODE_FUNC_CALL();
 
         //for gen 12, we need to add MFX wait for both KIN and VRT before and after MFX Pipemode select...
-        SETPAR_AND_ADDCMD(MFX_WAIT, m_miItf, &cmdBuffer);
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (!m_bypassHwLegacyEnabled)
+#endif
+            SETPAR_AND_ADDCMD(MFX_WAIT, m_miItf, &cmdBuffer);
+
         SETPAR_AND_ADDCMD(MFX_PIPE_MODE_SELECT, m_mfxItf, &cmdBuffer);
-        SETPAR_AND_ADDCMD(MFX_WAIT, m_miItf, &cmdBuffer);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (!m_bypassHwLegacyEnabled)
+#endif
+            SETPAR_AND_ADDCMD(MFX_WAIT, m_miItf, &cmdBuffer);
 
         ENCODE_CHK_STATUS_RETURN(AddAllCmds_MFX_SURFACE_STATE(&cmdBuffer));
 
@@ -1582,14 +1653,22 @@ namespace encode {
             // base part of 2nd lvl BB must be aligned for CODECHAL_CACHELINE_SIZE
             secondLevelBatchBuffer->dwOffset = MOS_ALIGN_CEIL(m_hwInterface->m_vdencBrcImgStateBufferSize, CODECHAL_CACHELINE_SIZE) +
                                                m_basicFeature->m_curNumSlices * brcFeature->GetVdencOneSliceStateSize();
-            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(cmdBuffer, secondLevelBatchBuffer));
-            HalOcaInterfaceNext::OnSubLevelBBStart(
-                *cmdBuffer,
-                m_osInterface->pOsContext,
-                &secondLevelBatchBuffer->OsResource,
-                secondLevelBatchBuffer->dwOffset,
-                false,
-                brcFeature->GetVdencOneSliceStateSize());
+#if (_DEBUG || _RELEASE_INTERNAL)
+            // In NullHW/BRC mode HuC never ran so the BRC img-state buffer (slice section)
+            // is uninitialized. MI_BATCH_BUFFER_START always executes even under
+            // MI_SET_PREDICATE, so jumping into this buffer causes a GPU hang.
+            if (!m_bypassHwLegacyEnabled)
+#endif
+            {
+                ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(cmdBuffer, secondLevelBatchBuffer));
+                HalOcaInterfaceNext::OnSubLevelBBStart(
+                    *cmdBuffer,
+                    m_osInterface->pOsContext,
+                    &secondLevelBatchBuffer->OsResource,
+                    secondLevelBatchBuffer->dwOffset,
+                    false,
+                    brcFeature->GetVdencOneSliceStateSize());
+            }
         }
 
         ENCODE_CHK_STATUS_RETURN(AddAllCmds_MFX_PAK_INSERT_OBJECT(cmdBuffer));
@@ -2553,6 +2632,26 @@ namespace encode {
             CodechalDbgAttr::attrStatusReport,
             "EncodeStatusReport_Buffer"));
 
+        // VDENC frame statistics streamout
+        PMOS_RESOURCE vdencStatsBuffer = m_basicFeature->m_recycleBuf->GetBuffer(VdencStatsBuffer, 0);
+        if (vdencStatsBuffer != nullptr && debugInterface->DumpIsEnabled(CodechalDbgAttr::attrVdencFrameStats))
+        {
+            MOS_LOCK_PARAMS lockFlags;
+            MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+            lockFlags.ReadOnly = 1;
+            uint8_t *statsData = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, vdencStatsBuffer, &lockFlags);
+            if (statsData != nullptr)
+            {
+                debugInterface->DumpData(
+                    statsData,
+                    CODECHAL_PAGE_SIZE,
+                    CodechalDbgAttr::attrVdencFrameStats,
+                    "VdencFrameStats");
+
+                m_osInterface->pfnUnlockResource(m_osInterface, vdencStatsBuffer);
+            }
+        }
+
         // BRC non-native ROI dump as HuC_region8[in], HuC_region9[in] and HuC_region10[out]
         auto brcFeature = dynamic_cast<AvcEncodeBRC*>(m_featureManager->GetFeature(AvcFeatureIDs::avcBrcFeature));
         auto streamInFeature = dynamic_cast<AvcVdencStreamInFeature*>(m_featureManager->GetFeature(AvcFeatureIDs::avcVdencStreamInFeature));
@@ -2677,6 +2776,18 @@ namespace encode {
                 0,
                 CODECHAL_NUM_MEDIA_STATES));
         }
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS AvcVdencPkt::DumpReferences()
+    {
+        ENCODE_FUNC_CALL();
+
+        auto *debugInterface = m_pipeline->GetDebugInterface();
+        ENCODE_CHK_NULL_RETURN(debugInterface);
+
+        ENCODE_CHK_STATUS_RETURN(m_basicFeature->m_ref->DumpReferences(*debugInterface));
+
         return MOS_STATUS_SUCCESS;
     }
 

@@ -33,6 +33,13 @@
 #include "media_interfaces_mcpy_next.h"
 #include "media_debug_interface.h"
 
+bool SlimVdboxPrefInconsistent(MEDIA_FEATURE_TABLE *skuTable, VdboxTypePref pref)
+{
+    return skuTable != nullptr &&
+           MEDIA_IS_SKU(skuTable, FtrWithSlimVdbox) &&
+           pref != MOS_VDBOX_PREFER_FULL;
+}
+
 MediaPipeline::MediaPipeline(PMOS_INTERFACE osInterface) : m_osInterface(osInterface)
 {
     if (m_osInterface)
@@ -138,7 +145,7 @@ MOS_STATUS MediaPipeline::RegisterPacket(uint32_t packetId, MediaPacket *packet)
     {
         m_packetList.erase(iter);
     }
-    m_packetList.insert(std::make_pair(packetId, packet));
+    m_packetList.emplace(packetId, packet);
 
     return MOS_STATUS_SUCCESS;
 }
@@ -257,7 +264,7 @@ MediaTask *MediaPipeline::CreateTask(MediaTask::TaskType type)
     }
     if (nullptr != task)
     {
-        m_taskList.insert(std::make_pair(type, task));
+        m_taskList.emplace(type, task);
     }
     return task;
 }

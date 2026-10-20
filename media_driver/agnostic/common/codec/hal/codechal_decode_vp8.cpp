@@ -1297,9 +1297,7 @@ MOS_STATUS CodechalDecodeVp8::DecodeStateLevel()
         pipeBufAddrParams.psPreDeblockSurface = &m_destSurface;
     }
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&pipeBufAddrParams));
-#endif
 
     // when there is no last, golden and alternate reference,
     // the index is set to the destination frame index
@@ -1326,11 +1324,9 @@ MOS_STATUS CodechalDecodeVp8::DecodeStateLevel()
         }
     }
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->CheckReferenceList(&pipeBufAddrParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetRefrenceSync(m_disableDecodeSyncLock, m_disableLockForTranscode));
-#endif
 
     MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS indObjBaseAddrParams;
     MOS_ZeroMemory(&indObjBaseAddrParams, sizeof(indObjBaseAddrParams));
@@ -1485,10 +1481,9 @@ MOS_STATUS CodechalDecodeVp8::DecodePrimitiveLevel()
 
 MOS_STATUS CodechalDecodeVp8::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
     m_mmc = MOS_New(CodechalMmcDecodeVp8, m_hwInterface, this);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_mmc);
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

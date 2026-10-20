@@ -130,6 +130,8 @@ typedef struct _VP_CONFIG
 #if (_DEBUG || _RELEASE_INTERNAL)
     uint32_t   dwRTOldCacheSetting;
     uint32_t   dwRTOldCacheSettingReported;
+    uint32_t   dw3DLutInterpolationMethod;         // 3DLut Interpolation Method
+    uint32_t   dw3DLutInterpolationMethodReported; // 3DLut Interpolation Reported Method
 #endif
     uint32_t   dwFFDICompressible;         // FFDI Compressible flag
     uint32_t   dwFFDICompressMode;         // FFDI Compression mode

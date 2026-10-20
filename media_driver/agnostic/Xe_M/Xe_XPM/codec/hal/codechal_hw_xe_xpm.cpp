@@ -34,7 +34,9 @@
 #include "mhw_vdbox_hcp_hwcmd_g12_X.h"  // temporary include for calculating size of various hardware commands
 #include "mhw_vdbox_vdenc_g12_X.h"
 #include "mhw_vdbox_hcp_g12_X.h"
+#if (IGFX_GEN12_TGLLP_SUPPORTED)
 #include "media_interfaces_g12_tgllp.h"// temporary include for getting avp interface
+#endif
 #include "media_interfaces_xehp_sdv.h"//temporary include for getting avp interface
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "Xe_XPM_Film_Grain.h"

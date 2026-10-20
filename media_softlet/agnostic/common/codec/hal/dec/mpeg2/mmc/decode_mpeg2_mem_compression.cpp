@@ -40,11 +40,15 @@ Mpeg2DecodeMemComp::Mpeg2DecodeMemComp(CodechalHwInterfaceNext *hwInterface)
 }
 
 MOS_STATUS Mpeg2DecodeMemComp::CheckReferenceList(
-    Mpeg2BasicFeature &mpeg2BasicFeature, MOS_MEMCOMP_STATE &preDeblockSurfMmcState, MOS_MEMCOMP_STATE &postDeblockSurfMmcState)
+    Mpeg2BasicFeature &mpeg2BasicFeature,
+    MOS_MEMCOMP_STATE &preDeblockSurfMmcState,
+    MOS_MEMCOMP_STATE &postDeblockSurfMmcState,
+    PMOS_RESOURCE     *presReferences)
 {
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
     DECODE_FUNC_CALL();
     DECODE_CHK_NULL(m_osInterface);
+    DECODE_CHK_NULL(presReferences);
 
     if (((postDeblockSurfMmcState != MOS_MEMCOMP_DISABLED) ||
         (preDeblockSurfMmcState != MOS_MEMCOMP_DISABLED)) &&
@@ -65,7 +69,7 @@ MOS_STATUS Mpeg2DecodeMemComp::CheckReferenceList(
 
             //Decompress current frame to avoid green corruption in this error handling case
             MOS_MEMCOMP_STATE mmcMode;
-            DECODE_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface, 
+            DECODE_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(m_osInterface,
                 &mpeg2BasicFeature.m_destSurface.OsResource,
                 &mmcMode));
 
@@ -74,6 +78,21 @@ MOS_STATUS Mpeg2DecodeMemComp::CheckReferenceList(
                 DECODE_CHK_STATUS(m_osInterface->pfnDecompResource(
                     m_osInterface,
                     &mpeg2BasicFeature.m_destSurface.OsResource));
+            }
+
+            // Decompress forward and backward reference surfaces
+            for (uint8_t i = 0; i < MPEG2_NUM_REF_SURFACES; i++)
+            {
+                if (presReferences[i] != nullptr)
+                {
+                    DECODE_CHK_STATUS(m_osInterface->pfnGetMemoryCompressionMode(
+                        m_osInterface, presReferences[i], &mmcMode));
+                    if (mmcMode != MOS_MEMCOMP_DISABLED)
+                    {
+                        DECODE_CHK_STATUS(m_osInterface->pfnDecompResource(
+                            m_osInterface, presReferences[i]));
+                    }
+                }
             }
         }
     }

@@ -140,6 +140,29 @@ namespace decode
 
         virtual MOS_STATUS MemoryFlush(MOS_COMMAND_BUFFER &cmdBuffer);
 
+        //!
+        //! \brief  Start to collect HuC HW timing via MediaPerfProfiler
+        //! \param  [in] cmdBuffer
+        //!         Reference to command buffer
+        //! \return MOS_STATUS
+        //!         MOS_STATUS_SUCCESS if success, else fail reason
+        //!
+        MOS_STATUS StartPerfCollect(MOS_COMMAND_BUFFER &cmdBuffer);
+
+        //!
+        //! \brief  End collecting HuC HW timing via MediaPerfProfiler
+        //! \param  [in] cmdBuffer
+        //!         Reference to command buffer
+        //! \return MOS_STATUS
+        //!         MOS_STATUS_SUCCESS if success, else fail reason
+        //!
+        MOS_STATUS EndPerfCollect(MOS_COMMAND_BUFFER &cmdBuffer);
+
+        //!
+        //! \brief  Set perf tag for HuC S2L operation
+        //!
+        void SetPerfTag();
+
         DecodePipeline *         m_pipeline            = nullptr;
         MediaFeatureManager *    m_featureManager      = nullptr;
         DecodeAllocator *        m_allocator           = nullptr;

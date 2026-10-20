@@ -70,11 +70,9 @@ static bool arlRegisteredMhwNext =
     MediaFactory<uint32_t, MhwInterfacesNext>::
         Register<MhwInterfacesXe_Lpm_Plus_Next>((uint32_t)IGFX_ARROWLAKE);
 
-#ifdef _MMC_SUPPORTED
 static bool arlRegisteredMmd =
     MediaFactory<uint32_t, MmdDeviceNext>::
     Register<MmdDeviceXe_Lpm_Plus_Next>((uint32_t)IGFX_ARROWLAKE);
-#endif
 
 static bool arlRegisteredMcpy =
     MediaFactory<uint32_t, McpyDeviceNext>::
@@ -88,7 +86,13 @@ static bool arlRegisteredRenderHal =
     MediaFactory<uint32_t, RenderHalDevice>::
         Register<RenderHalInterfacesXe_Lpg>((uint32_t)IGFX_ARROWLAKE);
 
+#define IP_VERSION_XE_LPM_PLUS_EXT 0x1302
 static bool arlRegisteredHwInfo =
     MediaFactory<uint32_t, MediaInterfacesHwInfoDevice>::
-    Register<MediaInterfacesHwInfoDeviceXe_Lpm_Plus>((uint32_t)IGFX_ARROWLAKE);
+    Register<MediaInterfacesHwInfoDeviceXe_Lpm_Plus_Ext>((uint32_t)IGFX_ARROWLAKE);
 
+MOS_STATUS MediaInterfacesHwInfoDeviceXe_Lpm_Plus_Ext::Initialize(PLATFORM platform)
+{
+    m_hwInfo.SetDeviceInfo(IP_VERSION_XE_LPM_PLUS_EXT, platform.usRevId);
+    return MOS_STATUS_SUCCESS;
+}

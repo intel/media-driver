@@ -2277,10 +2277,10 @@ MOS_STATUS CodechalEncodeAvcEncG12::GenericEncodePictureLevel(PCODECHAL_ENCODE_A
     reconSurfaceParams.Mode = m_mode;
     reconSurfaceParams.ucSurfaceStateId = CODECHAL_MFX_REF_SURFACE_ID;
     reconSurfaceParams.psSurface = &m_reconSurface;
-#ifdef _MMC_SUPPORTED
+
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceState(&reconSurfaceParams));
-#endif
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxSurfaceCmd(&cmdBuffer, &reconSurfaceParams));
 
     // Src surface
@@ -2290,13 +2290,13 @@ MOS_STATUS CodechalEncodeAvcEncG12::GenericEncodePictureLevel(PCODECHAL_ENCODE_A
     surfaceParams.ucSurfaceStateId = CODECHAL_MFX_SRC_SURFACE_ID;
     surfaceParams.psSurface = m_rawSurfaceToPak;
     surfaceParams.bDisplayFormatSwizzle = m_avcPicParam->bDisplayFormatSwizzle;
-#ifdef _MMC_SUPPORTED
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceState(&surfaceParams));
-#endif
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxSurfaceCmd(&cmdBuffer, &surfaceParams));
-#ifdef _MMC_SUPPORTED
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetPipeBufAddr(&pipeBufAddrParams));
-#endif
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPipeBufAddrCmd(&cmdBuffer, &pipeBufAddrParams));
 
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxIndObjBaseAddrCmd(&cmdBuffer, &indObjBaseAddrParams));
@@ -2415,10 +2415,10 @@ MOS_STATUS CodechalEncodeAvcEncG12::InitializeState()
 MOS_STATUS CodechalEncodeAvcEncG12::InitMmcState()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
-#ifdef _MMC_SUPPORTED
+
     m_mmcState = MOS_New(CodechalMmcEncodeAvcG12, m_hwInterface, this);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -4116,9 +4116,9 @@ MOS_STATUS CodechalEncodeAvcEncG12::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
     surfaceCodecParams.dwUVBindingTableOffset     = mbEncBindingTable->dwAvcMBEncCurrUV;
     surfaceCodecParams.dwVerticalLineStride       = params->dwVerticalLineStride;
     surfaceCodecParams.dwVerticalLineStrideOffset = params->dwVerticalLineStrideOffset;
-#ifdef _MMC_SUPPORTED
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
-#endif
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
@@ -4216,9 +4216,9 @@ MOS_STATUS CodechalEncodeAvcEncG12::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
     surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_CURR_ENCODE].Value;
     surfaceCodecParams.dwBindingTableOffset  = currFieldPicture ? mbEncBindingTable->dwAvcMBEncFieldCurrPic[0] : mbEncBindingTable->dwAvcMBEncCurrPicFrame[0];
     surfaceCodecParams.ucVDirection          = vdirection;
-#ifdef _MMC_SUPPORTED
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
-#endif
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
@@ -4284,9 +4284,8 @@ MOS_STATUS CodechalEncodeAvcEncG12::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
             surfaceCodecParams.ucVDirection          = refVDirection;
             surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value;
 
-#ifdef _MMC_SUPPORTED
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
-#endif
+
             CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                 m_hwInterface,
                 cmdBuffer,
@@ -4344,9 +4343,8 @@ MOS_STATUS CodechalEncodeAvcEncG12::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
             surfaceCodecParams.ucVDirection = refVDirection;
             surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value;
 
-#ifdef _MMC_SUPPORTED
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
-#endif
+
             CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                 m_hwInterface,
                 cmdBuffer,
@@ -4405,9 +4403,8 @@ MOS_STATUS CodechalEncodeAvcEncG12::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
                 surfaceCodecParams.ucVDirection = refVDirection;
                 surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value;
 
-#ifdef _MMC_SUPPORTED
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
-#endif
+
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                     m_hwInterface,
                     cmdBuffer,
@@ -4483,9 +4480,8 @@ MOS_STATUS CodechalEncodeAvcEncG12::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
             surfaceCodecParams.ucVDirection          = refVDirection;
             surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value;
 
-#ifdef _MMC_SUPPORTED
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
-#endif
+
             CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                 m_hwInterface,
                 cmdBuffer,
@@ -4552,9 +4548,8 @@ MOS_STATUS CodechalEncodeAvcEncG12::SendAvcMbEncSurfaces(PMOS_COMMAND_BUFFER cmd
                 surfaceCodecParams.ucVDirection          = refVDirection;
                 surfaceCodecParams.dwCacheabilityControl = m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value;
 
-#ifdef _MMC_SUPPORTED
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
-#endif
+
                 CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                     m_hwInterface,
                     cmdBuffer,
@@ -4808,9 +4803,9 @@ MOS_STATUS CodechalEncodeAvcEncG12::SendAvcWPSurfaces(PMOS_COMMAND_BUFFER cmdBuf
     surfaceParams.dwVerticalLineStride       = params->dwVerticalLineStride;
     surfaceParams.dwVerticalLineStrideOffset = params->dwVerticalLineStrideOffset;
     surfaceParams.ucVDirection               = params->ucVDirection;
-#ifdef _MMC_SUPPORTED
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceParams));
-#endif
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,

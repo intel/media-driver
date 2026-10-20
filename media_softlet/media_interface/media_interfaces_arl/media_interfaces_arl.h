@@ -101,11 +101,6 @@
 #endif
 
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
-#ifndef _APOGEIOS_SUPPORTED
-#ifdef _MEDIA_RESERVED
-#include "codechal_vdenc_vp9_xe_lpm_plus.h"
-#endif
-#endif
 #include "encode_vp9_vdenc_pipeline_adapter_xe_lpm_plus.h"
 #endif
 
@@ -114,5 +109,13 @@
 
 #include "decode_scalability_singlepipe_next.h"
 #include "decode_scalability_multipipe_next.h"
+
+class MediaInterfacesHwInfoDeviceXe_Lpm_Plus_Ext : public MediaInterfacesHwInfoDevice
+{
+public:
+    virtual MOS_STATUS Initialize(PLATFORM platform) override;
+
+    MEDIA_CLASS_DEFINE_END(MediaInterfacesHwInfoDeviceXe_Lpm_Plus_Ext)
+};
 
 #endif  // __MEDIA_INTERFACES_ARL_H__

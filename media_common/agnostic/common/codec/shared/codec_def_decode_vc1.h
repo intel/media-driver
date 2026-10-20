@@ -279,7 +279,7 @@ typedef struct _CODEC_VC1_MB_PARAMS
             uint16_t         block_coded_pattern          : 6;
             uint16_t         block_luma_intra             : 4;
             uint16_t         block_chroma_intra           : 1;
-            uint16_t                                      : 5;
+            uint16_t         Reserved11                   : 5;
         };
         uint16_t         value;
     } pattern_code;

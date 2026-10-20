@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2023, Intel Corporation
+* Copyright (c) 2019-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -64,15 +64,36 @@ MOS_STATUS SyntaxElementCdfTableInit(
     uint16_t                    *ctxBuffer,
     SyntaxElementCdfTableLayout SyntaxElement);
 
+struct SlbData
+{
+    //SLB related fields.
+    uint16_t slbSize = 0;
+    uint16_t avpPicStateCmdNum = 1;
+    uint16_t avpSegmentStateOffset = 0;
+    uint16_t avpInloopFilterStateOffset = 0;
+    uint16_t vdencCmd1Offset = 0;
+    uint16_t vdencCmd2Offset = 0;
+    uint16_t avpPicStateOffset = 0;
+    uint16_t secondAvpPicStateOffset = 0;
+    uint16_t pakInsertSlbSize = 0;
+    uint16_t vdencTileSliceStateOffset = 0;
+    uint16_t tileNum = 1;
+};
+
 class Av1BasicFeature : public EncodeBasicFeature, public mhw::vdbox::vdenc::Itf::ParSetting, public mhw::vdbox::avp::Itf::ParSetting, public mhw::vdbox::huc::Itf::ParSetting, public mhw::mi::Itf::ParSetting
 {
 public:
-    Av1BasicFeature(EncodeAllocator * allocator,
-                     CodechalHwInterfaceNext *hwInterface,
-                     TrackedBuffer *trackedBuf,
-                     RecycleResource *recycleBuf,
-                     void *constSettings) :
-                     EncodeBasicFeature(allocator, hwInterface, trackedBuf, recycleBuf){m_constSettings = constSettings;};
+    Av1BasicFeature(MediaFeatureManager *featureManager,
+                    EncodeAllocator *allocator,
+                    CodechalHwInterfaceNext *hwInterface,
+                    TrackedBuffer *trackedBuf,
+                    RecycleResource *recycleBuf,
+                    void *constSettings) :
+                    EncodeBasicFeature(allocator, hwInterface, trackedBuf, recycleBuf)
+    {
+        m_constSettings = constSettings;
+        m_featureManager = featureManager;
+    };
 
     virtual ~Av1BasicFeature() {};
 
@@ -88,7 +109,9 @@ public:
 
     virtual MOS_STATUS GetTrackedBuffers() override;
 
-    Av1StreamIn *GetStreamIn();
+    virtual Av1StreamIn *GetStreamIn();
+
+    virtual MediaFeatureManager *GetFeatureManager();
 
     MOS_STATUS GetSurfaceMmcInfo(PMOS_SURFACE surface, MOS_MEMCOMP_STATE& mmcState, uint32_t& compressionFormat) const;
 
@@ -96,43 +119,53 @@ public:
 
     uint32_t GetAppHdrSizeInBytes(bool excludeFrameHdr = false) const;
 
-    MHW_SETPAR_DECL_HDR(VDENC_PIPE_MODE_SELECT);
+    const SlbData& GetSLBData() { return m_slbData; };
+    void SetSLBData(const SlbData& input) { m_slbData = input; };
 
-    MHW_SETPAR_DECL_HDR(VDENC_SRC_SURFACE_STATE);
+    uint32_t GetSlbbBufferSize() const { return m_slbbBufferSize; }
 
-    MHW_SETPAR_DECL_HDR(VDENC_REF_SURFACE_STATE);
+    virtual MOS_RESOURCE*     GetVdencReadBatchBufferOrigin(uint32_t recycledBufIdx, uint32_t brcPass) { return nullptr; }
+    virtual MOS_RESOURCE*     GetVdencReadBatchBufferTU7(uint32_t recycledBufIdx, uint32_t brcPass) { return nullptr; }
+    virtual MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBuffer(uint32_t recycledBufIdx) { return nullptr; }
+    virtual MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBufferTU7(uint32_t recycledBufIdx) { return nullptr; }
 
-    MHW_SETPAR_DECL_HDR(VDENC_DS_REF_SURFACE_STATE);
+    virtual MHW_SETPAR_DECL_HDR(VDENC_PIPE_MODE_SELECT);
 
-    MHW_SETPAR_DECL_HDR(VDENC_PIPE_BUF_ADDR_STATE);
+    virtual MHW_SETPAR_DECL_HDR(VDENC_SRC_SURFACE_STATE);
 
-    MHW_SETPAR_DECL_HDR(VDENC_WEIGHTSOFFSETS_STATE);
+    virtual MHW_SETPAR_DECL_HDR(VDENC_REF_SURFACE_STATE);
 
-    MHW_SETPAR_DECL_HDR(VDENC_CMD1);
+    virtual MHW_SETPAR_DECL_HDR(VDENC_DS_REF_SURFACE_STATE);
 
-    MHW_SETPAR_DECL_HDR(VDENC_HEVC_VP9_TILE_SLICE_STATE);
+    virtual MHW_SETPAR_DECL_HDR(VDENC_PIPE_BUF_ADDR_STATE);
 
-    MHW_SETPAR_DECL_HDR(VDENC_CMD2);
+    virtual MHW_SETPAR_DECL_HDR(VDENC_WEIGHTSOFFSETS_STATE);
 
-    MHW_SETPAR_DECL_HDR(AVP_PIC_STATE);
+    virtual MHW_SETPAR_DECL_HDR(VDENC_CMD1);
 
-    MHW_SETPAR_DECL_HDR(AVP_INLOOP_FILTER_STATE);
+    virtual MHW_SETPAR_DECL_HDR(VDENC_HEVC_VP9_TILE_SLICE_STATE);
 
-    MHW_SETPAR_DECL_HDR(AVP_PIPE_MODE_SELECT);
+    virtual MHW_SETPAR_DECL_HDR(VDENC_CMD2);
 
-    MHW_SETPAR_DECL_HDR(AVP_TILE_CODING);
+    virtual MHW_SETPAR_DECL_HDR(AVP_PIC_STATE);
 
-    MHW_SETPAR_DECL_HDR(AVP_PIPE_BUF_ADDR_STATE);
+    virtual MHW_SETPAR_DECL_HDR(AVP_INLOOP_FILTER_STATE);
 
-    MHW_SETPAR_DECL_HDR(AVP_INTER_PRED_STATE);
+    virtual MHW_SETPAR_DECL_HDR(AVP_PIPE_MODE_SELECT);
 
-    MHW_SETPAR_DECL_HDR(AVP_IND_OBJ_BASE_ADDR_STATE);
+    virtual MHW_SETPAR_DECL_HDR(AVP_TILE_CODING);
 
-    MHW_SETPAR_DECL_HDR(AVP_SURFACE_STATE);
+    virtual MHW_SETPAR_DECL_HDR(AVP_PIPE_BUF_ADDR_STATE);
 
-    MHW_SETPAR_DECL_HDR(HUC_PIPE_MODE_SELECT);
+    virtual MHW_SETPAR_DECL_HDR(AVP_INTER_PRED_STATE);
 
-    MHW_SETPAR_DECL_HDR(MFX_WAIT);
+    virtual MHW_SETPAR_DECL_HDR(AVP_IND_OBJ_BASE_ADDR_STATE);
+
+    virtual MHW_SETPAR_DECL_HDR(AVP_SURFACE_STATE);
+
+    virtual MHW_SETPAR_DECL_HDR(HUC_PIPE_MODE_SELECT);
+
+    virtual MHW_SETPAR_DECL_HDR(MFX_WAIT);
 
     EncodeMemComp* m_mmcState = nullptr;
 
@@ -180,6 +213,7 @@ public:
     uint32_t                           m_frameHdrOBUSizeByteOffset = 0;  //!< indicate current frame OBUFrame offset
     uint16_t                           m_tileGroupHeaderSize = 0;
     uint32_t                           m_encodedFrameNum = 0;                                   //!< Currently encoded frame number
+    SlbData                            m_slbData = {};                                          //!< Second Level Batch Buffer data
 
     PMOS_RESOURCE                      m_resMvTemporalBuffer = nullptr;                         //!< Pointer to MOS_RESOURCE of MvTemporal Buffer
 
@@ -223,10 +257,11 @@ public:
     PMOS_RESOURCE m_resMfdIntraRowStoreScratchBuffer                       = nullptr;
 
 protected:
+    uint32_t m_slbbBufferSize            = 0;
     uint32_t m_appHdrSize                = 0;
     uint32_t m_appHdrSizeExcludeFrameHdr = 0;
 
-MEDIA_CLASS_DEFINE_END(encode__Av1BasicFeature)
+    MEDIA_CLASS_DEFINE_END(encode__Av1BasicFeature)
 };
 
 }  // namespace encode

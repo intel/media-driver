@@ -29,6 +29,10 @@
 #include "decode_pipeline.h"
 #include "decode_avc_basic_feature.h"
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+#include "decode_avc_debug_packet.h"
+#endif
+
 namespace decode {
 
 class AvcPipeline : public DecodePipeline
@@ -79,6 +83,10 @@ public:
     DeclareDecodePacketId(avcPictureSubPacketId);
     DeclareDecodePacketId(avcSliceSubPacketId);
     DeclareDecodePacketId(avcFormatMonoPicPktId);
+    DeclareDecodePacketId(avcDecodeAqmId);
+#if (_DEBUG || _RELEASE_INTERNAL)
+    DeclareDecodePacketId(avcDebugSubPacketId);
+#endif
 
 protected:
     //!

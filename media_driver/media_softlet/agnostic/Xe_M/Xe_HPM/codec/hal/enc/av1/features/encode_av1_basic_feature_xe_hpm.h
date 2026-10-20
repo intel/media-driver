@@ -33,12 +33,14 @@ namespace encode
 class Av1BasicFeatureXe_Hpm : public Av1BasicFeature
 {
 public:
-    Av1BasicFeatureXe_Hpm(EncodeAllocator* allocator,
+    Av1BasicFeatureXe_Hpm(
+        MediaFeatureManager *featureManager,
+        EncodeAllocator* allocator,
         CodechalHwInterfaceNext* hwInterface,
         TrackedBuffer* trackedBuf,
         RecycleResource* recycleBuf,
         void* constSettings) :
-        Av1BasicFeature(allocator, hwInterface, trackedBuf, recycleBuf, constSettings) {};
+        Av1BasicFeature(featureManager, allocator, hwInterface, trackedBuf, recycleBuf, constSettings) {};
 
     virtual MOS_STATUS Update(void *params) override;
 

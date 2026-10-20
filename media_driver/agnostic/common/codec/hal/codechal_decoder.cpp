@@ -457,26 +457,6 @@ MOS_STATUS CodechalDecode::Allocate (CodechalSetting * codecHalSettings)
 #endif // _DEBUG || _RELEASE_INTERNAL
     }
 
-//#if (_DEBUG || _RELEASE_INTERNAL)
-//#ifdef _MD5_DEBUG_SUPPORTED
-//    {
-//    // For multi-thread decoder case, MD5 kernel will share the same context with hybrid decoder.
-//    // And it will be initialized in decoder worker thread function.
-//    if ((!m_isHybridDecoder || (m_isHybridDecoder && !IsFrameMTEnabled())) &&
-//        m_debugInterface != nullptr)
-//    {
-//        CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_DbgInitMD5Context(
-//            m_debugInterface,
-//            nullptr));
-//        if (m_debugInterface->pMD5Context)
-//        {
-//            m_debugInterface->bMD5DDIThreadExecute = true;
-//        }
-//    }
-//    }
-//#endif // _MD5_DEBUG_SUPPORTED
-//#endif // _DEBUG || _RELEASE_INTERNAL
-
     // Set decoder running flag to OS context so that VPP driver can query this flag and use
     // this flag to decide if disable VPP DNDI feature in VEBOX for power saving.
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSetHybridDecoderRunningFlag(
@@ -1484,30 +1464,6 @@ MOS_STATUS CodechalDecode::Execute(void *params)
     {
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_decodeHistogram->RenderHistogram(this, m_decodeParams.m_destSurface));
     }
-
-//#if (_DEBUG || _RELEASE_INTERNAL)
-//#ifdef _MD5_DEBUG_SUPPORTED
-//    if (CodecHal_PictureIsFrame(m_debugInterface->CurrPic) ||
-//        CodecHal_PictureIsInterlacedFrame(m_debugInterface->CurrPic) ||
-//        m_debugInterface->bSecondField ||
-//        m_isHybridDecoder)
-//    {
-//        if (m_debugInterface->pMD5Context != nullptr)
-//        {
-//            if (m_debugInterface->bMD5DDIThreadExecute)
-//            {
-//                //calculate md5 hash for each RT surface
-//                CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHal_DbgExecuteMD5Hash(
-//                    m_debugInterface,
-//                    &decodeParams->m_destSurface->OsResource,
-//                    nullptr,
-//                    0,
-//                    0));
-//            }
-//        }
-//    }
-//#endif // _MD5_DEBUG_SUPPORTED
-//#endif // _DEBUG || _RELEASE_INTERNAL
 
     CODECHAL_DEBUG_TOOL(
         if (CodecHal_PictureIsFrame(m_debugInterface->m_currPic) ||

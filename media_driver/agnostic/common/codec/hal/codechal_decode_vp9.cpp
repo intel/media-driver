@@ -1509,9 +1509,7 @@ MOS_STATUS CodechalDecodeVp9 :: InitPicStateMhwParams()
         }
     }
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(m_picMhwParams.PipeBufAddrParams));
-#endif
 
     if (m_streamOutEnabled)
     {
@@ -1519,11 +1517,9 @@ MOS_STATUS CodechalDecodeVp9 :: InitPicStateMhwParams()
             &(m_streamOutBuffer[m_streamOutCurrBufIdx]);
     }
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->CheckReferenceList(m_picMhwParams.PipeBufAddrParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetRefrenceSync(m_disableDecodeSyncLock, m_disableLockForTranscode));
-#endif
 
     m_picMhwParams.PipeBufAddrParams->presMfdDeblockingFilterRowStoreScratchBuffer =
         &m_resDeblockingFilterLineRowStoreScratchBuffer;
@@ -2004,10 +2000,9 @@ MOS_STATUS CodechalDecodeVp9 :: DecodePrimitiveLevel()
 
 MOS_STATUS CodechalDecodeVp9::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
     m_mmc = MOS_New(CodechalMmcDecodeVp9, m_hwInterface, this);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_mmc);
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

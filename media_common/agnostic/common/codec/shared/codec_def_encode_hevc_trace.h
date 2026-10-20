@@ -106,7 +106,7 @@ public:
         PUSH(LowDelayMode);
         PUSH(DisableHRDConformance);
         PUSH(HierarchicalFlag);
-        PUSH(TCBRCEnable);
+        PUSH(EnableFastPass);
         PUSH(bLookAheadPhase);
         PUSH(UserMaxIFrameSize);
         PUSH(UserMaxPBFrameSize);
@@ -153,6 +153,8 @@ public:
         PUSH(MinAdaptiveGopPicSize);
         PUSH(MaxAdaptiveGopPicSize);
         PUSH(FullPassCodecType);
+        PUSH(FastPassRatio);
+        PUSH(FastPassDsType);
 
         MOS_TraceEventExt(
             EVENT_ENCODE_DDI_SEQ_PARAM_HEVC,
@@ -271,6 +273,7 @@ public:
         PUSH(TargetFrameSize);
         PUSH(StatusReportEnable.fields.FrameStats);
         PUSH(StatusReportEnable.fields.BlockStats);
+        PUSH(bEnableSaliencyEncode);
 
         MOS_TraceEventExt(
             EVENT_ENCODE_DDI_PIC_PARAM_HEVC,

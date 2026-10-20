@@ -25,6 +25,8 @@
 //! \details    render copy implement file
 //!
 
+#include "vpkrnheader.h"
+#include "vp_common_defs.h"
 #include "media_render_copy_next.h"
 #include "media_interfaces_mhw_next.h"
 #include "media_render_common.h"
@@ -298,6 +300,8 @@ MOS_STATUS RenderCopyStateNext::SubmitCMD()
     // Set GPU Context to Render Engine
     MCPY_CHK_STATUS_RETURN(pOsInterface->pfnSetGpuContext(pOsInterface, MOS_GPU_CONTEXT_COMPUTE));
 
+    pOsInterface->pfnDisableNativeFenceSyncByCmd(pOsInterface, pOsInterface->CurrentGpuContextHandle);
+
     // Reset allocation list and house keeping
     m_osInterface->pfnResetOsStates(pOsInterface);
 
@@ -506,8 +510,8 @@ MOS_STATUS RenderCopyStateNext::SetupSurfaceStates()
 
     pRenderData->SurfMemObjCtl.SourceSurfMemObjCtl =
          pRenderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
-         MOS_MP_RESOURCE_USAGE_SurfaceState_RCS,
-         pRenderHal->pOsInterface->pfnGetGmmClientContext(pRenderHal->pOsInterface)).DwordValue;
+         MOS_HW_RESOURCE_USAGE_VP_INPUT_PICTURE_RENDER,
+         pRenderHal->pOsInterface).DwordValue;
 
     pRenderData->SurfMemObjCtl.TargetSurfMemObjCtl = pRenderData->SurfMemObjCtl.SourceSurfMemObjCtl;
 

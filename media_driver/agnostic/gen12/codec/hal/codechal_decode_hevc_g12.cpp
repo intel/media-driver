@@ -152,7 +152,6 @@ MOS_STATUS CodechalDecodeHevcG12::AllocateResourcesVariableSizes ()
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(CodechalDecodeHevc::AllocateResourcesVariableSizes());
 
-#ifdef _MMC_SUPPORTED
     // To WA invalid aux data caused HW issue when MMC on
     if (m_mmc && m_mmc->IsMmcEnabled() && MEDIA_IS_WA(m_waTable, Wa_1408785368) &&
         !Mos_ResourceIsNull(&m_destSurface.OsResource) &&
@@ -171,7 +170,6 @@ MOS_STATUS CodechalDecodeHevcG12::AllocateResourcesVariableSizes ()
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(m_osInterface, m_videoContext));
         }
     }
-#endif
 
     return eStatus;
 }
@@ -867,14 +865,13 @@ MOS_STATUS CodechalDecodeHevcG12::SetFrameStates ()
         m_twoVersionsOfCurrDecPicFlag = !m_hevcPicParams->pps_deblocking_filter_disabled_flag
             || m_hevcPicParams->sample_adaptive_offset_enabled_flag
             || m_hevcPicParams->deblocking_filter_override_enabled_flag;
-#ifdef _MMC_SUPPORTED
+
         if (m_mmc->IsMmcEnabled())
         {
             // Due to limitation, IBC reference has to be uncompressed, while recon surface is still compressed.
             // Always need internal surface for IBC reference for MMC.
             m_twoVersionsOfCurrDecPicFlag = true;
         }
-#endif
     }
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(SetPictureStructs());
@@ -1489,9 +1486,7 @@ MOS_STATUS CodechalDecodeHevcG12::AddPictureLongFormatCmds(
     }
 #endif
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetSurfaceState(picMhwParams->SurfaceParams));
-#endif
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(
         cmdBufferInUse,
@@ -1499,7 +1494,7 @@ MOS_STATUS CodechalDecodeHevcG12::AddPictureLongFormatCmds(
 
     // Let ref always use the same state (including MMC) as decode
     picMhwParams->SurfaceParams->ucSurfaceStateId = CODECHAL_HCP_REF_SURFACE_ID;
-#ifdef _MMC_SUPPORTED
+
     if (CodecHalDecodeIsSCCIBCMode(m_hevcSccPicParams))
     {
         uint8_t skipMask = 0;
@@ -1526,7 +1521,7 @@ MOS_STATUS CodechalDecodeHevcG12::AddPictureLongFormatCmds(
         }
         picMhwParams->SurfaceParams->mmcSkipMask |= skipMask;
     }
-#endif
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(
         cmdBufferInUse,
         picMhwParams->SurfaceParams));
@@ -2309,10 +2304,10 @@ MOS_STATUS CodechalDecodeHevcG12::DecodePrimitiveLevel()
 
 MOS_STATUS CodechalDecodeHevcG12::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
+
     m_mmc = MOS_New(CodechalMmcDecodeHevcG12, m_hwInterface, this);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_mmc);
-#endif
+
     if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
     {
         m_mmc->SetMmcDisabled();

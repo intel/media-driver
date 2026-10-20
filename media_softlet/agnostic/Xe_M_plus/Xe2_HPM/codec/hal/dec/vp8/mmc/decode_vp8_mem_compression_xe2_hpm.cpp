@@ -30,8 +30,6 @@
 #include "decode_vp8_mem_compression_xe2_hpm.h"
 #include "decode_utils.h"
 
-#ifdef _MMC_SUPPORTED
-
 namespace decode
 {
 
@@ -60,4 +58,3 @@ MOS_STATUS Vp8DecodeMemCompXe2_Hpm::SetPipeBufAddr(
 
 }  // namespace decode
 
-#endif

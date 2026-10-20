@@ -45,10 +45,6 @@ MOS_STATUS VvcPipelineXe2_Lpm::Init(void *settings)
     DECODE_CHK_NULL(settings);
     DECODE_CHK_STATUS(Initialize(settings));
 
-    if (MEDIA_IS_SKU(m_skuTable, FtrWithSlimVdbox))
-    {
-        m_numVdbox = 1;
-    }
     m_vvcDecodePkt = MOS_New(VvcDecodePkt, this, m_task, m_hwInterface);
     DECODE_CHK_STATUS(RegisterPacket(DecodePacketId(this, vvcDecodePacketId), m_vvcDecodePkt));
     DECODE_CHK_STATUS(m_vvcDecodePkt->Init());

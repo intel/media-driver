@@ -191,7 +191,7 @@ MOS_STATUS CmCommandBuffer::AddStateBaseAddress(CmISH *ish, CmMediaState *mediaS
     stateBaseAddressParams.dwInstructionBufferSize       = ishSize;
 
     uint32_t heapMocs = m_osInterface->pfnCachePolicyGetMemoryObject(MOS_CM_RESOURCE_USAGE_SurfaceState,
-            m_osInterface->pfnGetGmmClientContext(m_osInterface)).DwordValue;
+            m_osInterface).DwordValue;
     stateBaseAddressParams.mocs4DynamicState = heapMocs;
     stateBaseAddressParams.mocs4GeneralState = heapMocs;
     stateBaseAddressParams.mocs4InstructionCache = heapMocs;

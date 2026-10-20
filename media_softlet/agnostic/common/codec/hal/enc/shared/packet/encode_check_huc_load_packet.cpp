@@ -79,6 +79,9 @@ namespace encode
     MOS_STATUS EncodeCheckHucLoadPkt::AddForceWakeup(MOS_COMMAND_BUFFER *cmdBuffer)
     {
         ENCODE_FUNC_CALL();
+        ENCODE_CHK_NULL_RETURN(cmdBuffer);
+        // NativeFence sync BB may cause preemption and ring idle, so force wakeup after it
+        ENCODE_CHK_STATUS_RETURN(AddNativeFenceSyncBBStartCmd(*cmdBuffer));
 
         auto &forceWakeupParams                     = m_miItf->MHW_GETPAR_F(MI_FORCE_WAKEUP)();
         forceWakeupParams                           = {};
@@ -98,12 +101,11 @@ namespace encode
 
         ENCODE_FUNC_CALL();
         bool mmcEnabled = false;
-#ifdef _MMC_SUPPORTED
+
         EncodeMemComp *mmcState = m_pipeline->GetMmcState();
         ENCODE_CHK_NULL_RETURN(mmcState);
         mmcEnabled = mmcState->IsMmcEnabled();
         ENCODE_CHK_STATUS_RETURN(mmcState->SendPrologCmd(cmdBuffer, false));
-#endif
 
         MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
         MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));

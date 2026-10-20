@@ -59,7 +59,9 @@ public:
         uint32_t force3DLutInterpolation    = 0;
         uint32_t enabledSFCNv12P010LinearOutput = 0;
         uint32_t enabledSFCRGBPRGB24Output  = 0;
-        bool     enableIFNCC                    = false;
+        uint32_t enabledSFCLinearOutputTempSurfCompression = 0;
+        bool     enableIFNCC                = false;
+        bool     enable3DLutNewLayout       = false;  // Enable 3DLUT texture layout conversion
 #endif
         VP_CTRL enableOcl3DLut              = VP_CTRL_DEFAULT;
         VP_CTRL forceOclFC                  = VP_CTRL_DEFAULT;
@@ -77,6 +79,7 @@ public:
         bool               decompForInterlacedSurfWaEnabled = false;
         bool               enableSFCLinearOutputByTileConvert = false;
         bool               fallbackScalingToRender8K          = false;
+        uint64_t           hybridMgrSubmitMode                = 0;
     };
 
     uint32_t Is3DLutKernelOnly()
@@ -105,6 +108,11 @@ public:
         return m_ctrlVal.enabledSFCRGBPRGB24Output;
     }
 
+    uint32_t EnabledSFCLinearOutputTempSurfCompression()
+    {
+        return m_ctrlVal.enabledSFCLinearOutputTempSurfCompression;
+    }
+
     bool EnableIFNCC() 
     {
         return m_ctrlVal.enableIFNCC;
@@ -113,6 +121,10 @@ public:
     bool DisableOclFcFp()
     {
         return m_ctrlVal.bDisableOclFcFp;
+    }
+    bool Is3DLutNewLayoutEnabled()
+    {
+        return m_ctrlVal.enable3DLutNewLayout;
     }
 #endif
 
@@ -124,6 +136,8 @@ public:
     virtual MOS_STATUS CreateUserSettingForDebug();
 
     virtual MOS_STATUS Update(PVP_PIPELINE_PARAMS params);
+
+    virtual MOS_STATUS UpdateOnNewPipe(SwFilterPipe *swFilterPipe, uint32_t pipeCnt);
 
     bool EnableOclFC();
 
@@ -142,6 +156,15 @@ public:
     bool IsSfcDisabled()
     {
         return m_ctrlVal.disableSfc;
+    }
+
+    //! \brief    Report whether the TileB texture layout is enabled for this device.
+    //! \details  Open-source default is false. The closed-source override queries the
+    //!           SKU table (FtrTileB) so open policy code can gate TileB behavior
+    //!           without direct SKU-table access.
+    virtual bool IsTileBEnabled()
+    {
+        return false;
     }
 
     bool IsComputeContextEnabled()
@@ -223,6 +246,11 @@ public:
     uint32_t GetSplitFramePortions()
     {
         return m_ctrlVal.splitFramePortions;
+    }
+
+    uint64_t GetHybridMgrSubmitMode()
+    {
+        return m_ctrlVal.hybridMgrSubmitMode;
     }
 
     MOS_STATUS ForceRenderPath(bool status)

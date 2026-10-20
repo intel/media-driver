@@ -124,17 +124,17 @@ void SfcRenderBaseLegacy::SetColorFillParams(
     PMHW_SFC_STATE_PARAMS psfcStateParams)
 {
     VP_FUNC_CALL();
+    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(psfcStateParams);
+    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(m_renderDataLegacy.sfcStateParams);
 
-    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(m_renderDataLegacy.pColorFillParams);
-
-    psfcStateParams->bColorFillEnable = m_renderDataLegacy.pColorFillParams->bColorfillEnable;
+    psfcStateParams->bColorFillEnable = m_renderDataLegacy.sfcStateParams->bColorFillEnable;
 
     if (psfcStateParams->bColorFillEnable)
     {
-        psfcStateParams->fColorFillYRPixel = m_renderDataLegacy.pColorFillParams->fColorFillYRPixel;
-        psfcStateParams->fColorFillUGPixel = m_renderDataLegacy.pColorFillParams->fColorFillUGPixel;
-        psfcStateParams->fColorFillVBPixel = m_renderDataLegacy.pColorFillParams->fColorFillVBPixel;
-        psfcStateParams->fColorFillAPixel  = m_renderDataLegacy.pColorFillParams->fColorFillAPixel;
+        psfcStateParams->fColorFillYRPixel = m_renderDataLegacy.sfcStateParams->fColorFillYRPixel;
+        psfcStateParams->fColorFillUGPixel = m_renderDataLegacy.sfcStateParams->fColorFillUGPixel;
+        psfcStateParams->fColorFillVBPixel = m_renderDataLegacy.sfcStateParams->fColorFillVBPixel;
+        psfcStateParams->fColorFillAPixel  = m_renderDataLegacy.sfcStateParams->fColorFillAPixel;
     }
 }
 
@@ -692,7 +692,7 @@ MOS_STATUS SfcRenderBaseLegacy::SetScalingParams(PSFC_SCALING_PARAMS scalingPara
     m_renderDataLegacy.SfcScalingMode = scalingParams->sfcScalingMode;
 
     // ColorFill/Alpha settings
-    m_renderDataLegacy.pColorFillParams                  = &(scalingParams->sfcColorfillParams);
+    m_renderDataLegacy.sfcStateParams->bColorFillEnable  = scalingParams->sfcColorfillParams.bColorfillEnable;
     m_renderDataLegacy.sfcStateParams->fAlphaPixel       = scalingParams->sfcColorfillParams.fAlphaPixel;
     m_renderDataLegacy.sfcStateParams->fColorFillAPixel  = scalingParams->sfcColorfillParams.fColorFillAPixel;
     m_renderDataLegacy.sfcStateParams->fColorFillUGPixel = scalingParams->sfcColorfillParams.fColorFillUGPixel;

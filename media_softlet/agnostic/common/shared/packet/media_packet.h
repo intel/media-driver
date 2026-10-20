@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018, Intel Corporation
+* Copyright (c) 2018-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -356,6 +356,25 @@ protected:
     MediaStatusReport             *m_statusReport = nullptr;
     std::shared_ptr<mhw::mi::Itf> m_miItf         = nullptr;
     MediaUserSettingSharedPtr     m_userSettingPtr = nullptr;  //!< usersettingInstance
+#if (_DEBUG || _RELEASE_INTERNAL)
+    //! Set to true when BypassHwLegacy is fully initialized and active. Controls two behaviors:
+    //! (1) Disables NullHW::StartPredicateNext/StopPredicateNext so BypassHwLegacy is the
+    //!     sole owner of MI_SET_PREDICATE in the command buffer.
+    bool                          m_bypassHwLegacyEnabled = false;
+#endif
+
+    //!
+    //! \brief  Add native fence sync BB start command before force wakeup and prolog
+    //! \param  [in, out] cmdBuffer
+    //!         Reference to command buffer
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS AddNativeFenceSyncBBStartCmd(MOS_COMMAND_BUFFER &cmdBuffer)
+    {
+        return Mhw_SendNativeFenceSyncBBStartCmd(&cmdBuffer, m_osInterface, m_miItf);
+    }
+
 MEDIA_CLASS_DEFINE_END(MediaPacket)
 };
  

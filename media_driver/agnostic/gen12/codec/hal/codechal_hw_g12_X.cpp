@@ -29,10 +29,15 @@
 #include "codechal_hw_g12_X.h"
 #include "mhw_render_g12_X.h"
 #include "mhw_mi_hwcmd_g12_X.h"
+#include "mhw_mi_g12_X.h"
 #include "mhw_vdbox_hcp_hwcmd_g12_X.h"  // temporary include for calculating size of various hardware commands
 #include "mhw_vdbox_vdenc_g12_X.h"
 #include "mhw_vdbox_hcp_g12_X.h"
+#include "mhw_vdbox_huc_g12_X.h"
+#include "mhw_vdbox_mfx_g12_X.h"
+#if (IGFX_GEN12_TGLLP_SUPPORTED)
 #include "media_interfaces_g12_tgllp.h"
+#endif
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
 #include "igcodeckrn_g12.h"
 #endif
@@ -198,13 +203,9 @@ CodechalHwInterfaceG12::CodechalHwInterfaceG12(
     : CodechalHwInterface(osInterface, codecFunction, mhwInterfaces, disableScalability)
 {
     CODECHAL_HW_FUNCTION_ENTER;
-
-    MhwInterfacesG12Tgllp *mhwItfG12Tgllp = static_cast<MhwInterfacesG12Tgllp *>(mhwInterfaces);
-    CODECHAL_HW_ASSERT(mhwItfG12Tgllp);
-    m_avpInterface                        = mhwItfG12Tgllp->m_avpInterface;
+    m_avpInterface = mhwInterfaces->m_avpInterface;
     //Set the original m_avpInterface to nullptr to avoid double free and wild pointer
-    mhwItfG12Tgllp->m_avpInterface        = nullptr;
-
+    mhwInterfaces->m_avpInterface = nullptr;
     m_mediaSfcItf  = std::make_shared<MediaSfcInterfaceLegacy>(m_osInterface);
 
     InternalInit(codecFunction);

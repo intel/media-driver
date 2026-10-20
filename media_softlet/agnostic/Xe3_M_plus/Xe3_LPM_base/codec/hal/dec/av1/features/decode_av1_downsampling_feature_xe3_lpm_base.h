@@ -39,18 +39,6 @@ public:
     Av1DownSamplingFeatureXe3_Lpm_Base(MediaFeatureManager *featureManager, DecodeAllocator *allocator, PMOS_INTERFACE osInterface);
     virtual ~Av1DownSamplingFeatureXe3_Lpm_Base();
 
-    virtual MOS_STATUS Update(void *params);
-    virtual MOS_STATUS DumpSfcOutputs(CodechalDebugInterface *debugInterface);
-
-    // Histogram
-    PMOS_BUFFER  m_histogramBufferU   = nullptr;  // VDAQM histogram internal buffer for current frame
-    PMOS_SURFACE m_histogramDestSurfU = nullptr;  // VDAQM histogram dest surface U
-    PMOS_BUFFER  m_histogramBufferV   = nullptr;  // VDAQM histogram internal buffer for current frame
-    PMOS_SURFACE m_histogramDestSurfV = nullptr;  // VDAQM histogram dest surface V
-    PMOS_BUFFER  m_histogramStatisticsSummary = nullptr; // VDAQM histogram Statistics summary output address
-    PMOS_BUFFER  m_histogramMataDataStreamOut = nullptr; // VDAQM histogram Metadata streamout output
-    PMOS_BUFFER  m_histogramMataDataStreamIn  = nullptr;  // VDAQM histogram Metadata streamout input
-
 protected:
     //virtual MOS_STATUS UpdateInternalTargets(DecodeBasicFeature &basicFeature);
     virtual MOS_STATUS GetRefFrameList(std::vector<uint32_t> &refFrameList) override;

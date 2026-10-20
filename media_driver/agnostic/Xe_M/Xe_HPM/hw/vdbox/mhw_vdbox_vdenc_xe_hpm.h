@@ -30,7 +30,7 @@
 #ifndef __MHW_VDBOX_VDENC_XE_HPM_H__
 #define __MHW_VDBOX_VDENC_XE_HPM_H__
 
-#ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_vdenc_hwcmd_ext.h"
 #endif
 #include "mhw_vdbox_vdenc_hwcmd_xe_hpm.h"

@@ -2912,22 +2912,22 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpTileStateCmd(
 
         cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos0I   = colCumulativeValue & 0xFF;//lower 8bits
         CtbColumnMsbValue                                   = CtbColumnMsbValue |
-                                                              (((colCumulativeValue >> 8) & 0x3) << ((i * 8) + 0));//MSB 2bits
+                                                              (((colCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 0));//MSB 2bits
         colCumulativeValue                                 += params->pTileColWidth[4 * i];
 
         cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos1I   = colCumulativeValue & 0xFF;//lower 8bits
         CtbColumnMsbValue                                   = CtbColumnMsbValue |
-                                                              (((colCumulativeValue >> 8) & 0x3) << ((i * 8) + 2));//MSB 2bits
+                                                              (((colCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 2));//MSB 2bits
         colCumulativeValue                                 += params->pTileColWidth[4 * i + 1];
 
         cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos2I   = colCumulativeValue & 0xFF;//lower 8bits
         CtbColumnMsbValue                                   = CtbColumnMsbValue |
-                                                              (((colCumulativeValue >> 8) & 0x3) << ((i * 8) + 4));//MSB 2bits
+                                                              (((colCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 4));//MSB 2bits
         colCumulativeValue                                 += params->pTileColWidth[4 * i + 2];
 
         cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos3I   = colCumulativeValue & 0xFF;//lower 8bits
         CtbColumnMsbValue                                   = CtbColumnMsbValue |
-                                                              (((colCumulativeValue >> 8) & 0x3) << ((i * 8) + 6));//MSB 2bits
+                                                              (((colCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 6));//MSB 2bits
         colCumulativeValue                                 += params->pTileColWidth[4 * i + 3];
     }
 
@@ -2940,21 +2940,21 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpTileStateCmd(
         {
             cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos0I   = colCumulativeValue & 0xFF;//lower 8bits
             CtbColumnMsbValue                                   = CtbColumnMsbValue |
-                                                                  (((colCumulativeValue >> 8) & 0x3) << ((i * 8) + 0));//MSB 2bits
+                                                                  (((colCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 0));//MSB 2bits
 
             if (lastDwEleNum > 1)
             {
                 colCumulativeValue                                 += params->pTileColWidth[4 * i];
                 cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos1I   = colCumulativeValue & 0xFF;//lower 8bits
                 CtbColumnMsbValue                                   = CtbColumnMsbValue |
-                                                                      (((colCumulativeValue >> 8) & 0x3) << ((i * 8) + 2));//MSB 2bits
+                                                                      (((colCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 2));//MSB 2bits
 
                 if (lastDwEleNum > 2)
                 {
                     colCumulativeValue                                 += params->pTileColWidth[4 * i + 1];
                     cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos2I   = colCumulativeValue & 0xFF;//lower 8bits
                     CtbColumnMsbValue                                   = CtbColumnMsbValue |
-                                                                          (((colCumulativeValue >> 8) & 0x3) << ((i * 8) + 4));//MSB 2bits
+                                                                          (((colCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 4));//MSB 2bits
                 }
             }
         }
@@ -2971,22 +2971,22 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpTileStateCmd(
 
         cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos0I = rowCumulativeValue & 0xFF;//lower 8bits
         CtbRowMsbValue                              = CtbRowMsbValue |
-                                                      (((rowCumulativeValue >> 8) & 0x3) << ((i * 8) + 0));//MSB 2bits
+                                                      (((rowCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 0));//MSB 2bits
         rowCumulativeValue                         += params->pTileRowHeight[4 * i];
 
         cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos1I = rowCumulativeValue & 0xFF;//lower 8bits
         CtbRowMsbValue                              = CtbRowMsbValue |
-                                                      (((rowCumulativeValue >> 8) & 0x3) << ((i * 8) + 2));//MSB 2bits
+                                                      (((rowCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 2));//MSB 2bits
         rowCumulativeValue                         += params->pTileRowHeight[4 * i + 1];
 
         cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos2I = rowCumulativeValue & 0xFF;//lower 8bits
         CtbRowMsbValue                              = CtbRowMsbValue |
-                                                      (((rowCumulativeValue >> 8) & 0x3) << ((i * 8) + 4));//MSB 2bits
+                                                      (((rowCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 4));//MSB 2bits
         rowCumulativeValue                         += params->pTileRowHeight[4 * i + 2];
 
         cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos3I = rowCumulativeValue & 0xFF;//lower 8bits
         CtbRowMsbValue                              = CtbRowMsbValue |
-                                                      (((rowCumulativeValue >> 8) & 0x3) << ((i * 8) + 6));//MSB 2bits
+                                                      (((rowCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 6));//MSB 2bits
         rowCumulativeValue                         += params->pTileRowHeight[4 * i + 3];
     }
 
@@ -2999,21 +2999,21 @@ MOS_STATUS MhwVdboxHcpInterfaceG12::AddHcpTileStateCmd(
         {
             cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos0I = rowCumulativeValue & 0xFF;//lower 8bits
             CtbRowMsbValue                              = CtbRowMsbValue |
-                                                          (((rowCumulativeValue >> 8) & 0x3) << ((i * 8) + 0));//MSB 2bits
+                                                          (((rowCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 0));//MSB 2bits
 
             if (lastDwEleNum > 1)
             {
                 rowCumulativeValue                         += params->pTileRowHeight[4 * i];
                 cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos1I = rowCumulativeValue & 0xFF;//lower 8bits
                 CtbRowMsbValue                              = CtbRowMsbValue |
-                                                              (((rowCumulativeValue >> 8) & 0x3) << ((i * 8) + 2));//MSB 2bits
+                                                              (((rowCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 2));//MSB 2bits
 
                 if (lastDwEleNum > 2)
                 {
                     rowCumulativeValue                         += params->pTileRowHeight[4 * i + 1];
                     cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos2I = rowCumulativeValue & 0xFF;//lower 8bits
                     CtbRowMsbValue                              = CtbRowMsbValue |
-                                                                  (((rowCumulativeValue >> 8) & 0x3) << ((i * 8) + 4));//MSB 2bits
+                                                                  (((rowCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 4));//MSB 2bits
                 }
             }
         }

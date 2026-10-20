@@ -27,6 +27,7 @@
 #include "encode_hevc_aqm.h"
 #include "encode_hevc_vdenc_feature_manager.h"
 #include "encode_hevc_basic_feature.h"
+#include "encode_vdenc_hevc_fastpass.h"
 
 namespace encode
 {
@@ -52,6 +53,15 @@ MOS_STATUS HevcEncodeAqm::Update(void *params)
 {
     auto basicFeature = dynamic_cast<HevcBasicFeature *>(m_basicFeature);
     ENCODE_CHK_NULL_RETURN(basicFeature);
+    
+    auto fastPassFeature = dynamic_cast<HevcVdencFastPass *>(m_featureManager->GetFeature(HevcFeatureIDs::hevcVdencFastPassFeature));
+    if (fastPassFeature && fastPassFeature->IsEnabled())
+    {
+        m_useFastPass = true;
+        m_dsWidth     = fastPassFeature->GetFastPassDsWidth();
+        m_dsHeight    = fastPassFeature->GetFastPassDsHeight();
+    }
+
     if (basicFeature->m_hevcPicParams->QualityInfoSupportFlags.fields.enable_frame)
     {
         m_enabled = true;
@@ -61,8 +71,8 @@ MOS_STATUS HevcEncodeAqm::Update(void *params)
     uint32_t minCodingBlkSize = basicFeature->m_hevcSeqParams->log2_min_coding_block_size_minus3 + 3;
     if (!basicFeature->m_hevcPicParams->tiles_enabled_flag)
     {
-        m_tile_width[0]     = (1 << minCodingBlkSize) * (basicFeature->m_hevcSeqParams->wFrameWidthInMinCbMinus1 + 1);
-        m_tile_height[0]    = (1 << minCodingBlkSize) * (basicFeature->m_hevcSeqParams->wFrameHeightInMinCbMinus1 + 1);
+        m_tile_width[0]  = m_useFastPass ? (uint16_t)m_dsWidth : (1 << minCodingBlkSize) * (basicFeature->m_hevcSeqParams->wFrameWidthInMinCbMinus1 + 1);
+        m_tile_height[0] = m_useFastPass ? (uint16_t)m_dsHeight : (1 << minCodingBlkSize) * (basicFeature->m_hevcSeqParams->wFrameHeightInMinCbMinus1 + 1);
     }
     else
     {
@@ -148,10 +158,11 @@ MHW_SETPAR_DECL_SRC(AQM_SLICE_STATE, HevcEncodeAqm)
     ENCODE_CHK_NULL_RETURN(t_sliceParams);
     CODEC_HEVC_ENCODE_SLICE_PARAMS *sliceParams = (CODEC_HEVC_ENCODE_SLICE_PARAMS *)&t_sliceParams[hevcBasicFeature->m_curNumSlices];
 
+    uint32_t widthInPix  = m_useFastPass ? m_dsWidth : (1 << (seqParams->log2_min_coding_block_size_minus3 + 3)) * (seqParams->wFrameWidthInMinCbMinus1 + 1);
+    uint32_t heightInPix = m_useFastPass? m_dsHeight : (1 << (seqParams->log2_min_coding_block_size_minus3 + 3)) * (seqParams->wFrameHeightInMinCbMinus1 + 1);
+
     uint32_t ctbSize     = 1 << (seqParams->log2_max_coding_block_size_minus3 + 3);
-    uint32_t widthInPix  = (1 << (seqParams->log2_min_coding_block_size_minus3 + 3)) * (seqParams->wFrameWidthInMinCbMinus1 + 1);
     uint32_t widthInCtb  = (widthInPix / ctbSize) + ((widthInPix % ctbSize) ? 1 : 0);  // round up
-    uint32_t heightInPix = (1 << (seqParams->log2_min_coding_block_size_minus3 + 3)) * (seqParams->wFrameHeightInMinCbMinus1 + 1);
     uint32_t heightInCtb = (heightInPix / ctbSize) + ((heightInPix % ctbSize) ? 1 : 0);  // round up
     uint32_t shift       = seqParams->log2_max_coding_block_size_minus3 - seqParams->log2_min_coding_block_size_minus3;
 

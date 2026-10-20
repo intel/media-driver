@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2024, Intel Corporation
+* Copyright (c) 2018-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -89,6 +89,8 @@ MOS_STATUS HevcPipeline::Prepare(void *params)
     (
         m_debugInterface->m_currPic            = basicFeature->m_currOriginalPic;
         m_debugInterface->m_bufferDumpFrameNum = basicFeature->m_frameNum;
+        m_debugInterface->m_isLookAheadPass    = basicFeature->m_hevcSeqParams &&
+                                                 basicFeature->m_hevcSeqParams->bLookAheadPhase;
         m_debugInterface->m_frameType          = basicFeature->m_pictureCodingType;
 
         if (basicFeature->m_newSeq) {

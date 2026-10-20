@@ -125,6 +125,8 @@ void VpFeatureReport::SetConfigValues(
     configValues->dwRTCacheSetting     = m_features.rtCacheSetting;
 #if (_DEBUG || _RELEASE_INTERNAL)
     configValues->dwRTOldCacheSetting = m_features.rtOldCacheSetting;
+    // Report 3DLut Interpolation Method
+    configValues->dw3DLutInterpolationMethod = m_features.interpolationFor3DLut;
 #endif
 
     // Report In Place Compositon status

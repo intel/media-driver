@@ -170,7 +170,7 @@ public:
     //! \return MOS_STATUS
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SetDmemForInit(void *params);
+    virtual MOS_STATUS SetDmemForInit(void *params);
 
     //!
     //! \brief  Set Dmem buffer for brc update
@@ -248,7 +248,7 @@ protected:
     //! \brief    VDENC Compute BRC Init QP..
     //! \return   initQP
     //!
-    int32_t ComputeBRCInitQP();
+    int32_t ComputeBRCInitQP(uint16_t framesFieldsPer100Sec);
 
     MOS_STATUS DeltaQPUpdate(uint8_t qpModulationStrength, bool bIsLastPass);
 

@@ -427,7 +427,6 @@ MOS_STATUS MediaDebugInterface::DumpMosSpecificResourceInfoToOfs(
             FIELD_TO_OFS_8SHIFT(Info.KernelModeMapped);
             FIELD_TO_OFS_8SHIFT(Info.LayoutBelow);
             FIELD_TO_OFS_8SHIFT(Info.LayoutMono);
-            FIELD_TO_OFS_8SHIFT(Info.LayoutRight);
             FIELD_TO_OFS_8SHIFT(Info.LocalOnly);
             FIELD_TO_OFS_8SHIFT(Info.Linear);
             FIELD_TO_OFS_8SHIFT(Info.MediaCompressed);
@@ -612,7 +611,7 @@ MOS_STATUS MediaDebugInterface::ReAllocateSurface(
         &allocParams,
         &pSurface->OsResource));
 
-    if (!m_osInterface->apoMosEnabled && !m_osInterface->apoMosForLegacyRuntime)
+    if (!m_osInterface->apoMosEnabled)
     {
         MOS_SURFACE details;
         MOS_ZeroMemory(&details, sizeof(details));
@@ -709,6 +708,27 @@ MOS_STATUS MediaDebugInterface::DumpBufferInBinary(uint8_t *data, uint32_t size)
 
     ofs.write((char *)data, size);
     ofs.close();
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MediaDebugInterface::LoadBufferInBinary(uint8_t *data, uint32_t size)
+{
+    MEDIA_DEBUG_CHK_NULL(data);
+
+    const char *filePath = m_outputFileName.c_str();
+
+    if (size == 0)
+    {
+        return MOS_STATUS_UNKNOWN;
+    }
+
+    std::ifstream ifs(filePath, std::ios_base::in | std::ios_base::binary);
+    if (ifs.fail())
+    {
+        return MOS_STATUS_UNKNOWN;
+    }
+    ifs.read((char *)data, size);
+    ifs.close();
     return MOS_STATUS_SUCCESS;
 }
 

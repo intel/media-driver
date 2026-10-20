@@ -50,11 +50,9 @@ MOS_STATUS Vp9VdencPkt::Init()
     m_basicFeature = dynamic_cast<Vp9BasicFeature *>(m_featureManager->GetFeature(Vp9FeatureIDs::basicFeature));
     ENCODE_CHK_NULL_RETURN(m_basicFeature);
 
-#ifdef _MMC_SUPPORTED
     m_mmcState = m_pipeline->GetMmcState();
     ENCODE_CHK_NULL_RETURN(m_mmcState);
     m_basicFeature->m_mmcState = m_mmcState;
-#endif
 
     m_allocator = m_pipeline->GetEncodeAllocator();
     ENCODE_CHK_STATUS_RETURN(AllocateResources());
@@ -117,7 +115,7 @@ MOS_STATUS Vp9VdencPkt::Completed(void *mfxStatus, void *rcsStatus, void *status
 
     EncodeStatusMfx *       encodeStatusMfx  = (EncodeStatusMfx *)mfxStatus;
     EncodeStatusReportData *statusReportData = (EncodeStatusReportData *)statusReport;
-    if (statusReportData->hwCtr)
+    if (statusReportData->hwCtr && m_encodecp)
     {
         m_encodecp->UpdateCpStatusReport(statusReport);
     }
@@ -633,6 +631,8 @@ void Vp9VdencPkt::SetPerfTag(uint16_t type, uint16_t mode, uint16_t picCodingTyp
 MOS_STATUS Vp9VdencPkt::AddForceWakeup(MOS_COMMAND_BUFFER &cmdBuffer)
 {
     ENCODE_FUNC_CALL();
+        // NativeFence sync BB may cause preemption and ring idle, so force wakeup after it
+    ENCODE_CHK_STATUS_RETURN(AddNativeFenceSyncBBStartCmd(cmdBuffer));
 
     ENCODE_CHK_NULL_RETURN(m_miItf);
 
@@ -653,10 +653,8 @@ MOS_STATUS Vp9VdencPkt::SendPrologCmds(MOS_COMMAND_BUFFER &cmdBuffer)
 {
     ENCODE_FUNC_CALL();
 
-#ifdef _MMC_SUPPORTED
     ENCODE_CHK_NULL_RETURN(m_mmcState);
     ENCODE_CHK_STATUS_RETURN(m_mmcState->SendPrologCmd(&cmdBuffer, false));
-#endif
 
     MHW_GENERIC_PROLOG_PARAMS genericPrologParams;
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
@@ -745,7 +743,6 @@ MOS_STATUS Vp9VdencPkt::AddHcpPipeBufAddrCmd(MOS_COMMAND_BUFFER &cmdBuffer)
 
 MOS_STATUS Vp9VdencPkt::SetHcpSurfaceMMCState()
 {
-#ifdef _MMC_SUPPORTED
     for (uint8_t i = 0; i <= CODECHAL_HCP_ALTREF_SURFACE_ID; ++i)
     {
         SetSurfaceMmcState(&m_surfacesParams[i]);
@@ -771,7 +768,7 @@ MOS_STATUS Vp9VdencPkt::SetHcpSurfaceMMCState()
         m_surfacesParams[i].mmcState = MOS_MEMCOMP_MC;
         m_surfacesParams[i].mmcSkipMask = skipMask;
     }
-#endif  // _MMC_SUPPORTED
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1165,7 +1162,10 @@ MOS_STATUS Vp9VdencPkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER *c
     ENCODE_CHK_NULL_RETURN(cmdBuffer);
 
     ENCODE_CHK_STATUS_RETURN(MediaPacket::StartStatusReportNext(srType, cmdBuffer));
-    m_encodecp->StartCpStatusReport(cmdBuffer);
+    if (m_encodecp)
+    {
+        m_encodecp->StartCpStatusReport(cmdBuffer);
+    }
 
     MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
     ENCODE_CHK_NULL_RETURN(perfProfiler);
@@ -1814,7 +1814,13 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, Vp9VdencPkt)
 
     m_basicFeature->m_ref.MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params);
 
-#ifdef _MMC_SUPPORTED
+    if (!m_basicFeature->m_disableTileBToTile4 && m_basicFeature->m_reconSurface.TileType == MOS_TILE_B && m_basicFeature->m_reconSurface.TileModeGMM == MOS_TILE_X_GMM)
+    {
+        params.overrideTileBToTile4 = true;
+    }
+
+    params.forceTile64ReconToTile4 = m_basicFeature->ShouldForceReconTile64ToTile4(m_basicFeature->m_reconSurface);
+
     ENCODE_CHK_NULL_RETURN(m_mmcState);
 
     if (m_mmcState->IsMmcEnabled())
@@ -1832,37 +1838,8 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, Vp9VdencPkt)
 
     CODECHAL_DEBUG_TOOL(
         m_basicFeature->m_reconSurface.MmcState = params.PreDeblockSurfMmcState;)
-#endif
 
     return MOS_STATUS_SUCCESS;
-}
-
-static inline uint32_t GetHwTileType(MOS_TILE_TYPE tileType, MOS_TILE_MODE_GMM tileModeGMM, bool gmmTileEnabled)
-{
-    uint32_t tileMode = 0;
-
-    if (gmmTileEnabled)
-    {
-        return tileModeGMM;
-    }
-
-    switch (tileType)
-    {
-    case MOS_TILE_LINEAR:
-        tileMode = 0;
-        break;
-    case MOS_TILE_YS:
-        tileMode = 1;
-        break;
-    case MOS_TILE_X:
-        tileMode = 2;
-        break;
-    default:
-        tileMode = 3;
-        break;
-    }
-
-    return tileMode;
 }
 
 MHW_SETPAR_DECL_SRC(VDENC_REF_SURFACE_STATE, Vp9VdencPkt)
@@ -1882,7 +1859,16 @@ MHW_SETPAR_DECL_SRC(VDENC_REF_SURFACE_STATE, Vp9VdencPkt)
     params.vOffset     = surfParams->YoffsetForVplane;
     params.height      = surfParams->dwHeight;
     params.width       = surfParams->dwWidth;
-    uint32_t tileMode  = GetHwTileType(params.tileType, params.tileModeGmm, params.gmmTileEn);
+
+    if (!m_basicFeature->m_disableTileBToTile4 && params.tileType == MOS_TILE_B && params.tileModeGmm == MOS_TILE_X_GMM)
+    {
+        params.tileModeGmm = MOS_TILE_4_GMM;
+    }
+
+    if (m_basicFeature->ShouldForceReconTile64ToTile4(*surfParams))
+    {
+        params.tileModeGmm = MOS_TILE_4_GMM;
+    }
 
     if (surfParams->Format == Format_Y410 || surfParams->Format == Format_444P || surfParams->Format == Format_AYUV)
     {

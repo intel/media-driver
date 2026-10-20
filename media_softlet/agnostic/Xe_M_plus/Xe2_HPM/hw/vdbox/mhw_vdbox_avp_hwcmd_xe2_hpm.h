@@ -33,14 +33,15 @@
 #define __MHW_VDBOX_AVP_HWCMD_XE2_HPM_H__
 
 #pragma once
-#pragma pack(1)
-
 #include "mhw_hwcmd.h"
 #include <cstdint>
 #include <cstddef>
 #include "media_class_trace.h"
 
-#ifdef IGFX_AVP_INTERFACE_EXT_SUPPORT
+
+#pragma pack(1)
+
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_avp_hwcmd_ext.h"
 #endif
 
@@ -1942,8 +1943,22 @@ public:
         MEMORYADDRESSATTRIBUTES_CMD              SSETileLineReadWriteBufferAddressAttributes;                             //!< DW208, SSE Tile Line Read/Write Buffer Address Attributes
         SPLITBASEADDRESS64BYTEALIGNED_CMD        PostCDEFpixelsBufferAddress;                                             //!< DW209..210, PostCDEF pixels Buffer Address
         MEMORYADDRESSATTRIBUTES_CMD              PostCDEFpixelsBufferAddressAttributes;                                   //!< DW211, PostCDEF pixels Buffer Address Attributes
-        SPLITBASEADDRESS64BYTEALIGNED_CMD        AVP_PIPE_BUF_ADDR_STATE_DW212;                                        
-        MEMORYADDRESSATTRIBUTES_CMD              AVP_PIPE_BUF_ADDR_STATE_DW214;                              
+        union
+        {
+            struct
+            {
+                uint64_t                 Reserved6784                                                                     ; //!< Reserved
+            };
+            uint32_t                     Value[2];
+        } DW212_213;
+        union
+        {
+            struct
+            {
+                uint32_t                 Rererved                                                                         ; //!< Rererved
+            };
+            uint32_t                     Value;
+        } DW214;
 
         //! \name Local enumerations
 

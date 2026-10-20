@@ -32,6 +32,9 @@
 #include "decode_mem_compression.h"
 #include "decode_mpeg2_basic_feature.h"
 
+// FwdRefTop, BwdRefTop, FwdRefBottom, BwdRefBottom
+#define MPEG2_NUM_REF_SURFACES 4
+
 namespace decode
 {
 
@@ -59,7 +62,10 @@ public:
     virtual ~Mpeg2DecodeMemComp() {};
 
     virtual MOS_STATUS CheckReferenceList(
-        Mpeg2BasicFeature &mpeg2BasicFeature, MOS_MEMCOMP_STATE &preDeblockSurfMmcState, MOS_MEMCOMP_STATE &postDeblockSurfMmcState);
+        Mpeg2BasicFeature &mpeg2BasicFeature,
+        MOS_MEMCOMP_STATE &preDeblockSurfMmcState,
+        MOS_MEMCOMP_STATE &postDeblockSurfMmcState,
+        PMOS_RESOURCE     *presReferences);
 
 protected:
     PMOS_INTERFACE m_osInterface = nullptr;

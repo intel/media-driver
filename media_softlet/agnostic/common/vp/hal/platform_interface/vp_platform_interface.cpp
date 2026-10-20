@@ -27,6 +27,7 @@
 #include "vp_platform_interface.h"
 #include "vp_visa.h"
 #include "vp_user_setting.h"
+#include "vp_feature_manager_softlet.h"
 
 using namespace vp;
 extern const Kdll_RuleEntry g_KdllRuleTable_Next[];
@@ -138,7 +139,7 @@ MOS_STATUS VpPlatformInterface::InitVPFCKernels(
             patchKernelSize,
             ModifyFunctionPointers);
 
-        m_kernelPool.insert(std::make_pair(vpKernel.GetKernelName(), vpKernel));
+        m_kernelPool.emplace(vpKernel.GetKernelName(), vpKernel);
     }
 
     return MOS_STATUS_SUCCESS;
@@ -154,6 +155,11 @@ MOS_STATUS VpRenderKernel::Destroy()
     }
 
     return MOS_STATUS_SUCCESS;
+}
+
+VPFeatureManager* VpPlatformInterface::CreateFeatureChecker(_VP_MHWINTERFACE *hwInterface)
+{
+    return MOS_New(VPFeatureManagerSoftlet, hwInterface);
 }
 
 MOS_STATUS VpPlatformInterface::InitPolicyRules(VP_POLICY_RULES &rules)
@@ -196,7 +202,7 @@ MOS_STATUS VpPlatformInterface::InitPolicyRules(VP_POLICY_RULES &rules)
     return MOS_STATUS_SUCCESS;
 }
 
-MOS_STATUS VpRenderKernel::SetKernelName(std::string kernelname)
+MOS_STATUS VpRenderKernel::SetKernelName(const std::string &kernelname)
 {
     VP_FUNC_CALL();
     m_kernelName.assign(kernelname);
@@ -260,7 +266,7 @@ void VpPlatformInterface::AddVpIsaKernelEntryToList(
     else
     {
         m_vpDelayLoadedBinaryList.push_back(tmpEntry);
-        m_vpDelayLoadedFeatureSet.insert(std::make_pair(delayKernelType, false));
+        m_vpDelayLoadedFeatureSet.emplace(delayKernelType, false);
     }
 }
 
@@ -275,7 +281,7 @@ void VpPlatformInterface::AddVpNativeAdvKernelEntryToList(
     tmpEntry.kernelBin     = kernelBin;
     tmpEntry.kernelBinSize = kernelBinSize;
 
-    m_vpNativeAdvKernelBinaryList.insert(std::make_pair(kernelName, tmpEntry));
+    m_vpNativeAdvKernelBinaryList.emplace(kernelName, tmpEntry);
 }
 
 void VpPlatformInterface::InitVpDelayedNativeAdvKernel(
@@ -296,7 +302,7 @@ void VpPlatformInterface::AddNativeAdvKernelToDelayedList(
     DelayLoadedFunc       func)
 {
     VP_FUNC_CALL();
-    m_vpDelayLoadedNativeFunctionSet.insert(std::make_pair(kernelType, func));
+    m_vpDelayLoadedNativeFunctionSet.emplace(kernelType, func);
 }
 
 void       KernelDll_ModifyFunctionPointers_Next(Kdll_State *pState);
@@ -357,7 +363,7 @@ void VpPlatformInterface::InitVpNativeAdvKernels(
     vpKernel.SetKernelName(kernelName);
     vpKernel.SetKernelBinOffset(0x0);
     vpKernel.SetKernelBinSize(kernelBinaryEntry.kernelBinSize);
-    m_kernelPool.insert(std::make_pair(vpKernel.GetKernelName(), vpKernel));
+    m_kernelPool.emplace(vpKernel.GetKernelName(), vpKernel);
 
     return;
 }
@@ -522,7 +528,7 @@ MOS_STATUS VpPlatformInterface::InitVpCmKernels(
             vpKernel.AddKernelArg(kernelArg);
         }
 
-        m_kernelPool.insert(std::make_pair(vpKernel.GetKernelName(), vpKernel));
+        m_kernelPool.emplace(vpKernel.GetKernelName(), vpKernel);
     }
 
     MOS_Delete(isaFile);
@@ -590,7 +596,7 @@ MOS_STATUS VpPlatformInterface::InitializeDelayedKernels(DelayLoadedKernelType t
             if (it->kernelType == type)
             {
                 VP_PUBLIC_CHK_STATUS_RETURN(InitVpCmKernels(it->kernelBin, it->kernelBinSize, it->postfix, it->payloadOffset));
-                m_vpDelayLoadedBinaryList.erase(it);
+                it = m_vpDelayLoadedBinaryList.erase(it);
             }
             else
             {
@@ -686,7 +692,7 @@ bool VpPlatformInterface::IsVeboxScalabilityWith4KNotSupported(
 void VpPlatformInterface::DisableRender()
 {
     // media sfc interface should come to here.
-    VP_PUBLIC_NORMALMESSAGE("Disable Render.");
+    VP_PUBLIC_NORMALMESSAGE("Disable Render for media sfc interface path.");
     m_isRenderDisabled = true;
 }
 
@@ -695,6 +701,14 @@ MOS_STATUS VpRenderKernel::SetKernelExeEnv(KRN_EXECUTE_ENV &exeEnv)
 {
     VP_FUNC_CALL();
     m_kernelExeEnv = exeEnv;
+    return MOS_STATUS_SUCCESS;
+}
+
+//for L0 use only
+MOS_STATUS VpRenderKernel::SetKernelPerThreadArgInfo(KRN_PER_THREAD_ARG_INFO &perThreadArgInfo)
+{
+    VP_FUNC_CALL();
+    m_kernelPerThreadArgInfo = perThreadArgInfo;
     return MOS_STATUS_SUCCESS;
 }
 
@@ -717,26 +731,37 @@ MOS_STATUS VpRenderKernel::SetKernelCurbeSize(uint32_t size)
 
 //for L0 use only
 void VpPlatformInterface::InitVpDelayedNativeAdvKernel(
-    const uint32_t  *kernelBin,
-    uint32_t         kernelBinSize,
-    KRN_ARG         *kernelArgs,
-    uint32_t         kernelArgSize,
-    uint32_t         kernelCurbeSize,
-    KRN_EXECUTE_ENV &kernelExeEnv,
-    KRN_BTI         *kernelBtis,
-    uint32_t         kernelBtiSize,
-    std::string      kernelName)
+    const uint32_t         *kernelBin,
+    uint32_t                kernelBinSize,
+    KRN_ARG                *kernelArgs,
+    uint32_t                kernelArgSize,
+    uint32_t                kernelCurbeSize,
+    KRN_EXECUTE_ENV        &kernelExeEnv,
+    KRN_BTI                *kernelBtis,
+    uint32_t                kernelBtiSize,
+    std::string             kernelName,
+    KRN_PER_THREAD_ARG_INFO perThreadArgInfo)
 {
     VP_FUNC_CALL();
 
     VpRenderKernel vpKernel;
 
+    bool localIdGeneratedByRuntime = (kernelExeEnv.uiSlmSize > 0 && kernelExeEnv.uSimdSize == 1) || (kernelExeEnv.uInlineDataPayloadSize == 64 && kernelExeEnv.uSimdSize == 1);
+
     vpKernel.SetKernelBinPointer((void *)kernelBin);
     vpKernel.SetKernelName(kernelName);
-    vpKernel.SetKernelBinOffset(kernelExeEnv.uOffsetToSkipPerThreadDataLoad);
-    vpKernel.SetKernelBinSize(kernelBinSize - kernelExeEnv.uOffsetToSkipPerThreadDataLoad);
+    if (localIdGeneratedByRuntime)
+    {
+        vpKernel.SetKernelBinSize(kernelBinSize);
+    }
+    else
+    {
+        vpKernel.SetKernelBinOffset(kernelExeEnv.uOffsetToSkipPerThreadDataLoad);
+        vpKernel.SetKernelBinSize(kernelBinSize - kernelExeEnv.uOffsetToSkipPerThreadDataLoad);
+    }
     vpKernel.SetKernelExeEnv(kernelExeEnv);
     vpKernel.SetKernelCurbeSize(kernelCurbeSize);
+    vpKernel.SetKernelPerThreadArgInfo(perThreadArgInfo);
 
     for (uint32_t i = 0; i < kernelArgSize; ++i)
     {
@@ -748,5 +773,5 @@ void VpPlatformInterface::InitVpDelayedNativeAdvKernel(
         vpKernel.AddKernelBti(kernelBtis[i]);
     }
 
-    m_kernelPool.insert(std::make_pair(vpKernel.GetKernelName(), vpKernel));
+    m_kernelPool.emplace(vpKernel.GetKernelName(), vpKernel);
 }

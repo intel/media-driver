@@ -29,6 +29,9 @@
 
 #include "mos_defs.h"
 #include "mos_gpucontext_next.h"
+#include <vector>
+
+#define GPU_CONTEXT_DEFERRED_DESTROY_MAX_COUNT 3
 
 class OsContextNext;
 //!
@@ -181,6 +184,9 @@ protected:
 
     //! \brief   Flag to indicate gpu context mgr initialized or not
     bool m_initialized = false;
+
+    //! \brief   Deferred destroy queue for gpu contexts (NativeFence only)
+    std::vector<GpuContextNext *> m_deferredDestroyQueue;
 
 MEDIA_CLASS_DEFINE_END(GpuContextMgrNext)
 };

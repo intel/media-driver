@@ -32,7 +32,8 @@
 
 typedef struct _MOS_OCA_BUFFER_CONFIG
 {
-    uint32_t            maxResInfoCount = 0;                                                                //!< Max resource info count.
+    uint32_t            maxResInfoCount = 0;       //!< Max resource info count.
+    uint32_t            maxBufferResInfoCount = 0; //!< Max buffer resource info count
 }MOS_OCA_BUFFER_CONFIG;
 
 /****************************************************************************************************/
@@ -73,6 +74,25 @@ typedef struct _MOS_OCA_RESOURCE_INFO
     } flags;
 }MOS_OCA_RESOURCE_INFO, *PMOS_OCA_RESOURCE_INFO;
 
+typedef struct _MOS_OCA_BUFFER_RESOURCE_INFO
+{
+    uint64_t gfxAddress;
+    uint64_t sizeAllocation;
+    uint64_t allocationHandle;
+    uint32_t hwCmdType;
+    uint32_t locationInCmd;
+    uint32_t size;
+    uint32_t gmmFormat;
+    uint32_t gmmResUsageType;
+    struct
+    {
+        uint32_t isLocalOnly : 1;
+        uint32_t isNonLocalOnly : 1;
+        uint32_t isNotLockable : 1;
+        uint32_t isRenderTarget : 1;
+    } flags;
+} MOS_OCA_BUFFER_RESOURCE_INFO, *PMOS_OCA_BUFFER_RESOURCE_INFO;
+
 struct MOS_OCA_BUF_CONTEXT
 {
     bool                                inUse                 = false;
@@ -86,6 +106,9 @@ struct MOS_OCA_BUF_CONTEXT
             MOS_OCA_RESOURCE_INFO       *resInfoList          = nullptr;
             uint32_t                    resCount              = 0;
             uint32_t                    resCountSkipped       = 0;
+            uint32_t                    maxBufferResInfoCount = 0;
+            MOS_OCA_BUFFER_RESOURCE_INFO *bufferResInfoList   = nullptr;
+            uint32_t                    bufferResCount        = 0;
         } resInfo;   
     } logSection;
            

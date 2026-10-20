@@ -70,7 +70,7 @@ public:
     //!
     //! \brief  Media context constructor
     //!
-    MediaContext(uint8_t componentType, void *hwInterface, PMOS_INTERFACE osInterface);
+    MediaContext(uint8_t componentType, void *hwInterface, PMOS_INTERFACE osInterface, VdboxTypePref pref = MOS_VDBOX_PREFER_NONE);
 
     //!
     //! \brief  Media context destructor

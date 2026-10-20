@@ -36,8 +36,15 @@
 #include "decode_avc_picture_packet.h"
 #include "decode_avc_slice_packet.h"
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+#include "decode_avc_debug_packet.h"
+#endif
+
 namespace decode
 {
+
+class AvcDecodeDebugPkt;
+
 class AvcDecodePkt : public CmdPacket, public MediaStatusReportObserver
 {
 public:
@@ -165,6 +172,10 @@ protected:
     uint32_t m_picturePatchListSize = 0;
     uint32_t m_sliceStatesSize      = 0;
     uint32_t m_slicePatchListSize   = 0;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    AvcDecodeDebugPkt *m_debugPkt = nullptr;
+#endif
 
 MEDIA_CLASS_DEFINE_END(decode__AvcDecodePkt)
 };

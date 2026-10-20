@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2022, Intel Corporation
+* Copyright (c) 2019-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -104,26 +104,29 @@ typedef enum
 //       in mos_util_user_feature_keys.h if you change this enum.
 typedef enum
 {
-    MOS_CP_SUBCOMP_DDI              = 0,             // CP-related DDIs
-    MOS_CP_SUBCOMP_DEVICE           = 1,             // The CP device class
-    MOS_CP_SUBCOMP_OS               = 2,             // The CP OS services classes
-    MOS_CP_SUBCOMP_PCH_HAL          = 3,             // The CP PCH HAL class
-    MOS_CP_SUBCOMP_GPU_HAL          = 4,             // The CP GPU HAL classes
-    MOS_CP_SUBCOMP_CODEC            = 5,             // Content Protection portions of the Codec UMD
-    MOS_CP_SUBCOMP_UMD_CONTEXT      = 6,             // Content Protection portions of UMD device context
-    MOS_CP_SUBCOMP_CMD_BUFFER       = 7,             // Content Protection Command buffer class
-    MOS_CP_SUBCOMP_SECURESESSION    = 8,             // The secure session classes
-    MOS_CP_SUBCOMP_AUTHCHANNEL      = 9,             // The AuthChannel classes
-    MOS_CP_SUBCOMP_DLL              = 10,            // CP DLL classes
-    MOS_CP_SUBCOMP_LIB              = 11,            // Lib classes
-    MOS_CP_SUBCOMP_MHW              = 12,            // CP MHW classes
-    MOS_CP_SUBCOMP_PROTECTEDSESSION = 13,            // Protected session class
-    MOS_CP_SUBCOMP_PROTECTED_RESOURCE_SESSION = 14,  // Protected Resource session class
-    MOS_CP_SUBCOMP_TEE_HAL          = 15,            // CP TEE HAL class
-    MOS_CP_SUBCOMP_CAPS             = 16,            // CP CAPS clas
-    MOS_CP_SUBCOMP_CPLIB            = 17,            // CP CPLIB interacting
-    MOS_CP_SUBCOMP_CENC             = 18,            // CP cenc class
-    MOS_CP_SUBCOMP_COUNT                             // Must be last in the list
+    MOS_CP_SUBCOMP_DDI              = 0,                              // CP-related DDIs
+    MOS_CP_SUBCOMP_DEVICE           = MOS_CP_SUBCOMP_DDI,             // (DDI)The CP device class
+    MOS_CP_SUBCOMP_UMD_CONTEXT      = MOS_CP_SUBCOMP_DDI,             // (DDI)Content Protection portions of UMD device context
+    MOS_CP_SUBCOMP_SECURESESSION    = MOS_CP_SUBCOMP_DDI,             // (DDI)The secure session classes
+    MOS_CP_SUBCOMP_AUTHCHANNEL      = MOS_CP_SUBCOMP_DDI,             // (DDI)The AuthChannel classes
+    MOS_CP_SUBCOMP_PROTECTEDSESSION = MOS_CP_SUBCOMP_DDI,             // (DDI)Protected session class
+    MOS_CP_SUBCOMP_PROTECTED_RESOURCE_SESSION = MOS_CP_SUBCOMP_DDI,   // (DDI)Protected Resource session class
+    MOS_CP_SUBCOMP_CAPS             = MOS_CP_SUBCOMP_DDI,             // (DDI)CP CAPS clas
+
+    MOS_CP_SUBCOMP_OS               = 1,                              // The CP OS services classes
+
+    MOS_CP_SUBCOMP_TEE_HAL          = 2,                              // CP TEE HAL class
+    MOS_CP_SUBCOMP_PCH_HAL          = MOS_CP_SUBCOMP_TEE_HAL,         // (TEE_HAL)The CP PCH HAL class
+    MOS_CP_SUBCOMP_DLL              = MOS_CP_SUBCOMP_TEE_HAL,         // (TEE_HAL)CP DLL classes
+
+    MOS_CP_SUBCOMP_GPU_HAL          = 3,                              // The CP GPU HAL classes
+
+    MOS_CP_SUBCOMP_MHW              = 4,                              // CP MHW classes
+
+    MOS_CP_SUBCOMP_CODEC            = 5,                              // Content Protection portions of the Codec UMD
+    MOS_CP_SUBCOMP_CENC             = MOS_CP_SUBCOMP_CODEC,           // (CODEC)CP cenc class
+
+    MOS_CP_SUBCOMP_COUNT                                              // Must be last in the list
 } MOS_CP_SUBCOMP_ID;
 
 //!
@@ -184,12 +187,15 @@ typedef enum
 {
     MOS_MESSAGE_LVL_DISABLED                  = 0,
     MOS_MESSAGE_LVL_CRITICAL                  = 1,
-    MOS_MESSAGE_LVL_NORMAL                    = 2,
-    MOS_MESSAGE_LVL_VERBOSE                   = 3,
-    MOS_MESSAGE_LVL_FUNCTION_ENTRY            = 4,
-    MOS_MESSAGE_LVL_FUNCTION_EXIT             = 5,
-    MOS_MESSAGE_LVL_FUNCTION_ENTRY_VERBOSE    = 6,
-    MOS_MESSAGE_LVL_MEMNINJA                  = 7,
+    // Add warning level, which is defined in 4th bit separately, keep the 3-bit message level and 1-bit assert flag setting unchanged.
+    MOS_MESSAGE_LVL_WARNING                   = 2,
+    // Map the legacy message level (>= MOS_MESSAGE_LVL_NORMAL) to level+1, keep the 3-bit message level and 1-bit assert flag setting unchanged.
+    MOS_MESSAGE_LVL_NORMAL                    = 3,
+    MOS_MESSAGE_LVL_VERBOSE                   = 4,
+    MOS_MESSAGE_LVL_FUNCTION_ENTRY            = 5,
+    MOS_MESSAGE_LVL_FUNCTION_EXIT             = 6,
+    MOS_MESSAGE_LVL_FUNCTION_ENTRY_VERBOSE    = 7,
+    MOS_MESSAGE_LVL_MEMNINJA                  = 8,
     MOS_MESSAGE_LVL_COUNT
 } MOS_MESSAGE_LEVEL;
 
@@ -269,6 +275,8 @@ typedef struct _MOS_MESSAGE_PARAMS
 #else
 #define MOS_FUNCTION __FUNCTION__
 #endif // USE_PRETTY_FUNCTION
+#else
+#define MOS_FUNCTION __FUNCTION__
 #endif
 
 class MosUtilDebug
@@ -657,6 +665,13 @@ MEDIA_CLASS_DEFINE_END(MosUtilDebug)
     MOS_ASSERT(_compID, _subCompID, false);
 
 //!
+//! \def MOS_WARNINGMESSAGE(_compID, _subCompID, _message, ...)
+//!  Output DEBUG message \a _message with \_a _compID and \_a _subCompID info
+//!
+#define MOS_WARNINGMESSAGE(_compID, _subCompID, _message, ...)                              \
+    MOS_DEBUGMESSAGE(MOS_MESSAGE_LVL_WARNING, _compID, _subCompID, _message, ##__VA_ARGS__)
+
+//!
 //! \def MOS_NORMALMESSAGE(_compID, _subCompID, _message, ...)
 //!  Output NORMAL message \a _message with \_a _compID and \_a _subCompID info
 //!
@@ -884,6 +899,7 @@ MEDIA_CLASS_DEFINE_END(MosUtilDebug)
 #define MOS_FUNCTION_EXIT(_compID, _subCompID, hr)
 #define MOS_FUNCTION_ENTER_VERBOSE(_compID, _subCompID)
 #define MOS_ASSERTMESSAGE(_compID, _subCompID, _message, ...)
+#define MOS_WARNINGMESSAGE(_compID, _subCompID, _message, ...)
 #define MOS_NORMALMESSAGE(_compID, _subCompID, _message, ...)
 #define MOS_VERBOSEMESSAGE(_compID, _subCompID, _message, ...)
 #define MOS_CRITICALMESSAGE(_compID, _subCompID, _message, ...)
@@ -950,7 +966,7 @@ MEDIA_CLASS_DEFINE_END(MosUtilDebug)
 {                                                                           \
     if ((_ptr) == nullptr)                                                  \
     {                                                                       \
-        MOS_ASSERTMESSAGE(_compID, _subCompID, "Invalid (nullptr) Pointer.");  \
+        MOS_ASSERTMESSAGE(_compID, _subCompID, "Invalid (nullptr) Pointer: " #_ptr);  \
         MT_ERR2(MT_ERR_NULL_CHECK, MT_COMPONENT, _compID, MT_SUB_COMPONENT, _subCompID); \
         return MOS_STATUS_NULL_POINTER;                                     \
     }                                                                       \
@@ -1319,6 +1335,56 @@ MOS_CHK_NULL_RETURN_NULL(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _ptr)
     MOS_CHK_NULL_RETURN(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _ptr)
 
 //!
+//! Helper macros: call MOS_Delete on 1–5 pointers (used by MOS_OS_CHK_NULL_DELETE_RETURN).
+//!
+#define _MOS_DELETE_EACH_1(a)             MOS_Delete(a)
+#define _MOS_DELETE_EACH_2(a, b)          MOS_Delete(a); MOS_Delete(b)
+#define _MOS_DELETE_EACH_3(a, b, c)       MOS_Delete(a); MOS_Delete(b); MOS_Delete(c)
+#define _MOS_DELETE_EACH_4(a, b, c, d)    MOS_Delete(a); MOS_Delete(b); MOS_Delete(c); MOS_Delete(d)
+#define _MOS_DELETE_EACH_5(a,b,c,d,e)     MOS_Delete(a); MOS_Delete(b); MOS_Delete(c); MOS_Delete(d); MOS_Delete(e)
+#define _MOS_DELETE_NARGS(_1,_2,_3,_4,_5,N,...) N
+#define _MOS_EXPAND(...)                   __VA_ARGS__
+#define _MOS_DELETE_COUNT(...)             _MOS_EXPAND(_MOS_DELETE_NARGS(__VA_ARGS__, 5, 4, 3, 2, 1))
+#define _MOS_DELETE_CONCAT2(a, b)          a##b
+#define _MOS_DELETE_CONCAT(a, b)           _MOS_DELETE_CONCAT2(a, b)
+#define _MOS_DELETE_ALL(...)               _MOS_EXPAND(_MOS_DELETE_CONCAT(_MOS_DELETE_EACH_, _MOS_DELETE_COUNT(__VA_ARGS__))(__VA_ARGS__))
+
+//!
+//! \def MOS_OS_CHK_NULL_DELETE_RETURN(_ptr, ...)
+//!  Check if \a _ptr == nullptr; if so delete the variadic pointer(s) and return MOS_STATUS_NULL_POINTER.
+//!
+#define MOS_OS_CHK_NULL_DELETE_RETURN(_ptr, ...)                                               \
+{                                                                                              \
+    if ((_ptr) == nullptr)                                                                     \
+    {                                                                                          \
+        MOS_ASSERTMESSAGE(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF,                                 \
+            "Invalid (nullptr) Pointer: " #_ptr);                                             \
+        MT_ERR2(MT_ERR_NULL_CHECK, MT_COMPONENT, MOS_COMPONENT_OS,                           \
+            MT_SUB_COMPONENT, MOS_SUBCOMP_SELF);                                              \
+        _MOS_DELETE_ALL(__VA_ARGS__);                                                          \
+        return MOS_STATUS_NULL_POINTER;                                                        \
+    }                                                                                          \
+}
+
+//!
+//! \def MOS_OS_CHK_NULL_DELETE_RETURN_VALUE(_ptr, retVal, ...)
+//!  Check if \a _ptr == nullptr; if so delete the variadic pointer(s) and return \a retVal.
+//!  \a retVal may be a side-effecting expression, e.g. (*eStatus = MOS_STATUS_NULL_POINTER).
+//!
+#define MOS_OS_CHK_NULL_DELETE_RETURN_VALUE(_ptr, retVal, ...)                                 \
+{                                                                                              \
+    if ((_ptr) == nullptr)                                                                     \
+    {                                                                                          \
+        MOS_ASSERTMESSAGE(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF,                                 \
+            "Invalid (nullptr) Pointer: " #_ptr);                                             \
+        MT_ERR2(MT_ERR_NULL_CHECK, MT_COMPONENT, MOS_COMPONENT_OS,                           \
+            MT_SUB_COMPONENT, MOS_SUBCOMP_SELF);                                              \
+        _MOS_DELETE_ALL(__VA_ARGS__);                                                          \
+        return (retVal);                                                                       \
+    }                                                                                          \
+}
+
+//!
 //! \def MOS_OS_CHK_STATUS(_stmt)
 //!  MOS_CHK_STATUS \a _stmt with MOS utility comp/subcomp info
 //!
@@ -1352,6 +1418,13 @@ MOS_CHK_NULL_RETURN_NULL(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _ptr)
 //!
 #define MOS_OS_CRITICALMESSAGE(_message, ...)                                                 \
     MOS_CRITICALMESSAGE(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _message, ##__VA_ARGS__)
+
+//!
+//! \def MOS_OS_WARNINGMESSAGE(_message, ...)
+//!  MOS_UTIL_WARNINGMESSAGE \a _message with MOS Utility comp/subcomp info
+//!
+#define MOS_OS_WARNINGMESSAGE(_message, ...)                                                \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _message, ##__VA_ARGS__)
 
 //!
 //! \def MOS_OS_NORMALMESSAGE(_message, ...)

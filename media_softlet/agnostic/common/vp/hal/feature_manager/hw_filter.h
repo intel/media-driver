@@ -51,6 +51,7 @@
 #include "vp_fc_filter.h"
 #include "vp_ocl_fc_filter.h"
 #include "vp_fc_wrap_filter.h"
+#include "vp_hdrlite_render_filter.h"
 
 namespace vp
 {

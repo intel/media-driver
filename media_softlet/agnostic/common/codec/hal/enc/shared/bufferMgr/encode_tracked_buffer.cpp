@@ -66,7 +66,7 @@ MOS_STATUS TrackedBuffer::RegisterParam(BufferType type, MOS_ALLOC_GFXRES_PARAMS
     auto iter = m_allocParams.find(type);
     if (iter == m_allocParams.end())
     {
-        m_allocParams.insert(std::make_pair(type, param));
+        m_allocParams.emplace(type, param);
     }
     else
     {
@@ -279,7 +279,7 @@ std::shared_ptr<BufferQueue> TrackedBuffer::GetBufferQueue(BufferType type)
 
         auto alloc = std::make_shared<BufferQueue>(m_allocator, param->second, m_maxSlotCnt);
         alloc->SetResourceType(resType);
-        m_bufferQueue.insert(std::make_pair(type, alloc));
+        m_bufferQueue.emplace(type, alloc);
         return alloc;
     }
     else

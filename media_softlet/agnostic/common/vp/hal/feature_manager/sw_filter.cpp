@@ -174,6 +174,8 @@ MOS_STATUS SwFilterCsc::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
 
     m_Params.input.colorSpace       = surfInput->ColorSpace;
     m_Params.output.colorSpace      = surfOutput->ColorSpace;
+    m_Params.output.gammaType       = surfOutput->GammaType;
+    VP_PUBLIC_NORMALMESSAGE("SwFilterCsc::Configure: copy output.gammaType %d alongside output.colorSpace %d", m_Params.output.gammaType, m_Params.output.colorSpace);
     m_Params.pIEFParams             = surfInput->pIEFParams;
     m_Params.formatInput            = surfInput->Format;
     m_Params.formatOutput           = surfOutput->Format;
@@ -836,6 +838,13 @@ MOS_STATUS SwFilterDenoise::Configure(VP_PIPELINE_PARAMS& params, bool isInputSu
 #if !EMUL
     GMM_RESOURCE_INFO* pSrcGmmResInfo    = surfInput->OsResource.pGmmResInfo;
     GMM_RESOURCE_INFO* pTargetGmmResInfo = params.pTarget[0]->OsResource.pGmmResInfo;
+    if (pTargetGmmResInfo == nullptr &&
+        params.pTarget[0]->pPipeIntermediateSurface &&
+        params.pTarget[0]->pPipeIntermediateSurface->osSurface)
+    {
+        // For Ai Pipeline, it may use multi pipe, and intermedia surface is in pPipeIntermediateSurface
+        pTargetGmmResInfo = params.pTarget[0]->pPipeIntermediateSurface->osSurface->OsResource.pGmmResInfo;
+    }
     VP_PUBLIC_CHK_NULL_RETURN(pSrcGmmResInfo);
     VP_PUBLIC_CHK_NULL_RETURN(pTargetGmmResInfo);
 
@@ -1352,7 +1361,8 @@ MOS_STATUS SwFilterHdr::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
             if (surfOutput->pHDRParams)
             {
                 m_Params.uiMaxDisplayLum = surfOutput->pHDRParams->max_display_mastering_luminance;
-                if (surfOutput->pHDRParams->EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084)
+                if ((surfOutput->pHDRParams->EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084) ||
+                    (surfOutput->pHDRParams->EOTF == VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR && IS_RGB64_FLOAT_FORMAT(surfOutput->Format))) // For FP16 output typical usage
                 {
                     m_Params.hdrMode = VPHAL_HDR_MODE_H2H;
                 }
@@ -2161,6 +2171,7 @@ MOS_STATUS SwFilterAiBase::Clean()
 {
     VP_FUNC_CALL();
 
+    m_Params.stageIndex = 0;
     m_Params.settings.clear();
     m_Params.splitGroupIndex.clear();
     VP_PUBLIC_CHK_STATUS_RETURN(SwFilter::Clean());
@@ -2176,6 +2187,8 @@ MOS_STATUS SwFilterAiBase::Configure(VP_PIPELINE_PARAMS &params, bool isInputSur
     VP_PUBLIC_CHK_STATUS_RETURN(RegisterAiSettingPipe(params, m_Params.settings));
     VP_PUBLIC_CHK_STATUS_RETURN(InitializeStageGroupIndex(m_Params.settings, m_Params.splitGroupIndex));
     VP_PUBLIC_CHK_STATUS_RETURN(InitializeNpu(m_Params.settings));
+    VP_PUBLIC_CHK_STATUS_RETURN(SetPerfTag(m_Params.perfTag));
+    m_Params.featureType = m_type;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -2254,7 +2267,7 @@ MOS_STATUS SwFilterAiBase::InitializeNpu(AI_SETTING_PIPE &settingPipe)
         VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface()->m_osInterface->npuInterface);
         VP_PUBLIC_CHK_NULL_RETURN(m_vpInterface.GetHwInterface()->m_osInterface->npuInterface->pfnInit);
         VP_PUBLIC_CHK_STATUS_RETURN(m_vpInterface.GetHwInterface()->m_osInterface->npuInterface->pfnInit(m_vpInterface.GetHwInterface()->m_osInterface->npuInterface));
-        m_gpuContxtOnHybridCmd = (1llu << static_cast<uint64_t>(MOS_GPU_CONTEXT_COMPUTE));
+        m_gpuContxtOnHybridCmd = (1llu << static_cast<uint64_t>(MOS_GPU_CONTEXT_COMPUTE) | 1llu << static_cast<uint64_t>(MOS_GPU_CONTEXT_RENDER));
     }
 
     return MOS_STATUS_SUCCESS;
@@ -2297,6 +2310,12 @@ MOS_STATUS SwFilterAiBase::GetStagePipeSettings(uint32_t stageIndex, std::vector
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS SwFilterAiBase::SetPerfTag(VPHAL_PERFTAG &perfTag)
+{
+    perfTag = VPHAL_NONE;
+    return MOS_STATUS_SUCCESS;
+}
+
 SwFilter *SwFilterAiBase::Clone()
 {
     VP_FUNC_CALL();
@@ -2313,6 +2332,9 @@ SwFilter *SwFilterAiBase::Clone()
     swFilter->m_Params.type            = m_Params.type;
     swFilter->m_Params.splitGroupIndex = m_Params.splitGroupIndex;
     swFilter->m_Params.stageIndex      = m_Params.stageIndex;
+    swFilter->m_Params.featureType     = FeatureType(m_Params.featureType & FEATURE_TYPE_MASK);
+    swFilter->m_Params.perfTag         = m_Params.perfTag;
+    MOS_SecureMemcpy(swFilter->m_Params.extensionParam, sizeof(swFilter->m_Params.extensionParam), m_Params.extensionParam, sizeof(m_Params.extensionParam));
     for (const auto& setting : m_Params.settings)
     {
         if (setting)
@@ -2369,7 +2391,7 @@ MOS_STATUS SwFilterSet::AddSwFilter(SwFilter *swFilter)
         VP_PUBLIC_ASSERTMESSAGE("Invalid parameter! SwFilter for feature %d has already been exists in swFilterSet!", swFilter->GetFeatureType());
         return MOS_STATUS_INVALID_PARAMETER;
     }
-    m_swFilters.insert(std::make_pair(swFilter->GetFeatureType(), swFilter));
+    m_swFilters.emplace(swFilter->GetFeatureType(), swFilter);
     swFilter->SetLocation(this);
     return MOS_STATUS_SUCCESS;
 }

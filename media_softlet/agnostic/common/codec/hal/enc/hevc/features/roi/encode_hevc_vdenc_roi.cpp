@@ -97,6 +97,11 @@ MOS_STATUS HevcVdencRoi::Init(void *setting)
     allocParams.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
     m_basicFeature->m_recycleBuf->RegisterResource(RecycleResId::StreamInBuffer, allocParams);
 
+#if _KERNEL_RESERVED
+    ENCODE_CHK_NULL_RETURN(m_featureManager);
+    m_saliencyFeature = dynamic_cast<EncodeSaliencyFeature *>(m_featureManager->GetFeature(FeatureIDs::saliencyFeature));
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -120,12 +125,19 @@ MOS_STATUS HevcVdencRoi::Update(void *params)
     ENCODE_CHK_NULL_RETURN(hevcSlcParams);
 
     bool pririotyDirtyROI = true;
+    bool saliencyEnabled  = false;
+#if _KERNEL_RESERVED
+    if (m_saliencyFeature)
+    {
+        ENCODE_CHK_STATUS_RETURN(m_saliencyFeature->IsEnabled(saliencyEnabled));
+    }
+#endif
 
     m_dirtyRoiEnabled = hevcPicParams->NumDirtyRects && (B_TYPE == hevcPicParams->CodingType);
     m_mbQpDataEnabled = m_basicFeature->m_mbQpDataEnabled;
     // Adaptive region boost is enabled for TCBRC only
     m_isArbRoi        = hevcPicParams->TargetFrameSize != 0 && (hevcSeqParams->LookaheadDepth == 0) && m_isArbRoiSupported;
-    m_roiEnabled      = hevcPicParams->NumROI > 0 || m_mbQpDataEnabled || m_isArbRoi;
+    m_roiEnabled      = hevcPicParams->NumROI > 0 || m_mbQpDataEnabled || m_isArbRoi || saliencyEnabled;
 
     m_enabled = (m_roiEnabled || m_dirtyRoiEnabled) ? true : false;
 
@@ -154,6 +166,13 @@ MOS_STATUS HevcVdencRoi::Update(void *params)
         {
             m_streamIn->dwResourceOffset = ((factor + 1) * (MOS_ALIGN_CEIL(m_basicFeature->m_frameWidth, 64) / 32) - 2) * CODECHAL_CACHELINE_SIZE;
         }
+
+#if _KERNEL_RESERVED
+        if (saliencyEnabled)
+        {
+            ENCODE_CHK_STATUS_RETURN(m_saliencyFeature->SetEnableFlag(false));
+        }
+#endif
     }
     ENCODE_CHK_NULL_RETURN(m_streamIn);
 
@@ -177,6 +196,13 @@ MOS_STATUS HevcVdencRoi::Update(void *params)
         {
             m_roiMode = false;
             ENCODE_CHK_STATUS_RETURN(ExecuteRoi(hevcSeqParams, hevcPicParams, hevcSlcParams));
+
+#if _KERNEL_RESERVED
+            if (saliencyEnabled)
+            {
+                ENCODE_CHK_STATUS_RETURN(m_saliencyFeature->SetEnableFlag(false));
+            }
+#endif
         }
         else
         {
@@ -189,13 +215,17 @@ MOS_STATUS HevcVdencRoi::Update(void *params)
         MOS_SafeFreeMemory(m_streamInTemp);
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-        ENCODE_CHK_NULL_RETURN(m_hwInterface);
-        ENCODE_CHK_NULL_RETURN(m_hwInterface->GetOsInterface());
-        ReportUserSettingForDebug(
-            m_userSettingPtr ,
-            "HEVC VDEnc Force Delta QP Enable",
-            m_roiMode,
-            MediaUserSetting::Group::Sequence);
+        if (m_roiModeReported != (int8_t)m_roiMode)
+        {
+            ENCODE_CHK_NULL_RETURN(m_hwInterface);
+            ENCODE_CHK_NULL_RETURN(m_hwInterface->GetOsInterface());
+            ReportUserSettingForDebug(
+                m_userSettingPtr ,
+                "HEVC VDEnc Force Delta QP Enable",
+                m_roiMode,
+                MediaUserSetting::Group::Sequence);
+            m_roiModeReported = (int8_t)m_roiMode;
+        }
 #endif
 
         if (hevcPicParams->CodingType == I_TYPE)

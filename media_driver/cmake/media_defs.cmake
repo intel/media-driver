@@ -33,7 +33,6 @@ bs_set_if_undefined(MEDIA_DRIVER_AGNOSTIC    "${MEDIA_DRIVER_ROOT}/agnostic")
 bs_set_if_undefined(MEDIA_DRIVER_LINUX       "${MEDIA_DRIVER_ROOT}/linux")
 
 bs_set_if_undefined(MEDIA_SOFTLET            "${BS_DIR_MEDIA}/media_softlet")
-bs_set_if_undefined(MEDIA_SOFTLET_CMAKE      "${MEDIA_SOFTLET}/cmake")
 bs_set_if_undefined(MEDIA_SOFTLET_AGNOSTIC   "${MEDIA_SOFTLET}/agnostic")
 bs_set_if_undefined(MEDIA_SOFTLET_LINUX      "${MEDIA_SOFTLET}/linux")
 

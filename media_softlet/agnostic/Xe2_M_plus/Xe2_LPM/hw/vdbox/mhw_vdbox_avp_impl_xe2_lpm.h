@@ -31,7 +31,7 @@
 #include "mhw_vdbox_avp_impl_xe2_lpm_base.h"
 #include "mhw_vdbox_avp_hwcmd_xe2_lpm.h"
 
-#ifdef IGFX_AVP_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_avp_impl_xe2_lpm_ext.h"
 #endif
 
@@ -68,15 +68,6 @@ public:
     #include "mhw_hwcmd_process_cmdfields.h"
     }
 
-    _MHW_SETCMD_OVERRIDE_DECL(AVP_PIPE_BUF_ADDR_STATE)
-    {
-        _MHW_SETCMD_CALLBASE(AVP_PIPE_BUF_ADDR_STATE);
-
-#ifdef _MEDIA_RESERVED
-        __MHW_VDBOX_AVP_WRAPPER_EXT(AVP_PIPE_BUF_ADDR_STATE_IMPL_XE2_LPM)
-#endif
-        return MOS_STATUS_SUCCESS; 
-    }
 MEDIA_CLASS_DEFINE_END(mhw__vdbox__avp__xe2_lpm_base__xe2_lpm__Impl)
 };
 }  // namespace xe2_lpm

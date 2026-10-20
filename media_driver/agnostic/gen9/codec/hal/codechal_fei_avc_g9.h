@@ -124,22 +124,6 @@ public:
     static const uint32_t m_mbencCurbeDataSizeFei = 320;
     static const uint32_t m_preProcCurbeDataSizeFei = 160;
 
-#ifdef FEI_ENABLE_CMRT
-    static const uint32_t m_mdfDsBufSize = 2;           //ds use 2 buffer & 4 surface for each channel,  6 buffer and 12 totally
-    static const uint32_t m_mdfDsSurfSize = 4;
-    static const uint32_t m_mdfDsVmeSurfSize = 0;
-
-    static const uint32_t m_mdfMeBufSize = 0;           //me use 0 buffer and 12 surface
-    static const uint32_t m_mdfMeSurfSize = 12;
-    static const uint32_t m_mdfMeVmeSurfSize = 2;
-
-    static const uint32_t m_mdfPreProcBufSize = 6;           //preproc use 5 buffers and  4 surface
-    static const uint32_t m_mdfPreProcSurfSize  = 4;
-    static const uint32_t m_mdfPreProcVmeSurfSize = 2;
-    CodechalEncodeMdfKernelResource m_resPreProcKernel;
-    CodechalEncodeMdfKernelResource m_resMeKernel;
-    uint32_t                            m_dsIdx;
-#endif
 
     static const uint32_t m_mdfMbencBufSize = 12;           //MBEnc is not in a context with preenc
     static const uint32_t m_mdfMbencSurfSize = 16;
@@ -206,110 +190,6 @@ public:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS InitKernelStateMe();
-#ifdef FEI_ENABLE_CMRT
-        // GenericEncodeMeKernel functions
-        //!
-        //! \brief    Run Encode ME kernel
-        //!
-        //! \param [in] brcBuffers
-        //!           Pointer to the brc buffer
-        //! \param   [in] hmeLevel
-        //!           Hme level
-        //! \return   MOS_STATUS
-        //!           MOS_STATUS_SUCCESS if success
-        //!
-        virtual MOS_STATUS GenericEncodeMeKernel(EncodeBrcBuffers* brcBuffers, HmeLevel hmeLevel);
-
-        //!
-        //! \brief    Dispatch MDF Encode ME kernel
-        //!
-        //! \param [in] surfIndex
-        //!            Pointer to the SurfaceIndex * list which is used to Surfaces
-        //! \param [in] width
-        //!            input picture width
-        //!\param  [in]  height
-        //!            input picture height
-        //!\param  [in]   isBFrame
-        //!           if input picture is B frame
-        //! \return   MOS_STATUS
-        //!           MOS_STATUS_SUCCESS if success
-        //!
-
-        MOS_STATUS DispatchKernelMe(
-            SurfaceIndex** surfIndex,
-            uint16_t       width,
-            uint16_t       height,
-            bool           isBFrame);
-
-        //!
-        //! \brief    Dispatch MDF FEI preproc
-        //!
-        //! \param  [in] surfIndex
-        //!           Pointer to the SurfaceIndex * list which is used to Surfaces
-        //! \param  [in] width
-        //!           input picture width
-        //!\param   [in] height
-        //!           input picture height
-        //! \return   MOS_STATUS
-        //!           MOS_STATUS_SUCCESS if success
-        //!
-
-        MOS_STATUS DispatchKernelPreProc(
-            SurfaceIndex**  surfIndex,
-            uint16_t        width,
-            uint16_t        height);
-
-        //!
-        //! \brief    Init Scaling kernel state
-        //!
-        //! \return   MOS_STATUS
-        //!           MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-
-        static MOS_STATUS InitKernelStateScaling(PCODECHAL_ENCODER avcEncoder);
-
-        //!
-        //! \brief    Dispatch MDF FEI 4x DownScalling
-        //! \param  [in]  flatnessThreshold
-        //!           flatness threshold
-        //! \param [in]  option
-        //!           down scaling option
-        //!             bit0 enable/disable flatness check
-        //!             bit1 enable/disable variance output
-        //!             bit2 enable/disable average output
-        //!             bit3 eanble/disable 8x8 statistics output
-        //! \param  [in]  sourceWidth
-        //!           input picture width
-        //!\param   [in]  sourceHeight
-        //!           input picture height
-        //!\param   [in] kernelType
-        //!           if input picture frame (0) or field (1)
-        //!\param   [in]  surfIndex
-        //!           Pointer to the SurfaceIndex * list which is used to Surfaces
-        //! \return   MOS_STATUS
-        //!           MOS_STATUS_SUCCESS if success
-        //!
-        MOS_STATUS DispatchKernelScaling(
-            uint32_t flatnessThreshold,
-            uint32_t options,
-            uint16_t sourceWidth,
-            uint16_t sourceHeight,
-            uint32_t kernelType,
-            SurfaceIndex** surfIdx);
-
-        //!
-        //! \brief    MBEnc Encode kernel functions
-        //!
-        //! \param [in]  params
-        //!           downscalling parameters
-        //!
-        //! \return   MOS_STATUS
-        //!           MOS_STATUS_SUCCESS if success, else fail reason
-        //!
-
-        MOS_STATUS EncodeScalingKernel(CodechalEncodeCscDs::KernelParams* params);
-
-#endif
 
         MOS_STATUS InitMfe();
 

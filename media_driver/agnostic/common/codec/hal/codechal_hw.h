@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2021, Intel Corporation
+* Copyright (c) 2011-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -61,6 +61,9 @@
 
 #define CODECHAL_HW_ASSERTMESSAGE(_message, ...)                                        \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_HW, _message, ##__VA_ARGS__)
+
+#define CODECHAL_HW_WARNINGMESSAGE(_message, ...)                                       \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_HW, _message, ##__VA_ARGS__)
 
 #define CODECHAL_HW_NORMALMESSAGE(_message, ...)                                        \
     MOS_NORMALMESSAGE(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_HW, _message, ##__VA_ARGS__)
@@ -826,6 +829,15 @@ public:
     //!
     MOS_STATUS InitCacheabilityControlSettings(
         CODECHAL_FUNCTION codecFunction);
+
+    //!
+    //! \brief    Init MemoryObject Cache Settings
+    //! \details  Init MemoryObject Cache Settings in codechal hw interface
+    //!
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS InitMemoryObjectCacheSettings();
 
     //!
     //! \brief    Init L3 Cache Settings

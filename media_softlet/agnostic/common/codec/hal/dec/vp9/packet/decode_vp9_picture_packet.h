@@ -108,9 +108,7 @@ namespace decode
             uint32_t &commandBufferSize,
             uint32_t &requestedPatchListSize) override;
 
-#ifdef _MMC_SUPPORTED
         MOS_STATUS SetRefMmcStatus(uint8_t surfaceID, PMOS_SURFACE pSurface);
-#endif
 
         enum CodechalDecodeRefAddrIndex
         {
@@ -209,6 +207,23 @@ namespace decode
         PMOS_BUFFER m_resCABACSyntaxStreamOutBuffer                = nullptr;  //!< Handle of CABAC syntax stream out buffer
         PMOS_BUFFER m_resCABACStreamOutSizeBuffer                  = nullptr;  //!< Handle of CABAC stream out size buffer
         
+        BatchBufferArray  *m_secondLevelBBArray        = nullptr;  //!< Array of second-level batch buffers for mismatch order programming
+        PMHW_BATCH_BUFFER  m_batchBufferForKeyFrame    = nullptr;  //!< Batch buffer for key frame picture state
+        PMHW_BATCH_BUFFER  m_batchBufferForNonKeyFrame = nullptr;  //!< Batch buffer for non-key frame picture state
+        MOS_COMMAND_BUFFER m_picStateCmdBuffer         = {};       //!< Command buffer for picture state commands in second-level batch buffer
+
+        // MV ping-pong 2nd-level BBs for mismatch (Vulkan) mode
+        BatchBufferArray  *m_pingPongMvBBArray  = nullptr;  //!< BB array for MV pipe buf addr (ping + pong per frame)
+        PMHW_BATCH_BUFFER  m_batchBufForMvPing  = nullptr;  //!< Ping BB: cur=MvBuf[0], col=MvBuf[1]
+        PMHW_BATCH_BUFFER  m_batchBufForMvPong  = nullptr;  //!< Pong BB: cur=MvBuf[1], col=MvBuf[0]
+
+        // Copy-state BBs: replace MI_COPY_MEM_MEM (fails on discrete GPU LMEM).
+        // BB0: skip-if(nextState==1), STORE stateBuffer=0  (Ping ran last)
+        // BB1: skip-if(nextState==0), STORE stateBuffer=1  (Pong ran last)
+        BatchBufferArray  *m_copyStateBBArray   = nullptr;
+        PMHW_BATCH_BUFFER  m_batchBufCopyState0 = nullptr;
+        PMHW_BATCH_BUFFER  m_batchBufCopyState1 = nullptr;
+
         mutable uint8_t m_curHcpSurfStateId            = 0;
         PMOS_SURFACE    psSurface                      = nullptr;; // 2D surface parameters
         static const uint32_t m_vp9ScalingFactor       = (1 << 14);
@@ -216,11 +231,9 @@ namespace decode
         static const uint32_t m_reconUVPlaneAlignment  = 8;
         static const uint32_t m_uvPlaneAlignmentLegacy = 8;  //! starting Gen9 the alignment is relaxed to 4x instead of 16x
 
-#ifdef _MMC_SUPPORTED
         uint8_t m_refsMmcEnable = 0;
         uint8_t m_refsMmcType   = 0;
         uint32_t m_mmcFormat    = 0;
-#endif
 
         typedef union
         {
@@ -229,7 +242,8 @@ namespace decode
                 uint8_t KeyFrame : 1;       // [0..1]
                 uint8_t IntraOnly : 1;      // [0..1]
                 uint8_t Display : 1;        // [0..1]
-                uint8_t ReservedField : 5;  // [0]
+                uint8_t VkFrameType : 1;    // [0..1] - Indicates if frame is from Vulkan decode path
+                uint8_t ReservedField : 4;  // [0]
             } fields;
             uint8_t value;
         } PrevFrameParams;

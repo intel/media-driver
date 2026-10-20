@@ -49,12 +49,13 @@ public:
     }
 
     MOS_STATUS SetEuThreadSchedulingMode(uint32_t mode);
+    MOS_STATUS SetLargeGrfMode(uint32_t mode);
 
     virtual MOS_STATUS Submit(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket) override;
 
     virtual MOS_STATUS SubmitWithMultiKernel(MOS_COMMAND_BUFFER* commandBuffer, uint8_t packetPhase = otherPacket);
 
-    MOS_STATUS PacketInit(
+    virtual MOS_STATUS PacketInit(
         VP_SURFACE* inputSurface,
         VP_SURFACE* outputSurface,
         VP_SURFACE* previousSurface,
@@ -70,6 +71,8 @@ public:
     virtual MOS_STATUS SetOclFcParams(PRENDER_OCL_FC_PARAMS params);
 
     virtual MOS_STATUS SetAiParams(PRENDER_AI_PARAMS params);
+
+    virtual MOS_STATUS SetHdrLiteParams(PRENDER_HDRLITE_PARAMS params);
 
     virtual MOS_STATUS DumpOutput() override;
 
@@ -92,6 +95,8 @@ protected:
     virtual MOS_STATUS SetupSurfaceState();
 
     virtual MOS_STATUS SetupCurbeState();
+
+    virtual MOS_STATUS SetupCurbeStateInBindlessMode();
 
     virtual VP_SURFACE* GetSurface(SurfaceType type);
 
@@ -161,8 +166,6 @@ protected:
 protected:
 
     KERNEL_OBJECTS                     m_kernelObjs;
-    // Only for MULTI_KERNELS_WITH_ONE_MEDIA_STATE case.
-    KERNEL_RENDER_DATA                 m_kernelRenderData;
 
     KERNEL_CONFIGS                     m_kernelConfigs; // Kernel parameters for legacy kernels.
 
@@ -174,7 +177,6 @@ protected:
     KERNEL_SAMPLER_STATE_GROUP         m_kernelSamplerStateGroup;
 
     KERNEL_SUBMISSION_MODE             m_submissionMode   = SINGLE_KERNEL_ONLY;
-    uint32_t                           m_slmSize          = 0;
     uint32_t                           m_totalCurbeSize   = 0;
     uint32_t                           m_totoalInlineSize = 0;
 

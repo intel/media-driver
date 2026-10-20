@@ -114,6 +114,18 @@ void GpuContextMgrNext::CleanUp()
     {
         DestroyAllGpuContexts();
 
+        // Move queue contents out under the lock, then destroy outside the lock.
+        // See DestroyGpuContext() for the lock-order rationale.
+        std::vector<GpuContextNext *> deferredToDelete;
+        MosUtilities::MosLockMutex(m_gpuContextDeleteArrayMutex);
+        deferredToDelete.swap(m_deferredDestroyQueue);
+        MosUtilities::MosUnlockMutex(m_gpuContextDeleteArrayMutex);
+
+        for (auto *gpuContext : deferredToDelete)
+        {
+            MOS_Delete(gpuContext);
+        }
+
         MosUtilities::MosLockMutex(m_gpuContextArrayMutex);
         m_gpuContextMap.clear();
         MosUtilities::MosUnlockMutex(m_gpuContextArrayMutex);
@@ -275,9 +287,49 @@ void GpuContextMgrNext::DestroyGpuContext(GpuContextNext *gpuContext)
 
     if (found)
     {
+        // m_gpuContextDeleteArrayMutex is intended only to serialize access to
+        // m_deferredDestroyQueue. A GpuContext destructor may transitively
+        // invoke upper-layer callbacks that acquire other mutexes; running the
+        // destructor while this mutex is held can therefore cause lock-order
+        // inversion with those callers. Keep the locked section minimal:
+        // perform queue operations under the lock and call MOS_Delete after
+        // the lock is released.
+        GpuContextNext              *toDelete = nullptr;
+        std::vector<GpuContextNext *> overflowToDelete;
+
         MosUtilities::MosLockMutex(m_gpuContextDeleteArrayMutex);
-        MOS_Delete(gpuContext);  // delete gpu context.
+
+        if (m_osContext && m_osContext->IsDeferredGpuContextDestroySupported())
+        {
+            gpuContext->ClearForDeferredDestroy();
+            m_deferredDestroyQueue.push_back(gpuContext);
+
+            while (m_deferredDestroyQueue.size() > GPU_CONTEXT_DEFERRED_DESTROY_MAX_COUNT)
+            {
+                GpuContextNext *oldest = m_deferredDestroyQueue.front();
+                m_deferredDestroyQueue.erase(m_deferredDestroyQueue.begin());
+                overflowToDelete.push_back(oldest);
+            }
+        }
+        else
+        {
+            toDelete = gpuContext;
+        }
+
         MosUtilities::MosUnlockMutex(m_gpuContextDeleteArrayMutex);
+
+        // Perform actual destruction outside the lock to avoid lock-order
+        // inversion with upper-layer mutexes that the destructor chain may
+        // transitively require.
+        if (toDelete)
+        {
+            MOS_Delete(toDelete);
+        }
+        for (auto *oldest : overflowToDelete)
+        {
+            MOS_OS_NORMALMESSAGE("Deferred destroy queue full, destroying oldest gpu context %p (HW queue/context)", oldest);
+            MOS_Delete(oldest);
+        }
     }
     else
     {

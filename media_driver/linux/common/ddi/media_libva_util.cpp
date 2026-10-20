@@ -190,11 +190,9 @@ VAStatus DdiMediaUtil_AllocateSurface(
     int32_t alignedHeight = height;
     uint32_t cpTag        = 0;
     int mem_type          = mediaSurface->memType;
-#ifdef _MMC_SUPPORTED
+
     bool bMemCompEnable   = true;
-#else
-    bool bMemCompEnable   = false;
-#endif
+
     bool bMemCompRC       = false;
 
     switch (format)

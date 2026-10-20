@@ -45,6 +45,7 @@ struct KERNEL_THREAD_SPACE
 {
     uint32_t uWidth;
     uint32_t uHeight;
+    uint32_t uDepth;
     uint32_t uLocalWidth;
     uint32_t uLocalHeight;
 };
@@ -85,9 +86,7 @@ enum IMPLICIT_ARG_TYPE
 {
     ValueType = 0,
     IndirectDataPtr,
-    ScratchPtr,
-    SamplerStateBasePtr,
-    SurfaceStateBasePtr
+    ScratchPtr
 };
 
 struct KRN_ARG
@@ -130,6 +129,15 @@ struct KRN_EXECUTE_ENV
     uint32_t uiSlmSize;
     bool     bRequireDisableEufusion;
     bool     bHasDPAS;
+    uint32_t uiRequiredWorkGroupSize[3];
+};
+
+struct KRN_PER_THREAD_ARG_INFO
+{
+    uint32_t packedLocalIdOffset = 0;
+    uint32_t packedLocalIdSize   = 0;
+    uint32_t localIdOffset       = 0;
+    uint32_t localIdSize         = 0;
 };
 
 using SurfaceIndex = uint32_t;
@@ -142,6 +150,9 @@ typedef struct MOS_ALIGNED(16) _SURFACE_PARAMS
     bool        isOutput;
     bool        needVerticalStirde;
     bool        combineChannelY;
+    uint32_t    planeIndex;
+    bool        usePackedPlanar;
+    bool        useSinglePlane;  // bind a planar surface as one R8_UNORM luma plane (1 BTI)
 } SURFACE_PARAMS, *PSURFACE_PARAMS;
 using KERNEL_ARG_INDEX_SURFACE_MAP = std::map<uint32_t, SURFACE_PARAMS>;
 

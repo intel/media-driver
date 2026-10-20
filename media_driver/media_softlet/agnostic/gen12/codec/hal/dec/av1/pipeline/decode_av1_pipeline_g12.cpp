@@ -53,11 +53,6 @@ namespace decode
         DECODE_CHK_NULL(settings);
         DECODE_CHK_STATUS(Initialize(settings));
 
-        if (MEDIA_IS_SKU(m_skuTable, FtrWithSlimVdbox))
-        {
-            m_numVdbox = 1;
-        }
-
         m_av1DecodePkt = MOS_New(Av1DecodePktG12, this, m_task, m_hwInterface);
         DECODE_CHK_STATUS(RegisterPacket(DecodePacketId(this, av1DecodePacketId), m_av1DecodePkt));
         DECODE_CHK_STATUS(m_av1DecodePkt->Init());
@@ -81,14 +76,6 @@ namespace decode
         MOS_ZeroMemory(&scalPars, sizeof(scalPars));
         scalPars.disableScalability = true;
         scalPars.enableVE = MOS_VE_SUPPORTED(m_osInterface);
-        if (MEDIA_IS_SKU(m_skuTable, FtrWithSlimVdbox))
-        {
-            scalPars.usingSlimVdbox = true;
-        }
-        else
-        {
-            scalPars.usingSlimVdbox = false;
-        }
         scalPars.numVdbox = m_numVdbox;
 
         if (m_allowVirtualNodeReassign)
@@ -312,12 +299,10 @@ namespace decode
             pair.second->Destroy();
         }
 
-#ifdef _MMC_SUPPORTED
         if (m_mmcState != nullptr)
         {
             MOS_Delete(m_mmcState);
         }
-#endif
 
         return Av1PipelineG12_Base::Uninitialize();
     }
@@ -356,7 +341,6 @@ namespace decode
 
     MOS_STATUS Av1PipelineG12::InitMmcState()
     {
-    #ifdef _MMC_SUPPORTED
         DECODE_CHK_NULL(m_hwInterface);
         m_mmcState = MOS_New(DecodeMemCompG12, m_hwInterface);
         DECODE_CHK_NULL(m_mmcState);
@@ -364,7 +348,7 @@ namespace decode
         Av1BasicFeatureG12 *basicFeature = dynamic_cast<Av1BasicFeatureG12*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
         DECODE_CHK_NULL(basicFeature);
         DECODE_CHK_STATUS(basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
-    #endif
+
         return MOS_STATUS_SUCCESS;
     }
 

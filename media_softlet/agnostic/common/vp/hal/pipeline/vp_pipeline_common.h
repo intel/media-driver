@@ -104,6 +104,7 @@ struct VP_SURFACE
     MOS_SURFACE                 *osSurface      = nullptr;         //!< mos surface
     bool                        isResourceOwner = false;           //!< true if the resource is owned by current instance.
     VPHAL_CSPACE                ColorSpace      = CSpace_None;     //!< Color Space
+    VPHAL_GAMMA_TYPE            GammaType       = VPHAL_GAMMA_NONE;//!< Gamma Type (mirrors ColorSpace for FP16 OOR output)
     uint32_t                    ChromaSiting    = 0;               //!< ChromaSiting
 
     bool                        bQueryVariance  = false;     //!< enable variance query. Not in use for internal surface
@@ -187,10 +188,13 @@ struct _VP_EXECUTE_CAPS
             uint64_t bDnKernelUpdate: 1;
             uint64_t bVeboxSecureCopy : 1;
             uint64_t bHDR3DLUT      : 1;  // Vebox 3DLUT needed
+            uint64_t bH2S           : 1;  // Vebox 3DLUT H2S Mode
             uint64_t b1K1DLutInited : 1;
             uint64_t bDV            : 1;
+            uint64_t bRgbRgb3DLut   : 1;  // Standalone external RGB-to-RGB 3DLUT surface (no 1DLUT). A classification, NOT vendor tone mapping.
             uint64_t b3DlutOutput   : 1;
             uint64_t bHdr33lutsize  : 1;
+            uint64_t bLutCompound   : 1;  // Vebox LUT Compound (CSC + 1DLUT + 3DLUT) needed
             uint64_t bCappipe       : 1;
             uint64_t bLgca          : 1;
             uint64_t bFDFB          : 1;
@@ -206,6 +210,7 @@ struct _VP_EXECUTE_CAPS
             uint64_t bSfcScaling    : 1;   // Sfc Scaling Needed
             uint64_t bSfcIef        : 1;   // Sfc Details Needed
             uint64_t b1stPassOfSfc2PassScaling : 1; // 1st pass of sfc 2pass scaling
+            uint64_t bSfcThenFcScaling : 1; // 1st pass (sfc, clamped to its native ratio range) of sfc+fc scaling
 
             // Render Features
             uint64_t bComposite     : 1;
@@ -245,6 +250,7 @@ typedef struct _VP_EngineEntry
             uint64_t bt2020ToRGB : 1;           // true if bt2020 to rgb
             uint64_t is1K1DLutSurfaceInUse : 1;  // 1K1DLut surface in use
             uint64_t isHdr33LutSizeEnabled : 1;
+            uint64_t isH2S : 1;                  //Vebox 3DLut H2S
             uint64_t isBayerInputInUse : 1;
             uint64_t frontEndCscNeeded : 1;  // true if use vebox front end csc to do output csc feature instead of using backendcsc + sfc. Only using it when no scaling needed
             uint64_t forceLegacyFC : 1;          // true if OCL FC not support the format, fall back to legacy FC
@@ -266,6 +272,8 @@ typedef struct _VP_EngineEntry
             uint64_t diProcess2ndField : 1;
             uint64_t sfc2PassScalingNeededX : 1;
             uint64_t sfc2PassScalingNeededY : 1;
+            uint64_t sfcNativeThenFcNeededX : 1; // ratio beyond sfc's native range: sfc scales to the boundary, fc the rest
+            uint64_t sfcNativeThenFcNeededY : 1;
             uint64_t usedForNextPass : 1;       // true if current feature should be bypassed for current pass and be processed during next pass.
             uint64_t sfcNotSupported : 1;       // true if sfc cannot be selected.
             uint64_t veboxNotSupported : 1;     // true if vebox cannot be selected.

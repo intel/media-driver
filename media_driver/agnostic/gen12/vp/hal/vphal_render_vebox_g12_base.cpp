@@ -32,7 +32,9 @@
 #include "vpkrnheader.h"
 #include "mhw_vebox_g12_X.h"
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+#if (IGFX_GEN12_TGLLP_SUPPORTED)
 #include "igvpkrn_isa_g12_tgllp.h"
+#endif
 #endif
 #include "vphal_render_hdr_3dlut_g12.h"
 #include "vp_hal_ddi_utils.h"
@@ -2945,7 +2947,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::SetupSurfaceStatesForDenoise()
     SurfaceParams.bWidth16Align    = false;
     SurfaceParams.MemObjCtl = (pRenderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
         MOS_MP_RESOURCE_USAGE_DEFAULT,
-        pRenderHal->pOsInterface->pfnGetGmmClientContext(pRenderHal->pOsInterface))).DwordValue;
+        pRenderHal->pOsInterface)).DwordValue;
 
     VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetSurfaceForHwAccess(
         pRenderHal,
@@ -2967,7 +2969,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::SetupSurfaceStatesForDenoise()
     SurfaceParams.bWidth16Align    = false;
     SurfaceParams.MemObjCtl = (pRenderHal->pOsInterface->pfnCachePolicyGetMemoryObject(
         MOS_MP_RESOURCE_USAGE_DEFAULT,
-        pRenderHal->pOsInterface->pfnGetGmmClientContext(pRenderHal->pOsInterface))).DwordValue;
+        pRenderHal->pOsInterface)).DwordValue;
 
     VPHAL_RENDER_CHK_STATUS(VpHal_CommonSetSurfaceForHwAccess(
         pRenderHal,
@@ -3134,9 +3136,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_G12_BASE::VeboxRenderVeboxCmd(
 
     pVeboxInterface = (MhwVeboxInterfaceG12*)pVeboxState->m_pVeboxInterface;
 
-#ifdef _MMC_SUPPORTED
     VPHAL_RENDER_CHK_STATUS(pVeboxInterface->setVeboxPrologCmd(m_pRenderHal->pMhwMiInterface, &CmdBuffer));
-#endif
 
     return VPHAL_VEBOX_STATE::VeboxRenderVeboxCmd(CmdBuffer,
         VeboxDiIecpCmdParams,
@@ -3177,8 +3177,17 @@ VPHAL_VEBOX_STATE_G12_BASE::VPHAL_VEBOX_STATE_G12_BASE(
     iNumFFDISurfaces  = 2;  // PE on: 4 used. PE off: 2 used
 
 #if defined(ENABLE_KERNELS) && !defined(_FULL_OPEN_SOURCE)
+#if (IGFX_GEN12_TGLLP_SUPPORTED)
     m_hdr3DLutKernelBinary     = (uint32_t *)IGVP3DLUT_GENERATION_G12_TGLLP;
     m_hdr3DLutKernelBinarySize = IGVP3DLUT_GENERATION_G12_TGLLP_SIZE;
+#else
+    const unsigned int IGVP3DLUT_GENERATION_G12_TGLLP_1[] =
+{
+    0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+};
+    m_hdr3DLutKernelBinary     = (uint32_t *)IGVP3DLUT_GENERATION_G12_TGLLP_1;
+    m_hdr3DLutKernelBinarySize = 216; //IGVP3DLUT_GENERATION_G12_TGLLP_SIZE
+#endif
 #endif
 }
 

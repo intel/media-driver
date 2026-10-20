@@ -138,59 +138,59 @@ MOS_STATUS VpFeatureManagerNext::RegisterFeatures()
     // Vebox/Sfc features.
     SwFilterFeatureHandler *p = MOS_New(SwFilterCscHandler, m_vpInterface);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_featureHandler.insert(std::make_pair(FeatureTypeCsc, p));
+    m_featureHandler.emplace(FeatureTypeCsc, p);
 
     p = MOS_New(SwFilterRotMirHandler, m_vpInterface);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_featureHandler.insert(std::make_pair(FeatureTypeRotMir, p));
+    m_featureHandler.emplace(FeatureTypeRotMir, p);
 
     p = MOS_New(SwFilterScalingHandler, m_vpInterface);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_featureHandler.insert(std::make_pair(FeatureTypeScaling, p));
+    m_featureHandler.emplace(FeatureTypeScaling, p);
 
     p = MOS_New(SwFilterDnHandler, m_vpInterface);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_featureHandler.insert(std::make_pair(FeatureTypeDn, p));
+    m_featureHandler.emplace(FeatureTypeDn, p);
 
     p = MOS_New(SwFilterSteHandler, m_vpInterface);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_featureHandler.insert(std::make_pair(FeatureTypeSte, p));
+    m_featureHandler.emplace(FeatureTypeSte, p);
 
     p = MOS_New(SwFilterTccHandler, m_vpInterface);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_featureHandler.insert(std::make_pair(FeatureTypeTcc, p));
+    m_featureHandler.emplace(FeatureTypeTcc, p);
 
     p = MOS_New(SwFilterProcampHandler, m_vpInterface);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_featureHandler.insert(std::make_pair(FeatureTypeProcamp, p));
+    m_featureHandler.emplace(FeatureTypeProcamp, p);
 
     p = MOS_New(SwFilterHdrHandler, m_vpInterface);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_featureHandler.insert(std::make_pair(FeatureTypeHdr, p));
+    m_featureHandler.emplace(FeatureTypeHdr, p);
 
     p = MOS_New(SwFilterDiHandler, m_vpInterface);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_featureHandler.insert(std::make_pair(FeatureTypeDi, p));
+    m_featureHandler.emplace(FeatureTypeDi, p);
 
     p = MOS_New(SwFilterLumakeyHandler, m_vpInterface, FeatureTypeLumakey);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_featureHandler.insert(std::make_pair(FeatureTypeLumakey, p));
+    m_featureHandler.emplace(FeatureTypeLumakey, p);
 
     p = MOS_New(SwFilterBlendingHandler, m_vpInterface, FeatureTypeBlending);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_featureHandler.insert(std::make_pair(FeatureTypeBlending, p));
+    m_featureHandler.emplace(FeatureTypeBlending, p);
 
     p = MOS_New(SwFilterColorFillHandler, m_vpInterface, FeatureTypeColorFill);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_featureHandler.insert(std::make_pair(FeatureTypeColorFill, p));
+    m_featureHandler.emplace(FeatureTypeColorFill, p);
 
     p = MOS_New(SwFilterAlphaHandler, m_vpInterface, FeatureTypeAlpha);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_featureHandler.insert(std::make_pair(FeatureTypeAlpha, p));
+    m_featureHandler.emplace(FeatureTypeAlpha, p);
 
     p = MOS_New(SwFilterCgcHandler, m_vpInterface);
     VP_PUBLIC_CHK_NULL_RETURN(p);
-    m_featureHandler.insert(std::make_pair(FeatureTypeCgc, p));
+    m_featureHandler.emplace(FeatureTypeCgc, p);
 
     m_isFeatureRegistered = true;
     return MOS_STATUS_SUCCESS;

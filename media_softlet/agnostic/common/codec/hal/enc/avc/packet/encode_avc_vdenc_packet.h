@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2023, Intel Corporation
+* Copyright (c) 2020-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -122,7 +122,7 @@ public:
     }
 
 protected:
-    MOS_STATUS PatchPictureLevelCommands(const uint8_t &packetPhase, MOS_COMMAND_BUFFER  &cmdBuffer);
+    virtual MOS_STATUS PatchPictureLevelCommands(const uint8_t &packetPhase, MOS_COMMAND_BUFFER  &cmdBuffer);
     MOS_STATUS PatchSliceLevelCommands(MOS_COMMAND_BUFFER &cmdBuffer, uint8_t packetPhase);
     MOS_STATUS InsertSeqStreamEnd(MOS_COMMAND_BUFFER &cmdBuffer);
 
@@ -437,7 +437,7 @@ protected:
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS DumpResources(
+    virtual MOS_STATUS DumpResources(
         EncodeStatusMfx *       encodeStatusMfx,
         EncodeStatusReportData *statusReportData);
 
@@ -449,6 +449,8 @@ protected:
 
     virtual MOS_STATUS DumpEncodeImgStats(
         PMOS_COMMAND_BUFFER cmdbuffer);
+
+    MOS_STATUS DumpReferences();
 #endif
 
     AvcVdencPipeline         *m_pipeline        = nullptr;
@@ -458,7 +460,7 @@ protected:
     CodechalHwInterfaceNext  *m_hwInterface     = nullptr;
     AvcBasicFeature          *m_basicFeature    = nullptr;
     EncodeMemComp            *m_mmcState        = nullptr;
-    EncodeCp                 *m_encodecp        = nullptr;
+    EncodeCpInterface         *m_encodecp        = nullptr;
 
     std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf = nullptr;
     std::shared_ptr<mhw::vdbox::mfx::Itf>   m_mfxItf   = nullptr;

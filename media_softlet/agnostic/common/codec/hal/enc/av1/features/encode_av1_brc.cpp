@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2023, Intel Corporation
+* Copyright (c) 2020-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -80,20 +80,10 @@ namespace encode
         const auto& seqParams = *m_basicFeature->m_av1SeqParams;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-        ReportUserSetting(
-            m_userSettingPtr,
-            "Encode RateControl Method",
-            m_rcMode,
-            MediaUserSetting::Group::Sequence);
-        
         ENCODE_CHK_NULL_RETURN(m_basicFeature->m_av1PicParams);
-        MediaUserSetting::Value outValue;
-        ReadUserSetting(
-            m_userSettingPtr,
-            outValue,
-            "Adaptive TU Enable",
-            MediaUserSetting::Group::Sequence);
-        m_basicFeature->m_av1PicParams->AdaptiveTUEnabled |= outValue.Get<uint8_t>(); 
+        // The regkey work itself lives in SetSequenceStructs(); PicParams is refreshed
+        // every frame, so only the OR belongs here.
+        m_basicFeature->m_av1PicParams->AdaptiveTUEnabled |= m_adaptiveTUEnableRegkey;
 #endif
         return MOS_STATUS_SUCCESS;
     }
@@ -165,6 +155,35 @@ namespace encode
         return MOS_STATUS_SUCCESS;
     }
 
+    uint32_t Av1Brc::GetSlbbCmd2StartOffset(uint32_t numSeg) const
+    {
+        if (m_hwInterface == nullptr)
+        {
+            return 0;
+        }
+
+        auto avpItf   = std::static_pointer_cast<mhw::vdbox::avp::Itf>(m_hwInterface->GetAvpInterfaceNext());
+        auto vdencItf = std::static_pointer_cast<mhw::vdbox::vdenc::Itf>(m_hwInterface->GetVdencInterfaceNext());
+        auto miItf    = std::static_pointer_cast<mhw::mi::Itf>(m_hwInterface->GetMiInterfaceNext());
+
+        if (!avpItf || !vdencItf || !miItf)
+        {
+            return 0;
+        }
+
+        const uint32_t bbEnd = miItf->MHW_GETSIZE_F(MI_BATCH_BUFFER_END)();
+
+        // SLBB layout up to VDENC_CMD2 (all sizes in bytes, no inter-group cacheline padding):
+        //   Group1: numSeg x AVP_SEGMENT_STATE + AVP_INLOOP_FILTER_STATE + BB_END
+        //   Group2: VDENC_CMD1 + BB_END
+        //   Group3: VDENC_CMD2  <-- start returned here
+        return numSeg * avpItf->MHW_GETSIZE_F(AVP_SEGMENT_STATE)()
+             +          avpItf->MHW_GETSIZE_F(AVP_INLOOP_FILTER_STATE)()
+             +          bbEnd
+             +          vdencItf->MHW_GETSIZE_F(VDENC_CMD1)()
+             +          bbEnd;
+    }
+
     inline uint8_t MapTCBRCScenarioInfo(ENCODE_SCENARIO& scenarioInfo)
     {
         uint8_t TCBRCScenarioInfo = 0;
@@ -218,9 +237,11 @@ namespace encode
 
         dmem->UPD_CurWidth  = (uint16_t)m_basicFeature->m_oriFrameWidth;
         dmem->UPD_CurHeight = (uint16_t)m_basicFeature->m_oriFrameHeight;
+        dmem->UPD_LaDataBufferEnabled_U8 = (seqParams->LookaheadDepth && m_basicFeature->m_laDataBufferEnabled) ? 1 : 0;
         dmem->UPD_Asyn = 0;
-        dmem->UPD_EnableAdaptiveRounding = (m_basicFeature->m_roundingMethod == RoundingMethod::adaptiveRounding);
+        dmem->UPD_EnableAdaptiveRounding = m_basicFeature->m_roundingMethod;
         dmem->UPD_AdaptiveTUEnabled = picParams->AdaptiveTUEnabled;
+        dmem->UPD_EnableDeltaQP = picParams->PicFlags.fields.EnableDeltaQP;
 
         if (seqParams->GopRefDist == 16 && m_rcMode == RATECONTROL_CQL)
             dmem->UPD_MaxBRCLevel = 4;
@@ -299,15 +320,15 @@ namespace encode
         dmem->UPD_LALength = 0;
 
         //SLBB related fields.
-        dmem->UPD_SLBBSize = m_slbData.slbSize;
-        dmem->UPD_AVPPiCStateCmdNum = m_slbData.avpPicStateCmdNum;
-        dmem->UPD_AVPSegmentStateOffset = m_slbData.avpSegmentStateOffset;
-        dmem->UPD_AVPInloopFilterStateOffset = m_slbData.avpInloopFilterStateOffset;
-        dmem->UPD_VDEncCmd1Offset = m_slbData.vdencCmd1Offset;
-        dmem->UPD_VDEncCmd2Offset = m_slbData.vdencCmd2Offset;
-        dmem->UPD_AVPPicStateOffset = m_slbData.avpPicStateOffset;
-        dmem->UPD_VDEncTileSliceStateOffset = m_slbData.vdencTileSliceStateOffset;
-        dmem->UPD_TileNum = m_slbData.tileNum;
+        dmem->UPD_SLBBSize = m_basicFeature->m_slbData.slbSize;
+        dmem->UPD_AVPPiCStateCmdNum = m_basicFeature->m_slbData.avpPicStateCmdNum;
+        dmem->UPD_AVPSegmentStateOffset = m_basicFeature->m_slbData.avpSegmentStateOffset;
+        dmem->UPD_AVPInloopFilterStateOffset = m_basicFeature->m_slbData.avpInloopFilterStateOffset;
+        dmem->UPD_VDEncCmd1Offset = m_basicFeature->m_slbData.vdencCmd1Offset;
+        dmem->UPD_VDEncCmd2Offset = m_basicFeature->m_slbData.vdencCmd2Offset;
+        dmem->UPD_AVPPicStateOffset = m_basicFeature->m_slbData.avpPicStateOffset;
+        dmem->UPD_VDEncTileSliceStateOffset = m_basicFeature->m_slbData.vdencTileSliceStateOffset;
+        dmem->UPD_TileNum = m_basicFeature->m_slbData.tileNum;
 
         // BA start
         dmem->UPD_LoopFilterParamsBitOffset      = (uint16_t)m_basicFeature->m_av1PicParams->LoopFilterParamsBitOffset;
@@ -342,6 +363,8 @@ namespace encode
             dmem->UPD_EnableCDEFUpdate = 0;
             dmem->UPD_EnableLFUpdate   = 0;
         }
+        dmem->UPD_QMatrixEnabled = picParams->wQMatrixFlags.fields.using_qmatrix;
+        dmem->UPD_LADsRatio      = seqParams->SeqFlags.fields.LADsRatio;
 
         return MOS_STATUS_SUCCESS;
     }
@@ -390,6 +413,9 @@ namespace encode
             break;
         case RATECONTROL_VBR:
             brcFlag = 0x20;
+            break;
+        case RATECONTROL_QVBR:
+            brcFlag = 0x40;
             break;
         case RATECONTROL_CQP:
             brcFlag = 0;
@@ -440,11 +466,15 @@ namespace encode
         return profileLevelMaxFrame;
     }
 
-    inline int32_t ComputeVDEncInitQPI(uint32_t width, uint32_t height, FRAMERATE frameRate, uint32_t targetBitRate, uint16_t gopPicSize, bool is10Bit, uint16_t n_p)
+    inline int32_t ComputeVDEncInitQPI(uint32_t width, uint32_t height, FRAMERATE frameRate, uint32_t targetBitRate, uint16_t gopPicSize, bool is10Bit, uint8_t chromaFormat, uint16_t n_p)
     {
         ENCODE_FUNC_CALL();
 
         uint32_t frameSize = ((width * height * 3) >> 1);
+        if (chromaFormat == AVP_CHROMA_FORMAT_YUV444)
+        {
+            frameSize *= 2;
+        }
         if (is10Bit)
         {
             frameSize = (frameSize * 10) >> 3;
@@ -580,6 +610,7 @@ namespace encode
                 m_basicFeature->m_av1SeqParams->TargetBitRate[0],
                 m_basicFeature->m_av1SeqParams->GopPicSize,
                 m_basicFeature->m_is10Bit,
+                m_basicFeature->m_chromaFormat,
                 dmem->INIT_GopP);
 
         qpP = qpI + 20;
@@ -600,6 +631,8 @@ namespace encode
         {
             dmem->INIT_OvershootCBR_pct = (uint16_t)(seqParams->MaxBitRatePerSlidingWindow * 100 / seqParams->TargetBitRate[0]);
         }
+        dmem->INIT_GopPicSize = seqParams->GopPicSize;
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -609,22 +642,25 @@ namespace encode
 
         ENCODE_FUNC_CALL();
         
+        const uint8_t ICQFactorLookup[52] = {
+            0,  1,  1,  1,  1,  2,  3,  4,  6,  7,  9,  11, 13, 16, 18, 23,
+            26, 30, 34, 39, 46, 52, 59, 68, 77, 87, 98, 104,112,120,127,134,
+            142,149,157,164,171,178,186,193,200,207,213,219,225,230,235,240,
+            245,249,252,255};
+
         if (m_basicFeature->m_av1SeqParams->RateControlMethod == RATECONTROL_CQL)
         {
-            const uint8_t ICQFactorLookup[52] = { 
-                0,  1,  1,  1,  1,  2,  3,  4,  6,  7,  9,  11, 13, 16, 18, 23,
-                26, 30, 34, 39, 46, 52, 59, 68, 77, 87, 98, 104,112,120,127,134,
-                142,149,157,164,171,178,186,193,200,207,213,219,225,230,235,240,
-                245,249,252,255 
-            };
-            
             uint32_t TargetBitRate                                     = m_basicFeature->m_frameWidth * m_basicFeature->m_frameHeight * 8 / 1000;
-            m_basicFeature->m_av1SeqParams->ICQQualityFactor           = ICQFactorLookup[m_basicFeature->m_av1SeqParams->ICQQualityFactor];
+            m_basicFeature->m_av1SeqParams->ICQQualityFactor           = ICQFactorLookup[MOS_MIN(m_basicFeature->m_av1SeqParams->ICQQualityFactor, 51)];
             m_basicFeature->m_av1SeqParams->TargetBitRate[0]           = TargetBitRate;
             m_basicFeature->m_av1SeqParams->MaxBitRate                 = (TargetBitRate << 4) / 10;
             m_basicFeature->m_av1SeqParams->MinBitRate                 = 0;
             m_basicFeature->m_av1SeqParams->InitVBVBufferFullnessInBit = 8000 * (TargetBitRate << 3) / 10;
             m_basicFeature->m_av1SeqParams->VBVBufferSizeInBit         = 8000 * (TargetBitRate << 1);
+        }
+        else if (m_basicFeature->m_av1SeqParams->RateControlMethod == RATECONTROL_QVBR)
+        {
+            m_basicFeature->m_av1SeqParams->ICQQualityFactor = ICQFactorLookup[MOS_MIN(m_basicFeature->m_av1SeqParams->ICQQualityFactor, 51)];
         }
         
         m_brcEnabled = IsRateControlBrc(m_basicFeature->m_av1SeqParams->RateControlMethod);
@@ -632,6 +668,22 @@ namespace encode
         m_brcInit = m_brcEnabled && m_basicFeature->m_resolutionChanged;
 
         m_rcMode = m_brcEnabled? m_basicFeature->m_av1SeqParams->RateControlMethod : 0;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        ReportUserSetting(
+            m_userSettingPtr,
+            "Encode RateControl Method",
+            m_rcMode,
+            MediaUserSetting::Group::Sequence);
+
+        MediaUserSetting::Value outValue;
+        ReadUserSetting(
+            m_userSettingPtr,
+            outValue,
+            "Adaptive TU Enable",
+            MediaUserSetting::Group::Sequence);
+        m_adaptiveTUEnableRegkey = outValue.Get<uint8_t>();
+#endif
 
         if (m_rcMode == RATECONTROL_CQL || m_rcMode == RATECONTROL_QVBR)
         {
@@ -713,6 +765,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(HUC_DMEM_STATE, Av1Brc)
     {
+        ENCODE_FUNC_CALL();
         ENCODE_CHK_NULL_RETURN(params.hucDataSource);
 
         switch (params.function)
@@ -748,6 +801,10 @@ namespace encode
             // nothing need to be done within brc feature for pak int
             break;
         }
+        case SLBB_UPDATE: {
+            // nothing need to be done
+            break;
+        }
         default:
             ENCODE_ASSERTMESSAGE("AV1 BRC feature supports only PAK_INTEGRATE, BRC_INIT and BRC_UPDATE HUC functions");
             return MOS_STATUS_INVALID_PARAMETER;
@@ -758,6 +815,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(HUC_VIRTUAL_ADDR_STATE, Av1Brc)
     {
+        ENCODE_FUNC_CALL();
         if (params.function == BRC_UPDATE)
         {
             const PMOS_RESOURCE brcConstDataBuffer = params.regionParams[5].presRegion;
@@ -775,6 +833,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, Av1Brc)
     {
+        ENCODE_FUNC_CALL();
         if (m_brcEnabled)
         {
             params.frameStatisticsStreamOut = true;

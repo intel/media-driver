@@ -1700,7 +1700,6 @@ private:
     //!
     static bool DestroyImageFromVAImageID (PDDI_MEDIA_CONTEXT mediaCtx, VAImageID imageID);
 
-#ifdef _MMC_SUPPORTED
     //!
     //! \brief  Decompress internal media memory 
     //! 
@@ -1795,7 +1794,6 @@ private:
         bool          isTileToLinear,
         bool          outputCompressed);
 
-#endif
 
 #if defined(X11_FOUND)
 #define X11_LIB_NAME "libX11.so.6"
@@ -2093,11 +2091,13 @@ private:
     //!         FourCC
     //! \param  [in] rtformatType
     //!         Rt format type
+    //! \param  [in] isRgbInYuvContainer
+    //!         True if fourcc is a YUV container fourcc
     //!
     //! \return DDI_MEDIA_FORMAT
     //!     Ddi media format
     //!
-    static DDI_MEDIA_FORMAT OsFormatToMediaFormat(int32_t fourcc, int32_t rtformatType);
+    static DDI_MEDIA_FORMAT OsFormatToMediaFormat(int32_t fourcc, int32_t rtformatType, bool isRgbInYuvContainer = false);
 
     //!
     //! \brief  create render target

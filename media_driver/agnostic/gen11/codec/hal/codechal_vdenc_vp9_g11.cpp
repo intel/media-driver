@@ -4349,11 +4349,10 @@ MOS_STATUS CodechalVdencVp9StateG11::ExecutePictureLevel()
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetHcpPipeBufAddrParams(*pipeBufAddrParams, refSurface, refSurfaceNonScaled, dsRefSurface4x, dsRefSurface8x));
     pipeBufAddrParams->pRawSurfParam = &surfaceParams[CODECHAL_HCP_SRC_SURFACE_ID];
     pipeBufAddrParams->pDecodedReconParam = &surfaceParams[CODECHAL_HCP_DECODED_SURFACE_ID];
-#ifdef _MMC_SUPPORTED
+
     // In case of dynamic scaling refSurface is scaled for pass 0 and nonscaled for last pass
     // This ensures correct references are passed in for MMC
     CODECHAL_ENCODE_CHK_STATUS_RETURN(SetPipeBufAddr(pipeBufAddrParams, refSurface, &cmdBuffer));
-#endif
 
     // set HCP_PIPE_MODE_SELECT values
     PMHW_VDBOX_PIPE_MODE_SELECT_PARAMS pipeModeSelectParams = nullptr;

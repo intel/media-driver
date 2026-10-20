@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2019-2023, Intel Corporation
+* Copyright (c) 2019-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -189,14 +189,13 @@ namespace encode
         allocParamsForBuffer2D.dwWidth            = MOS_ALIGN_CEIL(m_basicFeature->m_frameWidth, av1SuperBlockWidth);
         allocParamsForBuffer2D.dwHeight           = MOS_ALIGN_CEIL(m_basicFeature->m_frameHeight, av1SuperBlockHeight);
 
-#ifdef _MMC_SUPPORTED
         ENCODE_CHK_NULL_RETURN(m_mmcState);
         if (m_mmcState->IsMmcEnabled() && m_basicFeature->m_reconSurface.bCompressible)
         {
             allocParamsForBuffer2D.CompressionMode = MOS_MMC_MC;
             allocParamsForBuffer2D.bIsCompressible = true;
         }
-#endif
+
         if (m_basicFeature->m_is10Bit)
         {
             // This is temporary fix for Sim specific ( Grits Utility) issue, HW has no restriction for current platform
@@ -251,7 +250,7 @@ namespace encode
         auto brcFeature = dynamic_cast<Av1Brc *>(m_featureManager->GetFeature(Av1FeatureIDs::av1BrcFeature));
         ENCODE_CHK_NULL_RETURN(brcFeature);
         auto vdenc2ndLevelBatchBuffer = brcFeature->GetVdenc2ndLevelBatchBuffer(m_pipeline->m_currRecycledBufIdx);
-        auto slbbData                 = brcFeature->GetSLBData();
+        auto slbbData                 = m_basicFeature->GetSLBData();
 
         //AV1 Tile Commands
         //set up VD_CONTROL_STATE command

@@ -256,11 +256,15 @@ private:
     //!
     //! \param    [in] osInterface
     //!           Pointer of OS interface
+    //! \param    [in] cmdCompletionConfirmed
+    //!           True if the caller has already confirmed full GPU cmd
+    //!           completion (e.g. pfnWaitAllCmdCompletion was available and
+    //!           was called); safe to bypass the recycler's write-lock gate.
     //!
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
-    MOS_STATUS SavePerfData(MOS_INTERFACE *osInterface);
+    MOS_STATUS SavePerfData(MOS_INTERFACE *osInterface, bool cmdCompletionConfirmed);
 
     //!
     //! \brief    Convert GPU context to GPU node

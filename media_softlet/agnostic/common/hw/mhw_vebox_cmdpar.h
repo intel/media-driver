@@ -563,6 +563,7 @@ struct _MHW_PAR_T(VEBOX_STATE)
     PMOS_RESOURCE                    pVeboxParamSurf             = nullptr;
     PMOS_RESOURCE                    pVebox3DLookUpTables        = nullptr;
     PMOS_RESOURCE                    pVebox1DLookUpTables        = nullptr;
+    PMOS_RESOURCE                    pVeboxHdrStateSurf          = nullptr;  //!< LUT compound redirect for DW6/7 HDR state pointer
     PMOS_RESOURCE                    DummyIecpResource           = nullptr;
     MHW_MEMORY_OBJECT_CONTROL_PARAMS LaceLookUpTablesSurfCtrl    = {};
     MHW_MEMORY_OBJECT_CONTROL_PARAMS Vebox3DLookUpTablesSurfCtrl = {};

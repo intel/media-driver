@@ -99,9 +99,8 @@ namespace decode
         DECODE_FUNC_CALL();
 
         DECODE_CHK_STATUS(Mpeg2Pipeline::Initialize(settings));
-#ifdef _MMC_SUPPORTED
+
         DECODE_CHK_STATUS(InitMmcState());
-#endif
 
         return MOS_STATUS_SUCCESS;
     }
@@ -194,6 +193,11 @@ namespace decode
             inputParameters.currDecodedPicRes          = m_basicFeature->m_destSurface.OsResource;
             inputParameters.numUsedVdbox               = m_numVdbox;
 
+            CODECHAL_DEBUG_TOOL(
+                if (m_streamout != nullptr) {
+                    DECODE_CHK_STATUS(m_streamout->InitStatusReportParam(inputParameters));
+                });
+
             m_statusReport->Init(&inputParameters);
         }
 
@@ -266,7 +270,6 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-#ifdef _MMC_SUPPORTED
     MOS_STATUS Mpeg2PipelineXe3_Lpm_Base::InitMmcState()
     {
         DECODE_FUNC_CALL();
@@ -277,7 +280,6 @@ namespace decode
 
         return MOS_STATUS_SUCCESS;
     }
-#endif
 
     MOS_STATUS Mpeg2PipelineXe3_Lpm_Base::UserFeatureReport()
     {

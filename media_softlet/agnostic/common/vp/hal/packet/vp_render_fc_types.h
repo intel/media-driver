@@ -1431,7 +1431,7 @@ public:
             p = m_idle.begin()->second;
             m_idle.erase(p);
         }
-        m_inuse.insert(std::make_pair(p, p));
+        m_inuse.emplace(p, p);
         return p;
     }
 
@@ -1442,7 +1442,7 @@ public:
             return;
         }
         m_inuse.erase(p);
-        m_idle.insert(std::make_pair(p, p));
+        m_idle.emplace(p, p);
     }
 
 private:

@@ -99,6 +99,8 @@ typedef struct _CODEC_PRE_ENC_PARAMS
     CODEC_PIC_ID            PicIdx[CODEC_MAX_NUM_REF_FRAME_PREENC];
     PCODEC_REF_LIST        *RefList;
     bool                    isPToB;
+    bool                    generalPurposeME = false;  //!< General purpose motion estimation
+    uint8_t                 TargetUsage      = 4;      //!< PreEnc target usage, indexes into vdencCmd2 TU-dependent tables (valid 1..NUM_TARGET_USAGE_MODES-1)
 
 } CODEC_PRE_ENC_PARAMS, *PCODEC_PRE_ENC_PARAMS;
 

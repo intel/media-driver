@@ -46,9 +46,154 @@
 #include "vp_utils.h"
 #include "media_perf_profiler.h"
 
+const uint32_t g_cLookup_RotationMode_Next[8] =
+{
+    ROTATION_IDENTITY,  // 0 - MHW_ROTATION_IDENTITY
+    ROTATION_90,        // 1 - MHW_ROTATION_90
+    ROTATION_180,       // 2 - MHW_ROTATION_180
+    ROTATION_270,       // 3 - MHW_ROTATION_270
+    ROTATION_IDENTITY,  // 4 - MHW_MIRROR_HORIZONTAL
+    ROTATION_180,       // 5 - MHW_MIRROR_VERTICAL
+    ROTATION_270,       // 6 - MHW_ROTATE_90_MIRROR_VERTICAL
+    ROTATION_90         // 7 - MHW_ROTATE_90_MIRROR_HORIZONTAL
+};
+
+static const uint32_t FIXED_SCRATCH_SPACE_BUFFER_INDEX = 6;
+
 XRenderHal_Platform_Interface_Next::XRenderHal_Platform_Interface_Next()
 {
     MOS_ZeroMemory(&m_scratchSpaceResource, sizeof(m_scratchSpaceResource));
+}
+
+void XRenderHal_Platform_Interface_Next::ConvertToNanoSeconds(
+    PRENDERHAL_INTERFACE                 pRenderHal,
+    uint64_t                            iTicks,
+    uint64_t                            *piNs)
+{
+    //-----------------------------
+    MHW_RENDERHAL_UNUSED(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_NO_STATUS_RETURN(piNs);
+    //-----------------------------
+    *piNs = (uint64_t)(iTicks * RENDERHAL_NS_PER_TICK_RENDER_NEXT);
+}
+
+MOS_STATUS XRenderHal_Platform_Interface_Next::EnableL3Caching(
+    PRENDERHAL_INTERFACE         pRenderHal,
+    PRENDERHAL_L3_CACHE_SETTINGS pCacheSettings)
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS                              eStatus = MOS_STATUS_SUCCESS;
+    mhw::render::MHW_RENDER_ENGINE_L3_CACHE_SETTINGS cacheConfig = {};
+
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_renderItf);
+
+    if (nullptr == pCacheSettings)
+    {
+        MHW_RENDERHAL_CHK_STATUS_RETURN(m_renderItf->EnableL3Caching(nullptr));
+        return eStatus;
+    }
+    cacheConfig.dwCntlReg = RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_NEXT_RENDERHAL;
+    // Override L3 cache configuration
+    if (pCacheSettings->bOverride)
+    {
+        if (pCacheSettings->bCntlRegOverride)
+        {
+            cacheConfig.dwCntlReg = pCacheSettings->dwCntlReg;
+        }
+    }
+    MHW_RENDERHAL_CHK_STATUS_RETURN(m_renderItf->EnableL3Caching(&cacheConfig));
+
+    return eStatus;
+}
+
+MOS_STATUS XRenderHal_Platform_Interface_Next::SetCacheOverrideParams(
+    PRENDERHAL_INTERFACE            pRenderHal,
+    PRENDERHAL_L3_CACHE_SETTINGS    pCacheSettings,
+    bool                            bEnableSLM)
+{
+    VP_FUNC_CALL();
+
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    MHW_RENDERHAL_CHK_NULL_RETURN(pCacheSettings);
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal);
+
+    pCacheSettings->dwCntlReg = RENDERHAL_L3_CACHE_CONFIG_CNTLREG_VALUE_NEXT_RENDERHAL;
+
+    pCacheSettings->bCntlRegOverride = true;
+
+    return eStatus;
+}
+
+void XRenderHal_Platform_Interface_Next::SetFusedEUDispatch(bool enable)
+{
+    m_vfeStateParams.bFusedEuDispatch = enable? true : false;
+}
+
+MOS_STATUS XRenderHal_Platform_Interface_Next::SetNumOfWalkers(uint32_t numOfWalkers)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+    // value: [0,1] - One or two active walkers per context.
+    if (numOfWalkers > 2)
+    {
+        m_vfeStateParams.numOfWalkers = 1;
+    }
+    else if (numOfWalkers > 0)
+    {
+        m_vfeStateParams.numOfWalkers = numOfWalkers - 1;
+    }
+    return eStatus;
+}
+
+MOS_STATUS XRenderHal_Platform_Interface_Next::SetScratchSpaceBufferState(
+    RENDERHAL_INTERFACE *renderHal,
+    uint32_t indexOfBindingTable)
+{
+    if (m_scratchSpaceResource.iSize <= 0)
+    {
+        return MOS_STATUS_SUCCESS;  // Scratch space is not allocated. No need to set states.
+    }
+
+    RENDERHAL_SURFACE renderhal_surface;
+    MOS_ZeroMemory(&renderhal_surface, sizeof(renderhal_surface));
+    renderhal_surface.OsSurface.OsResource = m_scratchSpaceResource;
+    renderhal_surface.OsSurface.dwWidth = m_scratchSpaceResource.iSize;
+    renderhal_surface.OsSurface.dwHeight = 1;
+    renderhal_surface.OsSurface.Format = Format_RAW;
+    renderhal_surface.OsSurface.Type = MOS_GFXRES_SCRATCH;
+    renderhal_surface.rcSrc.right = m_scratchSpaceResource.iSize;;
+    renderhal_surface.rcSrc.bottom = 1;
+    renderhal_surface.rcDst = renderhal_surface.rcSrc;
+
+    MOS_STATUS result = renderHal->pOsInterface->pfnRegisterResource(
+        renderHal->pOsInterface, &(renderhal_surface.OsSurface.OsResource),
+        true, true);
+    if (MOS_STATUS_SUCCESS != result)
+    {
+        return result;
+    }
+
+    RENDERHAL_SURFACE_STATE_PARAMS renderhal_surface_state_param;
+    MOS_ZeroMemory(&renderhal_surface_state_param,
+                   sizeof(renderhal_surface_state_param));
+    renderhal_surface_state_param.isOutput = 1;
+    renderhal_surface_state_param.MemObjCtl = 2;
+
+    RENDERHAL_SURFACE_STATE_ENTRY *renderhal_surface_state_entry = nullptr;
+    renderHal->pfnSetupBufferSurfaceState(renderHal, &renderhal_surface,
+                                          &renderhal_surface_state_param,
+                                          &renderhal_surface_state_entry);
+    m_vfeStateParams.scratchStateOffset
+            = renderhal_surface_state_entry->dwSurfStateOffset;
+
+    renderHal->pfnBindSurfaceState(renderHal,
+                                   indexOfBindingTable,
+                                   FIXED_SCRATCH_SPACE_BUFFER_INDEX,
+                                   renderhal_surface_state_entry);
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS XRenderHal_Platform_Interface_Next::AddPipelineSelectCmd(
@@ -917,67 +1062,73 @@ bool XRenderHal_Platform_Interface_Next::PerThreadScratchSpaceStart64Byte(RENDER
     return true;
 }
 
-uint32_t XRenderHal_Platform_Interface_Next::CalculatePreferredSlmAllocationSizeFromSlmSize(
-    RENDERHAL_INTERFACE *renderHal, 
-    uint32_t             slmSize, 
-    uint32_t             numberOfThreadsPerThreadGroup)
+MOS_STATUS XRenderHal_Platform_Interface_Next::CalculatePreferredSlmAllocationSizeFromSlmSize(
+    RENDERHAL_INTERFACE *renderHal,
+    uint32_t             slmSize,
+    uint32_t             numberOfThreadsPerThreadGroup,
+    uint32_t            &perferedSlmAllocationSize)
 {
-    if (!renderHal || !renderHal->pOsInterface || !renderHal->pOsInterface->pfnGetGtSystemInfo)
-    {
-        MHW_RENDERHAL_ASSERTMESSAGE("renderhal or osInterface or pfnGetGtSystemInfo is nullptr");
-        return 0;
-    }
+    MHW_RENDERHAL_CHK_NULL_RETURN(renderHal);
+    MHW_RENDERHAL_CHK_NULL_RETURN(renderHal->pOsInterface);
+    MHW_RENDERHAL_CHK_NULL_RETURN(renderHal->pOsInterface->pfnGetGtSystemInfo);
     if (numberOfThreadsPerThreadGroup == 0)
     {
         MHW_RENDERHAL_ASSERTMESSAGE("numberOfThreadsPerThreadGroup is 0");
-        return 0;
+        return MOS_STATUS_INVALID_PARAMETER;
     }
 
     MEDIA_SYSTEM_INFO *gtInfo = renderHal->pOsInterface->pfnGetGtSystemInfo(renderHal->pOsInterface);
-    if (!gtInfo)
-    {
-        MHW_RENDERHAL_ASSERTMESSAGE("GtSystemInfo is nullptr");
-        return 0;
-    }
+    MHW_RENDERHAL_CHK_NULL_RETURN(gtInfo);
     if (gtInfo->SubSliceCount == 0)
     {
         MHW_RENDERHAL_ASSERTMESSAGE("SubSliceCount is 0");
-        return 0;
+        return MOS_STATUS_INVALID_PARAMETER;
     }
-    uint32_t preferredSlmAllicationSize = 0;
-    slmSize                             = slmSize / 1024 + (slmSize % 1024 != 0);
+    uint32_t slmSizeInKB                = slmSize / 1024 + (slmSize % 1024 != 0);
     uint32_t threadsPerDssCount         = gtInfo->ThreadCount / gtInfo->SubSliceCount;
     uint32_t workGroupCountPerDss       = (threadsPerDssCount + numberOfThreadsPerThreadGroup - 1) / numberOfThreadsPerThreadGroup;
-    uint32_t slmSizePerSubSlice         = slmSize * workGroupCountPerDss;
-    if (slmSize == 0)
+    uint32_t slmSizePerSubSlice         = slmSizeInKB * workGroupCountPerDss;
+
+    if (gtInfo->SLMSizeInKb == 0)
     {
-        preferredSlmAllicationSize = 0;
+        MHW_RENDERHAL_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+    slmSizePerSubSlice = MOS_MIN(slmSizePerSubSlice, gtInfo->SLMSizeInKb);
+    if (slmSizePerSubSlice < slmSizeInKB)
+    {
+        MHW_RENDERHAL_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
+    if (slmSizeInKB == 0)
+    {
+        perferedSlmAllocationSize = 0;
     }
     else if (slmSizePerSubSlice <= 16)
     {
-        preferredSlmAllicationSize = 1;
+        perferedSlmAllocationSize = 1;
     }
     else if (slmSizePerSubSlice <= 32)
     {
-        preferredSlmAllicationSize = 2;
+        perferedSlmAllocationSize = 2;
     }
     else if (slmSizePerSubSlice > 256)
     {
         if (slmSizePerSubSlice > 384)
         {
             MHW_RENDERHAL_ASSERTMESSAGE("slmSizePerSubSlice %d is bigger than max size", slmSizePerSubSlice);
+            return MOS_STATUS_INVALID_PARAMETER;
         }
         else
         {
-            preferredSlmAllicationSize = 10;
+            perferedSlmAllocationSize = 10;
         }
     }
     else
     {
-        preferredSlmAllicationSize = slmSizePerSubSlice / 32 + (slmSizePerSubSlice % 32 != 0) + 1;
+        perferedSlmAllocationSize = slmSizePerSubSlice / 32 + (slmSizePerSubSlice % 32 != 0) + 1;
     }
     
-    return preferredSlmAllicationSize;
+    return MOS_STATUS_SUCCESS;
 }
 
 uint32_t XRenderHal_Platform_Interface_Next::EncodeSLMSize(uint32_t SLMSize)
@@ -1218,6 +1369,7 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendComputeWalker(
     MHW_RENDERHAL_CHK_NULL_RETURN(pCurMediaState);
 
     mhwIdEntryParams.dwKernelOffset  = pKernelEntry->dwOffset;
+    mhwIdEntryParams.kernelSize      = pKernelEntry->iSize;
     mhwIdEntryParams.dwSamplerCount  = pKernelEntry->Params.Sampler_Count;
     mhwIdEntryParams.dwSamplerOffset = pCurMediaState->dwOffset +
                                        pRenderHal->pStateHeap->dwOffsetSampler +
@@ -1239,7 +1391,10 @@ MOS_STATUS XRenderHal_Platform_Interface_Next::SendComputeWalker(
     {
         mhwIdEntryParams.dwNumberofThreadsInGPGPUGroup = pGpGpuWalkerParams->ThreadWidth * pGpGpuWalkerParams->ThreadHeight;
     }
-    mhwIdEntryParams.preferredSlmAllocationSize = CalculatePreferredSlmAllocationSizeFromSlmSize(m_renderHal, pGpGpuWalkerParams->SLMSize, mhwIdEntryParams.dwNumberofThreadsInGPGPUGroup);
+    if (pGpGpuWalkerParams->SLMSize > 0)
+    {
+        MHW_RENDERHAL_CHK_STATUS_RETURN(CalculatePreferredSlmAllocationSizeFromSlmSize(m_renderHal, pGpGpuWalkerParams->SLMSize, mhwIdEntryParams.dwNumberofThreadsInGPGPUGroup, mhwIdEntryParams.preferredSlmAllocationSize));
+    }
     //This only a WA to disable EU fusion for multi-layer blending cases or single layer do colorfill and rotation together.
     //Need remove it after kernel or compiler fix it.
     mhwIdEntryParams.bBarrierEnable              = pRenderHal->eufusionBypass ? 1 : 0;
@@ -1544,6 +1699,7 @@ MHW_SETPAR_DECL_SRC(COMPUTE_WALKER, XRenderHal_Platform_Interface_Next)
 {
     MHW_RENDERHAL_CHK_NULL_RETURN(m_gpgpuWalkerParams);
     MHW_RENDERHAL_CHK_NULL_RETURN(m_interfaceDescriptorParams);
+    MHW_RENDERHAL_CHK_NULL_RETURN(m_renderHal);
 
     params.simdSize                 = m_gpgpuWalkerParams->simdSize;
     params.IndirectDataLength       = m_gpgpuWalkerParams->IndirectDataLength;
@@ -1560,6 +1716,7 @@ MHW_SETPAR_DECL_SRC(COMPUTE_WALKER, XRenderHal_Platform_Interface_Next)
     params.GroupStartingZ = m_gpgpuWalkerParams->GroupStartingZ;
 
     params.dwKernelOffset                = m_interfaceDescriptorParams->dwKernelOffset;
+    params.kernelSize                    = m_interfaceDescriptorParams->kernelSize;
     params.dwSamplerCount                = m_interfaceDescriptorParams->dwSamplerCount;
     params.dwSamplerOffset               = m_interfaceDescriptorParams->dwSamplerOffset;
     params.dwBindingTableOffset          = m_interfaceDescriptorParams->dwBindingTableOffset;
@@ -1583,6 +1740,7 @@ MHW_SETPAR_DECL_SRC(COMPUTE_WALKER, XRenderHal_Platform_Interface_Next)
         params.simdSize = 32;
     }
 
+    params.registersPerThread    = m_gpgpuWalkerParams->registersPerThread;
     params.isEmitInlineParameter = m_gpgpuWalkerParams->isEmitInlineParameter;
     if (m_gpgpuWalkerParams->inlineDataLength > 0 && m_gpgpuWalkerParams->inlineData)
     {
@@ -1592,6 +1750,11 @@ MHW_SETPAR_DECL_SRC(COMPUTE_WALKER, XRenderHal_Platform_Interface_Next)
 
     params.isGenerateLocalId = m_gpgpuWalkerParams->isGenerateLocalID;
     params.emitLocal         = mhw::render::MHW_EMIT_LOCAL_MODE(m_gpgpuWalkerParams->emitLocal);
+
+    params.heapsResource.curbeResourceList      = m_gpgpuWalkerParams->curbeResourceList;
+    params.heapsResource.curbeResourceListSize  = m_gpgpuWalkerParams->curbeResourceListSize;
+    params.heapsResource.inlineResourceList     = m_gpgpuWalkerParams->inlineResourceList;
+    params.heapsResource.inlineResourceListSize = m_gpgpuWalkerParams->inlineResourceListSize;
 
     return MOS_STATUS_SUCCESS;
 }

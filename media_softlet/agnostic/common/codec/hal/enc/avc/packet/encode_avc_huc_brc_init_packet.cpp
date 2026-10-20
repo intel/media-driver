@@ -112,6 +112,8 @@ MOS_STATUS AvcHucBrcInitPkt::Submit(MOS_COMMAND_BUFFER *commandBuffer, uint8_t p
 MOS_STATUS AvcHucBrcInitPkt::AddForceWakeup(MOS_COMMAND_BUFFER &cmdBuffer)
 {
     ENCODE_FUNC_CALL();
+        // NativeFence sync BB may cause preemption and ring idle, so force wakeup after it
+    ENCODE_CHK_STATUS_RETURN(AddNativeFenceSyncBBStartCmd(cmdBuffer));
 
     SETPAR_AND_ADDCMD(MI_FORCE_WAKEUP, m_miItf, &cmdBuffer);
 

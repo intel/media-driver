@@ -27,6 +27,7 @@
 
 #if USE_MEDIA_DEBUG_TOOL
 
+#include <cstdint>
 #include <cstring>
 #include <iomanip>
 #include <ostream>
@@ -34,7 +35,6 @@
 #include <string>
 #include <typeinfo>
 #include <type_traits>
-#include <stdint.h>
 #include "media_class_trace.h"
 
 template <typename T, typename = void>

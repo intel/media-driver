@@ -32,6 +32,11 @@
 #include "mhw_state_heap.h"
 #include "mhw_mmio_common.h"
 
+#ifdef _MEDIA_RESERVED
+#define __MHW_MI_WRAPPER_EXT(STUFF) STUFF
+#else
+#define __MHW_MI_WRAPPER_EXT(STUFF)
+#endif
 namespace mhw
 {
 namespace mi
@@ -180,13 +185,19 @@ namespace mi
         bool                        bPollingWaitMode   = false;
         uint32_t                    dwCompareOperation = 0;
         uint32_t                    dwSemaphoreData    = 0;
+        uint32_t                    waitTokenNumber    = 0;
         bool                        b64bCompareEnableWithGPR = 0;
         MHW_COMMON_MI_SEMAPHORE_COMPARE_OPERATION CompareOperation = {};
+        uint32_t                    mocsIdx            = 0;
     };
 
     struct _MHW_PAR_T(MI_SEMAPHORE_SIGNAL)
     {
-        bool                        b64bSignalingEnable = 0;            //Semaphore Wait/Signal with 64 bit Token value
+        bool                        b64bSignalingEnable         = 0;            //Semaphore Wait/Signal with 64 bit Token value
+        uint32_t                    dwLength                    = 0;
+        uint32_t                    swSemaphoreTokenInfo        = 0;
+        uint32_t                    semaphoreTokenLowerDword    = 0;
+        uint32_t                    semaphoreTokenUpperDword    = 0;
     };
 
     struct _MHW_PAR_T(PIPE_CONTROL)
@@ -211,12 +222,18 @@ namespace mi
         bool                    bHdcPipelineFlush             = false;
         bool                    bKernelFenceEnabled           = false;
         bool                    bPPCFlush                     = false;
+        bool                    bNotifyEnable                 = false;
+        bool                    bDepthStallEnable             = false;
+        bool                    bStallAtPixelScoreboard       = false;
+        bool                    bDepthCacheFlushEnable        = false;
+        bool                    bRenderTargetCacheFlushEnable = false;
     };
 
     struct _MHW_PAR_T(MI_BATCH_BUFFER_START)
     {
         PMOS_RESOURCE               presResource           = nullptr;
         bool                        secondLevelBatchBuffer = true;
+        uint32_t                    mocsIdx                = 0;
     };
 
     struct _MHW_PAR_T(MI_CONDITIONAL_BATCH_BUFFER_END)
@@ -228,6 +245,7 @@ namespace mi
         uint32_t                    dwParamsType                   = 0;         //reserved
         bool                        enableEndCurrentBatchBuffLevel = false;
         uint32_t                    compareOperation               = 0;
+        uint32_t                    mocsIdx                        = 0;
     };
 
     struct _MHW_PAR_T(MI_SET_PREDICATE)
@@ -241,6 +259,7 @@ namespace mi
         uint32_t                    dwOffset        = 0;
         uint32_t                    dwRegister      = 0;
         uint32_t                    dwOption        = 0;
+        uint32_t                    mocsIdx         = 0;
     };
 
     struct _MHW_PAR_T(MI_LOAD_REGISTER_MEM)
@@ -251,6 +270,7 @@ namespace mi
         uint32_t                    dwRegister      = 0;
         uint32_t                    dwOption        = 0;
         bool                        bMMIORemap      = 0;
+        uint32_t                    mocsIdx         = 0;
     };
 
     struct _MHW_PAR_T(MI_LOAD_REGISTER_IMM)
@@ -301,6 +321,7 @@ namespace mi
         uint32_t                    postSyncOperation             = 0;
         uint32_t                    bQWordEnable                  = 0;
         bool                        bEnablePPCFlush               = false;
+        uint32_t                    mocsIdx                        = 0;
     };
 
     struct _MHW_PAR_T(VD_CONTROL_STATE)
@@ -360,6 +381,7 @@ namespace mi
         uint32_t                    dwOperand2Data[4] = {};          // Values to Write
         uint32_t                    dwDataSize        = 0;
         MHW_COMMON_MI_ATOMIC_OPCODE Operation         = {};
+        uint32_t                    mocsIdx            = 0;
     };
 
     struct _MHW_PAR_T(MI_STORE_DATA_IMM)
@@ -367,6 +389,7 @@ namespace mi
         PMOS_RESOURCE               pOsResource      = nullptr;       // Target OS Resource
         uint32_t                    dwResourceOffset = 0;
         uint32_t                    dwValue          = 0;             // Value to Write
+        uint32_t                    mocsIdx          = 0;
     };
 
     struct _MHW_PAR_T(MI_MATH)
@@ -381,8 +404,10 @@ namespace mi
         uint32_t                    dwSrcOffset    = 0;
         PMOS_RESOURCE               presDst        = nullptr;
         uint32_t                    dwDstOffset    = 0;
+        uint32_t                    readMocsIdx    = 0;
+        uint32_t                    writeMocsIdx   = 0;
     };
-    
+
     struct _MHW_PAR_T(MFX_WAIT)
     {
         bool                        iStallVdboxPipeline = false;
@@ -393,5 +418,11 @@ namespace mi
     };
 }  // namespace mi
 }  // namespace mhw
+
+#ifdef _MEDIA_RESERVED
+#include "mhw_mi_cmdpar_ext.h"
+#else
+#define INIT_MHW_MI_SEMAPHORE_WAIT_64_PARAMS_SCALABILITY(params, semaMem, semaData, opCode, semaMemOffset)
+#endif
 
 #endif  // __MHW_MI_CMDPAR_H__

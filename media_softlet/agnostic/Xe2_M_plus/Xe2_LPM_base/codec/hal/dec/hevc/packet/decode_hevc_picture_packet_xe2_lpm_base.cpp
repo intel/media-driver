@@ -179,11 +179,9 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, HevcDecodePicPktXe2_Lpm_Base)
     params = {};
     DECODE_CHK_STATUS(HevcDecodePicPkt::MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params));
 
-#ifdef _MMC_SUPPORTED
     HevcDecodeMemCompXe2_Lpm_Base *hevcDecodeMemComp = dynamic_cast<HevcDecodeMemCompXe2_Lpm_Base *>(m_mmcState);
     DECODE_CHK_NULL(hevcDecodeMemComp);
     DECODE_CHK_STATUS(hevcDecodeMemComp->CheckReferenceList(*m_hevcBasicFeature, params.PostDeblockSurfMmcState, params.PreDeblockSurfMmcState, params.presReferences));
-#endif
 
     auto decodeMode = m_hevcPipeline->GetDecodeMode();
     if (decodeMode == HevcPipeline::virtualTileDecodeMode ||

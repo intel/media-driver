@@ -32,10 +32,10 @@
 #include "mhw_utilities.h"
 #include "mos_os_specific.h"
 #include "mos_interface.h"
-#include<vector>
+#include<map>
 
 #define MAX_SURFACE_STATES 512
-using SURF_STATES_LIST = std::vector<int32_t>;
+using SURF_STATES_MAP = std::map<int32_t, uint32_t>;    // key: SurfaceStateIndex(uiCurState), value: SurfaceStateEntryIndex(iCurrentSurfaceState)
 //!
 //! \brief  Default size of area for sync, debugging, performance collecting
 //!
@@ -67,6 +67,12 @@ typedef struct _SURFACE_STATES_HEAP_OBJ
     uint32_t            dwSyncTag;  // Last sync tag completed
 } SURFACE_STATES_HEAP_OBJ, *PSURFACE_STATES_HEAP_OBJ;
 
+enum SURFACE_STATE_USED_HEAP_STATUS
+{
+    SURFACE_STATE_USED_HEAP_INITIALIZED,
+    SURFACE_STATE_USED_HEAP_SENT
+};
+
 class SurfaceStateHeapManager
 {
 public:
@@ -77,21 +83,19 @@ public:
 
     MOS_STATUS DestroyHeap();
 
-    MOS_STATUS AssignSurfaceState();
+    MOS_STATUS AssignSurfaceState(uint32_t surfaceStateEntryIndex, uint32_t &offset, uint8_t *&curSurfaceStatePtr, PMOS_RESOURCE &stateHeap, int32_t &surfaceStateIndex);
 
-    MOS_STATUS AssignUsedSurfaceState(int32_t index)
-    {
-        m_usedStates.push_back(index);
-        return MOS_STATUS_SUCCESS;
-    }
+    MOS_STATUS GetSurfaceStateSize(uint32_t &size);
+    MOS_STATUS GetSurfaceStateBasePtr(uint8_t *&ptr);
 
     ~SurfaceStateHeapManager();
 
 public:
-    PMOS_INTERFACE          m_osInterface                    = nullptr;
-    SURFACE_STATES_HEAP_OBJ *m_surfStateHeap                 = nullptr;
-    int                      m_surfHeapInUse                 = 0;
-    SURF_STATES_LIST         m_usedStates                    = {};
+    PMOS_INTERFACE                 m_osInterface   = nullptr;
+    SURFACE_STATES_HEAP_OBJ       *m_surfStateHeap = nullptr;
+    int                            m_surfHeapInUse = 0;
+    SURF_STATES_MAP                m_usedStates    = {};
+    SURFACE_STATE_USED_HEAP_STATUS m_heapStatus    = SURFACE_STATE_USED_HEAP_INITIALIZED;
 };
 
 #endif  // __SURFACE_STATE_HEAP_MGR_H__

@@ -77,7 +77,7 @@ MOS_STATUS EncodeAv1VdencFeatureManager::CreateFeatures(void *constSettings)
 {
     ENCODE_FUNC_CALL();
 
-    EncodeBasicFeature *encBasic = MOS_New(Av1BasicFeature, m_allocator, m_hwInterface, m_trackedBuf, m_recycleResource, constSettings);
+    EncodeBasicFeature *encBasic = MOS_New(Av1BasicFeature, this, m_allocator, m_hwInterface, m_trackedBuf, m_recycleResource, constSettings);
     ENCODE_CHK_STATUS_RETURN(RegisterFeatures(Av1FeatureIDs::basicFeature, encBasic));
 
     Av1EncodeTile *encTile = MOS_New(Av1EncodeTile, this, m_allocator, m_hwInterface, constSettings);

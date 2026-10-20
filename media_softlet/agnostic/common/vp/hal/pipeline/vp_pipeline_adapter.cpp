@@ -23,6 +23,7 @@
 #include "vp_platform_interface.h"
 #include "vp_debug.h"
 #include "vp_user_feature_control.h"
+#include "vp_common_cache_settings.h"
 
 VpPipelineAdapter::VpPipelineAdapter(
     vp::VpPlatformInterface     &vpPlatformInterface,
@@ -86,6 +87,11 @@ MOS_STATUS VpPipelineAdapter::Init(
     RENDERHAL_SETTINGS RenderHalSettings;
     RenderHalSettings.iMediaStates = pVpHalSettings->mediaStates;
     VP_PUBLIC_CHK_STATUS_RETURN(vpMhwinterface.m_renderHal->pfnInitialize(vpMhwinterface.m_renderHal, &RenderHalSettings));
+    if (m_vpPlatformInterface.GetKernelConfig() &&
+        m_vpPlatformInterface.GetKernelConfig()->GetRenderEnlargeOverwriteParams().needOverwrite)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(vpMhwinterface.m_renderHal->pfnOverwriteEnlargedHeapParams(vpMhwinterface.m_renderHal, m_vpPlatformInterface.GetKernelConfig()->GetRenderEnlargeOverwriteParams().params));
+    }
     vpMhwinterface.m_renderHal->sseuTable = VpHalDefaultSSEUTable;
 
     return m_vpPipeline->Init(&vpMhwinterface);
@@ -189,4 +195,57 @@ MOS_STATUS VpPipelineAdapter::Render(PCVPHAL_RENDER_PARAMS pcRenderParams)
         m_bApgEnabled = false;
         return eStatus;
     }
+}
+
+MOS_STATUS VpPipelineAdapter::Allocate(
+    const VpSettings *pVpHalSettings)
+{
+    VP_FUNC_CALL();
+
+    VP_MHWINTERFACE vpMhwinterface = {};  //!< vp Mhw Interface
+    MOS_STATUS      status         = GetVpMhwInterface(vpMhwinterface);
+    if (MOS_FAILED(status))
+    {
+        return status;
+    }
+
+    VP_PUBLIC_CHK_STATUS_RETURN(RegisterCacheSettings());
+
+    return Init(pVpHalSettings, vpMhwinterface);
+}
+
+MOS_STATUS VpPipelineAdapter::RegisterCacheSettings()
+{
+    VP_FUNC_CALL();
+    bool res = m_osInterface->pfnInsertCacheSetting(CACHE_COMPONENT_VP, &g_vp_cacheSettings);
+
+    if (res == false)
+    {
+        VP_PUBLIC_ASSERTMESSAGE("CacheTables insert failed");
+        VP_PUBLIC_CHK_STATUS_RETURN(MOS_STATUS_UNIMPLEMENTED);
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpPipelineAdapter::GetStatusReport(
+    PQUERY_STATUS_REPORT_APP pQueryReport,
+    uint16_t                 numStatus)
+{
+    VP_FUNC_CALL();
+
+    return VpPipelineAdapterBase::GetStatusReport(pQueryReport, numStatus);
+}
+
+VphalFeatureReport *VpPipelineAdapter::GetRenderFeatureReport()
+{
+    VP_FUNC_CALL();
+
+    return m_vpPipeline == nullptr ? nullptr : m_vpPipeline->GetFeatureReport();
+}
+
+MOS_STATUS VpPipelineAdapter::Execute(PVP_PIPELINE_PARAMS params)
+{
+    VP_FUNC_CALL();
+
+    return Execute(params, m_vprenderHal);
 }

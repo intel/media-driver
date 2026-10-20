@@ -36,10 +36,11 @@
 
 #include "mhw_hwcmd.h"
 #pragma once
-#pragma pack(1)
-
 #include <cstdint>
 #include <cstddef>
+
+
+#pragma pack(1)
 
 namespace mhw
 {
@@ -1073,7 +1074,9 @@ public:
                     uint32_t                 SingleProgramFlow                                : __CODEGEN_BITFIELD(18, 18)    ; //!< SINGLE_PROGRAM_FLOW
                     uint32_t                 DenormMode                                       : __CODEGEN_BITFIELD(19, 19)    ; //!< DENORM_MODE
                     uint32_t                 ThreadPreemption                                 : __CODEGEN_BITFIELD(20, 20)    ; //!< THREAD_PREEMPTION
-                    uint32_t                 Reserved85                                       : __CODEGEN_BITFIELD(21, 31)    ; //!< Reserved
+                    uint32_t                 Reserved85                                       : __CODEGEN_BITFIELD(21, 25)    ; //!< Reserved
+                    uint32_t                 RegistersPerThread                               : __CODEGEN_BITFIELD(26, 30)    ; //!< REGISTERS_PER_THREAD
+                    uint32_t                 Reserved95                                       : __CODEGEN_BITFIELD(31, 31)    ; //!< Reserved
                 };
                 uint32_t                     Value;
             } DW2;
@@ -1172,6 +1175,24 @@ public:
             {
                 THREAD_PREEMPTION_DISABLE                                        = 0, //!< Thread is pre-empted only in case of page-fault.
                 THREAD_PREEMPTION_ENABLE                                         = 1, //!< Thread is pre-empted on receiving pre-emption indication.
+            };
+
+            //! \brief REGISTERS_PER_THREAD
+            //! \details
+            //!     This control is valid when DW1.bit[10] of STATE_COMPUTE_MODE is
+            //!     1.
+            //!     Specifies the minimum number of registers allocated for each thread
+            //!     dispatch.
+            enum REGISTERS_PER_THREAD
+            {
+                REGISTERS_PER_THREAD_REGISTERS32  = 0,   //!< No additional details
+                REGISTERS_PER_THREAD_REGISTERS64  = 1,   //!< No additional details
+                REGISTERS_PER_THREAD_REGISTERS96  = 2,   //!< No additional details
+                REGISTERS_PER_THREAD_REGISTERS128 = 3,   //!< No additional details
+                REGISTERS_PER_THREAD_REGISTERS160 = 4,   //!< No additional details
+                REGISTERS_PER_THREAD_REGISTERS192 = 5,   //!< No additional details
+                REGISTERS_PER_THREAD_REGISTERS256 = 7,   //!< No additional details
+                REGISTERS_PER_THREAD_REGISTERS512 = 15,  //!< No additional details
             };
 
             //! \brief SAMPLER_COUNT
@@ -1694,7 +1715,8 @@ public:
                 uint32_t                 NpZAsyncThrottleSettings                         : __CODEGEN_BITFIELD( 3,  4)    ; //!< NP_Z_ASYNC_THROTTLE_SETTINGS
                 uint32_t                 Reserved37                                       : __CODEGEN_BITFIELD( 5,  6)    ; //!< Reserved
                 uint32_t                 AsyncComputeThreadLimit                          : __CODEGEN_BITFIELD( 7,  9)    ; //!< ASYNC_COMPUTE_THREAD_LIMIT
-                uint32_t                 Reserved42                                       : __CODEGEN_BITFIELD(10, 12)    ; //!< Reserved
+                uint32_t                 EnableVariableRegisterSizeAllocationVrt          : __CODEGEN_BITFIELD(10, 10)    ; //!< ENABLE_VARIABLE_REGISTER_SIZE_ALLOCATIONVRT
+                uint32_t                 Reserved43                                       : __CODEGEN_BITFIELD(11, 12)    ; //!< Reserved
                 uint32_t                 EuThreadSchedulingModeOverride                   : __CODEGEN_BITFIELD(13, 14)    ; //!< EU_THREAD_SCHEDULING_MODE_OVERRIDE
                 uint32_t                 LargeGrfMode                                     : __CODEGEN_BITFIELD(15, 15)    ; //!< LARGE_GRF_MODE
                 uint32_t                 Mask1                                            : __CODEGEN_BITFIELD(16, 31)    ; //!< Mask1
@@ -1781,6 +1803,16 @@ public:
             ASYNC_COMPUTE_THREAD_LIMIT_MAX32                                 = 5, //!< Maximum of 32 EU threads per DSS, when 3D Pipe is active.
             ASYNC_COMPUTE_THREAD_LIMIT_MAX40                                 = 6, //!< Maximum of 40 EU threads per DSS, when 3D Pipe is active.
             ASYNC_COMPUTE_THREAD_LIMIT_MAX48                                 = 7, //!< Maximum of 48 EU threads per DSS, when 3D Pipe is active.
+        };
+
+        //! \brief ENABLE_VARIABLE_REGISTER_SIZE_ALLOCATIONVRT
+        //! \details
+        //!     This Bit enables the variable registers per thread mode feature, This
+        //!     bit provides backward compatibility.
+        enum ENABLE_VARIABLE_REGISTER_SIZE_ALLOCATIONVRT
+        {
+            ENABLE_VARIABLE_REGISTER_SIZE_ALLOCATIONVRT_DISABLE = 0,  //!< 3D-FF shaders  : always use 128-registers per thread.Compute shaders :  (STATE_COMPUTE_MODE[15] == 1) ? 256-regs : 128-regs
+            ENABLE_VARIABLE_REGISTER_SIZE_ALLOCATIONVRT_ENABLE  = 1,  //!< 3D-FF shaders : Use the num-regs as defined by the 3D_STATE_VS/PS/HS/DS/TASK/MESH state structureCompute shaders : Use the num-regs as defined in the Compute walker's Interface descriptor structure.
         };
 
         //! \brief EU_THREAD_SCHEDULING_MODE_OVERRIDE

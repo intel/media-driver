@@ -75,12 +75,11 @@ MOS_STATUS Vp9PipelineXe2_Hpm::CreateSubPackets(DecodeSubPacketManager &subPacke
 
 MOS_STATUS Vp9PipelineXe2_Hpm::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
     DECODE_CHK_NULL(m_hwInterface);
     m_mmcState = MOS_New(Vp9DecodeMemCompXe2_Hpm, m_hwInterface);
     DECODE_CHK_NULL(m_mmcState);
     DECODE_CHK_STATUS(m_basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

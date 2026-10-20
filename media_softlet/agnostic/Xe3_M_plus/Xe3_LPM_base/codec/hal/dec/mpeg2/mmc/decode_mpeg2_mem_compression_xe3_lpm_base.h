@@ -59,7 +59,10 @@ namespace decode
         virtual ~Mpeg2DecodeMemCompXe3_Lpm_Base() {};
 
         virtual MOS_STATUS CheckReferenceList(
-            Mpeg2BasicFeature &mpeg2BasicFeature, MOS_MEMCOMP_STATE &preDeblockSurfMmcState, MOS_MEMCOMP_STATE &postDeblockSurfMmcState) override;
+            Mpeg2BasicFeature &mpeg2BasicFeature,
+            MOS_MEMCOMP_STATE &preDeblockSurfMmcState,
+            MOS_MEMCOMP_STATE &postDeblockSurfMmcState,
+            PMOS_RESOURCE     *presReferences) override;
 
     protected:
         PMOS_INTERFACE m_osInterface = nullptr;

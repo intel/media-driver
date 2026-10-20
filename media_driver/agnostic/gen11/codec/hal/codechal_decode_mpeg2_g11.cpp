@@ -205,17 +205,13 @@ MOS_STATUS CodechalDecodeMpeg2G11::DecodeStateLevel()
     pipeBufAddrParams.pDecodedReconParam = &surfaceParams;
     pipeBufAddrParams.psRawSurface = nullptr;
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&pipeBufAddrParams, &cmdBuffer));
-#endif
 
     pipeBufAddrParams.pDecodedReconParam = nullptr;
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->CheckReferenceList(&pipeBufAddrParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetRefrenceSync(m_disableDecodeSyncLock, m_disableLockForTranscode));
-#endif
 
     CODECHAL_DEBUG_TOOL(
         for (uint32_t i = 0; i < CODEC_MAX_NUM_REF_FRAME_NON_AVC; i++)

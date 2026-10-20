@@ -30,6 +30,8 @@
 #include "codec_def_encode_av1.h"
 #include "mhw_vdbox_vdenc_itf.h"
 #include "mhw_vdbox_avp_itf.h"
+#include "media_feature_manager.h"
+#include "encode_av1_vdenc_const_settings.h"
 
 namespace encode
 {
@@ -196,7 +198,7 @@ struct CommonStreamInParams
 
 inline uint32_t AlignRectCoordFloor(uint32_t blockSize, uint32_t coord) { return blockSize * ((coord % 2 != 0) ? coord - 1 : coord); }
 inline uint32_t AlignRectCoordCeil(uint32_t blockSize, uint32_t coord) { return blockSize * ((coord % 2 != 0) ? coord + 1 : coord); }
-
+using StreamInParams = mhw::vdbox::vdenc::_MHW_PAR_T(VDENC_STREAMIN_STATE);
 class Av1BasicFeature;
 class Av1StreamIn : public mhw::vdbox::vdenc::Itf::ParSetting, public mhw::vdbox::avp::Itf::ParSetting
 {
@@ -221,6 +223,7 @@ public:
     //!         MOS_STATUS_SUCCESS if success, else fail reason
     //!
     virtual MOS_STATUS Init(Av1BasicFeature *basicFeature, EncodeAllocator *allocator, PMOS_INTERFACE osInterface);
+    
 
     //!
     //! \brief  update stream in buffer for each frame
@@ -289,7 +292,6 @@ protected:
     //!         pointer to stream in buffer locked address
     //!
     MOS_STATUS StreamInInit(uint8_t *streamInBuffer);
-
     Av1BasicFeature *m_basicFeature = nullptr;        //!< AV1 paramter
     EncodeAllocator *m_allocator = nullptr;           //!< Encode allocator
     PMOS_INTERFACE   m_osInterface    = nullptr;      //!< Pointer to OS interface

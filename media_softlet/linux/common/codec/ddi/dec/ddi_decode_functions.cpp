@@ -394,7 +394,6 @@ VAStatus DdiDecodeFunctions::DestroyContext(
     uint32_t ctxType;
     PDDI_DECODE_CONTEXT decCtx = (decltype(decCtx))MediaLibvaCommonNext::GetContextFromContextID(ctx, context, &ctxType);
     DDI_CODEC_CHK_NULL(decCtx, "nullptr decCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
-    DDI_CODEC_CHK_NULL(decCtx->pCodecHal, "nullptr decCtx->pCodecHal", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     /* Free the context id from the context_heap earlier */
     uint32_t decIndex = (uint32_t)context & DDI_MEDIA_MASK_VACONTEXTID;
@@ -1080,10 +1079,6 @@ VAStatus DdiDecodeFunctions::StatusReport(
                         }
                     }
 
-                    if (j == mediaCtx->pSurfaceHeap->uiAllocatedHeapElements)
-                    {
-                        return VA_STATUS_ERROR_OPERATION_FAILED;
-                    }
                 }
                 else
                 {
@@ -1387,11 +1382,7 @@ bool DdiDecodeFunctions::ReleaseBsBuffer(DDI_CODEC_COM_BUFFER_MGR *bufMgr, DDI_M
         }
         return false;
     }
-    else
-    {
-        if (bufMgr->dwNumSliceData)
-            bufMgr->dwNumSliceData--;
-    }
+
     return true;
 }
 

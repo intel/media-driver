@@ -53,6 +53,10 @@ SfcRenderBase::SfcRenderBase(
     m_osInterface   = vpMhwinterface.m_osInterface;
     m_skuTable      = vpMhwinterface.m_skuTable;
     m_waTable       = vpMhwinterface.m_waTable;
+    if (m_osInterface)
+    {
+        m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
+    }
 
     // Allocate AVS state
     InitAVSParams(
@@ -165,17 +169,17 @@ void SfcRenderBase::SetColorFillParams(
     mhw::sfc::SFC_STATE_PAR       *psfcStateParams)
 {
     VP_FUNC_CALL();
+    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(psfcStateParams);
+    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(m_renderData.sfcStateParams);
 
-    VP_PUBLIC_CHK_NULL_NO_STATUS_RETURN(m_renderData.pColorFillParams);
-
-    psfcStateParams->bColorFillEnable = m_renderData.pColorFillParams->bColorfillEnable;
+    psfcStateParams->bColorFillEnable = m_renderData.sfcStateParams->bColorFillEnable;
 
     if (psfcStateParams->bColorFillEnable)
     {
-        psfcStateParams->fColorFillYRPixel = m_renderData.pColorFillParams->fColorFillYRPixel;
-        psfcStateParams->fColorFillUGPixel = m_renderData.pColorFillParams->fColorFillUGPixel;
-        psfcStateParams->fColorFillVBPixel = m_renderData.pColorFillParams->fColorFillVBPixel;
-        psfcStateParams->fColorFillAPixel  = m_renderData.pColorFillParams->fColorFillAPixel;
+        psfcStateParams->fColorFillYRPixel = m_renderData.sfcStateParams->fColorFillYRPixel;
+        psfcStateParams->fColorFillUGPixel = m_renderData.sfcStateParams->fColorFillUGPixel;
+        psfcStateParams->fColorFillVBPixel = m_renderData.sfcStateParams->fColorFillVBPixel;
+        psfcStateParams->fColorFillAPixel  = m_renderData.sfcStateParams->fColorFillAPixel;
     }
 }
 
@@ -665,7 +669,7 @@ MOS_STATUS SfcRenderBase::SetScalingParams(PSFC_SCALING_PARAMS scalingParams)
     m_renderData.SfcScalingMode = scalingParams->sfcScalingMode;
 
     // ColorFill/Alpha settings
-    m_renderData.pColorFillParams            = &(scalingParams->sfcColorfillParams);
+    m_renderData.sfcStateParams->bColorFillEnable  = scalingParams->sfcColorfillParams.bColorfillEnable;
     m_renderData.sfcStateParams->fAlphaPixel = scalingParams->sfcColorfillParams.fAlphaPixel;
     m_renderData.sfcStateParams->fColorFillAPixel  = scalingParams->sfcColorfillParams.fColorFillAPixel;
     m_renderData.sfcStateParams->fColorFillUGPixel = scalingParams->sfcColorfillParams.fColorFillUGPixel;
@@ -856,6 +860,8 @@ MOS_STATUS SfcRenderBase::SetCSCParams(PSFC_CSC_PARAMS cscParams)
     m_renderData.sfcStateParams->bRGBASwapEnable = IsOutputChannelSwapNeeded(cscParams->outputFormat);
     m_renderData.sfcStateParams->bInputColorSpace = cscParams->isInputColorSpaceRGB;
     m_renderData.sfcStateParams->isFullRgbG10P709 = cscParams->isFullRgbG10P709;
+    m_renderData.sfcStateParams->bFp16OutputPassthrough = cscParams->bFp16OutputPassthrough;
+    m_renderData.sfcStateParams->bRgb3DLutFp16Passthrough = cscParams->bRgb3DLutFp16Passthrough;
     m_renderData.sfcStateParams->isDemosaicEnabled = cscParams->isDemosaicNeeded;
 
     // Dithering parameter
@@ -953,6 +959,24 @@ MOS_STATUS SfcRenderBase::SetMmcParams(PMOS_SURFACE renderTarget, bool isFormatM
         m_renderData.sfcStateParams->bMMCEnable = false;
         m_renderData.sfcStateParams->MMCMode    = MOS_MMC_DISABLED;
     }
+
+    // A null pGmmResInfo intentionally defaults to uncompressible, so a null-GMM Linear
+    // surface yields bLinearSurfaceAccumBufferDisable=true (bit30 disabled) - safe by design.
+    uint32_t isCompressible = 0;
+    if (renderTarget->OsResource.pGmmResInfo)
+    {
+        isCompressible = renderTarget->OsResource.pGmmResInfo->IsResourceMappedCompressible();
+    }
+    bool isLinear = (renderTarget->TileType == MOS_TILE_LINEAR);
+    m_renderData.sfcStateParams->bLinearSurfaceAccumBufferDisable = (isLinear && !isCompressible);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    ReportUserSettingForDebug(
+        m_userSettingPtr,
+        __VPHAL_SFC_LINEAR_SURFACE_ACCUM_BUFFER_DISABLE,
+        m_renderData.sfcStateParams->bLinearSurfaceAccumBufferDisable ? 1 : 0,
+        MediaUserSetting::Group::Sequence);
+#endif
 
     return MOS_STATUS_SUCCESS;
 }

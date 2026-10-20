@@ -383,6 +383,19 @@ public:
     //!             the size of render surface state command
     virtual size_t GetSurfaceStateCmdSize() = 0;
 
+    //! \brief      Get the DWord offset of the surface base address within the
+    //!             render surface state command
+    //! \details    The base address sits at DWord 8 in the 64-byte descriptor
+    //!             and at DWord 0 in the 32-byte one. The offset is a property
+    //!             of the layout, so it is selected by platform binding rather
+    //!             than by a feature test. Two independent places describe this
+    //!             position - this one, used while copying into indirect state,
+    //!             and the state heap writer's returned location. Both must
+    //!             agree; changing one alone still produces a bad patch.
+    //! \return     uint32_t
+    //!             offset in DWords from the start of the surface state
+    virtual uint32_t GetSurfaceStateBaseAddrPatchDwOffset() { return 8; };
+
     //! \brief      Get the address of the ith Palette Data
     //! \param      [in] i
     //!             Index of the palette data
@@ -565,6 +578,13 @@ public:
         return MOS_STATUS_SUCCESS;
     };
 
+    virtual MOS_STATUS SendStateComputeMode(
+        PRENDERHAL_INTERFACE pRenderHal,
+        PMOS_COMMAND_BUFFER  pCmdBuffer)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
     virtual bool IsBindlessHeapInUse(
         PRENDERHAL_INTERFACE pRenderHal)
     {
@@ -698,6 +718,8 @@ public:
         PRENDERHAL_INTERFACE         pRenderHal) = 0;
 
     virtual std::shared_ptr<mhw::mi::Itf> GetMhwMiItf() = 0;
+
+    virtual uint32_t GetGrfSize() = 0;
 
 };
 

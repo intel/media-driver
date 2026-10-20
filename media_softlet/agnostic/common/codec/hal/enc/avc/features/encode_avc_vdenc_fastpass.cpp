@@ -49,14 +49,14 @@ AvcVdencFastPass::AvcVdencFastPass(
     }
     //regkey to control fast pass encode settings
     MediaUserSetting::Value outValue;
-    ReadUserSetting(m_userSettingPtr,
+    MOS_STATUS              statusKey = ReadUserSetting(m_userSettingPtr,
         outValue,
         "Enable Fast Pass Encode",
         MediaUserSetting::Group::Sequence);
 
-    m_enabled = outValue.Get<bool>();
-    if (m_enabled)
+    if (statusKey == MOS_STATUS_SUCCESS)
     {
+        m_enabled = outValue.Get<bool>();
         MediaUserSetting::Value outValue_ratio;
         MediaUserSetting::Value outValue_type;
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -71,22 +71,14 @@ AvcVdencFastPass::AvcVdencFastPass(
             MediaUserSetting::Group::Sequence);
 #endif
 
-        if (outValue_ratio.Get<int32_t>() == 0)
-        {
-            m_fastPassShiftIndex = 2;
-        }
-        else if (outValue_ratio.Get<int32_t>() == 1)
-        {
-            m_fastPassShiftIndex = 1;
-        }
-        else
-            m_fastPassShiftIndex = 2;
+        m_fastPassShiftIndex    = (outValue_ratio.Get<int32_t>() == 1) ? 1 : 2;
         m_fastPassDownScaleType = (uint8_t)outValue_type.Get<int32_t>();
     }
 }
 
 MOS_STATUS AvcVdencFastPass::Update(void *params)
 {
+    ENCODE_FUNC_CALL();
     if (!m_enabled)
     {
         return MOS_STATUS_SUCCESS;

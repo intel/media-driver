@@ -305,9 +305,9 @@ bool PatchInfoReader::readSymbolTableSection(cm::patch::Collection &C,
       S->setExtra(Sym[i].SymExtra);
     }
     // Assume there's just one symbol table section per patch info.
-    SymbolTable.insert(std::make_pair(i, S));
+    SymbolTable.emplace(i, S);
   }
-  SymbolTableSectionMap.insert(std::make_pair(n, true));
+  SymbolTableSectionMap.emplace(n, true);
 
   return false;
 }

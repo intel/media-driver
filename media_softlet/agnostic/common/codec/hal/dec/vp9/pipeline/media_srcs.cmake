@@ -23,6 +23,7 @@ set(SOFTLET_DECODE_VP9_SOURCES_
     ${SOFTLET_DECODE_VP9_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_pipeline.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_buffer_update.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_buffer_update_post.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_user_setting.cpp
 )
 
@@ -30,6 +31,7 @@ set(SOFTLET_DECODE_VP9_HEADERS_
     ${SOFTLET_DECODE_VP9_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_pipeline.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_buffer_update.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_vp9_buffer_update_post.h
 )
 
 source_group( CodecHalNext\\Shared\\Decode FILES ${SOFTLET_DECODE_VP9_SOURCES_} ${SOFTLET_DECODE_VP9_HEADERS_})

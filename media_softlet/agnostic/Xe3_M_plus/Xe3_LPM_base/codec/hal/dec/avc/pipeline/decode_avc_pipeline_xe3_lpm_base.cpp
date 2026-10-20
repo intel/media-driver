@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2024, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -32,6 +32,7 @@
 #include "decode_common_feature_defs.h"
 #include "decode_avc_downsampling_packet.h"
 #include "decode_avc_feature_manager_xe3_lpm_base.h"
+#include "decode_avc_aqm_packet_xe3_lpm_base.h"
 
 namespace decode {
 
@@ -112,13 +113,6 @@ MOS_STATUS AvcPipelineXe3_Lpm_Base::CreateSubPackets(DecodeSubPacketManager &sub
 {
     DECODE_CHK_STATUS(AvcPipeline::CreateSubPackets(subPacketManager, codecSettings));
 
-#ifdef _DECODE_PROCESSING_SUPPORTED
-    AvcDownSamplingPkt *downSamplingPkt = MOS_New(AvcDownSamplingPkt, this, m_hwInterface);
-    DECODE_CHK_NULL(downSamplingPkt);
-    DECODE_CHK_STATUS(subPacketManager.Register(
-        DecodePacketId(this, downSamplingSubPacketId), *downSamplingPkt));
-#endif
-
     AvcDecodePicPktXe3_Lpm_Base *pictureDecodePkt = MOS_New(AvcDecodePicPktXe3_Lpm_Base, this, m_hwInterface);
     DECODE_CHK_NULL(pictureDecodePkt);
     DECODE_CHK_STATUS(subPacketManager.Register(
@@ -128,6 +122,18 @@ MOS_STATUS AvcPipelineXe3_Lpm_Base::CreateSubPackets(DecodeSubPacketManager &sub
     DECODE_CHK_NULL(sliceDecodePkt);
     DECODE_CHK_STATUS(subPacketManager.Register(
                         DecodePacketId(this, avcSliceSubPacketId), *sliceDecodePkt));
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    AvcDownSamplingPkt *downSamplingPkt = MOS_New(AvcDownSamplingPkt, this, m_hwInterface);
+    DECODE_CHK_NULL(downSamplingPkt);
+    DECODE_CHK_STATUS(subPacketManager.Register(
+        DecodePacketId(this, downSamplingSubPacketId), *downSamplingPkt));
+
+    AvcDecodeAqmPktXe3LpmBase *aqmDecodePkt = MOS_New(AvcDecodeAqmPktXe3LpmBase, this, m_hwInterface);
+    DECODE_CHK_NULL(aqmDecodePkt);
+    DECODE_CHK_STATUS(subPacketManager.Register(
+        DecodePacketId(this, avcDecodeAqmId), *aqmDecodePkt));
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -159,14 +165,6 @@ MOS_STATUS AvcPipelineXe3_Lpm_Base::InitContext()
     scalPars.disableRealTile = true;
     scalPars.enableVE = MOS_VE_SUPPORTED(m_osInterface);
     scalPars.numVdbox = m_numVdbox;
-#ifdef _DECODE_PROCESSING_SUPPORTED
-    DecodeDownSamplingFeature* downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature*>(
-        m_featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
-     if (downSamplingFeature != nullptr && downSamplingFeature->IsEnabled())
-    {
-        scalPars.usingSfc = true;
-    }
-#endif
 
     if (m_allowVirtualNodeReassign)
     {
@@ -221,6 +219,11 @@ MOS_STATUS AvcPipelineXe3_Lpm_Base::Prepare(void *params)
             inputParameters.currDecodedPicRes          = m_basicFeature->m_destSurface.OsResource;
             inputParameters.numUsedVdbox               = m_numVdbox;
 
+            CODECHAL_DEBUG_TOOL(
+                if (m_streamout != nullptr) {
+                    DECODE_CHK_STATUS(m_streamout->InitStatusReportParam(inputParameters));
+                });
+
 #ifdef _DECODE_PROCESSING_SUPPORTED
             CODECHAL_DEBUG_TOOL(
                 DecodeDownSamplingFeature* downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature*>(
@@ -229,6 +232,10 @@ MOS_STATUS AvcPipelineXe3_Lpm_Base::Prepare(void *params)
                 {
                     auto frameIdx = m_basicFeature->m_curRenderPic.FrameIdx;
                     inputParameters.sfcOutputSurface = &downSamplingFeature->m_outputSurfaceList[frameIdx];
+                    if (downSamplingFeature->m_histogramBuffer != nullptr)
+                    {
+                        inputParameters.histogramOutputBuf = &downSamplingFeature->m_histogramBuffer->OsResource;
+                    }
                     DumpDownSamplingParams(*downSamplingFeature);
                 });
 #endif
@@ -257,7 +264,6 @@ MOS_STATUS AvcPipelineXe3_Lpm_Base::Execute()
 #if (_DEBUG || _RELEASE_INTERNAL)
             DECODE_CHK_STATUS(StatusCheck());
 #endif
- 
             // Only update user features for the first frame.
             if (m_basicFeature->m_frameNum == 0)
             {
@@ -282,13 +288,12 @@ MOS_STATUS AvcPipelineXe3_Lpm_Base::Execute()
 
 MOS_STATUS AvcPipelineXe3_Lpm_Base::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
     DECODE_CHK_NULL(m_hwInterface);
     m_mmcState = MOS_New(DecodeMemCompXe3_Lpm_Base, m_hwInterface);
     DECODE_CHK_NULL(m_mmcState);
 
     DECODE_CHK_STATUS(m_basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

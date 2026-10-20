@@ -160,6 +160,7 @@ public:
     uint32_t                        m_slcLength               = 0;
     uint32_t                        m_slcOffset               = 0;
     bool                            m_usingVeRing             = false;
+    bool                            m_avcd4ByteNalStartCodeSupport = false; //!< HW handles start code detection
     // CencDecode buffer
     CencDecodeShareBuf              *m_cencBuf                = nullptr;
 

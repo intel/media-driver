@@ -116,7 +116,7 @@
 #endif
 #ifdef _HEVC_ENCODE_VDENC_SUPPORTED
 #include "codechal_vdenc_hevc_xe_xpm.h"
-#ifdef _APOGEIOS_SUPPORTED
+#ifdef _MEDIA_RESERVED
 #include "decode_hevc_pipeline_adapter_m12.h"
 #endif
 #endif
@@ -133,7 +133,7 @@
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
 #include "codechal_vdenc_vp9_g12.h"
 #include "codechal_vdenc_vp9_xe_hpm.h"
-#ifdef _APOGEIOS_SUPPORTED
+#ifdef _MEDIA_RESERVED
 #include "encode_vp9_vdenc_pipeline_adapter_xe_xpm.h"
 #endif
 #endif
@@ -154,8 +154,6 @@
 class MhwInterfacesXehp_Sdv : public MhwInterfaces
 {
 public:
-    MhwVdboxAvpInterface *m_avpInterface = nullptr;
-
     using Mi        = MhwMiInterfaceG12;
     using Cp        = MhwCpInterface;
     using Render    = MhwRenderInterfaceXe_Hp;

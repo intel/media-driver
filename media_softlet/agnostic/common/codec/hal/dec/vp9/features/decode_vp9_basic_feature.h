@@ -103,9 +103,18 @@ public:
     PMOS_BUFFER m_resVp9SegmentIdBuffer;  //!< Handle of VP9 Segment ID surface
 
     PMOS_BUFFER m_resVp9ProbBuffer[CODEC_VP9_NUM_CONTEXTS + 1]  = {};
-    PMOS_BUFFER m_resVp9MvTemporalBuffer[CODECHAL_VP9_NUM_MV_BUFFERS] = {};  //!< Handle of VP9 MV Temporal buffer
+    PMOS_BUFFER m_resVp9MvTemporalBuffer[CODECHAL_DECODE_VP9_MAX_NUM_REF_FRAME + 1] = {};  //!< Handle of VP9 MV Temporal buffer
+    PMOS_BUFFER m_resVp9FrameStatusBuffer = nullptr;                                 //!< Handle of last frame buffer
     uint8_t     m_curMvTempBufIdx = 0;                                               //!< Current mv temporal buffer index
     uint8_t     m_colMvTempBufIdx = 0;                                               //!< Colocated mv temporal buffer index
+
+    // MV ping-pong state for mismatch (Vulkan) mode:
+    // stateBuffer is read by MI_COND_BB_END to select Ping or Pong BB each frame.
+    // nextStateBuffer is written by the executing BB and copied to stateBuffer
+    // in the 1st-level command stream after both BB_STARTs, preventing the
+    // in-frame write from affecting the sibling BB's COND_BB_END.
+    PMOS_BUFFER m_resVp9MVPingPongStateBuffer = nullptr;  //!< Ping-pong selector (1=use Ping, 0=use Pong)
+    PMOS_BUFFER m_resVp9MVNextStateBuffer     = nullptr;  //!< Written by executing BB; copied to state after frame
 
     PMOS_RESOURCE m_presLastRefSurface   = nullptr;  //!< Pointer to last reference surface
     PMOS_RESOURCE m_presGoldenRefSurface = nullptr;  //!< Pointer to golden reference surface
@@ -136,7 +145,8 @@ public:
             uint8_t KeyFrame : 1;       //!< [0..1]
             uint8_t IntraOnly : 1;      //!< [0..1]
             uint8_t Display : 1;        //!< [0..1]
-            uint8_t ReservedField : 5;  //!< [0]
+            uint8_t VkFrameType : 1;    // [0..1]
+            uint8_t ReservedField : 4;  //!< [0]
         } fields;
         uint8_t value;
     } m_prevFrameParams;  //!< Previous frame parameters

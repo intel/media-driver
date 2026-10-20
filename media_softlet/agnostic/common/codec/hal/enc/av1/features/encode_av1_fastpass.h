@@ -53,6 +53,10 @@ public:
     //!
     virtual MOS_STATUS Update(void *params) override;
 
+    uint32_t GetFastPassDsWidth() { return m_dsWidth; }
+    uint32_t GetFastPassDsHeight() { return m_dsHeight; }
+    bool     IsEnabled() { return m_enabled; }
+
     MHW_SETPAR_DECL_HDR(VDENC_PIPE_MODE_SELECT);
 
     MHW_SETPAR_DECL_HDR(VDENC_CMD2);
@@ -72,7 +76,6 @@ public:
     MHW_SETPAR_DECL_HDR(AVP_SURFACE_STATE);
 
 protected:
-
     uint8_t m_fastPassDownScaleRatio = 0;      //!< downscale ratio for fast pass encode
     uint8_t m_fastPassDownScaleType  = 0;      //!< downscale Type for fast pass encode
     uint32_t m_dsWidth                = 0;

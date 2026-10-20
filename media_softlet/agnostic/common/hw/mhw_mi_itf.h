@@ -33,7 +33,7 @@
 #include "mhw_cp_interface.h"
 #include "media_defs.h"
 
-#define _MI_CMD_DEF(DEF)                  \
+#define _MI_CMD_DEF_COMMON(DEF)           \
     DEF(MI_SEMAPHORE_WAIT);               \
     DEF(MI_SEMAPHORE_SIGNAL);             \
     DEF(MI_CONDITIONAL_BATCH_BUFFER_END); \
@@ -56,6 +56,15 @@
     DEF(MI_COPY_MEM_MEM);                 \
     DEF(MFX_WAIT);                        \
     DEF(MI_USER_INTERRUPT)
+
+#ifdef _MEDIA_RESERVED
+#define _MI_CMD_DEF(DEF)                  \
+    _MI_CMD_DEF_COMMON(DEF);              \
+    DEF(MI_SEMAPHORE_WAIT_64)
+#else
+#define _MI_CMD_DEF(DEF)                  \
+    _MI_CMD_DEF_COMMON(DEF)
+#endif
 
 namespace mhw
 {
@@ -89,7 +98,7 @@ public:
 
     virtual ~Itf() = default;
 
-    virtual MOS_STATUS SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight, bool isEncoder, uint32_t codecMode = CODECHAL_STANDARD_MAX) = 0;
+    virtual MOS_STATUS SetWatchdogTimerThreshold(uint32_t frameWidth, uint32_t frameHeight, bool isEncoder, uint32_t codecMode = CODECHAL_STANDARD_MAX, bool isTee = false) = 0;
 
     virtual MOS_STATUS SetWatchdogTimerRegisterOffset(MOS_GPU_CONTEXT gpuContext) = 0;
 

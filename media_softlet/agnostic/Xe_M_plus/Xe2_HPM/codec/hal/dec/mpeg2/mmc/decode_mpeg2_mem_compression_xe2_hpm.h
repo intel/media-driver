@@ -61,7 +61,8 @@ public:
     virtual MOS_STATUS CheckReferenceList(
         Mpeg2BasicFeature &mpeg2BasicFeature,
         MOS_MEMCOMP_STATE &preDeblockSurfMmcState,
-        MOS_MEMCOMP_STATE &postDeblockSurfMmcState) override;
+        MOS_MEMCOMP_STATE &postDeblockSurfMmcState,
+        PMOS_RESOURCE     *presReferences) override;
 
 MEDIA_CLASS_DEFINE_END(decode__Mpeg2DecodeMemCompXe2_Hpm)
 };

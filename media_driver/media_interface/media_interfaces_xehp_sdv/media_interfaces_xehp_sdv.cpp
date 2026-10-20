@@ -230,7 +230,6 @@ MOS_STATUS MhwInterfacesXehp_Sdv::Initialize(
     return MOS_STATUS_SUCCESS;
 }
 
-#ifdef _MMC_SUPPORTED
 static bool xehpRegisteredMmd =
     MediaFactory<uint32_t, MmdDevice>::
     Register<MmdDeviceXe_Xpm>((uint32_t)IGFX_XE_HP_SDV);
@@ -298,7 +297,6 @@ MhwInterfaces* MmdDeviceXe_Xpm::CreateMhwInterface(
 
     return mhw;
 }
-#endif
 
 static bool xehpRegisteredMcpy =
     MediaFactory<uint32_t, McpyDevice>::
@@ -313,6 +311,12 @@ MOS_STATUS McpyDeviceXe_Xpm::Initialize(
     MhwInterfaces* mhwInterfaces = nullptr;
 
     auto deleterOnFailure = [&](bool deleteOsInterface, bool deleteMhwInterface){
+        if (deleteMhwInterface && mhwInterfaces != nullptr)
+        {
+            mhwInterfaces->Destroy();
+            MOS_Delete(mhwInterfaces);
+        }
+
         if (deleteOsInterface && osInterface != nullptr)
         {
             if (osInterface->pfnDestroy)
@@ -320,12 +324,6 @@ MOS_STATUS McpyDeviceXe_Xpm::Initialize(
                 osInterface->pfnDestroy(osInterface, false);
             }
             MOS_FreeMemory(osInterface);
-        }
-
-        if (deleteMhwInterface && mhwInterfaces != nullptr)
-        {
-            mhwInterfaces->Destroy();
-            MOS_Delete(mhwInterfaces);
         }
 
         MOS_Delete(device);
@@ -500,7 +498,7 @@ MOS_STATUS CodechalInterfacesXe_Xpm::Initialize(
     #ifdef _HEVC_DECODE_SUPPORTED
         if (info->Mode == CODECHAL_DECODE_MODE_HEVCVLD)
         {
-        #ifdef _APOGEIOS_SUPPORTED
+        #ifdef _MEDIA_RESERVED
             bool apogeiosEnable = true;
             MOS_USER_FEATURE_VALUE_DATA         userFeatureData;
             MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -542,6 +540,11 @@ MOS_STATUS CodechalInterfacesXe_Xpm::Initialize(
     #endif
         {
             CODECHAL_PUBLIC_ASSERTMESSAGE("Decode mode requested invalid!");
+            MOS_Delete(hwInterface);
+            mhwInterfaces->SetDestroyState(true);
+#if USE_CODECHAL_DEBUG_TOOL
+            MOS_Delete(debugInterface);
+#endif
             return MOS_STATUS_INVALID_PARAMETER;
         }
 

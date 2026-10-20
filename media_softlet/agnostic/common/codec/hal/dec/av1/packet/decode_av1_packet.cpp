@@ -27,6 +27,9 @@
 #include "decode_status_report_defs.h"
 #include "decode_predication_packet.h"
 #include "decode_marker_packet.h"
+#if (_DEBUG || _RELEASE_INTERNAL)
+#include "decode_av1_debug_packet.h"
+#endif
 
 namespace decode {
 
@@ -64,6 +67,32 @@ MOS_STATUS Av1DecodePkt::Init()
         m_pictureStatesSize, 1, CODEC_NUM_AV1_SECOND_BB, true, lockableVideoMem);
     DECODE_CHK_NULL(m_secondLevelBBArray);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Initialize debug packet
+    DecodeSubPacket* debugSubPacket = m_av1Pipeline->GetSubPacket(DecodePacketId(m_av1Pipeline, av1DebugSubPacketId));
+    if (debugSubPacket != nullptr)
+    {
+        Av1DecodeDebugPkt* debugPkt = dynamic_cast<Av1DecodeDebugPkt*>(debugSubPacket);
+        if (debugPkt != nullptr)
+        {
+            m_av1DebugPkt = debugPkt;
+            DECODE_CHK_STATUS(m_av1DebugPkt->Init());
+        }
+    }
+#endif
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    subPacket = m_av1Pipeline->GetSubPacket(DecodePacketId(m_av1Pipeline, av1DecodeAqmId));
+    if (subPacket != nullptr)
+    {
+        m_aqmPkt = dynamic_cast<Av1DecodeAqmPkt*>(subPacket);
+        if (m_aqmPkt != nullptr)
+        {
+            DECODE_CHK_STATUS(m_aqmPkt->CalculateCommandSize(m_aqmStatesSize, m_aqmPatchListSize));
+        }
+    }
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -84,6 +113,14 @@ MOS_STATUS Av1DecodePkt::Destroy()
     {
         DECODE_CHK_STATUS(m_allocator->Destroy(m_secondLevelBBArray));
     }
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Destroy debug packet
+    if (m_av1DebugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_av1DebugPkt->Destroy());
+    }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -106,6 +143,8 @@ bool Av1DecodePkt::IsPrologRequired()
 MOS_STATUS Av1DecodePkt::AddForceWakeup(MOS_COMMAND_BUFFER& cmdBuffer)
 {
     DECODE_FUNC_CALL();
+    // NativeFence sync BB may cause preemption and ring idle, so force wakeup after it
+    DECODE_CHK_STATUS(AddNativeFenceSyncBBStartCmd(cmdBuffer));
 
     auto &par = m_miItf->GETPAR_MI_FORCE_WAKEUP();
     MOS_ZeroMemory(&par, sizeof(mhw::mi::MI_FORCE_WAKEUP_PAR));
@@ -126,23 +165,19 @@ MOS_STATUS Av1DecodePkt::SendPrologWithFrameTracking(MOS_COMMAND_BUFFER& cmdBuff
     DECODE_CHK_NULL(makerPacket);
     DECODE_CHK_STATUS(makerPacket->Execute(cmdBuffer));
 
-#ifdef _MMC_SUPPORTED
     m_mmcState = m_av1Pipeline->GetMmcState();
     bool isMmcEnabled = (m_mmcState != nullptr && m_mmcState->IsMmcEnabled());
     if (isMmcEnabled)
     {
         DECODE_CHK_STATUS(m_mmcState->SendPrologCmd(&cmdBuffer, false));
     }
-#endif
 
     MHW_GENERIC_PROLOG_PARAMS  genericPrologParams;
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
     genericPrologParams.pOsInterface = m_osInterface;
     genericPrologParams.pvMiInterface = nullptr;
 
-#ifdef _MMC_SUPPORTED
     genericPrologParams.bMmcEnabled = isMmcEnabled;
-#endif
 
     DECODE_CHK_STATUS(Mhw_SendGenericPrologCmdNext(&cmdBuffer, &genericPrologParams, m_miItf));
 
@@ -174,6 +209,13 @@ MOS_STATUS Av1DecodePkt::MiFlush(MOS_COMMAND_BUFFER & cmdBuffer)
 
     auto &par = m_miItf->GETPAR_MI_FLUSH_DW();
     MOS_ZeroMemory(&par, sizeof(mhw::mi::MI_FLUSH_DW_PAR));
+    
+    // Add Video Pipeline Cache Invalidate when CRC output is enabled
+    if (m_av1Pipeline && m_av1Pipeline->GetMemDataAccessCrcOutputEnable())
+    {
+        par.bVideoPipelineCacheInvalidate = true;
+    }
+    
     DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_FLUSH_DW(&cmdBuffer));
 
     return MOS_STATUS_SUCCESS;
@@ -191,6 +233,14 @@ MOS_STATUS Av1DecodePkt::Completed(void *mfxStatus, void *rcsStatus, void *statu
     DecodeStatusReportData *statusReportData = (DecodeStatusReportData *)statusReport;
     DECODE_VERBOSEMESSAGE("Current Frame Index = %d", statusReportData->currDecodedPic.FrameIdx);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Complete debug packet operations
+    if (m_av1DebugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_av1DebugPkt->Completed(mfxStatus));
+    }
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -206,6 +256,9 @@ uint32_t Av1DecodePkt::CalculateCommandBufferSize()
     uint32_t commandBufferSize = 0;
 
     commandBufferSize = m_pictureStatesSize + m_tileStatesSize;
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    commandBufferSize += m_aqmStatesSize;
+#endif
 
     return (commandBufferSize + COMMAND_BUFFER_RESERVED_SPACE);
 }
@@ -220,6 +273,9 @@ uint32_t Av1DecodePkt::CalculatePatchListSize()
     uint32_t requestedPatchListSize = 0;
 
     requestedPatchListSize = m_picturePatchListSize + m_tilePatchListSize;
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    requestedPatchListSize += m_aqmPatchListSize;
+#endif
 
     return requestedPatchListSize;
 }
@@ -269,6 +325,13 @@ MOS_STATUS Av1DecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* 
         StoreEngineId(cmdBuffer, decode::DecodeStatusReportType::CsEngineIdOffset_0);
     }
 #endif
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_bypassHwLegacyEnabled)
+    {
+        DECODE_CHK_STATUS(m_av1Pipeline->GetBypassHWLegacy()->AddNullHwProxyCmd(cmdBuffer, false));
+        DECODE_CHK_STATUS(m_av1Pipeline->GetBypassHWLegacy()->StartPredicate(cmdBuffer));
+    }
+#endif
     return MOS_STATUS_SUCCESS;
 }
 
@@ -277,6 +340,12 @@ MOS_STATUS Av1DecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cm
     DECODE_FUNC_CALL();
 
     DECODE_CHK_NULL(cmdBuffer);
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_bypassHwLegacyEnabled)
+    {
+        DECODE_CHK_STATUS(m_av1Pipeline->GetBypassHWLegacy()->StopPredicate(cmdBuffer));
+    }
+#endif
     DECODE_CHK_STATUS(ReadAvpStatus( m_statusReport, *cmdBuffer));
     DECODE_CHK_STATUS(MediaPacket::EndStatusReportNext(srType, cmdBuffer));
 
@@ -288,6 +357,23 @@ MOS_STATUS Av1DecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cm
     // Add Mi flush here to ensure end status tag flushed to memory earlier than completed count
     DECODE_CHK_STATUS(MiFlush(*cmdBuffer));
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS Av1DecodePkt::StatusReportPerTile(MOS_COMMAND_BUFFER *cmdBuffer, int16_t idx)
+{
+    DECODE_FUNC_CALL();
+    
+    DECODE_CHK_NULL(cmdBuffer);
+    
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Call debug packet ExecutePerTile for per-tile status reporting
+    if (m_av1DebugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_av1DebugPkt->ExecutePerTile(*cmdBuffer, idx));
+    }
+#endif
+    
     return MOS_STATUS_SUCCESS;
 }
 

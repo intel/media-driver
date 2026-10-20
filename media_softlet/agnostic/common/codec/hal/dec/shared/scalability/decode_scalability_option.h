@@ -88,13 +88,6 @@ public:
     //!
     bool IsUsingSFC() { return m_usingSFC; };
 
-    //!
-    //! \brief  check if Slim vdbox flag is set
-    //! \return bool
-    //!         Ture for using slim vdbox
-    //!
-    bool IsUsingSlimVdbox() { return m_usingSlimVdbox; };
-
     //! \brief  Get decode scalability mode
     //! \return ScalabilityMode
     //!         Return decode scalability mode
@@ -143,7 +136,6 @@ protected:
     static const uint8_t m_maxNumMultiPipe = 3;
 
     bool m_usingSFC = false;
-    bool m_usingSlimVdbox = false;
 
     bool            m_FESeparateSubmission = false;
     ScalabilityMode m_mode                 = scalabilitySingleMode;

@@ -214,6 +214,8 @@ public:
 
     bool IsBufferRowstoreCacheEnabled(AvpBufferType bufferType) override
     {
+        MHW_FUNCTION_ENTER;
+
         bool rowstoreCacheEnabled = false;
         switch (bufferType)
         {
@@ -259,6 +261,8 @@ public:
 
     AvpMmioRegisters* GetMmioRegisters(MHW_VDBOX_NODE_IND index) override
     {
+        MHW_FUNCTION_ENTER;
+
         if (index < MHW_VDBOX_NODE_MAX)
         {
             return (&m_mmioRegisters[index]);
@@ -276,6 +280,8 @@ private:
 
     void InitMmioRegisters()
     {
+        MHW_FUNCTION_ENTER;
+
         AvpMmioRegisters *mmioRegisters = &m_mmioRegisters[MHW_VDBOX_NODE_1];
 
         mmioRegisters->avpAv1BitstreamByteCountTileRegOffset         = AVP_AVP_BITSTREAM_BYTECOUNT_TILE_WITH_HEADER_AWM_REG0;
@@ -898,6 +904,102 @@ protected:
 #include "mhw_hwcmd_process_cmdfields.h"
     }
 
+    template<typename TCmd>
+    MOS_STATUS SetAvpPipeBufAddrStateSpecific(TCmd& cmd)
+    {
+        MHW_FUNCTION_ENTER;
+
+        const auto &params = this->__MHW_CMDINFO_M(AVP_PIPE_BUF_ADDR_STATE)->first;
+
+        MHW_RESOURCE_PARAMS resourceParams = {};
+        resourceParams.dwLsbNum      = MHW_VDBOX_HCP_GENERAL_STATE_SHIFT;
+        resourceParams.HwCommandType = MOS_MFX_PIPE_BUF_ADDR;
+
+        // Film Grain Output Surface
+        if (!Mos_ResourceIsNull(params.filmGrainOutputSurface))
+        {
+            MOS_SURFACE details = {};
+            details.Format = Format_Invalid;
+            MHW_MI_CHK_STATUS(this->m_osItf->pfnGetResourceInfo(this->m_osItf, params.filmGrainOutputSurface, &details));
+
+            cmd.FilmGrainInjectedOutputFrameBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+            cmd.FilmGrainInjectedOutputFrameBufferAddressAttributes.DW0.TileMode = MhwGetHwTileType(params.filmGrainOutputSurface->TileType,
+                                                                                    params.filmGrainOutputSurface->TileModeGMM,
+                                                                                    params.filmGrainOutputSurface->bGMMTileEnabled);
+
+            MOS_MEMCOMP_STATE mmcState = MOS_MEMCOMP_DISABLED;
+            MHW_MI_CHK_STATUS(this->m_osItf->pfnGetMemoryCompressionMode(this->m_osItf,
+                params.filmGrainOutputSurface,
+                &mmcState));
+            cmd.FilmGrainInjectedOutputFrameBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = this->MmcEnabled(mmcState);
+            cmd.FilmGrainInjectedOutputFrameBufferAddressAttributes.DW0.CompressionType = this->MmcRcEnabled(mmcState);
+
+            resourceParams.presResource    = params.filmGrainOutputSurface;
+            resourceParams.dwOffset        = details.RenderOffset.YUV.Y.BaseOffset;
+            resourceParams.pdwCmd          = (cmd.FilmGrainInjectedOutputFrameBufferAddress.DW0_1.Value);
+            resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(FilmGrainInjectedOutputFrameBufferAddress);
+            resourceParams.bIsWritable     = true;
+
+            MHW_MI_CHK_STATUS(this->AddResourceToCmd(
+                this->m_osItf,
+                this->m_currentCmdBuf,
+                &resourceParams));
+        }
+
+        // Film Grain Sample Template Buffer
+        if (!Mos_ResourceIsNull(params.filmGrainSampleTemplateBuffer))
+        {
+            cmd.FilmGrainSampleTemplateAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+
+            resourceParams.presResource    = params.filmGrainSampleTemplateBuffer;
+            resourceParams.dwOffset        = 0;
+            resourceParams.pdwCmd          = (cmd.FilmGrainSampleTemplateAddress.DW0_1.Value);
+            resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(FilmGrainSampleTemplateAddress);
+            resourceParams.bIsWritable     = true;
+
+            MHW_MI_CHK_STATUS(this->AddResourceToCmd(
+                this->m_osItf,
+                this->m_currentCmdBuf,
+                &resourceParams));
+        }
+
+        // Loop Restoration Tile Column Alignment Buffer
+        if (!Mos_ResourceIsNull(params.lrTileColumnAlignBuffer))
+        {
+            cmd.LoopRestorationFilterTileColumnAlignmentReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+
+            resourceParams.presResource    = params.lrTileColumnAlignBuffer;
+            resourceParams.dwOffset        = 0;
+            resourceParams.pdwCmd          = (cmd.LoopRestorationFilterTileColumnAlignmentReadWriteBufferAddress.DW0_1.Value);
+            resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(LoopRestorationFilterTileColumnAlignmentReadWriteBufferAddress);
+            resourceParams.bIsWritable     = true;
+
+            MHW_MI_CHK_STATUS(this->AddResourceToCmd(
+                this->m_osItf,
+                this->m_currentCmdBuf,
+                &resourceParams));
+        }
+
+        // Film Grain Tile Column Data Buffer
+        if (!Mos_ResourceIsNull(params.filmGrainTileColumnDataBuffer))
+        {
+            cmd.FilmGrainTileColumnDataReadWriteBufferAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 0;
+
+            resourceParams.presResource    = params.filmGrainTileColumnDataBuffer;
+            resourceParams.dwOffset        = 0;
+            resourceParams.pdwCmd          = (cmd.FilmGrainTileColumnDataReadWriteBufferAddress.DW0_1.Value);
+            resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(FilmGrainTileColumnDataReadWriteBufferAddress);
+            resourceParams.bIsWritable     = true;
+
+            MHW_MI_CHK_STATUS(this->AddResourceToCmd(
+                this->m_osItf,
+                this->m_currentCmdBuf,
+                &resourceParams));
+        }
+
+        return MOS_STATUS_SUCCESS;
+    }
+
     _MHW_SETCMD_OVERRIDE_DECL(AVP_SEGMENT_STATE)
     {
         _MHW_SETCMD_CALLBASE(AVP_SEGMENT_STATE);
@@ -954,7 +1056,9 @@ protected:
                 {
                     cmd.ReferenceFrameBufferBaseAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.mmcStatePreDeblock);
                     cmd.ReferenceFrameBufferBaseAddressAttributes.DW0.CompressionType                    = MmcRcEnabled(params.mmcStatePreDeblock);
-                    cmd.ReferenceFrameBufferBaseAddressAttributes.DW0.TileMode                           = GetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+                    cmd.ReferenceFrameBufferBaseAddressAttributes.DW0.TileMode                           = MhwGetHwTileTypeWithOverride(
+                        details.TileType, details.TileModeGMM, details.bGMMTileEnabled,
+                        params.forceTile64ReconToTile4, params.overrideTileBToTile4);
                     firstRefPic                                                                          = false;
                 }
 
@@ -977,7 +1081,9 @@ protected:
         //Decoded Output Frame Buffer
         cmd.DecodedOutputFrameBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.mmcStatePreDeblock);
         cmd.DecodedOutputFrameBufferAddressAttributes.DW0.CompressionType                    = MmcRcEnabled(params.mmcStatePreDeblock);
-        cmd.DecodedOutputFrameBufferAddressAttributes.DW0.TileMode                           = GetHwTileType(params.decodedPic->TileType, params.decodedPic->TileModeGMM, params.decodedPic->bGMMTileEnabled);
+        cmd.DecodedOutputFrameBufferAddressAttributes.DW0.TileMode                           = MhwGetHwTileTypeWithOverride(
+            params.decodedPic->TileType, params.decodedPic->TileModeGMM, params.decodedPic->bGMMTileEnabled,
+            params.forceTile64ReconToTile4, params.overrideTileBToTile4);
 
         resourceParams.presResource    = &(params.decodedPic->OsResource);
         resourceParams.dwOffset        = params.decodedPic->dwOffset;
@@ -1011,7 +1117,7 @@ protected:
             //This surface should not have memory compression turned on
             cmd.IntrabcDecodedOutputFrameBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = 0;
             cmd.IntrabcDecodedOutputFrameBufferAddressAttributes.DW0.CompressionType                    = 0;
-            cmd.IntrabcDecodedOutputFrameBufferAddressAttributes.DW0.TileMode                           = GetHwTileType(params.intrabcDecodedOutputFrameBuffer->TileType, params.intrabcDecodedOutputFrameBuffer->TileModeGMM, params.intrabcDecodedOutputFrameBuffer->bGMMTileEnabled);
+            cmd.IntrabcDecodedOutputFrameBufferAddressAttributes.DW0.TileMode                           = MhwGetHwTileType(params.intrabcDecodedOutputFrameBuffer->TileType, params.intrabcDecodedOutputFrameBuffer->TileModeGMM, params.intrabcDecodedOutputFrameBuffer->bGMMTileEnabled);
         }
 
         // CDF Table Initialization Buffer
@@ -1735,7 +1841,7 @@ protected:
 
             cmd.OriginalUncompressedPictureSourceBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.mmcStateRawSurf);
             cmd.OriginalUncompressedPictureSourceBufferAddressAttributes.DW0.CompressionType                    = MmcRcEnabled(params.mmcStateRawSurf);
-            cmd.OriginalUncompressedPictureSourceBufferAddressAttributes.DW0.TileMode                           = GetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+            cmd.OriginalUncompressedPictureSourceBufferAddressAttributes.DW0.TileMode                           = MhwGetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
 
             resourceParams.presResource    = params.originalPicSourceBuffer;
             resourceParams.dwOffset        = 0;
@@ -1761,7 +1867,7 @@ protected:
 
             cmd.DownscaledUncompressedPictureSourceBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.mmcStateRawSurf);
             cmd.DownscaledUncompressedPictureSourceBufferAddressAttributes.DW0.CompressionType                    = MmcRcEnabled(params.mmcStateRawSurf);
-            cmd.DownscaledUncompressedPictureSourceBufferAddressAttributes.DW0.TileMode                           = GetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+            cmd.DownscaledUncompressedPictureSourceBufferAddressAttributes.DW0.TileMode                           = MhwGetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
 
             resourceParams.presResource    = params.dsPictureSourceBuffer;
             resourceParams.dwOffset        = 0;
@@ -1868,7 +1974,7 @@ protected:
         {
             cmd.PostCDEFpixelsBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable                   = MmcEnabled(params.postCdefSurfMmcState);
             cmd.PostCDEFpixelsBufferAddressAttributes.DW0.CompressionType                                      = MmcRcEnabled(params.postCdefSurfMmcState);
-            cmd.PostCDEFpixelsBufferAddressAttributes.DW0.TileMode                                             = GetHwTileType(params.postCDEFpixelsBuffer->TileType,
+            cmd.PostCDEFpixelsBufferAddressAttributes.DW0.TileMode                                             = MhwGetHwTileType(params.postCDEFpixelsBuffer->TileType,
                 params.postCDEFpixelsBuffer->TileModeGMM,
                 params.postCDEFpixelsBuffer->bGMMTileEnabled);
 

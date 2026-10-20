@@ -23,7 +23,14 @@
 #define __VP_VEBOX_CMD_PACKET_G12_H__
 
 #include "vp_vebox_cmd_packet_legacy.h"
+#if (IGFX_GEN12_TGLLP_SUPPORTED)
 #include "vp_platform_interface_g12_tgllp.h"
+#endif
+
+#define VP_VEBOX_STATISTICS_PER_FRAME_SIZE_G12 (32 * sizeof(uint32_t))
+#define VP_VEBOX_STATISTICS_SURFACE_FMD_OFFSET_G12 0
+#define VP_VEBOX_STATISTICS_SURFACE_GNE_OFFSET_G12 0x2C
+#define VP_VEBOX_STATISTICS_SURFACE_STD_OFFSET_G12 0x44
 
 //!
 //! \brief Denoise Definitions

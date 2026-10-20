@@ -60,6 +60,13 @@ namespace encode
             uint32_t      operandSetSize;          //!> Size of Operand set
         };
 
+        enum CODEC_STANDARD_SELECT
+        {
+            CODEC_STANDARD_SELECT_HEVC = 0,
+            CODEC_STANDARD_SELECT_VP9  = 1,
+            CODEC_STANDARD_SELECT_AV1  = 2,
+        };
+
 #define CODECHAL_ENCODE_RECYCLED_BUFFER_NUM 6
 #define CODECHAL_PAGE_SIZE 0x1000
 
@@ -574,7 +581,7 @@ namespace encode
         CodechalHwInterfaceNext *     m_hwInterface       = nullptr;
         HevcBasicFeature *        m_basicFeature      = nullptr;  //!< Encode parameters used in each frame
         EncodeMemComp *           m_mmcState          = nullptr;
-        EncodeCp *                m_encodecp          = nullptr;
+        EncodeCpInterface *       m_encodecp          = nullptr;
         PacketUtilities *         m_packetUtilities   = nullptr;
 
         SubmitState m_submitState = submitFrameByDefault;

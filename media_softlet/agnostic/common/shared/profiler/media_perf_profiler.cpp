@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2023, Intel Corporation
+* Copyright (c) 2021-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -212,12 +212,18 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
 
     PMOS_CONTEXT pOsContext = osInterface->pOsContext;
     CHK_NULL_NO_STATUS_RETURN(pOsContext);
+
     MosUtilities::MosLockMutex(profiler->m_mutex);
     if (profiler->m_refMap[pOsContext] > 0)
     {
         profiler->m_refMap[pOsContext]--;
     }
-    osInterface->pfnWaitAllCmdCompletion(osInterface);
+
+    bool cmdCompletionConfirmed = false;
+    if (osInterface->pfnWaitAllCmdCompletion)
+    {
+        cmdCompletionConfirmed = osInterface->pfnWaitAllCmdCompletion(osInterface) == MOS_STATUS_SUCCESS;
+    }
 
     profiler->m_contextIndexMap.erase(context);
 
@@ -227,7 +233,7 @@ void MediaPerfProfiler::Destroy(MediaPerfProfiler* profiler, void* context, MOS_
         {
             if(profiler->m_enableProfilerDump)
             {
-                profiler->SavePerfData(osInterface);
+                profiler->SavePerfData(osInterface, cmdCompletionConfirmed);
             }
 
             osInterface->pfnFreeResource(
@@ -274,14 +280,13 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
     MosUtilities::MosLockMutex(m_mutex);
 
     m_contextIndexMap[context] = 0;
+    m_refMap[pOsContext]++;  // count every Initialize caller so Destroy fires only after last one
 
     if (m_initializedMap[pOsContext] == true)
     {
         MosUtilities::MosUnlockMutex(m_mutex);
         return status;
     }
-    
-    m_refMap[pOsContext]++;
 
     m_enableProfilerDump = MosUtilities::MosIsProfilerDumpEnabled();
 
@@ -696,11 +701,6 @@ MOS_STATUS MediaPerfProfiler::AddStoreBitstreamSizeCmd(
     uint32_t                       reg)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
-    
-    if (m_profilerEnabled == 0)
-    {
-        return status;
-    }
 
     CHK_NULL_RETURN(context);
     CHK_NULL_RETURN(osInterface);
@@ -709,6 +709,11 @@ MOS_STATUS MediaPerfProfiler::AddStoreBitstreamSizeCmd(
 
     PMOS_CONTEXT pOsContext = osInterface->pOsContext;
     CHK_NULL_RETURN(pOsContext);
+
+    if (m_profilerEnabled == 0 || m_initializedMap[pOsContext] == false)
+    {
+        return status;
+    }
 
     uint32_t perfDataIndex = m_contextIndexMap[context];
 
@@ -802,7 +807,7 @@ MOS_STATUS MediaPerfProfiler::AddCopyQualityMetricCmd(
     return status;
 }
 
-MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface)
+MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface, bool cmdCompletionConfirmed)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
 
@@ -819,6 +824,7 @@ MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface)
         MOS_ZeroMemory(&LockFlagsNoOverWrite, sizeof(MOS_LOCK_PARAMS));
         LockFlagsNoOverWrite.WriteOnly = 1;
         LockFlagsNoOverWrite.NoOverWrite = 1;
+        LockFlagsNoOverWrite.AfterCmdCompletion = cmdCompletionConfirmed;
 
         if (m_perfDataCombined == nullptr)
         {
@@ -886,6 +892,7 @@ MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface)
 
         LockFlagsNoOverWrite.WriteOnly = 1;
         LockFlagsNoOverWrite.NoOverWrite = 1;
+        LockFlagsNoOverWrite.AfterCmdCompletion = cmdCompletionConfirmed;
 
         uint8_t* pData = (uint8_t*)osInterface->pfnLockResource(
             osInterface,
@@ -961,6 +968,8 @@ PerfGPUNode MediaPerfProfiler::GpuContextToGpuNode(MOS_GPU_CONTEXT context)
         case MOS_GPU_CONTEXT_VIDEO5:
         case MOS_GPU_CONTEXT_VIDEO6:
         case MOS_GPU_CONTEXT_VIDEO7:
+        case MOS_GPU_CONTEXT_VIDEO_DEC_FULL:
+        case MOS_GPU_CONTEXT_VIDEO_ENC_FULL:
             node = PERF_GPU_NODE_VIDEO;
             break;
         case MOS_GPU_CONTEXT_VDBOX2_VIDEO:

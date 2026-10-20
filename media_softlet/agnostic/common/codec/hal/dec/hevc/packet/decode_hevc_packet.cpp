@@ -29,6 +29,7 @@
 #include "decode_marker_packet.h"
 #if (_DEBUG || _RELEASE_INTERNAL)
 #include "decode_nullhw_proxy_test_packet.h"
+#include "decode_hevc_debug_packet.h"
 #endif
 namespace decode {
 
@@ -58,6 +59,17 @@ MOS_STATUS HevcDecodePkt::Init()
     }
 #endif
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Initialize debug packet
+    DecodeSubPacket* subPacket = m_hevcPipeline->GetSubPacket(
+        DecodePacketId(m_hevcPipeline, hevcDebugSubPacketId));
+    m_debugPkt = dynamic_cast<HevcDecodeDebugPkt*>(subPacket);
+    if (m_debugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_debugPkt->Init());
+    }
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -71,6 +83,15 @@ MOS_STATUS HevcDecodePkt::Destroy()
         DECODE_CHK_STATUS(nullhwProxy->Destory());
     }
 #endif
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        // Destroy debug packet
+        if (m_debugPkt != nullptr)
+        {
+            DECODE_CHK_STATUS(m_debugPkt->Destroy());
+        }
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -101,6 +122,8 @@ void HevcDecodePkt::SetPerfTag(CODECHAL_MODE mode, uint16_t picCodingType)
 MOS_STATUS HevcDecodePkt::AddForceWakeup(MOS_COMMAND_BUFFER& cmdBuffer)
 {
     DECODE_FUNC_CALL();
+    // NativeFence sync BB may cause preemption and ring idle, so force wakeup after it
+    DECODE_CHK_STATUS(AddNativeFenceSyncBBStartCmd(cmdBuffer));
 
     auto &par = m_miItf->GETPAR_MI_FORCE_WAKEUP();
     par                                         = {};
@@ -121,22 +144,19 @@ MOS_STATUS HevcDecodePkt::SendPrologWithFrameTracking(MOS_COMMAND_BUFFER& cmdBuf
     DECODE_CHK_NULL(makerPacket);
     DECODE_CHK_STATUS(makerPacket->Execute(cmdBuffer));
 
-#ifdef _MMC_SUPPORTED
     DecodeMemComp *mmcState = m_hevcPipeline->GetMmcState();
     bool isMmcEnabled = (mmcState != nullptr && mmcState->IsMmcEnabled());
     if (isMmcEnabled)
     {
         DECODE_CHK_STATUS(mmcState->SendPrologCmd(&cmdBuffer, false));
     }
-#endif
 
     MHW_GENERIC_PROLOG_PARAMS  genericPrologParams;
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
     genericPrologParams.pOsInterface = m_osInterface;
     genericPrologParams.pvMiInterface = nullptr;
-#ifdef _MMC_SUPPORTED
+
     genericPrologParams.bMmcEnabled = isMmcEnabled;
-#endif
 
     DECODE_CHK_STATUS(Mhw_SendGenericPrologCmdNext(&cmdBuffer, &genericPrologParams, m_miItf));
 
@@ -183,6 +203,14 @@ MOS_STATUS HevcDecodePkt::Completed(void *mfxStatus, void *rcsStatus, void *stat
 
     DECODE_VERBOSEMESSAGE("Index = %d", statusReportData->currDecodedPic.FrameIdx);
     DECODE_VERBOSEMESSAGE("FrameCrc = 0x%x", statusReportData->frameCrc);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Call debug packet completion handling for HCP debug functionality
+    if (m_debugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_debugPkt->Completed(mfxStatus));
+    }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -236,12 +264,17 @@ MOS_STATUS HevcDecodePkt::ReadHcpStatus(MediaStatusReport* statusReport, MOS_COM
 
     DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_STORE_REGISTER_MEM(&cmdBuffer));
 
-    DECODE_CHK_STATUS(statusReport->GetAddress(decode::DecodeStatusReportType::DecFrameCrcOffset, osResource, offset));
-    par.presStoreBuffer    = osResource;
-    par.dwOffset           = offset;
-    par.dwRegister         = mmioRegistersHcp->hcpFrameCrcRegOffset;
+    // Skip CRC MMIO register read when CRC output is enabled
+    // When CRC debug mode is enabled, debug packet Execute() handles CRC data collection via HCP_MEM_DATA_ACCESS
+    if (!m_hevcPipeline->GetMemDataAccessCrcOutputEnable())
+    {
+        DECODE_CHK_STATUS(statusReport->GetAddress(decode::DecodeStatusReportType::DecFrameCrcOffset, osResource, offset));
+        par.presStoreBuffer    = osResource;
+        par.dwOffset           = offset;
+        par.dwRegister         = mmioRegistersHcp->hcpFrameCrcRegOffset;
 
-    DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_STORE_REGISTER_MEM(&cmdBuffer));
+        DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_STORE_REGISTER_MEM(&cmdBuffer));
+    }
 
     DECODE_CHK_STATUS(statusReport->GetAddress(decode::DecodeStatusReportType::DecMBCountOffset, osResource, offset));
     par.presStoreBuffer    = osResource;
@@ -272,15 +305,23 @@ MOS_STATUS HevcDecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER*
         DECODE_CHK_NULL(m_phase);
         StoreEngineId(cmdBuffer, decode::DecodeStatusReportType::CsEngineIdOffset_0, m_phase->GetPipe());
     }
-    if (m_osInterface->bNullHwIsEnabled)
+
+    // Add command counter commands for debug
+    if (m_debugPkt != nullptr)
     {
-        DecodeNullHWProxyTestPkt *nullhwProxy = DecodeNullHWProxyTestPkt::Instance();
-        DECODE_CHK_NULL(nullhwProxy);
-        nullhwProxy->AddNullHwProxyCmd(m_hevcPipeline, m_osInterface, cmdBuffer);
+        DECODE_CHK_STATUS(m_debugPkt->AddCommandCounterCmds(*cmdBuffer, m_statusReport));
     }
 #endif
 
     DECODE_CHK_STATUS(MediaPacket::StartStatusReportNext(srType, cmdBuffer));
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_bypassHwLegacyEnabled)
+    {
+        DECODE_CHK_STATUS(m_hevcPipeline->GetBypassHWLegacy()->AddNullHwProxyCmd(cmdBuffer, false));
+        DECODE_CHK_STATUS(m_hevcPipeline->GetBypassHWLegacy()->StartPredicate(cmdBuffer));
+    }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -289,6 +330,20 @@ MOS_STATUS HevcDecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* c
 {
     DECODE_FUNC_CALL();
     DECODE_CHK_NULL(cmdBuffer);
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Execute debug packet BEFORE ReadHcpStatus when CRC output is enabled
+    // This ensures CRC data and MI_FLUSH commands from debug packet are inserted before status reads
+    if (m_debugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_debugPkt->Execute(*cmdBuffer, m_statusReport));
+    }
+#endif
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_bypassHwLegacyEnabled)
+    {
+        DECODE_CHK_STATUS(m_hevcPipeline->GetBypassHWLegacy()->StopPredicate(cmdBuffer));
+    }
+#endif
     DECODE_CHK_STATUS(ReadHcpStatus(m_statusReport, *cmdBuffer));
     DECODE_CHK_STATUS(MediaPacket::EndStatusReportNext(srType, cmdBuffer));
 
@@ -309,6 +364,14 @@ MOS_STATUS HevcDecodePkt::EnsureAllCommandsExecuted(MOS_COMMAND_BUFFER &cmdBuffe
     // Send MI_FLUSH command
     auto &par      = m_miItf->GETPAR_MI_FLUSH_DW();
     par            = {};
+
+    // Add Video Pipeline Cache Invalidate when CRC output is enabled
+    if (m_hevcPipeline && m_hevcPipeline->GetMemDataAccessCrcOutputEnable())
+    {
+        par.bVideoPipelineCacheInvalidate = true;
+    }
+
+    DECODE_CHK_NULL(m_hevcPipeline);
     auto *skuTable = m_hevcPipeline->GetSkuTable();
     if (skuTable && MEDIA_IS_SKU(skuTable, FtrEnablePPCFlush))
     {

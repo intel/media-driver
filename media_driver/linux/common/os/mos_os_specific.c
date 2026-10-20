@@ -1771,6 +1771,71 @@ GMM_CLIENT_CONTEXT *Mos_Specific_GetGmmClientContext(
     return nullptr;
 }
 
+uint64_t Mos_Specific_GetGmmExtDevice(
+    PMOS_INTERFACE pOsInterface)
+{
+    if (pOsInterface == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("OsInterface is null.");
+        return 0;
+    }
+
+    if (pOsInterface->apoMosEnabled)
+    {
+        return MosInterface::GetGmmExtDevice(pOsInterface->osStreamState);
+    }
+
+    return 0;
+}
+
+uint32_t Mos_Specific_GetMediaSurfaceCompressionFormat(
+    PMOS_INTERFACE pOsInterface,
+    GMM_RESOURCE_FORMAT gmmResFmt)
+{
+    if (pOsInterface == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("OsInterface is null.");
+        return 0;
+    }
+
+    if (pOsInterface->apoMosEnabled)
+    {
+        return MosInterface::GetMediaSurfaceCompressionFormat(pOsInterface->osStreamState, gmmResFmt);
+    }
+
+    GMM_CLIENT_CONTEXT *gmmClientContext = Mos_Specific_GetGmmClientContext(pOsInterface);
+    if (gmmClientContext)
+    {
+        return static_cast<uint32_t>(gmmClientContext->GetMediaSurfaceStateCompressionFormat(gmmResFmt));
+    }
+
+    return 0;
+}
+
+bool Mos_Specific_IsPlanar(
+    PMOS_INTERFACE      pOsInterface,
+    GMM_RESOURCE_FORMAT gmmResFmt)
+{
+    if (pOsInterface == nullptr)
+    {
+        MOS_OS_ASSERTMESSAGE("OsInterface is null.");
+        return false;
+    }
+
+    if (pOsInterface->apoMosEnabled)
+    {
+        return MosInterface::IsPlanar(pOsInterface->osStreamState, gmmResFmt);
+    }
+
+    GMM_CLIENT_CONTEXT *gmmClientContext = Mos_Specific_GetGmmClientContext(pOsInterface);
+    if (gmmClientContext)
+    {
+        return gmmClientContext->IsPlanar(gmmResFmt);
+    }
+
+    return false;
+}
+
 //!
 //! \brief    Get Platform
 //! \details  Get platform info
@@ -4884,7 +4949,7 @@ MOS_STATUS Mos_Specific_DestroyGpuComputeContext(
         auto gpuContext = MosInterface::GetGpuContext(osInterface->osStreamState, gpuContextHandle);
         MOS_OS_CHK_NULL_RETURN(gpuContext);
 
-        MOS_GPU_CONTEXT gpuContextName = gpuContext->GetCpuContextID();
+        MOS_GPU_CONTEXT gpuContextName = gpuContext->GetGpuContextID();
         if(gpuContextName != MOS_GPU_CONTEXT_CM_COMPUTE && gpuContextName != MOS_GPU_CONTEXT_COMPUTE)
         {
             MOS_OS_ASSERTMESSAGE("It is not compute gpu context and it will be destroyed in osInterface destroy.");
@@ -4898,7 +4963,7 @@ MOS_STATUS Mos_Specific_DestroyGpuComputeContext(
     GpuContext *gpuContext = gpuContextMgr->GetGpuContext(gpuContextHandle);
     MOS_OS_CHK_NULL_RETURN(gpuContext);
 
-    MOS_GPU_CONTEXT gpuContextName = gpuContext->GetCpuContextID();
+    MOS_GPU_CONTEXT gpuContextName = gpuContext->GetGpuContextID();
     if(gpuContextName != MOS_GPU_CONTEXT_CM_COMPUTE && gpuContextName != MOS_GPU_CONTEXT_COMPUTE)
     {
         MOS_OS_ASSERTMESSAGE("It is not compute gpu context and it will be destroyed in osInterface destroy.");
@@ -6621,9 +6686,9 @@ finish:
 //!
 MEMORY_OBJECT_CONTROL_STATE Mos_Specific_CachePolicyGetMemoryObject(
     MOS_HW_RESOURCE_DEF         MosUsage,
-    GMM_CLIENT_CONTEXT          *pGmmClientContext)
+    PMOS_INTERFACE              pOsInterface)
 {
-   // Force convert to stream handle for wrapper
+    GMM_CLIENT_CONTEXT *pGmmClientContext = pOsInterface ? pOsInterface->pfnGetGmmClientContext(pOsInterface) : nullptr;
     return MosInterface::GetCachePolicyMemoryObject(pGmmClientContext, MosUsage);
 }
 
@@ -7114,9 +7179,20 @@ bool Mos_Specific_IsAsyncDevice(PMOS_INTERFACE pOsInterface)
 }
 
 bool Mos_Specific_IsGpuSyncByCmd(
-    PMOS_INTERFACE osInterface)
+    PMOS_INTERFACE     osInterface,
+    GPU_CONTEXT_HANDLE gpuContextHandle)
 {
     return false;
+}
+
+void Mos_Specific_OnNativeFenceSyncBBAdded(PMOS_COMMAND_BUFFER pCmdBuffer, uint64_t gfxAddr)
+{
+}
+
+void Mos_Specific_DisableNativeFenceSyncByCmd(
+    PMOS_INTERFACE  osInterface,
+    GPU_CONTEXT_HANDLE gpuContextHandle)
+{
 }
 
 //! \brief    Unified OS Initializes OS Linux Interface
@@ -7160,6 +7236,9 @@ MOS_STATUS Mos_Specific_InitInterface(
     pOsInterface->pfnSetEncodePakContext                    = Mos_Specific_SetEncodePakContext;
     pOsInterface->pfnSetEncodeEncContext                    = Mos_Specific_SetEncodeEncContext;
     pOsInterface->pfnGetGmmClientContext                    = Mos_Specific_GetGmmClientContext;
+    pOsInterface->pfnGetGmmExtDevice                         = Mos_Specific_GetGmmExtDevice;
+    pOsInterface->pfnGetMediaSurfaceCompressionFormat       = Mos_Specific_GetMediaSurfaceCompressionFormat;
+    pOsInterface->pfnIsPlanar                               = Mos_Specific_IsPlanar;
 
     pOsInterface->pfnGetPlatform                            = Mos_Specific_GetPlatform;
     pOsInterface->pfnDestroy                                = Mos_Specific_Destroy;
@@ -7298,6 +7377,8 @@ MOS_STATUS Mos_Specific_InitInterface(
 
     pOsInterface->pfnIsAsynDevice                           = Mos_Specific_IsAsyncDevice;
     pOsInterface->pfnIsGpuSyncByCmd                         = Mos_Specific_IsGpuSyncByCmd;
+    pOsInterface->pfnOnNativeFenceSyncBBAdded               = Mos_Specific_OnNativeFenceSyncBBAdded;
+    pOsInterface->pfnDisableNativeFenceSyncByCmd            = Mos_Specific_DisableNativeFenceSyncByCmd;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     pOsInterface->pfnGetEngineLogicId                       = Mos_Specific_GetEngineLogicId;

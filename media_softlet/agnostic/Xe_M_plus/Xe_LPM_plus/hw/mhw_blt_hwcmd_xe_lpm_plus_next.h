@@ -32,11 +32,12 @@
 #define __MHW_BLT_HWCMD_XE_LPM_PLUS_NEXT_H__
 
 #pragma once
-#pragma pack(1)
-
 #include <cstdint>
 #include <cstddef>
 #include "media_class_trace.h"
+
+
+#pragma pack(1)
 
 namespace mhw
 {

@@ -368,9 +368,8 @@ MOS_STATUS Vp9PipelineG12::Initialize(void *settings)
     DECODE_CHK_NULL(bufferUpdatePipeline);
     DECODE_CHK_STATUS(m_preSubPipeline->Register(*bufferUpdatePipeline));
     DECODE_CHK_STATUS(bufferUpdatePipeline->Init(*codecSettings));
-#ifdef _MMC_SUPPORTED
+
     DECODE_CHK_STATUS(InitMmcState());
-#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -464,12 +463,11 @@ MOS_STATUS Vp9PipelineG12::CreatePreSubPipeLines(DecodeSubPipelineManager &subPi
 
 MOS_STATUS Vp9PipelineG12::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
     DECODE_CHK_NULL(m_hwInterface);
     m_mmcState = MOS_New(Vp9DecodeMemCompM12, m_hwInterface);
     DECODE_CHK_NULL(m_mmcState);
     DECODE_CHK_STATUS(m_basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

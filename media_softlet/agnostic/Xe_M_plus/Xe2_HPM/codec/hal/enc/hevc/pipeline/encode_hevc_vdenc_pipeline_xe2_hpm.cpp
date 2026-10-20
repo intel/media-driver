@@ -33,6 +33,9 @@
 #include "encode_huc_brc_update_packet.h"
 #include "encode_pak_integrate_packet.h"
 #include "encode_preenc_packet.h"
+#if _KERNEL_RESERVED
+#include "encode_saliency_render_cmd_packet.h"
+#endif
 
 namespace encode
 {
@@ -106,6 +109,18 @@ MOS_STATUS HevcVdencPipelineXe2_Hpm::Init(void *settings)
     ENCODE_CHK_STATUS_RETURN(RegisterPacket(hevcVdencTileRowPacket, hevcVdencTileRowPkt));
     ENCODE_CHK_STATUS_RETURN(hevcVdencTileRowPkt->Init());
 
+#if _KERNEL_RESERVED
+    bool saliencyEnabled = false;
+    RUN_FEATURE_INTERFACE_RETURN(EncodeSaliencyFeature, FeatureIDs::saliencyFeature, IsEnabled, saliencyEnabled);
+    if (saliencyEnabled)
+    {
+        ENCODE_CHK_NULL_RETURN(m_hwInterface);
+        SaliencyRenderCmdPacket *saleincyRenderPkt = MOS_New(SaliencyRenderCmdPacket, this, task, m_hwInterface->GetOsInterface(), m_hwInterface->GetRenderHalInterface());
+        ENCODE_CHK_STATUS_RETURN(RegisterPacket(hevcSaliencyPacket, saleincyRenderPkt));
+        ENCODE_CHK_STATUS_RETURN(saleincyRenderPkt->Init());
+    }
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -114,6 +129,17 @@ MOS_STATUS HevcVdencPipelineXe2_Hpm::CreateFeatureManager()
     ENCODE_FUNC_CALL();
     m_featureManager = MOS_New(EncodeHevcVdencFeatureManagerXe2_Hpm, m_allocator, m_hwInterface, m_trackedBuf, m_recycleBuf);
     ENCODE_CHK_NULL_RETURN(m_featureManager);
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS HevcVdencPipelineXe2_Hpm::ActivateVdencVideoPackets()
+{
+    ENCODE_FUNC_CALL();
+
+    ENCODE_CHK_STATUS_RETURN(ExecuteSaliencyPackets());
+
+    ENCODE_CHK_STATUS_RETURN(HevcVdencPipelineXe_Lpm_Plus_Base::ActivateVdencVideoPackets());
+
     return MOS_STATUS_SUCCESS;
 }
 

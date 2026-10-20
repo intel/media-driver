@@ -186,10 +186,11 @@ typedef enum _MOS_FORMAT
     Format_R8UN         ,           //!< R8 UNORM
     Format_R32G32B32A32F,           //ARGB 128bpp
     Format_G32R32F      ,           // G32R32 64 bpp
+    Format_R16G16F      ,
     // Last Format
     Format_Count
 } MOS_FORMAT, *PMOS_FORMAT;
-C_ASSERT(Format_Count == 104); //!< When adding, update assert & vphal_solo_scenario.cpp::VpFromXml_GetFormat() & hal_kerneldll.c::g_cIsFormatYUV.
+C_ASSERT(Format_Count == 105); //!< When adding, update assert & vphal_solo_scenario.cpp::VpFromXml_GetFormat() & hal_kerneldll.c::g_cIsFormatYUV.
 
 //!
 //! \brief Macros for format checking
@@ -500,6 +501,7 @@ typedef enum _MOS_TILE_TYPE
     MOS_TILE_YF,            // 4KB tile
     MOS_TILE_YS,            // 64KB tile
     MOS_TILE_LINEAR,
+    MOS_TILE_B,             // TileB tiling
     MOS_TILE_INVALID
 } MOS_TILE_TYPE;
 C_ASSERT(MOS_TILE_LINEAR == 4); //!< When adding, update assert
@@ -521,6 +523,7 @@ C_ASSERT(MOS_TILE_4_GMM == 3);
             ( (MOS_TILE_X  == TileType) ||    \
               (MOS_TILE_Y  == TileType) ||    \
               (MOS_TILE_YF == TileType) ||    \
+              (MOS_TILE_B  == TileType) ||    \
               (MOS_TILE_YS == TileType) )
 
 #define IS_Y_MAJOR_TILE_FORMAT(TileType)      \
@@ -535,6 +538,7 @@ typedef enum _MOS_GFXRES_TYPE
 {
     MOS_GFXRES_INVALID = -1,
     MOS_GFXRES_BUFFER,  //!< Think malloc. This resource is a series of bytes. Is not 2 dimensional.
+    MOS_GFXRES_1D,
     MOS_GFXRES_2D,      //!< 2 dimensional resource w/ width and height. 1D is a subset of 2D.
     MOS_GFXRES_VOLUME,  //!< 3 dimensional resource w/ depth.
     MOS_GFXRES_SCRATCH, //!< scratch space buffer.

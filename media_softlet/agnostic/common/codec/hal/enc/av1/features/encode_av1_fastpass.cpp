@@ -43,15 +43,14 @@ Av1FastPass::Av1FastPass(MediaFeatureManager *featureManager,
 
         //regkey to control fast pass encode settings
         MediaUserSetting::Value outValue;
-        ReadUserSetting(m_userSettingPtr,
+        MOS_STATUS              statusKey = ReadUserSetting(m_userSettingPtr,
             outValue,
             "Enable Fast Pass Encode",
             MediaUserSetting::Group::Sequence);
 
-        m_enabled = outValue.Get<bool>();
-
-        if (m_enabled)
+        if (statusKey == MOS_STATUS_SUCCESS)
         {
+            m_enabled = outValue.Get<bool>();
             MediaUserSetting::Value outValue_ratio;
             MediaUserSetting::Value outValue_type;
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -78,9 +77,22 @@ Av1FastPass::Av1FastPass(MediaFeatureManager *featureManager,
 
     MOS_STATUS Av1FastPass::Update(void *params)
     {
+        ENCODE_FUNC_CALL();
         ENCODE_CHK_NULL_RETURN(m_basicFeature);
         PCODEC_AV1_ENCODE_PICTURE_PARAMS av1PicParams = m_basicFeature->m_av1PicParams;
         ENCODE_CHK_NULL_RETURN(av1PicParams);
+
+        if (!m_enabled)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+
+        uint16_t numTiles = m_basicFeature->m_av1PicParams->tile_rows * m_basicFeature->m_av1PicParams->tile_cols;
+        if (numTiles > 1)
+        {
+            ENCODE_ASSERTMESSAGE("FastPass Encode does not support multi-tile.");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
 
         if (AV1_FAST_PASS_4X_DS(m_fastPassDownScaleRatio))
         {
@@ -99,6 +111,7 @@ Av1FastPass::Av1FastPass(MediaFeatureManager *featureManager,
 
     MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, Av1FastPass)
     {
+        ENCODE_FUNC_CALL();
         if (m_enabled)
         {
             params.fastPassEn    = m_enabled;
@@ -203,7 +216,7 @@ Av1FastPass::Av1FastPass(MediaFeatureManager *featureManager,
         ENCODE_FUNC_CALL();
 
         if (m_enabled)
-        {     
+        {  
             //one tile supported only
             params.tileColPositionInSb = 0;
             params.tileRowPositionInSb = 0;

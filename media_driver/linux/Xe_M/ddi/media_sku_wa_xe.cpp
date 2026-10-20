@@ -325,12 +325,10 @@ static bool InitTglMediaSkuExt(struct GfxDeviceInfo *devInfo,
         "Enable Compressible Surface Creation",
         MediaUserSetting::Group::Device);
         
-#ifdef _MMC_SUPPORTED
     if (compressibleSurfaceEnable)
     {
         MEDIA_WR_SKU(skuTable, FtrCompressibleSurfaceDefault, 1);
     }
-#endif
 
     if (drvInfo->devId == 0xFF20)
     {
@@ -629,7 +627,7 @@ static bool InitPvcMediaSku(struct GfxDeviceInfo *devInfo,
         MEDIA_WR_SKU(skuTable, FtrE2ECompression, 0);
     }
 
-    MEDIA_WR_SKU(skuTable, FtrWithSlimVdbox, 1);
+    MEDIA_WR_SKU(skuTable, FtrWithSlimVdbox, 0);
 
     // Enable LocalMemory for all dGraphics
     MEDIA_WR_SKU(skuTable, FtrLocalMemory, 1);

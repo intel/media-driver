@@ -723,6 +723,36 @@ MOS_STATUS MosInterface::AddCommand(
 }
 
 #if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+MOS_STATUS MosInterface::AddIndirectState(
+    MOS_STREAM_HANDLE streamState,
+    uint32_t          stateSize,
+    uint32_t         *pIndirectState,
+    uint32_t         *gfxAddressBottom,
+    uint32_t         *gfxAddressTop,
+    const char       *stateName,
+    uint32_t          gfxAddressBottomValue,
+    uint32_t          gfxAddressTopValue)
+{
+    MOS_OS_CHK_NULL_RETURN(streamState);
+    MOS_OS_CHK_NULL_RETURN(streamState->osDeviceContext);
+
+    if (streamState->osDeviceContext->m_dumpCommandBuffer &&
+        streamState->osDeviceContext->m_dumpCommandBufferToFile)
+    {
+        INDIRECT_STATE_INFO indirectStateInfo   = {};
+        indirectStateInfo.stateSize             = stateSize;
+        indirectStateInfo.indirectState         = pIndirectState;
+        indirectStateInfo.gfxAddressBottom      = gfxAddressBottom;
+        indirectStateInfo.gfxAddressTop         = gfxAddressTop;
+        indirectStateInfo.stateName             = stateName;
+        indirectStateInfo.gfxAddressBottomValue = gfxAddressBottomValue;
+        indirectStateInfo.gfxAddressTopValue    = gfxAddressTopValue;
+        streamState->indirectStateInfo.push_back(std::move(indirectStateInfo));
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
 MOS_STATUS MosInterface::DumpIndirectStates(MOS_STREAM_HANDLE streamState, const char *filePathPrefix, std::time_t currentTime)
 {
     MOS_OS_CHK_NULL_RETURN(streamState);
@@ -761,7 +791,10 @@ MOS_STATUS MosInterface::DumpIndirectStates(MOS_STREAM_HANDLE streamState, const
                 "%.8x ",
                 data[i]);
         }
-        fileName << filePathPrefix << "_" << std::hex << *lastElement.gfxAddressBottom << "_" << *lastElement.gfxAddressTop << "_" << lastElement.stateName << ".txt";
+        fileName << filePathPrefix << "_" << std::hex << (lastElement.gfxAddressBottom ? *lastElement.gfxAddressBottom : 0)
+                 << "_"
+                 << (lastElement.gfxAddressTop ? *lastElement.gfxAddressTop : 0)
+                 << "_" << lastElement.stateName << ".txt";
         eStatus = MosUtilities::MosAppendFileFromPtr((const char *)fileName.str().c_str(), outputBuffer, dwBytesWritten);
         if (eStatus != MOS_STATUS_SUCCESS)
         {
@@ -1411,7 +1444,8 @@ MOS_HW_RESOURCE_DEF MosInterface::GmmToMosResourceUsageType(
 
 MEMORY_OBJECT_CONTROL_STATE MosInterface::GetGmmCachePolicyMemoryObject(
     GMM_CLIENT_CONTEXT      *gmmClientContext,
-    GMM_RESOURCE_USAGE_TYPE gmmUsage)
+    GMM_RESOURCE_USAGE_TYPE gmmUsage,
+    uint64_t gmmExtDevice)
 {
     MOS_OS_FUNCTION_ENTER;
     if (!gmmClientContext)
@@ -1430,7 +1464,8 @@ MEMORY_OBJECT_CONTROL_STATE MosInterface::GetGmmCachePolicyMemoryObject(
 }
 
 MEMORY_OBJECT_CONTROL_STATE MosInterface::GetDefaultCachePolicyMemoryObject(
-    GMM_CLIENT_CONTEXT *gmmClientContext)
+    GMM_CLIENT_CONTEXT *gmmClientContext,
+    uint64_t gmmExtDevice)
 {
     MOS_OS_FUNCTION_ENTER;
     if (!gmmClientContext)
@@ -1456,7 +1491,8 @@ MEMORY_OBJECT_CONTROL_STATE MosInterface::GetDefaultCachePolicyMemoryObject(
 
 MEMORY_OBJECT_CONTROL_STATE MosInterface::GetCachePolicyMemoryObject(
     GMM_CLIENT_CONTEXT *gmmClientContext,
-    MOS_HW_RESOURCE_DEF mosUsage)
+    MOS_HW_RESOURCE_DEF mosUsage,
+    uint64_t gmmExtDevice)
 {
     MOS_OS_FUNCTION_ENTER;
 
@@ -1644,6 +1680,7 @@ MOS_STATUS MosInterface::ConvertResourceFromDdi(
             resource->Format = Format_A16R16G16B16;
             break;
         case Media_Format_A16B16G16R16:
+        case Media_Format_Y416_X16B16G16R16:
             resource->Format = Format_A16B16G16R16;
             break;
         case Media_Format_I420:
@@ -1794,10 +1831,23 @@ MOS_STATUS MosInterface::AllocateResource(
 
         GraphicsResourceNext::CreateParams createParams(params);
         auto eStatus = resource->pGfxResourceNext->Allocate(streamState->osDeviceContext, createParams);
-        MOS_OS_CHK_STATUS_MESSAGE_RETURN(eStatus, "Allocate graphic resource failed");
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_OS_ASSERTMESSAGE("Allocate graphic resource failed");
+            // Allocate() releases whatever it allocated internally on failure, only the
+            // GraphicsResource object itself needs to be destroyed here.
+            MOS_Delete(resource->pGfxResourceNext);
+            return eStatus;
+        }
 
         eStatus = resource->pGfxResourceNext->ConvertToMosResource(resource);
-        MOS_OS_CHK_STATUS_MESSAGE_RETURN(eStatus, "Convert graphic resource failed");
+        if (eStatus != MOS_STATUS_SUCCESS)
+        {
+            MOS_OS_ASSERTMESSAGE("Convert graphic resource failed");
+            resource->pGfxResourceNext->Free(streamState->osDeviceContext);
+            MOS_Delete(resource->pGfxResourceNext);
+            return eStatus;
+        }
     }
     else
     {
@@ -1989,6 +2039,8 @@ MOS_STATUS MosInterface::GetResourceInfo(
           break;
     }
     details.Format   = resource->Format;
+
+    details.MipTailStartLOD = gmmResourceInfo->GetMipTailStartLodSurfaceState();
 
     // Get planes
     MosUtilities::MosZeroMemory(reqInfo, sizeof(reqInfo));
@@ -2647,7 +2699,7 @@ MOS_STATUS MosInterface::MediaCopyResource2D(
     };
 
     // If mmd device not registered, use media vebopx copy.
-    if (lbdMemDecomp() != MOS_STATUS_SUCCESS && mosDecompression && !mosDecompression->GetMediaMemDecompState())
+    if (lbdMemDecomp() != MOS_STATUS_SUCCESS && mosDecompression && !(*mosDecompression->GetMediaMemDecompState()))
     {
         MOS_OS_CRITICALMESSAGE("MMD device not registered. Use media copy instead.");
         status = MosInterface::UnifiedMediaCopyResource(streamState, inputResource, outputResource, MCPY_METHOD_BALANCE);
@@ -2693,7 +2745,7 @@ MOS_STATUS MosInterface::MonoSurfaceCopy(
     };
 
     // If mmd device not registered, use media vebopx copy.
-    if (lbdMemDecomp() != MOS_STATUS_SUCCESS && mosDecompression && !mosDecompression->GetMediaMemDecompState())
+    if (lbdMemDecomp() != MOS_STATUS_SUCCESS && mosDecompression && !(*mosDecompression->GetMediaMemDecompState()))
     {
         MOS_OS_CRITICALMESSAGE("MMD device not registered. Use media copy instead.");
         MOS_SURFACE inputResInfo, outputResInfo;
@@ -2724,10 +2776,12 @@ MOS_STATUS MosInterface::MonoSurfaceCopy(
         inputResource->pGmmResInfo->OverrideBaseWidth(copyWidth / pixelInByte);
         inputResource->pGmmResInfo->OverridePitch(copyWidth);
         inputResource->pGmmResInfo->OverrideBaseHeight(copyHeight);
+        inputResource->Format = overrideFormat;
         outputResource->pGmmResInfo->OverrideSurfaceFormat(MosInterface::MosFmtToGmmFmt(overrideFormat));
         outputResource->pGmmResInfo->OverrideBaseWidth(copyWidth / pixelInByte);
         outputResource->pGmmResInfo->OverridePitch(copyWidth);
         outputResource->pGmmResInfo->OverrideBaseHeight(copyHeight);
+        outputResource->Format = overrideFormat;
 
         uint32_t inOffset           = inputResource->dwOffsetForMono;
         uint32_t outOffset          = outputResource->dwOffsetForMono;
@@ -2738,12 +2792,14 @@ MOS_STATUS MosInterface::MonoSurfaceCopy(
 
         inputResource->pGmmResInfo->OverrideSurfaceFormat(MosInterface::MosFmtToGmmFmt(bkIn.format));
         inputResource->pGmmResInfo->OverrideBaseWidth(bkIn.width);
-        inputResource->pGmmResInfo->OverrideBaseWidth(bkIn.pitch);
+        inputResource->pGmmResInfo->OverridePitch(bkIn.pitch);
         inputResource->pGmmResInfo->OverrideBaseHeight(bkIn.height);
+        inputResource->Format = bkIn.format;
         outputResource->pGmmResInfo->OverrideSurfaceFormat(MosInterface::MosFmtToGmmFmt(bkOut.format));
         outputResource->pGmmResInfo->OverrideBaseWidth(bkOut.width);
-        outputResource->pGmmResInfo->OverrideBaseWidth(bkOut.pitch);
+        outputResource->pGmmResInfo->OverridePitch(bkOut.pitch);
         outputResource->pGmmResInfo->OverrideBaseHeight(bkOut.height);
+        outputResource->Format = bkOut.format;
 
         inputResource->dwOffsetForMono  = inOffset;
         outputResource->dwOffsetForMono = outOffset;
@@ -2896,6 +2952,43 @@ GMM_CLIENT_CONTEXT *MosInterface::GetGmmClientContext(
     }
 
     return nullptr;
+}
+
+uint64_t MosInterface::GetGmmExtDevice(
+    MOS_STREAM_HANDLE streamState)
+{
+    MOS_OS_FUNCTION_ENTER;
+    return 0;
+}
+
+uint32_t MosInterface::GetMediaSurfaceCompressionFormat(
+    MOS_STREAM_HANDLE streamState,
+    GMM_RESOURCE_FORMAT gmmResFmt)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    auto gmmClientContext = GetGmmClientContext(streamState);
+    if (gmmClientContext)
+    {
+        return static_cast<uint32_t>(gmmClientContext->GetMediaSurfaceStateCompressionFormat(gmmResFmt));
+    }
+
+    return 0;
+}
+
+bool MosInterface::IsPlanar(
+    MOS_STREAM_HANDLE   streamState,
+    GMM_RESOURCE_FORMAT gmmResFmt)
+{
+    MOS_OS_FUNCTION_ENTER;
+
+    auto gmmClientContext = GetGmmClientContext(streamState);
+    if (gmmClientContext)
+    {
+        return gmmClientContext->IsPlanar(gmmResFmt);
+    }
+
+    return false;
 }
 
 unsigned int MosInterface::GetPATIndexFromGmm(
@@ -3105,6 +3198,13 @@ MOS_STATUS MosInterface::GetVeHintParams(
 MOS_STATUS MosInterface::SetHybridCmdMgrToGpuContext(
     PMOS_INTERFACE pOsInterface,
     uint64_t       gpuCtxOnHybridCmd)
+{
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS MosInterface::SetHybridCmdMgrSubmitMode(
+    PMOS_INTERFACE pOsInterface,
+    uint64_t       hybridMgrSubmitMode)
 {
     return MOS_STATUS_SUCCESS;
 }
@@ -4124,7 +4224,7 @@ void MosInterface::SetIsTrinityEnabled(bool bTrinity)
 {
     return;
 }
-bool MosInterface::IsGpuSyncByCmd(MOS_STREAM_HANDLE streamState)
+bool MosInterface::IsGpuSyncByCmd(MOS_STREAM_HANDLE streamState, GPU_CONTEXT_HANDLE gpuContextHandle)
 {
     return false;
 }

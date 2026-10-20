@@ -239,6 +239,7 @@ struct CodechalDecodeParams
     MOS_SURFACE             m_histogramSurface = {};
     MOS_SURFACE             m_histogramSurfaceU = {};
     MOS_SURFACE             m_histogramSurfaceV = {};
+    bool                    m_vdaqmHistogram = false;
 };
 
 typedef enum _CODECHAL_DUMMY_REFERENCE_STATUS

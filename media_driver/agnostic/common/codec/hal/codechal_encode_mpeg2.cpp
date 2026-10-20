@@ -1112,10 +1112,9 @@ MOS_STATUS CodechalEncodeMpeg2::InitMmcState()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
 
-#ifdef _MMC_SUPPORTED
     m_mmcState = MOS_New(CodechalMmcEncodeMpeg2, m_hwInterface, this);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -3687,7 +3686,7 @@ MOS_STATUS CodechalEncodeMpeg2::SetCurbeBrcUpdate()
     cmd.m_curbeData.DW0.m_targetSize = (uint32_t)m_brcInitCurrentTargetBufFullInBits;
     cmd.m_curbeData.DW5.m_currFrameType = m_pictureCodingType - 1;
 
-    cmd.m_curbeData.DW5.m_brcFlag = (CodecHal_PictureIsFrame(m_picParams->m_currOriginalPic)) ? (0) : (CODECHAL_ENCODE_BRCINIT_FIELD_PIC);
+    cmd.m_curbeData.DW5.m_brcFlag = 0;
 
     if (m_seqParams->m_rateControlMethod == RATECONTROL_CBR)
     {
@@ -4954,9 +4953,8 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
     surfaceCodecParams.dwVerticalLineStride = m_verticalLineStride;
     surfaceCodecParams.dwVerticalLineStrideOffset = m_verticalLineStrideOffset;
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
-#endif
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
@@ -4976,9 +4974,8 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
     surfaceCodecParams.dwBindingTableOffset = m_mbEncBindingTable.m_mbEncCurrentPic;
     surfaceCodecParams.ucVDirection = vDirection;
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
-#endif
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
         m_hwInterface,
         cmdBuffer,
@@ -5022,9 +5019,8 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
         surfaceCodecParams.dwCacheabilityControl =
             m_hwInterface->GetCacheabilitySettings()[MOS_CODEC_RESOURCE_USAGE_SURFACE_REF_ENCODE].Value;
 
-#ifdef _MMC_SUPPORTED
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
-#endif
+
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
@@ -5051,9 +5047,8 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
         surfaceCodecParams.dwBindingTableOffset = m_mbEncBindingTable.m_mbEncBackwardPic;
         surfaceCodecParams.ucVDirection = vDirection;
 
-#ifdef _MMC_SUPPORTED
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
-#endif
+
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
@@ -5074,9 +5069,8 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
         surfaceCodecParams.dwBindingTableOffset = m_mbEncBindingTable.m_mbEncInterlaceFrameCurrentPic;
         surfaceCodecParams.ucVDirection = vDirection;
 
-#ifdef _MMC_SUPPORTED
         CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
-#endif
+
         CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
             m_hwInterface,
             cmdBuffer,
@@ -5094,9 +5088,8 @@ MOS_STATUS CodechalEncodeMpeg2::SendMbEncSurfaces(
             surfaceCodecParams.dwBindingTableOffset = m_mbEncBindingTable.m_mbEncInterlaceFrameBackwardPic;
             surfaceCodecParams.ucVDirection = vDirection;
 
-#ifdef _MMC_SUPPORTED
             CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceParams(&surfaceCodecParams));
-#endif
+
             CODECHAL_ENCODE_CHK_STATUS_RETURN(CodecHalSetRcsSurfaceState(
                 m_hwInterface,
                 cmdBuffer,

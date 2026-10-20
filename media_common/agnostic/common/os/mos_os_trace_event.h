@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2015-2023, Intel Corporation
+* Copyright (c) 2015-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -399,7 +399,21 @@ typedef enum _MEDIA_EVENT
     EVENT_VPP_IP_ALIGNMENT,                        //! event for VPP IP Alignment
     EVENT_IP_ALIGNMENT_INIT,                       //! event for IP Alignment Init
     EVENT_IP_ALIGNMENT_REPORT,                     //! event for IP Alignment Report
-    EVENT_ENCODE_DDI_11_DESTROYVIDEOENCODER        //! event for Encode Destroy Device
+    EVENT_ENCODE_DDI_11_DESTROYVIDEOENCODER,       //! event for Encode Destroy Device
+    EVENT_HWS_NATIVE_FENCE_SYNC_BB_ADDED,          //! event for HWS sync cmd resource added
+    EVENT_HWS_NATIVE_FENCE_SIGNAL,                 //! event for HWS native fence signal
+    EVENT_HWS_NATIVE_FENCE_WAIT,                   //! event for HWS native fence wait for sync
+    EVENT_HWS_NATIVE_FENCE_CMD_FLUSH,              //! event for HWS sync cmd flush
+    EVENT_HWS_NATIVE_FENCE_ADD_TO_ARRAY_CMD,       //! event for Hws Native Fence Add To Array Cmd
+    EVENT_HWS_NATIVE_FENCE_ADD_TO_QUEUE_API,       //! event for Hws Native Fence Add To Queue Api
+    EVENT_HWS_NATIVE_FENCE_12_WAIT,                //! event for Hws Native Fence 12 Wait
+    EVENT_DECODE_FRAME,                            //! release event for decode picture frame info
+    EVENT_ENCODE_DDI_STATUS_REPORT_RESERVED_0,     //! reserved: encode DDI status report slot 0
+    EVENT_ENCODE_DDI_CAPS_RESERVED_0,              //! reserved: encode DDI caps slot 0
+    EVENT_ENCODE_DDI_PIC_PARAM_RESERVED_0,         //! reserved: encode DDI picture param slot 0
+    EVENT_ENCODE_API_STICKER_RESERVED_0,           //! reserved: encode API sticker slot 0
+    EVENT_CP_FW_ERROR,                             //! release event for CP FW command failure
+    EVENT_CP_HUC_AUTH_FAIL                         //! release event for HuC authentication failure
 } MEDIA_EVENT;
 
 typedef enum _MEDIA_EVENT_TYPE
@@ -658,6 +672,7 @@ typedef enum _MT_LOG_ID
     MT_CP_FUNC_FAIL,
     MT_CP_CENC_STATUS_CHECK,
     MT_CP_CENC_DECODE_CREATE,
+    MT_CP_CMD_QUEUE_INIT,
     MT_CP_MHW_ID_BASE = 0x01004000,
     MT_CP_MHW_INTERFACE_CREATE_FAIL,
     MT_CP_MHW_ALLOCATION_FAIL,

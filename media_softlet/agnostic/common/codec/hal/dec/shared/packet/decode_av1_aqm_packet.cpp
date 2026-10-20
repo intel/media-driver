@@ -54,6 +54,7 @@ namespace decode
 
         m_downSampling = dynamic_cast<DecodeDownSamplingFeature *>(
             featureManager->GetFeature(DecodeFeatureIDs::decodeDownSampling));
+        DECODE_CHK_NULL(m_downSampling);
 
         return MOS_STATUS_SUCCESS;
     }
@@ -94,16 +95,32 @@ namespace decode
         }
         params.lumaPixelBitDepth = params.chromaPixelBitDepth;  // TBD: need to override in each generation
         params.operatingMode     = 0; // Decoder mode
-        params.uHistogramEnable  = 1; // Enable U channel histogram
-        params.vHistogramEnable  = 1; // Enable V channel histogram
-        params.yHistogramEnable  = 1; // Enable Y channel histogram
+
+        if (m_downSampling->m_histogramBuffer)
+        {
+            params.yHistogramEnable = 1;  // Enable Y channel histogram
+        }
+
+        if (m_downSampling->m_histogramBufferU)
+        {
+            params.uHistogramEnable = 1;  // Enable U channel histogram
+        }
+
+        if (m_downSampling->m_histogramBufferV)
+        {
+            params.vHistogramEnable = 1;  // Enable V channel histogram
+        }
 
         return MOS_STATUS_SUCCESS;
     }
 
     MHW_SETPAR_DECL_SRC(AQM_HIST_BUFF_ADDR_STATE, Av1DecodeAqmPkt)
     {
-        params.AqmYChannelHistogramOutputBuffer = &m_downSampling->m_histogramBuffer->OsResource;
+        if (m_downSampling->m_histogramBuffer)
+        {
+            params.AqmYChannelHistogramOutputBuffer = &m_downSampling->m_histogramBuffer->OsResource;
+        }
+
         return MOS_STATUS_SUCCESS;
     }
 

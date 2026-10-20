@@ -516,7 +516,7 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
         userSettingPtr,
         __MOS_USER_FEATURE_KEY_SUB_COMPONENT_OS_TAG,
         MediaUserSetting::Group::Device,
-        0,
+        uint64_t(0),
         true);
 
     DeclareUserSettingKey(
@@ -537,7 +537,7 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
         userSettingPtr,
         __MOS_USER_FEATURE_KEY_SUB_COMPONENT_MHW_TAG,
         MediaUserSetting::Group::Device,
-        0,
+        uint64_t(0),
         true);
 
     DeclareUserSettingKey(
@@ -558,7 +558,7 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
         userSettingPtr,
         __MOS_USER_FEATURE_KEY_SUB_COMPONENT_CODEC_TAG,
         MediaUserSetting::Group::Device,
-        0,
+        uint64_t(0),
         true);
 
     DeclareUserSettingKey(
@@ -579,7 +579,7 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
         userSettingPtr,
         __MOS_USER_FEATURE_KEY_SUB_COMPONENT_VP_TAG,
         MediaUserSetting::Group::Device,
-        0,
+        uint64_t(0),
         true);
 
     DeclareUserSettingKey(
@@ -600,7 +600,7 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
         userSettingPtr,
         __MOS_USER_FEATURE_KEY_SUB_COMPONENT_CP_TAG,
         MediaUserSetting::Group::Device,
-        0,
+        uint64_t(0),
         true);
 
     DeclareUserSettingKey(
@@ -621,7 +621,7 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
         userSettingPtr,
         __MOS_USER_FEATURE_KEY_SUB_COMPONENT_DDI_TAG,
         MediaUserSetting::Group::Device,
-        0,
+        uint64_t(0),
         true);
 
     DeclareUserSettingKey(
@@ -642,7 +642,7 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
         userSettingPtr,
         __MOS_USER_FEATURE_KEY_SUB_COMPONENT_CM_TAG,
         MediaUserSetting::Group::Device,
-        0,
+        uint64_t(0),
         true);
 
     DeclareUserSettingKey(
@@ -663,7 +663,7 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
         userSettingPtr,
         __MOS_USER_FEATURE_KEY_SUB_COMPONENT_SCALABILITY_TAG,
         MediaUserSetting::Group::Device,
-        0,
+        uint64_t(0),
         true);
 
     DeclareUserSettingKey(
@@ -684,7 +684,7 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
         userSettingPtr,
         __MOS_USER_FEATURE_KEY_SUB_COMPONENT_MMC_TAG,
         MediaUserSetting::Group::Device,
-        0,
+        uint64_t(0),
         true);
 
     DeclareUserSettingKey(
@@ -705,7 +705,7 @@ MOS_STATUS MosUserSetting::InitMosMessageUserSetting(MediaUserSettingSharedPtr u
         userSettingPtr,
         __MOS_USER_FEATURE_KEY_SUB_COMPONENT_MCPY_TAG,
         MediaUserSetting::Group::Device,
-        0,
+        uint64_t(0),
         true);
 
     return MOS_STATUS_SUCCESS;
@@ -924,6 +924,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_SIM_IN_USE,
+        MediaUserSetting::Group::Device,
+        int32_t(0),
+        true);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_TILE_B_IN_USE,
         MediaUserSetting::Group::Device,
         int32_t(0),
         true);
@@ -1198,6 +1205,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
 
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_VDBOX_TYPE_PREF,
+        MediaUserSetting::Group::Device,
+        0,
+        true);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_ENABLE_LINUX_FRAME_SPLIT,
         MediaUserSetting::Group::Device,
         0,
@@ -1378,6 +1392,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         0,
         true);
 
+    DeclareUserSettingKeyForDebug(  // VP PostComp Surface Copy Dump Enable
+        userSettingPtr,
+        __VPHAL_DBG_SURF_DUMP_POSTCOMP_RESOURCE_COPY,
+        MediaUserSetting::Group::Device,
+        0,
+        true);
+
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_SPLIT_SCREEN_DEMO_POSITION,
@@ -1405,6 +1426,12 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         MediaUserSetting::Group::Device,
         0,
         true);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_NULLHW_PROXY_REPEAT_COUNT_FILE,
+        MediaUserSetting::Group::Device,
+        "",
+        true);  // "Path to per-pipeline repeat count config file"
 #endif
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
@@ -1426,6 +1453,13 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         MediaUserSetting::Group::Device,
         39497,
         true); //"Device ID of mock device, default is 0x9A49"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_MOCKADAPTOR_PIPE,
+        MediaUserSetting::Group::Device,
+        0,
+        true);  //"The pipe number of mock device, default is 1"
 
     //Tile resource info report
     DeclareUserSettingKeyForDebug(
@@ -1518,6 +1552,35 @@ MOS_STATUS MosUserSetting::InitUserSettingForDebug(MediaUserSettingSharedPtr use
         MediaUserSetting::Group::Sequence,
         uint32_t(0), // 0 chroma prefetch enabled, 1 chroma prefetch disabled ;
         false);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_FORCE_ENGINE_GROUP_SCHEDULING,
+        MediaUserSetting::Group::Device,
+        0,
+        false);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_FORCE_DISALBE_64BIT_TOKEN,
+        MediaUserSetting::Group::Device,
+        0,
+        false);
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_REPORT_VEBOX_SCALABILITY_IN_USE,
+        MediaUserSetting::Group::Device,
+        0,
+        true);  //"Report Vebox scalability in use status (Default 0: not in use)"
+
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_REPORT_VDBOX_SCALABILITY_IN_USE,
+        MediaUserSetting::Group::Device,
+        0,
+        true);  //"Report Vdbox scalability in use status (Default 0: not in use)"
+
     return MOS_STATUS_SUCCESS;
 }
 

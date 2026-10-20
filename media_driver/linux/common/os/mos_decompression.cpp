@@ -31,7 +31,6 @@
 MosDecompression::MosDecompression(PMOS_CONTEXT osDriverContext):
     MosDecompressionBase(osDriverContext)
 {
-#ifdef _MMC_SUPPORTED
     MOS_OS_CHK_NULL_NO_STATUS_RETURN(osDriverContext);
 
     if (nullptr == m_mediaMemDecompState)
@@ -40,5 +39,4 @@ MosDecompression::MosDecompression(PMOS_CONTEXT osDriverContext):
         m_mediaMemDecompState =
             static_cast<MediaMemDecompBaseState *>(MmdDevice::CreateFactory(osDriverContext));
     }
-#endif
 }

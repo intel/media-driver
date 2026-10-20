@@ -274,12 +274,18 @@ MOS_STATUS AvcEncodeBRC::SetDmemForInit(void *params)
     auto avcSeqParams = m_basicFeature->m_seqParam;
     auto avcPicParams = m_basicFeature->m_picParam;
 
+    // VDEnc BRC encodes each field as one frame, so for interlaced we double the
+    //   value of FramesPer100Sec. Otherwise BRC will spend ~2x the requested bits.
+    uint16_t framesFieldsPer100Sec = avcSeqParams->FramesPer100Sec;
+    if (avcPicParams->CurrOriginalPic.PicFlags == PICTURE_TOP_FIELD || avcPicParams->CurrOriginalPic.PicFlags == PICTURE_BOTTOM_FIELD)
+        framesFieldsPer100Sec *= 2;
+
     if (avcSeqParams->FrameSizeTolerance == EFRAMESIZETOL_EXTREMELY_LOW) // Low Delay Mode
     {
         avcSeqParams->MaxBitRate = avcSeqParams->TargetBitRate;
     }
 
-    m_dBrcInitResetInputBitsPerFrame     = avcSeqParams->MaxBitRate * 100.0 / avcSeqParams->FramesPer100Sec;
+    m_dBrcInitResetInputBitsPerFrame     = avcSeqParams->MaxBitRate * 100.0 / framesFieldsPer100Sec;
     m_dBrcInitCurrentTargetBufFullInBits = m_dBrcInitResetInputBitsPerFrame;
     m_dBrcTargetSize                     = avcSeqParams->InitVBVBufferFullnessInBit;
 
@@ -329,7 +335,7 @@ MOS_STATUS AvcEncodeBRC::SetDmemForInit(void *params)
         hucVdencBrcInitDmem->INIT_LowDelayGoldenFrameBoost_U8 = 0; //get from ?
     }
 
-    hucVdencBrcInitDmem->INIT_FrameRateM_U32 = avcSeqParams->FramesPer100Sec;
+    hucVdencBrcInitDmem->INIT_FrameRateM_U32 = framesFieldsPer100Sec;
     hucVdencBrcInitDmem->INIT_FrameRateD_U32 = 100;
 
     hucVdencBrcInitDmem->INIT_ProfileLevelMaxFrame_U32 = m_basicFeature->GetProfileLevelMaxFrameSize();
@@ -391,8 +397,8 @@ MOS_STATUS AvcEncodeBRC::SetDmemForInit(void *params)
     }
 
                                                                              //dynamic deviation thresholds
-    double inputBitsPerFrame = avcSeqParams->MaxBitRate * 100.0 / avcSeqParams->FramesPer100Sec;
-    double bps_ratio = inputBitsPerFrame / (avcSeqParams->VBVBufferSizeInBit * 100.0 / avcSeqParams->FramesPer100Sec/*DEV_STD_FPS*/);
+    double inputBitsPerFrame = avcSeqParams->MaxBitRate * 100.0 / framesFieldsPer100Sec;
+    double bps_ratio = inputBitsPerFrame / (avcSeqParams->VBVBufferSizeInBit * 100.0 / framesFieldsPer100Sec/*DEV_STD_FPS*/);
     if (bps_ratio < VDENC_AVC_BPS_RATIO_LOW) bps_ratio = VDENC_AVC_BPS_RATIO_LOW;
     if (bps_ratio > VDENC_AVC_BPS_RATIO_HIGH) bps_ratio = VDENC_AVC_BPS_RATIO_HIGH;
 
@@ -427,7 +433,7 @@ MOS_STATUS AvcEncodeBRC::SetDmemForInit(void *params)
         }
     }
 
-    hucVdencBrcInitDmem->INIT_InitQPIP = (uint8_t)ComputeBRCInitQP();
+    hucVdencBrcInitDmem->INIT_InitQPIP = (uint8_t)ComputeBRCInitQP(framesFieldsPer100Sec);
 
     // MBBRC control
     if (m_mbBrcEnabled)
@@ -496,7 +502,7 @@ MOS_STATUS AvcEncodeBRC::SetDmemForInit(void *params)
         }
         else
         {
-            hucVdencBrcInitDmem->INIT_SlidingWindowSize_U8         = (uint8_t)(avcSeqParams->FramesPer100Sec / 100);
+            hucVdencBrcInitDmem->INIT_SlidingWindowSize_U8         = (uint8_t)(framesFieldsPer100Sec / 100);
             hucVdencBrcInitDmem->INIT_SlidingWindowMaxRateRatio_U8 = 120;
         }
     }
@@ -539,7 +545,7 @@ MOS_STATUS AvcEncodeBRC::SetDmemForInit(void *params)
     if (((avcSeqParams->TargetUsage & 0x07) == TARGETUSAGE_BEST_SPEED) &&
         (avcSeqParams->FrameWidth >= setting->singlePassMinFrameWidth) &&
         (avcSeqParams->FrameHeight >= setting->singlePassMinFrameHeight) &&
-        (avcSeqParams->FramesPer100Sec >= setting->singlePassMinFramePer100s))
+        (framesFieldsPer100Sec >= setting->singlePassMinFramePer100s))
     {
         hucVdencBrcInitDmem->INIT_SinglePassOnly = true;
     }
@@ -580,6 +586,7 @@ MOS_STATUS AvcEncodeBRC::SetDmemForUpdate(void *params, uint16_t currPass, bool 
     auto avcPicParams = m_basicFeature->m_picParam;
 
     hucVdencBrcUpdateDmem->BRCFunc_U8 = 1;   // Update:1
+    hucVdencBrcUpdateDmem->UPD_LaDataBufferEnabled_U8 = (avcSeqParams->LookaheadDepth && m_basicFeature->m_laDataBufferEnabled) ? 1 : 0;
 
     if (!m_brcInit && (currPass == 0))
     {
@@ -766,6 +773,9 @@ MOS_STATUS AvcEncodeBRC::SetDmemForUpdate(void *params, uint16_t currPass, bool 
 #endif
         hucVdencBrcUpdateDmem->UPD_Delta_U8             = m_qpModulationStrength;
     }
+
+    hucVdencBrcUpdateDmem->UPD_GopPicSize  = avcSeqParams->GopPicSize;
+    hucVdencBrcUpdateDmem->UPD_LADsRatio = avcSeqParams->FastPassRatio;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -1148,7 +1158,7 @@ MOS_STATUS AvcEncodeBRC::FreeBrcResources()
     return eStatus;
 }
 
-int32_t AvcEncodeBRC::ComputeBRCInitQP()
+int32_t AvcEncodeBRC::ComputeBRCInitQP(uint16_t framesFieldsPer100Sec)
 {
     ENCODE_FUNC_CALL();
 
@@ -1160,10 +1170,10 @@ int32_t AvcEncodeBRC::ComputeBRCInitQP()
 
     // InitQPIP calculation
     frameSize = ((m_basicFeature->m_frameWidth * m_basicFeature->m_frameHeight * 3) >> 1);
-    QP        = (int32_t)(1. / 1.2 * pow(10.0, (log10(frameSize * 2. / 3. * ((float)seqParams->FramesPer100Sec) / ((float)(seqParams->TargetBitRate) * 100)) - x0) * (y1 - y0) / (x1 - x0) + y0) + 0.5);
+    QP        = (int32_t)(1. / 1.2 * pow(10.0, (log10(frameSize * 2. / 3. * ((float)framesFieldsPer100Sec) / ((float)(seqParams->TargetBitRate) * 100)) - x0) * (y1 - y0) / (x1 - x0) + y0) + 0.5);
     QP += 2;
     //add additional change based on buffer size. It is especially useful for low delay
-    deltaQ = (int32_t)(9 - (seqParams->VBVBufferSizeInBit * ((float)seqParams->FramesPer100Sec) / ((float)(seqParams->TargetBitRate) * 100)));
+    deltaQ = (int32_t)(9 - (seqParams->VBVBufferSizeInBit * ((float)framesFieldsPer100Sec) / ((float)(seqParams->TargetBitRate) * 100)));
     QP += deltaQ < 0 ? 0 : deltaQ;
     QP = CodecHal_Clip3(ENCODE_AVC_BRC_MIN_QP, CODECHAL_ENCODE_AVC_MAX_SLICE_QP, QP);
     QP--;

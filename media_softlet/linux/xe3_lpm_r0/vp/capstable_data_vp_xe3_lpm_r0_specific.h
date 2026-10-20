@@ -51,6 +51,7 @@ static ProfileSurfaceAttribInfo surfaceAttribInfo_VAEntrypointVideoProc_VAProfil
     {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC('I', '4', '2', '0')}}},
     {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC('Y', 'V', '1', '2')}}},
     {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC('Y', 'U', 'Y', '2')}}},
+    {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC('U', 'Y', 'V', 'Y')}}},
     {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC('4', '2', '2', 'H')}}},
     {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC('4', '2', '2', 'V')}}},
     {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC('R', 'G', 'B', 'A')}}},
@@ -68,16 +69,27 @@ static ProfileSurfaceAttribInfo surfaceAttribInfo_VAEntrypointVideoProc_VAProfil
     {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_AYUV}}},
     {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_Y210}}},
     {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_Y410}}},
+    {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_P012}}},
+#if VA_CHECK_VERSION(1, 9, 0)
+    {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_Y212}}},
+    {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_Y412}}},
+#endif
 #if VA_CHECK_VERSION(1, 13, 0)
     {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_FOURCC_XYUV}}},
 #else
     {VASurfaceAttribPixelFormat, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {0}}},
 #endif
-    {VASurfaceAttribMemoryType, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypeInteger, {VA_SURFACE_ATTRIB_MEM_TYPE_VA |
-                                                                                                                    VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR |
-                                                                                                                    VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM |
-                                                                                                                    VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME |
-                                                                                                                    VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2}}},
+    {VASurfaceAttribMemoryType, VA_SURFACE_ATTRIB_GETTABLE | VA_SURFACE_ATTRIB_SETTABLE, 
+        {VAGenericValueTypeInteger, {
+#if VA_CHECK_VERSION(1, 21, 0)
+            VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3 |
+#endif
+            VA_SURFACE_ATTRIB_MEM_TYPE_VA |
+            VA_SURFACE_ATTRIB_MEM_TYPE_USER_PTR |
+            VA_SURFACE_ATTRIB_MEM_TYPE_KERNEL_DRM |
+            VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME |
+            VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2
+        }}},
     {VASurfaceAttribExternalBufferDescriptor, VA_SURFACE_ATTRIB_SETTABLE, {VAGenericValueTypePointer, {0}}}
 };
 

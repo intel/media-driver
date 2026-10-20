@@ -34,9 +34,14 @@
 #include "decode_status_report.h"
 #include "decode_av1_picture_packet.h"
 #include "decode_av1_tile_packet.h"
+#ifdef _DECODE_PROCESSING_SUPPORTED
+#include "decode_av1_aqm_packet.h"
+#endif
 
 namespace decode
 {
+
+class Av1DecodeDebugPkt;
 
 class Av1DecodePkt : public CmdPacket, public MediaStatusReportObserver
 {
@@ -146,6 +151,18 @@ protected:
     virtual MOS_STATUS ReadAvpStatus(MediaStatusReport* statusReport, MOS_COMMAND_BUFFER& cmdBuffer);
     virtual MOS_STATUS StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cmdBuffer) override;
     virtual MOS_STATUS EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cmdBuffer) override;
+
+    //!
+    //! \brief  Status report per tile
+    //! \param  [in] cmdBuffer
+    //!         Command buffer
+    //! \param  [in] idx
+    //!         Tile index
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS StatusReportPerTile(MOS_COMMAND_BUFFER *cmdBuffer, int16_t idx);
+
     MOS_STATUS InitPicLevelCmdBuffer(MHW_BATCH_BUFFER &batchBuffer, uint8_t *batchBufBase);
 
     MediaFeatureManager    *m_featureManager   = nullptr;
@@ -157,6 +174,9 @@ protected:
 
     Av1DecodePicPkt        *m_picturePkt       = nullptr;
     Av1DecodeTilePkt       *m_tilePkt          = nullptr;
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    Av1DecodeAqmPkt        *m_aqmPkt           = nullptr;
+#endif
     bool             m_isLastTileInPartialFrm  = false;
     bool             m_isFirstTileInPartialFrm = false;
 
@@ -167,11 +187,18 @@ protected:
     uint32_t m_picturePatchListSize = 0;
     uint32_t m_tileStatesSize       = 0;
     uint32_t m_tilePatchListSize    = 0;
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    uint32_t m_aqmStatesSize        = 0;
+    uint32_t m_aqmPatchListSize     = 0;
+#endif
 
     BatchBufferArray     *m_secondLevelBBArray = nullptr; //!< Point to second level batch buffer
     MOS_COMMAND_BUFFER    m_picCmdBuffer;
     PMHW_BATCH_BUFFER     m_batchBuf = nullptr;
     std::shared_ptr<mhw::vdbox::vdenc::Itf> m_vdencItf = nullptr;
+
+private:
+    Av1DecodeDebugPkt    *m_av1DebugPkt = nullptr;  //!< AV1 debug packet for debug functionality
 
 MEDIA_CLASS_DEFINE_END(decode__Av1DecodePkt)
 };

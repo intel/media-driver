@@ -31,6 +31,7 @@
 #include "vp_render_vebox_hdr_3dlut_kernel.h"
 #include "vp_render_vebox_hvs_kernel.h"
 #include "vp_render_hdr_kernel.h"
+#include "vp_render_hdrlite_kernel.h"
 #include "vp_render_vebox_hdr_3dlut_ocl_kernel.h"
 #include "vp_render_ai_kernel.h"
 
@@ -40,13 +41,32 @@ VpKernelSet::VpKernelSet(PVP_MHWINTERFACE hwInterface, PVpAllocator allocator) :
     m_hwInterface(hwInterface),
     m_allocator(allocator)
 {
-    m_pKernelPool = &hwInterface->m_vpPlatformInterface->GetKernelPool();
+    if (hwInterface)
+    {
+        m_pKernelPool = &hwInterface->m_vpPlatformInterface->GetKernelPool();
+    }
+}
+
+MOS_STATUS VpKernelSet::GetVpRenderKernel(std::string kernalName, VpRenderKernel &vpKernel)
+{
+    VP_FUNC_CALL();
+
+    auto it = m_pKernelPool->find(kernalName);
+
+    if (m_pKernelPool->end() == it)
+    {
+        VP_RENDER_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+    }
+
+    vpKernel = it->second;
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS VpKernelSet::GetKernelInfo(std::string kernelName, uint32_t kuid, uint32_t& size, void*& kernel)
 {
     VP_FUNC_CALL();
 
+    VP_RENDER_CHK_NULL_RETURN(m_pKernelPool);
     auto it = m_pKernelPool->find(kernelName);
 
     if (m_pKernelPool->end() == it)
@@ -165,6 +185,10 @@ MOS_STATUS VpKernelSet::CreateSingleKernelObject(
         kernel = (VpRenderKernelObj *)MOS_New(VpRenderHdrKernel, m_hwInterface, m_allocator);
         VP_RENDER_CHK_NULL_RETURN(kernel);
         break;
+    case kernelHdrMandatoryLite:
+        kernel = (VpRenderKernelObj *)MOS_New(VpRenderHDRLITEKernel, m_hwInterface, kernelId, kernelIndex, m_allocator);
+        VP_RENDER_CHK_NULL_RETURN(kernel);
+        break;
     case kernelAiCommon:
         kernel = (VpRenderKernelObj *)MOS_New(VpRenderAiKernel, m_hwInterface, kernelName, kernelIndex, m_allocator);
         VP_RENDER_CHK_NULL_RETURN(kernel);
@@ -242,7 +266,7 @@ MOS_STATUS VpKernelSet::CreateKernelObjects(
 
             VP_RENDER_CHK_STATUS_RETURN(VpStatusHandler(kernel->InitKernel(binary, kernelSize, kernelConfigs, surfacesGroup, surfMemCacheCtl)));
 
-            kernelObjs.insert(std::make_pair(kernelIndex, kernel));
+            kernelObjs.emplace(kernelIndex, kernel);
         }
         else
         {
@@ -250,7 +274,7 @@ MOS_STATUS VpKernelSet::CreateKernelObjects(
 
             VP_RENDER_CHK_STATUS_RETURN(VpStatusHandler(kernel->SetKernelConfigs(kernelParams[kernelIndex], surfacesGroup, samplerStateGroup, kernelConfigs, sharedContext)));
 
-            kernelObjs.insert(std::make_pair(kernelIndex, kernel));
+            kernelObjs.emplace(kernelIndex, kernel);
         }
     }
 

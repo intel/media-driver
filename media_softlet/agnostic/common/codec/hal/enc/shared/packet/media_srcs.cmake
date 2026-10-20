@@ -1,4 +1,4 @@
-# Copyright (c) 2018, Intel Corporation
+# Copyright (c) 2018-2026, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,8 @@ if(${Common_Encode_Supported} STREQUAL "yes")
 set(TMP_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/encode_check_huc_load_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_huc.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/encode_huc_ppgtt.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/encode_huc_slbb_update_pkt.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_packet_utilities.cpp
     ${CMAKE_CURRENT_LIST_DIR}/encode_preenc_packet.cpp
 )
@@ -29,6 +31,8 @@ set(TMP_SOURCES_
 set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/encode_check_huc_load_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_huc.h
+    ${CMAKE_CURRENT_LIST_DIR}/encode_huc_ppgtt.h
+    ${CMAKE_CURRENT_LIST_DIR}/encode_huc_slbb_update_pkt.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_packet_utilities.h
     ${CMAKE_CURRENT_LIST_DIR}/encode_preenc_packet.h
 )

@@ -54,9 +54,9 @@ MOS_STATUS DecodeHevcScalabilityOption::SetScalabilityOption(ScalabilityPars *pa
 
     SCALABILITY_VERBOSEMESSAGE(
         "Tile Column = %d, System VDBOX Num = %d, Decided Pipe Num = %d, "
-        "Using SFC = %d, Using Slim Vdbox = %d, Scalability Mode = %d, , FE separate submission = %d.",
+        "Using SFC = %d, Scalability Mode = %d, FE separate submission = %d.",
         hevcPars->numTileColumns, hevcPars->numVdbox, m_numPipe,
-        m_usingSFC, m_usingSlimVdbox, m_mode, m_FESeparateSubmission);
+        m_usingSFC, m_mode, m_FESeparateSubmission);
 
     return MOS_STATUS_SUCCESS;
 }

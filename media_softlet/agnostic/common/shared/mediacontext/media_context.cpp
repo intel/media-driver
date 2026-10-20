@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,8 @@
 //!           this file is for the base interface which is shared by all components.
 //!
 
+#include <bitset>
+#include <memory>
 #include "media_context.h"
 #include "mos_interface.h"
 #include "mos_os_virtualengine_next.h"
@@ -35,7 +37,7 @@
 #include "decode_scalability_defs.h"
 #endif
 #include "mos_os_cp_interface_specific.h"
-MediaContext::MediaContext(uint8_t componentType, void *hwInterface, PMOS_INTERFACE osInterface)
+MediaContext::MediaContext(uint8_t componentType, void *hwInterface, PMOS_INTERFACE osInterface, VdboxTypePref pref)
 {
     if (!hwInterface)
     {
@@ -76,7 +78,14 @@ MediaContext::MediaContext(uint8_t componentType, void *hwInterface, PMOS_INTERF
     {
         if (m_osInterface->pfnGetMediaEngineInfo(m_osInterface, mediaEngineInfo) == MOS_STATUS_SUCCESS)
         {
+#ifdef _MEDIA_RESERVED
+            if (pref == MOS_VDBOX_PREFER_FULL)
+                m_numVdbox = (uint8_t)std::bitset<32>(mediaEngineInfo.VDBoxInfo.VDBoxTypeA.VDBoxTypeAValue).count();
+            else
+                m_numVdbox = (uint8_t)mediaEngineInfo.VDBoxInfo.NumberOfVDBoxEnabled;
+#else
             m_numVdbox = (uint8_t)mediaEngineInfo.VDBoxInfo.NumberOfVDBoxEnabled;
+#endif
         }
     }
     else
@@ -84,7 +93,14 @@ MediaContext::MediaContext(uint8_t componentType, void *hwInterface, PMOS_INTERF
         gtSystemInfo    = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
         if(gtSystemInfo)
         {
+#ifdef _MEDIA_RESERVED
+            if (pref == MOS_VDBOX_PREFER_FULL)
+                m_numVdbox = (uint8_t)std::bitset<32>(gtSystemInfo->VDBoxInfo.VDBoxTypeA.VDBoxTypeAValue).count();
+            else
+                m_numVdbox = (uint8_t)(gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled);
+#else
             m_numVdbox = (uint8_t)(gtSystemInfo->VDBoxInfo.NumberOfVDBoxEnabled);
+#endif
         }
     }
 
@@ -132,13 +148,15 @@ MediaContext::~MediaContext()
         else
         {
             MOS_OS_ASSERTMESSAGE("scalabilityState is nullptr, something must be wrong");
-            return;
+            // Skip this entry only. Returning here would abandon the remaining
+            // entries and leak their scalability states.
+            continue;
         }
 
         if (!m_osInterface || !m_osInterface->pOsContext)
         {
             MOS_OS_ASSERTMESSAGE("m_osInterface and OsContext cannot be nullptr");
-            return;
+            continue;
         }
 
         if (curAttribute.gpuContext != MOS_GPU_CONTEXT_INVALID_HANDLE)
@@ -150,7 +168,7 @@ MediaContext::~MediaContext()
                 if (status != MOS_STATUS_SUCCESS)
                 {
                     MOS_OS_NORMALMESSAGE("Gpu Context destory failed, something must be wrong");
-                    return;
+                    continue;
                 }
             }
             else
@@ -161,14 +179,14 @@ MediaContext::~MediaContext()
                 if (status != MOS_STATUS_SUCCESS)
                 {
                     MOS_OS_NORMALMESSAGE("Gpu Context destory failed, something must be wrong");
-                    return;
+                    continue;
                 }
             }
         }
         else
         {
             MOS_OS_ASSERTMESSAGE("Invalid gpu Context handle in entry, something must be wrong");
-            return;
+            continue;
         }
 #if !EMUL
         // Be compatible to legacy MOS
@@ -286,7 +304,7 @@ MOS_STATUS MediaContext::SearchContext(MediaFunction func, T params, uint32_t& i
                 MOS_OS_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContextHandle(m_osInterface, curAttribute.gpuContext, curAttribute.ctxForLegacyMos));
                 // set legacy MOS ve interface to current reused scalability state's ve interface
                 m_osInterface->pVEInterf = curAttribute.scalabilityState->m_veInterface;
-                if (m_osInterface->apoMosEnabled || m_osInterface->apoMosForLegacyRuntime)
+                if (m_osInterface->apoMosEnabled)
                 {
                     if (curAttribute.scalabilityState->m_veState)
                     {
@@ -328,12 +346,32 @@ MOS_STATUS MediaContext::CreateContext(MediaFunction func, T params, uint32_t& i
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-    // Create scalabilityState
+    // Create scalabilityState. It only becomes reachable for destruction once newAttr has
+    // been pushed into m_gpuContextAttributeTable, so keep sole ownership in a unique_ptr
+    // until that point: every early return below then releases it instead of orphaning it
+    // and the resources it owns. The deleter mirrors the cleanup in ~MediaContext() --
+    // Destroy() releases the gpu context creation option and the virtual engine interface,
+    // neither of which the scalability state destructor covers.
     MOS_GPUCTX_CREATOPTIONS_ENHANCED option;
-    MediaScalabilityFactory<T> scalabilityFactory;
-    newAttr.scalabilityState = scalabilityFactory.CreateScalability(
-        m_componentType, params, m_hwInterface, this, &option);
-    if (newAttr.scalabilityState == nullptr)
+    MediaScalabilityFactory<T>       scalabilityFactory;
+
+    auto releaseScalabilityState = [this](MediaScalability *state)
+    {
+        if (state->Destroy() != MOS_STATUS_SUCCESS)
+        {
+            MOS_OS_ASSERTMESSAGE("scalabilityState destroy fail.");
+        }
+        MOS_Delete(state);
+        // set legacy MOS ve interface to null to be compatible to legacy MOS
+        if (m_osInterface)
+        {
+            m_osInterface->pVEInterf = nullptr;
+        }
+    };
+    std::unique_ptr<MediaScalability, decltype(releaseScalabilityState)> scalabilityState(
+        scalabilityFactory.CreateScalability(m_componentType, params, m_hwInterface, this, &option),
+        releaseScalabilityState);
+    if (scalabilityState == nullptr)
     {
         MOS_OS_ASSERTMESSAGE("Failed to create scalability state");
         return MOS_STATUS_NO_SPACE;
@@ -359,8 +397,12 @@ MOS_STATUS MediaContext::CreateContext(MediaFunction func, T params, uint32_t& i
         newAttr.ctxForLegacyMos, node, newAttr.gpuContext, option.ProtectMode, option.RAMode);
 
     // Add entry to the table
+    newAttr.scalabilityState = scalabilityState.get();
     indexReturn = m_gpuContextAttributeTable.size();
     m_gpuContextAttributeTable.push_back(newAttr);
+
+    // The table owns the scalability state from here on
+    scalabilityState.release();
 
     if (func == VeboxVppFunc || func == ComputeVppFunc)
     {
@@ -635,6 +677,7 @@ MOS_STATUS MediaContext::FindGpuNodeToUse(MediaFunction func, PMHW_VDBOX_GPUNODE
                     m_osInterface->pfnSetLatestVirtualNode(m_osInterface, MOS_GPU_NODE_MAX);
                 }
             }
+
             if (func == VdboxDecodeVirtualNode0Func)
             {
                 setVideoNode = true;
@@ -741,6 +784,12 @@ MOS_STATUS MediaContext::FunctionToGpuContext(MediaFunction func, const MOS_GPUC
 
 MOS_STATUS MediaContext::FunctionToGpuContextDecode(const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, const MOS_GPU_NODE &node, MOS_GPU_CONTEXT &ctx)
 {
+    if (option.m_vdboxTypePref == MOS_VDBOX_PREFER_FULL)
+    {
+        ctx = MOS_GPU_CONTEXT_VIDEO_DEC_FULL;
+        return MOS_STATUS_SUCCESS;
+    }
+
     if (option.UsingSFC)
     {
         ctx = MOS_GPU_CONTEXT_VIDEO4;
@@ -770,6 +819,12 @@ MOS_STATUS MediaContext::FunctionToGpuContextDecode(const MOS_GPUCTX_CREATOPTION
 
 MOS_STATUS MediaContext::FunctionToGpuContextEncode(const MOS_GPUCTX_CREATOPTIONS_ENHANCED &option, MOS_GPU_CONTEXT &ctx)
 {
+    if (option.m_vdboxTypePref == MOS_VDBOX_PREFER_FULL)
+    {
+        ctx = MOS_GPU_CONTEXT_VIDEO_ENC_FULL;
+        return MOS_STATUS_SUCCESS;
+    }
+
     switch (option.LRCACount)
     {
     case 0:

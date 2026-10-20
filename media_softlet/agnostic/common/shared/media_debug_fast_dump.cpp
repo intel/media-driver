@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022-2023, Intel Corporation
+* Copyright (c) 2022-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -39,13 +39,7 @@ void MediaDebugFastDump::CreateInstance(
 {
     if (imp == nullptr)
     {
-        imp =
-#if __cplusplus < 201402L
-            decltype(imp)(
-                new MediaDebugFastDumpImp(osItf, mediaCopyWrapper, cfg));
-#else
-            std::make_unique<MediaDebugFastDumpImp>(osItf, mediaCopyWrapper, cfg);
-#endif
+        imp = std::make_unique<MediaDebugFastDumpImp>(osItf, mediaCopyWrapper, cfg);
     }
 }
 

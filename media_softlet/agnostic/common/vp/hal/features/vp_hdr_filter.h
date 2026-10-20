@@ -37,13 +37,6 @@ static bool sEnableKernelDump    = false;
 static bool sH2SBasedOnRGB       = false;
 #endif
 
-typedef struct
-{
-    uint32_t reserved : 2;
-    uint32_t mantissa : 9;
-    uint32_t exponent : 3;
-    uint32_t sign : 1;
-} CSC_COEFF_FORMAT;
 //!
 //! \brief hdr kernel eotf/oetf type definition enum
 //!

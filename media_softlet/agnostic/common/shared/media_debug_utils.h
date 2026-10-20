@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -41,6 +41,10 @@ static const char *attrDumpBufferInBinary    = "DumpBufferInBinary";
 static const char *attrDumpToThreadFolder    = "DumpToThreadFolder";
 static const char *attrDumpCmdBufInBinary    = "DumpCmdBufInBinary";
 static const char *attrEnableFastDump        = "EnableFastDump";
+static const char *attrFastDumpAllowDataLoss = "FastDumpAllowDataLoss";
+static const char *attrFastDumpRenderCpyEn   = "FastDumpRenderCpyEn";
+static const char *attrFastDumpVeCpyEn       = "FastDumpVeCpyEn";
+static const char *attrFastDumpBltCpyEn      = "FastDumpBltCpyEn";
 
 //Codec Attr 
 static const char *attrPicParams               = "PicParams";
@@ -90,6 +94,8 @@ static const char *attrOverwriteCommands       = "OverwriteCommands";
 static const char *attrHuffmanTbl              = "HuffmanTbl";
 static const char *attrScanParams              = "ScanParams";
 static const char *attrDriverUltDump           = "DriverUltDump";
+static const char *attrGranularCRCDump         = "GranularCRCDump";
+static const char *attrDebugPacket             = "DebugPacket";
 
 static const char *attrDumpEncodePar          = "DumpEncodePar";
 static const char *attrForceCmdDumpLvl        = "ForceCmdDumpLvl";
@@ -99,6 +105,7 @@ static const char *attrDisableSwizzleForDumps = "DisableSwizzleForDumps";
 static const char *attrVdencOutput            = "VdencOutput";
 static const char *attrDecodeProcParams       = "DecodeProcParams";
 static const char *attrFrameState             = "FrameState";
+static const char *attrVdencFrameStats        = "VdencFrameStats";
 static const char *attrCUStreamout            = "CUStreamout";
 static const char *attrBrcPakStats            = "BrcPakStats";
 static const char *attrImageState             = "ImageState";
@@ -113,6 +120,7 @@ static const char *attrInitSWScoreboard       = "InitSWScoreboard";
 static const char *attrSfcHistogram           = "SfcHistogram";
 static const char *attrFilmGrain              = "FilmGrain";
 static const char *attrQualityReport          = "QualityReport";
+static const char *attrAqmHistogram           = "AqmHistogram";
 
 static const char *attrAlfData                = "AlfData";
 static const char *attrLmcsData               = "LmcsData";
@@ -120,6 +128,8 @@ static const char *attrTileParams             = "TileParams";
 static const char *attrSubpicParams           = "SubpicParams";
 static const char *attrSliceStruct            = "SliceStruct";
 static const char *attrRplStruct              = "RplStruct";
+
+static const char *attrMvDumpOfTest           = "MvDumpOfTest"; //For Of test purpose only
 
 // MD5 attributes
 static const char *attrMD5HashEnable    = "MD5HasEnable";
@@ -213,6 +223,9 @@ static const char *bufRplStruct     = "RplStruct";
 
 #define MEDIA_DEBUG_ASSERTMESSAGE(_message, ...) \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _message, ##__VA_ARGS__)
+
+#define MEDIA_DEBUG_WARNINGMESSAGE(_message, ...) \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _message, ##__VA_ARGS__)
 
 #define MEDIA_DEBUG_NORMALMESSAGE(_message, ...) \
     MOS_NORMALMESSAGE(MOS_COMPONENT_OS, MOS_SUBCOMP_SELF, _message, ##__VA_ARGS__)

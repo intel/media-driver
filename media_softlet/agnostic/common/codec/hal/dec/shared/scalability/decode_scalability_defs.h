@@ -47,7 +47,6 @@ struct DecodeScalabilityPars : public ScalabilityPars
 
     bool    usingSfc = false;
     bool    usingHcp = false;
-    bool    usingSlimVdbox = false;
 
     MOS_FORMAT surfaceFormat = Format_NV12;
 

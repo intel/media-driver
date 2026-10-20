@@ -30,6 +30,7 @@
 #include "codec_hw_xe2_lpm_base.h"
 #include "mhw_vdbox_hcp_hwcmd_xe2_lpm.h"
 #include "mhw_mi_hwcmd_xe2_lpm_base_next.h"
+#include "decode_resource_auto_lock.h"
 
 namespace decode
 {
@@ -53,20 +54,185 @@ MOS_STATUS Vp9DecodePicPktXe2_Lpm_Base::Init()
         }
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
-        if (m_downSamplingFeature != nullptr && m_downSamplingPkt != nullptr &&
-            m_downSamplingFeature->IsEnabled())
-        {
-            if (!IsFrontEndPhase())
+            if (m_downSamplingFeature != nullptr && m_downSamplingPkt != nullptr &&
+                m_downSamplingFeature->IsEnabled())
             {
-                DECODE_CHK_STATUS(m_downSamplingPkt->Execute(cmdBuffer));
+                if (!IsFrontEndPhase())
+                {
+                    DECODE_CHK_STATUS(m_downSamplingPkt->Execute(cmdBuffer));
+                }
             }
-        }
 #endif
 
         DECODE_CHK_STATUS(AddAllCmds_HCP_SURFACE_STATE(cmdBuffer));
-        SETPAR_AND_ADDCMD(HCP_PIPE_BUF_ADDR_STATE, m_hcpItf, &cmdBuffer);
+
+        bool isMismatch   = m_osInterface->pfnIsMismatchOrderProgrammingSupported();
+        bool isInterFrame = (m_vp9PicParams->PicFlags.fields.frame_type == CODEC_VP9_INTER_FRAME) &&
+                            !m_vp9PicParams->PicFlags.fields.intra_only;
+
+        if (isMismatch && isInterFrame)
+        {
+            // Ping BB: cur=MvBuf[0], col=MvBuf[1]; executes when stateBuffer==1
+            m_batchBufForMvPing = m_pingPongMvBBArray->Fetch();
+            DECODE_CHK_NULL(m_batchBufForMvPing);
+            {
+                ResourceAutoLock resLock(m_allocator, &m_batchBufForMvPing->OsResource);
+                uint8_t *batchBufBase = (uint8_t *)resLock.LockResourceForWrite();
+                DECODE_CHK_NULL(batchBufBase);
+                DECODE_CHK_STATUS(Init2ndLevelCmdBuffer(*m_batchBufForMvPing, batchBufBase));
+                m_picStateCmdBuffer.cmdBuf1stLvl     = &cmdBuffer;
+                m_vp9BasicFeature->m_curMvTempBufIdx = 0;
+                m_vp9BasicFeature->m_colMvTempBufIdx = 1;
+                DECODE_CHK_STATUS(PackMvBufAddrCmds(m_picStateCmdBuffer, true));
+                DECODE_CHK_STATUS(m_miItf->AddMiBatchBufferEnd(&m_picStateCmdBuffer, nullptr));
+            }
+            DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_BATCH_BUFFER_START(&cmdBuffer, m_batchBufForMvPing));
+
+            // Pong BB: cur=MvBuf[1], col=MvBuf[0]; executes when stateBuffer==0
+            m_batchBufForMvPong = m_pingPongMvBBArray->Fetch();
+            DECODE_CHK_NULL(m_batchBufForMvPong);
+            {
+                ResourceAutoLock resLock(m_allocator, &m_batchBufForMvPong->OsResource);
+                uint8_t *batchBufBase = (uint8_t *)resLock.LockResourceForWrite();
+                DECODE_CHK_NULL(batchBufBase);
+                DECODE_CHK_STATUS(Init2ndLevelCmdBuffer(*m_batchBufForMvPong, batchBufBase));
+                m_picStateCmdBuffer.cmdBuf1stLvl     = &cmdBuffer;
+                m_vp9BasicFeature->m_curMvTempBufIdx = 1;
+                m_vp9BasicFeature->m_colMvTempBufIdx = 0;
+                DECODE_CHK_STATUS(PackMvBufAddrCmds(m_picStateCmdBuffer, false));
+                DECODE_CHK_STATUS(m_miItf->AddMiBatchBufferEnd(&m_picStateCmdBuffer, nullptr));
+            }
+            DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_BATCH_BUFFER_START(&cmdBuffer, m_batchBufForMvPong));
+
+            // Replace MI_COPY_MEM_MEM (fails on discrete GPU LMEM) with two conditional copy BBs:
+            // BB0: skip-if(nextState==1) → STORE state=0  (Ping ran)
+            // BB1: skip-if(nextState==0) → STORE state=1  (Pong ran)
+            m_batchBufCopyState0 = m_copyStateBBArray->Fetch();
+            DECODE_CHK_NULL(m_batchBufCopyState0);
+            {
+                ResourceAutoLock resLock(m_allocator, &m_batchBufCopyState0->OsResource);
+                uint8_t *batchBufBase = (uint8_t *)resLock.LockResourceForWrite();
+                DECODE_CHK_NULL(batchBufBase);
+                DECODE_CHK_STATUS(Init2ndLevelCmdBuffer(*m_batchBufCopyState0, batchBufBase));
+                m_picStateCmdBuffer.cmdBuf1stLvl = &cmdBuffer;
+                DECODE_CHK_STATUS(BuildCopyStateBB(m_picStateCmdBuffer, 1, 0));
+                DECODE_CHK_STATUS(m_miItf->AddMiBatchBufferEnd(&m_picStateCmdBuffer, nullptr));
+            }
+            DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_BATCH_BUFFER_START(&cmdBuffer, m_batchBufCopyState0));
+
+            m_batchBufCopyState1 = m_copyStateBBArray->Fetch();
+            DECODE_CHK_NULL(m_batchBufCopyState1);
+            {
+                ResourceAutoLock resLock(m_allocator, &m_batchBufCopyState1->OsResource);
+                uint8_t *batchBufBase = (uint8_t *)resLock.LockResourceForWrite();
+                DECODE_CHK_NULL(batchBufBase);
+                DECODE_CHK_STATUS(Init2ndLevelCmdBuffer(*m_batchBufCopyState1, batchBufBase));
+                m_picStateCmdBuffer.cmdBuf1stLvl = &cmdBuffer;
+                DECODE_CHK_STATUS(BuildCopyStateBB(m_picStateCmdBuffer, 0, 1));
+                DECODE_CHK_STATUS(m_miItf->AddMiBatchBufferEnd(&m_picStateCmdBuffer, nullptr));
+            }
+            DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_BATCH_BUFFER_START(&cmdBuffer, m_batchBufCopyState1));
+        }
+        else
+        {
+            if (isMismatch)
+            {
+                // GPU-init on every key frame: reset state=1, nextState=0.
+                auto &st            = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+                st                  = {};
+                st.pOsResource      = &m_vp9BasicFeature->m_resVp9MVPingPongStateBuffer->OsResource;
+                st.dwResourceOffset = 0;
+                st.dwValue          = 1;
+                DECODE_CHK_STATUS(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(&cmdBuffer));
+
+                st                  = {};
+                st.pOsResource      = &m_vp9BasicFeature->m_resVp9MVNextStateBuffer->OsResource;
+                st.dwResourceOffset = 0;
+                st.dwValue          = 0;
+                DECODE_CHK_STATUS(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(&cmdBuffer));
+            }
+            SETPAR_AND_ADDCMD(HCP_PIPE_BUF_ADDR_STATE, m_hcpItf, &cmdBuffer);
+        }
+
         SETPAR_AND_ADDCMD(HCP_IND_OBJ_BASE_ADDR_STATE, m_hcpItf, &cmdBuffer);
         DECODE_CHK_STATUS(AddAllCmds_HCP_VP9_SEGMENT_STATE(cmdBuffer));
+        if (!m_osInterface->pfnIsMismatchOrderProgrammingSupported())
+        {
+            SETPAR_AND_ADDCMD(HCP_VP9_PIC_STATE, m_hcpItf, &cmdBuffer);
+        }
+        else
+        {
+            // prepare 2nd level chained BB for two frame types
+            {
+                m_batchBufferForKeyFrame = m_secondLevelBBArray->Fetch();
+                if (m_batchBufferForKeyFrame != nullptr)
+                {
+                    ResourceAutoLock resLock(m_allocator, &m_batchBufferForKeyFrame->OsResource);
+                    uint8_t         *batchBufBase = (uint8_t *)resLock.LockResourceForWrite();
+                    DECODE_CHK_NULL(batchBufBase);
+                    DECODE_CHK_STATUS(Init2ndLevelCmdBuffer(*m_batchBufferForKeyFrame, batchBufBase));
+
+                    m_picStateCmdBuffer.cmdBuf1stLvl                        = &cmdBuffer;
+                    m_vp9BasicFeature->m_prevFrameParams.fields.VkFrameType = 1;
+                    DECODE_CHK_STATUS(PackPicState2ndLevelCmds(m_picStateCmdBuffer, false));
+                    DECODE_CHK_STATUS(m_miItf->AddMiBatchBufferEnd(&m_picStateCmdBuffer, nullptr));
+                }
+                DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_BATCH_BUFFER_START(&cmdBuffer, m_batchBufferForKeyFrame));
+            }
+
+            {
+                m_batchBufferForNonKeyFrame = m_secondLevelBBArray->Fetch();
+                if (m_batchBufferForNonKeyFrame != nullptr)
+                {
+                    ResourceAutoLock resLock(m_allocator, &m_batchBufferForNonKeyFrame->OsResource);
+                    uint8_t         *batchBufBase = (uint8_t *)resLock.LockResourceForWrite();
+                    DECODE_CHK_NULL(batchBufBase);
+                    DECODE_CHK_STATUS(Init2ndLevelCmdBuffer(*m_batchBufferForNonKeyFrame, batchBufBase));
+
+                    m_picStateCmdBuffer.cmdBuf1stLvl = &cmdBuffer;
+                    m_vp9BasicFeature->m_prevFrameParams.fields.VkFrameType = 0;
+                    DECODE_CHK_STATUS(PackPicState2ndLevelCmds(m_picStateCmdBuffer, true));
+                    DECODE_CHK_STATUS(m_miItf->AddMiBatchBufferEnd(&m_picStateCmdBuffer, nullptr));
+                }
+                DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_BATCH_BUFFER_START(&cmdBuffer, m_batchBufferForNonKeyFrame));
+            }
+        }
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS Vp9DecodePicPktXe2_Lpm_Base::Init2ndLevelCmdBuffer(MHW_BATCH_BUFFER &batchBuffer, uint8_t *batchBufBase)
+    {
+        DECODE_FUNC_CALL();
+
+        MOS_ZeroMemory(&m_picStateCmdBuffer, sizeof(MOS_COMMAND_BUFFER));
+        m_picStateCmdBuffer.pCmdBase   = (uint32_t *)batchBufBase;
+        m_picStateCmdBuffer.pCmdPtr    = m_picStateCmdBuffer.pCmdBase;
+        m_picStateCmdBuffer.iRemaining = batchBuffer.iSize;
+        m_picStateCmdBuffer.OsResource = batchBuffer.OsResource;
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+     MOS_STATUS Vp9DecodePicPktXe2_Lpm_Base::PackPicState2ndLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer, bool bLastIsKeyFrame)
+    {
+        DECODE_FUNC_CALL();
+
+        CodechalHwInterfaceXe2_Lpm_Base *hwInterface = dynamic_cast<CodechalHwInterfaceXe2_Lpm_Base *>(m_hwInterface);
+        DECODE_CHK_NULL(hwInterface);
+
+        uint32_t compareOperation = mhw::mi::xe2_lpm_base_next::Cmd::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::COMPARE_OPERATION::COMPARE_OPERATION_MADEQUALIDD;
+
+        if (bLastIsKeyFrame)
+        {
+            DECODE_CHK_STATUS(hwInterface->SendCondBbEndCmd(
+                &m_vp9BasicFeature->m_resVp9FrameStatusBuffer->OsResource, 0, 1, true, true, compareOperation, &cmdBuffer));
+        }
+        else
+        {
+            DECODE_CHK_STATUS(hwInterface->SendCondBbEndCmd(
+                &m_vp9BasicFeature->m_resVp9FrameStatusBuffer->OsResource, 0, 0, true, true, compareOperation, &cmdBuffer));
+        }
         SETPAR_AND_ADDCMD(HCP_VP9_PIC_STATE, m_hcpItf, &cmdBuffer);
 
         return MOS_STATUS_SUCCESS;
@@ -141,11 +307,9 @@ MOS_STATUS Vp9DecodePicPktXe2_Lpm_Base::Init()
 
         DECODE_CHK_STATUS(Vp9DecodePicPkt::MHW_SETPAR_F(HCP_PIPE_BUF_ADDR_STATE)(params));
 
-#ifdef _MMC_SUPPORTED
         Vp9DecodeMemCompXe2_Lpm_Base *vp9DecodeMemComp = dynamic_cast<Vp9DecodeMemCompXe2_Lpm_Base *>(m_mmcState);
         DECODE_CHK_NULL(vp9DecodeMemComp);
         DECODE_CHK_STATUS(vp9DecodeMemComp->CheckReferenceList(*m_vp9BasicFeature, params.PostDeblockSurfMmcState, params.PreDeblockSurfMmcState, params.presReferences));
-#endif
 
         if (m_vp9Pipeline->GetDecodeMode() == Vp9Pipeline::virtualTileDecodeMode)
         {
@@ -186,6 +350,69 @@ MOS_STATUS Vp9DecodePicPktXe2_Lpm_Base::Init()
                 &m_pictureStatesSize,
                 &m_picturePatchListSize,
                 &stateCmdSizeParams));
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS Vp9DecodePicPktXe2_Lpm_Base::PackMvBufAddrCmds(
+        MOS_COMMAND_BUFFER &cmdBuffer, bool isPing)
+    {
+        DECODE_FUNC_CALL();
+
+        CodechalHwInterfaceXe2_Lpm_Base *hwInterface =
+            dynamic_cast<CodechalHwInterfaceXe2_Lpm_Base *>(m_hwInterface);
+        DECODE_CHK_NULL(hwInterface);
+
+        uint32_t compareOperation =
+            mhw::mi::xe2_lpm_base_next::Cmd::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::
+                COMPARE_OPERATION::COMPARE_OPERATION_MADEQUALIDD;
+
+        // Skip this BB if stateBuffer does not select it: Ping skips when stateBuffer==0 (Pong's turn)
+        uint32_t skipIfValue = isPing ? 0 : 1;
+        DECODE_CHK_STATUS(hwInterface->SendCondBbEndCmd(
+            &m_vp9BasicFeature->m_resVp9MVPingPongStateBuffer->OsResource,
+            0, skipIfValue, true, true, compareOperation, &cmdBuffer));
+
+        // Emit full HCP_PIPE_BUF_ADDR_STATE with the indices pre-set by Execute()
+        SETPAR_AND_ADDCMD(HCP_PIPE_BUF_ADDR_STATE, m_hcpItf, &cmdBuffer);
+
+        // Signal which BB ran this frame via nextStateBuffer
+        uint32_t nextState = isPing ? 0 : 1;
+        auto &storeParams               = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+        storeParams                     = {};
+        storeParams.pOsResource         = &m_vp9BasicFeature->m_resVp9MVNextStateBuffer->OsResource;
+        storeParams.dwResourceOffset    = 0;
+        storeParams.dwValue             = nextState;
+        DECODE_CHK_STATUS(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(&cmdBuffer));
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS Vp9DecodePicPktXe2_Lpm_Base::BuildCopyStateBB(
+        MOS_COMMAND_BUFFER &cmdBuffer, uint32_t skipIfValue, uint32_t writeValue)
+    {
+        DECODE_FUNC_CALL();
+
+        CodechalHwInterfaceXe2_Lpm_Base *hwInterface =
+            dynamic_cast<CodechalHwInterfaceXe2_Lpm_Base *>(m_hwInterface);
+        DECODE_CHK_NULL(hwInterface);
+
+        uint32_t compareOperation =
+            mhw::mi::xe2_lpm_base_next::Cmd::MI_CONDITIONAL_BATCH_BUFFER_END_CMD::
+                COMPARE_OPERATION::COMPARE_OPERATION_MADEQUALIDD;
+
+        // Read nextStateBuffer; skip this BB if it indicates the wrong Ping/Pong ran
+        DECODE_CHK_STATUS(hwInterface->SendCondBbEndCmd(
+            &m_vp9BasicFeature->m_resVp9MVNextStateBuffer->OsResource,
+            0, skipIfValue, true, true, compareOperation, &cmdBuffer));
+
+        // Propagate the resolved state to stateBuffer for the next frame
+        auto &st            = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+        st                  = {};
+        st.pOsResource      = &m_vp9BasicFeature->m_resVp9MVPingPongStateBuffer->OsResource;
+        st.dwResourceOffset = 0;
+        st.dwValue          = writeValue;
+        DECODE_CHK_STATUS(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(&cmdBuffer));
 
         return MOS_STATUS_SUCCESS;
     }

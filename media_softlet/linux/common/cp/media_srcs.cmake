@@ -21,6 +21,7 @@
 set(CP_COMMON_SHARED_SOURCES_
     ${CP_COMMON_SHARED_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decodecp_interface.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/encodecp_interface.cpp
 )
 
 set(CP_COMMON_SHARED_HEADERS_

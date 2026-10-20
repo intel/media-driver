@@ -61,12 +61,11 @@ MOS_STATUS FieldScalingInterfaceG12::SetupMediaVfe(
 
 MOS_STATUS FieldScalingInterfaceG12::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
     if (m_mmcState == nullptr)
     {
         m_mmcState = MOS_New(CodecHalMmcStateG12, m_hwInterface);
         CODECHAL_DECODE_CHK_NULL_RETURN(m_mmcState);
     }
-#endif
+
     return MOS_STATUS_SUCCESS;
 }

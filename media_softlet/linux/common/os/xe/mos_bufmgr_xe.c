@@ -233,6 +233,7 @@ typedef struct mos_xe_bufmgr_gem {
 
     //Note: DON't put these fields in xe_device
     bool     has_vram;
+    bool     has_small_bar;
     uint8_t  va_bits;
     /** bitmask of all memory regions */
     uint64_t mem_regions_mask;
@@ -722,6 +723,39 @@ bool __mos_has_vram_xe(struct mos_bufmgr *bufmgr)
     return has_vram;
 }
 
+static bool __mos_has_small_bar_xe(struct mos_bufmgr *bufmgr)
+{
+    MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr, false)
+    struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bufmgr;
+    struct mos_xe_device *dev = &bufmgr_gem->xe_device;
+    int fd = bufmgr_gem->fd;
+
+    if (!bufmgr_gem->has_vram)
+    {
+        bufmgr_gem->has_small_bar = false;
+        return false;
+    }
+
+    MOS_DRM_CHK_XE_DEV(dev, mem_regions, __mos_query_mem_regions_xe, false)
+
+    struct drm_xe_query_mem_regions *mem_regions = dev->mem_regions;
+    for (int i = 0; i < mem_regions->num_mem_regions; i++)
+    {
+        if (mem_regions->mem_regions[i].mem_class == DRM_XE_MEM_REGION_CLASS_VRAM &&
+            mem_regions->mem_regions[i].cpu_visible_size < mem_regions->mem_regions[i].total_size)
+        {
+            bufmgr_gem->has_small_bar = true;
+            MOS_DRM_NORMALMESSAGE("Small BAR detected: VRAM total %llu, CPU visible %llu",
+                (unsigned long long)mem_regions->mem_regions[i].total_size,
+                (unsigned long long)mem_regions->mem_regions[i].cpu_visible_size);
+            return true;
+        }
+    }
+
+    bufmgr_gem->has_small_bar = false;
+    return false;
+}
+
 uint8_t __mos_query_va_bits_xe(struct mos_bufmgr *bufmgr)
 {
     uint8_t va_bits = 48;
@@ -1088,7 +1122,8 @@ __mos_context_restore_xe(struct mos_bufmgr *bufmgr,
     ret = mos_query_engines_count_xe(bufmgr, &nengine);
     MOS_DRM_CHK_STATUS_MESSAGE_RETURN(ret,
                 "query engine count of restore failed, return error(%d)", ret)
-    struct drm_xe_engine_class_instance engine_map[nengine];
+    struct drm_xe_engine_class_instance *engine_map = nullptr;
+    engine_map = (struct drm_xe_engine_class_instance *)MOS_AllocAndZeroMemory(nengine * sizeof(struct drm_xe_engine_class_instance));
     ret = mos_query_engines_xe(bufmgr,
                 context->engine_class,
                 context->engine_caps,
@@ -1120,7 +1155,7 @@ __mos_context_restore_xe(struct mos_bufmgr *bufmgr,
     //restore
     context->ctx.ctx_id = create.exec_queue_id;
     context->reset_count += 1;
-
+    MOS_SafeFreeMemory(engine_map);
     return MOS_XE_SUCCESS;
 }
 
@@ -1336,6 +1371,19 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
     {
         //Note: memory_region is related to gt_id for multi-tiles gpu, take gt_id into consideration in case of multi-tiles
         create.placement = bufmgr_gem->mem_regions_mask & (~0x1);
+
+        if (bufmgr_gem->has_small_bar)
+        {
+            /**
+             * On small BAR systems, only a portion of VRAM is CPU accessible.
+             * Set NEEDS_VISIBLE_VRAM to ensure the allocation lands in the
+             * CPU visible part of VRAM. Also add system memory as a fallback
+             * placement so the kernel can spill if CPU visible VRAM is full.
+             * On full BAR systems this flag is a noop.
+             */
+            create.flags |= DRM_XE_GEM_CREATE_FLAG_NEEDS_VISIBLE_VRAM;
+            create.placement |= bufmgr_gem->mem_regions_mask & 0x1;
+        }
     }
     else
     {
@@ -2484,7 +2532,7 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
     struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *) bo[0]->bufmgr;
     MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr_gem, -EINVAL)
 
-    uint64_t batch_addrs[num_bo];
+    uint64_t *batch_addrs = (uint64_t*)MOS_AllocAndZeroMemory(num_bo * sizeof(uint64_t));
 
     std::vector<mos_xe_exec_bo> exec_list;
     for (int i = 0; i < num_bo; i++)
@@ -2518,6 +2566,7 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
         {
             MOS_DRM_ASSERTMESSAGE("Failed to initial context timeline dep");
             bufmgr_gem->m_lock.unlock();
+            MOS_SafeFreeMemory(batch_addrs);
             return -ENOMEM;
         }
     }
@@ -2619,7 +2668,7 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
     {
         mos_sync_syncobj_destroy(bufmgr_gem->fd, temp_syncobj);
     }
-
+    MOS_SafeFreeMemory(batch_addrs);
     //Note: keep exec return value for final return value.
     return ret;
 }
@@ -2947,6 +2996,12 @@ mos_query_device_blob_xe(struct mos_bufmgr *bufmgr, MEDIA_SYSTEM_INFO* gfx_info)
         {
             assert(hwconfig[i+1] == 1);
             gfx_info->MaxVECS = hwconfig[i+2];
+        }
+
+        if (INTEL_HWCONFIG_SLM_SIZE_PER_SS_IN_KB == hwconfig[i])
+        {
+            assert(hwconfig[i + 1] == 1);
+            gfx_info->SLMSizeInKb = hwconfig[i + 2];
         }
 
         /* Advance to next key */
@@ -3669,6 +3724,7 @@ mos_bufmgr_gem_init_xe(int fd, int batch_size)
     bufmgr_gem->vm_id = __mos_vm_create_xe(&bufmgr_gem->bufmgr);
     __mos_query_mem_regions_instance_mask_xe(&bufmgr_gem->bufmgr);
     __mos_has_vram_xe(&bufmgr_gem->bufmgr);
+    __mos_has_small_bar_xe(&bufmgr_gem->bufmgr);
     __mos_get_default_alignment_xe(&bufmgr_gem->bufmgr);
 
     DRMLISTADD(&bufmgr_gem->managers, &bufmgr_list);

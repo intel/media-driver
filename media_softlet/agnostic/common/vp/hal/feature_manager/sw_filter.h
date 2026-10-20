@@ -406,11 +406,12 @@ struct FeatureParamCsc : public FeatureParam
     struct CSC_PARAMS
     {
         VPHAL_CSPACE    colorSpace      = CSpace_None;
+        VPHAL_GAMMA_TYPE gammaType      = VPHAL_GAMMA_NONE;
         uint32_t        chromaSiting    = 0;
         MOS_TILE_MODE_GMM tileMode      = MOS_TILE_4_GMM;
         bool operator == (const struct CSC_PARAMS &b)
         {
-            return colorSpace == b.colorSpace && chromaSiting == b.chromaSiting;
+            return colorSpace == b.colorSpace && gammaType == b.gammaType && chromaSiting == b.chromaSiting;
         }
     };
     CSC_PARAMS          input           = {};
@@ -1129,13 +1130,17 @@ protected:
 MEDIA_CLASS_DEFINE_END(vp__SwFilterCgc)
 };
 
-
+#define AI_FEATURE_PARAM_EXTENSION_SIZE_MAX 32
 
 struct FeatureParamAi : public FeatureParam
 {
-    uint32_t             stageIndex      = 0;
-    AI_SETTING_PIPE      settings        = {};
-    AI_SPLIT_GROUP_INDEX splitGroupIndex = {};
+    uint32_t             stageIndex                                          = 0;
+    AI_SETTING_PIPE      settings                                            = {};
+    AI_SPLIT_GROUP_INDEX splitGroupIndex                                     = {};
+    VPHAL_PERFTAG        perfTag                                             = VPHAL_NONE;
+    FeatureType          featureType                                         = FeatureTypeInvalid;
+
+    uint8_t extensionParam[AI_FEATURE_PARAM_EXTENSION_SIZE_MAX] = {};
 };
 
 class SwFilterAiBase : public SwFilter
@@ -1154,10 +1159,11 @@ public:
     virtual MOS_STATUS       InitializeStageGroupIndex(AI_SETTING_PIPE &settingPipe, AI_SPLIT_GROUP_INDEX &splitGroupIndex);
     // This need to be implemented by derived class
     virtual MOS_STATUS RegisterAiSettingPipe(VP_PIPELINE_PARAMS &params, AI_SETTING_PIPE &settingPipe) = 0;
+    virtual MOS_STATUS SetPerfTag(VPHAL_PERFTAG &perfTag);
 
     virtual MOS_STATUS AddFeatureGraphRTLog()
     {
-        //This will be added in the future
+        VP_PUBLIC_NORMALMESSAGE("Feature Graph: SwFilterAi%d: stageIndex %d, setting size %d, split group size %d", m_type, m_Params.stageIndex, m_Params.settings.size(), m_Params.splitGroupIndex.size());
         return MOS_STATUS_SUCCESS;
     }
 

@@ -116,6 +116,13 @@ public:
     //!
     virtual MOS_STATUS SetVdencCmd2Settings() override;
 
+    //!
+    //! \brief  Prepare StreamIn TU related settings
+    //! \return MOS_STATUS
+    //!         MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    virtual MOS_STATUS SetVdencStreaminStateSettings() override;
+
 MEDIA_CLASS_DEFINE_END(encode__EncodeAv1VdencConstSettingsXe2_Lpm_Base)
 };
 

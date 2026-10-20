@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2024, Intel Corporation
+* Copyright (c) 2024-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -28,24 +28,22 @@
 #define __CAPSTABLE_DATA_XE3_LPM_R0_SPECIFIC_H__
 
 #include "capstable_data_vp_xe3_lpm_r0_specific.h"
-#ifdef _MEDIA_RESERVED
+
 #if defined(_HEVC_ENCODE_VDENC_SUPPORTED)
 #include "capstable_data_hevc_encode_xe3_lpm_r0_specific.h"
 #endif
 #if defined(_AVC_ENCODE_VDENC_SUPPORTED)
 #include "capstable_data_avc_encode_xe3_lpm_r0_specific.h"
-#endif
-#if defined(_JPEG_ENCODE_SUPPORTED)
-#include "capstable_data_jpeg_encode_xe3_lpm_r0_specific.h"
 #endif 
 #if defined(_AV1_ENCODE_VDENC_SUPPORTED)
 #include "capstable_data_av1_encode_xe3_lpm_r0_specific.h"
 #endif
-#endif
 #if defined(_VP9_ENCODE_VDENC_SUPPORTED)
 #include "capstable_data_vp9_encode_xe3_lpm_r0_specific.h"
 #endif 
-
+#if defined(_JPEG_ENCODE_SUPPORTED)
+#include "capstable_data_jpeg_encode_xe3_lpm_r0_specific.h"
+#endif
 #if defined(_HEVC_DECODE_SUPPORTED)
 #include "capstable_data_hevc_decode_xe3_lpm_r0_specific.h"
 #endif
@@ -75,6 +73,9 @@
 
 #define IP_VERSION_XE3_LPM 0x1600
 const PlatformInfo plt_Xe3_Lpm_r0 = {IP_VERSION_XE3_LPM, 0};
+#define IP_VERSION_XE3_LPM_EXT 0x1601
+const PlatformInfo plt_Xe3_Lpm_ext_r0 = {IP_VERSION_XE3_LPM_EXT, 0};
+
 
 static const std::map<const uint32_t, const VAImageFormat*> imgtbl_Xe3_lpm_r0
 {
@@ -122,7 +123,7 @@ static const std::map<const uint32_t, const VAImageFormat*> imgtbl_Xe3_lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileHEVCSccMain444_10_Xe3_Lpm_r0
 {
-#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCSccMain444_10_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -132,7 +133,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCSccMain444_10_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileHEVCSccMain444_Xe3_Lpm_r0
 {
-#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCSccMain444_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -142,7 +143,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCSccMain444_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileHEVCSccMain10_Xe3_Lpm_r0
 {
-#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCSccMain10_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -152,7 +153,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCSccMain10_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileHEVCSccMain_Xe3_Lpm_r0
 {
-#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCSccMain_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -162,7 +163,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCSccMain_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileHEVCMain444_10_Xe3_Lpm_r0
 {
-#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCMain444_10_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -172,7 +173,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCMain444_10_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileHEVCMain444_Xe3_Lpm_r0
 {
-#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCMain444_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -182,7 +183,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCMain444_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileHEVCMain10_Xe3_Lpm_r0
 {
-#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCMain10_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -192,7 +193,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCMain10_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileHEVCMain_Xe3_Lpm_r0
 {
-#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCMain_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_HEVC_DECODE_SUPPORTED)
@@ -209,6 +210,10 @@ static const EntrypointMap entrypointMap_VAProfileHEVCMain12_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileHEVCMain422_10_Xe3_Lpm_r0
 {
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) 
+    {VAEntrypointEncSlice, &entrypointMap_VAProfileHEVCMain422_10_Data_Xe3_Lpm_r0},
+#endif
+
 #if defined(_HEVC_DECODE_SUPPORTED)
     {VAEntrypointVLD, &entrypointMap_VAProfileHEVCMain422_10Dec_Data_Xe3_Lpm_r0},
 #endif
@@ -230,7 +235,7 @@ static const EntrypointMap entrypointMap_VAProfileHEVCMain444_12_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileH264Main_Xe3_Lpm_r0
 {
-#if defined(_AVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_AVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileH264Main_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_AVC_DECODE_SUPPORTED)
@@ -240,7 +245,7 @@ static const EntrypointMap entrypointMap_VAProfileH264Main_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileH264High_Xe3_Lpm_r0
 {
-#if defined(_AVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_AVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileH264High_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_AVC_DECODE_SUPPORTED)
@@ -250,7 +255,7 @@ static const EntrypointMap entrypointMap_VAProfileH264High_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileH264ConstrainedBaseline_Xe3_Lpm_r0
 {
-#if defined(_AVC_ENCODE_VDENC_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_AVC_ENCODE_VDENC_SUPPORTED) 
     {VAEntrypointEncSlice, &entrypointMap_VAProfileH264ConstrainedBaseline_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_AVC_DECODE_SUPPORTED)
@@ -260,7 +265,7 @@ static const EntrypointMap entrypointMap_VAProfileH264ConstrainedBaseline_Xe3_Lp
 
 static const EntrypointMap entrypointMap_VAProfileJPEGBaseline_Xe3_Lpm_r0
 {
-#if defined(_JPEG_ENCODE_SUPPORTED) && defined(_MEDIA_RESERVED)
+#if defined(_JPEG_ENCODE_SUPPORTED) 
     {VAEntrypointEncPicture, &entrypointMap_VAProfileJPEGBaseline_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_JPEG_DECODE_SUPPORTED)
@@ -270,18 +275,11 @@ static const EntrypointMap entrypointMap_VAProfileJPEGBaseline_Xe3_Lpm_r0
 
 static const EntrypointMap entrypointMap_VAProfileAV1Profile0_Xe3_Lpm_r0
 {
-#if defined(_AV1_ENCODE_VDENC_SUPPORTED)&& defined(_MEDIA_RESERVED)
+#if defined(_AV1_ENCODE_VDENC_SUPPORTED)
     {VAEntrypointEncSlice, &entrypointMap_VAProfileAV1Profile0_Data_Xe3_Lpm_r0},
 #endif
 #if defined(_AV1_DECODE_SUPPORTED)
     {VAEntrypointVLD, &entrypointMap_VAProfileAV1Profile0Dec_Data_Xe3_Lpm_r0},
-#endif
-};
-
-static const EntrypointMap entrypointMap_VAProfileAV1Profile1_Xe3_Lpm_r0
-{
-#if defined(_AV1_ENCODE_VDENC_SUPPORTED)&& defined(_MEDIA_RESERVED)
-    {VAEntrypointEncSlice, &entrypointMap_VAProfileAV1Profile1_Data_Xe3_Lpm_r0},
 #endif
 };
 
@@ -399,7 +397,6 @@ static const ProfileMap profileMap_Xe3_Lpm_r0
 
 #if defined(_AV1_ENCODE_VDENC_SUPPORTED) || defined(_AV1_DECODE_SUPPORTED)
     {VAProfileAV1Profile0, &entrypointMap_VAProfileAV1Profile0_Xe3_Lpm_r0},
-    {VAProfileAV1Profile1, &entrypointMap_VAProfileAV1Profile1_Xe3_Lpm_r0},
 #endif
 
 #if defined(_VP9_ENCODE_VDENC_SUPPORTED) || defined(_VP9_DECODE_SUPPORTED)
@@ -424,9 +421,72 @@ static const ProfileMap profileMap_Xe3_Lpm_r0
 #endif
 };
 
+//!
+//! \brief  ProfileMap for Xe3_Lpm_ext_r0
+//!
+//! \brief  Definion for ProfileMap
+//!
+static const ProfileMap profileMap_Xe3_Lpm_ext_r0
+{
+    {VAProfileNone, &entrypointMap_VAProfileNone_Xe3_lpm_r0},
+#if defined(_HEVC_ENCODE_VDENC_SUPPORTED) || defined(_HEVC_DECODE_SUPPORTED)
+    {VAProfileHEVCSccMain444_10, &entrypointMap_VAProfileHEVCSccMain444_10_Xe3_Lpm_r0},
+    {VAProfileHEVCSccMain444, &entrypointMap_VAProfileHEVCSccMain444_Xe3_Lpm_r0},
+    {VAProfileHEVCSccMain10, &entrypointMap_VAProfileHEVCSccMain10_Xe3_Lpm_r0},
+    {VAProfileHEVCSccMain, &entrypointMap_VAProfileHEVCSccMain_Xe3_Lpm_r0},
+    {VAProfileHEVCMain444_10, &entrypointMap_VAProfileHEVCMain444_10_Xe3_Lpm_r0},
+    {VAProfileHEVCMain444, &entrypointMap_VAProfileHEVCMain444_Xe3_Lpm_r0},
+    {VAProfileHEVCMain10, &entrypointMap_VAProfileHEVCMain10_Xe3_Lpm_r0},
+    {VAProfileHEVCMain, &entrypointMap_VAProfileHEVCMain_Xe3_Lpm_r0},
+#endif
+
+#if defined(_HEVC_DECODE_SUPPORTED)
+    {VAProfileHEVCMain12, &entrypointMap_VAProfileHEVCMain12_Xe3_Lpm_r0},
+    {VAProfileHEVCMain422_10, &entrypointMap_VAProfileHEVCMain422_10_Xe3_Lpm_r0},
+    {VAProfileHEVCMain422_12, &entrypointMap_VAProfileHEVCMain422_12_Xe3_Lpm_r0},
+    {VAProfileHEVCMain444_12, &entrypointMap_VAProfileHEVCMain444_12_Xe3_Lpm_r0},
+#endif
+
+#if defined(_AVC_ENCODE_VDENC_SUPPORTED) || defined(_AVC_DECODE_SUPPORTED)
+    {VAProfileH264Main, &entrypointMap_VAProfileH264Main_Xe3_Lpm_r0},
+    {VAProfileH264High, &entrypointMap_VAProfileH264High_Xe3_Lpm_r0},
+    {VAProfileH264ConstrainedBaseline, &entrypointMap_VAProfileH264ConstrainedBaseline_Xe3_Lpm_r0},
+#endif
+
+#if defined(_JPEG_ENCODE_SUPPORTED) || defined(_JPEG_DECODE_SUPPORTED)
+    {VAProfileJPEGBaseline, &entrypointMap_VAProfileJPEGBaseline_Xe3_Lpm_r0},
+#endif
+
+#if defined(_AV1_ENCODE_VDENC_SUPPORTED) || defined(_AV1_DECODE_SUPPORTED)
+    {VAProfileAV1Profile0, &entrypointMap_VAProfileAV1Profile0_Xe3_Lpm_r0},
+#endif
+
+#if defined(_VP9_ENCODE_VDENC_SUPPORTED) || defined(_VP9_DECODE_SUPPORTED)
+    {VAProfileVP9Profile3, &entrypointMap_VAProfileVP9Profile3_Xe3_Lpm_r0},
+    {VAProfileVP9Profile2, &entrypointMap_VAProfileVP9Profile2_Xe3_Lpm_r0},
+    {VAProfileVP9Profile1, &entrypointMap_VAProfileVP9Profile1_Xe3_Lpm_r0},
+    {VAProfileVP9Profile0, &entrypointMap_VAProfileVP9Profile0_Xe3_Lpm_r0},
+#endif
+
+#if defined(_MPEG2_DECODE_SUPPORTED)
+    {VAProfileMPEG2Simple, &entrypointMap_VAProfileMPEG2Simple_Xe3_Lpm_r0},
+    {VAProfileMPEG2Main,   &entrypointMap_VAProfileMPEG2Main_Xe3_Lpm_r0},
+#endif
+
+#if defined(_VP8_DECODE_SUPPORTED)
+    {VAProfileVP8Version0_3, &entrypointMap_VAProfileVP8Version0_3_Xe3_Lpm_r0},
+#endif
+};
+
 static const CapsData capsData_Xe3_Lpm_r0
 {
   &profileMap_Xe3_Lpm_r0,
+  &imgtbl_Xe3_lpm_r0
+};
+
+static const CapsData capsData_Xe3_Lpm_ext_r0
+{
+  &profileMap_Xe3_Lpm_ext_r0,
   &imgtbl_Xe3_lpm_r0
 };
 

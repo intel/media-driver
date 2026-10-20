@@ -186,31 +186,27 @@ MOS_STATUS VpHdrFilter::CalculateEngineParams(
                     VP_PUBLIC_CHK_VALUE_RETURN(krnArg.uSize, kernelArg.uSize);
                     MOS_ZeroMemory(krnArg.pData, krnArg.uSize);
                 }
-                uint16_t mulSize = hdrParams.lutSize == 65 ? 128 : 64;
+                uint32_t mulSize = hdrParams.lutSize == 65 ? 128 : 64;
                 krnArg.eArgKind  = kernelArg.eArgKind;
                 switch (krnArg.uIndex)
                 {
                 case LUT_FILLLUTTABLE_IOLUTINDEX:
                     VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
                     *(uint32_t *)krnArg.pData = SurfaceType3DLut;
+                    krnArg.isOutput           = true;
                     break;
                 case LUT_FILLLUTTABLE_ICOEFINDEX:
                     VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
                     *(uint32_t *)krnArg.pData = SurfaceType3DLutCoef;
+                    krnArg.isOutput           = false;
                     break;
                 case LUT_FILLLUTTABLE_LUTSIZE:
                     VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
-                    MOS_SecureMemcpy(krnArg.pData, kernelArg.uSize, &hdrParams.lutSize, sizeof(uint16_t));
+                    MOS_SecureMemcpy(krnArg.pData, kernelArg.uSize, &hdrParams.lutSize, sizeof(hdrParams.lutSize));
                     break;
                 case LUT_FILLLUTTABLE_MULSIZE:
                     VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
-                    MOS_SecureMemcpy(krnArg.pData, kernelArg.uSize, &mulSize, sizeof(uint16_t));
-                    break;
-                case LUT_FILLLUTTABLE_LOCAL_SIZE:
-                    VP_PUBLIC_CHK_NULL_RETURN(krnArg.pData);
-                    static_cast<uint32_t *>(krnArg.pData)[0] = localWidth;
-                    static_cast<uint32_t *>(krnArg.pData)[1] = localHeight;
-                    static_cast<uint32_t *>(krnArg.pData)[2] = localDepth;
+                    MOS_SecureMemcpy(krnArg.pData, kernelArg.uSize, &mulSize, sizeof(mulSize));
                     break;
                 default:
                     bInit = false;
@@ -576,6 +572,8 @@ MOS_STATUS PolicyRenderHdr3DLutCalHandler::UpdateFeaturePipe(VP_EXECUTE_CAPS cap
         {
             filter2ndPass->GetFilterEngineCaps().VeboxARGB10bitOutput = 1;
         }
+
+        filter2ndPass->GetFilterEngineCaps().isH2S = featureHdr->GetSwFilterParams().hdrMode == VPHAL_HDR_MODE_TONE_MAPPING;
 
         executePipe.AddSwFilterUnordered(filter1ndPass, isInputPipe, index);
     }

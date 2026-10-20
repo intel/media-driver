@@ -21,6 +21,11 @@
 # This folder is only for render engine related files!
 # Do not add other files here.
 
+# Platform independent render engine MHW base layers. Included unconditionally
+# so that a platform leaf can derive from them regardless of which platform
+# subdirectory it lives in.
+media_include_subdirectory(hw)
+
 if(XE_HPG OR XE_LPG)
     media_include_subdirectory(Xe_HPG_Base)
     media_include_subdirectory(Xe_HPG)
@@ -28,6 +33,11 @@ endif()
 
 if(XE2_HPG)
     media_include_subdirectory(Xe2_HPG)
+endif()
+
+if(XE3P_LPG)
+    media_include_subdirectory(Xe3P_LPG_base)
+    media_include_subdirectory(Xe3P_LPG)
 endif()
 
 set(MEDIA_BIN_HEADERS_

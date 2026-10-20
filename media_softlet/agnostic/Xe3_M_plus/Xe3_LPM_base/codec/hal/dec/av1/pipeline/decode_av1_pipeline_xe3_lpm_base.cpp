@@ -54,11 +54,6 @@ namespace decode
         DECODE_CHK_NULL(settings);
         DECODE_CHK_STATUS(Initialize(settings));
 
-        if (MEDIA_IS_SKU(m_skuTable, FtrWithSlimVdbox))
-        {
-            m_numVdbox = 1;
-        }
-
         m_av1DecodePkt = MOS_New(Av1DecodePktXe3_Lpm_Base, this, m_task, m_hwInterface);
         DECODE_CHK_STATUS(RegisterPacket(DecodePacketId(this, av1DecodePacketId), m_av1DecodePkt));
         DECODE_CHK_STATUS(m_av1DecodePkt->Init());
@@ -82,14 +77,6 @@ namespace decode
         MOS_ZeroMemory(&scalPars, sizeof(ScalabilityPars));
         scalPars.disableRealTile = true;
         scalPars.enableVE = MOS_VE_SUPPORTED(m_osInterface);
-        if (MEDIA_IS_SKU(m_skuTable, FtrWithSlimVdbox))
-        {
-            scalPars.usingSlimVdbox = true;
-        }
-        else
-        {
-            scalPars.usingSlimVdbox = false;
-        }
         scalPars.numVdbox = m_numVdbox;
 
         if (m_allowVirtualNodeReassign)
@@ -150,6 +137,12 @@ namespace decode
                 inputParameters.currOriginalPic            = basicFeature->m_curRenderPic;
                 inputParameters.currDecodedPicRes          = basicFeature->m_destSurface.OsResource;
                 inputParameters.numUsedVdbox               = m_numVdbox;
+
+                CODECHAL_DEBUG_TOOL(
+                    if (m_streamout != nullptr) {
+                        DECODE_CHK_STATUS(m_streamout->InitStatusReportParam(inputParameters));
+                    });
+
 #ifdef _DECODE_PROCESSING_SUPPORTED
                 CODECHAL_DEBUG_TOOL(
                     DecodeDownSamplingFeature *downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature *>(
@@ -219,12 +212,6 @@ namespace decode
                     })
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-#ifdef _DECODE_PROCESSING_SUPPORTED
-                if (m_av1DecodePkt->m_aqmPkt && m_av1DecodePkt->m_aqmPkt->m_downSampling->m_aqmHistogramEnable)
-                {
-                    m_av1DecodePkt->m_aqmPkt->m_downSampling->DumpSfcOutputs(m_debugInterface);
-                }
-#endif
                 DECODE_CHK_STATUS(StatusCheck());
 #endif
                 // Only update user features for the first frame.
@@ -299,12 +286,10 @@ namespace decode
             pair.second->Destroy();
         }
 
-#ifdef _MMC_SUPPORTED
         if (m_mmcState != nullptr)
         {
             MOS_Delete(m_mmcState);
         }
-#endif
 
         return Av1Pipeline::Uninitialize();
     }
@@ -325,10 +310,6 @@ namespace decode
         DECODE_CHK_STATUS(subPacketManager.Register(
                             DecodePacketId(this, av1PictureSubPacketId), *pictureDecodePkt));
 
-        Av1DecodeTilePktXe3_Lpm_Base *tileDecodePkt = MOS_New(Av1DecodeTilePktXe3_Lpm_Base, this, m_hwInterface);
-        DECODE_CHK_NULL(tileDecodePkt);
-        DECODE_CHK_STATUS(subPacketManager.Register(
-                            DecodePacketId(this, av1TileSubPacketId), *tileDecodePkt));
 #ifdef _DECODE_PROCESSING_SUPPORTED
         Av1DownSamplingPktXe3_Lpm_Base *downSamplingPkt = MOS_New(Av1DownSamplingPktXe3_Lpm_Base, this, m_hwInterface);
         DECODE_CHK_NULL(downSamplingPkt);
@@ -340,12 +321,17 @@ namespace decode
         DECODE_CHK_STATUS(subPacketManager.Register(
             DecodePacketId(this, av1DecodeAqmId), *aqmDecodePkt));
 #endif
+
+        Av1DecodeTilePktXe3_Lpm_Base *tileDecodePkt = MOS_New(Av1DecodeTilePktXe3_Lpm_Base, this, m_hwInterface);
+        DECODE_CHK_NULL(tileDecodePkt);
+        DECODE_CHK_STATUS(subPacketManager.Register(
+                            DecodePacketId(this, av1TileSubPacketId), *tileDecodePkt));
+
         return MOS_STATUS_SUCCESS;
     }
 
     MOS_STATUS Av1PipelineXe3_Lpm_Base::InitMmcState()
     {
-    #ifdef _MMC_SUPPORTED
         DECODE_CHK_NULL(m_hwInterface);
         m_mmcState = MOS_New(DecodeMemCompXe3_Lpm_Base, m_hwInterface);
         DECODE_CHK_NULL(m_mmcState);
@@ -353,7 +339,7 @@ namespace decode
         Av1BasicFeature *basicFeature = dynamic_cast<Av1BasicFeature*>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
         DECODE_CHK_NULL(basicFeature);
         DECODE_CHK_STATUS(basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
-    #endif
+
         return MOS_STATUS_SUCCESS;
     }
 

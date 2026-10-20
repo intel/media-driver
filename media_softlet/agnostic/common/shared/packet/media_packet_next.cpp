@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2022, Intel Corporation
+* Copyright (c) 2018-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -54,7 +54,12 @@ MOS_STATUS MediaPacket::StartStatusReportNext(
 
     result = SetStartTagNext(osResource, offset, srType, cmdBuffer);
 
-    MEDIA_CHK_STATUS_RETURN(NullHW::StartPredicateNext(m_osInterface, m_miItf, cmdBuffer));
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (!m_bypassHwLegacyEnabled)
+#endif
+    {
+        MEDIA_CHK_STATUS_RETURN(NullHW::StartPredicateNext(m_osInterface, m_miItf, cmdBuffer));
+    }
 
     return result;
 }
@@ -102,7 +107,12 @@ MOS_STATUS MediaPacket::EndStatusReportNext(
     PMOS_RESOURCE osResource = nullptr;
     uint32_t      offset     = 0;
 
-    MEDIA_CHK_STATUS_RETURN(NullHW::StopPredicateNext(m_osInterface, m_miItf, cmdBuffer));
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (!m_bypassHwLegacyEnabled)
+#endif
+    {
+        MEDIA_CHK_STATUS_RETURN(NullHW::StopPredicateNext(m_osInterface, m_miItf, cmdBuffer));
+    }
 
     result = m_statusReport->GetAddress(srType, osResource, offset);
 

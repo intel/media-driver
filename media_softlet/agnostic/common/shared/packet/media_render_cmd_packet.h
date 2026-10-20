@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2021-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -48,6 +48,9 @@ class MhwCpInterface;
 
 #define RENDER_PACKET_ASSERTMESSAGE(_message, ...) \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_HW, 0, _message, ##__VA_ARGS__)
+
+#define RENDER_PACKET_WARNINGMESSAGE(_message, ...) \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_HW, 0, _message, ##__VA_ARGS__)
 
 #define RENDER_PACKET_NORMALMESSAGE(_message, ...) \
     MOS_NORMALMESSAGE(MOS_COMPONENT_HW, 0, _message, ##__VA_ARGS__)
@@ -99,6 +102,7 @@ typedef struct _KERNEL_WALKER_PARAMS
 
     int32_t                             iBlocksX;
     int32_t                             iBlocksY;
+    int32_t                             iBlocksZ;
     RECT                                alignedRect;
     PIPECONTRL_PARAMS                   pipeControlParams;
     bool                                isVerticalPattern;
@@ -121,10 +125,16 @@ typedef struct _KERNEL_WALKER_PARAMS
 
     bool                                hasBarrier;
     uint32_t                            slmSize;
-    PMHW_INLINE_DATA_PARAMS             inlineDataParamBase;
-    uint32_t                            inlineDataParamSize;
 
     uint32_t                            simdSize;
+
+    uint32_t                            registersPerThread;
+
+    PMHW_INDIRECT_STATE_RESOURCE_PARAMS curbeResourceList;
+    uint32_t                            curbeResourceListSize;
+
+    PMHW_INDIRECT_STATE_RESOURCE_PARAMS inlineResourceList;
+    uint32_t                            inlineResourceListSize;
 }KERNEL_WALKER_PARAMS, * PKERNEL_WALKER_PARAMS;
 
 typedef struct _KERNEL_PACKET_RENDER_DATA
@@ -180,6 +190,8 @@ typedef struct _RENDERHAL_SURFACE_NEXT : public _RENDERHAL_SURFACE
     uint32_t Index;
 }RENDERHAL_SURFACE_NEXT, * PRENDERHAL_SURFACE_NEXT;
 
+using KERNEL_RENDER_DATA = std::map<uint32_t, KERNEL_PACKET_RENDER_DATA>;
+
 class RenderCmdPacket : virtual public CmdPacket, public mhw::mi::Itf::ParSetting
 {
 public:
@@ -202,11 +214,11 @@ public:
     }
 
     virtual uint32_t SetSurfaceForHwAccess(
-        PMOS_SURFACE                    surface,
-        PRENDERHAL_SURFACE_NEXT         pRenderSurface,
-        PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
-        bool                            bWrite,
-        std::set<uint32_t>             &stateOffsets);
+        PMOS_SURFACE                           surface,
+        PRENDERHAL_SURFACE_NEXT                pRenderSurface,
+        PRENDERHAL_SURFACE_STATE_PARAMS        pSurfaceParams,
+        bool                                   bWrite,
+        std::vector<RENDERHAL_STATE_LOCATION> &stateLocations);
 
     // Step3: RSS Setup, return index insert in binding table
     virtual uint32_t SetSurfaceForHwAccess(
@@ -226,22 +238,22 @@ public:
         uint32_t *                      numOfSurfaceEntries = nullptr);
 
     virtual MOS_STATUS SetSurfaceForHwAccess(
-        PMOS_SURFACE                    surface,
-        PRENDERHAL_SURFACE_NEXT         pRenderSurface,
-        PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
-        std::set<uint32_t>             &bindingIndexes,
-        bool                            bWrite,
-        std::set<uint32_t>             &stateOffsets,
-        uint32_t                        capcityOfSurfaceEntries = 0,
-        PRENDERHAL_SURFACE_STATE_ENTRY *surfaceEntries      = nullptr,
-        uint32_t                       *numOfSurfaceEntries = nullptr);
+        PMOS_SURFACE                           surface,
+        PRENDERHAL_SURFACE_NEXT                pRenderSurface,
+        PRENDERHAL_SURFACE_STATE_PARAMS        pSurfaceParams,
+        std::set<uint32_t>                    &bindingIndexes,
+        bool                                   bWrite,
+        std::vector<RENDERHAL_STATE_LOCATION> &stateLocations,
+        uint32_t                               capcityOfSurfaceEntries = 0,
+        PRENDERHAL_SURFACE_STATE_ENTRY        *surfaceEntries          = nullptr,
+        uint32_t                              *numOfSurfaceEntries     = nullptr);
 
     virtual uint32_t SetBufferForHwAccess(
-        PMOS_SURFACE                    buffer,
-        PRENDERHAL_SURFACE_NEXT         pRenderSurface,
-        PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
-        bool                            bWrite,
-        std::set<uint32_t>             &stateOffsets);
+        PMOS_SURFACE                           buffer,
+        PRENDERHAL_SURFACE_NEXT                pRenderSurface,
+        PRENDERHAL_SURFACE_STATE_PARAMS        pSurfaceParams,
+        bool                                   bWrite,
+        std::vector<RENDERHAL_STATE_LOCATION> &stateLocations);
 
     virtual uint32_t SetBufferForHwAccess(
         PMOS_SURFACE                    buffer,
@@ -251,15 +263,15 @@ public:
         bool                            bWrite);
     
     virtual MOS_STATUS SetBufferForHwAccess(
-        PMOS_SURFACE                    buffer,
-        PRENDERHAL_SURFACE_NEXT         pRenderSurface,
-        PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
-        std::set<uint32_t>             &bindingIndexes,
-        bool                            bWrite,
-        std::set<uint32_t>             &stateOffsets);
+        PMOS_SURFACE                           buffer,
+        PRENDERHAL_SURFACE_NEXT                pRenderSurface,
+        PRENDERHAL_SURFACE_STATE_PARAMS        pSurfaceParams,
+        std::set<uint32_t>                    &bindingIndexes,
+        bool                                   bWrite,
+        std::vector<RENDERHAL_STATE_LOCATION> &stateLocations);
 
     virtual uint32_t SetBufferForHwAccess(
-        MOS_BUFFER                      buffer,
+        MOS_BUFFER                      &buffer,
         PRENDERHAL_SURFACE_NEXT         pRenderSurface,
         PRENDERHAL_SURFACE_STATE_PARAMS pSurfaceParams,
         bool                            bWrite);
@@ -305,7 +317,7 @@ protected:
         PRENDERHAL_SURFACE pRenderSurface);
 
     virtual MOS_STATUS InitRenderHalBuffer(
-        MOS_BUFFER         surface,
+        const MOS_BUFFER  &surface,
         PRENDERHAL_SURFACE pRenderSurface);
 
     virtual void OcaDumpDbgInfo(MOS_COMMAND_BUFFER &cmdBuffer, MOS_CONTEXT &mosContext)
@@ -337,6 +349,8 @@ protected:
     }
 
     virtual void UpdateKernelConfigParam(RENDERHAL_KERNEL_PARAM &kernelParam);
+
+    MOS_STATUS SendMultiKernelMediaStates(PRENDERHAL_INTERFACE pRenderHal, PMOS_COMMAND_BUFFER pCmdBuffer);
 
 protected:
     PRENDERHAL_INTERFACE        m_renderHal = nullptr;
@@ -384,6 +398,10 @@ protected:
     uint32_t                m_bKernelFenceEnabled : 1;
     bool                    m_bFlushToGo = true;
     uint8_t                 m_ui8InterfaceDescriptorOffset = 0;
+
+    uint32_t           m_slmSize          = 0;
+    KERNEL_RENDER_DATA m_kernelRenderData = {};  // Only for MULTI_KERNELS_WITH_ONE_MEDIA_STATE case.
+
 MEDIA_CLASS_DEFINE_END(RenderCmdPacket)
 };
 #endif // __MEDIA_RENDER_CMD_PACKET_H__

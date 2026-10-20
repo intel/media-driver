@@ -1328,7 +1328,8 @@ MOS_STATUS CodecHalDecodeScalability_SetSfcState(
     if (tileColumnIndex == 0)
     {
         scalabilityState->fistValidTileIndex = 0;
-        scalabilityState->lastValidTileIndex = tileColumnCount - 1;
+        CODECHAL_DECODE_CHK_COND_RETURN(tileColumnCount == 0,"tileColumnCount minmum value should be 1");
+        scalabilityState->lastValidTileIndex = tileColumnCount - 1;                
         scalabilityState->dstXLandingCount = 0;
     }
 
@@ -1367,7 +1368,7 @@ MOS_STATUS CodecHalDecodeScalability_SetSfcState(
         {
             const uint32_t one_by_sf_fraction_precision = 19;
             const uint32_t beta_precision = 5;
-            uint32_t xPhaseShift = MOS_CLAMP_MIN_MAX(MOS_F_ROUND((((double)srcRegion->m_width / dstRegion->m_width - 1.0) / 2.0) * 524288.0F), -(1 << (4 + 19)), ((1 << (4 + 19)) - 1));
+            double xPhaseShift = MOS_CLAMP_MIN_MAX(MOS_F_ROUND((((double)srcRegion->m_width / dstRegion->m_width - 1.0) / 2.0) * 524288.0F), -(1 << (4 + 19)), ((1 << (4 + 19)) - 1));
 
             double tempDestCntx = (((double)scalabilityState->dstXLandingCount * (double)oneBySf) + xPhaseShift);
             if (tempDestCntx < 0)
@@ -1379,8 +1380,16 @@ MOS_STATUS CodecHalDecodeScalability_SetSfcState(
 
         if (xLandingPoint >= (double)(tileEndX - xOffset))
         {
-            dstEndX = scalabilityState->dstXLandingCount - 1;
-            break;
+            if(scalabilityState->dstXLandingCount >= 1)
+            {
+                dstEndX = scalabilityState->dstXLandingCount - 1;
+                break;
+            }
+            else
+            {
+                CODECHAL_DECODE_ASSERTMESSAGE("Invalid dstXLandingCount in this condition"); //scalabilityState->dstXLandingCount- 1 should not < 0 at this condition
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
         }
         else
         {

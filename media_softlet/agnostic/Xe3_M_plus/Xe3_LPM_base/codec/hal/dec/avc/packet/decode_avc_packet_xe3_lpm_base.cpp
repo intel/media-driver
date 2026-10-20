@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2022, Intel Corporation
+* Copyright (c) 2022-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -36,6 +36,17 @@
 namespace decode
 {
 
+MOS_STATUS AvcDecodePktXe3_Lpm_Base::Init()
+{
+    DECODE_CHK_STATUS(AvcDecodePkt::Init());
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    DecodeSubPacket *subPacket = m_avcPipeline->GetSubPacket(DecodePacketId(m_avcPipeline, avcDecodeAqmId));
+    m_aqmPkt                   = dynamic_cast<AvcDecodeAqmPktXe3LpmBase *>(subPacket);
+#endif
+
+    return MOS_STATUS_SUCCESS;
+}
 MOS_STATUS AvcDecodePktXe3_Lpm_Base::Submit(
     MOS_COMMAND_BUFFER* cmdBuffer,
     uint8_t packetPhase)
@@ -74,6 +85,14 @@ MOS_STATUS AvcDecodePktXe3_Lpm_Base::Submit(
     }
 
     DECODE_CHK_STATUS(PackPictureLevelCmds(*cmdBuffer));
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    if (m_aqmPkt)
+    {
+        m_aqmPkt->Execute(*cmdBuffer);
+    }
+#endif
+
     DECODE_CHK_STATUS(PackSliceLevelCmds(*cmdBuffer));
 
     HalOcaInterfaceNext::DumpCodechalParam(*cmdBuffer, (MOS_CONTEXT_HANDLE)m_osInterface->pOsContext, m_avcPipeline->GetCodechalOcaDumper(), CODECHAL_AVC);
@@ -121,6 +140,15 @@ MOS_STATUS AvcDecodePktXe3_Lpm_Base::PackSliceLevelCmds(MOS_COMMAND_BUFFER &cmdB
         }
     }
 
+#ifdef _DECODE_PROCESSING_SUPPORTED
+    if (m_aqmPkt)
+    {
+        // Add VD_PIPELINE_FLUSH twice
+        VdPipelineFlushVdaqm(cmdBuffer);
+        m_aqmPkt->Flush(cmdBuffer);
+    }
+#endif
+
     DECODE_CHK_STATUS(EnsureAllCommandsExecuted(cmdBuffer));
 
     DECODE_CHK_STATUS(EndStatusReport(statusReportMfx, &cmdBuffer));
@@ -136,6 +164,23 @@ MOS_STATUS AvcDecodePktXe3_Lpm_Base::PackSliceLevelCmds(MOS_COMMAND_BUFFER &cmdB
     {
         DECODE_CHK_STATUS(m_miItf->AddMiBatchBufferEnd(&cmdBuffer, nullptr));
     }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS AvcDecodePktXe3_Lpm_Base::VdPipelineFlushVdaqm(MOS_COMMAND_BUFFER &cmdBuffer)
+{
+    DECODE_FUNC_CALL();
+
+    auto &par = m_vdencItf->MHW_GETPAR_F(VD_PIPELINE_FLUSH)();
+    par       = {};
+
+    par.waitDoneMFX                = true;  // bit3
+    par.waitDoneVDCmdMsgParser     = true;  // bit4
+    par.waitDoneVDAQM              = true;  // bit7
+    par.flushVDAQM                 = true;  // bit22
+
+    m_vdencItf->MHW_ADDCMD_F(VD_PIPELINE_FLUSH)(&cmdBuffer);
 
     return MOS_STATUS_SUCCESS;
 }

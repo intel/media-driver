@@ -27,6 +27,12 @@
 
 #include "mos_user_setting.h"
 
+#if _MEDIA_RESERVED
+#include "mos_user_setting_specific_ext.h"
+#else
+#define MOS_USER_SETTING_DECLARE_EXT_KEYS(_userSettingPtr)
+#endif
+
 MOS_STATUS MosUserSetting::InitMosUserSettingSpecific(MediaUserSettingSharedPtr userSettingPtr)
 {
     DeclareUserSettingKey(
@@ -67,6 +73,8 @@ MOS_STATUS MosUserSetting::InitMosUserSettingSpecific(MediaUserSettingSharedPtr 
         1,
         false); //
 #endif
+
+    MOS_USER_SETTING_DECLARE_EXT_KEYS(userSettingPtr);
 
     return MOS_STATUS_SUCCESS;
 }

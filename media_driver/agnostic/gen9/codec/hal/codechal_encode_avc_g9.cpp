@@ -2731,9 +2731,6 @@ MOS_STATUS CodechalEncodeAvcEncG9::GetStatusReport(
     EncodeStatusReport *codecStatus = (EncodeStatusReport *)status;
 
     if ((m_mfeEnabled && m_codecFunction == CODECHAL_FUNCTION_FEI_ENC)
-#ifdef FEI_ENABLE_CMRT
-        || (m_codecFunction == CODECHAL_FUNCTION_FEI_PRE_ENC)
-#endif
         )
     {
         if (m_cmEvent[m_cmEventCheckIdx] != nullptr)

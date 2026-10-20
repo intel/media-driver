@@ -194,6 +194,12 @@ static bool ptlDeviceB082 = DeviceInfoFactory<GfxDeviceInfo>::
 static bool ptlDeviceB083 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0xB083, &ptlInfo);
 
+static bool ptlDeviceB084 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0xB084, &ptlInfo);
+
+static bool ptlDeviceB086 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0xB086, &ptlInfo);
+
 static bool ptlDeviceB08F = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0xB08F, &ptlInfo);
 
@@ -220,3 +226,10 @@ static bool ptlDeviceB0B0 = DeviceInfoFactory<GfxDeviceInfo>::
 
 static bool ptlDeviceB0FF = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0xB0FF, &ptlInfo);
+
+//WCL DeviceID
+static bool wclDeviceFD80= DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0xFD80, &ptlInfo);
+
+static bool wclDeviceFD81 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0xFD81, &ptlInfo);

@@ -29,6 +29,7 @@
 #include <algorithm>
 #include "media_perf_profiler.h"
 #include "media_blt_copy_next.h"
+#include "mhw_utilities_next.h"
 #include "mos_os_cp_interface_specific.h"
 #include "renderhal.h"
 #define BIT( n )                            ( 1 << (n) )
@@ -1064,6 +1065,7 @@ MOS_STATUS BltStateNext::SetPrologParamsforCmdbuffer(PMOS_COMMAND_BUFFER cmdBuff
            cmdBuffer->Attributes.dwMediaFrameTrackingAddrOffset = GenericPrologParams.dwMediaFrameTrackingAddrOffset;
            cmdBuffer->Attributes.resMediaFrameTrackingSurface   = GenericPrologParams.presMediaFrameTrackingSurface;
    }
+   MHW_CHK_STATUS_RETURN(Mhw_SendNativeFenceSyncBBStartCmd(cmdBuffer, pOsInterface, m_miItf));
 
    return eStatus;
 }

@@ -35,7 +35,7 @@ class DecodeNullHWProxyTestPkt
 {
 private:
     DecodeNullHWProxyTestPkt() {}
-    MOS_BUFFER       *m_dataStoreBuf       = nullptr;
+    std::map<MOS_GPU_CONTEXT, MOS_BUFFER*> m_dataStoreBufMap;
     BatchBufferArray *m_secondLevelBBArray = nullptr;
     PMHW_BATCH_BUFFER m_batchBuf           = nullptr;
     DecodeAllocator  *m_allocator          = nullptr;
@@ -59,7 +59,8 @@ public:
     MOS_STATUS Init(DecodePipeline* pipeline, MOS_INTERFACE *osInterface);
     MOS_STATUS Destory();
     MOS_STATUS Init2ndLevelCmdBuffer(MHW_BATCH_BUFFER &batchBuffer, uint8_t *batchBufBase);
-    MOS_STATUS Pack2ndLevelCmds(DecodePipeline *pipeline, MOS_COMMAND_BUFFER &cmdBuffer);
+    MOS_STATUS Pack2ndLevelCmds(DecodePipeline *pipeline, MOS_INTERFACE *osInterface, MOS_COMMAND_BUFFER &cmdBuffer);
+    MOS_BUFFER* GetCurrentDataStoreBuf(MOS_INTERFACE *osInterface);
     MOS_STATUS AddNullHwProxyCmd(DecodePipeline *pipeline, MOS_INTERFACE *osInterface, PMOS_COMMAND_BUFFER cmdBuffer);
     MOS_STATUS SendCondBbEndCmd(
         PMOS_RESOURCE resource,
@@ -69,6 +70,7 @@ public:
         bool          enableEndCurrentBatchBuffLevel,
         uint32_t      compareOperation,
         PMOS_COMMAND_BUFFER cmdBuffer);
+MEDIA_CLASS_DEFINE_END(decode__DecodeNullHWProxyTestPkt)
 };
 #endif
 }

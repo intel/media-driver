@@ -383,13 +383,12 @@ MOS_STATUS AvcPipelineM12::Execute()
 
 MOS_STATUS AvcPipelineM12::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
     DECODE_CHK_NULL(m_hwInterface);
     m_mmcState = MOS_New(DecodeMemCompG12, m_hwInterface);
     DECODE_CHK_NULL(m_mmcState);
 
     DECODE_CHK_STATUS(m_basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

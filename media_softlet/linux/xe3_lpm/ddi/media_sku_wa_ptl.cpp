@@ -226,12 +226,11 @@ static bool InitPtlMediaSkuExt(struct GfxDeviceInfo *devInfo,
         compressibleSurfaceEnable,
         "Enable Compressible Surface Creation",
         MediaUserSetting::Group::Device);
-#ifdef _MMC_SUPPORTED
+
     if (compressibleSurfaceEnable)
     {
         MEDIA_WR_SKU(skuTable, FtrCompressibleSurfaceDefault, 1);
     }
-#endif
 
     //Disable LocalMemory for all iGraphics
     MEDIA_WR_SKU(skuTable, FtrLocalMemory, 0);
@@ -242,6 +241,16 @@ static bool InitPtlMediaSkuExt(struct GfxDeviceInfo *devInfo,
 
     MEDIA_WR_SKU(skuTable, FtrAV1VLDLSTDecoding, 1);
     MEDIA_WR_SKU(skuTable, FtrMediaIPSeparation , 1);
+
+    //WCL
+    if (drvInfo->devId == 0xFD80 ||
+        drvInfo->devId == 0xFD81)
+    {
+        MEDIA_WR_SKU(skuTable, FtrVeboxTypeH, 1);
+        MEDIA_WR_SKU(skuTable, FtrCapturePipe, 0);
+        MEDIA_WR_SKU(skuTable, FtrIntelVVCVLDDecodingMain10, 0);
+        MEDIA_WR_SKU(skuTable, FtrIntelVVCVLDDecodingMultilayerMain10, 0);
+    }
 
     return true;
 }
@@ -276,7 +285,7 @@ static bool InitPtlMediaWaExt(struct GfxDeviceInfo *devInfo,
 
     /*software wa to disable calculate the UV offset by gmmlib
       CPU blt call will add/remove padding on the platform*/
-    MEDIA_WR_WA(waTable, WaDisableGmmLibOffsetInDeriveImage, 1);
+    MEDIA_WR_WA(waTable, WaDisableGmmLibOffsetInDeriveImage, 0);
 
     /* Turn off MMC for codec, need to remove once turn it on */
     MEDIA_WR_WA(waTable, WaDisableCodecMmc, 0);
@@ -293,6 +302,16 @@ static bool InitPtlMediaWaExt(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_WA(waTable, Wa_15014143531, 1);
 
     MEDIA_WR_WA(waTable, Wa_16021867713, 1);
+
+    MEDIA_WR_WA(waTable, Wa_15017726119, 1);
+
+    MEDIA_WR_WA(waTable, Wa_16025947269, 1);
+
+    if (!(drvInfo->devId == 0xFD80 || drvInfo->devId == 0xFD81) //Not WCL Device
+        &&(drvInfo->devRev == 0x0))  //A0 only
+    {
+        MEDIA_WR_WA(waTable, Wa_15017562431, 1);
+    }
 
     return true;
 }

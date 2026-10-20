@@ -77,6 +77,50 @@ void VpDumperTool::GetOsFilePath(
     MOS_SecureMemcpy(pOsFilePath, MAX_PATH, (void*)pcFilePath, strlen(pcFilePath));
 }
 
+void VpSurfaceDumper::CopyScanlineWithHoleStripping(
+    uint8_t        *pDst,
+    const uint8_t  *pSrc,
+    uint32_t        dwWidth,
+    MOS_FORMAT      format,
+    MEDIA_FEATURE_TABLE *skuTable)
+{
+    VP_FUNC_CALL();
+
+    // For RGB24 format on older platforms, need to remove one invalid zero every 64 bytes
+    // which is designed to avoid splitting two cache lines.
+    // On newer platforms (FtrSFCRGB24OutNoPadding), RGB24 is continuous packed — no holes to strip.
+    if (format == Format_R8G8B8 &&
+        !(skuTable && MEDIA_IS_SKU(skuTable, FtrSFCRGB24OutNoPadding)))
+    {
+        int dummyBytesPerLine = dwWidth / 63;
+        int resPixel          = dwWidth - 63 * dummyBytesPerLine;
+        for (int p = 0; p < dummyBytesPerLine; p++)
+        {
+            MOS_SecureMemcpy(
+                &pDst[p * 63],
+                63,
+                &pSrc[p * 64],
+                63);
+        }
+        if (resPixel > 0)
+        {
+            MOS_SecureMemcpy(
+                &pDst[dummyBytesPerLine * 63],
+                resPixel,
+                &pSrc[dummyBytesPerLine * 64],
+                resPixel);
+        }
+    }
+    else
+    {
+        MOS_SecureMemcpy(
+            pDst,
+            dwWidth,
+            pSrc,
+            dwWidth);
+    }
+}
+
 MOS_STATUS VpSurfaceDumper::GetPlaneDefs(
     PVPHAL_SURFACE                    pSurface,
     VPHAL_SURF_DUMP_SURFACE_DEF      *pPlanes,
@@ -154,6 +198,7 @@ MOS_STATUS VpSurfaceDumper::GetPlaneDefs(
     case Format_R10G10B10A2:
     case Format_B10G10R10A2:
     case Format_Y410:
+    case Format_R16G16F:
         *pdwNumPlanes = 1;
 
         pPlanes[0].dwWidth  = pSurface->dwWidth * 4;
@@ -536,17 +581,25 @@ MOS_STATUS VpSurfaceDumper::GetPlaneDefs(
     case Format_X8R8G8B8:
     case Format_A8B8G8R8:
     case Format_X8B8G8R8:
-    case Format_R8G8B8:
     case Format_AYUV:
     case Format_AUYV:
     case Format_R10G10B10A2:
     case Format_B10G10R10A2:
     case Format_Y410:
+    case Format_R16G16F:
         *pdwNumPlanes = 1;
 
         pPlanes[0].dwWidth = pSurface->osSurface->dwWidth * 4;
         pPlanes[0].dwHeight = pSurface->osSurface->dwHeight;
         pPlanes[0].dwPitch = pSurface->osSurface->dwPitch;
+        break;
+
+    case Format_R8G8B8:
+        *pdwNumPlanes = 1;
+
+        pPlanes[0].dwWidth  = pSurface->osSurface->dwWidth * 3;
+        pPlanes[0].dwHeight = pSurface->osSurface->dwHeight;
+        pPlanes[0].dwPitch  = pSurface->osSurface->dwPitch;
         break;
 
     case Format_Y416:
@@ -962,6 +1015,111 @@ MOS_STATUS VpSurfaceDumper::CopyThenLockResources(
     return MOS_STATUS_SUCCESS;
 }
 
+MOS_STATUS VpSurfaceDumper::CopyThenLockResources(
+    PMOS_INTERFACE               pOsInterface,
+    PVP_SURFACE                 pSurface,
+    PVPHAL_SURFACE              &temp2DSurfForCopy,
+    bool                         hasAuxSurf,
+    bool                         enableAuxDump,
+    PMOS_LOCK_PARAMS             pLockFlags,
+    PMOS_RESOURCE               &pLockedResource,
+    VPHAL_SURF_DUMP_SURFACE_DEF *pPlanes,
+    uint32_t                    *pdwNumPlanes,
+    uint32_t                    *pdwSize,
+    uint8_t                    *&pData,
+    const char                  *psPathPrefix,
+    uint64_t                     iCounter)
+{
+    VP_FUNC_CALL();
+
+    bool bAllocated;
+
+    Mos_MemPool memType = MOS_MEMPOOL_SYSTEMMEMORY;
+#if !EMUL
+    if (pSurface->osSurface->OsResource.pGmmResInfo->GetSetCpSurfTag(false, 0) != 0)
+    {
+        memType = MOS_MEMPOOL_VIDEOMEMORY;
+    }
+#endif
+
+    temp2DSurfForCopy = (PVPHAL_SURFACE)MOS_AllocAndZeroMemory(sizeof(VPHAL_SURFACE));
+    VP_DEBUG_CHK_NULL_RETURN(temp2DSurfForCopy);
+    VP_DEBUG_CHK_STATUS_RETURN(VpUtils::ReAllocateSurface(
+        pOsInterface,
+        temp2DSurfForCopy,
+        "Temp2DSurfForSurfDumper",
+        pSurface->osSurface->Format,
+        MOS_GFXRES_2D,
+        MOS_TILE_LINEAR,
+        pSurface->osSurface->dwWidth,
+        pSurface->osSurface->dwHeight,
+        false,
+        MOS_MMC_DISABLED,
+        &bAllocated,
+        MOS_HW_RESOURCE_DEF_MAX,
+        MOS_TILE_UNSET_GMM,
+        memType));
+
+    pOsInterface->pfnDoubleBufferCopyResource(
+        pOsInterface,
+        &pSurface->osSurface->OsResource,
+        &temp2DSurfForCopy->OsResource,
+        false);
+
+    if (pOsInterface->pfnIsAsynDevice(pOsInterface))
+    {
+        MOS_LOCK_PARAMS LockFlags;
+        char            sPath[MAX_PATH];
+        MOS_ZeroMemory(sPath, MAX_PATH);
+        MOS_SecureStringPrint(
+            sPath,
+            MAX_PATH,
+            sizeof(sPath),
+            "%s_f[%04lld]_w[%d]_h[%d]_p[%d].%s",
+            psPathPrefix,
+            iCounter,
+            temp2DSurfForCopy->dwWidth,
+            pPlanes[0].dwHeight,
+            temp2DSurfForCopy->dwPitch,
+            VpDumperTool::GetFormatStr(temp2DSurfForCopy->Format));
+        LockFlags.DumpAfterSubmit          = true;
+        ResourceDumpAttri     resDumpAttri = {};
+        MOS_GFXRES_FREE_FLAGS resFreeFlags = {0};
+        if (VpUtils::IsSyncFreeNeededForMMCSurface(temp2DSurfForCopy, pOsInterface))
+        {
+            resFreeFlags.SynchronousDestroy = 1;
+        }
+        resDumpAttri.lockFlags    = LockFlags;
+        resDumpAttri.res          = temp2DSurfForCopy->OsResource;
+        resDumpAttri.res.Format   = temp2DSurfForCopy->Format;
+        resDumpAttri.fullFileName = sPath;
+        resDumpAttri.width        = temp2DSurfForCopy->dwWidth;
+        resDumpAttri.height       = temp2DSurfForCopy->dwHeight;
+        resDumpAttri.pitch        = temp2DSurfForCopy->dwPitch;
+        resDumpAttri.resFreeFlags = resFreeFlags;
+        pOsInterface->resourceDumpAttriArray.push_back(resDumpAttri);
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    pData = (uint8_t *)pOsInterface->pfnLockResource(
+        pOsInterface,
+        &temp2DSurfForCopy->OsResource,
+        pLockFlags);
+    pLockedResource = &temp2DSurfForCopy->OsResource;
+
+    // get plane definitions
+    VP_DEBUG_CHK_STATUS_RETURN(GetPlaneDefs(
+        temp2DSurfForCopy,
+        pPlanes,
+        pdwNumPlanes,
+        pdwSize,
+        hasAuxSurf,        //(hasAuxSurf && enableAuxDump),
+        !enableAuxDump));  // !(hasAuxSurf && enableAuxDump)));
+
+    return MOS_STATUS_SUCCESS;
+}
+
 void VpSurfaceDumper::UnlockAndDestroyResource(
     PMOS_INTERFACE               osInterface,
     PVPHAL_SURFACE               tempSurf,
@@ -1006,6 +1164,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
     uint32_t                            dstPlaneOffset[3] = {0};
     MOS_LOCK_PARAMS                     LockFlags;
     bool                                hasAuxSurf;
+    MEDIA_FEATURE_TABLE                *skuTable = nullptr;
     bool                                enableAuxDump;
     bool                                enablePlaneDump   = false;
     PMOS_RESOURCE                       pLockedResource   = nullptr;
@@ -1040,6 +1199,9 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
         hasAuxSurf, //(hasAuxSurf && enableAuxDump),
         !enableAuxDump));// !(hasAuxSurf && enableAuxDump)));
 
+    VP_DEBUG_CHK_NULL(pOsInterface->pfnGetSkuTable);
+    skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
+
     if (bLockSurface)
     {
         // Caller should not give pData when it expect the function to lock surf
@@ -1065,8 +1227,6 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
         isPlanar      = (pSurface->Format == Format_NV12) || (pSurface->Format == Format_P010) || (pSurface->Format == Format_P016);
 #endif
         VP_DEBUG_CHK_NULL(pOsInterface);
-        VP_DEBUG_CHK_NULL(pOsInterface->pfnGetSkuTable);
-        auto *skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
 
         // RGBP and BGRP support tile output but should not transfer to linear surface due to height 16 align issue.
         if (((skuTable && MEDIA_IS_SKU(skuTable, FtrE2ECompression) || isPlanar) &&
@@ -1176,38 +1336,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
             }
             else
             {
-                // For RGB24 format, need to remove one invalid zero every 64 byte
-                // which is designed to avoid splitting two cache lines
-                if (pSurface->Format == Format_R8G8B8)
-                {
-                    int dummyBytesPerLine = planes[j].dwWidth / 63;
-                    int resPixel          = planes[j].dwWidth - 63 * dummyBytesPerLine;
-                    for (int p = 0; p < dummyBytesPerLine; p++)
-                    {
-                        MOS_SecureMemcpy(
-                            &pTmpDst[p * 63],
-                            63,
-                            &pTmpSrc[p * 64],
-                            63);
-                    }
-                    if (resPixel > 0)
-                    {
-                        MOS_SecureMemcpy(
-                            &pTmpDst[dummyBytesPerLine * 63],
-                            resPixel,
-                            &pTmpSrc[dummyBytesPerLine * 64],
-                            resPixel);
-                    }
-                }
-                else
-                {
-                    MOS_SecureMemcpy(
-                        pTmpDst,
-                        planes[j].dwWidth,
-                        pTmpSrc,
-                        planes[j].dwWidth);
-
-                }
+                CopyScanlineWithHoleStripping(pTmpDst, pTmpSrc, planes[j].dwWidth, pSurface->Format, skuTable);
                 pTmpSrc += planes[j].dwPitch;
                 pTmpDst += planes[j].dwWidth;
 
@@ -1263,7 +1392,7 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
 
         resourceIndex = 0;
         pSurfaceBase  = pData;
-        isPlanar      = (pOsInterface->pfnGetGmmClientContext(pOsInterface)->IsPlanar(pSurface->OsResource.pGmmResInfo->GetResourceFormat()) != 0);
+        isPlanar      = (pOsInterface->pfnIsPlanar) ? pOsInterface->pfnIsPlanar(pOsInterface, pSurface->OsResource.pGmmResInfo->GetResourceFormat()) : false;
         auxDataY      = (uint8_t*)pSurfaceBase + pSurface->OsResource.pGmmResInfo->GetPlanarAuxOffset(resourceIndex, GMM_AUX_Y_CCS);
         auxDataUV     = (uint8_t*)pSurfaceBase + pSurface->OsResource.pGmmResInfo->GetPlanarAuxOffset(resourceIndex, GMM_AUX_UV_CCS);
         if (isPlanar)
@@ -1349,7 +1478,6 @@ finish:
     return eStatus;
 }
 
-
 MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
     PMOS_INTERFACE          pOsInterface,
     PVP_SURFACE          pSurface,
@@ -1373,6 +1501,8 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
     bool                                enableAuxDump;
     bool                                enablePlaneDump = false;
     PMOS_RESOURCE                       pLockedResource = nullptr;
+    PVPHAL_SURFACE                      temp2DSurfForCopy = nullptr;
+    MEDIA_FEATURE_TABLE                *skuTable = nullptr;
 
     VP_DEBUG_ASSERT(pSurface);
     VP_DEBUG_ASSERT(pOsInterface);
@@ -1387,6 +1517,15 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
     MOS_ZeroMemory(sOsPath, MAX_PATH);
     dwNumPlanes = 0;
     enablePlaneDump = m_dumpSpec.enablePlaneDump;
+
+    VPHAL_SURF_DUMP_SPEC *pDumpSpec = &m_dumpSpec;
+
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        pDumpSpec->enablePostCompCopy,
+        __VPHAL_DBG_SURF_DUMP_POSTCOMP_RESOURCE_COPY,
+        MediaUserSetting::Group::Device);
+    VP_DEBUG_NORMALMESSAGE("enablePostCompCopy is %d", pDumpSpec->enablePostCompCopy);
 
     if (pSurface->osSurface->dwDepth == 0)
     {
@@ -1423,10 +1562,30 @@ MOS_STATUS VpSurfaceDumper::DumpSurfaceToFile(
         {
             LockFlags.NoDecompress = 1;
         }
-
         bool isPlanar = false;
-        isPlanar      = (pSurface->osSurface->OsResource.Format == Format_NV12) || (pSurface->osSurface->OsResource.Format == Format_P010) || (pSurface->osSurface->OsResource.Format == Format_P016);
+#if !EMUL
+        isPlanar = (pSurface->osSurface->Format == Format_NV12) || (pSurface->osSurface->Format == Format_P010) || (pSurface->osSurface->Format == Format_P016);
+#endif
+        VP_DEBUG_CHK_NULL(pOsInterface);
+        VP_DEBUG_CHK_NULL(pOsInterface->pfnGetSkuTable);
+        skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
 
+        // RGBP and BGRP support tile output but should not transfer to linear surface due to height 16 align issue.
+        if (((skuTable && MEDIA_IS_SKU(skuTable, FtrE2ECompression) || isPlanar) &&
+             (pSurface->osSurface->TileType != MOS_TILE_LINEAR) &&
+             !(pSurface->osSurface->Format == Format_RGBP || pSurface->osSurface->Format == Format_BGRP) &&
+             pDumpSpec->enablePostCompCopy) ||
+            (pOsInterface->pfnIsAsynDevice(pOsInterface) && pSurface->osSurface->OsResource.bConvertedFromDDIResource))
+        {
+            VP_DEBUG_NORMALMESSAGE("use CopyThenLockResources to dump postcomp surface");
+            VP_DEBUG_CHK_STATUS(CopyThenLockResources(pOsInterface, pSurface, temp2DSurfForCopy, hasAuxSurf, enableAuxDump, &LockFlags, pLockedResource, planes, &dwNumPlanes, &dwSize, pData, psPathPrefix, iCounter));
+            if (pOsInterface->pfnIsAsynDevice(pOsInterface))
+            {
+                UnlockAndDestroyResource(pOsInterface, temp2DSurfForCopy, pLockedResource, true);
+                return eStatus;
+            }
+        }
+        else
         {
             pData = (uint8_t *)pOsInterface->pfnLockResource(
                 pOsInterface,
@@ -1541,6 +1700,8 @@ finish:
         eStatus = (MOS_STATUS)pOsInterface->pfnUnlockResource(pOsInterface, pLockedResource);
         VP_DEBUG_ASSERT(eStatus == MOS_STATUS_SUCCESS);
     }
+
+    UnlockAndDestroyResource(pOsInterface, temp2DSurfForCopy, pLockedResource, bLockSurface);
 
     return eStatus;
 }
@@ -2823,7 +2984,9 @@ MOS_STATUS VpParameterDumper::DumpRenderParameter(
     {
         VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t<VPHAL_COLORFILL_PARAMS>\n"));
         VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<bYCbCr>%d</bYCbCr>\n", pRenderParams->pColorFillParams->bYCbCr));
+        VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<COLOR Float Enable=\"integer\">%d</COLOR>\n", pRenderParams->pColorFillParams->isFloat));
         VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<COLOR type=\"integer\">%08x</COLOR>\n", pRenderParams->pColorFillParams->Color));
+        VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<COLOR Float type=\"integer\">%f, %f, %f, %f</COLOR>\n", pRenderParams->pColorFillParams->ColorFloat[0], pRenderParams->pColorFillParams->ColorFloat[1], pRenderParams->pColorFillParams->ColorFloat[2], pRenderParams->pColorFillParams->ColorFloat[3]));
         VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t\t<CSPACE>%s</CSPACE>\n", GetColorSpaceStr(pRenderParams->pColorFillParams->CSpace)));
         VP_DEBUG_CHK_STATUS(VpDumperTool::AppendString(false, &pcOutContents, "\t\t</VPHAL_COLORFILL_PARAMS>\n"));
     }
@@ -3013,6 +3176,7 @@ const char * VpDumperTool::GetFormatStr(MOS_FORMAT format)
         case Format_P010        : return _T("p010");
         case Format_P016        : return _T("p016");
         case Format_R16F        : return _T("r16f");
+        case Format_R16G16F     : return _T("r16g16f");
         case Format_Y210        : return _T("y210");
         case Format_Y216        : return _T("y216");
         case Format_Y410        : return _T("y410");

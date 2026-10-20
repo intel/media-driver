@@ -664,7 +664,8 @@ public:
         MHW_MI_CHK_NULL(paramsG12);
         typename TVdencCmds::VDENC_PIPE_MODE_SELECT_CMD cmd;
 
-        cmd.DW1.StandardSelect                 = CodecHal_GetStandardFromMode(params->Mode);
+        uint32_t standardSelect = CodecHal_GetStandardFromMode(params->Mode);
+        cmd.DW1.StandardSelect  = (standardSelect >= CODECHAL_HCP_BASE) ? (standardSelect - CODECHAL_HCP_BASE) : standardSelect;
         cmd.DW1.ScalabilityMode                = !(paramsG12->MultiEngineMode == MHW_VDBOX_HCP_MULTI_ENGINE_MODE_FE_LEGACY);
         if (CODECHAL_ENCODE_MODE_HEVC == params->Mode || CODECHAL_ENCODE_MODE_AV1 == params->Mode)
         {

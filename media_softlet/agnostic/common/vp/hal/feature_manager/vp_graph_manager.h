@@ -38,7 +38,7 @@
 namespace vp
 {
 
-#define GRAPH_PACKAGE_INITIALIZE_TIMEOUT_MS 50
+#define GRAPH_PACKAGE_INITIALIZE_TIMEOUT_MS 100  // first frame need initialize graph timing
 
 class GraphPackage
 {

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2024, Intel Corporation
+* Copyright (c) 2021-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -87,6 +87,7 @@ public:
     
     DECALRE_HUC_KERNEL(VvcS2L, Xe2Lpm)
     DECALRE_HUC_KERNEL(VvcS2L, Xe3Lpm);
+    DECALRE_HUC_KERNEL(VvcS2L, Xe3P_Lpm_Base);
 
 MEDIA_CLASS_DEFINE_END(decode__HucPacketCreator)
 };

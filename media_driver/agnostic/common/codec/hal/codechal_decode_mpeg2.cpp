@@ -131,7 +131,7 @@ MOS_STATUS CodechalDecodeMpeg2::InsertDummySlices(
         // slice header uses 4 bytes
         CODECHAL_DECODE_CHK_STATUS_RETURN(CopyDataSurface(
             sizeof(CODECHAL_DECODE_MPEG2_WaDummyBitstream),
-            m_resMpeg2DummyBistream,
+            &m_resMpeg2DummyBistream,
             &m_resCopiedDataBuffer[m_currCopiedData],
             &m_dummySliceDataOffset));
 
@@ -202,7 +202,7 @@ MOS_STATUS CodechalDecodeMpeg2::InsertDummySlices(
 
 MOS_STATUS CodechalDecodeMpeg2::CopyDataSurface(
     uint32_t                        dataSize,
-    MOS_RESOURCE                    sourceSurface,
+    PMOS_RESOURCE                   sourceSurface,
     PMOS_RESOURCE                   copiedSurface,
     uint32_t                        *currOffset)
 {
@@ -235,7 +235,7 @@ MOS_STATUS CodechalDecodeMpeg2::CopyDataSurface(
     {
         CodechalDataCopyParams dataCopyParams;
         MOS_ZeroMemory(&dataCopyParams, sizeof(CodechalDataCopyParams));
-        dataCopyParams.srcResource = &sourceSurface;
+        dataCopyParams.srcResource = sourceSurface;
         dataCopyParams.srcSize = size;
         dataCopyParams.srcOffset = 0;
         dataCopyParams.dstResource = copiedSurface;
@@ -273,7 +273,7 @@ MOS_STATUS CodechalDecodeMpeg2::CopyDataSurface(
     // Use huc stream out to do the copy
     CODECHAL_DECODE_CHK_STATUS_RETURN(HucCopy(
         &cmdBuffer,                // pCmdBuffer
-        &sourceSurface,            // presSrc
+        sourceSurface,             // presSrc
         copiedSurface,             // presDst
         size,                      // u32CopyLength
         0,                         // u32CopyInputOffset
@@ -668,7 +668,7 @@ MOS_STATUS CodechalDecodeMpeg2::SetFrameStates ()
         {
             CODECHAL_DECODE_CHK_STATUS_RETURN(CopyDataSurface(
                 m_dataSize,
-                m_resDataBuffer,
+                &m_resDataBuffer,
                 &m_resCopiedDataBuffer[m_currCopiedData],
                 &m_copiedDataOffset));
         }
@@ -760,9 +760,7 @@ MOS_STATUS CodechalDecodeMpeg2::DecodeStateLevel()
         pipeBufAddrParams.psPreDeblockSurface = &m_destSurface;
     }
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&pipeBufAddrParams));
-#endif
 
     // when there is not a forward or backward reference,
     // the index is set to the destination frame index
@@ -823,9 +821,7 @@ MOS_STATUS CodechalDecodeMpeg2::DecodeStateLevel()
             &(m_streamOutBuffer[m_streamOutCurrBufIdx]);
     }
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->CheckReferenceList(&pipeBufAddrParams));
-#endif
 
     CODECHAL_DEBUG_TOOL(
         for (uint32_t i = 0; i < CODEC_MAX_NUM_REF_FRAME_NON_AVC; i++)
@@ -1653,10 +1649,9 @@ MOS_STATUS CodechalDecodeMpeg2::MacroblockLevel()
 
 MOS_STATUS CodechalDecodeMpeg2::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
     m_mmc = MOS_New(CodechalMmcDecodeMpeg2, m_hwInterface, this);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_mmc);
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

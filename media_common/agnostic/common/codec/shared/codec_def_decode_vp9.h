@@ -75,6 +75,12 @@ typedef struct _CODEC_VP9_PIC_PARAMS
 {
     uint16_t              FrameHeightMinus1;               // [0..65535]
     uint16_t              FrameWidthMinus1;                // [0..65535]
+    uint16_t              LastFrameWidthMinus1;            // [0..65535] - Width of last reference frame minus 1
+    uint16_t              LastFrameHeightMinus1;           // [0..65535] - Height of last reference frame minus 1
+    uint16_t              GoldenFrameWidthMinus1;          // [0..65535] - Width of golden reference frame minus 1
+    uint16_t              GoldenFrameHeightMinus1;         // [0..65535] - Height of golden reference frame minus 1
+    uint16_t              AltFrameWidthMinus1;             // [0..65535] - Width of alternate reference frame minus 1
+    uint16_t              AltFrameHeightMinus1;            // [0..65535] - Height of alternate reference frame minus 1
 
     union
     {
@@ -100,7 +106,8 @@ typedef struct _CODEC_VP9_PIC_PARAMS
             uint32_t        refresh_frame_context           : 1;        // [0..1]
             uint32_t        frame_context_idx               : 2;        // [0..3]
             uint32_t        LosslessFlag                    : 1;        // [0..1]
-            uint32_t        ReservedField                   : 2;        // [0]
+            uint32_t        usePrevInFindMvReferences       : 1;        // [0..1] - Use previous frame in MV reference search
+            uint32_t        ReservedField                   : 1;        // [0] - Reserved for future use
         } fields;
         uint32_t            value;
     } PicFlags;
@@ -112,6 +119,7 @@ typedef struct _CODEC_VP9_PIC_PARAMS
     uint8_t             log2_tile_rows;                             // [0..2]
     uint8_t             log2_tile_columns;                          // [0..5]
     uint8_t             UncompressedHeaderLengthInBytes;            // [0..255]
+    uint16_t            UncompressedHeaderOffset;                   // [0..65535] - Offset to uncompressed header in bytes
     uint16_t            FirstPartitionSize;                         // [0..65535]
     uint8_t             SegTreeProbs[7];
     uint8_t             SegPredProbs[3];

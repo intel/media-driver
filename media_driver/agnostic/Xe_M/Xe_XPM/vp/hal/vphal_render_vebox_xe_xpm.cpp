@@ -913,9 +913,7 @@ MOS_STATUS VPHAL_VEBOX_STATE_XE_XPM::VeboxRenderVeboxCmd(
             CmdBuffer.Attributes.pAttriVe = &pOsInterface->bufAttriVe[pOsInterface->CurrentGpuContextOrdinal];
         }
 
-#ifdef _MMC_SUPPORTED
         VPHAL_RENDER_CHK_STATUS(pVeboxInterfaceXe_Xpm->setVeboxPrologCmd(m_pRenderHal->pMhwMiInterface, &CmdBuffer));
-#endif
 
         // Initialize command buffer and insert prolog with VE params
         VPHAL_RENDER_CHK_STATUS(InitCmdBufferWithVeParams(pRenderHal, CmdBuffer, pGenericPrologParams));

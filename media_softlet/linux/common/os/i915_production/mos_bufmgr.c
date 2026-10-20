@@ -60,9 +60,7 @@
 #include "libdrm_lists.h"
 #include "mos_bufmgr.h"
 #include "mos_bufmgr_priv.h"
-#ifdef ENABLE_XE_KMD
 #include "mos_bufmgr_xe.h"
-#endif
 #include "string.h"
 #include "i915_drm.h"
 #include "mos_vma.h"
@@ -5487,12 +5485,10 @@ mos_bufmgr_gem_init(int fd, int batch_size, int *device_type)
     {
         return mos_bufmgr_gem_init_i915(fd, batch_size);
     }
-#ifdef ENABLE_XE_KMD
     else if (DEVICE_TYPE_XE == type)
     {
         return mos_bufmgr_gem_init_xe(fd, batch_size);
     }
-#endif
 
     return nullptr;
 }
@@ -5619,11 +5615,10 @@ int mos_get_device_id(int fd, uint32_t *deviceId)
     {
         return mos_get_dev_id_i915(fd, deviceId);
     }
-#ifdef ENABLE_XE_KMD
     else if (DEVICE_TYPE_XE == device_type)
     {
         return mos_get_dev_id_xe(fd, deviceId);
     }
-#endif
+
     return -ENODEV;
 }

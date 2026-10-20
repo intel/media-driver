@@ -121,7 +121,7 @@ MOS_STATUS Vp9VdencPipelineXe2_Lpm_Base::GetSystemVdboxNumber()
     MOS_ZeroMemory(&mediaSysInfo, sizeof(MEDIA_ENGINE_INFO));
     eStatus = m_osInterface->pfnGetMediaEngineInfo(m_osInterface, mediaSysInfo);
 
-    if (eStatus == MOS_STATUS_SUCCESS && (!MEDIA_IS_SKU(m_skuTable, FtrWithSlimVdbox)) && disableScalability == false)
+    if (eStatus == MOS_STATUS_SUCCESS && disableScalability == false)
     {
         m_numVdbox = (uint8_t)(mediaSysInfo.VDBoxInfo.NumberOfVDBoxEnabled);
     }
@@ -239,13 +239,11 @@ MOS_STATUS Vp9VdencPipelineXe2_Lpm_Base::InitMmcState()
 {
     ENCODE_FUNC_CALL();
 
-#ifdef _MMC_SUPPORTED
     ENCODE_CHK_NULL_RETURN(m_hwInterface);
     
     // Update MMC to Xe2_Lpm_base
     m_mmcState = MOS_New(EncodeMemCompXe_Lpm_Plus_Base, m_hwInterface);
     ENCODE_CHK_NULL_RETURN(m_mmcState);
-#endif
 
     return MOS_STATUS_SUCCESS;
 }

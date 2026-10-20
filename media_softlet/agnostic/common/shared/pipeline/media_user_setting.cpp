@@ -39,14 +39,5 @@ MOS_STATUS MediaPipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingP
         int32_t(1),
         false);
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    DeclareUserSettingKeyForDebug(
-        userSettingPtr,
-        "Enable VECopy For Surface Dump",
-        MediaUserSetting::Group::Sequence,
-        false,
-        false);
-#endif  // _DEBUG || _RELEASE_INTERNAL
-
     return MOS_STATUS_SUCCESS;
 }

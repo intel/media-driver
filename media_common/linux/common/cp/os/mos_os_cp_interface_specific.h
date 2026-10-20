@@ -52,7 +52,7 @@ public:
         MOS_HW_COMMAND HwCommandType,
         uint32_t       forceDwordOffset,
         void *         plResource,
-        void *         pPatchLocationList)
+        void *         pPatchLocationList = nullptr)
 
     {
         MOS_UNUSED(pPatchAddress);

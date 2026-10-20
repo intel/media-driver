@@ -34,7 +34,13 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatfor
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
     uint32_t compBypassMode = VPHAL_COMP_BYPASS_ENABLED;    // Vebox Comp Bypass is on by default
-    auto skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
+    MEDIA_FEATURE_TABLE* skuTable = nullptr;
+
+    if (m_osInterface->pfnGetSkuTable)
+    {
+        skuTable = m_osInterface->pfnGetSkuTable(m_osInterface);
+    }
+
 
     m_userSettingPtr = m_osInterface->pfnGetUserSettingInstance(m_osInterface);
     // Read user feature key to get the Composition Bypass mode
@@ -286,6 +292,26 @@ VpUserFeatureControl::VpUserFeatureControl(MOS_INTERFACE &osInterface, VpPlatfor
         m_ctrlValDefault.splitFramePortions = splitFramePortions;
     }
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    uint32_t enable3DLutTexture = 0;
+    status = ReadUserSetting(
+        m_userSettingPtr,
+        enable3DLutTexture,
+        __VPHAL_ENABLE_TEXTURE_3DLUT,
+        MediaUserSetting::Group::Sequence,
+        uint32_t(0),
+        true);
+    if (MOS_SUCCEEDED(status) && enable3DLutTexture != 0)
+    {
+        m_ctrlValDefault.enable3DLutNewLayout = true;
+        VP_PUBLIC_NORMALMESSAGE("3DLUT texture layout conversion enabled");
+    }
+    else
+    {
+        m_ctrlValDefault.enable3DLutNewLayout = false;
+    }
+#endif
+
     //check vebox type 
     if (skuTable && (MEDIA_IS_SKU(skuTable, FtrVeboxTypeH)))
     {
@@ -392,6 +418,23 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
         m_ctrlValDefault.enabledSFCRGBPRGB24Output = 0;
     }
 
+    //Enable SFC Linear Output Temp Surf compression.
+    uint32_t enabledSFCLinearOutputTempSurfCompression = 0;
+    eRegKeyReadStatus = ReadUserSettingForDebug(
+        m_userSettingPtr,
+        enabledSFCLinearOutputTempSurfCompression,
+        __VPHAL_ENABLE_SFC_LINEAR_OUTPUT_TEMP_SURF_COMPRESSION,
+        MediaUserSetting::Group::Sequence);
+    if (MOS_SUCCEEDED(eRegKeyReadStatus))
+    {
+        m_ctrlValDefault.enabledSFCLinearOutputTempSurfCompression = enabledSFCLinearOutputTempSurfCompression;
+    }
+    else
+    {
+        // Default value
+        m_ctrlValDefault.enabledSFCLinearOutputTempSurfCompression = 0;
+    }
+
     //Enable IFNCC report
     bool enableIFNCC  = false;
     eRegKeyReadStatus = ReadUserSettingForDebug(
@@ -472,10 +515,13 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
     else
 #endif
     {
-        auto *waTable = m_osInterface->pfnGetWaTable(m_osInterface);
-        VP_PUBLIC_CHK_NULL_RETURN(waTable);
-        // Default value
-        m_ctrlValDefault.enableSFCLinearOutputByTileConvert = MEDIA_IS_WA(waTable, Wa_15016458807);
+        if (m_osInterface->pfnGetWaTable)
+        {
+            auto waTable = m_osInterface->pfnGetWaTable(m_osInterface);
+            VP_PUBLIC_CHK_NULL_RETURN(waTable);
+            // Default value
+            m_ctrlValDefault.enableSFCLinearOutputByTileConvert = MEDIA_IS_WA(waTable, Wa_15016458807);
+        }
     }
     VP_PUBLIC_NORMALMESSAGE("enableSFCLinearOutputByTileConvert value is set as %d.", m_ctrlValDefault.enableSFCLinearOutputByTileConvert);
 
@@ -498,12 +544,38 @@ MOS_STATUS VpUserFeatureControl::CreateUserSettingForDebug()
         // Do not set fallbackScalingToRender8K if render is disabled. This is for internal vesfc usage (e.g., 8k preenc) that should not fallback to render.
         if (m_vpPlatformInterface && !m_vpPlatformInterface->IsRenderDisabled())
         {
-            auto *waTable = m_osInterface->pfnGetWaTable(m_osInterface);
-            VP_PUBLIC_CHK_NULL_RETURN(waTable);
-            m_ctrlValDefault.fallbackScalingToRender8K = MEDIA_IS_WA(waTable, Wa_16025683853);
+            if (m_osInterface->pfnGetWaTable)
+            {
+                auto *waTable = m_osInterface->pfnGetWaTable(m_osInterface);
+                VP_PUBLIC_CHK_NULL_RETURN(waTable);
+                m_ctrlValDefault.fallbackScalingToRender8K = MEDIA_IS_WA(waTable, Wa_16025683853);
+            }
         }
     }
     VP_PUBLIC_NORMALMESSAGE("fallbackScalingToRender8K %d", m_ctrlValDefault.fallbackScalingToRender8K);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpUserFeatureControl::UpdateOnNewPipe(SwFilterPipe *swFilterPipe, uint32_t pipeCnt)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(swFilterPipe);
+
+    // if more than one swFilterPipe, then update the swFilterPipe config
+    if (pipeCnt > 1)
+    {
+        if (swFilterPipe->IsForceToRender())
+        {
+            m_ctrlVal.disableSfc         = true;
+            m_ctrlVal.disableVeboxOutput = true;
+            VP_PUBLIC_NORMALMESSAGE("Disable SFC and vebox output as task is forced to render.");
+        }
+        else
+        {
+            m_ctrlVal.disableSfc         = false;
+            m_ctrlVal.disableVeboxOutput = false;
+        }
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -519,6 +591,10 @@ MOS_STATUS VpUserFeatureControl::Update(PVP_PIPELINE_PARAMS params)
         m_ctrlVal.disableSfc         = true;
         m_ctrlVal.disableVeboxOutput = true;
         VP_PUBLIC_NORMALMESSAGE("Disable SFC and vebox output as task is forced to render.");
+    }
+    if (params->renderCommandStreamType == VPHAL_RENDER_COMMAND_STREAM_RCS)
+    {
+        m_ctrlVal.computeContextEnabled = false;
     }
 
     return MOS_STATUS_SUCCESS;

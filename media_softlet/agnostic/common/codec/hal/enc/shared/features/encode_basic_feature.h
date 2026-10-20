@@ -154,15 +154,20 @@ public:
     PMOS_SURFACE                m_rawSurfaceToPak = nullptr;
     PMOS_SURFACE                m_rawSurfaceToEnc = nullptr;       //!< raw surf to enc
     MOS_SURFACE                 m_rawSurface = {};                 //!< Pointer to MOS_SURFACE of raw surface
+#if (_DEBUG || _RELEASE_INTERNAL)
+    int32_t                     m_rawSurfaceTileTypeReported = -1; //!< Last raw surface TileType reported, -1 if never
+#endif
     MOS_SURFACE                 m_reconSurface = {};               //!< Pointer to MOS_SURFACE of reconstructed surface
     MOS_RESOURCE                m_resBitstreamBuffer = {};         //!< Pointer to MOS_SURFACE of bitstream surface
     PMOS_RESOURCE               m_resMetadataBuffer = nullptr;
+    PMOS_RESOURCE               m_LaDataBuffer      = nullptr;
     MetaDataOffset              m_metaDataOffset = {};
 
     BSBuffer                    m_bsBuffer = {};                   //!< Bit-stream buffer
 
     uint32_t                    m_bitstreamSize = 0;               //!< Maximum amount of data to be output to presBitstreamBuffer.
     bool                        m_mbQpDataEnabled = false;         //!< [AVC & MPEG2] Indicates that psMbQpDataSurface is present.
+    bool                        m_laDataBufferEnabled = false;
     bool                        m_mbDisableSkipMapEnabled = false; //!< [AVC] Indicates that psMbDisableSkipMapSurface is present.
     MOS_SURFACE                 m_mbDisableSkipMapSurface = {};    //!< [AVC] MB disable skip map provided by framework
     MOS_SURFACE                 m_mbQpDataSurface = {};            //!< pointer to surface of Mb QP Data
@@ -205,6 +210,28 @@ public:
     bool    m_dualEncEnable     = false;
 
     bool m_chromaPrefetchDisable = true;
+
+    bool m_disableTileBToTile4 = false;
+
+    bool m_forceTile64ReconToTile4 = true;                              //!< [ForceTile64ReconSurfaceToTile4] Force non-420-8bit encode recon/ref surfaces from Tile64 to Tile4 (default on)
+
+    //!
+    //! \brief  Shared "non-420-8bit" format predicate used by every VDBOX encode engine
+    //! \return true when the encode output is 420 8-bit (the only format the HW allows on Tile64 refs)
+    //!
+    bool Is420_8bit() const
+    {
+        return (m_chromaFormat == HCP_CHROMA_FORMAT_YUV420 && m_bitDepth == 8);
+    }
+
+    //!
+    //! \brief  Shared producer-side decision: should this recon/ref surface be forced Tile64 -> Tile4?
+    //! \return true iff the force is enabled, the format is non-420-8bit, and the surface is Tile64
+    //!
+    bool ShouldForceReconTile64ToTile4(const MOS_SURFACE &surf) const
+    {
+        return m_forceTile64ReconToTile4 && !Is420_8bit() && surf.TileModeGMM == MOS_TILE_64_GMM;
+    }
 
 protected:
     //!

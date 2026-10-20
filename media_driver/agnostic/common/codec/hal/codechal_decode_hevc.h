@@ -79,7 +79,7 @@ typedef struct
     uint8_t     slice_segment_header_extension_present_flag : 1;
     uint8_t     high_precision_offsets_enabled_flag         : 1;
     uint8_t     chroma_qp_offset_list_enabled_flag          : 1;
-    uint8_t                                                 : 1;
+    uint8_t     Reserved7                                   : 1;
 
     int32_t     CurrPicOrderCntVal;
     int32_t     PicOrderCntValList[CODEC_MAX_NUM_REF_FRAME_HEVC];

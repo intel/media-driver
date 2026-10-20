@@ -841,7 +841,7 @@ mos_bo_is_softpin(struct mos_linux_bo *bo)
     }
     else
     {
-        MOS_OS_CRITICALMESSAGE("Unsupported\n");
+        MOS_OS_NORMALMESSAGE("Unsupported\n");
         return false;
     }
 }

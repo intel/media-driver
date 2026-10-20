@@ -122,11 +122,10 @@ MOS_STATUS AvcVdencPipelineXe2_Lpm::CreateFeatureManager()
 
 MOS_STATUS AvcVdencPipelineXe2_Lpm::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
     ENCODE_CHK_NULL_RETURN(m_hwInterface);
     m_mmcState = MOS_New(EncodeMemCompXe_Lpm_Plus_Base, m_hwInterface);
     ENCODE_CHK_NULL_RETURN(m_mmcState);
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

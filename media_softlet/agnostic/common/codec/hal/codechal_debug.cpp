@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2023, Intel Corporation
+* Copyright (c) 2011-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -723,7 +723,7 @@ std::ostream &operator<<(std::ostream &oss, const CODEC_HEVC_SUBSET_PARAMS &cr)
 {
     const CODEC_HEVC_SUBSET_PARAMS *subsetsParams = &cr;
 
-    for (uint16_t i = 0; i < 440; i++)
+    for (uint16_t i = 0; i < CODEC_HEVC_MAX_ENTRY_POINT_OFFSETS; i++)
     {
         oss << "entry_point_offset_minus1[" << +i << "]: " << +subsetsParams->entry_point_offset_minus1[i] << std::endl;
     }
@@ -1913,7 +1913,7 @@ CodechalDebugInterface::CodechalDebugInterface()
             hasAuxSurf = false;
         }
 
-        isPlanar = !!(m_osInterface->pfnGetGmmClientContext(m_osInterface)->IsPlanar(surface->OsResource.pGmmResInfo->GetResourceFormat()));
+        isPlanar = (m_osInterface->pfnIsPlanar) ? m_osInterface->pfnIsPlanar(m_osInterface, surface->OsResource.pGmmResInfo->GetResourceFormat()) : false;
 
         MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
         lockFlags.ReadOnly     = 1;
@@ -2294,6 +2294,7 @@ CodechalDebugInterface::CodechalDebugInterface()
             (!strcmp(attrName, MediaDbgAttr::attrMvData)) ||
             (!strcmp(attrName, MediaDbgAttr::attrSegId)) ||
             (!strcmp(attrName, MediaDbgAttr::attrCoefProb)) ||
+            (!strcmp(attrName, MediaDbgAttr::attrGranularCRCDump)) ||
             m_configMgr->AttrIsEnabled(MediaDbgAttr::attrDumpBufferInBinary))
         {
             binaryDump = true;
@@ -2426,6 +2427,7 @@ CodechalDebugInterface::CodechalDebugInterface()
             (!strcmp(attrName, MediaDbgAttr::attrMvData)) ||
             (!strcmp(attrName, MediaDbgAttr::attrSegId)) ||
             (!strcmp(attrName, MediaDbgAttr::attrCoefProb)) ||
+            (!strcmp(attrName, MediaDbgAttr::attrGranularCRCDump)) ||
             m_configMgr->AttrIsEnabled(MediaDbgAttr::attrDumpBufferInBinary))
         {
             binaryDump = true;
@@ -3541,22 +3543,19 @@ MOS_STATUS CodechalDebugInterface::SetFastDumpConfig(MediaCopyWrapper *mediaCopy
     }
     else
     {
-        cfg.allowDataLoss = false;
+        cfg.allowDataLoss = m_configMgr->AttrIsEnabled(MediaDbgAttr::attrFastDumpAllowDataLoss);
         cfg.informOnError = false;
 
-        MediaUserSetting::Value outValue{};
-        ReadUserSettingForDebug(
-            m_userSettingPtr,
-            outValue,
-            "Enable VECopy For Surface Dump",
-            MediaUserSetting::Group::Sequence);
-
-        if (outValue.Get<bool>())
+        // E.g., when FastDumpRenderCpyEn:1, FastDumpVeCpyEn:0, FastDumpBltCpyEn:0, only use render copy
+        //       when FastDumpRenderCpyEn:1, FastDumpVeCpyEn:1, FastDumpBltCpyEn:0, randomly use render and VE copy
+        //       when FastDumpRenderCpyEn:1, FastDumpVeCpyEn:1, FastDumpBltCpyEn:1, randomly use render, VE and BLT copy
+        //       when FastDumpRenderCpyEn:0, FastDumpVeCpyEn:0, FastDumpBltCpyEn:0, use FastDump default copy method, which is VE copy
+        if (m_configMgr->AttrIsEnabled(MediaDbgAttr::attrFastDumpRenderCpyEn) || m_configMgr->AttrIsEnabled(MediaDbgAttr::attrFastDumpVeCpyEn)
+            || m_configMgr->AttrIsEnabled(MediaDbgAttr::attrFastDumpBltCpyEn))
         {
-            // use VE copy
-            cfg.weightRenderCopy = 0;
-            cfg.weightVECopy     = 100;
-            cfg.weightBLTCopy    = 0;
+            cfg.weightRenderCopy = m_configMgr->AttrIsEnabled(MediaDbgAttr::attrFastDumpRenderCpyEn) ? 100 : 0;
+            cfg.weightVECopy     = m_configMgr->AttrIsEnabled(MediaDbgAttr::attrFastDumpVeCpyEn) ? 100 : 0;
+            cfg.weightBLTCopy    = m_configMgr->AttrIsEnabled(MediaDbgAttr::attrFastDumpBltCpyEn) ? 100 : 0;
         }
     }
 
@@ -3616,12 +3615,15 @@ const char *CodechalDebugInterface::CreateFileName(
         extType = MediaDbgExtType::dat;
     }
 
+    // Mark LA-pass dumps so LPLA's two passes don't overwrite each other; non-LA keeps original filename.
+    const char *passSeg = m_isLookAheadPass ? "_LAPASS_" : "_";
+
     if (bufType != nullptr &&
         !strncmp(bufType, MediaDbgBufferType::bufSlcParams, sizeof(MediaDbgBufferType::bufSlcParams) - 1) && !strncmp(funcName, "_DDIEnc", sizeof("_DDIEnc") - 1))
     {
         m_outputFileName = m_outputFilePath +
                            std::to_string(m_bufferDumpFrameNum) + '-' +
-                           std::to_string(m_streamId) + '_' +
+                           std::to_string(m_streamId) + passSeg +
                            std::to_string(m_sliceId + 1) +
                            funcName + '_' + bufType + '_' + frameType + fieldOrder + extType;
     }
@@ -3638,7 +3640,7 @@ const char *CodechalDebugInterface::CreateFileName(
         {
             m_outputFileName = m_outputFilePath +
                                std::to_string(m_bufferDumpFrameNum) + '-' +
-                               std::to_string(m_streamId) + '_' +
+                               std::to_string(m_streamId) + passSeg +
                                funcName + frameType + fieldOrder + extType;
         }
     }
@@ -3651,14 +3653,14 @@ const char *CodechalDebugInterface::CreateFileName(
         {
             m_outputFileName = m_outputFilePath +
                                std::to_string(m_bufferDumpFrameNum) + '-' +
-                               std::to_string(m_streamId) + '_' +
+                               std::to_string(m_streamId) + passSeg +
                                funcName + '_' + bufType + '_' + frameType + fieldOrder + extType;
         }
         else
         {
             m_outputFileName = m_outputFilePath +
                                std::to_string(m_bufferDumpFrameNum) + '-' +
-                               std::to_string(m_streamId) + '_' +
+                               std::to_string(m_streamId) + passSeg +
                                funcName + '_' + frameType + fieldOrder + extType;
         }
     }
@@ -4227,6 +4229,53 @@ MOS_STATUS CodechalDebugInterface::DumpBuffer(
         size,
         offset,
         mediaState);
+}
+
+MOS_STATUS CodechalDebugInterface::LoadBinaryToLockableBuffer(
+    PMOS_RESOURCE             resource,
+    const char               *attrName,
+    const char               *bufferName,
+    uint32_t                  size,
+    uint32_t                  offset,
+    CODECHAL_MEDIA_STATE_TYPE mediaState)
+{
+    MEDIA_DEBUG_FUNCTION_ENTER;
+
+    MEDIA_DEBUG_CHK_NULL(resource);
+    MEDIA_DEBUG_CHK_NULL(bufferName);
+
+    const char *fileName;
+    if (size == 0)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+    if (mediaState == CODECHAL_NUM_MEDIA_STATES)
+    {
+        fileName = CreateFileName(bufferName, attrName, MediaDbgExtType::dat);
+    }
+    else
+    {
+        std::string kernelName = static_cast<CodecDebugConfigMgr *>(m_configMgr)->GetMediaStateStr(mediaState);
+        fileName               = CreateFileName(kernelName.c_str(), bufferName, MediaDbgExtType::dat);
+    }
+
+    MOS_STATUS      status = MOS_STATUS_SUCCESS;
+
+    MOS_LOCK_PARAMS lockFlags;
+    MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+    lockFlags.WriteOnly = 1;
+    uint8_t   *data   = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, resource, &lockFlags);
+    MEDIA_DEBUG_CHK_NULL(data);
+    data += offset;
+
+    status = LoadBufferInBinary(data, size);
+
+    if (data)
+    {
+        m_osInterface->pfnUnlockResource(m_osInterface, resource);
+    }
+
+    return status;
 }
 
 MOS_STATUS CodechalDebugInterface::DumpSurface(

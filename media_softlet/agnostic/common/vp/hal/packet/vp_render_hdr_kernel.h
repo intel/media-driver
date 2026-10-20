@@ -906,6 +906,7 @@ public:
     void PrintCurbeData(PMEDIA_WALKER_HDR_STATIC_DATA curbeData);
 
 protected:
+    void PrintCurbeDataUnified(PMEDIA_WALKER_HDR_STATIC_DATA curbeData);
     virtual MOS_STATUS SetupSurfaceState() override;
     virtual MOS_STATUS SetKernelConfigs(KERNEL_CONFIGS &kernelConfigs) override;
     //virtual MOS_STATUS SetSamplerStates(KERNEL_SAMPLER_STATE_GROUP& samplerStateGroup) override;

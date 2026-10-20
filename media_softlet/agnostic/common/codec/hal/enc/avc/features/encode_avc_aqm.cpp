@@ -27,6 +27,8 @@
 #include "encode_avc_aqm.h"
 #include "encode_avc_vdenc_feature_manager.h"
 #include "encode_avc_basic_feature.h"
+#include "encode_avc_vdenc_fastpass.h"
+#include "media_avc_feature_defs.h"
 
 namespace encode
 {
@@ -46,16 +48,27 @@ AvcEncodeAqm::AvcEncodeAqm(MediaFeatureManager *featureManager,
 
 MOS_STATUS AvcEncodeAqm::Update(void* params)
 {
+    ENCODE_FUNC_CALL();
     auto basicFeature = dynamic_cast<AvcBasicFeature*>(m_basicFeature);
     ENCODE_CHK_NULL_RETURN(basicFeature);
+
+    auto fastPassFeature = dynamic_cast<AvcVdencFastPass *>(m_featureManager->GetFeature(AvcFeatureIDs::avcFastPass));
+    if (fastPassFeature && fastPassFeature->IsEnabled())
+    {
+        m_useFastPass = true;
+        m_dsWidth       = fastPassFeature->GetFastPassDsWidth();
+        m_dsHeight      = fastPassFeature->GetFastPassDsHeight();
+    }
+    
     if (basicFeature->m_picParam->QualityInfoSupportFlags.fields.enable_frame)
     {
         m_enabled = true;
         basicFeature->m_suppressReconPicSupported = false;
     }
     m_numTiles = 1;
-    m_tile_width[0]     = (uint16_t)m_basicFeature->m_oriFrameWidth;
-    m_tile_height[0]    = (uint16_t)m_basicFeature->m_oriFrameHeight;
+    m_tile_width[0]  = m_useFastPass ? (uint16_t)m_dsWidth : (uint16_t)m_basicFeature->m_oriFrameWidth;
+    m_tile_height[0] = m_useFastPass ? (uint16_t)m_dsHeight : (uint16_t)m_basicFeature->m_oriFrameHeight;
+
 #if USE_CODECHAL_DEBUG_TOOL
     UpdateFrameDisplayOrder(basicFeature->m_pictureCodingType, basicFeature->m_picParam->CurrFieldOrderCnt[0] / 2, basicFeature->m_seqParam->GopPicSize);
 #endif
@@ -87,8 +100,8 @@ MHW_SETPAR_DECL_SRC(AQM_PIC_STATE, AvcEncodeAqm)
     ENCODE_CHK_STATUS_RETURN(EncodeAqmFeature::MHW_SETPAR_F(AQM_PIC_STATE)(params));
     if (m_enabled)
     {
-        params.frameWidthInPixelMinus1  = MOS_ALIGN_CEIL(m_basicFeature->m_oriFrameWidth, 16) - 1;
-        params.FrameHeightInPixelMinus1 = MOS_ALIGN_CEIL(m_basicFeature->m_oriFrameHeight, 16) - 1;
+        params.frameWidthInPixelMinus1  = m_useFastPass ? (MOS_ALIGN_CEIL(m_dsWidth, 16) - 1) : (MOS_ALIGN_CEIL(m_basicFeature->m_oriFrameWidth, 16) - 1);
+        params.FrameHeightInPixelMinus1 = m_useFastPass ? (MOS_ALIGN_CEIL(m_dsHeight, 16) - 1) : (MOS_ALIGN_CEIL(m_basicFeature->m_oriFrameHeight, 16) - 1);
         params.lcuSize                  = LCU_SIZE_16X16;
         params.codectype                = CODECTYPE_AVC;
     }
@@ -102,10 +115,13 @@ MHW_SETPAR_DECL_SRC(AQM_SLICE_STATE, AvcEncodeAqm)
     ENCODE_CHK_NULL_RETURN(basicFeature);
 
     auto sliceParams = &basicFeature->m_sliceParams[basicFeature->m_curNumSlices];
-    auto frameHeight = static_cast<uint32_t>(CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(basicFeature->m_seqParam->FrameHeight));
-    auto frameWidth  = static_cast<uint32_t>(CODECHAL_GET_WIDTH_IN_MACROBLOCKS(basicFeature->m_seqParam->FrameWidth));
-    auto nextsliceMbStartYPosition = (sliceParams->first_mb_in_slice + sliceParams->NumMbsForSlice) / frameWidth;
-
+    uint16_t width   = m_useFastPass ? m_dsWidth : basicFeature->m_seqParam->FrameWidth;
+    uint16_t height  = m_useFastPass ? m_dsHeight : basicFeature->m_seqParam->FrameHeight;
+    auto frameWidth  = static_cast<uint32_t>(CODECHAL_GET_HEIGHT_IN_MACROBLOCKS(width));
+    auto frameHeight = static_cast<uint32_t>(CODECHAL_GET_WIDTH_IN_MACROBLOCKS(height));
+    
+    uint32_t numMbsForSlice            = m_useFastPass ? (frameWidth * frameHeight) : sliceParams->NumMbsForSlice;
+    auto nextsliceMbStartYPosition  = (sliceParams->first_mb_in_slice + numMbsForSlice) / frameWidth;
     params.tileSliceStartLcuMbX     = 0;
     params.tileSliceStartLcuMbY     = sliceParams->first_mb_in_slice / frameWidth;
     params.nextTileSliceStartLcuMbX = 0;

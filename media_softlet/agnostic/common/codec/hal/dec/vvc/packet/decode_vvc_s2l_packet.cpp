@@ -578,9 +578,12 @@ namespace decode
         MOS_SecureMemcpy(hucVvcS2LPicBss.tileCodingParam.m_tileRow, sizeof(TileRowDesc) * vvcMaxTileRowNum, m_vvcBasicFeature->m_tileRow, sizeof(TileRowDesc) * vvcMaxTileRowNum);
         MOS_SecureMemcpy(hucVvcS2LPicBss.tileCodingParam.m_tileCol, sizeof(TileColDesc) * vvcMaxTileColNum, m_vvcBasicFeature->m_tileCol, sizeof(TileColDesc) * vvcMaxTileColNum);
         
-        MOS_SecureMemcpy(&hucVvcS2LPicBss.m_vvcLmcsData, sizeof(CodecVvcLmcsData), &m_vvcBasicFeature->m_lmcsApsArray[m_vvcPicParams->m_phLmcsApsId], sizeof(CodecVvcLmcsData));
-        MOS_SecureMemcpy(&hucVvcS2LPicBss.m_vvcLmcsShapeInfo, sizeof(ApsLmcsReshapeInfo), &m_vvcBasicFeature->m_lmcsReshaperInfo[m_vvcPicParams->m_phLmcsApsId], sizeof(ApsLmcsReshapeInfo));
-
+        if (m_vvcPicParams->m_phLmcsApsId < vvcMaxLmcsNum)
+        {
+            MOS_SecureMemcpy(&hucVvcS2LPicBss.m_vvcLmcsData, sizeof(CodecVvcLmcsData), &m_vvcBasicFeature->m_lmcsApsArray[m_vvcPicParams->m_phLmcsApsId], sizeof(CodecVvcLmcsData));
+            MOS_SecureMemcpy(&hucVvcS2LPicBss.m_vvcLmcsShapeInfo, sizeof(ApsLmcsReshapeInfo), &m_vvcBasicFeature->m_lmcsReshaperInfo[m_vvcPicParams->m_phLmcsApsId], sizeof(ApsLmcsReshapeInfo));
+        }
+        
         for (uint8_t i = 0; i < 8; i++)
         {
             hucVvcS2LPicBss.m_alfChromaNumAltFiltersMinus1[i] = m_vvcBasicFeature->m_alfApsArray[i].m_alfChromaNumAltFiltersMinus1;
@@ -791,6 +794,11 @@ namespace decode
     {
         DECODE_FUNC_CALL()
 
+        if (m_vvcPicParams->m_phLmcsApsId >= vvcMaxLmcsNum)
+        {
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
         int32_t  reshapeLUTSize = 1 << (m_vvcPicParams->m_spsBitdepthMinus8 + 8);
         int32_t  pwlFwdLUTsize  = vvcPicCodeCwBins;
         int32_t  pwlFwdBinLen   = reshapeLUTSize / vvcPicCodeCwBins;
@@ -965,7 +973,10 @@ namespace decode
         auto &mfxWaitParams               = m_miItf->MHW_GETPAR_F(MFX_WAIT)();
         mfxWaitParams                     = {};
         mfxWaitParams.iStallVdboxPipeline = true;
-        DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+        if (!m_osInterface->bNullHwIsEnabled)
+        {
+            DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+        }
 
         auto &par            = m_hucItf->MHW_GETPAR_F(HUC_PIPE_MODE_SELECT)();
         par                  = {};
@@ -974,7 +985,10 @@ namespace decode
 
         mfxWaitParams                     = {};
         mfxWaitParams.iStallVdboxPipeline = true;
-        DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+        if (!m_osInterface->bNullHwIsEnabled)
+        {
+            DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+        }
         return MOS_STATUS_SUCCESS;
     }
 
@@ -1033,7 +1047,7 @@ namespace decode
         return MOS_STATUS_SUCCESS;
     }
 
-    MOS_STATUS VvcDecodeS2LPkt::AddCmd_HUC_STREAM_OBJECT(MOS_COMMAND_BUFFER &cmdBuffer, CodecVvcSliceParams sliceParams)
+    MOS_STATUS VvcDecodeS2LPkt::AddCmd_HUC_STREAM_OBJECT(MOS_COMMAND_BUFFER &cmdBuffer, const CodecVvcSliceParams &sliceParams)
     {
         DECODE_FUNC_CALL();
 

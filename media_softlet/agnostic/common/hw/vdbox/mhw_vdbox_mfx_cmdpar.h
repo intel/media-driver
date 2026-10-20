@@ -183,6 +183,8 @@ struct _MHW_PAR_T(MFX_PIPE_BUF_ADDR_STATE)
     PMOS_RESOURCE     presMacroblockIldbStreamOutBuffer2           = nullptr;
     PMOS_RESOURCE *   references                                   = nullptr;
     MOS_MEMCOMP_STATE Ps4xDsSurfMmcState                           = MOS_MEMCOMP_DISABLED;
+
+    __MHW_VDBOX_MFX_WRAPPER_EXT(MFX_PIPE_BUF_ADDR_STATE_EXT);
 };
 
 struct _MHW_PAR_T(MFX_IND_OBJ_BASE_ADDR_STATE)
@@ -280,6 +282,7 @@ struct _MHW_PAR_T(MFX_AVC_IMG_STATE)
     uint8_t                   maxViewIdxl0                                 = 0;
     uint8_t                   maxViewIdxl1                                 = 0;
     bool                      extendedRhodomainStatisticsEnable            = false;
+    bool                      fullrangeFrameQpRhoTableFlag                 = false;
     uint32_t                  thresholdSizeInBytes                         = 0;
     uint32_t                  targetSliceSizeInBytes                       = 0;
     PCODEC_AVC_PIC_PARAMS     avcPicParams                                 = nullptr;

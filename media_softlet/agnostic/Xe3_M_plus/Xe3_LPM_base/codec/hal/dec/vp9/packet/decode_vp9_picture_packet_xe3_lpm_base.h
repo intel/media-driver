@@ -65,6 +65,41 @@ class Vp9DecodePicPktXe3_Lpm_Base : public Vp9DecodePicPkt
         //!
         MOS_STATUS ValidateCabacStreamOutSize(MOS_COMMAND_BUFFER &cmdBuffer);
 
+        //!
+        //! \brief  Initialize the 2nd level command buffer structure
+        //! \param  [in] batchBuffer
+        //!         Batch buffer structure to initialize
+        //! \param  [in] batchBufBase
+        //!         CPU pointer to batch buffer memory
+        //! \return MOS_STATUS
+        //!         MOS_STATUS_SUCCESS if success, else fail reason
+        //!
+        MOS_STATUS Init2ndLevelCmdBuffer(MHW_BATCH_BUFFER &batchBuffer, uint8_t *batchBufBase);
+
+        //!
+        //! \brief  Pack HCP_VP9_PIC_STATE into a 2nd level batch buffer (key/non-key)
+        //! \param  [in] cmdBuffer
+        //!         The 2nd level command buffer to pack commands into
+        //! \param  [in] bLastIsKeyFrame
+        //!         Indicates if constructing for key frame (true) or non-key frame (false)
+        //! \return MOS_STATUS
+        //!         MOS_STATUS_SUCCESS if success, else fail reason
+        //!
+        MOS_STATUS PackPicState2ndLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer, bool bLastIsKeyFrame);
+
+        //!
+        //! \brief  Build a Ping/Pong MV-buffer-address 2nd-level BB:
+        //!         COND_BB_END(skip-if stateBuffer selects the other) + HCP_PIPE_BUF_ADDR_STATE
+        //!         + STORE_DATA_IMM(nextStateBuffer).
+        //!
+        MOS_STATUS PackMvBufAddrCmds(MOS_COMMAND_BUFFER &cmdBuffer, bool isPing);
+
+        //!
+        //! \brief  Build a copy-state 2nd-level BB: COND_BB_END(skip-if nextState==skipIfValue)
+        //!         + STORE_DATA_IMM(stateBuffer = writeValue).
+        //!
+        MOS_STATUS BuildCopyStateBB(MOS_COMMAND_BUFFER &cmdBuffer, uint32_t skipIfValue, uint32_t writeValue);
+
         MOS_STATUS GetVp9StateCommandSize(
             uint32_t                        mode,
             uint32_t                       *commandsSize,

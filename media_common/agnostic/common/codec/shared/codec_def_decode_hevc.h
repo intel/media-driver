@@ -43,6 +43,11 @@
 #define CODECHAL_HEVC_MIN_LCU               16
 #define CODECHAL_HEVC_MAX_DIM_FOR_MIN_LCU   4222
 
+//! \brief Capacity of CODEC_HEVC_SUBSET_PARAMS::entry_point_offset_minus1[]. num_entry_point_offsets and
+//!        EntryOffsetToSubsetArray (each documented [0..540] per HEVC Level 6.2 WPP math) must be validated
+//!        against this actual storage capacity, since it is smaller than that documented range.
+#define CODEC_HEVC_MAX_ENTRY_POINT_OFFSETS  440
+
 const uint8_t CODECHAL_DECODE_HEVC_Qmatrix_Scan_4x4[16] = { 0, 4, 1, 8, 5, 2, 12, 9, 6, 3, 13, 10, 7, 14, 11, 15 };
 const uint8_t CODECHAL_DECODE_HEVC_Qmatrix_Scan_8x8[64] =
 { 0, 8, 1, 16, 9, 2, 24, 17, 10, 3, 32, 25, 18, 11, 4, 40,
@@ -544,6 +549,6 @@ typedef struct _CODEC_HEVC_EXT_SLICE_PARAMS
 
 typedef struct _CODEC_HEVC_SUBSET_PARAMS
 {
-    uint32_t                 entry_point_offset_minus1[440];
+    uint32_t                 entry_point_offset_minus1[CODEC_HEVC_MAX_ENTRY_POINT_OFFSETS];
 } CODEC_HEVC_SUBSET_PARAMS, *PCODEC_HEVC_SUBSET_PARAMS;
 #endif  // __CODEC_DEF_DECODE_HEVC_H__

@@ -26,6 +26,7 @@
 //!
 
 #include "vp_ai_kernel_pipe.h"
+#include "vp_utils.h"
 
 using namespace vp;
 
@@ -47,4 +48,40 @@ void AI_SINGLE_NPU_GRAPH_SETTING::Init()
     engine                           = FEATURE_AI_ENGINE::NPU;
     id                               = VP_GRAPH_ID_INVALID;
     pfnGetIntermediateSurfaceSetting = nullptr;
+}
+
+MOS_STATUS AiGpuSettingInterface::Init()
+{
+    VP_PUBLIC_CHK_NULL_RETURN(setting);
+    VP_PUBLIC_CHK_STATUS_RETURN(InitBaseSetting());
+    VP_PUBLIC_CHK_STATUS_RETURN(InitFuncGetIntermediateSurfaceSetting());
+    VP_PUBLIC_CHK_STATUS_RETURN(InitFuncSetStatefulSurface());
+    VP_PUBLIC_CHK_STATUS_RETURN(InitFuncSetStatelessSurface());
+    VP_PUBLIC_CHK_STATUS_RETURN(InitFuncSetKernelArg());
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS AiGpuSettingInterface::Register(AI_SETTING_PIPE &settingPipe)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(setting);
+    settingPipe.push_back(setting->Clone());
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS AiNpuSettingInterface::Init()
+{
+    VP_PUBLIC_CHK_NULL_RETURN(setting);
+    VP_PUBLIC_CHK_STATUS_RETURN(InitBaseSetting());
+    VP_PUBLIC_CHK_STATUS_RETURN(InitFuncGetIntermediateSurfaceSetting());
+    VP_PUBLIC_CHK_STATUS_RETURN(InitGraphArguments());
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS AiNpuSettingInterface::Register(AI_SETTING_PIPE& settingPipe)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(setting);
+    settingPipe.push_back(setting->Clone());
+    return MOS_STATUS_SUCCESS;
 }

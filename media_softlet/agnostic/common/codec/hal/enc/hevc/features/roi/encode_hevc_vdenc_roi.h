@@ -33,6 +33,9 @@
 #include "encode_hevc_brc.h"
 #include "mhw_vdbox_vdenc_itf.h"
 #include "mhw_vdbox_huc_itf.h"
+#if _KERNEL_RESERVED
+#include "encode_saliency_feature.h"
+#endif
 
 namespace encode
 {
@@ -242,6 +245,9 @@ protected:
     bool m_isArbRoi          = false;    //!< Whether is Adaptive Region Boost ROI
     bool m_roiMode           = false;    //!< 0 Force qp mode, 1 force delta qp mode
     bool m_isArbRoiSupported = true;     //!< Whether is Adaptive Region Boost ROI Supported
+#if (_DEBUG || _RELEASE_INTERNAL)
+    int8_t m_roiModeReported = -1;       //!< Last m_roiMode reported, -1 if never
+#endif
 
     PMOS_RESOURCE      m_streamIn = nullptr; //!< Stream in buffer
     uint8_t *          m_streamInTemp = nullptr;
@@ -253,6 +259,10 @@ protected:
     EncodeBasicFeature *m_basicFeature = nullptr;
     CodechalHwInterfaceNext *m_hwInterface = nullptr;
     PMOS_INTERFACE m_osInterface = nullptr;
+
+#if _KERNEL_RESERVED
+    EncodeSaliencyFeature *m_saliencyFeature = nullptr;
+#endif
 
     bool IFrameIsSet = false;
     bool PBFrameIsSet = false;

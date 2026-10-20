@@ -149,7 +149,7 @@ MOS_STATUS DecodeDownSamplingPkt::InitSfcParams(VDBOX_SFC_PARAMS &sfcParams)
     sfcParams.scalingMode         = m_downSampling->m_scalingMode;
 
     // If histogram is enabled
-    if (m_downSampling->m_histogramDestSurf || m_downSampling->m_histogramDebug)
+    if ((m_downSampling->m_histogramDestSurf || m_downSampling->m_histogramDebug))
     {
         sfcParams.output.histogramBuf = m_downSampling->m_histogramBuffer;
     }

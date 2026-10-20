@@ -166,10 +166,10 @@ MOS_STATUS MhwBltInterfaceXe_Hp_Base::AddCtrlSurfCopyBlt(
     MHW_CHK_NULL(m_osInterface);
     cmd.DW2.SourceMocs = (m_osInterface->pfnCachePolicyGetMemoryObject(
             MOS_MP_RESOURCE_USAGE_DEFAULT,
-            m_osInterface->pfnGetGmmClientContext(m_osInterface))).DwordValue;
+            m_osInterface)).DwordValue;
     cmd.DW4.DestinationMocs = (m_osInterface->pfnCachePolicyGetMemoryObject(
             MOS_MP_RESOURCE_USAGE_DEFAULT,
-            m_osInterface->pfnGetGmmClientContext(m_osInterface))).DwordValue;
+            m_osInterface)).DwordValue;
 
 
     // add source address

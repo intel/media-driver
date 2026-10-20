@@ -50,7 +50,7 @@ Configure::Configure(MOS_USER_FEATURE_KEY_PATH_INFO *keyPathInfo):Configure()
 
     //when statePath set, will init m_statedConfigPath and m_statedReportPath with m_keyPathInfo
 #if (_DEBUG || _RELEASE_INTERNAL)
-    m_pidPath = "\\" + std::to_string(MosUtilities::MosGetPid());
+    m_pidPath = "\\" + MosUtilities::MosGetRegKeySuffix(m_rootKey, subPath + m_configPath);
 #endif
     m_statedConfigPath = subPath + m_configPath;
     m_statedReportPath = subPath + m_reportPath;
@@ -140,11 +140,15 @@ MOS_STATUS Configure::Read(Value &value,
     int32_t     ret     = 0;
     MOS_STATUS  status  = MOS_STATUS_UNKNOWN;
     auto        &defs   = GetDefinitions(group);
-    auto        def     = defs[MakeHash(valueName)];
-    if (def == nullptr)
+    // Note: use find() instead of operator[] to avoid inserting a null
+    // placeholder for an unregistered key, which would later make Register()
+    // wrongly treat the key as already existing and skip registration.
+    auto        it      = defs.find(MakeHash(valueName));
+    if (it == defs.end() || it->second == nullptr)
     {
         return MOS_STATUS_INVALID_HANDLE;
     }
+    auto        def     = it->second;
     auto        defaultType = def->DefaultValue().ValueType();
 
     if (def->IsDebugOnly() && !m_isDebugMode)
@@ -227,11 +231,15 @@ MOS_STATUS Configure::Write(
 {
     auto &defs = GetDefinitions(group);
 
-    auto def = defs[MakeHash(valueName)];
-    if (def == nullptr)
+    // Note: use find() instead of operator[] to avoid inserting a null
+    // placeholder for an unregistered key, which would later make Register()
+    // wrongly treat the key as already existing and skip registration.
+    auto it = defs.find(MakeHash(valueName));
+    if (it == defs.end() || it->second == nullptr)
     {
         return MOS_STATUS_INVALID_HANDLE;
     }
+    auto def = it->second;
 
     if (def->IsDebugOnly() && !m_isDebugMode)
     {

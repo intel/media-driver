@@ -44,28 +44,9 @@ Av1FastPass_Xe2_Hpm::Av1FastPass_Xe2_Hpm(MediaFeatureManager *featureManager,
         m_basicFeature = dynamic_cast<Av1BasicFeatureXe2_Hpm *>(featureManager->GetFeature(Av1FeatureIDs::basicFeature));
         ENCODE_CHK_NULL_NO_STATUS_RETURN(m_basicFeature);
 
-        //regkey to control fast pass encode settings
-        MediaUserSetting::Value outValue;
-        ReadUserSetting(m_userSettingPtr,
-            outValue,
-            "Enable Fast Pass Encode",
-            MediaUserSetting::Group::Sequence);
-
-        m_enabled = outValue.Get<bool>();
-
         if (m_enabled)
         {
-            MediaUserSetting::Value outValue_ratio;
-            MediaUserSetting::Value outValue_type;
-#if (_DEBUG || _RELEASE_INTERNAL)
-            ReadUserSetting(m_userSettingPtr,
-                outValue_type,
-                "Fast Pass Encode Downscale Type",
-                MediaUserSetting::Group::Sequence);
-#endif
-            // Xe2_Hpm HW restrictions, only 4x downscale
-            m_fastPassDownScaleRatio = 2;
-            m_fastPassDownScaleType  = (uint8_t)outValue_type.Get<int32_t>();
+            m_fastPassDownScaleRatio = 2;  //Xe2_Hpm HW restrictions.
         }
     }
 
@@ -79,6 +60,11 @@ Av1FastPass_Xe2_Hpm::Av1FastPass_Xe2_Hpm(MediaFeatureManager *featureManager,
         ENCODE_CHK_NULL_RETURN(m_basicFeature);
         PCODEC_AV1_ENCODE_PICTURE_PARAMS av1PicParams = m_basicFeature->m_av1PicParams;
         ENCODE_CHK_NULL_RETURN(av1PicParams);
+
+        if (!m_enabled)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
 
         // Xe2_Hpm HW restrictions for input surfaces, post-downscale 64x32 aligned
         m_aligned_Width = MOS_ALIGN_FLOOR(av1PicParams->frame_width_minus1 + 1, 256);

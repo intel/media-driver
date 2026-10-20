@@ -83,9 +83,9 @@ namespace decode
 
         MHW_VDBOX_PIPE_BUF_ADDR_PARAMS pipeBufAddrParams = {};
         DECODE_CHK_STATUS(SetMfxPipeBufAddrParams(pipeBufAddrParams));
-#ifdef _MMC_SUPPORTED
+
         DECODE_CHK_STATUS(SetSurfaceMmcState(pipeBufAddrParams));
-#endif
+
         DECODE_CHK_STATUS(m_mfxInterface->AddMfxPipeBufAddrCmd(&cmdBuffer, &pipeBufAddrParams));
 
         return MOS_STATUS_SUCCESS;

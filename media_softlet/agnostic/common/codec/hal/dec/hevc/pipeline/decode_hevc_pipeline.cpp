@@ -34,6 +34,7 @@
 #include "decode_hevc_feature_manager.h"
 #include "decode_hevc_downsampling_packet.h"
 #include "media_debug_fast_dump.h"
+#include "decode_hevc_debug_packet.h"
 
 namespace decode {
 
@@ -80,14 +81,13 @@ MOS_STATUS HevcPipeline::UserFeatureReport()
     WriteUserFeature(__MEDIA_USER_FEATURE_VALUE_APOGEIOS_HEVCD_ENABLE_ID, 1, m_osInterface->pOsContext);
 #endif
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DEBUG_TOOL(
         if (m_mmcState != nullptr)
         {
             m_mmcState->UpdateUserFeatureKey(&(m_basicFeature->m_destSurface));
         }
         );
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -126,7 +126,15 @@ MOS_STATUS HevcPipeline::Execute()
             }
             else
             {
-                DECODE_CHK_STATUS(m_mediaContext->SwitchContext(VdboxDecodeFunc, *scalabOption, &m_scalability));
+                if (GetBypassHWLegacy())
+                {
+                    MediaFunction decFunc = (m_bypassHWLegacyGpuNode == MOS_GPU_NODE_VE) ? VeboxVppFunc : VdboxDecodeFunc;
+                    DECODE_CHK_STATUS(m_mediaContext->SwitchContext(decFunc, *scalabOption, &m_scalability));
+                }
+                else
+                {
+                    DECODE_CHK_STATUS(m_mediaContext->SwitchContext(VdboxDecodeFunc, *scalabOption, &m_scalability));
+                }
             }
             if (scalabOption->IsScalabilityOptionMatched(m_scalabOption))
             {

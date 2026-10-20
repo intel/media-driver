@@ -26,6 +26,7 @@
 
 #include "encode_vdenc_lpla_analysis.h"
 #include "encode_hevc_vdenc_feature_manager.h"
+#include "encode_vdenc_hevc_fastpass.h"
 
 namespace encode
 {
@@ -38,11 +39,12 @@ namespace encode
         m_hwInterface(hwInterface),
         m_allocator(allocator)
     {
-        auto encFeatureManager = dynamic_cast<EncodeHevcVdencFeatureManager *>(featureManager);
-        ENCODE_CHK_NULL_NO_STATUS_RETURN(encFeatureManager);
+        m_featureManager = dynamic_cast<EncodeHevcVdencFeatureManager *>(featureManager);
+        ENCODE_CHK_NULL_NO_STATUS_RETURN(m_featureManager);
 
-        m_basicFeature = dynamic_cast<EncodeBasicFeature *>(encFeatureManager->GetFeature(FeatureIDs::basicFeature));
+        m_basicFeature = dynamic_cast<EncodeBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
         ENCODE_CHK_NULL_NO_STATUS_RETURN(m_basicFeature);
+
         ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
         m_osInterface = hwInterface->GetOsInterface();
 
@@ -369,12 +371,12 @@ namespace encode
         allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
 
         // Buffer to store VDEnc frame statistics for lookahead BRC
-        m_brcLooaheadStatsBufferSize        = m_numLaDataEntry * sizeof(VdencHevcLaStats);
+        m_brcLooaheadStatsBufferSize        = m_numLaDataEntry * sizeof(VdencHevcLaStatsForLAKernel);
         allocParamsForBufferLinear.dwBytes  = MOS_ALIGN_CEIL(m_brcLooaheadStatsBufferSize, CODECHAL_PAGE_SIZE);
         allocParamsForBufferLinear.pBufName = "VDENC Lookahead Statistics Buffer";
         m_vdencLaStatsBuffer                = m_allocator->AllocateResource(allocParamsForBufferLinear, true);
 
-        VdencHevcLaStats *lookaheadInfo = (VdencHevcLaStats *)m_allocator->LockResourceForWrite(m_vdencLaStatsBuffer);
+        VdencHevcLaStatsForLAKernel *lookaheadInfo = (VdencHevcLaStatsForLAKernel *)m_allocator->LockResourceForWrite(m_vdencLaStatsBuffer);
         ENCODE_CHK_NULL_RETURN(lookaheadInfo);
         MOS_ZeroMemory(lookaheadInfo, allocParamsForBufferLinear.dwBytes);
         m_allocator->UnLock(m_vdencLaStatsBuffer);
@@ -432,6 +434,7 @@ namespace encode
 
         ENCODE_CHK_NULL_RETURN(params);
         EncoderParams *encodeParams = (EncoderParams *)params;
+        m_encodeParams              = (EncoderParams *)params;
         m_hevcSeqParams = static_cast<PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS>(encodeParams->pSeqParams);
         ENCODE_CHK_NULL_RETURN(m_hevcSeqParams);
         m_lookaheadDepth = m_hevcSeqParams->LookaheadDepth;
@@ -464,6 +467,9 @@ namespace encode
             m_currLaDataIdx -= 1;
             m_bLastPicFlagFirstIn = false;
         }
+
+        m_skipAnalysisKernelCall = m_basicFeature->m_laDataBufferEnabled
+                                   && !m_lookaheadAdaptiveI && !m_hevcSeqParams->GopFlags.fields.AdaptiveGop;
 
         return eStatus;
     }
@@ -555,6 +561,16 @@ namespace encode
             hucRegionDumpLAUpdate));
 
         ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucRegion(
+            m_encodeParams->presLaDataBuffer,
+            0,
+            m_brcLooaheadStatsBufferSize,
+            1,
+            "_Stats_laBuffer",
+            isInput,
+            currentPass,
+            hucRegionDumpLAUpdate));
+
+        ENCODE_CHK_STATUS_RETURN(debugInterface->DumpHucRegion(
             m_vdencLaDataBuffer,
             0,
             m_brcLooaheadDataBufferSize,
@@ -590,7 +606,7 @@ namespace encode
 
         uint8_t index = 0;
         ENCODE_CHK_STATUS_RETURN(GetLaStatsStoreIdx(index));
-        uint32_t offset = sizeof(VdencHevcLaStats) * index;        
+        uint32_t offset = sizeof(VdencHevcLaStatsForLAKernel) * index;        
         if (m_useDSData)
         {
             auto &storeFrameByteCount            = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
@@ -621,112 +637,149 @@ namespace encode
         }
         else
         {
-            auto &miStoreRegMemParams = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
-            auto &miLoadRegMemParams  = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_MEM)();
-            auto &flushDwParams       = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+            StoreLookaheadData(cmdBuffer, m_vdencLaStatsBuffer, offset, vdboxIndex);
+        }
 
-            miStoreRegMemParams = {};
-            miLoadRegMemParams  = {};
-            flushDwParams       = {};
+        //store stats in la buffer allocated by VPL
+        if (m_basicFeature->m_laDataBufferEnabled)
+        {
+            offset = sizeof(VdencHevcLaStatsForBRCKernel) * index;
+            StoreLookaheadData(cmdBuffer, m_encodeParams->presLaDataBuffer, offset, vdboxIndex);
 
-            auto mmioRegistersHcp          = m_hcpItf->GetMmioRegisters(vdboxIndex);
-            miStoreRegMemParams.dwRegister = mmioRegistersHcp->hcpEncBitstreamBytecountFrameRegOffset;
-            // Store BitstreamBytecount to m_vdencLaStatsBuffer
-            miStoreRegMemParams.presStoreBuffer = m_vdencLaStatsBuffer;
-            miStoreRegMemParams.dwOffset        = offset + CODECHAL_OFFSETOF(VdencHevcLaStats, frameByteCount);
-            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
-
-            // Calculate header size including LCU header
-            uint32_t headerBitSize = 0;
-            for (uint32_t i = 0; i < HEVC_MAX_NAL_UNIT_TYPE; i++)
-            {
-                headerBitSize += m_nalUnitParams[i]->uiSize * 8;
-            }
-            for (uint32_t i = 0; i < m_numSlices; i++)
-            {
-                headerBitSize += m_slcData[i].BitSize;
-            }
-
-            // Store headerBitCount to m_vdencLaStatsBuffer
-            auto &storeDataParams            = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
-            storeDataParams                  = {};
-            storeDataParams.pOsResource      = m_vdencLaStatsBuffer;
-            storeDataParams.dwResourceOffset = offset + CODECHAL_OFFSETOF(VdencHevcLaStats, headerBitCount);
-            storeDataParams.dwValue          = headerBitSize;
+            auto &storeFrameNum            = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+            storeFrameNum                  = {};
+            storeFrameNum.pOsResource      = m_encodeParams->presLaDataBuffer;
+            storeFrameNum.dwResourceOffset = offset + CODECHAL_OFFSETOF(VdencHevcLaStatsForBRCKernel, frameNumber);
+            storeFrameNum.dwValue          = m_basicFeature->m_frameNum;
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(&cmdBuffer));
 
-            auto mmioRegs = m_miItf->GetMmioRegisters();
-            ENCODE_CHK_NULL_RETURN(mmioRegs);
-            // VCS_GPR0_Lo = LCUHdrBits
-            miLoadRegMemParams.presStoreBuffer = m_basicFeature->m_recycleBuf->GetBuffer(FrameStatStreamOutBuffer, 0);  // LCUHdrBits is in m_resFrameStatStreamOutBuffer DW4
-            miLoadRegMemParams.dwOffset        = 4 * sizeof(uint32_t);
-            miLoadRegMemParams.dwRegister      = mmioRegs->generalPurposeRegister0LoOffset;  // VCS_GPR0_Lo
-            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(&cmdBuffer));
+            // Copy rhoDomainStats array (76 elements)
+            auto &miCpyMemMemParams = m_miItf->MHW_GETPAR_F(MI_COPY_MEM_MEM)();
+            for (uint32_t i = 0; i < 76; i++)
+            {
+                miCpyMemMemParams = {};
+                miCpyMemMemParams.presSrc = m_basicFeature->m_recycleBuf->GetBuffer(FrameStatStreamOutBuffer, 0);
+                miCpyMemMemParams.dwSrcOffset = (64 + i) * 4;
+                miCpyMemMemParams.presDst = m_encodeParams->presLaDataBuffer;
+                miCpyMemMemParams.dwDstOffset = offset + CODECHAL_OFFSETOF(VdencHevcLaStatsForBRCKernel, rhoDomainStats[i]);
+                ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(&cmdBuffer));
+            }
+
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
-
-            // load headerBitCount(in m_vdencLaStatsBuffer) to VCS_GPR4_Lo
-            miLoadRegMemParams.presStoreBuffer = m_vdencLaStatsBuffer;
-            miLoadRegMemParams.dwOffset        = offset + CODECHAL_OFFSETOF(VdencHevcLaStats, headerBitCount);
-            miLoadRegMemParams.dwRegister      = mmioRegs->generalPurposeRegister4LoOffset;
-            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(&cmdBuffer));
-
-            mhw::mi::MHW_MI_ALU_PARAMS aluParams[4] = {};
-            int32_t                    aluCount     = 0;
-
-            //load1 srca, reg1
-            aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
-            aluParams[aluCount].Operand1  = MHW_MI_ALU_SRCA;
-            aluParams[aluCount].Operand2  = MHW_MI_ALU_GPREG0;
-            ++aluCount;
-
-            //load2 srcb, reg2
-            aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
-            aluParams[aluCount].Operand1  = MHW_MI_ALU_SRCB;
-            aluParams[aluCount].Operand2  = MHW_MI_ALU_GPREG4;
-            ++aluCount;
-
-            //add srca + srcb
-            aluParams[aluCount].AluOpcode = MHW_MI_ALU_ADD;
-            ++aluCount;
-
-            //store reg1, accu
-            aluParams[aluCount].AluOpcode = MHW_MI_ALU_STORE;
-            aluParams[aluCount].Operand1  = MHW_MI_ALU_GPREG0;
-            aluParams[aluCount].Operand2  = MHW_MI_ALU_ACCU;
-            ++aluCount;
-
-            auto &miMathParams          = m_miItf->MHW_GETPAR_F(MI_MATH)();
-            miMathParams                = {};
-            miMathParams.dwNumAluParams = aluCount;
-            miMathParams.pAluPayload    = aluParams;
-            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_MATH)(&cmdBuffer));
-
-            //store VCS_GPR0_Lo to m_vdencLaStatsBuffer
-            miStoreRegMemParams.presStoreBuffer = m_vdencLaStatsBuffer;
-            miStoreRegMemParams.dwOffset        = offset + CODECHAL_OFFSETOF(VdencHevcLaStats, headerBitCount);
-            miStoreRegMemParams.dwRegister      = mmioRegs->generalPurposeRegister0LoOffset;
-            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
-
-            // Make Flush DW call to make sure all previous work is done
-            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
-
-            ENCODE_CHK_STATUS_RETURN(StoreVdencStatistics(cmdBuffer, index));
         }
+
         return eStatus;
     }
 
-    MOS_STATUS VdencLplaAnalysis::StoreVdencStatistics(MOS_COMMAND_BUFFER &cmdBuffer, uint8_t index)
+    MOS_STATUS VdencLplaAnalysis::StoreLookaheadData(MOS_COMMAND_BUFFER &cmdBuffer, PMOS_RESOURCE resource, uint32_t offset, MHW_VDBOX_NODE_IND vdboxIndex)
     {
         ENCODE_FUNC_CALL();
-        MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+        MOS_STATUS eStatus             = MOS_STATUS_SUCCESS;
 
-        uint32_t offset = sizeof(VdencHevcLaStats) * index;
+        auto &miStoreRegMemParams = m_miItf->MHW_GETPAR_F(MI_STORE_REGISTER_MEM)();
+        auto &miLoadRegMemParams  = m_miItf->MHW_GETPAR_F(MI_LOAD_REGISTER_MEM)();
+        auto &flushDwParams       = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
+
+        miStoreRegMemParams = {};
+        miLoadRegMemParams  = {};
+        flushDwParams       = {};
+
+        auto mmioRegistersHcp          = m_hcpItf->GetMmioRegisters(vdboxIndex);
+        miStoreRegMemParams.dwRegister = mmioRegistersHcp->hcpEncBitstreamBytecountFrameRegOffset;
+        // Store BitstreamBytecount to m_vdencLaStatsBuffer
+        miStoreRegMemParams.presStoreBuffer = resource;
+        miStoreRegMemParams.dwOffset        = offset + CODECHAL_OFFSETOF(VdencHevcLaStats, frameByteCount);
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
+
+        // Calculate header size including LCU header
+        uint32_t headerBitSize = 0;
+        for (uint32_t i = 0; i < HEVC_MAX_NAL_UNIT_TYPE; i++)
+        {
+            headerBitSize += m_nalUnitParams[i]->uiSize * 8;
+        }
+        for (uint32_t i = 0; i < m_numSlices; i++)
+        {
+            headerBitSize += m_slcData[i].BitSize;
+        }
+
+        // Store headerBitCount to m_vdencLaStatsBuffer
+        auto &storeDataParams            = m_miItf->MHW_GETPAR_F(MI_STORE_DATA_IMM)();
+        storeDataParams                  = {};
+        storeDataParams.pOsResource      = resource;
+        storeDataParams.dwResourceOffset = offset + CODECHAL_OFFSETOF(VdencHevcLaStats, headerBitCount);
+        storeDataParams.dwValue          = headerBitSize;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_DATA_IMM)(&cmdBuffer));
+
+        auto mmioRegs = m_miItf->GetMmioRegisters();
+        ENCODE_CHK_NULL_RETURN(mmioRegs);
+        // VCS_GPR0_Lo = LCUHdrBits
+        miLoadRegMemParams.presStoreBuffer = m_basicFeature->m_recycleBuf->GetBuffer(FrameStatStreamOutBuffer, 0);  // LCUHdrBits is in m_resFrameStatStreamOutBuffer DW4
+        miLoadRegMemParams.dwOffset        = 4 * sizeof(uint32_t);
+        miLoadRegMemParams.dwRegister      = mmioRegs->generalPurposeRegister0LoOffset;  // VCS_GPR0_Lo
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(&cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
+
+        // load headerBitCount(in m_vdencLaStatsBuffer) to VCS_GPR4_Lo
+        miLoadRegMemParams.presStoreBuffer = resource;
+        miLoadRegMemParams.dwOffset        = offset + CODECHAL_OFFSETOF(VdencHevcLaStats, headerBitCount);
+        miLoadRegMemParams.dwRegister      = mmioRegs->generalPurposeRegister4LoOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_LOAD_REGISTER_MEM)(&cmdBuffer));
+
+        mhw::mi::MHW_MI_ALU_PARAMS aluParams[4] = {};
+        int32_t                    aluCount     = 0;
+
+        //load1 srca, reg1
+        aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
+        aluParams[aluCount].Operand1  = MHW_MI_ALU_SRCA;
+        aluParams[aluCount].Operand2  = MHW_MI_ALU_GPREG0;
+        ++aluCount;
+
+        //load2 srcb, reg2
+        aluParams[aluCount].AluOpcode = MHW_MI_ALU_LOAD;
+        aluParams[aluCount].Operand1  = MHW_MI_ALU_SRCB;
+        aluParams[aluCount].Operand2  = MHW_MI_ALU_GPREG4;
+        ++aluCount;
+
+        //add srca + srcb
+        aluParams[aluCount].AluOpcode = MHW_MI_ALU_ADD;
+        ++aluCount;
+
+        //store reg1, accu
+        aluParams[aluCount].AluOpcode = MHW_MI_ALU_STORE;
+        aluParams[aluCount].Operand1  = MHW_MI_ALU_GPREG0;
+        aluParams[aluCount].Operand2  = MHW_MI_ALU_ACCU;
+        ++aluCount;
+
+        auto &miMathParams          = m_miItf->MHW_GETPAR_F(MI_MATH)();
+        miMathParams                = {};
+        miMathParams.dwNumAluParams = aluCount;
+        miMathParams.pAluPayload    = aluParams;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_MATH)(&cmdBuffer));
+
+        //store VCS_GPR0_Lo to m_vdencLaStatsBuffer
+        miStoreRegMemParams.presStoreBuffer = resource;
+        miStoreRegMemParams.dwOffset        = offset + CODECHAL_OFFSETOF(VdencHevcLaStats, headerBitCount);
+        miStoreRegMemParams.dwRegister      = mmioRegs->generalPurposeRegister0LoOffset;
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_STORE_REGISTER_MEM)(&cmdBuffer));
+
+        // Make Flush DW call to make sure all previous work is done
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_FLUSH_DW)(&cmdBuffer));
+
+        //StoreVdencStatistics()
         auto &miCpyMemMemParams       = m_miItf->MHW_GETPAR_F(MI_COPY_MEM_MEM)();
         miCpyMemMemParams             = {};
         miCpyMemMemParams.presSrc     = m_basicFeature->m_recycleBuf->GetBuffer(VdencStatsBuffer, 0);  // 8X8 Normalized intra CU count is in m_resVdencStatsBuffer DW1
         miCpyMemMemParams.dwSrcOffset = 4;
-        miCpyMemMemParams.presDst     = m_vdencLaStatsBuffer;
+        miCpyMemMemParams.presDst     = resource;
         miCpyMemMemParams.dwDstOffset = offset + CODECHAL_OFFSETOF(VdencHevcLaStats, intraCuCount);
+        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(&cmdBuffer));
+
+        // Copy SAD field
+        miCpyMemMemParams = {};
+        miCpyMemMemParams.presSrc = m_basicFeature->m_recycleBuf->GetBuffer(VdencStatsBuffer, 0);
+        miCpyMemMemParams.dwSrcOffset = 0;
+        miCpyMemMemParams.presDst = resource;
+        miCpyMemMemParams.dwDstOffset = offset + CODECHAL_OFFSETOF(VdencHevcLaStats, sad);
         ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(&cmdBuffer));
 
         return eStatus;
@@ -802,17 +855,30 @@ namespace encode
     {
         ENCODE_FUNC_CALL();
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
-
+        ENCODE_CHK_NULL_RETURN(m_basicFeature);
         // Setup LAInit DMEM
         auto hucVdencLaInitDmem = (VdencHevcHucLaDmem *)m_allocator->LockResourceForWrite(m_vdencLaInitDmemBuffer);
         ENCODE_CHK_NULL_RETURN(hucVdencLaInitDmem);
         MOS_ZeroMemory(hucVdencLaInitDmem, sizeof(VdencHevcHucLaDmem));
 
         uint32_t initVbvFullness = MOS_MIN(m_hevcSeqParams->InitVBVBufferFullnessInBit, m_hevcSeqParams->VBVBufferSizeInBit);
-        uint8_t downscaleRatioIndicator = 2;  // 4x downscaling
-        if (m_hevcPicParams->DownScaleRatio.fields.X16Minus1_X == 15 && m_hevcPicParams->DownScaleRatio.fields.X16Minus1_Y == 15)
+        
+        auto fastPassFeature = dynamic_cast<HevcVdencFastPass *>(m_featureManager->GetFeature(HevcFeatureIDs::hevcVdencFastPassFeature));
+        if (fastPassFeature && m_hevcSeqParams->EnableFastPass)
         {
-            downscaleRatioIndicator = 0;  // no downscaling
+            hucVdencLaInitDmem->downscaleRatio = m_hevcSeqParams->FastPassRatio;
+            hucVdencLaInitDmem->enc_frame_width = fastPassFeature->GetFastPassDsWidth();
+            hucVdencLaInitDmem->enc_frame_height = fastPassFeature->GetFastPassDsHeight();
+        }
+        else
+        {
+            hucVdencLaInitDmem->downscaleRatio = 2;  // 4x downscaling
+            if (m_hevcPicParams->DownScaleRatio.fields.X16Minus1_X == 15 && m_hevcPicParams->DownScaleRatio.fields.X16Minus1_Y == 15)
+            {
+                hucVdencLaInitDmem->downscaleRatio = 0;  // no downscaling
+            }
+            hucVdencLaInitDmem->enc_frame_width  = m_basicFeature->m_frameWidth;
+            hucVdencLaInitDmem->enc_frame_height = m_basicFeature->m_frameHeight;
         }
 
         hucVdencLaInitDmem->lookAheadFunc = 0;
@@ -821,10 +887,6 @@ namespace encode
         hucVdencLaInitDmem->vbvInitialFullness = initVbvFullness / m_averageFrameSize;
         hucVdencLaInitDmem->statsRecords = m_numLaDataEntry;
         hucVdencLaInitDmem->averageFrameSize = m_averageFrameSize >> 3;
-        hucVdencLaInitDmem->downscaleRatio = downscaleRatioIndicator;
-        ENCODE_CHK_NULL_RETURN(m_basicFeature);
-        hucVdencLaInitDmem->enc_frame_width = m_basicFeature->m_frameWidth;
-        hucVdencLaInitDmem->enc_frame_height = m_basicFeature->m_frameHeight;
         hucVdencLaInitDmem->codec_type = m_hevcSeqParams->FullPassCodecType;
         hucVdencLaInitDmem->mbr_ratio = (m_hevcSeqParams->TargetBitRate > 0 && m_hevcSeqParams->MaxBitRate >= m_hevcSeqParams->TargetBitRate) ?
                                         m_hevcSeqParams->MaxBitRate * 100 / m_hevcSeqParams->TargetBitRate : 100;
@@ -896,7 +958,7 @@ namespace encode
 
     bool VdencLplaAnalysis::IsLaAnalysisRequired()
     {
-        return m_enabled;
+        return m_enabled && !m_skipAnalysisKernelCall;
     }
 
     bool VdencLplaAnalysis::IsLaRecordsEmpty()

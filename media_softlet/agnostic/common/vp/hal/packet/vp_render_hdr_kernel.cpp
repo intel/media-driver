@@ -826,6 +826,11 @@ MOS_STATUS VpRenderHdrKernel::VpHal_HdrCalcYuvToRgbMatrix(
     VpHal_HdrGetYuvRangeAndOffset(src, &Y_o, &Y_e, &C_z, &C_e);
 
     // after + (3x3)(3x3)
+    if (Y_e == 0.0f || C_e == 0.0f)
+    {
+        VP_RENDER_ASSERTMESSAGE("Y_e = %f and C_e = %f, should not be zero.", Y_e, C_e);
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
     pOutMatrix[0]  = pTransferMatrix[0] * R_e / Y_e;
     pOutMatrix[4]  = pTransferMatrix[4] * R_e / Y_e;
     pOutMatrix[8]  = pTransferMatrix[8] * R_e / Y_e;
@@ -989,6 +994,11 @@ MOS_STATUS VpRenderHdrKernel::VpHal_HdrCalcRgbToYuvMatrix(
     VpHal_HdrGetRgbRangeAndOffset(src, &R_o, &R_e);
     VpHal_HdrGetYuvRangeAndOffset(dst, &Y_o, &Y_e, &C_z, &C_e);
 
+    if (R_e == 0.0f )
+    {
+        VP_RENDER_ASSERTMESSAGE("R_e = %f  should not be zero.", R_e);
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
     // multiplication of + onwards
     pOutMatrix[0]  = pTransferMatrix[0] * Y_e / R_e;
     pOutMatrix[1]  = pTransferMatrix[1] * Y_e / R_e;
@@ -3433,7 +3443,7 @@ MOS_STATUS VpRenderHdrKernel::SetupSurfaceState()
 
         surfParam.surfaceOverwriteParams.renderSurfaceParams.MemObjCtl = m_surfMemCacheCtl.SourceSurfMemObjCtl;
 
-        m_surfaceState.insert(std::make_pair(SurfaceType(SurfaceTypeHdrInputLayer0 + i), surfParam));
+        m_surfaceState.emplace(SurfaceType(SurfaceTypeHdrInputLayer0 + i), surfParam);
 
         auto OETF1DLUT = m_surfaceGroup->find(SurfaceType(SurfaceTypeHdrOETF1DLUTSurface0 + i));
         VP_SURFACE *OETF1DLUTSrc = (m_surfaceGroup->end() != OETF1DLUT) ? OETF1DLUT->second : nullptr;
@@ -3468,7 +3478,7 @@ MOS_STATUS VpRenderHdrKernel::SetupSurfaceState()
         {
             surfaceResource.surfaceOverwriteParams.renderSurfaceParams.MemObjCtl                = m_surfMemCacheCtl.Lut2DSurfMemObjCtl;
             UpdateCurbeBindingIndex(SurfaceType(SurfaceTypeHdrOETF1DLUTSurface0 + i), iBTentry + VPHAL_HDR_BTINDEX_OETF1DLUT_OFFSET);
-            m_surfaceState.insert(std::make_pair(SurfaceType(SurfaceTypeHdrOETF1DLUTSurface0 + i), surfaceResource));
+            m_surfaceState.emplace(SurfaceType(SurfaceTypeHdrOETF1DLUTSurface0 + i), surfaceResource);
         }
         else if (m_hdrParams->LUTMode[i] == VPHAL_HDR_LUT_MODE_3D)
         {
@@ -3476,7 +3486,7 @@ MOS_STATUS VpRenderHdrKernel::SetupSurfaceState()
             UpdateCurbeBindingIndex(SurfaceType(SurfaceTypeHdrCRI3DLUTSurface0 + i), iBTentry + VPHAL_HDR_BTINDEX_CRI3DLUT_OFFSET);
             surfaceResource.surfaceOverwriteParams.renderSurfaceParams.bWidthInDword_Y          = false;
             surfaceResource.surfaceOverwriteParams.renderSurfaceParams.bWidthInDword_UV         = false;
-            m_surfaceState.insert(std::make_pair(SurfaceType(SurfaceTypeHdrCRI3DLUTSurface0 + i), surfaceResource));
+            m_surfaceState.emplace(SurfaceType(SurfaceTypeHdrCRI3DLUTSurface0 + i), surfaceResource);
         }
     }
 
@@ -3509,7 +3519,7 @@ MOS_STATUS VpRenderHdrKernel::SetupSurfaceState()
 
         surfParam.surfaceOverwriteParams.renderSurfaceParams.MemObjCtl = m_surfMemCacheCtl.TargetSurfMemObjCtl;
 
-        m_surfaceState.insert(std::make_pair(SurfaceType(SurfaceTypeHdrTarget0 + i), surfParam));
+        m_surfaceState.emplace(SurfaceType(SurfaceTypeHdrTarget0 + i), surfParam);
 
         //update render GMM resource usage type
         m_allocator->UpdateResourceUsageType(&layer->osSurface->OsResource, MOS_HW_RESOURCE_USAGE_VP_OUTPUT_PICTURE_RENDER);
@@ -3545,12 +3555,12 @@ MOS_STATUS VpRenderHdrKernel::SetupSurfaceState()
     if (m_hdrParams->bUsingAutoModePipe && bHasAutoModeLayer)
     {
         UpdateCurbeBindingIndex(SurfaceTypeHdrAutoModeCoeff, VPHAL_HDR_BTINDEX_COEFF);
-        m_surfaceState.insert(std::make_pair(SurfaceTypeHdrAutoModeCoeff, surfCoeffParam));
+        m_surfaceState.emplace(SurfaceTypeHdrAutoModeCoeff, surfCoeffParam);
     }
     else
     {
         UpdateCurbeBindingIndex(SurfaceTypeHdrCoeff, VPHAL_HDR_BTINDEX_COEFF);
-        m_surfaceState.insert(std::make_pair(SurfaceTypeHdrCoeff, surfCoeffParam));
+        m_surfaceState.emplace(SurfaceTypeHdrCoeff, surfCoeffParam);
     }
 
     return MOS_STATUS_SUCCESS;
@@ -4146,7 +4156,7 @@ MOS_STATUS VpRenderHdrKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
         m_hdrCurbe.DW58.TwoLayerOperationLayer0          = VPHAL_HDR_TWO_LAYER_OPTION_COMP;
     }
 
-    m_hdrCurbe.DW63.FormatDescriptorDestination        = FormatDescriptor;
+    m_hdrCurbe.DW63.FormatDescriptorDestination        = (uint32_t)FormatDescriptor;
     m_hdrCurbe.DW63.ChromaSittingLocationDestination   = ChromaSiting;
     m_hdrCurbe.DW63.ChannelSwapEnablingFlagDestination = bChannelSwap;
 
@@ -4184,7 +4194,7 @@ MOS_STATUS VpRenderHdrKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
 
     //DumpCurbe(&m_hdrCurbe, sizeof(MEDIA_WALKER_HDR_STATIC_DATA));
 
-    PrintCurbeData(&m_hdrCurbe);
+    PrintCurbeDataUnified(&m_hdrCurbe);
 
     return eStatus;
 }
@@ -5176,4 +5186,115 @@ void VpRenderHdrKernel::PrintCurbeData(PMEDIA_WALKER_HDR_STATIC_DATA curbeData)
         curbeData->DW63.Reserved,
         curbeData->DW63.TotalNumberInputLayers);
 #endif
+}
+
+void VpRenderHdrKernel::PrintCurbeDataUnified(PMEDIA_WALKER_HDR_STATIC_DATA curbeData)
+{
+    if (curbeData == nullptr)
+    {
+        VP_RENDER_ASSERTMESSAGE("The curbeData pointer is null");
+        return;
+    }
+
+    // Use arrays of pointers to access per-layer DW fields uniformly
+    const float *horizOrigin[8] = {
+        &curbeData->DW0.HorizontalFrameOriginLayer0,
+        &curbeData->DW1.HorizontalFrameOriginLayer1,
+        &curbeData->DW2.HorizontalFrameOriginLayer2,
+        &curbeData->DW3.HorizontalFrameOriginLayer3,
+        &curbeData->DW4.HorizontalFrameOriginLayer4,
+        &curbeData->DW5.HorizontalFrameOriginLayer5,
+        &curbeData->DW6.HorizontalFrameOriginLayer6,
+        &curbeData->DW7.HorizontalFrameOriginLayer7};
+    const float *vertOrigin[8] = {
+        &curbeData->DW8.VerticalFrameOriginLayer0,
+        &curbeData->DW9.VerticalFrameOriginLayer1,
+        &curbeData->DW10.VerticalFrameOriginLayer2,
+        &curbeData->DW11.VerticalFrameOriginLayer3,
+        &curbeData->DW12.VerticalFrameOriginLayer4,
+        &curbeData->DW13.VerticalFrameOriginLayer5,
+        &curbeData->DW14.VerticalFrameOriginLayer6,
+        &curbeData->DW15.VerticalFrameOriginLayer7};
+    const float *horizStep[8] = {
+        &curbeData->DW16.HorizontalScalingStepRatioLayer0,
+        &curbeData->DW17.HorizontalScalingStepRatioLayer1,
+        &curbeData->DW18.HorizontalScalingStepRatioLayer2,
+        &curbeData->DW19.HorizontalScalingStepRatioLayer3,
+        &curbeData->DW20.HorizontalScalingStepRatioLayer4,
+        &curbeData->DW21.HorizontalScalingStepRatioLayer5,
+        &curbeData->DW22.HorizontalScalingStepRatioLayer6,
+        &curbeData->DW23.HorizontalScalingStepRatioLayer7};
+    const float *vertStep[8] = {
+        &curbeData->DW24.VerticalScalingStepRatioLayer0,
+        &curbeData->DW25.VerticalScalingStepRatioLayer1,
+        &curbeData->DW26.VerticalScalingStepRatioLayer2,
+        &curbeData->DW27.VerticalScalingStepRatioLayer3,
+        &curbeData->DW28.VerticalScalingStepRatioLayer4,
+        &curbeData->DW29.VerticalScalingStepRatioLayer5,
+        &curbeData->DW30.VerticalScalingStepRatioLayer6,
+        &curbeData->DW31.VerticalScalingStepRatioLayer7};
+
+    // Access DW32-DW47 as raw uint32_t array for coordinate extraction
+    const uint32_t *dwArray = reinterpret_cast<const uint32_t *>(curbeData);
+
+    for (int i = 0; i < 8; i++)
+    {
+        uint32_t hexVal = 0;
+        MOS_SecureMemcpy(&hexVal, sizeof(uint32_t), horizOrigin[i], sizeof(uint32_t));
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] HorizontalFrameOrigin[%d] = %f (0x%08x)", i, *horizOrigin[i], hexVal);
+        MOS_SecureMemcpy(&hexVal, sizeof(uint32_t), vertOrigin[i], sizeof(uint32_t));
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] VerticalFrameOrigin[%d] = %f (0x%08x)", i, *vertOrigin[i], hexVal);
+        MOS_SecureMemcpy(&hexVal, sizeof(uint32_t), horizStep[i], sizeof(uint32_t));
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] HorizontalScalingStepRatio[%d] = %f (0x%08x)", i, *horizStep[i], hexVal);
+        MOS_SecureMemcpy(&hexVal, sizeof(uint32_t), vertStep[i], sizeof(uint32_t));
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] VerticalScalingStepRatio[%d] = %f (0x%08x)", i, *vertStep[i], hexVal);
+
+        // DW32+i: left(0:15), top(16:31)
+        uint32_t topLeftDw = dwArray[32 + i];
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] LeftCoordinateRectangle[%d] = %d", i, topLeftDw & 0xFFFF);
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] TopCoordinateRectangle[%d] = %d", i, (topLeftDw >> 16) & 0xFFFF);
+        // DW40+i: right(0:15), bottom(16:31)
+        uint32_t bottomRightDw = dwArray[40 + i];
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] RightCoordinateRectangle[%d] = %d", i, bottomRightDw & 0xFFFF);
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] BottomCoordinateRectangle[%d] = %d", i, (bottomRightDw >> 16) & 0xFFFF);
+
+        // DW48+i: layerInfo bitfields
+        uint32_t layerDw = dwArray[48 + i];
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] FormatDescriptor[%d] = %d", i, layerDw & 0xFF);
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] ChromaSittingLocation[%d] = %d", i, (layerDw >> 8) & 0x7);
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] ChannelSwapEnablingFlag[%d] = %d", i, (layerDw >> 11) & 0x1);
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] IEFBypassEnablingFlag[%d] = %d", i, (layerDw >> 12) & 0x1);
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] RotationAngleMirrorDirection[%d] = %d", i, (layerDw >> 13) & 0x7);
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] SamplerIndexFirstPlane[%d] = %d", i, (layerDw >> 16) & 0xF);
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] SamplerIndexSecondThirdPlane[%d] = %d", i, (layerDw >> 20) & 0xF);
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] CCMExtensionEnablingFlag[%d] = %d", i, (layerDw >> 24) & 0x1);
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] ToneMappingEnablingFlag[%d] = %d", i, (layerDw >> 25) & 0x1);
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] PriorCSCEnablingFlag[%d] = %d", i, (layerDw >> 26) & 0x1);
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] EOTF1DLUTEnablingFlag[%d] = %d", i, (layerDw >> 27) & 0x1);
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] CCMEnablingFlag[%d] = %d", i, (layerDw >> 28) & 0x1);
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] OETF1DLUTEnablingFlag[%d] = %d", i, (layerDw >> 29) & 0x1);
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] PostCSCEnablingFlag[%d] = %d", i, (layerDw >> 30) & 0x1);
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] Enabling3DLUTFlag[%d] = %d", i, (layerDw >> 31) & 0x1);
+
+        // DW56-DW57: constantAlpha (8 bits per layer, packed 4 per DW)
+        uint32_t alphaDw = dwArray[56 + i / 4];
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] ConstantBlendingAlpha[%d] = %d", i, (alphaDw >> ((i % 4) * 8)) & 0xFF);
+
+        // DW58-DW59: twoLayerOperation (8 bits per layer, packed 4 per DW)
+        uint32_t opDw = dwArray[58 + i / 4];
+        VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] TwoLayerOperation[%d] = %d", i, (opDw >> ((i % 4) * 8)) & 0xFF);
+    }
+
+    VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] FillColorRV = %d", curbeData->DW60.FixedPointFillColorRVChannel);
+    VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] FillColorGY = %d", curbeData->DW60.FixedPointFillColorGYChannel);
+    VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] FillColorBU = %d", curbeData->DW61.FixedPointFillColorBUChannel);
+    VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] FillColorAlpha = %d", curbeData->DW61.FixedPointFillColorAlphaChannel);
+    VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] DestinationWidth = %d", curbeData->DW62.DestinationWidth);
+    VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] DestinationHeight = %d", curbeData->DW62.DestinationHeight);
+    VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] TotalNumberInputLayers = %d", curbeData->DW63.TotalNumberInputLayers);
+    VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] FormatDescriptorDst = %d", curbeData->DW63.FormatDescriptorDestination);
+    VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] ChromaSittingLocationDst = %d", curbeData->DW63.ChromaSittingLocationDestination);
+    VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] ChannelSwapEnablingFlagDst = %d", curbeData->DW63.ChannelSwapEnablingFlagDestination);
+    VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] DstCSCEnablingFlag = %d", curbeData->DW63.DstCSCEnablingFlagDestination);
+    VP_RENDER_VERBOSEMESSAGE("[HDR Curbe] DitherRoundEnablingFlag = %d", curbeData->DW63.DitherRoundEnablingFlagDestinationSurface);
 }

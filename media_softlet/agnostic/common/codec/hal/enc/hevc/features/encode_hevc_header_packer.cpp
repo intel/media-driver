@@ -50,7 +50,7 @@ MOS_STATUS HevcHeaderPacker::GetSPSParams(PCODEC_HEVC_ENCODE_SEQUENCE_PARAMS hev
     m_spsParams.num_short_term_ref_pic_sets              = 0;  //NA
     m_spsParams.num_long_term_ref_pics_sps               = 0;  //NA
     m_spsParams.log2_max_pic_order_cnt_lsb_minus4        = 0;  //Related to CurrPicOrderCnt?
-    m_spsParams.long_term_ref_pics_present_flag          = 0;  //NA, default in msdk
+    m_spsParams.long_term_ref_pics_present_flag          = hevcSeqParams->long_term_ref_pics_present_flag;
     m_spsParams.temporal_mvp_enabled_flag                = hevcSeqParams->sps_temporal_mvp_enable_flag;
     m_spsParams.sample_adaptive_offset_enabled_flag      = hevcSeqParams->SAO_enabled_flag;
     for (int i = 0; i < 65; i++)  //NA

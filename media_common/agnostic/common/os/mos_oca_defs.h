@@ -39,6 +39,7 @@ typedef uint64_t MOS_OCA_BUFFER_HANDLE;
 
 #define MOS_OCA_MAX_STRING_LEN          (1024)          //!< The max string len for MosOcaStateHeapLog::TraceMessage.
 #define OCA_MAX_RESOURCE_INFO_COUNT_MAX 60
+#define OCA_MAX_BUFFER_RESOURCE_INFO_COUNT_MAX 150
 
 typedef enum _MOS_OCA_LOG_TYPE
 {
@@ -53,6 +54,7 @@ typedef enum _MOS_OCA_LOG_TYPE
     MOS_OCA_LOG_TYPE_EXEC_LIST_INFO,
     MOS_OCA_LOG_TYPE_VP_USER_FEATURE_CONTROL_INFO,
     MOS_OCA_LOG_TYPE_CP_IOMSG,
+    MOS_OCA_LOG_TYPE_BUFFER_RESOURCE_INFO,
     MOS_OCA_LOG_TYPE_COUNT
 }MOS_OCA_LOG_TYPE;
 
@@ -88,7 +90,12 @@ typedef struct _MOS_OCA_LOG_HEADER_VP_KERNEL_INFO
 {
     MOS_OCA_LOG_HEADER header;
     int                vpKernelID;
-    int                fcKernelCount;
+    union
+    {
+        int      fcKernelCount;
+        uint32_t aiKernelFeatureType;
+    };
+    
     // Followed by fc kernel list.
 } MOS_OCA_LOG_HEADER_VP_KERNEL_INFO, *PMOS_OCA_LOG_HEADER_VP_KERNEL_INFO;
 

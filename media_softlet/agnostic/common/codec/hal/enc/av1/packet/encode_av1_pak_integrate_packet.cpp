@@ -51,11 +51,16 @@ namespace encode {
         ENCODE_CHK_NULL_RETURN(m_miItf);
 
         ENCODE_CHK_NULL_RETURN(m_pipeline);
-#ifdef _MMC_SUPPORTED
+
         m_mmcState = m_pipeline->GetMmcState();
         ENCODE_CHK_NULL_RETURN(m_mmcState);
-#endif
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+        if (m_pipeline->GetBypassHWLegacy())
+        {
+            m_bypassHwLegacyEnabled = true;
+        }
+#endif
         return MOS_STATUS_SUCCESS;
     }
 
@@ -587,12 +592,18 @@ namespace encode {
         m_HucStitchCmdBatchBuffer.iCurrent = 0;
         // Reset starting location (offset) executing 2nd level batch buffer for each frame & each pass
         m_HucStitchCmdBatchBuffer.dwOffset = 0;
-        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(cmdBuffer, &m_HucStitchCmdBatchBuffer));
+        if (!m_osInterface->bNullHwIsEnabled)
+        {
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(cmdBuffer, &m_HucStitchCmdBatchBuffer));
+        }
         // This wait cmd is needed to make sure copy command is done as suggested by HW folk in encode cases
         auto &mfxWaitParams               = m_miItf->MHW_GETPAR_F(MFX_WAIT)();
         mfxWaitParams                     = {};
         mfxWaitParams.iStallVdboxPipeline = m_osInterface->osCpInterface->IsCpEnabled() ? true : false;
-        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MFX_WAIT)(cmdBuffer));
+        if (!m_osInterface->bNullHwIsEnabled)
+        {
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MFX_WAIT)(cmdBuffer));
+        }
 
         return MOS_STATUS_SUCCESS;
     }
@@ -671,7 +682,14 @@ namespace encode {
         miConditionalBatchBufferEndParams.presSemaphoreBuffer =
             m_basicFeature->m_recycleBuf->GetBuffer(VdencBrcPakMmioBuffer, 0);
 
-        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(&cmdBuffer));
+        if (m_osInterface->bNullHwIsEnabled)
+        {
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_END)(&cmdBuffer));
+        }
+        else
+        {
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(&cmdBuffer));
+        }
 
         return MOS_STATUS_SUCCESS;
     }

@@ -297,6 +297,11 @@ namespace encode
 
         hucVdencBrcUpdateDmem->UPD_AdaptiveTUEnabled = m_basicFeature->m_hevcPicParams->AdaptiveTUEnabled;
 
+        hucVdencBrcUpdateDmem->UPD_GopPicSize = m_basicFeature->m_hevcSeqParams->GopPicSize;
+        hucVdencBrcUpdateDmem->UPD_LADsRatio = m_basicFeature->m_hevcSeqParams->FastPassRatio;
+
+        hucVdencBrcUpdateDmem->UPD_GopOpt_U8 = m_basicFeature->m_hevcSeqParams->GopOptFlag;
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -889,6 +894,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, HEVCEncodeBRC)
     {
+        ENCODE_FUNC_CALL();
         params.frameStatisticsStreamOut |= m_hevcVDEncAcqpEnabled || m_vdencBrcEnabled;
 
         return MOS_STATUS_SUCCESS;
@@ -896,6 +902,7 @@ namespace encode
 
     MHW_SETPAR_DECL_SRC(VDENC_CMD2, HEVCEncodeBRC)
     {
+        ENCODE_FUNC_CALL();
         auto basicFeature = dynamic_cast<HevcBasicFeature *>(m_basicFeature);
         ENCODE_CHK_NULL_RETURN(basicFeature);
 

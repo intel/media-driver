@@ -116,7 +116,7 @@ VPHAL_COLORPACK VpHalDDIUtils::GetSurfaceColorPack(
         return mapIt->first;
     }
 
-    VP_PUBLIC_ASSERTMESSAGE("Input format color pack unknown.");
+    VP_PUBLIC_ASSERTMESSAGE("Input format (%d) color pack unknown.", format);
     return VPHAL_COLORPACK_UNKNOWN;
 }
 
@@ -183,6 +183,6 @@ uint32_t VpHalDDIUtils::GetSurfaceBitDepth(
         return mapIt->first;
     }
 
-    VP_PUBLIC_ASSERTMESSAGE("Unknown Input format for bit depth.");
+    VP_PUBLIC_ASSERTMESSAGE("Unknown Input format (%d) for bit depth.", format);
     return 0;
 }

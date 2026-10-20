@@ -126,8 +126,8 @@ MOS_STATUS EncodeAqmFeature::AllocateResources()
     allocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
     allocParamsForBufferLinear.Format   = Format_Buffer;
     allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ;
-
-    uint32_t rowstoreBufferSize[5] = {(m_basicFeature->m_oriFrameWidth / 4 + 1), 3391, 1665, 833, 417};
+    uint32_t rowstoreBufferSize0            = m_useFastPass ? (m_dsWidth / 4 + 1) : (m_basicFeature->m_oriFrameWidth / 4 + 1);
+    uint32_t rowstoreBufferSize[5]          = {rowstoreBufferSize0, 3391, 1665, 833, 417};
     for (int i = 0; i < 5; i++)
     {
         std::string bufName                 = "Index" + std::to_string(i) + "LineRowstoreBuffer";
@@ -138,11 +138,14 @@ MOS_STATUS EncodeAqmFeature::AllocateResources()
     }
 
     EncodeAqmFeatureMember2    = ((sizeof(AQM_Ouput_Format) + CL_SIZE_BYTES - 1) / CL_SIZE_BYTES) * CL_SIZE_BYTES * m_numTiles;
+    
+    uint32_t width  = m_useFastPass ? m_dsWidth : m_basicFeature->m_oriFrameWidth;
+    uint32_t height = m_useFastPass ? m_dsHeight : m_basicFeature->m_oriFrameHeight;
     EncodeAqmFeatureMember3[0] = 0;
-    EncodeAqmFeatureMember3[1] = EncodeAqmFeatureFunction0(m_basicFeature->m_oriFrameWidth, m_basicFeature->m_oriFrameHeight, 1);
-    EncodeAqmFeatureMember3[2] = EncodeAqmFeatureFunction0(m_basicFeature->m_oriFrameWidth, m_basicFeature->m_oriFrameHeight, 2);
-    EncodeAqmFeatureMember3[3] = EncodeAqmFeatureFunction0(m_basicFeature->m_oriFrameWidth, m_basicFeature->m_oriFrameHeight, 3);
-    EncodeAqmFeatureMember3[4] = EncodeAqmFeatureFunction0(m_basicFeature->m_oriFrameWidth, m_basicFeature->m_oriFrameHeight, 4);
+    EncodeAqmFeatureMember3[1] = EncodeAqmFeatureFunction0(width, height, 1);
+    EncodeAqmFeatureMember3[2] = EncodeAqmFeatureFunction0(width, height, 2);
+    EncodeAqmFeatureMember3[3] = EncodeAqmFeatureFunction0(width, height, 3);
+    EncodeAqmFeatureMember3[4] = EncodeAqmFeatureFunction0(width, height, 4);
 
     // allocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_CACHE;
     
@@ -200,8 +203,8 @@ MHW_SETPAR_DECL_SRC(AQM_PIC_STATE, EncodeAqmFeature)
 {
     if (m_enabled)
     {
-        params.frameWidthInPixelMinus1  = MOS_ALIGN_CEIL(m_basicFeature->m_oriFrameWidth, 8) - 1;
-        params.FrameHeightInPixelMinus1 = MOS_ALIGN_CEIL(m_basicFeature->m_oriFrameHeight, 8) - 1;
+        params.frameWidthInPixelMinus1  = m_useFastPass ? (MOS_ALIGN_CEIL(m_dsWidth, 8) - 1) : (MOS_ALIGN_CEIL(m_basicFeature->m_oriFrameWidth, 8) - 1);
+        params.FrameHeightInPixelMinus1 = m_useFastPass ? (MOS_ALIGN_CEIL(m_dsHeight, 8) - 1) : (MOS_ALIGN_CEIL(m_basicFeature->m_oriFrameHeight, 8) - 1);
         params.vdaqmEnable              = m_enabled;
         params.tileBasedEngine          = m_tileBasedEngine;
         params.chromasubsampling        = m_basicFeature->m_chromaFormat - 1;

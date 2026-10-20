@@ -490,7 +490,7 @@ struct _VDENC_CMD1_CMD
     static const size_t byteSize = 132;
 };
 
-#if IGFX_VDENC_INTERFACE_EXT_SUPPORT
+#if _MEDIA_RESERVED
 #include "mhw_vdbox_vdenc_hwcmd_xe_hpm_ext.h"
 #else
 struct _VDENC_CMD2_CMD

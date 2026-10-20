@@ -69,6 +69,13 @@ MOS_STATUS VvcDecodePkt::Init()
     DECODE_CHK_STATUS(m_slicePkt->CalculateCommandSize(m_sliceStatesSize, m_slicePatchListSize));
     DECODE_CHK_STATUS(m_slicePkt->CalculateTileCommandSize(m_tileStateSize, m_tilePatchListSize));
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    if (m_vvcPipeline->GetBypassHWLegacy())
+    {
+        m_bypassHwLegacyEnabled = true;
+    }
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -114,6 +121,8 @@ bool VvcDecodePkt::IsPrologRequired()
 MOS_STATUS VvcDecodePkt::AddForceWakeup(MOS_COMMAND_BUFFER& cmdBuffer)
 {
     DECODE_FUNC_CALL();
+    // NativeFence sync BB may cause preemption and ring idle, so force wakeup after it
+    DECODE_CHK_STATUS(AddNativeFenceSyncBBStartCmd(cmdBuffer));
 
     auto &par = m_miItf->GETPAR_MI_FORCE_WAKEUP();
     MOS_ZeroMemory(&par, sizeof(mhw::mi::MI_FORCE_WAKEUP_PAR));
@@ -134,19 +143,15 @@ MOS_STATUS VvcDecodePkt::SendPrologWithFrameTracking(MOS_COMMAND_BUFFER& cmdBuff
     DECODE_CHK_NULL(makerPacket);
     DECODE_CHK_STATUS(makerPacket->Execute(cmdBuffer));
 
-#ifdef _MMC_SUPPORTED
     m_mmcState = m_vvcPipeline->GetMmcState();
     bool isMmcEnabled = (m_mmcState != nullptr && m_mmcState->IsMmcEnabled());
-#endif
 
     MHW_GENERIC_PROLOG_PARAMS  genericPrologParams;
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
     genericPrologParams.pOsInterface = m_osInterface;
     genericPrologParams.pvMiInterface = nullptr;
 
-#ifdef _MMC_SUPPORTED
     genericPrologParams.bMmcEnabled = isMmcEnabled;
-#endif
 
     DECODE_CHK_STATUS(Mhw_SendGenericPrologCmdNext(&cmdBuffer, &genericPrologParams, m_miItf));
 
@@ -197,6 +202,7 @@ MOS_STATUS VvcDecodePkt::Completed(void *mfxStatus, void *rcsStatus, void *statu
     DecodeStatusMfx *       decodeStatusMfx  = (DecodeStatusMfx *)mfxStatus;
     DecodeStatusReportData *statusReportData = (DecodeStatusReportData *)statusReport;
     DECODE_VERBOSEMESSAGE("Current Frame Index = %d", statusReportData->currDecodedPic.FrameIdx);
+
 
     return MOS_STATUS_SUCCESS;
 }
@@ -285,6 +291,12 @@ MOS_STATUS VvcDecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* 
         StoreEngineId(cmdBuffer, decode::DecodeStatusReportType::CsEngineIdOffset_0);
     }
 #endif
+
+    if (m_vvcPipeline->GetBypassHWLegacy())
+    {
+        DECODE_CHK_STATUS(m_vvcPipeline->GetBypassHWLegacy()->AddNullHwProxyCmd(cmdBuffer, false));
+        DECODE_CHK_STATUS(m_vvcPipeline->GetBypassHWLegacy()->StartPredicate(cmdBuffer));
+    }
     return MOS_STATUS_SUCCESS;
 }
 
@@ -294,6 +306,10 @@ MOS_STATUS VvcDecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cm
 
     DECODE_CHK_NULL(cmdBuffer);
 
+    if (m_vvcPipeline->GetBypassHWLegacy())
+    {
+        DECODE_CHK_STATUS(m_vvcPipeline->GetBypassHWLegacy()->StopPredicate(cmdBuffer));
+    }
     DECODE_CHK_STATUS(ReadVvcpStatus(m_statusReport, *cmdBuffer));
     DECODE_CHK_STATUS(MediaPacket::EndStatusReportNext(srType, cmdBuffer));
 
@@ -427,7 +443,10 @@ MOS_STATUS VvcDecodePkt::PackPictureLevelCmds(MOS_COMMAND_BUFFER& cmdBuffer)
         }
     }
 
-    DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_BATCH_BUFFER_START(&cmdBuffer, m_picBatchBuf));
+    if (!m_osInterface->bNullHwIsEnabled)
+    {
+        DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_BATCH_BUFFER_START(&cmdBuffer, m_picBatchBuf));
+    }
 
     return MOS_STATUS_SUCCESS;
 }
@@ -453,7 +472,11 @@ MOS_STATUS VvcDecodePkt::PackS2LSliceLevelCmds(MOS_COMMAND_BUFFER &cmdBuffer)
         auto buf = m_vvcPipeline->GetSliceLvlCmdBuffer();
         DECODE_CHK_NULL(buf);
         buf->dwOffset = m_vvcPipeline->GetSliceLvlBufSize() * sliceIdx;
-        DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_BATCH_BUFFER_START(&cmdBuffer, buf)); //Jump to Slice Batch Buffer
+        // Slice level BB is programmed by HuC, which does not run under NullHW
+        if (!m_osInterface->bNullHwIsEnabled)
+        {
+            DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_BATCH_BUFFER_START(&cmdBuffer, buf)); //Jump to Slice Batch Buffer
+        }
         DECODE_CHK_STATUS(VdMemoryFlush(cmdBuffer));
         DECODE_CHK_STATUS(VdPipelineFlush(cmdBuffer));
     }

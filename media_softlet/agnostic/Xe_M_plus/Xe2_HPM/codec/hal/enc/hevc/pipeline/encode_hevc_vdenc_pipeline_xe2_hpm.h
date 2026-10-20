@@ -43,6 +43,7 @@ public:
 
 protected:
     virtual MOS_STATUS CreateFeatureManager() override;
+    virtual MOS_STATUS ActivateVdencVideoPackets() override;
 
 MEDIA_CLASS_DEFINE_END(encode__HevcVdencPipelineXe2_Hpm)
 };

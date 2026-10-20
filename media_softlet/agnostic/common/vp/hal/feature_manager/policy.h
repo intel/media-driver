@@ -96,11 +96,13 @@ protected:
     MOS_STATUS GetCSCExecutionCapsHdr(SwFilter *hdr, SwFilter *csc);
     MOS_STATUS GetCSCExecutionCapsDi(SwFilter* feature);
     MOS_STATUS GetCSCExecutionCapsBT2020ToRGB(SwFilter *cgc, SwFilter *csc);
+    MOS_STATUS GetCSCExecutionCapsFp16Oor(SwFilter *csc);
     MOS_STATUS GetCSCExecutionCaps(SwFilter* feature, bool isCamPipeWithBayerInput);
     bool IsSfcSupported(MOS_FORMAT format);
     MOS_STATUS GetScalingExecutionCaps(SwFilter* feature, bool isDIEnabled);
-    MOS_STATUS GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled, bool isDIEnabled);
-    MOS_STATUS GetScalingExecutionCapsHdr(SwFilter *feature);
+    MOS_STATUS GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled, bool isDIEnabled, bool isFullRgbG10P709Output = false);
+    MOS_STATUS GetScalingExecutionCapsHdr(SwFilter *feature, SwFilter *csc);
+    bool IsFullFP16G10P709Output(SwFilter *csc);
     bool IsSfcRotationSupported(FeatureParamRotMir *rotationParams);
     MOS_STATUS GetRotationExecutionCaps(SwFilter* feature);
     virtual MOS_STATUS GetDenoiseExecutionCaps(SwFilter* feature);
@@ -133,6 +135,11 @@ protected:
     MOS_STATUS UpdateFeaturePipe(SwFilterPipe &featurePipe, uint32_t pipeIndex, SwFilterPipe &executedFilters, uint32_t executePipeIndex,
                                 bool isInputPipe, VP_EXECUTE_CAPS& caps);
 
+    // Hdr kernel only rotates P010 correctly. For other formats rotation is left to a following FC pass.
+    bool IsHdrKernelRotationDeferNeeded(VP_EXECUTE_CAPS caps, SwFilterPipe &featurePipe, bool isInputPipe, uint32_t pipeIndex);
+    MOS_STATUS DeferFeatureForHdrKernelRotation(FeatureType filterID, SwFilter *feature, SwFilterPipe &executedFilters,
+                                bool isInputPipe, uint32_t executePipeIndex);
+
     MOS_STATUS UpdateFeaturePipeSingleLayer(SwFilterPipe &featurePipe, uint32_t pipeIndex, SwFilterPipe &executedFilters, uint32_t executePipeIndex, VP_EXECUTE_CAPS& caps);
     MOS_STATUS UpdateFeatureOutputPipe(std::vector<int> &layerIndexes, SwFilterPipe &featurePipe, SwFilterPipe &executedFilters, VP_EXECUTE_CAPS& caps);
     MOS_STATUS BuildFilters(SwFilterPipe& subSwFilterPipe, HW_FILTER_PARAMS& params);
@@ -140,6 +147,7 @@ protected:
     MOS_STATUS BuildExecuteHwFilter(VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
     MOS_STATUS SetupExecuteFilter(SwFilterPipe& featurePipe, std::vector<int> &layerIndexes, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
     MOS_STATUS SetupFilterResource(SwFilterPipe& featurePipe, std::vector<int> &layerIndexes, VP_EXECUTE_CAPS& caps, HW_FILTER_PARAMS& params);
+    MOS_STATUS AddInputSurfaceForSingleLayer(SwFilterPipe &featurePipe, uint32_t pipeIndex, SwFilterPipe &executedFilters, uint32_t &executePipeIndex, VP_EXECUTE_CAPS &caps);
 
     bool IsDemosaicValidOutputFormat(MOS_FORMAT format);
     bool IsAlphaSettingSupportedBySfc(MOS_FORMAT formatInput, MOS_FORMAT formatOutput, PVPHAL_ALPHA_PARAMS compAlpha);

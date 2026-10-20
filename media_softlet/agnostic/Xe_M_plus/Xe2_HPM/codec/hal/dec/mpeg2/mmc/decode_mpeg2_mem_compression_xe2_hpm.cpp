@@ -40,7 +40,8 @@ Mpeg2DecodeMemCompXe2_Hpm::Mpeg2DecodeMemCompXe2_Hpm(CodechalHwInterfaceNext *hw
 MOS_STATUS decode::Mpeg2DecodeMemCompXe2_Hpm::CheckReferenceList(
     Mpeg2BasicFeature &mpeg2BasicFeature,
     MOS_MEMCOMP_STATE &preDeblockSurfMmcState,
-    MOS_MEMCOMP_STATE &postDeblockSurfMmcState)
+    MOS_MEMCOMP_STATE &postDeblockSurfMmcState,
+    PMOS_RESOURCE     *presReferences)
 {
     return MOS_STATUS_SUCCESS;
 }

@@ -38,7 +38,7 @@ using namespace mhw::vdbox::mfx;
 namespace decode
 {
 
-class Vp8DecodeSlcPkt : public DecodeSubPacket, public Itf::ParSetting
+class Vp8DecodeSlcPkt : public DecodeSubPacket, public mhw::vdbox::mfx::Itf::ParSetting
 {
 public:
     Vp8DecodeSlcPkt(Vp8Pipeline *pipeline, CodechalHwInterfaceNext *hwInterface)
@@ -46,7 +46,7 @@ public:
     {
         if (m_hwInterface != nullptr)
         {
-            m_mfxItf       = std::static_pointer_cast<Itf>(m_hwInterface->GetMfxInterfaceNext());
+            m_mfxItf       = std::static_pointer_cast<mhw::vdbox::mfx::Itf>(m_hwInterface->GetMfxInterfaceNext());
             m_miItf        = std::static_pointer_cast<mhw::mi::Itf>(hwInterface->GetMiInterfaceNext());
         }
     }
@@ -106,7 +106,7 @@ protected:
     Vp8Pipeline               *m_vp8Pipeline     = nullptr;
     Vp8BasicFeature           *m_vp8BasicFeature = nullptr;
     DecodeAllocator           *m_allocator       = nullptr;
-    std::shared_ptr<Itf>       m_mfxItf          = nullptr;
+    std::shared_ptr<mhw::vdbox::mfx::Itf> m_mfxItf          = nullptr;
 
     // Parameters passed from application
     CODEC_VP8_PIC_PARAMS      *m_vp8PicParams    = nullptr;      //!< Pointer to Vp8 picture parameter

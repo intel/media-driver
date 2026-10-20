@@ -7855,9 +7855,9 @@ MOS_STATUS CodechalEncHevcStateG11::AddHcpPipeBufAddrCmd(
 
     *m_pipeBufAddrParams = {};
     SetHcpPipeBufAddrParams(*m_pipeBufAddrParams);
-#ifdef _MMC_SUPPORTED
+
     m_mmcState->SetPipeBufAddr(m_pipeBufAddrParams);
-#endif
+
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpPipeBufAddrCmd(cmdBuffer, m_pipeBufAddrParams));
 
     return eStatus;

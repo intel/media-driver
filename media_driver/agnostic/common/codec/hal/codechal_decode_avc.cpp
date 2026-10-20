@@ -312,7 +312,7 @@ MOS_STATUS CodechalDecodeAvc::AllocateInvalidRefBuffer()
         CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalGetResourceInfo(m_osInterface, &m_destSurface));
 
         MOS_MEMCOMP_STATE mmcMode = MOS_MEMCOMP_DISABLED;
-#ifdef _MMC_SUPPORTED
+
         if(m_mmc != nullptr && m_mmc->IsMmcEnabled())
         {
             CODECHAL_DECODE_CHK_STATUS_RETURN(
@@ -321,7 +321,6 @@ MOS_STATUS CodechalDecodeAvc::AllocateInvalidRefBuffer()
                 &m_destSurface.OsResource,
                 &mmcMode));
         }
-#endif
 
         MOS_SURFACE surface;
         CODECHAL_DECODE_CHK_STATUS_MESSAGE_RETURN(AllocateSurface(
@@ -1097,10 +1096,9 @@ MOS_STATUS CodechalDecodeAvc::AllocateResourcesFixedSizes()
 
 MOS_STATUS CodechalDecodeAvc::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
     m_mmc = MOS_New(CodechalMmcDecodeAvc, m_hwInterface, this);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_mmc);
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -1502,9 +1500,7 @@ MOS_STATUS CodechalDecodeAvc::InitPicMhwParams(
         picMhwParams->PipeBufAddrParams.psPreDeblockSurface = &m_destSurface;
     }
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&picMhwParams->PipeBufAddrParams));
-#endif
 
     picMhwParams->PipeBufAddrParams.presMfdIntraRowStoreScratchBuffer =
         &m_resMfdIntraRowStoreScratchBuffer;
@@ -1579,11 +1575,9 @@ MOS_STATUS CodechalDecodeAvc::InitPicMhwParams(
         }
     }
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->CheckReferenceList(&picMhwParams->PipeBufAddrParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetRefrenceSync(m_disableDecodeSyncLock, m_disableLockForTranscode));
-#endif
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(MOS_SecureMemcpy(picMhwParams->PipeBufAddrParams.presReferences, sizeof(PMOS_RESOURCE) * CODEC_AVC_MAX_NUM_REF_FRAME, m_presReferences, sizeof(PMOS_RESOURCE) * CODEC_AVC_MAX_NUM_REF_FRAME));
 

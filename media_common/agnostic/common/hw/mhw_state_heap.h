@@ -83,6 +83,8 @@ typedef struct MHW_BLOCK_MANAGER *PMHW_BLOCK_MANAGER;
 
 #define MHW_INVALID_SYNC_TAG            0xFFFFFFFF
 
+#define MHW_MIP_TAIL_START_LOD_ENABLED_MASK 0x8000
+
 enum MW_RENDER_ENGINE_ADDRESS_SHIFT
 {
     MHW_STATE_HEAP_SURFACE_STATE_SHIFT = 0
@@ -377,6 +379,8 @@ typedef struct _MHW_SURFACE_STATE_PARAMS {
     uint32_t    dwLocationInCmd;       // [out] Offset in command for patching
     MOS_TILE_MODE_GMM TileModeGMM;     // Tile Type from GMM Definition
     bool        bGMMTileEnabled;       //!<  GMM defined tile mode flag
+
+    uint32_t    MipTailStartLOD;
 } MHW_SURFACE_STATE_PARAMS, *PMHW_SURFACE_STATE_PARAMS;
 
 struct _MHW_STATE_HEAP
@@ -440,6 +444,7 @@ typedef struct _MHW_ID_ENTRY_PARAMS
     uint32_t            dwMediaIdOffset;                //! Offset of the first Media Interface Descriptor (in DSH)
     uint32_t            iMediaId;                       //! Media Interface Descriptor #
     uint32_t            dwKernelOffset;                 //! Kernel offset (in ISH)
+    uint32_t            kernelSize;
     uint32_t            dwSamplerOffset;                //! Sampler offset (in DSH)
     uint32_t            dwSamplerCount;                 //! Sample count
     uint32_t            dwBindingTableOffset;           //! Binding table offset (in DSH)
@@ -700,14 +705,6 @@ typedef enum _MHW_CHROMAKEY_MODE
     MHW_CHROMAKEY_MODE_REPLACE_BLACK = 1
 } MHW_CHROMAKEY_MODE;
 
-typedef struct _MHW_INLINE_DATA_PARAMS
-{
-    uint32_t          dwOffset;
-    uint32_t          dwSize;
-    PMOS_RESOURCE     resource;
-    bool              isPtrType;
-} MHW_INLINE_DATA_PARAMS, *PMHW_INLINE_DATA_PARAMS;
-
 typedef struct _MHW_SAMPLER_STATE_UNORM_PARAM
 {
     MHW_SAMPLER_FILTER_MODE      SamplerFilterMode;
@@ -832,6 +829,7 @@ typedef struct _MHW_SURFACE_STATE_SEND_PARAMS {
     int32_t                 iIndirectStateBase;
     int32_t                 iSurfaceStateOffset;
     bool                    bNeedNullPatch;
+    PMOS_RESOURCE           surfaceStateHeapMosResource;
 } MHW_SURFACE_STATE_SEND_PARAMS, *PMHW_SURFACE_STATE_SEND_PARAMS;
 
 struct MHW_STATE_HEAP_SETTINGS

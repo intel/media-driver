@@ -44,6 +44,7 @@ CodechalHwInterfaceNext::CodechalHwInterfaceNext(
     m_mfxItf   = mhwInterfacesNext->m_mfxItf;
     m_renderItf = mhwInterfacesNext->m_renderItf;
     m_vvcpItf  = mhwInterfacesNext->m_vvcpItf;
+    m_aqmItf    = mhwInterfacesNext->m_aqmItf;
 
     CODEC_HW_ASSERT(osInterface);
     m_osInterface = osInterface;
@@ -72,6 +73,8 @@ CodechalHwInterfaceNext::CodechalHwInterfaceNext(
 
     m_disableScalability = disableScalability;
     m_userSettingPtr     = osInterface->pfnGetUserSettingInstance(osInterface);
+
+    InitMemoryObjectCacheSettings();
 }
 
 CodechalHwInterfaceNext::~CodechalHwInterfaceNext()
@@ -178,6 +181,18 @@ MOS_STATUS CodechalHwInterfaceNext::InitCacheabilityControlSettings(
 
     CODEC_HW_FUNCTION_ENTER;
 
+    CODEC_HW_CHK_STATUS_RETURN(InitMemoryObjectCacheSettings());
+    CODEC_HW_CHK_STATUS_RETURN(InitL3CacheSettings());
+
+    return eStatus;
+}
+
+MOS_STATUS CodechalHwInterfaceNext::InitMemoryObjectCacheSettings()
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODEC_HW_FUNCTION_ENTER;
+
     CODEC_HW_CHK_NULL_RETURN(m_osInterface);
 
     for (uint32_t i = MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC + 1; i < MOS_CODEC_RESOURCE_USAGE_END_CODEC; i++)
@@ -187,22 +202,6 @@ MOS_STATUS CodechalHwInterfaceNext::InitCacheabilityControlSettings(
     }
 
     SetCacheabilitySettings(m_cacheabilitySettings);
-
-    bool l3CachingEnabled = !m_osInterface->bSimIsActive;
-
-    if (m_checkBankCount)
-    {
-        CODEC_HW_CHK_NULL_RETURN(m_osInterface);
-        auto gtSysInfo = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
-        CODEC_HW_CHK_NULL_RETURN(gtSysInfo);
-
-        l3CachingEnabled = (gtSysInfo->L3BankCount != 0 || gtSysInfo->L3CacheSizeInKb != 0);
-    }
-
-    if (l3CachingEnabled)
-    {
-        InitL3CacheSettings();
-    }
 
     return eStatus;
 }
@@ -215,7 +214,7 @@ MOS_STATUS CodechalHwInterfaceNext::CachePolicyGetMemoryObject(
     m_cacheabilitySettings[mosUsage].Value =
         (m_osInterface->pfnCachePolicyGetMemoryObject(
             mosUsage, 
-            m_osInterface->pfnGetGmmClientContext(m_osInterface))).DwordValue;
+            m_osInterface)).DwordValue;
 
     return eStatus;
 }
@@ -347,7 +346,7 @@ MOS_STATUS CodechalHwInterfaceNext::GetVdencPictureSecondLevelCommandsSize(
 {
     CODEC_HW_FUNCTION_ENTER;
 
-    uint32_t commands = 0;
+    uint32_t commandSz = 0;
 
     MHW_MI_CHK_NULL(m_hcpItf);
 
@@ -355,12 +354,12 @@ MOS_STATUS CodechalHwInterfaceNext::GetVdencPictureSecondLevelCommandsSize(
 
     if (standard == CODECHAL_VP9)
     {
-        commands += m_hcpItf->GetHcpVp9PicStateCommandSize();
-        commands += m_hcpItf->GetHcpVp9SegmentStateCommandSize() * 8;
-        commands += 132;
-        commands += 248;
-        commands += m_sizeOfCmdBatchBufferEnd;
-        commands += 24; // padding for alignment on 64 
+        commandSz += m_hcpItf->MHW_GETSIZE_F(HCP_VP9_PIC_STATE)();
+        commandSz += m_hcpItf->MHW_GETSIZE_F(HCP_VP9_SEGMENT_STATE)() * 8;
+        commandSz += m_vdencItf->MHW_GETSIZE_F(VDENC_CMD1)();
+        commandSz += m_vdencItf->MHW_GETSIZE_F(VDENC_CMD2)();
+        commandSz += m_sizeOfCmdBatchBufferEnd;
+        commandSz += (MOS_ALIGN_CEIL(commandSz, 64) - commandSz); // padding for alignment on 64 
     }
     else
     {
@@ -368,7 +367,7 @@ MOS_STATUS CodechalHwInterfaceNext::GetVdencPictureSecondLevelCommandsSize(
         return MOS_STATUS_UNKNOWN;
     }
 
-    *commandsSize = commands;
+    *commandsSize = commandSz;
 
     return MOS_STATUS_SUCCESS;
 }
@@ -401,6 +400,11 @@ MOS_STATUS CodechalHwInterfaceNext::SetCacheabilitySettings(
     {
         CODEC_HW_CHK_STATUS_RETURN(m_vvcpItf->SetCacheabilitySettings(cacheabilitySettings));
     }
+    if (m_hucItf)
+    {
+        CODEC_HW_CHK_STATUS_RETURN(m_hucItf->SetCacheabilitySettings(cacheabilitySettings));
+    }
+
 
     return eStatus;
 }
@@ -1071,6 +1075,7 @@ MOS_STATUS CodechalHwInterfaceNext::SetRowstoreCachingOffsets(
         else if (rowstoreParams->Mode == CODECHAL_ENCODE_MODE_AV1)
         {
             par.mode = mhw::vdbox::vdenc::RowStorePar::AV1;
+            par.frameWidth = rowstoreParams->dwPicWidth;
         }
         CODEC_HW_CHK_STATUS_RETURN(m_vdencItf->SetRowstoreCachingOffsets(par));
     }
@@ -1111,24 +1116,53 @@ MOS_STATUS CodechalHwInterfaceNext::InitL3CacheSettings()
 {
     CODEC_HW_FUNCTION_ENTER;
 
-    // Get default L3 cache settings
-    CODEC_HW_CHK_STATUS_RETURN(m_renderItf->EnableL3Caching(nullptr));
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    CODEC_HW_CHK_NULL_RETURN(m_osInterface);
+
+    for (uint32_t i = MOS_CODEC_RESOURCE_USAGE_BEGIN_CODEC + 1; i < MOS_CODEC_RESOURCE_USAGE_END_CODEC; i++)
+    {
+        CODEC_HW_CHK_STATUS_RETURN(CachePolicyGetMemoryObject(
+            (MOS_HW_RESOURCE_DEF)i));
+    }
+
+    SetCacheabilitySettings(m_cacheabilitySettings);
+
+    bool l3CachingEnabled = !m_osInterface->bSimIsActive;
+
+    if (m_checkBankCount)
+    {
+        CODEC_HW_CHK_NULL_RETURN(m_osInterface);
+        auto gtSysInfo = m_osInterface->pfnGetGtSystemInfo(m_osInterface);
+        CODEC_HW_CHK_NULL_RETURN(gtSysInfo);
+
+        l3CachingEnabled = (gtSysInfo->L3BankCount != 0 || gtSysInfo->L3CacheSizeInKb != 0);
+    }
+
+    if (l3CachingEnabled)
+    {
+        if (m_renderItf)
+        {
+            // Get default L3 cache settings
+            CODEC_HW_CHK_STATUS_RETURN(m_renderItf->EnableL3Caching(nullptr));
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    // Override default L3 cache settings
-    auto l3CacheConfig =
-        m_renderItf->GetL3CacheConfig();
-    mhw::render::MHW_RENDER_ENGINE_L3_CACHE_SETTINGS l3Overrides = {};
-    l3Overrides.dwTcCntlReg =
-        static_cast<mhw::render::MHW_RENDER_ENGINE_L3_CACHE_CONFIG *>(l3CacheConfig)->dwL3CacheTcCntlReg_Setting;
-    l3Overrides.dwAllocReg =
-        static_cast<mhw::render::MHW_RENDER_ENGINE_L3_CACHE_CONFIG *>(l3CacheConfig)->dwL3CacheAllocReg_Setting;
-    CODEC_HW_CHK_STATUS_RETURN(InitL3ControlUserFeatureSettings(
-        l3CacheConfig,
-        &l3Overrides));
-    CODEC_HW_CHK_STATUS_RETURN(m_renderItf->EnableL3Caching(
-        &l3Overrides));
+            // Override default L3 cache settings
+            auto l3CacheConfig =
+                m_renderItf->GetL3CacheConfig();
+            mhw::render::MHW_RENDER_ENGINE_L3_CACHE_SETTINGS l3Overrides = {};
+            l3Overrides.dwTcCntlReg =
+                static_cast<mhw::render::MHW_RENDER_ENGINE_L3_CACHE_CONFIG *>(l3CacheConfig)->dwL3CacheTcCntlReg_Setting;
+            l3Overrides.dwAllocReg =
+                static_cast<mhw::render::MHW_RENDER_ENGINE_L3_CACHE_CONFIG *>(l3CacheConfig)->dwL3CacheAllocReg_Setting;
+            CODEC_HW_CHK_STATUS_RETURN(InitL3ControlUserFeatureSettings(
+                l3CacheConfig,
+                &l3Overrides));
+            CODEC_HW_CHK_STATUS_RETURN(m_renderItf->EnableL3Caching(
+                &l3Overrides));
 #endif  // (_DEBUG || _RELEASE_INTERNAL)
+        }
+    }
 
     return MOS_STATUS_SUCCESS;
 }

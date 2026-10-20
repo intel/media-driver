@@ -580,7 +580,9 @@ void VeboxCopyStateNext::AdjustSurfaceFormat(MOS_SURFACE &surface)
         // Y410/Y210 has HW issue. Remap to AYUV.
         surface.Format = Format_AYUV;
     }
-    else if (surface.Format == Format_A8)
+    else if (surface.Format == Format_A8    ||
+             surface.Format == Format_R8UN  ||
+             surface.Format == Format_R8U)
     {
         surface.Format = Format_P8;
     }
@@ -589,6 +591,11 @@ void VeboxCopyStateNext::AdjustSurfaceFormat(MOS_SURFACE &surface)
         surface.Format = Format_Y416;
         surface.dwWidth = MOS_ALIGN_CEIL(surface.dwWidth, 2);
         surface.dwWidth /= 2;
+    }
+    if (surface.Format == Format_R16UN ||
+        surface.Format == Format_R16U)
+    {
+        surface.Format = Format_Y16U;
     }
 }
 

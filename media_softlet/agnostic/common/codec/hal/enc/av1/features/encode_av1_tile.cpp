@@ -251,7 +251,7 @@ namespace encode
         surface.OsResource = m_resTileBasedStatisticsBuffer[m_statisticsBufIndex];
         if (!Mos_ResourceIsNull(&m_resTileBasedStatisticsBuffer[m_statisticsBufIndex]))
         {
-            m_allocator->GetSurfaceInfo(&surface);
+            ENCODE_CHK_STATUS_RETURN(m_allocator->GetSurfaceInfo(&surface));
             curPakIntTileStatsSize = surface.dwHeight * surface.dwWidth;
         }
 
@@ -1055,8 +1055,8 @@ namespace encode
 #else
             params.extSettings.emplace_back(
                 [av1BasicFeature](uint32_t *data) {
-                    uint8_t tmp0 = av1BasicFeature->m_par65Intra & 0xf;
-                    uint8_t tmp1 = av1BasicFeature->m_par65Inter & 0xf;
+                    uint32_t tmp0 = av1BasicFeature->m_par65Intra & 0xf;
+                    uint32_t tmp1 = av1BasicFeature->m_par65Inter & 0xf;
 
                     data[32] |= (tmp1 << 16);
                     data[32] |= (tmp1 << 20);

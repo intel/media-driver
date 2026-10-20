@@ -29,7 +29,9 @@
 #include "encode_allocator.h"
 #include "encode_av1_vdenc_const_settings.h"
 #include "mos_solo_generic.h"
-
+#if _KERNEL_RESERVED
+#include "encode_av1_tf.h"
+#endif
 namespace encode
 {
 MOS_STATUS Av1BasicFeature::Init(void *setting)
@@ -244,6 +246,27 @@ MOS_STATUS Av1BasicFeature::Update(void *params)
 
     ENCODE_CHK_STATUS_RETURN(GetTrackedBuffers());
 
+#if _KERNEL_RESERVED
+    // TF (Temporal Filter)
+    if (encodeParams->uiTFL0RefCount || encodeParams->uiTFL1RefCount)
+    {
+        // In this case, TF Process will run
+        ENCODE_CHK_NULL_RETURN(m_featureManager);
+        auto tfFeature = dynamic_cast<TfFeature *>(m_featureManager->GetFeature(FeatureIDs::tfFeature));
+        if (tfFeature)
+        {
+            // TF allocates its surfaces on demand from its own Update(), which the feature
+            // manager runs after this one, so ask for the filtered surface explicitly instead
+            // of assuming it already exists.
+            ENCODE_CHK_STATUS_RETURN(tfFeature->AllocateFilteredSurface());
+
+            m_rawSurfaceToEnc =
+                m_rawSurfaceToPak = tfFeature->m_presFiltered;
+        }
+    }
+#endif
+    
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -311,6 +334,11 @@ MOS_STATUS Av1BasicFeature::UpdateTrackedBufferParameters()
     ENCODE_CHK_STATUS_RETURN(m_trackedBuf->RegisterParam(encode::BufferType::bwdAdaptCdfBuffer, allocParams));
 
     uint32_t sizeOfMvTemporalbuffer = CODECHAL_CACHELINE_SIZE * ((m_isSb128x128) ? 16 : 4) * totalSbPerFrame;
+    // Double buffer size for extended temporal MV prediction with bidirectional data flow
+    if (m_osInterface->bSimIsActive)
+    {
+        sizeOfMvTemporalbuffer = sizeOfMvTemporalbuffer * 2;
+    }
     if (sizeOfMvTemporalbuffer > 0)
     {
         allocParams.dwBytes  = sizeOfMvTemporalbuffer;
@@ -466,7 +494,13 @@ MOS_STATUS Av1BasicFeature::GetTrackedBuffers()
 Av1StreamIn *Av1BasicFeature::GetStreamIn()
 {
     m_streamIn.Init(this, this->m_allocator, this->m_osInterface);
+    
     return &m_streamIn;
+}
+
+MediaFeatureManager *Av1BasicFeature::GetFeatureManager()
+{
+    return m_featureManager;
 }
 
 MOS_STATUS Av1BasicFeature::GetSurfaceMmcInfo(PMOS_SURFACE surface, MOS_MEMCOMP_STATE& mmcState, uint32_t& compressionFormat) const
@@ -475,7 +509,6 @@ MOS_STATUS Av1BasicFeature::GetSurfaceMmcInfo(PMOS_SURFACE surface, MOS_MEMCOMP_
 
     ENCODE_CHK_NULL_RETURN(surface);
 
-#ifdef _MMC_SUPPORTED
     ENCODE_CHK_NULL_RETURN(m_mmcState);
     if (m_mmcState->IsMmcEnabled())
     {
@@ -486,7 +519,6 @@ MOS_STATUS Av1BasicFeature::GetSurfaceMmcInfo(PMOS_SURFACE surface, MOS_MEMCOMP_
     {
         mmcState = MOS_MEMCOMP_DISABLED;
     }
-#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -625,6 +657,7 @@ MOS_STATUS SyntaxElementCdfTableInit(
     uint16_t                    *ctxBuffer,
     SyntaxElementCdfTableLayout SyntaxElement)
 {
+    ENCODE_FUNC_CALL();
     ENCODE_CHK_NULL_RETURN(ctxBuffer);
     ENCODE_CHK_NULL_RETURN(SyntaxElement.m_srcInitBuffer);
 
@@ -656,6 +689,7 @@ MOS_STATUS SyntaxElementCdfTableInit(
 
 MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, Av1BasicFeature)
 {
+    ENCODE_FUNC_CALL();
     params.standardSelect    = 3;  // av1
     params.chromaType        = m_outputChromaFormat;
     params.bitDepthMinus8    = m_is10Bit ? 2 : 0;
@@ -686,6 +720,7 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_MODE_SELECT, Av1BasicFeature)
 
 MHW_SETPAR_DECL_SRC(VDENC_SRC_SURFACE_STATE, Av1BasicFeature)
 {
+    ENCODE_FUNC_CALL();
     params.pitch                         = m_rawSurfaceToEnc->dwPitch;
     params.tileType                      = m_rawSurfaceToEnc->TileType;
     params.tileModeGmm                   = m_rawSurfaceToEnc->TileModeGMM;
@@ -704,6 +739,7 @@ MHW_SETPAR_DECL_SRC(VDENC_SRC_SURFACE_STATE, Av1BasicFeature)
 
 MHW_SETPAR_DECL_SRC(VDENC_REF_SURFACE_STATE, Av1BasicFeature)
 {
+    ENCODE_FUNC_CALL();
     auto surface = &m_reconSurface;
     if (!AV1_KEY_OR_INRA_FRAME(m_av1PicParams->PicFlags.fields.frame_type))
     {
@@ -745,11 +781,22 @@ MHW_SETPAR_DECL_SRC(VDENC_REF_SURFACE_STATE, Av1BasicFeature)
         params.vOffset = MOS_ALIGN_CEIL(m_rawSurfaceToPak->dwHeight, 8);
     }
 
+    if (!m_disableTileBToTile4 && params.tileType == MOS_TILE_B && params.tileModeGmm == MOS_TILE_X_GMM)
+    {
+        params.tileModeGmm = MOS_TILE_4_GMM;
+    }
+
+    if (ShouldForceReconTile64ToTile4(*surface))
+    {
+        params.tileModeGmm = MOS_TILE_4_GMM;
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 
 MHW_SETPAR_DECL_SRC(VDENC_DS_REF_SURFACE_STATE, Av1BasicFeature)
 {
+    ENCODE_FUNC_CALL();
     auto surface8x = m_8xDSSurface;
     if (!AV1_KEY_OR_INRA_FRAME(m_av1PicParams->PicFlags.fields.frame_type))
     {
@@ -785,7 +832,7 @@ MHW_SETPAR_DECL_SRC(VDENC_DS_REF_SURFACE_STATE, Av1BasicFeature)
 
 MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, Av1BasicFeature)
 {
-#ifdef _MMC_SUPPORTED    
+    ENCODE_FUNC_CALL();
     ENCODE_CHK_NULL_RETURN(m_mmcState);
     if (m_mmcState->IsMmcEnabled())
     {
@@ -799,7 +846,6 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, Av1BasicFeature)
         params.mmcStateRaw          = MOS_MEMCOMP_DISABLED;
         params.compressionFormatRaw = GMM_FORMAT_INVALID;
     }
-#endif
 
     params.surfaceRaw                    = m_rawSurfaceToEnc;
     params.surfaceDsStage1               = m_8xDSSurface;
@@ -818,6 +864,7 @@ MHW_SETPAR_DECL_SRC(VDENC_PIPE_BUF_ADDR_STATE, Av1BasicFeature)
 
 MHW_SETPAR_DECL_SRC(VDENC_WEIGHTSOFFSETS_STATE, Av1BasicFeature)
 {
+    ENCODE_FUNC_CALL();
     int8_t size = sizeof(params.weightsLuma) / sizeof(int8_t);
     memset(params.weightsLuma, 1, size);
     memset(params.offsetsLuma, 0, size);
@@ -831,6 +878,7 @@ MHW_SETPAR_DECL_SRC(VDENC_WEIGHTSOFFSETS_STATE, Av1BasicFeature)
 
 MHW_SETPAR_DECL_SRC(VDENC_CMD1, Av1BasicFeature)
 {
+    ENCODE_FUNC_CALL();
 
     auto setting = static_cast<Av1VdencFeatureSettings*>(m_constSettings);
     ENCODE_CHK_NULL_RETURN(setting);
@@ -845,6 +893,7 @@ MHW_SETPAR_DECL_SRC(VDENC_CMD1, Av1BasicFeature)
 
 MHW_SETPAR_DECL_SRC(VDENC_HEVC_VP9_TILE_SLICE_STATE, Av1BasicFeature)
 {
+    ENCODE_FUNC_CALL();
     params.tileWidth  = m_oriFrameWidth;
     params.tileHeight = m_oriFrameHeight;
 
@@ -860,7 +909,6 @@ MHW_SETPAR_DECL_SRC(VDENC_CMD2, Av1BasicFeature)
     params.qpPrimeYDc  = (uint8_t)CodecHal_Clip3(0, 255, m_av1PicParams->base_qindex + m_av1PicParams->y_dc_delta_q);
     params.qpPrimeYAc  = (uint8_t)m_av1PicParams->base_qindex;
     params.tiling      = m_av1PicParams->tile_cols > 1 || m_av1PicParams->tile_rows > 1;
-    params.temporalMvp = false;
 
     ENCODE_CHK_STATUS_RETURN(m_ref.MHW_SETPAR_F(VDENC_CMD2)(params));
     ENCODE_CHK_STATUS_RETURN(m_streamIn.MHW_SETPAR_F(VDENC_CMD2)(params));
@@ -888,6 +936,7 @@ MHW_SETPAR_DECL_SRC(VDENC_CMD2, Av1BasicFeature)
 
 MHW_SETPAR_DECL_SRC(AVP_PIC_STATE, Av1BasicFeature)
 {
+    ENCODE_FUNC_CALL();
     // (1) from seq ddi params
     params.enableOrderHint     = m_av1SeqParams->CodingToolFlags.fields.enable_order_hint ? true : false;
     params.orderHintBitsMinus1 = m_av1SeqParams->order_hint_bits_minus_1;
@@ -992,6 +1041,7 @@ MHW_SETPAR_DECL_SRC(AVP_PIC_STATE, Av1BasicFeature)
 
 MHW_SETPAR_DECL_SRC(AVP_INLOOP_FILTER_STATE, Av1BasicFeature)
 {
+    ENCODE_FUNC_CALL();
     params.loopFilterLevel[0] = m_av1PicParams->filter_level[0];
     params.loopFilterLevel[1] = m_av1PicParams->filter_level[1];
     params.loopFilterLevel[2] = m_av1PicParams->filter_level_u;
@@ -1041,6 +1091,7 @@ MHW_SETPAR_DECL_SRC(AVP_INLOOP_FILTER_STATE, Av1BasicFeature)
 
 MHW_SETPAR_DECL_SRC(AVP_PIPE_BUF_ADDR_STATE, Av1BasicFeature)
 {
+    ENCODE_FUNC_CALL();
     params.bsLineRowstoreBuffer            = m_bitstreamDecoderEncoderLineRowstoreReadWriteBuffer;
     params.intraPredLineRowstoreBuffer     = m_resMfdIntraRowStoreScratchBuffer;
     params.intraPredTileLineRowstoreBuffer = m_intraPredictionTileLineRowstoreReadWriteBuffer;
@@ -1073,8 +1124,7 @@ MHW_SETPAR_DECL_SRC(AVP_PIPE_BUF_ADDR_STATE, Av1BasicFeature)
         BufferType::postCdefReconSurface, currRefList.ucScalingIdx);
     params.postCDEFpixelsBuffer = postCdefSurface;
 
-    // code from SetAvpPipeBufAddr
- #ifdef _MMC_SUPPORTED    
+    // code from SetAvpPipeBufAddr   
     ENCODE_CHK_NULL_RETURN(m_mmcState);
     if (m_mmcState->IsMmcEnabled())
     {
@@ -1088,7 +1138,6 @@ MHW_SETPAR_DECL_SRC(AVP_PIPE_BUF_ADDR_STATE, Av1BasicFeature)
         params.mmcStateRawSurf       = MOS_MEMCOMP_DISABLED;
         params.postCdefSurfMmcState  = MOS_MEMCOMP_DISABLED;
     }
-#endif
 
     params.decodedPic              = const_cast<PMOS_SURFACE>(&m_reconSurface);
     params.decodedPic->MmcState    = params.mmcStatePreDeblock;  // This is for MMC report only
@@ -1098,11 +1147,19 @@ MHW_SETPAR_DECL_SRC(AVP_PIPE_BUF_ADDR_STATE, Av1BasicFeature)
 
     MHW_CHK_STATUS_RETURN(m_ref.MHW_SETPAR_F(AVP_PIPE_BUF_ADDR_STATE)(params));
 
+    if (!m_disableTileBToTile4 && m_reconSurface.TileType == MOS_TILE_B && m_reconSurface.TileModeGMM == MOS_TILE_X_GMM)
+    {
+        params.overrideTileBToTile4 = true;
+    }
+
+    params.forceTile64ReconToTile4 = ShouldForceReconTile64ToTile4(m_reconSurface);
+
     return MOS_STATUS_SUCCESS;
 }
 
 MHW_SETPAR_DECL_SRC(AVP_INTER_PRED_STATE, Av1BasicFeature)
 {
+    ENCODE_FUNC_CALL();
     MHW_CHK_STATUS_RETURN(m_ref.MHW_SETPAR_F(AVP_INTER_PRED_STATE)(params));
 
     return MOS_STATUS_SUCCESS;
@@ -1110,6 +1167,7 @@ MHW_SETPAR_DECL_SRC(AVP_INTER_PRED_STATE, Av1BasicFeature)
 
 MHW_SETPAR_DECL_SRC(AVP_IND_OBJ_BASE_ADDR_STATE, Av1BasicFeature)
 {
+    ENCODE_FUNC_CALL();
     params.Mode                = codechalEncodeModeAv1;
     params.mvObjectBuffer      = m_resMbCodeBuffer;
     params.pakBaseObjectBuffer = const_cast<PMOS_RESOURCE>(&m_resBitstreamBuffer);
@@ -1120,6 +1178,7 @@ MHW_SETPAR_DECL_SRC(AVP_IND_OBJ_BASE_ADDR_STATE, Av1BasicFeature)
 
 MHW_SETPAR_DECL_SRC(AVP_SURFACE_STATE, Av1BasicFeature)
 {
+    ENCODE_FUNC_CALL();
     MOS_MEMCOMP_STATE mmcState = {};
     switch (params.surfaceStateId)
     {
@@ -1190,6 +1249,7 @@ enum CODEC_STANDARD_SELECT
 
 MHW_SETPAR_DECL_SRC(AVP_PIPE_MODE_SELECT, Av1BasicFeature)
 {
+    ENCODE_FUNC_CALL();
     params.codecSelect         = CODEC_SELECT_ENCODE;
     params.codecStandardSelect = CODEC_STANDARD_SELECT_AV1;
     params.vdencMode           = true;
@@ -1220,6 +1280,7 @@ MHW_SETPAR_DECL_SRC(AVP_PIPE_MODE_SELECT, Av1BasicFeature)
 
 MHW_SETPAR_DECL_SRC(AVP_TILE_CODING, Av1BasicFeature)
 {
+    ENCODE_FUNC_CALL();
     params.tileRowIndependentFlag  = false;
     params.disableCdfUpdateFlag    = m_av1PicParams->PicFlags.fields.disable_cdf_update ? 1 : 0;
     params.numOfActiveBePipes      = 1;
@@ -1231,6 +1292,7 @@ MHW_SETPAR_DECL_SRC(AVP_TILE_CODING, Av1BasicFeature)
 
 MHW_SETPAR_DECL_SRC(HUC_PIPE_MODE_SELECT, Av1BasicFeature)
 {
+    ENCODE_FUNC_CALL();
     params.mode = m_mode;
 
     return MOS_STATUS_SUCCESS;
@@ -1238,6 +1300,7 @@ MHW_SETPAR_DECL_SRC(HUC_PIPE_MODE_SELECT, Av1BasicFeature)
 
 MHW_SETPAR_DECL_SRC(MFX_WAIT, Av1BasicFeature)
 {
+    ENCODE_FUNC_CALL();
     params.iStallVdboxPipeline = true;
 
     return MOS_STATUS_SUCCESS;

@@ -136,12 +136,10 @@ namespace decode
         DECODE_FUNC_CALL();
         DECODE_CHK_STATUS(Vp9DecodePicPktXe_M_Base::SetHcpPipeBufAddrParams(pipeBufAddrParamsBase));
 
-#ifdef _MMC_SUPPORTED
         Vp9DecodeMemCompM12 *vp9DecodeMemComp = dynamic_cast<Vp9DecodeMemCompM12 *>(m_mmcState);
         DECODE_CHK_NULL(vp9DecodeMemComp);
         DECODE_CHK_STATUS(vp9DecodeMemComp->CheckReferenceList(*m_vp9BasicFeature, pipeBufAddrParamsBase.PostDeblockSurfMmcState,
             pipeBufAddrParamsBase.PreDeblockSurfMmcState, pipeBufAddrParamsBase.presReferences));
-#endif
 
         MHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G12 &pipeBufAddrParams =
             static_cast<MHW_VDBOX_PIPE_BUF_ADDR_PARAMS_G12&>(pipeBufAddrParamsBase);

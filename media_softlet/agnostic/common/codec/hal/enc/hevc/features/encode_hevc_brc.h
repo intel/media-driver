@@ -268,6 +268,17 @@ namespace encode
             return &m_vdenc2ndLevelBatchBuffer[currRecycledBufIdx];
         };
 
+        //! \brief  Byte offset of VDENC_CMD2 in the SLBB (= group1 + VDENC_CMD1 + HCP_PIC_STATE).
+        //!         Uses static HW-init command sizes, so it is valid before the SLBB-update
+        //!         packet runs (unlike HevcBasicFeature::m_slbbCmd2StartInBytes). Mirrors the
+        //!         layout built by HEVCHucSLBBUpdatePkt::ConstructGroup2Cmds(). The temporal
+        //!         filter reads the BRC QP at this offset + DW27 (VDENC_CMD2.QpPrimeY).
+        uint32_t GetSlbbCmd2StartOffset() const {
+            return m_hwInterface->m_vdencBatchBuffer1stGroupSize
+                 + m_hwInterface->GetVdencInterfaceNext()->MHW_GETSIZE_F(VDENC_CMD1)()
+                 + m_hwInterface->GetHcpInterfaceNext()->MHW_GETSIZE_F(HCP_PIC_STATE)();
+        };
+
         MOS_STATUS GetBrcDataBuffer(MOS_RESOURCE *&buffer);
 
         //!

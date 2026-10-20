@@ -73,6 +73,7 @@ MOS_STATUS MediaScalabilitySinglePipeNext::Initialize(const MediaScalabilityOpti
     gpuCtxCreateOption->RAMode = option.GetRAMode();
     gpuCtxCreateOption->ProtectMode = option.GetProtectMode();
     gpuCtxCreateOption->LRCACount = 1;
+    gpuCtxCreateOption->m_vdboxTypePref = option.GetVdboxTypePref();
     // This setting is only for encode, please override it in decode/vpp
     gpuCtxCreateOption->UsingSFC = false;
 #if (_DEBUG || _RELEASE_INTERNAL) && !EMUL

@@ -43,11 +43,9 @@ static bool adlpRegisteredMhw =
     MediaFactory<uint32_t, MhwInterfaces>::
     Register<MhwInterfacesG12Tgllp>((uint32_t)IGFX_ALDERLAKE_P);
 
-#ifdef _MMC_SUPPORTED
 static bool adlsRegisteredMmd =
     MediaFactory<uint32_t, MmdDevice>::
     Register<MmdDeviceG12Tgllp>((uint32_t)IGFX_ALDERLAKE_P);
-#endif
 
 static bool adlpRegisteredMcpy =
     MediaFactory<uint32_t, McpyDevice>::

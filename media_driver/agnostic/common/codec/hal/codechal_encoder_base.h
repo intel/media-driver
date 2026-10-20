@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2017-2024, Intel Corporation
+* Copyright (c) 2017-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -51,6 +51,9 @@
 
 #define CODECHAL_ENCODE_ASSERTMESSAGE(_message, ...)                                    \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, _message, ##__VA_ARGS__)
+
+#define CODECHAL_ENCODE_WARNINGMESSAGE(_message, ...)                                   \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, _message, ##__VA_ARGS__)
 
 #define CODECHAL_ENCODE_NORMALMESSAGE(_message, ...)                                    \
     MOS_NORMALMESSAGE(MOS_COMPONENT_CODEC, MOS_CODEC_SUBCOMP_ENCODE, _message, ##__VA_ARGS__)
@@ -1745,10 +1748,6 @@ public:
     CmEvent *m_cmEvent[CM_EVENT_NUM] = {nullptr};
     short    m_cmEventIdx = 0;  // current  event idx
     short    m_cmEventCheckIdx = 0;
-
-#ifdef FEI_ENABLE_CMRT
-    CodechalEncodeMdfKernelResource resDSKernel;
-#endif
 
     bool m_colorbitSupported = false;
 

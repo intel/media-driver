@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2018-2021, Intel Corporation
+* Copyright (c) 2018-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -54,7 +54,14 @@
     MOS_ASSERTMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_PUBLIC, msg, ##__VA_ARGS__)
 #define CM_ASSERTMESSAGE_RENDERHAL(msg, ...) \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, msg, ##__VA_ARGS__)
-    
+#define CM_WARNINGMESSAGE(msg, ...) \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_SELF, msg, ##__VA_ARGS__)
+#define CM_WARNINGMESSAGE_DDI(msg, ...) \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_DDI, msg, ##__VA_ARGS__)
+#define CM_WARNINGMESSAGE_PUBLIC(msg, ...) \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_PUBLIC, msg, ##__VA_ARGS__)
+#define CM_WARNINGMESSAGE_RENDERHAL(msg, ...) \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_RENDERHAL, msg, ##__VA_ARGS__)
 #define CM_NORMALMESSAGE(msg, ...) \
     MOS_NORMALMESSAGE(MOS_COMPONENT_CM, MOS_CM_SUBCOMP_SELF, msg, ##__VA_ARGS__)   
 #define CM_NORMALMESSAGE_DDI(msg, ...) \

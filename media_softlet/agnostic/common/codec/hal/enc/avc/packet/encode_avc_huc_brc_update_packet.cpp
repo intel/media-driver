@@ -275,10 +275,10 @@ MOS_STATUS AvcHucBrcUpdatePkt::Execute(PMOS_COMMAND_BUFFER cmdBuffer, bool store
     }
 
     // load kernel from WOPCM into L2 storage RAM
-    AddAllCmds_HUC_IMEM_STATE(cmdBuffer);
+    ENCODE_CHK_STATUS_RETURN(AddAllCmds_HUC_IMEM_STATE(cmdBuffer));
 
     // pipe mode select
-    AddAllCmds_HUC_PIPE_MODE_SELECT(cmdBuffer);
+    ENCODE_CHK_STATUS_RETURN(AddAllCmds_HUC_PIPE_MODE_SELECT(cmdBuffer));
 
     // set HuC DMEM param
     SETPAR_AND_ADDCMD(HUC_DMEM_STATE, m_hucItf, cmdBuffer);
@@ -563,6 +563,13 @@ MHW_SETPAR_DECL_SRC(HUC_VIRTUAL_ADDR_STATE, AvcHucBrcUpdatePkt)
     if (m_basicFeature->m_picParam->AdaptiveTUEnabled != 0)
     {
         params.regionParams[12].presRegion = m_vdencBrcImageStatesReadBufferTU7[m_pipeline->m_currRecycledBufIdx];
+    }
+
+    if (m_basicFeature->m_seqParam->LookaheadDepth && m_basicFeature->m_laDataBufferEnabled)
+    {
+        ENCODE_CHK_NULL_RETURN(m_basicFeature->m_LaDataBuffer);
+        ENCODE_CHK_STATUS_RETURN(m_osInterface->pfnSkipResourceSync(m_basicFeature->m_LaDataBuffer));
+        params.regionParams[13].presRegion = m_basicFeature->m_LaDataBuffer;
     }
 
     return MOS_STATUS_SUCCESS;

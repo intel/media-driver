@@ -30,6 +30,11 @@
 
 #include <va/va.h>
 #include <va/va_backend.h>
+
+#ifndef VA_FOURCC_XBGR64
+#define VA_FOURCC_XBGR64 0x34474258    /* 'X','B','G','4' */
+#endif
+
 #include <semaphore.h>
 #include "GmmLib.h"
 #include "mos_bufmgr_api.h"
@@ -140,6 +145,7 @@ typedef enum _DDI_MEDIA_FORMAT
     Media_Format_YVYU        ,
     Media_Format_A16R16G16B16,
     Media_Format_A16B16G16R16,
+    Media_Format_Y416_X16B16G16R16,    //!< Y416-container variant carrying packed X16B16G16R16; collapses to Format_A16B16G16R16 below DDI
     Media_Format_P012        ,
 #if VA_CHECK_VERSION(1, 9, 0)
     Media_Format_Y212        ,
@@ -147,6 +153,25 @@ typedef enum _DDI_MEDIA_FORMAT
 #endif
     Media_Format_Count
 } DDI_MEDIA_FORMAT;
+
+#define IS_RGB_DDI_MEDIA_FORMAT(format)            \
+    ((format) == Media_Format_A8R8G8B8          || \
+     (format) == Media_Format_X8R8G8B8          || \
+     (format) == Media_Format_A8B8G8R8          || \
+     (format) == Media_Format_X8B8G8R8          || \
+     (format) == Media_Format_R8G8B8A8          || \
+     (format) == Media_Format_R5G6B5            || \
+     (format) == Media_Format_R10G10B10A2       || \
+     (format) == Media_Format_B10G10R10A2       || \
+     (format) == Media_Format_R10G10B10X2       || \
+     (format) == Media_Format_B10G10R10X2       || \
+     (format) == Media_Format_R8G8B8            || \
+     (format) == Media_Format_RGBP              || \
+     (format) == Media_Format_BGRP              || \
+     (format) == Media_Format_A16R16G16B16      || \
+     (format) == Media_Format_A16B16G16R16      || \
+     (format) == Media_Format_Y416_X16B16G16R16)
+
 
 typedef enum _DDI_MEDIA_STATUS_REPORT_QUERY_STATE
 {
@@ -344,22 +369,7 @@ typedef struct _DDI_X11_FUNC_TABLE
 }DDI_X11_FUNC_TABLE, *PDDI_X11_FUNC_TABLE;
 #endif
 
-#ifdef MEDIA_SOFTLET
-
-#include "media_interfaces_hwinfo.h"
-class MediaLibvaCapsNext;
-class OsContext;
-class GpuContextMgr;
-#include "ddi_media_functions.h"
-#include "ddi_media_context.h"
-
-typedef struct DDI_MEDIA_CONTEXT *PDDI_MEDIA_CONTEXT;
-
-#else // MEDIA_SOFTLET
-
 #include "media_libva_common.h"
-
-#endif // MEDIA_SOFTLET
 
 static __inline PDDI_MEDIA_CONTEXT GetMediaContext (VADriverContextP ctx)
 {

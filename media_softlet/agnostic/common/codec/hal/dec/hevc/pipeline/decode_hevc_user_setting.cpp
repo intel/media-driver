@@ -140,6 +140,18 @@ MOS_STATUS HevcPipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingPt
         MediaUserSetting::Group::Sequence,
         int32_t(0),
         false);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "HEVC CRC Value",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        true);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "HEVC Command Counter",
+        MediaUserSetting::Group::Sequence,
+        int32_t(0),
+        true);
 #endif
     return MOS_STATUS_SUCCESS;
 }

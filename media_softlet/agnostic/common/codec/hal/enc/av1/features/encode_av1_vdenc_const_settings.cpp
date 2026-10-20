@@ -302,6 +302,7 @@ MOS_STATUS EncodeAv1VdencConstSettings::PrepareConstSettings()
     ENCODE_CHK_STATUS_RETURN(SetVdencCmd1Settings());
     ENCODE_CHK_STATUS_RETURN(SetVdencCmd2Settings());
     ENCODE_CHK_STATUS_RETURN(SetBrcSettings());
+    ENCODE_CHK_STATUS_RETURN(SetVdencStreaminStateSettings());
 
     return MOS_STATUS_SUCCESS;
 }
@@ -674,6 +675,47 @@ MOS_STATUS EncodeAv1VdencConstSettings::SetVdencCmd1Settings()
            return MOS_STATUS_SUCCESS;
         }
     };
+
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS EncodeAv1VdencConstSettings::SetVdencStreaminStateSettings()
+{
+    ENCODE_FUNC_CALL();
+
+    auto setting = static_cast<Av1VdencFeatureSettings*>(m_featureSetting);
+    ENCODE_CHK_NULL_RETURN(setting);
+
+    setting->vdencStreaminStateSettings.emplace_back(
+        // default TU4?
+        VDENC_STREAMIN_STATE_LAMBDA() {
+            static const std::array<
+                std::array<
+                    uint8_t,
+                    NUM_TARGET_USAGE_MODES + 1>,
+                4>
+                numMergeCandidates = {{
+                    {0, 1, 3, 1, 2, 1, 2, 2},
+                    {0, 2, 3, 2, 2, 2, 2, 1},
+                    {0, 3, 3, 3, 3, 3, 2, 2},
+                    {0, 4, 3, 4, 3, 4, 2, 2},
+                }};
+
+            static const std::array<
+                uint8_t,
+                NUM_TARGET_USAGE_MODES + 1>
+                numImePredictors = {0, 8, 12, 8, 8, 8, 4, 4};
+
+            par.maxTuSize                = 3;  //Maximum TU Size allowed, restriction to be set to 3
+            par.maxCuSize                = (cu64Align) ? 3 : 2;
+            par.numMergeCandidateCu64x64 = numMergeCandidates[3][m_av1SeqParams->TargetUsage];
+            par.numMergeCandidateCu32x32 = numMergeCandidates[2][m_av1SeqParams->TargetUsage];
+            par.numMergeCandidateCu16x16 = numMergeCandidates[1][m_av1SeqParams->TargetUsage];
+            par.numMergeCandidateCu8x8   = numMergeCandidates[0][m_av1SeqParams->TargetUsage];
+            par.numImePredictors         = numImePredictors[m_av1SeqParams->TargetUsage];
+
+            return MOS_STATUS_SUCCESS;
+        });
 
     return MOS_STATUS_SUCCESS;
 }

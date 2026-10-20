@@ -183,7 +183,6 @@ MOS_STATUS CodechalDecodeVp9G12 :: AllocateResourcesVariableSizes()
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-#ifdef _MMC_SUPPORTED
     // To WA invalid aux data caused HW issue when MMC on
     if (m_mmc && m_mmc->IsMmcEnabled() && MEDIA_IS_WA(m_waTable, Wa_1408785368) &&
         !Mos_ResourceIsNull(&m_destSurface.OsResource) &&
@@ -200,7 +199,6 @@ MOS_STATUS CodechalDecodeVp9G12 :: AllocateResourcesVariableSizes()
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(m_osInterface, m_videoContext));
         }
     }
-#endif
 
     if (CodecHalDecodeScalabilityIsScalableMode(m_scalabilityState))
     {
@@ -566,9 +564,9 @@ MOS_STATUS CodechalDecodeVp9G12::AddPicStateMhwCmds(
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_sfcState->AddSfcCommands(cmdBuffer));
     }
 #endif
-#ifdef _MMC_SUPPORTED
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetSurfaceState(m_picMhwParams.SurfaceParams[0]));
-#endif
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(
         cmdBuffer,
         m_picMhwParams.SurfaceParams[0]));
@@ -577,7 +575,6 @@ MOS_STATUS CodechalDecodeVp9G12::AddPicStateMhwCmds(
     if (m_vp9PicParams->PicFlags.fields.frame_type == CODEC_VP9_INTER_FRAME &&
         !m_vp9PicParams->PicFlags.fields.intra_only)
     {
-#ifdef _MMC_SUPPORTED
         //Get each reference surface state and be recorded by skipMask if current surface state is mmc disabled
         uint8_t skipMask = 0xf8;
         for (uint8_t i = 1; i < 4; i++)
@@ -597,7 +594,7 @@ MOS_STATUS CodechalDecodeVp9G12::AddPicStateMhwCmds(
             m_picMhwParams.SurfaceParams[i]->mmcState    = MOS_MEMCOMP_MC;
             m_picMhwParams.SurfaceParams[i]->mmcSkipMask = skipMask;
         }
-#endif
+
         for (uint8_t i = 1; i < 4; i++)
         {
             CODECHAL_DECODE_CHK_STATUS_RETURN(m_hcpInterface->AddHcpSurfaceCmd(
@@ -1248,10 +1245,9 @@ MOS_STATUS CodechalDecodeVp9G12 :: DecodePrimitiveLevel()
 
 MOS_STATUS CodechalDecodeVp9G12::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
     m_mmc = MOS_New(CodechalMmcDecodeVp9G12, m_hwInterface, this);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_mmc);
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

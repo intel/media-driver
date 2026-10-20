@@ -22,6 +22,7 @@ if(${AV1_Decode_Supported} STREQUAL "yes")
 set(SOFTLET_DECODE_AV1_SOURCES_
     ${SOFTLET_DECODE_AV1_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_pipeline.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_user_setting.cpp
 )
 
 set(SOFTLET_DECODE_AV1_HEADERS_

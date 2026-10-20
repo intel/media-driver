@@ -86,6 +86,10 @@ MOS_STATUS EncodeVp9VdencFeatureManager::CreateFeatures(void *constSettings)
 {
     ENCODE_FUNC_CALL();
 
+    auto setting = static_cast<EncodeVp9VdencConstSettings *>(m_featureConstSettings);
+    ENCODE_CHK_NULL_RETURN(setting);
+    setting->SetOsInterface(m_hwInterface->GetOsInterface());
+
     EncodeBasicFeature *basicFeature = MOS_New(Vp9BasicFeature, m_allocator, m_hwInterface, m_trackedBuf, m_recycleResource, constSettings);
     ENCODE_CHK_STATUS_RETURN(RegisterFeatures(Vp9FeatureIDs::basicFeature, basicFeature));
 

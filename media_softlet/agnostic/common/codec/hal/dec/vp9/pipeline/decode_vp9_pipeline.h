@@ -68,6 +68,7 @@ public:
     DeclareDecodePacketId(vp9PictureSubPacketId);
     DeclareDecodePacketId(vp9SliceSubPacketId);
     DeclareDecodePacketId(vp9TileSubPacketId);
+    DeclareDecodePacketId(vp9DebugSubPacketId);
 
 protected:
     //!

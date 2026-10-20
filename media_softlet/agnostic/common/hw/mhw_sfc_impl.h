@@ -73,64 +73,37 @@ public:
         // will need to be implemented.
         m_outputSurfCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
             MOS_HW_RESOURCE_USAGE_VP_OUTPUT_PICTURE_FF,
-            osItf->pfnGetGmmClientContext(osItf)).DwordValue;
+            osItf).DwordValue;
 
         m_avsLineBufferCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
             MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF,
-            osItf->pfnGetGmmClientContext(osItf)).DwordValue;
+            osItf).DwordValue;
         m_iefLineBufferCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
             MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF,
-            osItf->pfnGetGmmClientContext(osItf)).DwordValue;
+            osItf).DwordValue;
 
         m_sfdLineBufferCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
             MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED,
-            osItf->pfnGetGmmClientContext(osItf)).DwordValue;
+            osItf).DwordValue;
         m_avsLineTileBufferCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
             MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED,
-            osItf->pfnGetGmmClientContext(osItf)).DwordValue;
+            osItf).DwordValue;
         m_iefLineTileBufferCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
             MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED,
-            osItf->pfnGetGmmClientContext(osItf)).DwordValue;
+            osItf).DwordValue;
         m_sfdLineTileBufferCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
             MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED,
-            osItf->pfnGetGmmClientContext(osItf)).DwordValue;
+            osItf).DwordValue;
         m_histogramBufferCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
             MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED,
-            osItf->pfnGetGmmClientContext(osItf)).DwordValue;
+            osItf).DwordValue;
         m_sfcIndirectBufferCtrl.Value = osItf->pfnCachePolicyGetMemoryObject(
             MOS_CODEC_RESOURCE_USAGE_SURFACE_UNCACHED,
-            osItf->pfnGetGmmClientContext(osItf)).DwordValue;
+            osItf).DwordValue;
 
         m_maxWidth  = MHW_SFC_MAX_WIDTH;
         m_maxHeight = MHW_SFC_MAX_HEIGHT;
     };
-
-    static __inline uint32_t MosGetHWTileType(MOS_TILE_TYPE tileType, MOS_TILE_MODE_GMM tileModeGMM, bool gmmTileEnabled)
-    {
-        uint32_t tileMode = 0;
-
-        if (gmmTileEnabled)
-        {
-            return tileModeGMM;
-        }
-
-        switch (tileType)
-        {
-        case MOS_TILE_LINEAR:
-            tileMode = 0;
-            break;
-        case MOS_TILE_YS:
-            tileMode = 1;
-            break;
-        case MOS_TILE_X:
-            tileMode = 2;
-            break;
-        default:
-            tileMode = 3;
-            break;
-        }
-        return tileMode;
-    }
 
     void SetSfcAVSChromaTable(
         PSFC_AVS_CHROMA_FILTER_COEFF pUVCoeffTable,

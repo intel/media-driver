@@ -93,15 +93,6 @@ MOS_STATUS EncodeScalabilitySinglePipe::Initialize(const MediaScalabilityOption 
                     dynamic_cast<PMOS_GPUCTX_CREATOPTIONS_ENHANCED>(m_gpuCtxCreateOption);
     EncodeScalabilityOption *scalabilityOption  = 
                     dynamic_cast<EncodeScalabilityOption *>(m_scalabilityOption);
-    //The changes to indicate vdenc is required when slim vdbox is supported
-    if(gpuCtxCreateOption != nullptr &&
-       scalabilityOption != nullptr &&
-       scalabilityOption->IsVdencEnabled() &&
-       MEDIA_IS_SKU(m_osInterface->pfnGetSkuTable(m_osInterface), FtrWithSlimVdbox))
-    {
-        gpuCtxCreateOption->Flags |=  (1 << 2);
-    }
-
     return MOS_STATUS_SUCCESS;
 }
 

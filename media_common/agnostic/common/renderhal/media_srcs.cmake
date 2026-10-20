@@ -22,6 +22,7 @@ set(TMP_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/renderhal.h
     ${CMAKE_CURRENT_LIST_DIR}/renderhal_platform_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/surface_state_heap_mgr.h
+    ${CMAKE_CURRENT_LIST_DIR}/hal_kerneldll_next.h
 )
 
 set(SOFTLET_COMMON_HEADERS_

@@ -65,10 +65,8 @@ MOS_STATUS JpegDecodePicPktXe_M_Base::Prepare()
     m_jpegPicParams = m_jpegBasicFeature->m_jpegPicParams;
     DECODE_CHK_NULL(m_jpegPicParams);
 
-#ifdef _MMC_SUPPORTED
     m_mmcState = m_jpegPipeline->GetMmcState();
     DECODE_CHK_NULL(m_mmcState);
-#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -100,11 +98,9 @@ MOS_STATUS JpegDecodePicPktXe_M_Base::SetMfxSurfaceParams(MHW_VDBOX_SURFACE_PARA
     dstSurfaceParams.psSurface = &m_jpegBasicFeature->m_destSurface;
     dstSurfaceParams.ChromaType = m_jpegBasicFeature->m_chromaFormat;
 
-#ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(m_mmcState->SetSurfaceMmcState(&(m_jpegBasicFeature->m_destSurface)));
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(dstSurfaceParams.psSurface, &dstSurfaceParams.mmcState));
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(dstSurfaceParams.psSurface, &dstSurfaceParams.dwCompressionFormat));
-#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -128,13 +124,11 @@ MOS_STATUS JpegDecodePicPktXe_M_Base::SetMfxPipeBufAddrParams(MHW_VDBOX_PIPE_BUF
     //Predeblock surface is the same as destination surface here because there is no deblocking for JPEG
     pipeBufAddrParams.psPreDeblockSurface = &m_jpegBasicFeature->m_destSurface;
 
-#ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(pipeBufAddrParams.psPreDeblockSurface, &pipeBufAddrParams.PreDeblockSurfMmcState));
     if (m_mmcState->IsMmcEnabled())
     {
         pipeBufAddrParams.bMmcEnabled = true;
     }
-#endif
 
     CODECHAL_DEBUG_TOOL(DumpResources(pipeBufAddrParams));
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020, Intel Corporation
+* Copyright (c) 2020-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -58,21 +58,6 @@ enum AV1_BRC_FRAME_TYPE
     {
         uint32_t  frameByteCount;
         uint8_t   pakPassNum;
-    };
-    struct SlbData
-    {
-        //SLB related fields.
-        uint16_t slbSize = 0;
-        uint16_t avpPicStateCmdNum = 1;
-        uint16_t avpSegmentStateOffset = 0;
-        uint16_t avpInloopFilterStateOffset = 0;
-        uint16_t vdencCmd1Offset = 0;
-        uint16_t vdencCmd2Offset = 0;
-        uint16_t avpPicStateOffset = 0;
-        uint16_t secondAvpPicStateOffset = 0;
-        uint16_t pakInsertSlbSize = 0;
-        uint16_t vdencTileSliceStateOffset = 0;
-        uint16_t tileNum = 1;
     };
     //!
     //! \struct Av1BrcPakMmio
@@ -145,6 +130,18 @@ enum AV1_BRC_FRAME_TYPE
             return &m_vdenc2ndLevelBatchBuffer[currRecycledBufIdx];
         };
 
+        //! \brief  Byte offset of VDENC_CMD2 in the SLBB, computed from static HW-init command
+        //!         sizes so it is valid before the SLBB-update packet runs (unlike the runtime
+        //!         Av1BasicFeature::SlbData offsets, which the SLBB-update packet fills too late
+        //!         for the TF feature Update phase). Mirrors the layout built by
+        //!         AV1HucSLBBUpdatePkt: Group1 = numSeg x AVP_SEGMENT_STATE + AVP_INLOOP_FILTER_STATE
+        //!         + BB_END, Group2 = VDENC_CMD1 + BB_END, then VDENC_CMD2. TF reads the BRC QP at
+        //!         this offset + DW27 + 1 (VDENC_CMD2.QpPrimeYAc).
+        //! \param  [in] numSeg
+        //!         Number of AVP_SEGMENT_STATE commands the SLBB emits
+        //!         (segmentation enabled ? SegmentNumber : 1).
+        uint32_t GetSlbbCmd2StartOffset(uint32_t numSeg) const;
+
         PMHW_BATCH_BUFFER GetPakInsertOutputBatchBuffer(uint32_t currRecycledBufIdx)
         {
             return &m_pakInsertOutputBatchBuffer[currRecycledBufIdx];
@@ -179,9 +176,6 @@ enum AV1_BRC_FRAME_TYPE
         //!
         MOS_STATUS SetDmemForInit(VdencAv1HucBrcInitDmem *params) const;
 
-        const SlbData& GetSLBData() { return m_slbData; };
-        void SetSLBData(const SlbData& input) { m_slbData = input; };
-
     protected:
         //! \brief  Allocate feature related resources
         //! \return MOS_STATUS
@@ -209,8 +203,13 @@ enum AV1_BRC_FRAME_TYPE
         EncodeAllocator          *m_allocator    = nullptr;
         Av1BasicFeature          *m_basicFeature = nullptr;  //!< EncodeBasicFeature
 
-        SlbData  m_slbData = {};
         uint8_t  m_rcMode  = 0;
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+        //! \brief "Adaptive TU Enable" override, read per sequence in SetSequenceStructs()
+        //!        and OR'd into PicParams every frame by Update().
+        uint8_t m_adaptiveTUEnableRegkey = 0;
+#endif
 
         bool m_brcInit              = true;   //!< BRC init flag
         bool m_brcReset             = false;  //!< BRC reset flag

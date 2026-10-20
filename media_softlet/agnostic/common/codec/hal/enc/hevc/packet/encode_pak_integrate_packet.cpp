@@ -48,10 +48,9 @@ namespace encode {
         ENCODE_CHK_NULL_RETURN(m_miItf);
 
         ENCODE_CHK_NULL_RETURN(m_pipeline);
-#ifdef _MMC_SUPPORTED
+
         m_mmcState = m_pipeline->GetMmcState();
         ENCODE_CHK_NULL_RETURN(m_mmcState);
-#endif
 
         return MOS_STATUS_SUCCESS;
     }
@@ -159,11 +158,6 @@ namespace encode {
         bool isTileReplayEnabled = false;
         RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, FeatureIDs::encodeTile, IsTileReplayEnabled, isTileReplayEnabled);
 
-        MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
-        ENCODE_CHK_NULL_RETURN(perfProfiler);
-        ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectStartCmd(
-            (void *)m_pipeline, m_osInterface, m_miItf, commandBuffer));
-
         if (m_vdencHucUsed || (m_basicFeature->m_enableTileStitchByHW && (isTileReplayEnabled || m_pipeline->GetPipeNum() > 1)))
         {
             // Huc basic
@@ -257,11 +251,6 @@ namespace encode {
             }
         }
         ENCODE_CHK_STATUS_RETURN(MediaPacket::EndStatusReportNext(srType, cmdBuffer));
-
-        MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
-        ENCODE_CHK_NULL_RETURN(perfProfiler);
-        ENCODE_CHK_STATUS_RETURN(perfProfiler->AddPerfCollectEndCmd(
-            (void *)m_pipeline, m_osInterface, m_miItf, cmdBuffer));
 
         return MOS_STATUS_SUCCESS;
     }
@@ -742,7 +731,7 @@ namespace encode {
                 statusReportData->numberSlices += (uint8_t)tileStatusReport[i].Hcp_Slice_Count_Tile;
                 uint16_t prevCumulativeSliceSize = 0;
                 // HW writes out a DW for each slice size. Copy in place the DW into 16bit fields expected by App
-                for (uint32_t idx = 0; idx < tileStatusReport[i].Hcp_Slice_Count_Tile; idx++)
+                for (uint32_t idx = 0; idx < tileStatusReport[i].Hcp_Slice_Count_Tile && sliceCount < CODECHAL_HEVC_MAX_NUM_SLICES_LVL_6; idx++)
                 {
                     // PAK output the sliceSize at 16DW intervals.
                     ENCODE_CHK_NULL_RETURN(&sliceSize[sliceCount * 16]);
@@ -881,12 +870,18 @@ namespace encode {
         m_HucStitchCmdBatchBuffer.iCurrent = 0;
         // Reset starting location (offset) executing 2nd level batch buffer for each frame & each pass
         m_HucStitchCmdBatchBuffer.dwOffset = 0;
-        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(cmdBuffer, &m_HucStitchCmdBatchBuffer));
+        if (!m_osInterface->bNullHwIsEnabled)
+        {
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(cmdBuffer, &m_HucStitchCmdBatchBuffer));
+        }
         // This wait cmd is needed to make sure copy command is done as suggested by HW folk in encode cases
         auto &mfxWaitParams               = m_miItf->MHW_GETPAR_F(MFX_WAIT)();
         mfxWaitParams                     = {};
         mfxWaitParams.iStallVdboxPipeline = m_osInterface->osCpInterface->IsCpEnabled() ? true : false;
-        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MFX_WAIT)(cmdBuffer));
+        if (!m_osInterface->bNullHwIsEnabled)
+        {
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MFX_WAIT)(cmdBuffer));
+        }
 
         return MOS_STATUS_SUCCESS;
     }
@@ -1083,7 +1078,14 @@ namespace encode {
         miConditionalBatchBufferEndParams.presSemaphoreBuffer =
             m_basicFeature->m_recycleBuf->GetBuffer(VdencBrcPakMmioBuffer, 0);
 
-        ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(&cmdBuffer));
+        if (m_osInterface->bNullHwIsEnabled)
+        {
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_END)(&cmdBuffer));
+        }
+        else
+        {
+            ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(&cmdBuffer));
+        }
 
         auto          mmioRegisters = m_hcpItf->GetMmioRegisters(m_vdboxIndex);
         MOS_RESOURCE *osResource    = nullptr;

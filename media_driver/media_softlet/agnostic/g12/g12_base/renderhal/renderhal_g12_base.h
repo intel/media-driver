@@ -404,6 +404,11 @@ public:
     virtual MOS_STATUS FreeScratchSpaceBuffer(
         RENDERHAL_INTERFACE *renderHal);
 
+    virtual uint32_t GetGrfSize() override
+    {
+        return 32;
+    }
+
 protected:
     MHW_VFE_PARAMS_G12 m_vfeStateParams;
 

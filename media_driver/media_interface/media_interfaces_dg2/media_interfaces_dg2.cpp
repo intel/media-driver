@@ -268,7 +268,6 @@ MOS_STATUS MhwInterfacesDg2::Initialize(
     return MOS_STATUS_SUCCESS;
 }
 
-#ifdef _MMC_SUPPORTED
 static bool dg2RegisteredMmd =
     MediaFactory<uint32_t, MmdDevice>::
     Register<MmdDeviceXe_Hpm>((uint32_t)IGFX_DG2);
@@ -340,7 +339,6 @@ MhwInterfaces* MmdDeviceXe_Hpm::CreateMhwInterface(
 
     return mhw;
 }
-#endif
 
 static bool dg2RegisteredMcpy =
     MediaFactory<uint32_t, McpyDevice>::
@@ -355,6 +353,12 @@ MOS_STATUS McpyDeviceXe_Hpm::Initialize(
     MhwInterfaces* mhwInterfaces = nullptr;
 
     auto deleterOnFailure = [&](bool deleteOsInterface, bool deleteMhwInterface){
+        if (deleteMhwInterface && mhwInterfaces != nullptr)
+        {
+            mhwInterfaces->Destroy();
+            MOS_Delete(mhwInterfaces);
+        }
+
         if (deleteOsInterface && osInterface != nullptr)
         {
             if (osInterface->pfnDestroy)
@@ -362,12 +366,6 @@ MOS_STATUS McpyDeviceXe_Hpm::Initialize(
                 osInterface->pfnDestroy(osInterface, false);
             }
             MOS_FreeMemory(osInterface);
-        }
-
-        if (deleteMhwInterface && mhwInterfaces != nullptr)
-        {
-            mhwInterfaces->Destroy();
-            MOS_Delete(mhwInterfaces);
         }
 
         MOS_Delete(device);

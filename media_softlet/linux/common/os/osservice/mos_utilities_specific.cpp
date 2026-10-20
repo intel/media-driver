@@ -34,6 +34,7 @@
 #include <signal.h>
 #include <unistd.h>  // fork
 #include <algorithm>
+#include <string>
 #include <sys/types.h>
 #include <sys/stat.h>  // fstat
 #include <sys/ipc.h>  // System V IPC
@@ -59,6 +60,8 @@ uint8_t *MosUtilities::m_mosUltFlag               = &g_mosUltFlag;
 int32_t *MosUtilities::m_mosMemAllocIndex         = &g_mosMemAllocIndex;
 
 const char           *MosUtilitiesSpecificNext::m_szUserFeatureFile     = USER_FEATURE_FILE;
+std::string          MosUtilitiesSpecificNext::m_szUserFeatureFileNext   = USER_FEATURE_FILE_NEXT;
+std::string          MosUtilitiesSpecificNext::m_szUserFeatureFileReport = USER_FEATURE_FILE_REPORT;
 MOS_PUF_KEYLIST      MosUtilitiesSpecificNext::m_ufKeyList              = nullptr;
 
 #if (_DEBUG || _RELEASE_INTERNAL)
@@ -100,9 +103,9 @@ MosMutex          MosUtilitiesSpecificNext::m_userSettingMutex;
 //!
 //! \brief trace event size definition
 //!
-#define TRACE_EVENT_MAX_SIZE           (3072)
+#define TRACE_EVENT_MAX_SIZE           (1020)
 #define TRACE_EVENT_HEADER_SIZE        (sizeof(uint32_t)*3)
-#define TRACE_EVENT_MAX_DATA_SIZE      (TRACE_EVENT_MAX_SIZE - TRACE_EVENT_HEADER_SIZE - sizeof(uint16_t)) // Trace info data size section is in uint16_t
+#define TRACE_EVENT_MAX_DATA_SIZE      (TRACE_EVENT_MAX_SIZE - TRACE_EVENT_HEADER_SIZE - sizeof(uint32_t)) // in 4bytes aligned size
 
 //!
 //! \brief for int64_t/uint64_t format print warning
@@ -1347,6 +1350,39 @@ MOS_STATUS MosUtilitiesSpecificNext::MosUserFeatureSetValueExFile(
     return eStatus;
 }
 
+// Read an env var value from GFX_CONF_FILE first, then fall back to getenv().
+// Modeled on va_parseConfig() in libva/va/va.c.
+// Returns the value string, or empty if the variable is not set in either source.
+static std::string MosParseEnvFromConfig(const char *env)
+{
+    if (env == nullptr)
+        return "";
+
+    char oneline[1024];
+    char *token, *value, *saveptr;
+    FILE *fp = fopen(GFX_CONF_FILE, "r");
+    while (fp && fgets(oneline, sizeof(oneline), fp) != NULL)
+    {
+        if (strlen(oneline) == 1)
+            continue;
+        token = strtok_r(oneline, "=\n", &saveptr);
+        value = strtok_r(NULL,  "=\n", &saveptr);
+        if (token == nullptr || value == nullptr)
+            continue;
+        if (strcmp(token, env) == 0)
+        {
+            fclose(fp);
+            return value;
+        }
+    }
+    if (fp)
+        fclose(fp);
+
+    // No setting in config file; fall back to process environment.
+    const char *env_val = getenv(env);
+    return env_val ? env_val : "";
+}
+
 MOS_STATUS MosUtilities::MosOsUtilitiesInit(MediaUserSettingSharedPtr userSettingPtr)
 {
     MOS_STATUS     eStatus = MOS_STATUS_SUCCESS;
@@ -1542,10 +1578,41 @@ MOS_STATUS MosUtilities::MosInitializeReg(RegBufferMap &regBufferMap)
 {
     MOS_STATUS status = MOS_STATUS_SUCCESS;
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Get user feature file next from config file or env, instead of default.
+    // GFX_CONF_FILE (/etc/igfx.conf) takes priority over the environment variable,
+    // following the pattern used by va_parseConfig() in libva.
+    FILE* fp = nullptr;
+    static std::string tmpFileNext = MosParseEnvFromConfig("GFX_FEATURE_FILE_NEXT");
+
+    if (!tmpFileNext.empty())
+    {
+        if ((fp = fopen(tmpFileNext.c_str(), "r")) != nullptr)
+        {
+            MosUtilitiesSpecificNext::m_szUserFeatureFileNext = tmpFileNext;
+            fclose(fp);
+            MOS_OS_NORMALMESSAGE("using %s for USER_FEATURE_FILE_NEXT", MosUtilitiesSpecificNext::m_szUserFeatureFileNext.c_str());
+        }
+        else
+        {
+            MOS_OS_ASSERTMESSAGE("Can't open %s for USER_FEATURE_FILE_NEXT!!!", tmpFileNext.c_str());
+        }
+    }
+
+    // Get user feature file report from config file or env, instead of default.
+    static std::string tmpFileReport = MosParseEnvFromConfig("GFX_FEATURE_FILE_REPORT");
+
+    if (!tmpFileReport.empty())
+    {
+        MosUtilitiesSpecificNext::m_szUserFeatureFileReport = tmpFileReport;
+        MOS_OS_NORMALMESSAGE("using %s for USER_FEATURE_FILE_REPORT", MosUtilitiesSpecificNext::m_szUserFeatureFileReport.c_str());
+    }
+#endif
+
     std::ifstream regStream;
     try
     {
-        regStream.open(USER_FEATURE_FILE_NEXT);
+        regStream.open(MosUtilitiesSpecificNext::m_szUserFeatureFileNext.c_str());
         if (regStream.good())
         {
             std::string id       = "";
@@ -1629,11 +1696,11 @@ MOS_STATUS MosUtilities::MosUninitializeReg(RegBufferMap &regBufferMap)
 // skips if it does not exist
 // For other version: always writes to the file
 #if(_RELEASE)
-        std::ifstream regFile(USER_FEATURE_FILE_NEXT);
+        std::ifstream regFile(MosUtilitiesSpecificNext::m_szUserFeatureFileNext.c_str());
         if (regFile.good())
         {
             regFile.close();
-            regStream.open(USER_FEATURE_FILE_REPORT, std::ios::out | std::ios::trunc);
+            regStream.open(MosUtilitiesSpecificNext::m_szUserFeatureFileReport.c_str(), std::ios::out | std::ios::trunc);
         }
         else
         {
@@ -1641,7 +1708,7 @@ MOS_STATUS MosUtilities::MosUninitializeReg(RegBufferMap &regBufferMap)
             return status;
         }
 #else
-        regStream.open(USER_FEATURE_FILE_REPORT, std::ios::out | std::ios::trunc);
+        regStream.open(MosUtilitiesSpecificNext::m_szUserFeatureFileReport.c_str(), std::ios::out | std::ios::trunc);
 #endif
         if (regStream.good())
         {
@@ -1697,6 +1764,10 @@ MOS_STATUS MosUtilities::MosOpenRegKey(
     PUFKEY_NEXT key,
     RegBufferMap &regBufferMap)
 {
+    MOS_UNUSED(keyHandle);
+    MOS_UNUSED(samDesired);
+    MOS_OS_CHK_NULL_RETURN(key);
+
     std::string tempSubKey = subKey;
 
     if (subKey.find_first_of("\\") != std::string::npos)
@@ -1708,7 +1779,16 @@ MOS_STATUS MosUtilities::MosOpenRegKey(
     {
         tempSubKey = "[" + tempSubKey + "]";
     }
-    return MosCreateRegKey(keyHandle, tempSubKey, samDesired, key, regBufferMap);
+
+    // Unlike MosCreateRegKey, only succeed if the key already exists.
+    auto ret = regBufferMap.find(tempSubKey);
+    if (ret == regBufferMap.end())
+    {
+        return MOS_STATUS_USER_FEATURE_KEY_OPEN_FAILED;
+    }
+
+    *key = tempSubKey;
+    return MOS_STATUS_SUCCESS;
 }
 
 MOS_STATUS MosUtilities::MosCloseRegKey(
@@ -1732,6 +1812,17 @@ MOS_STATUS MosUtilities::MosReadEnvVariable(
     }
 
     return MOS_STATUS_INVALID_PARAMETER;
+}
+
+std::string MosUtilities::MosGetRegKeySuffix(UFKEY_NEXT rootKey, const std::string &gatePath)
+{
+    // Stub. This OS keeps all settings in one flat text file with only [config]/[report] sections,
+    // so there is no key scoping to resolve and the suffixed lookup is never taken. Per-process
+    // isolation comes from GFX_FEATURE_FILE_NEXT / GFX_FEATURE_FILE_REPORT instead. Defined only
+    // to keep the OS-agnostic caller in media_user_setting_configure.cpp linkable.
+    MOS_UNUSED(rootKey);
+    MOS_UNUSED(gatePath);
+    return std::to_string(MosUtilities::MosGetPid());
 }
 
 bool MosUtilities::MosEnvVariableEqual(
@@ -1894,7 +1985,6 @@ int32_t MosUtilities::MosUserFeatureWaitForSingleObject(
             semop(semid, operation, 1);
             pCallback(Context, 0);
         }
-        exit(0);
     }
     else
     {
@@ -2454,17 +2544,17 @@ MOS_STATUS MosUtilities::MosGetLocalTime(
 
 void MosUtilities::MosTraceEventInit()
 {
-    char *val = getenv("GFX_MEDIA_TRACE");
-    if (val)
+    std::string val = MosParseEnvFromConfig("GFX_MEDIA_TRACE");
+    if (!val.empty())
     {
-        MosUtilitiesSpecificNext::m_filterEnv = strtoll(val, nullptr, 0);
-        val = getenv("GFX_MEDIA_TRACE_LEVEL");
-        if (val)
+        MosUtilitiesSpecificNext::m_filterEnv = strtoll(val.c_str(), nullptr, 0);
+        std::string valLevel = MosParseEnvFromConfig("GFX_MEDIA_TRACE_LEVEL");
+        if (!valLevel.empty())
         {
-            MosUtilitiesSpecificNext::m_levelEnv = static_cast<uint32_t>(strtoll(val, nullptr, 0));
+            MosUtilitiesSpecificNext::m_levelEnv = static_cast<uint32_t>(strtoll(valLevel.c_str(), nullptr, 0));
         }
         m_mosTraceEnable = true;
-        m_mosTraceFilter = &MosUtilitiesSpecificNext::m_filterEnv;
+        m_mosTraceFilter = { &MosUtilitiesSpecificNext::m_filterEnv, 1};
         m_mosTraceLevel  = reinterpret_cast<uint8_t *>(&MosUtilitiesSpecificNext::m_levelEnv);
     }
     else

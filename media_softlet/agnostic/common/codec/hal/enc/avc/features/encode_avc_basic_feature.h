@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2020-2021, Intel Corporation
+* Copyright (c) 2020-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -120,7 +120,7 @@ public:
     bool IsAvcPSlice(uint8_t sliceType) const;
     bool IsAvcBSlice(uint8_t sliceType) const;
 
-    MHW_SETPAR_DECL_HDR(VDENC_PIPE_MODE_SELECT);
+    virtual MHW_SETPAR_DECL_HDR(VDENC_PIPE_MODE_SELECT);
 
     MHW_SETPAR_DECL_HDR(VDENC_SRC_SURFACE_STATE);
 
@@ -159,6 +159,17 @@ public:
     MHW_SETPAR_DECL_HDR(MFX_WAIT);
 
     MHW_SETPAR_DECL_HDR(HUC_PIPE_MODE_SELECT);
+
+    //!
+    //! \brief    Get AVC SLBB buffer size (page-aligned)
+    //! \return   Buffer size in bytes, 0 if not yet computed
+    //!
+    uint32_t GetSlbbBufferSize() const { return m_slbbBufferSize; }
+
+    virtual PMOS_RESOURCE     GetVdencReadBatchBufferOrigin(uint32_t recycledBufIdx) { return nullptr; }
+    virtual PMOS_RESOURCE     GetVdencReadBatchBufferTU7(uint32_t recycledBufIdx) { return nullptr; }
+    virtual MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBuffer(uint32_t recycledBufIdx) { return nullptr; }
+    virtual MHW_BATCH_BUFFER* GetVdenc2ndLevelBatchBufferTU7(uint32_t recycledBufIdx) { return nullptr; }
 
     EncodeMemComp *m_mmcState = nullptr;
 
@@ -240,11 +251,25 @@ public:
     bool                            m_brcAdaptiveRegionBoostSupported = false;  //!< Adaptive Region Boost supported flag
     bool                            m_brcAdaptiveRegionBoostEnabled   = false;  //!< Adaptive Region Boost enabled flag
 
+    bool                            m_is8bit420 = false;  //!< Flag to indicate current encode format is 8-bit 4:2:0
+
+    bool                            m_useExtendedThreshold = false;
+
+    uint32_t                       m_prevFrameHeight = 0; //!< Previous frame height before resolution change (for OCA logging)
+    uint32_t                       m_prevFrameWidth  = 0; //!< Previous frame width before resolution change (for OCA logging)
+
 protected:
     MOS_STATUS SetSequenceStructs();
     MOS_STATUS SetPictureStructs();
     MOS_STATUS UpdateSeiParameters(EncoderParams* params);
-    void UpdateMinMaxQp();
+    virtual void UpdateMinMaxQp();
+    
+    //!
+    //! \brief    Get the minimum AVC QP value for the current platform
+    //! \return   uint8_t Minimum QP value (default: CODEC_AVC_MIN_QP10)
+    //!
+    virtual uint8_t GetMinAvcQp();
+    
     int32_t GetMaxMBPS(uint8_t levelIdc);
     MOS_STATUS SetSliceStructs();
     void CheckResolutionChange();
@@ -297,6 +322,8 @@ protected:
     uint8_t *             m_seiParamBuffer = nullptr;  //!< Encode SEI data buffer.
 
     MediaCopyWrapper *m_mediaCopyWrapper = nullptr;
+
+    uint32_t m_slbbBufferSize = 0;  //!< AVC SLBB buffer size (page-aligned), computed by platform subclass
 
 MEDIA_CLASS_DEFINE_END(encode__AvcBasicFeature)
 };

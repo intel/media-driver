@@ -49,6 +49,32 @@ public:
     }
 
     //!
+    //! \brief    Get Fast Tiling Mode
+    //! \details  BLT function to get the tiling mode for fast copy
+    //! \param    [in] TileType
+    //!           Tile type from BLT_TILE_TYPE enum
+    //! \return   uint32_t
+    //!           return the tiling mode value
+    //!
+    uint32_t GetFastTilingMode(BLT_TILE_TYPE TileType) override
+    {
+        MHW_FUNCTION_ENTER;
+        switch (TileType)
+        {
+        case BLT_NOT_TILED:
+            return cmd_t::XY_FAST_COPY_BLT_CMD::DESTINATION_TILING_METHOD_LINEAR_TILINGDISABLED;
+        case BLT_TILED_Y:
+        case BLT_TILED_4:
+            return cmd_t::XY_FAST_COPY_BLT_CMD::DESTINATION_TILING_METHOD_TILE_Y;
+        case BLT_TILED_64:
+            return cmd_t::XY_FAST_COPY_BLT_CMD::DESTINATION_TILING_METHOD_64KBTILING;
+        default:
+            MHW_ASSERTMESSAGE("BLT: Can't support GMM TileType %d.", TileType);
+        }
+        return cmd_t::XY_FAST_COPY_BLT_CMD::DESTINATION_TILING_METHOD_LINEAR_TILINGDISABLED;
+    }
+
+    //!
     //! \brief    Add Block copy Command
     //! \details  BLT function to add block copy command
     //! \param    [in] pCmdBuffer
@@ -236,7 +262,7 @@ protected:
         // MemoryObject will get 7 bits data. only bits[1-7] save MOCS, while some
         // platoforms only use 4 bits mocs.
         return (m_osItf->pfnCachePolicyGetMemoryObject(UsageDef,
-                    m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue & 0x1E) >>1;
+                    m_osItf).DwordValue & 0x1E) >>1;
     }
 
     using base_t = Itf;

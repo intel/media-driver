@@ -61,7 +61,6 @@ MOS_STATUS CodechalDecodeVp8G12::SetFrameStates()
         CODECHAL_DECODE_CHK_STATUS_RETURN(CodecHalDecodeSinglePipeVE_SetHintParams(m_veState, &vesetParams));
     }
 
-#ifdef _MMC_SUPPORTED
     // To WA invalid aux data caused HW issue when MMC on
     if (m_mmc && m_mmc->IsMmcEnabled() && MEDIA_IS_WA(m_waTable, Wa_1408785368) && 
         !Mos_ResourceIsNull(&m_destSurface.OsResource) && 
@@ -71,7 +70,6 @@ MOS_STATUS CodechalDecodeVp8G12::SetFrameStates()
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnDecompResource(m_osInterface, &m_destSurface.OsResource));
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_osInterface->pfnSetGpuContext(m_osInterface, m_videoContext));
     }
-#endif
 
     return eStatus;
 }
@@ -142,9 +140,7 @@ MOS_STATUS CodechalDecodeVp8G12::DecodeStateLevel()
         pipeBufAddrParams.psPreDeblockSurface = &m_destSurface;
     }
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&pipeBufAddrParams));
-#endif
 
     // when there is no last, golden and alternate reference,
     // the index is set to the destination frame index
@@ -171,11 +167,9 @@ MOS_STATUS CodechalDecodeVp8G12::DecodeStateLevel()
         }
     }
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->CheckReferenceList(&pipeBufAddrParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetRefrenceSync(m_disableDecodeSyncLock, m_disableLockForTranscode));
-#endif
 
     MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS indObjBaseAddrParams;
     MOS_ZeroMemory(&indObjBaseAddrParams, sizeof(indObjBaseAddrParams));
@@ -205,9 +199,8 @@ MOS_STATUS CodechalDecodeVp8G12::DecodeStateLevel()
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPipeModeSelectCmd(&cmdBuffer, &pipeModeSelectParams));
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetSurfaceState(&surfaceParams));
-#endif
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxSurfaceCmd(&cmdBuffer, &surfaceParams));
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxPipeBufAddrCmd(&cmdBuffer, &pipeBufAddrParams));
@@ -374,10 +367,9 @@ MOS_STATUS CodechalDecodeVp8G12::AllocateStandard(
 
 MOS_STATUS CodechalDecodeVp8G12::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
     m_mmc = MOS_New(CodechalMmcDecodeVp8G12, m_hwInterface, this);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_mmc);
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2024, Intel Corporation
+# Copyright (c) 2017-2026, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -122,7 +122,20 @@ if(LNL)
     option(XE2_LPM_SUPPORT "Enable XE2_LPM support" ON)
 endif()
 
-if(LNL OR BMG)
+# NVL linux build enable.
+option(NVL "Enable NVL support" ON)
+if(NVL)
+    option(XE3P_LPM_SUPPORT "Enable XE3P_LPM support" ON)
+    add_definitions(-DIGFX_NVL_SUPPORTED)
+endif()
+
+option(CRI "Enable CRI support" ON)
+if(CRI)
+    option(XE3P_HPM_SUPPORT "Enable XE3P_HPM support" ON)
+    add_definitions(-DIGFX_CRI_SUPPORTED)
+endif()
+
+if(LNL OR BMG OR NVL)
     option(XE2_HPG "Enable XE2_HPG support" ON)
 endif()
 
@@ -132,6 +145,10 @@ endif()
 
 if(BMG)
     option(XE2_HPM_SUPPORT "Enable XE2_HPM support" ON)
+endif()
+
+if(NVL OR CRI)
+    option(XE3P_LPG "Enable XE3P_LPG support" ON)
 endif()
 
 option(PTL "Enable PTL support" ON)
@@ -198,9 +215,6 @@ endif()
 
 if(GEN12_TGLLP)
     add_definitions(-DIGFX_GEN12_TGLLP_SUPPORTED)
-    add_definitions(-DIGFX_GEN12_TGLLP_SWSB_SUPPORTED)
-    add_definitions(-DIGFX_GEN12_TGLLP_CMFC_SUPPORTED)
-    add_definitions(-DIGFX_GEN12_TGLLP_CMFCPATCH_SUPPORTED)
 endif()
 
 if(GEN12_DG1)
@@ -229,17 +243,14 @@ endif()
 
 if(PVC)
     add_definitions(-DIGFX_PVC_SUPPORTED)
-    add_definitions(-DIGFX_PVC_CMFCPATCH_SUPPORTED)
 endif()
 
 if(XEHP_SDV)
     add_definitions(-DIGFX_XEHP_SDV_SUPPORTED)
-    add_definitions(-DIGFX_XEHP_SDV_CMFCPATCH_SUPPORTED)
 endif()
 
 if(XE_HPG)
     add_definitions(-DIGFX_XE_HPG_SUPPORTED)
-    add_definitions(-DIGFX_XE_HPG_CMFCPATCH_SUPPORTED)
 endif()
 
 if(MTL)
@@ -252,11 +263,14 @@ endif()
 
 if(XE2_HPG)
     add_definitions(-DIGFX_XE2_HPG_SUPPORTED)
-    add_definitions(-DIGFX_XE2_HPG_CMFCPATCH_SUPPORTED)
 endif()
 
 if(LNL)
     add_definitions(-DIGFX_LNL_SUPPORTED)
+endif()
+
+if(XE3P_LPG)
+    add_definitions(-DIGFX_XE3P_LPG_SUPPORTED)
 endif()
 
 include(${MEDIA_EXT_CMAKE}/ext/linux/media_gen_flags_linux_ext.cmake OPTIONAL)

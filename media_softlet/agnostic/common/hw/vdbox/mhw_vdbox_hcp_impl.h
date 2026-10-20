@@ -63,6 +63,8 @@ static constexpr uint32_t CS_ENGINE_ID_OFFSET_INIT                              
 static constexpr uint32_t HCP_DEC_STATUS_REG_OFFSET_INIT                                   = 0x1C2800;
 static constexpr uint32_t HCP_CABAC_STATUS_REG_OFFSET_INIT                                 = 0x1C2804;
 static constexpr uint32_t HCP_FRAME_CRC_REG_OFFSET_INIT                                    = 0x1C2920;
+static constexpr uint32_t HCP_COMMAND_COUNTER_REG_OFFSET_INIT                              = 0x1C2820;
+static constexpr uint32_t HCP_COMMAND_COUNTER_OVERRIDE_REG_OFFSET_INIT                     = 0x1C2824;
 static constexpr uint32_t MEMORY_ADDRESS_ATTRIBUTES_MOCS_CLEAN_MASK                        = 0xFFFFFF81;
 
 template <typename cmd_t>
@@ -407,6 +409,8 @@ public:
 
     const HcpMmioRegisters *GetMmioRegisters(const MHW_VDBOX_NODE_IND index) const override
     {
+        MHW_FUNCTION_ENTER;
+
         if (index < MHW_VDBOX_NODE_MAX)
         {
             return &m_mmioRegisters[index];
@@ -591,18 +595,6 @@ public:
         return m_pakHWTileSizeRecordSize;
     }
 
-    uint32_t GetHcpVp9PicStateCommandSize() override
-    {
-        // Just return success here, please implement logic in platform sepecific impl class.
-        return MOS_STATUS_SUCCESS;
-    }
-
-    uint32_t GetHcpVp9SegmentStateCommandSize() override
-    {
-        // Just return success here, please implement logic in platform sepecific impl class.
-        return MOS_STATUS_SUCCESS;
-    }
-
     MOS_STATUS GetHcpStateCommandSize(
         uint32_t                        mode,
         uint32_t                       *commandsSize,
@@ -737,6 +729,8 @@ private:
 
     void InitMmioRegisters()
     {
+        MHW_FUNCTION_ENTER;
+
         HcpMmioRegisters *mmioRegisters = &m_mmioRegisters[MHW_VDBOX_NODE_1];
 
         mmioRegisters->watchdogCountCtrlOffset                           = WATCHDOG_COUNT_CTRL_OFFSET_INIT;
@@ -1247,19 +1241,19 @@ protected:
             uint32_t &CtbColumnMsbValue = ((i << 3) >> 5) == 0 ? cmd.CtbColumnPositionMsb.DW0.Value : cmd.CtbColumnPositionMsb.DW1.Value;
 
             cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos0I = colCumulativeValue & 0xFF; // lower 8bits
-            CtbColumnMsbValue                                 = CtbColumnMsbValue | (((colCumulativeValue >> 8) & 0x3) << ((i * 8) + 0)); // MSB 2bits
+            CtbColumnMsbValue                                 = CtbColumnMsbValue | (((colCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 0)); // MSB 2bits
             colCumulativeValue                               += params.pTileColWidth[4 * i];
 
             cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos1I = colCumulativeValue & 0xFF; // lower 8bits
-            CtbColumnMsbValue                                 = CtbColumnMsbValue | (((colCumulativeValue >> 8) & 0x3) << ((i * 8) + 2)); // MSB 2bits
+            CtbColumnMsbValue                                 = CtbColumnMsbValue | (((colCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 2)); // MSB 2bits
             colCumulativeValue                               += params.pTileColWidth[4 * i + 1];
 
             cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos2I = colCumulativeValue & 0xFF; // lower 8bits
-            CtbColumnMsbValue                                 = CtbColumnMsbValue | (((colCumulativeValue >> 8) & 0x3) << ((i * 8) + 4)); // MSB 2bits
+            CtbColumnMsbValue                                 = CtbColumnMsbValue | (((colCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 4)); // MSB 2bits
             colCumulativeValue                               += params.pTileColWidth[4 * i + 2];
 
             cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos3I = colCumulativeValue & 0xFF; // lower 8bits
-            CtbColumnMsbValue                                 = CtbColumnMsbValue | (((colCumulativeValue >> 8) & 0x3) << ((i * 8) + 6)); // MSB 2bits
+            CtbColumnMsbValue                                 = CtbColumnMsbValue | (((colCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 6)); // MSB 2bits
             colCumulativeValue                               += params.pTileColWidth[4 * i + 3];
         }
 
@@ -1271,19 +1265,19 @@ protected:
             if (i < 5)
             {
                 cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos0I = colCumulativeValue & 0xFF; // lower 8bits
-                CtbColumnMsbValue                                 = CtbColumnMsbValue | (((colCumulativeValue >> 8) & 0x3) << ((i * 8) + 0)); // MSB 2bits
+                CtbColumnMsbValue                                 = CtbColumnMsbValue | (((colCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 0)); // MSB 2bits
 
                 if (lastDwEleNum > 1)
                 {
                     colCumulativeValue                               += params.pTileColWidth[4 * i];
                     cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos1I = colCumulativeValue & 0xFF;  //lower 8bits
-                    CtbColumnMsbValue                                 = CtbColumnMsbValue | (((colCumulativeValue >> 8) & 0x3) << ((i * 8) + 2)); // MSB 2bits
+                    CtbColumnMsbValue                                 = CtbColumnMsbValue | (((colCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 2)); // MSB 2bits
 
                     if (lastDwEleNum > 2)
                     {
                         colCumulativeValue                               += params.pTileColWidth[4 * i + 1];
                         cmd.CtbColumnPositionOfTileColumn[i].DW0.Ctbpos2I = colCumulativeValue & 0xFF;  //lower 8bits
-                        CtbColumnMsbValue                                 = CtbColumnMsbValue | (((colCumulativeValue >> 8) & 0x3) << ((i * 8) + 4)); // MSB 2bits
+                        CtbColumnMsbValue                                 = CtbColumnMsbValue | (((colCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 4)); // MSB 2bits
                     }
                 }
             }
@@ -1299,19 +1293,19 @@ protected:
             uint32_t &CtbRowMsbValue = ((i << 3) >> 5) == 0 ? cmd.CtbRowPositionMsb.DW0.Value : cmd.CtbRowPositionMsb.DW1.Value;
 
             cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos0I = rowCumulativeValue & 0xFF; // lower 8bits
-            CtbRowMsbValue                              = CtbRowMsbValue | (((rowCumulativeValue >> 8) & 0x3) << ((i * 8) + 0)); // MSB 2bits
+            CtbRowMsbValue                              = CtbRowMsbValue | (((rowCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 0)); // MSB 2bits
             rowCumulativeValue                         += params.pTileRowHeight[4 * i];
 
             cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos1I = rowCumulativeValue & 0xFF; // lower 8bits
-            CtbRowMsbValue                              = CtbRowMsbValue | (((rowCumulativeValue >> 8) & 0x3) << ((i * 8) + 2)); // MSB 2bits
+            CtbRowMsbValue                              = CtbRowMsbValue | (((rowCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 2)); // MSB 2bits
             rowCumulativeValue                         += params.pTileRowHeight[4 * i + 1];
 
             cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos2I = rowCumulativeValue & 0xFF; // lower 8bits
-            CtbRowMsbValue                              = CtbRowMsbValue | (((rowCumulativeValue >> 8) & 0x3) << ((i * 8) + 4)); // MSB 2bits
+            CtbRowMsbValue                              = CtbRowMsbValue | (((rowCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 4)); // MSB 2bits
             rowCumulativeValue                         += params.pTileRowHeight[4 * i + 2];
 
             cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos3I = rowCumulativeValue & 0xFF; // lower 8bits
-            CtbRowMsbValue                              = CtbRowMsbValue | (((rowCumulativeValue >> 8) & 0x3) << ((i * 8) + 6)); // MSB 2bits
+            CtbRowMsbValue                              = CtbRowMsbValue | (((rowCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 6)); // MSB 2bits
             rowCumulativeValue                         += params.pTileRowHeight[4 * i + 3];
         }
 
@@ -1323,19 +1317,19 @@ protected:
             if (i < 6)
             {
                 cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos0I = rowCumulativeValue & 0xFF; // lower 8bits
-                CtbRowMsbValue                              = CtbRowMsbValue | (((rowCumulativeValue >> 8) & 0x3) << ((i * 8) + 0)); // MSB 2bits
+                CtbRowMsbValue                              = CtbRowMsbValue | (((rowCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 0)); // MSB 2bits
 
                 if (lastDwEleNum > 1)
                 {
                     rowCumulativeValue                         += params.pTileRowHeight[4 * i];
                     cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos1I = rowCumulativeValue & 0xFF; // lower 8bits
-                    CtbRowMsbValue                              = CtbRowMsbValue | (((rowCumulativeValue >> 8) & 0x3) << ((i * 8) + 2)); // MSB 2bits
+                    CtbRowMsbValue                              = CtbRowMsbValue | (((rowCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 2)); // MSB 2bits
 
                     if (lastDwEleNum > 2)
                     {
                         rowCumulativeValue                         += params.pTileRowHeight[4 * i + 1];
                         cmd.CtbRowPositionOfTileRow[i].DW0.Ctbpos2I = rowCumulativeValue & 0xFF; // lower 8bits
-                        CtbRowMsbValue                              = CtbRowMsbValue | (((rowCumulativeValue >> 8) & 0x3) << ((i * 8) + 4)); // MSB 2bits
+                        CtbRowMsbValue                              = CtbRowMsbValue | (((rowCumulativeValue >> 8) & 0x3) << (((i % 4) * 8) + 4)); // MSB 2bits
                     }
                 }
             }
@@ -1464,7 +1458,9 @@ protected:
         cmd.DecodedPictureMemoryAddressAttributes.DW0.CompressionType                    = MmcRcEnabled(params.PreDeblockSurfMmcState) ? 1 : 0;
         //cmd.DecodedPictureMemoryAddressAttributes.DW0.BaseAddressTiledResourceMode       = Mhw_ConvertToTRMode(params->psPreDeblockSurface->TileType);
 
-        cmd.DecodedPictureMemoryAddressAttributes.DW0.TileMode = GetHwTileType(params.psPreDeblockSurface->TileType, params.psPreDeblockSurface->TileModeGMM, params.psPreDeblockSurface->bGMMTileEnabled);
+        cmd.DecodedPictureMemoryAddressAttributes.DW0.TileMode = MhwGetHwTileTypeWithOverride(
+            params.psPreDeblockSurface->TileType, params.psPreDeblockSurface->TileModeGMM, params.psPreDeblockSurface->bGMMTileEnabled,
+            params.forceTile64ReconToTile4, params.overrideTileBToTile4);
 
         resourceParams.presResource    = &(params.psPreDeblockSurface->OsResource);
         resourceParams.dwOffset        = params.psPreDeblockSurface->dwOffset;
@@ -1688,7 +1684,9 @@ protected:
 
                 if (firstRefPic)
                 {
-                    cmd.ReferencePictureBaseAddressMemoryAddressAttributes.DW0.TileMode = GetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+                    cmd.ReferencePictureBaseAddressMemoryAddressAttributes.DW0.TileMode = MhwGetHwTileTypeWithOverride(
+                        details.TileType, details.TileModeGMM, details.bGMMTileEnabled,
+                        params.forceTile64ReconToTile4, params.overrideTileBToTile4);
                     firstRefPic                                                         = false;
                 }
 
@@ -1730,7 +1728,7 @@ protected:
             cmd.OriginalUncompressedPictureSourceMemoryAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.RawSurfMmcState) ? 1 : 0;
             cmd.OriginalUncompressedPictureSourceMemoryAddressAttributes.DW0.CompressionType                    = MmcRcEnabled(params.RawSurfMmcState) ? 1 : 0;
 
-            cmd.OriginalUncompressedPictureSourceMemoryAddressAttributes.DW0.TileMode = GetHwTileType(params.psRawSurface->TileType, params.psRawSurface->TileModeGMM, params.psRawSurface->bGMMTileEnabled);
+            cmd.OriginalUncompressedPictureSourceMemoryAddressAttributes.DW0.TileMode = MhwGetHwTileType(params.psRawSurface->TileType, params.psRawSurface->TileModeGMM, params.psRawSurface->bGMMTileEnabled);
 
             resourceParams.presResource    = &params.psRawSurface->OsResource;
             resourceParams.dwOffset        = params.psRawSurface->dwOffset;
@@ -2082,7 +2080,9 @@ protected:
         details.Format            = Format_Invalid;
         MEDIA_WA_TABLE *m_waTable = this->m_osItf->pfnGetWaTable(this->m_osItf);
         MHW_MI_CHK_STATUS(this->m_osItf->pfnGetResourceInfo(this->m_osItf, &params.psPreDeblockSurface->OsResource, &details));
-        cmd.DecodedPictureMemoryAddressAttributes.DW0.TileMode = GetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+        cmd.DecodedPictureMemoryAddressAttributes.DW0.TileMode = MhwGetHwTileTypeWithOverride(
+            details.TileType, details.TileModeGMM, details.bGMMTileEnabled,
+            params.forceTile64ReconToTile4, params.overrideTileBToTile4);
 
         for (uint32_t i = 0; i < CODECHAL_MAX_CUR_NUM_REF_FRAME_HEVC; i++)
         {
@@ -2101,7 +2101,7 @@ protected:
             MOS_ZeroMemory(&details, sizeof(details));
             details.Format = Format_Invalid;
             MHW_MI_CHK_STATUS(this->m_osItf->pfnGetResourceInfo(this->m_osItf, &params.psRawSurface->OsResource, &details));
-            cmd.OriginalUncompressedPictureSourceMemoryAddressAttributes.DW0.TileMode = GetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+            cmd.OriginalUncompressedPictureSourceMemoryAddressAttributes.DW0.TileMode = MhwGetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
         }
 
         return MOS_STATUS_SUCCESS;

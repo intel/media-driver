@@ -31,6 +31,7 @@
 #include "mhw_vdbox_vdenc_itf.h"
 #include "mhw_vdbox_hcp_itf.h"
 #include "encode_mem_compression.h"
+#include "codechal_debug.h"
 
 namespace encode
 {
@@ -165,6 +166,9 @@ public:
     //!
     bool IsSameRefList() const { return m_sameRefList; };
 
+#if USE_CODECHAL_DEBUG_TOOL
+    MOS_STATUS DumpReferences(CodechalDebugInterface &debugInterface);
+#endif
     MHW_SETPAR_DECL_HDR(VDENC_PIPE_BUF_ADDR_STATE);
 
     MHW_SETPAR_DECL_HDR(HCP_PIPE_BUF_ADDR_STATE);

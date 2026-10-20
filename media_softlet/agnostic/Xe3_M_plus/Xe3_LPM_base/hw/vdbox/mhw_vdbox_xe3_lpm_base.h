@@ -163,7 +163,7 @@ struct MHW_VDBOX_VD_PIPE_FLUSH_PARAMS_XE3_LPM_BASE
             uint16_t       bFlushAV1                : 1;
             uint16_t       bWaitDoneVVC             : 1;
             uint16_t       bFlushVVC                : 1;
-            uint16_t                                : 3;
+            uint16_t       Reserved13               : 3;
         };
         struct
         {

@@ -127,10 +127,8 @@ namespace decode{
 
         DECODE_CHK_STATUS(GetChromaFormat());
 
-#ifdef _MMC_SUPPORTED
         m_mmcState = m_av1Pipeline->GetMmcState();
         DECODE_CHK_NULL(m_mmcState);
-#endif
 
         DECODE_CHK_STATUS(SetRowstoreCachingOffsets());
 
@@ -502,7 +500,10 @@ namespace decode{
         auto &mfxWaitParams               = m_miItf->MHW_GETPAR_F(MFX_WAIT)();
         mfxWaitParams                     = {};
         mfxWaitParams.iStallVdboxPipeline = true;
-        DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+        if (!m_osInterface->bNullHwIsEnabled)
+        {
+            DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+        }
         DECODE_CHK_NULL(m_avpItf);
 
         SETPAR_AND_ADDCMD(AVP_PIPE_MODE_SELECT, m_avpItf, &cmdBuffer);
@@ -510,7 +511,10 @@ namespace decode{
         // for Gen11+, we need to add MFX wait for both KIN and VRT before and after AVP Pipemode select.
         mfxWaitParams                     = {};
         mfxWaitParams.iStallVdboxPipeline = true;
-        DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+        if (!m_osInterface->bNullHwIsEnabled)
+        {
+            DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+        }
 
         return MOS_STATUS_SUCCESS;
     }
@@ -622,12 +626,15 @@ namespace decode{
             for (auto ref = 0; ref < av1NumInterRefFrames; ref++)
             {
                 uint8_t refPicIndex = m_av1PicParams->m_refFrameIdx[ref];
-                if (!CodecHal_PictureIsInvalid(m_av1PicParams->m_refFrameMap[refPicIndex]))
+                if (refPicIndex < av1TotalRefsPerFrame && !CodecHal_PictureIsInvalid(m_av1PicParams->m_refFrameMap[refPicIndex]))
                 {
                     uint8_t refFrameIdx = m_av1PicParams->m_refFrameMap[refPicIndex].FrameIdx;
-                    for (auto i = 0; i < 7; i++)
+                    if (refFrameIdx < CODECHAL_MAX_DPB_NUM_AV1)
                     {
-                       params.savedRefOrderHints[ref][i] = m_av1BasicFeature->m_refFrames.m_refList[refFrameIdx]->m_refOrderHint[i];
+                        for (auto i = 0; i < 7; i++)
+                        {
+                           params.savedRefOrderHints[ref][i] = m_av1BasicFeature->m_refFrames.m_refList[refFrameIdx]->m_refOrderHint[i];
+                        }
                     }
                 }
             }
@@ -896,12 +903,10 @@ namespace decode{
             }
         }
 
-#ifdef _MMC_SUPPORTED
         if (m_mmcState && m_mmcState->IsMmcEnabled())
         {
             DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(const_cast<PMOS_SURFACE>(&m_av1BasicFeature->m_destSurface), &params.mmcStatePreDeblock));
         };
-#endif
 
 #if USE_CODECHAL_DEBUG_TOOL
         DECODE_CHK_STATUS(DumpResources(refSize));
@@ -1032,10 +1037,13 @@ namespace decode{
                 uint8_t refPicIndex = m_av1PicParams->m_refFrameIdx[refFrame - lastFrame]; //0 corresponds to LAST_FRAME
                 PCODEC_PICTURE refFrameList = &(m_av1PicParams->m_refFrameMap[0]);
 
-                if (!CodecHal_PictureIsInvalid(refFrameList[refPicIndex]))
+                if (refPicIndex < av1TotalRefsPerFrame && !CodecHal_PictureIsInvalid(refFrameList[refPicIndex]))
                 {
                     uint8_t refFrameIdx = refFrameList[refPicIndex].FrameIdx;
-                    refFrameOffset = m_av1BasicFeature->m_refFrames.m_refList[refFrameIdx]->m_orderHint;
+                    if (refFrameIdx < CODECHAL_MAX_DPB_NUM_AV1)
+                    {
+                        refFrameOffset = m_av1BasicFeature->m_refFrames.m_refList[refFrameIdx]->m_orderHint;
+                    }
                 }
 
                 int32_t frameOffset = (int32_t)m_av1PicParams->m_orderHint;
@@ -1113,7 +1121,6 @@ namespace decode{
         DECODE_FUNC_CALL();
 
         DECODE_CHK_NULL(surface);
-#ifdef _MMC_SUPPORTED
         DECODE_CHK_NULL(m_mmcState);
 
         if (m_mmcState->IsMmcEnabled())
@@ -1123,7 +1130,6 @@ namespace decode{
             DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(surface, &compressionFormat));
         }
         else
-#endif
         {
             mmcState = MOS_MEMCOMP_DISABLED;
         }

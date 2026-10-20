@@ -144,8 +144,12 @@ namespace encode
         uint8_t     UPD_TempCurrentlayer;
         uint8_t     UPD_TempScalable;
         uint8_t     UPD_AdaptiveTUEnabled;
-
-        uint8_t     RSVD8[61];
+        uint8_t     UPD_EnableDeltaQP;
+        uint8_t     UPD_QMatrixEnabled;
+        uint8_t     UPD_LADsRatio;
+        uint8_t     RSVD8_2;
+        uint8_t     UPD_LaDataBufferEnabled_U8;      // 1: LA data buffer (region 13) is bound
+        uint8_t     RSVD8_3[56];
     };
 
     typedef struct _HUC_MODE_COST

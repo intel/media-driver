@@ -46,10 +46,9 @@ CodechalDecodeJpegG12::~CodechalDecodeJpegG12()
 
 MOS_STATUS CodechalDecodeJpegG12::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
     m_mmc = MOS_New(CodechalMmcDecodeJpegG12, m_hwInterface, this);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_mmc);
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -119,7 +118,7 @@ MOS_STATUS CodechalDecodeJpegG12::DecodeStateLevel()
     MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
     CODECHAL_DECODE_FUNCTION_ENTER;
-#ifdef _MMC_SUPPORTED
+
     // To WA invalid aux data caused HW issue when MMC on
     // Add disable Clear CCS WA due to green corruption issue
     if (m_mmc->IsMmcEnabled() && !Mos_ResourceIsNull(&m_destSurface.OsResource) &&
@@ -132,7 +131,6 @@ MOS_STATUS CodechalDecodeJpegG12::DecodeStateLevel()
                 this, m_miInterface, &m_destSurface.OsResource, m_veState));
         }
     }
-#endif
 
     MHW_VDBOX_JPEG_DECODE_PIC_STATE jpegPicState;
     jpegPicState.dwOutputFormat = m_decodeParams.m_destSurface->Format;
@@ -223,9 +221,7 @@ MOS_STATUS CodechalDecodeJpegG12::DecodeStateLevel()
     // Predeblock surface is the same as destination surface here because there is no deblocking for JPEG
     pipeBufAddrParams.psPreDeblockSurface = &m_destSurface;
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetPipeBufAddr(&pipeBufAddrParams));
-#endif
 
     // Set MFX_IND_OBJ_BASE_ADDR_STATE_CMD
     MHW_VDBOX_IND_OBJ_BASE_ADDR_PARAMS indObjBaseAddrParams;
@@ -272,9 +268,8 @@ MOS_STATUS CodechalDecodeJpegG12::DecodeStateLevel()
 #endif
 
     // CMD_MFX_SURFACE_STATE
-#ifdef _MMC_SUPPORTED
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mmc->SetSurfaceState(&surfaceParams)); //class CodechalMmcDecodeJpegG12
-#endif
+
     CODECHAL_DECODE_CHK_STATUS_RETURN(m_mfxInterface->AddMfxSurfaceCmd(
         &cmdBuffer,
         &surfaceParams));
@@ -582,7 +577,6 @@ MOS_STATUS CodechalDecodeJpegG12::AllocateStandard(
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(CodechalDecodeJpeg::AllocateStandard(settings));
 
-#ifdef _MMC_SUPPORTED
     // To WA invalid aux data caused HW issue when MMC on
     // Add disable Clear CCS WA due to green corruption issue
     if (m_mmc->IsMmcEnabled())
@@ -599,7 +593,6 @@ MOS_STATUS CodechalDecodeJpegG12::AllocateStandard(
                 &stateCmdSizeParams);
         }
     }
-#endif
 
     if ( MOS_VE_SUPPORTED(m_osInterface))
     {

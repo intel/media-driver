@@ -29,11 +29,6 @@
 
 #include "codechal_encode_hevc_g9.h"
 
-#ifdef HEVC_FEI_ENABLE_CMRT
-#include <map>
-#include <string>
-#include "CMRTKernel_header_file.h"
-#endif
 
 //! HEVC encoder FEI intra 32x32 PU mode decision kernel curbe for GEN9
 struct CODECHAL_FEI_HEVC_I_32x32_PU_MODE_DECISION_CURBE_G9
@@ -573,11 +568,6 @@ class CodechalFeiHevcStateG9Skl : public CodechalEncHevcStateG9
     static const uint32_t                       FEI_ENCB_B_CURBE_INIT[56];              //!< Initialization FEI ENC curbe for B frame
     static const uint32_t                       FEI_ENCB_P_CURBE_INIT[56];              //!< Initialization FEI ENC curbe for P frame
     static const uint32_t                       FEI_ENCB_I_CURBE_INIT[56];              //!< Initialization FEI ENC curbe for I frame
-#ifdef HEVC_FEI_ENABLE_CMRT
-typedef std::map<std::string, CMRTKernelBase *> CmKernelMapType;
-    CmKernelMapType                             m_cmKernelMap;
-    CmEvent                                     *m_cmEvent;
-#endif
 public:
     //!
     //! \brief    Constructor

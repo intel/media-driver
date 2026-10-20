@@ -40,6 +40,9 @@
 #include "encode_hevc_vdenc_feature_manager_xe2_lpm_base.h"
 #include "encode_preenc_packet.h"
 #include "encode_vdenc_lpla_analysis.h"
+#if _KERNEL_RESERVED
+#include "encode_saliency_render_cmd_packet.h"
+#endif
 
 namespace encode {
 
@@ -113,6 +116,18 @@ MOS_STATUS HevcVdencPipelineXe2_Lpm_Base::Init(void *settings)
     HevcVdencTileRowPkt* hevcVdencTileRowPkt = MOS_New(HevcVdencTileRowPkt, task, hevcVdencpkt);
     ENCODE_CHK_STATUS_RETURN(RegisterPacket(hevcVdencTileRowPacket, hevcVdencTileRowPkt));
     ENCODE_CHK_STATUS_RETURN(hevcVdencTileRowPkt->Init());
+
+#if _KERNEL_RESERVED
+    bool saliencyEnabled = false;
+    RUN_FEATURE_INTERFACE_RETURN(EncodeSaliencyFeature, FeatureIDs::saliencyFeature, IsEnabled, saliencyEnabled);
+    if (saliencyEnabled)
+    {
+        ENCODE_CHK_NULL_RETURN(m_hwInterface);
+        SaliencyRenderCmdPacket *saleincyRenderPkt = MOS_New(SaliencyRenderCmdPacket, this, task, m_hwInterface->GetOsInterface(), m_hwInterface->GetRenderHalInterface());
+        ENCODE_CHK_STATUS_RETURN(RegisterPacket(hevcSaliencyPacket, saleincyRenderPkt));
+        ENCODE_CHK_STATUS_RETURN(saleincyRenderPkt->Init());
+    }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -209,7 +224,9 @@ MOS_STATUS HevcVdencPipelineXe2_Lpm_Base::Prepare(void *params)
 MOS_STATUS HevcVdencPipelineXe2_Lpm_Base::ActivateVdencVideoPackets()
 {
     ENCODE_FUNC_CALL();
-    
+
+    ENCODE_CHK_STATUS_RETURN(ExecuteSaliencyPackets());
+
     bool immediateSubmit = !m_singleTaskPhaseSupported;
 
     if (m_preEncEnabled)
@@ -221,7 +238,6 @@ MOS_STATUS HevcVdencPipelineXe2_Lpm_Base::ActivateVdencVideoPackets()
             return MOS_STATUS_SUCCESS;
         }
     }
-    
     return HevcVdencPipeline::ActivateVdencVideoPackets();
 }
 
@@ -362,11 +378,10 @@ MOS_STATUS HevcVdencPipelineXe2_Lpm_Base::UserFeatureReport()
 
 MOS_STATUS HevcVdencPipelineXe2_Lpm_Base::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
     ENCODE_CHK_NULL_RETURN(m_hwInterface);
     m_mmcState = MOS_New(EncodeMemCompXe_Lpm_Plus_Base, m_hwInterface);
     ENCODE_CHK_NULL_RETURN(m_mmcState);
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

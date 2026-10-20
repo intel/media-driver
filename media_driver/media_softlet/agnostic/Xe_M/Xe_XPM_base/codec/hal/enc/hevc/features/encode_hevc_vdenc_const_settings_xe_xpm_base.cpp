@@ -501,8 +501,8 @@ MOS_STATUS EncodeHevcVdencConstSettingsXe_Xpm_Base::SetVdencCmd2Settings()
                         return MOS_STATUS_SUCCESS;
                     }
 
-                    uint8_t tmp0 = 0;
-                    uint8_t tmp1 = 0;
+                    uint32_t tmp0 = 0;
+                    uint32_t tmp1 = 0;
 
                     if (m_hevcPicParams->CustomRoundingOffsetsParams.fields.EnableCustomRoudingIntra)
                     {

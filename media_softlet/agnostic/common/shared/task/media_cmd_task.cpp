@@ -156,7 +156,7 @@ MOS_STATUS CmdTask::Submit(bool immediateSubmit, MediaScalability *scalability, 
             packetPhase = MediaPacket::firstPacket;
         }
 
-        if (isFirstPacket || !prop.stateProperty.singleTaskPhaseSupported)
+        if (!prop.skipOcaBBStartInCmdTask && (isFirstPacket || !prop.stateProperty.singleTaskPhaseSupported))
         {
             scalability->Oca1stLevelBBStart(cmdBuffer);
         }
@@ -176,7 +176,7 @@ MOS_STATUS CmdTask::Submit(bool immediateSubmit, MediaScalability *scalability, 
     MEDIA_CHK_STATUS_RETURN(scalability->SubmitCmdBuffer(&cmdBuffer));
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    for (auto prop : m_packets)
+    for (auto &prop : m_packets)
     {
         MEDIA_CHK_STATUS_RETURN(scalability->UpdateState(&prop.stateProperty));
 

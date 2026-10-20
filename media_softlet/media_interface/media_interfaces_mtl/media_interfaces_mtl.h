@@ -96,11 +96,6 @@
 #endif
 
 #ifdef _VP9_ENCODE_VDENC_SUPPORTED
-#ifndef _APOGEIOS_SUPPORTED
-#ifdef _MEDIA_RESERVED
-#include "codechal_vdenc_vp9_xe_lpm_plus.h"
-#endif
-#endif
 #include "encode_vp9_vdenc_pipeline_adapter_xe_lpm_plus.h"
 #endif
 

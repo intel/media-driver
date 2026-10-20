@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022, Intel Corporation
+# Copyright (c) 2021-2026, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -25,12 +25,15 @@ set(TMP_HEADERS_ "")
 set(TMP_SOURCES_
     ${TMP_SOURCES_}
     ${CMAKE_CURRENT_LIST_DIR}/codec_hw_next.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/bypass_hw_legacy.cpp
 )
 
 set(TMP_HEADERS_
     ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/codec_hw_next.h
     ${CMAKE_CURRENT_LIST_DIR}/codec_utilities_next.h
+    ${CMAKE_CURRENT_LIST_DIR}/huc_kernel_source.h
+    ${CMAKE_CURRENT_LIST_DIR}/bypass_hw_legacy.h
 )
 
 set(SOFTLET_CODEC_COMMON_SOURCES_

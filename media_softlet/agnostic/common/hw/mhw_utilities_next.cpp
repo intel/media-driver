@@ -56,6 +56,7 @@ static const std::set<MOS_HW_COMMAND> s_OCAResourceInfoType = {
     MOS_HUC_DMEM,
     MOS_HUC_VIRTUAL_ADDR,
     MOS_VDENC_PIPE_BUF_ADDR,
+    MOS_BINDLESS_STATELESS_SURFACE,
 };
 
 //!
@@ -435,6 +436,60 @@ MOS_STATUS Mhw_SurfaceFormatToType(
 }
 
 //!
+//! \brief    Send native fence sync batch buffer start command
+//! \details  Emits MI_BATCH_BUFFER_START for the native fence sync batch buffer
+//!           if the GPU context supports sync-by-command. After emitting the
+//!           command, sets bNativeFenceSyncBBAdded flag on the command buffer
+//!           to prevent double emission in subsequent prolog functions.
+//!           This function MUST be called before any other commands
+//!           (MI_FORCE_WAKEUP, watchdog, cache flush) in the command buffer.
+//! \param    PMOS_COMMAND_BUFFER pCmdBuffer
+//!           [in] Command buffer
+//! \param    PMOS_INTERFACE pOsInterface
+//!           [in] OS interface
+//! \param    std::shared_ptr<void> pMiItf
+//!           [in] MI interface
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+MOS_STATUS Mhw_SendNativeFenceSyncBBStartCmd(
+    PMOS_COMMAND_BUFFER           pCmdBuffer,
+    PMOS_INTERFACE                pOsInterface,
+    std::shared_ptr<void>         pMiItf)
+{
+    MHW_FUNCTION_ENTER;
+
+    // Skip if not fully initialized
+    if (pCmdBuffer == nullptr || pOsInterface == nullptr)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    // Early out if native fence sync is not applicable
+    if (pOsInterface->pfnIsGpuSyncByCmd == nullptr ||
+        !pOsInterface->pfnIsGpuSyncByCmd(pOsInterface, pOsInterface->CurrentGpuContextHandle) ||
+        pCmdBuffer->syncMhwBatchBuffer == nullptr ||
+        pCmdBuffer->bNativeFenceSyncBBAdded)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    // Native fence sync is needed - validate MI interface
+    std::shared_ptr<mhw::mi::Itf> miItf = std::static_pointer_cast<mhw::mi::Itf>(pMiItf);
+    MHW_CHK_NULL_RETURN(miItf);
+
+    auto &miBatchBufferStartParams = miItf->MHW_GETPAR_F(MI_BATCH_BUFFER_START)();
+    uint64_t gfxAddr = pOsInterface->pfnGetResourceGfxAddress(pOsInterface, &pCmdBuffer->OsResource);
+    pOsInterface->pfnOnNativeFenceSyncBBAdded(pCmdBuffer, gfxAddr);
+    miBatchBufferStartParams = {};
+    MHW_CHK_STATUS_RETURN(miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(pCmdBuffer, pCmdBuffer->syncMhwBatchBuffer));
+
+    pCmdBuffer->bNativeFenceSyncBBAdded = true;
+
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
 //! \brief    Inserts the generic prologue command for a command buffer
 //! \details  Client facing function to add the generic prologue commands:
 //!               - the command buffer header (if necessary)
@@ -475,15 +530,9 @@ MOS_STATUS Mhw_SendGenericPrologCmdNext(
     MHW_CHK_NULL_RETURN(pSkuTable);
     pWaTable = pOsInterface->pfnGetWaTable(pOsInterface);
     MHW_CHK_NULL_RETURN(pWaTable);
-
     GpuContext = pOsInterface->pfnGetGpuContext(pOsInterface);
-    if (pOsInterface->pfnIsGpuSyncByCmd(pOsInterface) && pCmdBuffer->syncMhwBatchBuffer != nullptr) // Some gpu context may not support sync with batch buffer
-    {
-        //Reset params
-        auto &miBatchBufferStartParams = miItf->MHW_GETPAR_F(MI_BATCH_BUFFER_START)();
-        miBatchBufferStartParams       = {};
-        MHW_CHK_STATUS_RETURN(miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(pCmdBuffer, pCmdBuffer->syncMhwBatchBuffer));
-    }
+    MHW_CHK_STATUS_RETURN(Mhw_SendNativeFenceSyncBBStartCmd(pCmdBuffer, pOsInterface, pMiItf));
+
     if ( pOsInterface->Component != COMPONENT_CM )
     {
         if (    GpuContext == MOS_GPU_CONTEXT_RENDER        ||
@@ -500,7 +549,9 @@ MOS_STATUS Mhw_SendGenericPrologCmdNext(
                 GpuContext == MOS_GPU_CONTEXT_VEBOX         ||
                 GpuContext == MOS_GPU_CONTEXT_VIDEO5        ||
                 GpuContext == MOS_GPU_CONTEXT_VIDEO6        ||
-                GpuContext == MOS_GPU_CONTEXT_VIDEO7        )
+                GpuContext == MOS_GPU_CONTEXT_VIDEO7        ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO_DEC_FULL ||
+                GpuContext == MOS_GPU_CONTEXT_VIDEO_ENC_FULL )
         {
             MHW_CHK_STATUS_RETURN(miItf->AddWatchdogTimerStartCmd(pCmdBuffer));
         }

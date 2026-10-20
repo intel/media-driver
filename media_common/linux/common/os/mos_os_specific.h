@@ -272,8 +272,10 @@ typedef struct _MOS_LOCK_PARAMS    *PMOS_LOCK_PARAMS;
 
 typedef void *MEDIAUMD_RESOURCE;
 
+enum VdboxTypePref : uint8_t;
+
 //!
-//! \brief enum to video device operations 
+//! \brief enum to video device operations
 //!
 typedef enum _MOS_MEDIA_OPERATION
 {
@@ -495,6 +497,9 @@ struct MOS_SURFACE
 #if (_DEBUG || _RELEASE_INTERNAL)
     uint32_t oldCacheSetting;
 #endif
+
+    //Mip Tail related info
+    uint32_t MipTailStartLOD;
 };
 typedef MOS_SURFACE *PMOS_SURFACE;
 
@@ -524,6 +529,7 @@ typedef struct _PATCHLOCATIONLIST
     int32_t                     uiRelocFlag;
     uint32_t                    uiWriteOperation;
     MOS_LINUX_BO                *cmdBo;
+    uint32_t                    patchType;
 } PATCHLOCATIONLIST, *PPATCHLOCATIONLIST;
 
 //#define PATCHLOCATIONLIST_SIZE 25

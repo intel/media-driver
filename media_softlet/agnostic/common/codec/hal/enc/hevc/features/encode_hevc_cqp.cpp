@@ -40,6 +40,7 @@ HevcEncodeCqp::HevcEncodeCqp(
     MediaFeature(constSettings, hwInterface ? hwInterface->GetOsInterface():nullptr),
     m_allocator(allocator)
 {
+    ENCODE_FUNC_CALL();
     m_featureManager = featureManager;
     ENCODE_CHK_NULL_NO_STATUS_RETURN(hwInterface);
     m_mosCtx = hwInterface->GetOsInterface()->pOsContext;
@@ -111,11 +112,15 @@ MOS_STATUS HevcEncodeCqp::Update(void *params)
     UpdateRDOQCfg();
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    ReportUserSettingForDebug(
-        m_userSettingPtr,
-        "HEVC RDOQ Enable",
-        m_rdoqEnable,
-        MediaUserSetting::Group::Sequence);
+    if (m_rdoqEnableReported != (int8_t)m_rdoqEnable)
+    {
+        ReportUserSettingForDebug(
+            m_userSettingPtr,
+            "HEVC RDOQ Enable",
+            m_rdoqEnable,
+            MediaUserSetting::Group::Sequence);
+        m_rdoqEnableReported = (int8_t)m_rdoqEnable;
+    }
 #endif
 
     return MOS_STATUS_SUCCESS;
@@ -289,6 +294,7 @@ MOS_STATUS HevcEncodeCqp::VerifySliceSAOState()
 
 MHW_SETPAR_DECL_SRC(HCP_PIC_STATE, HevcEncodeCqp)
 {
+    ENCODE_FUNC_CALL();
     auto hevcFeature = dynamic_cast<HevcBasicFeature *>(m_basicFeature);
     ENCODE_CHK_NULL_RETURN(hevcFeature);
 
@@ -333,6 +339,7 @@ MHW_SETPAR_DECL_SRC(HCP_PIPE_BUF_ADDR_STATE, HevcEncodeCqp)
 
 MHW_SETPAR_DECL_SRC(HCP_SLICE_STATE, HevcEncodeCqp)
 {
+    ENCODE_FUNC_CALL();
     auto hevcFeature = dynamic_cast<HevcBasicFeature *>(m_basicFeature);
     ENCODE_CHK_NULL_RETURN(hevcFeature);
 

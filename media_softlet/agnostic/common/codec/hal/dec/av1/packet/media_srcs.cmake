@@ -24,6 +24,7 @@ set(SOFTLET_DECODE_AV1_SOURCES_
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_picture_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_tile_packet.cpp
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_packet.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_debug_packet.cpp
 )
 
 set(SOFTLET_DECODE_AV1_HEADERS_
@@ -31,6 +32,7 @@ set(SOFTLET_DECODE_AV1_HEADERS_
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_picture_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_tile_packet.h
     ${CMAKE_CURRENT_LIST_DIR}/decode_av1_packet.h
+    ${CMAKE_CURRENT_LIST_DIR}/decode_av1_debug_packet.h
 )
 
 source_group( CodecHalNext\\Shared\\Decode FILES ${SOFTLET_DECODE_AV1_SOURCES_} ${SOFTLET_DECODE_AV1_HEADERS_} )

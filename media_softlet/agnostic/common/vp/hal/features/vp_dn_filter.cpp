@@ -216,19 +216,6 @@ bool VpVeboxDnParameter::SetPacketParam(VpCmdPacket *pPacket)
 {
     VP_FUNC_CALL();
 
-    //VpVeboxCmdPacket *pVeboxPacket = dynamic_cast<VpVeboxCmdPacket *>(pPacket);
-    //if (nullptr == pVeboxPacket)
-    //{
-    //    return false;
-    //}
-
-    //VEBOX_DN_PARAMS *pParams = m_dnFilter.GetVeboxParams();
-    //if (nullptr == pParams)
-    //{
-    //    return false;
-    //}
-    //return MOS_SUCCEEDED(pVeboxPacket->SetDnParams(pParams));
-
     VEBOX_DN_PARAMS *pParams = m_dnFilter.GetVeboxParams();
     if (nullptr == pParams)
     {

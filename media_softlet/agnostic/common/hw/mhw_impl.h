@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021-2022, Intel Corporation
+* Copyright (c) 2021-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -29,6 +29,7 @@
 #define __MHW_IMPL_H__
 
 #include "mhw_itf.h"
+#include "mhw_utilities_next.h"
 #include "mhw_utilities.h"
 #include "media_class_trace.h"
 
@@ -75,13 +76,8 @@
             [=]() -> MOS_STATUS { return this->__MHW_SETCMD_F(CMD)(); }); \
     }
 
-#if __cplusplus < 201402L
-#define __MHW_CMDINFO_DEF(CMD) std::unique_ptr<__MHW_CMDINFO_T(CMD)> \
-    __MHW_CMDINFO_M(CMD) = std::unique_ptr<__MHW_CMDINFO_T(CMD)>(new __MHW_CMDINFO_T(CMD)())
-#else
 #define __MHW_CMDINFO_DEF(CMD) std::unique_ptr<__MHW_CMDINFO_T(CMD)> \
     __MHW_CMDINFO_M(CMD) = std::make_unique<__MHW_CMDINFO_T(CMD)>()
-#endif
 
 #define _MHW_CMD_ALL_DEF_FOR_IMPL(CMD) \
 public:                                \
@@ -174,34 +170,6 @@ protected:
     static bool MmcRcEnabled(MOS_MEMCOMP_STATE state)
     {
         return state == MOS_MEMCOMP_RC;
-    }
-
-    static uint32_t GetHwTileType(MOS_TILE_TYPE tileType, MOS_TILE_MODE_GMM tileModeGMM, bool gmmTileEnabled)
-    {
-        uint32_t tileMode = 0;
-
-        if (gmmTileEnabled)
-        {
-            return tileModeGMM;
-        }
-
-        switch (tileType)
-        {
-        case MOS_TILE_LINEAR:
-            tileMode = 0;
-            break;
-        case MOS_TILE_YS:
-            tileMode = 1;
-            break;
-        case MOS_TILE_X:
-            tileMode = 2;
-            break;
-        default:
-            tileMode = 3;
-            break;
-        }
-
-        return tileMode;
     }
 
     static uint16_t Fp32_to_Fp16(float value)

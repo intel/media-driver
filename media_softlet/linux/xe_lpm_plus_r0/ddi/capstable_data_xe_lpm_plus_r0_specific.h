@@ -72,6 +72,8 @@
 
 #define IP_VERSION_XE_LPM_PLUS 0x1300
 const PlatformInfo plt_Xe_Lpm_plus_r0 = {IP_VERSION_XE_LPM_PLUS, 0};
+#define IP_VERSION_XE_LPM_PLUS_EXT 0x1302
+static const PlatformInfo plt_Xe_Lpm_plus_ext_r0 = {IP_VERSION_XE_LPM_PLUS_EXT, 0};
 
 static const std::map<const uint32_t, const VAImageFormat*> imgtbl_Xe_lpm_plus_r0
 {

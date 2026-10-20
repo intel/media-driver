@@ -60,6 +60,12 @@ MOS_STATUS Av1Pipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingPtr
         false);
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
+        "AV1 Encode Additional Intra Angles",
+        MediaUserSetting::Group::Sequence,
+        (int32_t)-1,
+        false);
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
         "Encode Enable NonDefault Mapping",
         MediaUserSetting::Group::Sequence,
         (int32_t)0,
@@ -85,6 +91,15 @@ MOS_STATUS Av1Pipeline::InitUserSetting(MediaUserSettingSharedPtr userSettingPtr
     DeclareUserSettingKeyForDebug(
         userSettingPtr,
         "AV1 Dual Encoder Force Off",
+        MediaUserSetting::Group::Sequence,
+        (int32_t)0,
+        false);
+    // AV1 Chroma vs Luma VMAF: default 0 = feature enabled. When set,
+    // the driver forces the SLBB Update DMEM ChromaQpOffset to 0 (see SetDmem), which is
+    // HuC's sole disable gate; the regkey value is never conveyed to HuC.
+    DeclareUserSettingKeyForDebug(
+        userSettingPtr,
+        "Disable VDEnc Chroma vs Luma VMAF Optimization",
         MediaUserSetting::Group::Sequence,
         (int32_t)0,
         false);

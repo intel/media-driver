@@ -1,0 +1,4031 @@
+/*
+* Copyright (c) 2026, Intel Corporation
+*
+* Permission is hereby granted, free of charge, to any person obtaining a
+* copy of this software and associated documentation files (the "Software"),
+* to deal in the Software without restriction, including without limitation
+* the rights to use, copy, modify, merge, publish, distribute, sublicense,
+* and/or sell copies of the Software, and to permit persons to whom the
+* Software is furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included
+* in all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+* OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+* THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+* OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+* ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+* OTHER DEALINGS IN THE SOFTWARE.
+*/
+//!
+//! \file     mhw_vebox_common_impl.h
+//! \brief    MHW VEBOX common implementation helper functions
+//! \details  Common helper utilities for VEBOX_STATE command initialization
+//!           across multiple platforms. These non-member helper functions
+//!           extract duplicated logic to improve maintainability.
+//!
+
+#ifndef __MHW_VEBOX_COMMON_IMPL_H__
+#define __MHW_VEBOX_COMMON_IMPL_H__
+
+#include "mos_os.h"
+#include "mhw_vebox_itf.h"
+#include "mhw_utilities_next.h"
+#include "hal_oca_interface_next.h"
+
+namespace mhw {
+namespace vebox {
+namespace common {
+
+//!
+//! \brief    Helper function for adding VEBOX resource to command
+//! \details  Initializes MHW_RESOURCE_PARAMS and calls AddResourceToCmd,
+//!           handles command buffer dump and OCA interface tracing
+//! \param    [in] pOsInterface
+//!           Pointer to OS interface
+//! \param    [in] pCmdBuffer
+//!           Pointer to command buffer
+//! \param    [in] pResource
+//!           Pointer to resource to add
+//! \param    [in] dwOffset
+//!           Offset in resource
+//! \param    [in,out] pdwCmd
+//!           Pointer to command DW to update
+//! \param    [in] dwLocationInCmd
+//!           Location in command
+//! \param    [in] bUseSharedMocs
+//!           Whether to use shared MOCS
+//! \param    [in] dwSharedMocsOffset
+//!           Shared MOCS offset (used when bUseSharedMocs is true)
+//! \param    [in] pOsContext
+//!           Pointer to OS context
+//! \param    [in] pVeboxHeap
+//!           Pointer to VEBOX heap
+//! \param    [in] resourceName
+//!           Resource name for command buffer dump
+//! \param    [in] stateSize
+//!           State size for OCA interface
+//! \param    [in] AddResourceToCmd
+//!           Function pointer to AddResourceToCmd
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS AddVeboxResource(
+    PMOS_INTERFACE pOsInterface,
+    PMOS_COMMAND_BUFFER pCmdBuffer,
+    PMOS_RESOURCE pResource,
+    uint32_t dwOffset,
+    uint32_t* pdwCmd,
+    uint32_t dwLocationInCmd,
+    bool bUseSharedMocs,
+    int32_t dwSharedMocsOffset,
+    PMOS_CONTEXT pOsContext,
+    MHW_VEBOX_HEAP* pVeboxHeap,
+    const char* resourceName,
+    uint32_t stateSize,
+    MOS_STATUS(*AddResourceToCmd)(PMOS_INTERFACE, PMOS_COMMAND_BUFFER, PMHW_RESOURCE_PARAMS))
+{
+    MHW_RESOURCE_PARAMS ResourceParams = {};
+    uint32_t* pIndirectState = nullptr;
+
+    MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+    ResourceParams.presResource = pResource;
+    ResourceParams.dwOffset = dwOffset;
+    ResourceParams.pdwCmd = pdwCmd;
+    ResourceParams.dwLocationInCmd = dwLocationInCmd;
+    ResourceParams.HwCommandType = MOS_VEBOX_STATE;
+    
+    if (bUseSharedMocs)
+    {
+        ResourceParams.dwSharedMocsOffset = static_cast<uint32_t>(dwSharedMocsOffset);
+    }
+
+    MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+        pOsInterface,
+        pCmdBuffer,
+        &ResourceParams));
+
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+    if (*ResourceParams.pdwCmd != 0 || *(ResourceParams.pdwCmd + 1) != 0)
+    {
+        pIndirectState = (uint32_t*)(pVeboxHeap->pLockedDriverResourceMem + ResourceParams.dwOffset);
+        pOsInterface->pfnAddIndirectState(pOsInterface,
+            stateSize,
+            pIndirectState,
+            ResourceParams.pdwCmd,
+            ResourceParams.pdwCmd + 1,
+            resourceName);
+    }
+#endif
+
+    HalOcaInterfaceNext::OnIndirectState(*pCmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, ResourceParams.dwOffset, false, stateSize);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for DNDI state setup
+//! \param    [in,out] cmd
+//!           Reference to VEBOX_STATE command
+//! \param    [in] pOsInterface
+//!           Pointer to OS interface
+//! \param    [in] pCmdBuffer
+//!           Pointer to command buffer
+//! \param    [in] pVeboxHeap
+//!           Pointer to VEBOX heap
+//! \param    [in] uiInstanceBaseAddr
+//!           Instance base address
+//! \param    [in] bCmBuffer
+//!           Whether using CM buffer
+//! \param    [in] pVeboxParamResource
+//!           Pointer to VEBOX parameter resource
+//! \param    [in] pOsContext
+//!           Pointer to OS context
+//! \param    [in] uiDndiStateSize
+//!           DNDI state size
+//! \param    [in] AddResourceToCmd
+//!           Function pointer to AddResourceToCmd
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetupVeboxDndiState(
+    typename cmd_t::VEBOX_STATE_CMD& cmd,
+    PMOS_INTERFACE pOsInterface,
+    PMOS_COMMAND_BUFFER pCmdBuffer,
+    MHW_VEBOX_HEAP* pVeboxHeap,
+    uint32_t uiInstanceBaseAddr,
+    bool bCmBuffer,
+    PMOS_RESOURCE pVeboxParamResource,
+    PMOS_CONTEXT pOsContext,
+    uint32_t uiDndiStateSize,
+    MOS_STATUS(*AddResourceToCmd)(PMOS_INTERFACE, PMOS_COMMAND_BUFFER, PMHW_RESOURCE_PARAMS))
+{
+    PMOS_RESOURCE pVeboxHeapResource = nullptr;
+    uint32_t dwOffset = 0;
+
+    if (bCmBuffer)
+    {
+        pVeboxHeapResource = pVeboxParamResource;
+        dwOffset = pVeboxHeap->uiDndiStateOffset;
+    }
+    else
+    {
+        pVeboxHeapResource = &pVeboxHeap->DriverResource;
+        dwOffset = pVeboxHeap->uiDndiStateOffset + uiInstanceBaseAddr;
+    }
+
+    return AddVeboxResource<cmd_t>(
+        pOsInterface,
+        pCmdBuffer,
+        pVeboxHeapResource,
+        dwOffset,
+        &(cmd.DW2.Value),
+        2,
+        false,
+        0,
+        pOsContext,
+        pVeboxHeap,
+        "VEBOX_DNDI_STATE_CMD",
+        uiDndiStateSize,
+        AddResourceToCmd);
+}
+
+//!
+//! \brief    Helper function for IECP state setup
+//! \param    [in,out] cmd
+//!           Reference to VEBOX_STATE command
+//! \param    [in] pOsInterface
+//!           Pointer to OS interface
+//! \param    [in] pCmdBuffer
+//!           Pointer to command buffer
+//! \param    [in] pVeboxHeap
+//!           Pointer to VEBOX heap
+//! \param    [in] uiInstanceBaseAddr
+//!           Instance base address
+//! \param    [in] bCmBuffer
+//!           Whether using CM buffer
+//! \param    [in] pVeboxParamResource
+//!           Pointer to VEBOX parameter resource
+//! \param    [in] pOsContext
+//!           Pointer to OS context
+//! \param    [in] uiIecpStateSize
+//!           IECP state size
+//! \param    [in] AddResourceToCmd
+//!           Function pointer to AddResourceToCmd
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetupVeboxIecpState(
+    typename cmd_t::VEBOX_STATE_CMD& cmd,
+    PMOS_INTERFACE pOsInterface,
+    PMOS_COMMAND_BUFFER pCmdBuffer,
+    MHW_VEBOX_HEAP* pVeboxHeap,
+    uint32_t uiInstanceBaseAddr,
+    bool bCmBuffer,
+    PMOS_RESOURCE pVeboxParamResource,
+    PMOS_CONTEXT pOsContext,
+    uint32_t uiIecpStateSize,
+    MOS_STATUS(*AddResourceToCmd)(PMOS_INTERFACE, PMOS_COMMAND_BUFFER, PMHW_RESOURCE_PARAMS))
+{
+    PMOS_RESOURCE pVeboxHeapResource = nullptr;
+    uint32_t dwOffset = 0;
+
+    if (bCmBuffer)
+    {
+        pVeboxHeapResource = pVeboxParamResource;
+        dwOffset = pVeboxHeap->uiIecpStateOffset;
+    }
+    else
+    {
+        pVeboxHeapResource = &pVeboxHeap->DriverResource;
+        dwOffset = pVeboxHeap->uiIecpStateOffset + uiInstanceBaseAddr;
+    }
+
+    return AddVeboxResource<cmd_t>(
+        pOsInterface,
+        pCmdBuffer,
+        pVeboxHeapResource,
+        dwOffset,
+        &(cmd.DW4.Value),
+        4,
+        true,
+        1 - 4,
+        pOsContext,
+        pVeboxHeap,
+        "VEBOX_IECP_STATE_CMD",
+        uiIecpStateSize,
+        AddResourceToCmd);
+}
+
+//!
+//! \brief    Helper function for HDR/Gamut state setup
+//! \param    [in,out] cmd
+//!           Reference to VEBOX_STATE command
+//! \param    [in] pOsInterface
+//!           Pointer to OS interface
+//! \param    [in] pCmdBuffer
+//!           Pointer to command buffer
+//! \param    [in] pVeboxHeap
+//!           Pointer to VEBOX heap
+//! \param    [in] uiInstanceBaseAddr
+//!           Instance base address
+//! \param    [in] bCmBuffer
+//!           Whether using CM buffer
+//! \param    [in] pVeboxParamResource
+//!           Pointer to VEBOX parameter resource
+//! \param    [in] bHdrEnabled
+//!           Whether HDR is enabled
+//! \param    [in] pOsContext
+//!           Pointer to OS context
+//! \param    [in] uiStateSize
+//!           State size (HDR or Gamut)
+//! \param    [in] AddResourceToCmd
+//!           Function pointer to AddResourceToCmd
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetupVeboxHdrGamutState(
+    typename cmd_t::VEBOX_STATE_CMD& cmd,
+    PMOS_INTERFACE pOsInterface,
+    PMOS_COMMAND_BUFFER pCmdBuffer,
+    MHW_VEBOX_HEAP* pVeboxHeap,
+    uint32_t uiInstanceBaseAddr,
+    bool bCmBuffer,
+    PMOS_RESOURCE pVeboxParamResource,
+    bool bHdrEnabled,
+    PMOS_CONTEXT pOsContext,
+    uint32_t uiStateSize,
+    MOS_STATUS(*AddResourceToCmd)(PMOS_INTERFACE, PMOS_COMMAND_BUFFER, PMHW_RESOURCE_PARAMS))
+{
+    PMOS_RESOURCE pVeboxHeapResource = nullptr;
+    uint32_t dwOffset = 0;
+    const char* resourceName = nullptr;
+
+    if (bCmBuffer)
+    {
+        pVeboxHeapResource = pVeboxParamResource;
+        dwOffset = bHdrEnabled ? pVeboxHeap->uiHdrStateOffset : pVeboxHeap->uiGamutStateOffset;
+    }
+    else
+    {
+        pVeboxHeapResource = &pVeboxHeap->DriverResource;
+        dwOffset = (bHdrEnabled ? pVeboxHeap->uiHdrStateOffset : pVeboxHeap->uiGamutStateOffset) + uiInstanceBaseAddr;
+    }
+
+    resourceName = bHdrEnabled ? "VEBOX_HDR_STATE_CMD" : "Gamut_Expansion_Gamma_Correction_CMD";
+
+    return AddVeboxResource<cmd_t>(
+        pOsInterface,
+        pCmdBuffer,
+        pVeboxHeapResource,
+        dwOffset,
+        &(cmd.DW6.Value),
+        6,
+        true,
+        1 - 6,
+        pOsContext,
+        pVeboxHeap,
+        resourceName,
+        uiStateSize,
+        AddResourceToCmd);
+}
+
+//!
+//! \brief    Helper function for Vertex Table setup
+//! \param    [in,out] cmd
+//!           Reference to VEBOX_STATE command
+//! \param    [in] pOsInterface
+//!           Pointer to OS interface
+//! \param    [in] pCmdBuffer
+//!           Pointer to command buffer
+//! \param    [in] pVeboxHeap
+//!           Pointer to VEBOX heap
+//! \param    [in] uiInstanceBaseAddr
+//!           Instance base address
+//! \param    [in] bCmBuffer
+//!           Whether using CM buffer
+//! \param    [in] pVeboxParamResource
+//!           Pointer to VEBOX parameter resource
+//! \param    [in] pOsContext
+//!           Pointer to OS context
+//! \param    [in] uiVertexTableSize
+//!           Vertex table size
+//! \param    [in] AddResourceToCmd
+//!           Function pointer to AddResourceToCmd
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetupVeboxVertexTable(
+    typename cmd_t::VEBOX_STATE_CMD& cmd,
+    PMOS_INTERFACE pOsInterface,
+    PMOS_COMMAND_BUFFER pCmdBuffer,
+    MHW_VEBOX_HEAP* pVeboxHeap,
+    uint32_t uiInstanceBaseAddr,
+    bool bCmBuffer,
+    PMOS_RESOURCE pVeboxParamResource,
+    PMOS_CONTEXT pOsContext,
+    uint32_t uiVertexTableSize,
+    MOS_STATUS(*AddResourceToCmd)(PMOS_INTERFACE, PMOS_COMMAND_BUFFER, PMHW_RESOURCE_PARAMS))
+{
+    PMOS_RESOURCE pVeboxHeapResource = nullptr;
+    uint32_t dwOffset = 0;
+
+    if (bCmBuffer)
+    {
+        pVeboxHeapResource = pVeboxParamResource;
+        dwOffset = pVeboxHeap->uiVertexTableOffset;
+    }
+    else
+    {
+        pVeboxHeapResource = &pVeboxHeap->DriverResource;
+        dwOffset = pVeboxHeap->uiVertexTableOffset + uiInstanceBaseAddr;
+    }
+
+    return AddVeboxResource<cmd_t>(
+        pOsInterface,
+        pCmdBuffer,
+        pVeboxHeapResource,
+        dwOffset,
+        &(cmd.DW8.Value),
+        8,
+        true,
+        1 - 8,
+        pOsContext,
+        pVeboxHeap,
+        "VEBOX_VERTEX_TABLE_CMD",
+        uiVertexTableSize,
+        AddResourceToCmd);
+}
+
+//!
+//! \brief    Helper function for Capture Pipe setup
+//! \param    [in,out] cmd
+//!           Reference to VEBOX_STATE command
+//! \param    [in] pOsInterface
+//!           Pointer to OS interface
+//! \param    [in] pCmdBuffer
+//!           Pointer to command buffer
+//! \param    [in] pVeboxHeap
+//!           Pointer to VEBOX heap
+//! \param    [in] uiInstanceBaseAddr
+//!           Instance base address
+//! \param    [in] bCmBuffer
+//!           Whether using CM buffer
+//! \param    [in] pVeboxParamResource
+//!           Pointer to VEBOX parameter resource
+//! \param    [in] pOsContext
+//!           Pointer to OS context
+//! \param    [in] uiCapturePipeStateSize
+//!           Capture pipe state size
+//! \param    [in] AddResourceToCmd
+//!           Function pointer to AddResourceToCmd
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetupVeboxCapturePipe(
+    typename cmd_t::VEBOX_STATE_CMD& cmd,
+    PMOS_INTERFACE pOsInterface,
+    PMOS_COMMAND_BUFFER pCmdBuffer,
+    MHW_VEBOX_HEAP* pVeboxHeap,
+    uint32_t uiInstanceBaseAddr,
+    bool bCmBuffer,
+    PMOS_RESOURCE pVeboxParamResource,
+    PMOS_CONTEXT pOsContext,
+    uint32_t uiCapturePipeStateSize,
+    MOS_STATUS(*AddResourceToCmd)(PMOS_INTERFACE, PMOS_COMMAND_BUFFER, PMHW_RESOURCE_PARAMS))
+{
+    PMOS_RESOURCE pVeboxHeapResource = nullptr;
+    uint32_t dwOffset = 0;
+
+    if (bCmBuffer)
+    {
+        pVeboxHeapResource = pVeboxParamResource;
+        dwOffset = pVeboxHeap->uiCapturePipeStateOffset;
+    }
+    else
+    {
+        pVeboxHeapResource = &pVeboxHeap->DriverResource;
+        dwOffset = pVeboxHeap->uiCapturePipeStateOffset + uiInstanceBaseAddr;
+    }
+
+    return AddVeboxResource<cmd_t>(
+        pOsInterface,
+        pCmdBuffer,
+        pVeboxHeapResource,
+        dwOffset,
+        &(cmd.DW10.Value),
+        10,
+        true,
+        1 - 10,
+        pOsContext,
+        pVeboxHeap,
+        "VEBOX_CAPTURE_PIPE_STATE_CMD",
+        uiCapturePipeStateSize,
+        AddResourceToCmd);
+}
+
+//!
+//! \brief    Helper function for LACE LUT setup
+//! \param    [in,out] cmd
+//!           Reference to VEBOX_STATE command
+//! \param    [in] pOsInterface
+//!           Pointer to OS interface
+//! \param    [in] pCmdBuffer
+//!           Pointer to command buffer
+//! \param    [in] pLaceLookUpTables
+//!           Pointer to LACE lookup tables resource
+//! \param    [in] AddResourceToCmd
+//!           Function pointer to AddResourceToCmd
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetupVeboxLaceLut(
+    typename cmd_t::VEBOX_STATE_CMD& cmd,
+    PMOS_INTERFACE pOsInterface,
+    PMOS_COMMAND_BUFFER pCmdBuffer,
+    PMOS_RESOURCE pLaceLookUpTables,
+    MOS_STATUS(*AddResourceToCmd)(PMOS_INTERFACE, PMOS_COMMAND_BUFFER, PMHW_RESOURCE_PARAMS))
+{
+    if (pLaceLookUpTables == nullptr)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MHW_RESOURCE_PARAMS ResourceParams = {};
+    MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+    ResourceParams.presResource = pLaceLookUpTables;
+    ResourceParams.dwOffset = 0;
+    ResourceParams.pdwCmd = &(cmd.DW12.Value);
+    ResourceParams.dwLocationInCmd = 12;
+    ResourceParams.HwCommandType = MOS_VEBOX_STATE;
+    ResourceParams.dwSharedMocsOffset = static_cast<uint32_t>(1 - 12);
+
+    return AddResourceToCmd(
+        pOsInterface,
+        pCmdBuffer,
+        &ResourceParams);
+}
+
+//!
+//! \brief    Helper function for Gamma Correction setup
+//! \param    [in,out] cmd
+//!           Reference to VEBOX_STATE command
+//! \param    [in] pOsInterface
+//!           Pointer to OS interface
+//! \param    [in] pCmdBuffer
+//!           Pointer to command buffer
+//! \param    [in] pVeboxHeap
+//!           Pointer to VEBOX heap
+//! \param    [in] uiInstanceBaseAddr
+//!           Instance base address
+//! \param    [in] bCmBuffer
+//!           Whether using CM buffer
+//! \param    [in] pVeboxParamResource
+//!           Pointer to VEBOX parameter resource
+//! \param    [in] pOsContext
+//!           Pointer to OS context
+//! \param    [in] uiGammaCorrectionStateSize
+//!           Gamma correction state size
+//! \param    [in] AddResourceToCmd
+//!           Function pointer to AddResourceToCmd
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetupVeboxGammaCorrection(
+    typename cmd_t::VEBOX_STATE_CMD& cmd,
+    PMOS_INTERFACE pOsInterface,
+    PMOS_COMMAND_BUFFER pCmdBuffer,
+    MHW_VEBOX_HEAP* pVeboxHeap,
+    uint32_t uiInstanceBaseAddr,
+    bool bCmBuffer,
+    PMOS_RESOURCE pVeboxParamResource,
+    PMOS_CONTEXT pOsContext,
+    uint32_t uiGammaCorrectionStateSize,
+    MOS_STATUS(*AddResourceToCmd)(PMOS_INTERFACE, PMOS_COMMAND_BUFFER, PMHW_RESOURCE_PARAMS))
+{
+    PMOS_RESOURCE pVeboxHeapResource = nullptr;
+    uint32_t dwOffset = 0;
+
+    if (bCmBuffer)
+    {
+        pVeboxHeapResource = pVeboxParamResource;
+        dwOffset = pVeboxHeap->uiGammaCorrectionStateOffset;
+    }
+    else
+    {
+        pVeboxHeapResource = &pVeboxHeap->DriverResource;
+        dwOffset = pVeboxHeap->uiGammaCorrectionStateOffset + uiInstanceBaseAddr;
+    }
+
+    return AddVeboxResource<cmd_t>(
+        pOsInterface,
+        pCmdBuffer,
+        pVeboxHeapResource,
+        dwOffset,
+        &(cmd.DW14_15.Value[0]),
+        14,
+        true,
+        1 - 14,
+        pOsContext,
+        pVeboxHeap,
+        "PMHW_FORWARD_GAMMA_SEG",
+        uiGammaCorrectionStateSize,
+        AddResourceToCmd);
+}
+
+//!
+//! \brief    Helper function for 3D LUT setup
+//! \param    [in,out] cmd
+//!           Reference to VEBOX_STATE command
+//! \param    [in] pOsInterface
+//!           Pointer to OS interface
+//! \param    [in] pCmdBuffer
+//!           Pointer to command buffer
+//! \param    [in] pVebox3DLookUpTables
+//!           Pointer to 3D LUT resource
+//! \param    [in] AddResourceToCmd
+//!           Function pointer to AddResourceToCmd
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetupVebox3DLut(
+    typename cmd_t::VEBOX_STATE_CMD& cmd,
+    PMOS_INTERFACE pOsInterface,
+    PMOS_COMMAND_BUFFER pCmdBuffer,
+    PMOS_RESOURCE pVebox3DLookUpTables,
+    MOS_STATUS(*AddResourceToCmd)(PMOS_INTERFACE, PMOS_COMMAND_BUFFER, PMHW_RESOURCE_PARAMS))
+{
+    if (pVebox3DLookUpTables == nullptr)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MHW_RESOURCE_PARAMS ResourceParams = {};
+    MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+    ResourceParams.presResource = pVebox3DLookUpTables;
+    ResourceParams.dwOffset = 0;
+    ResourceParams.pdwCmd = &(cmd.DW16.Value);
+    ResourceParams.dwLocationInCmd = 16;
+    ResourceParams.HwCommandType = MOS_VEBOX_STATE;
+    ResourceParams.dwSharedMocsOffset = static_cast<uint32_t>(1 - 16);
+
+    return AddResourceToCmd(
+        pOsInterface,
+        pCmdBuffer,
+        &ResourceParams);
+}
+
+//!
+//! \brief    Helper function for 1D LUT setup
+//! \param    [in,out] cmd
+//!           Reference to VEBOX_STATE command
+//! \param    [in] pOsInterface
+//!           Pointer to OS interface
+//! \param    [in] pCmdBuffer
+//!           Pointer to command buffer
+//! \param    [in] pVebox1DLookUpTables
+//!           Pointer to 1D LUT resource
+//! \param    [in] AddResourceToCmd
+//!           Function pointer to AddResourceToCmd
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetupVebox1DLut(
+    typename cmd_t::VEBOX_STATE_CMD& cmd,
+    PMOS_INTERFACE pOsInterface,
+    PMOS_COMMAND_BUFFER pCmdBuffer,
+    PMOS_RESOURCE pVebox1DLookUpTables,
+    MOS_STATUS(*AddResourceToCmd)(PMOS_INTERFACE, PMOS_COMMAND_BUFFER, PMHW_RESOURCE_PARAMS))
+{
+    if (pVebox1DLookUpTables == nullptr)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MHW_RESOURCE_PARAMS ResourceParams = {};
+    MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+    ResourceParams.presResource = pVebox1DLookUpTables;
+    ResourceParams.dwOffset = 0;
+    ResourceParams.pdwCmd = &(cmd.DW21.Value);
+    ResourceParams.dwLocationInCmd = 21;
+    ResourceParams.HwCommandType = MOS_VEBOX_STATE;
+    ResourceParams.dwSharedMocsOffset = static_cast<uint32_t>(1 - 21);
+
+    return AddResourceToCmd(
+        pOsInterface,
+        pCmdBuffer,
+        &ResourceParams);
+}
+
+//!
+//! \brief    Helper function for HDR state surface redirect (LutCompound)
+//! \param    [in,out] cmd
+//!           Reference to VEBOX_STATE command
+//! \param    [in] pOsInterface
+//!           Pointer to OS interface
+//! \param    [in] pCmdBuffer
+//!           Pointer to command buffer
+//! \param    [in] pVeboxHdrStateSurf
+//!           Pointer to HDR state surface resource
+//! \param    [in] AddResourceToCmd
+//!           Function pointer to AddResourceToCmd
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetupVeboxHdrStateSurf(
+    typename cmd_t::VEBOX_STATE_CMD& cmd,
+    PMOS_INTERFACE pOsInterface,
+    PMOS_COMMAND_BUFFER pCmdBuffer,
+    PMOS_RESOURCE pVeboxHdrStateSurf,
+    MOS_STATUS(*AddResourceToCmd)(PMOS_INTERFACE, PMOS_COMMAND_BUFFER, PMHW_RESOURCE_PARAMS))
+{
+    if (pVeboxHdrStateSurf == nullptr)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MHW_RESOURCE_PARAMS ResourceParams = {};
+    MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+    ResourceParams.presResource = pVeboxHdrStateSurf;
+    ResourceParams.dwOffset = 0;
+    ResourceParams.pdwCmd = &(cmd.DW6.Value);
+    ResourceParams.dwLocationInCmd = 6;
+    ResourceParams.HwCommandType = MOS_VEBOX_STATE;
+    ResourceParams.dwSharedMocsOffset = static_cast<uint32_t>(1 - 6);
+
+    return AddResourceToCmd(
+        pOsInterface,
+        pCmdBuffer,
+        &ResourceParams);
+}
+
+//!
+//! \brief    Helper function for dummy IECP resource setup
+//! \param    [in,out] cmd
+//!           Reference to VEBOX_STATE command
+//! \param    [in] pOsInterface
+//!           Pointer to OS interface
+//! \param    [in] pCmdBuffer
+//!           Pointer to command buffer
+//! \param    [in,out] pDummyIecpResource
+//!           Pointer to dummy IECP resource
+//! \param    [in] uiIecpStateSize
+//!           IECP state size
+//! \param    [in] pOsContext
+//!           Pointer to OS context
+//! \param    [in] AddResourceToCmd
+//!           Function pointer to AddResourceToCmd
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetupDummyIecpResource(
+    typename cmd_t::VEBOX_STATE_CMD& cmd,
+    PMOS_INTERFACE pOsInterface,
+    PMOS_COMMAND_BUFFER pCmdBuffer,
+    PMOS_RESOURCE pDummyIecpResource,
+    uint32_t uiIecpStateSize,
+    PMOS_CONTEXT pOsContext,
+    MOS_STATUS (*AddResourceToCmd)(PMOS_INTERFACE, PMOS_COMMAND_BUFFER, PMHW_RESOURCE_PARAMS))
+{
+    MOS_ALLOC_GFXRES_PARAMS AllocParamsForBufferLinear = {};
+    MHW_RESOURCE_PARAMS ResourceParams = {};
+
+    // Allocate Resource to avoid Page Fault issue since HW will access it
+    if (Mos_ResourceIsNull(pDummyIecpResource))
+    {
+        AllocParamsForBufferLinear.Type = MOS_GFXRES_BUFFER;
+        AllocParamsForBufferLinear.TileType = MOS_TILE_LINEAR;
+        AllocParamsForBufferLinear.Format = Format_Buffer;
+        AllocParamsForBufferLinear.dwBytes = uiIecpStateSize;
+        AllocParamsForBufferLinear.pBufName = "DummyIecpResource";
+        AllocParamsForBufferLinear.ResUsageType = MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF;
+
+        MHW_CHK_STATUS_RETURN(pOsInterface->pfnAllocateResource(
+            pOsInterface,
+            &AllocParamsForBufferLinear,
+            pDummyIecpResource));
+    }
+
+    MOS_ZeroMemory(&ResourceParams, sizeof(ResourceParams));
+    ResourceParams.presResource = pDummyIecpResource;
+    ResourceParams.dwOffset = 0;
+    ResourceParams.pdwCmd = &(cmd.DW4.Value);
+    ResourceParams.dwLocationInCmd = 4;
+    ResourceParams.HwCommandType = MOS_VEBOX_STATE;
+    ResourceParams.dwSharedMocsOffset = static_cast<uint32_t>(1 - 4);
+
+    MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+        pOsInterface,
+        pCmdBuffer,
+        &ResourceParams));
+
+    HalOcaInterfaceNext::OnIndirectState(*pCmdBuffer, (MOS_CONTEXT_HANDLE)pOsContext, ResourceParams.presResource, 0, true, 0);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for mode controls (DW1) setup
+//! \param    [in,out] cmd
+//!           Reference to VEBOX_STATE command
+//! \param    [in] params
+//!           Reference to VEBOX_STATE parameters
+//! \param    [in] pOsInterface
+//!           Pointer to OS interface
+//! \param    [in] cacheUsage
+//!           Cache usage policy (default: MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF)
+//! \return   void
+//!
+template <typename cmd_t, typename ParamType>
+inline void SetupVeboxModeControls(
+    typename cmd_t::VEBOX_STATE_CMD& cmd,
+    const ParamType& params,
+    PMOS_INTERFACE pOsInterface,
+    MOS_HW_RESOURCE_DEF cacheUsage = MOS_HW_RESOURCE_USAGE_VP_INTERNAL_READ_WRITE_FF)
+{
+    cmd.DW1.ColorGamutExpansionEnable = params.VeboxMode.ColorGamutExpansionEnable;
+    cmd.DW1.ColorGamutCompressionEnable = params.VeboxMode.ColorGamutCompressionEnable;
+    cmd.DW1.GlobalIecpEnable = params.VeboxMode.GlobalIECPEnable;
+    cmd.DW1.DnEnable = params.VeboxMode.DNEnable;
+    cmd.DW1.DiEnable = params.VeboxMode.DIEnable;
+    cmd.DW1.DnDiFirstFrame = params.VeboxMode.DNDIFirstFrame;
+    cmd.DW1.DiOutputFrames = params.VeboxMode.DIOutputFrames;
+    cmd.DW1.DemosaicEnable = params.VeboxMode.DemosaicEnable;
+    cmd.DW1.VignetteEnable = params.VeboxMode.VignetteEnable;
+    cmd.DW1.AlphaPlaneEnable = params.VeboxMode.AlphaPlaneEnable;
+    cmd.DW1.HotPixelFilteringEnable = params.VeboxMode.HotPixelFilteringEnable;
+    cmd.DW1.LaceCorrectionEnable = params.VeboxMode.LACECorrectionEnable;
+    cmd.DW1.DisableEncoderStatistics = params.VeboxMode.DisableEncoderStatistics;
+    cmd.DW1.DisableTemporalDenoiseFilter = params.VeboxMode.DisableTemporalDenoiseFilter;
+    cmd.DW1.SinglePipeEnable = params.VeboxMode.SinglePipeIECPEnable;
+    cmd.DW1.ScalarMode = params.VeboxMode.ScalarMode;
+    cmd.DW1.ForwardGammaCorrectionEnable = params.VeboxMode.ForwardGammaCorrectionEnable;
+    cmd.DW1.HdrEnable = params.VeboxMode.Hdr1DLutEnable;
+    cmd.DW1.Fp16ModeEnable = params.VeboxMode.Fp16ModeEnable;
+    cmd.DW1.StateSurfaceControlBits = (pOsInterface->pfnCachePolicyGetMemoryObject(
+        cacheUsage,
+        pOsInterface)).DwordValue;
+}
+
+//!
+//! \brief    Helper function for chroma sampling (DW18) setup
+//! \param    [in,out] cmd
+//!           Reference to VEBOX_STATE command
+//! \param    [in] params
+//!           Reference to VEBOX_STATE parameters
+//! \return   void
+//!
+template <typename cmd_t, typename ParamType>
+inline void SetupVeboxChromaSampling(
+    typename cmd_t::VEBOX_STATE_CMD& cmd,
+    const ParamType& params)
+{
+    cmd.DW18.ChromaUpsamplingCoSitedHorizontalOffset = params.ChromaSampling.ChromaUpsamplingCoSitedHorizontalOffset;
+    cmd.DW18.ChromaUpsamplingCoSitedVerticalOffset = params.ChromaSampling.ChromaUpsamplingCoSitedVerticalOffset;
+    cmd.DW18.ChromaDownsamplingCoSitedHorizontalOffset = params.ChromaSampling.ChromaDownsamplingCoSitedHorizontalOffset;
+    cmd.DW18.ChromaDownsamplingCoSitedVerticalOffset = params.ChromaSampling.ChromaDownsamplingCoSitedVerticalOffset;
+    cmd.DW18.BypassChromaUpsampling = params.ChromaSampling.BypassChromaUpsampling;
+    cmd.DW18.BypassChromaDownsampling = params.ChromaSampling.BypassChromaDownsampling;
+}
+
+//!
+//! \brief    Helper function for 3D LUT controls (DW17 for older platforms)
+//! \param    [in,out] cmd
+//!           Reference to VEBOX_STATE command
+//! \param    [in] params
+//!           Reference to VEBOX_STATE parameters
+//! \return   void
+//!
+template <typename cmd_t, typename ParamType>
+inline void SetupVebox3DLutControlsLegacy(
+    typename cmd_t::VEBOX_STATE_CMD& cmd,
+    const ParamType& params)
+{
+    cmd.DW17.EncDataControlFor3DLUT = 0;
+    cmd.DW17.Lut3DMemoryLayoutControl = 0;  // Legacy layout
+    cmd.DW17.ChannelMappingSwapForLut3D = params.LUT3D.ChannelMappingSwapForLut3D;
+    cmd.DW17.ArbitrationPriorityControlForLut3D = params.LUT3D.ArbitrationPriorityControl;
+    cmd.DW17.Lut3DMocsTable = params.Vebox3DLookUpTablesSurfCtrl.Gen9.Index;
+}
+
+//!
+//! \brief    Helper function for 3D LUT controls (DW23 for newer platforms)
+//! \param    [in,out] cmd
+//!           Reference to VEBOX_STATE command
+//! \param    [in] params
+//!           Reference to VEBOX_STATE parameters
+//! \return   void
+//!
+template <typename cmd_t, typename ParamType>
+inline void SetupVebox3DLutControlsNew(
+    typename cmd_t::VEBOX_STATE_CMD& cmd,
+    const ParamType& params)
+{
+    cmd.DW23.ChannelMappingSwapForLut3D = params.LUT3D.ChannelMappingSwapForLut3D;
+    cmd.DW23.ArbitrationPriorityControlForLut3D = params.LUT3D.ArbitrationPriorityControl;
+    cmd.DW23.Lut3DMocsTable = params.Vebox3DLookUpTablesSurfCtrl.Gen9.Index;
+}
+
+//!
+//! \brief    Helper function for tracing indirect state information
+//! \param    [in] cmdBuffer
+//!           Reference to command buffer
+//! \param    [in] osContext
+//!           Reference to OS context
+//! \param    [in] bCmBuffer
+//!           Whether using CM buffer
+//! \param    [in] bUseKernelResource
+//!           Whether using kernel resource
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+inline MOS_STATUS TraceIndirectStateInfo(
+    MOS_COMMAND_BUFFER& cmdBuffer,
+    MOS_CONTEXT& osContext,
+    bool bCmBuffer,
+    bool bUseKernelResource)
+{
+    if (bCmBuffer)
+    {
+        char ocaLog[] = "Vebox indirect state use CmBuffer";
+        HalOcaInterfaceNext::TraceMessage(cmdBuffer, (MOS_CONTEXT_HANDLE)&osContext, ocaLog, sizeof(ocaLog));
+    }
+    else
+    {
+        if (bUseKernelResource)
+        {
+            char ocaLog[] = "Vebox indirect state use KernelResource";
+            HalOcaInterfaceNext::TraceMessage(cmdBuffer, (MOS_CONTEXT_HANDLE)&osContext, ocaLog, sizeof(ocaLog));
+        }
+        else
+        {
+            char ocaLog[] = "Vebox indirect state use DriverResource";
+            HalOcaInterfaceNext::TraceMessage(cmdBuffer, (MOS_CONTEXT_HANDLE)&osContext, ocaLog, sizeof(ocaLog));
+        }
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for VEBOX surface format determination
+//! \details  Extracts surface format determination logic shared across all platforms.
+//!           This helper function encapsulates both the primary format switch (handling
+//!           25+ surface formats including YUV, RGB, Bayer patterns) and the secondary
+//!           Bayer input alignment switch. Each platform's SetVeboxSurfaces can call
+//!           this helper function and only handle platform-specific differences.
+//! \param    [in] VeboxSurfaceState
+//!           Reference to VEBOX_SURFACE_STATE command structure (used for format constants)
+//! \param    [in] pSurfaceParam
+//!           Pointer to surface parameters containing format and bit depth information
+//! \param    [in] bIsOutputSurface
+//!           Flag indicating whether this is an output surface
+//! \param    [out] dwFormat
+//!           Reference to format value to be set
+//! \param    [out] bInterleaveChroma
+//!           Reference to interleave chroma flag to be set
+//! \param    [out] wUYOffset
+//!           Reference to U/Y offset value to be set
+//! \param    [out] bBayerOffset
+//!           Reference to Bayer pattern offset to be set
+//! \param    [out] bBayerStride
+//!           Reference to Bayer pattern stride to be set
+//! \param    [out] bBayerInputAlignment
+//!           Reference to Bayer input alignment to be set
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetVeboxSurfaceFormat(
+    typename cmd_t::VEBOX_SURFACE_STATE_CMD& VeboxSurfaceState,
+    PMHW_VEBOX_SURFACE_PARAMS pSurfaceParam,
+    bool bIsOutputSurface,
+    uint32_t& dwFormat,
+    bool& bInterleaveChroma,
+    uint16_t& wUYOffset,
+    uint8_t& bBayerOffset,
+    uint8_t& bBayerStride,
+    uint8_t& bBayerInputAlignment)
+{
+    // Primary format switch - determine surface format based on input format
+    switch (pSurfaceParam->Format)
+    {
+    case Format_NV12:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PLANAR4208;
+        bInterleaveChroma = true;
+        wUYOffset = (uint16_t)pSurfaceParam->dwUYoffset;
+        break;
+
+    case Format_YUYV:
+    case Format_YUY2:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_YCRCBNORMAL;
+        break;
+
+    case Format_UYVY:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_YCRCBSWAPY;
+        break;
+
+    case Format_AYUV:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PACKED444A8;
+        break;
+
+    case Format_Y416:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PACKED44416;
+        break;
+
+    case Format_Y410:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PACKED44410;
+        break;
+
+    case Format_YVYU:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_YCRCBSWAPUV;
+        break;
+
+    case Format_VYUY:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_YCRCBSWAPUVY;
+        break;
+
+    case Format_A8B8G8R8:
+    case Format_X8B8G8R8:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_R8G8B8A8UNORMR8G8B8A8UNORMSRGB;
+        break;
+
+    case Format_A16B16G16R16:
+    case Format_A16R16G16B16:
+    case Format_A16B16G16R16F:
+    case Format_A16R16G16B16F:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_R16G16B16A16;
+        break;
+
+    case Format_L8:
+    case Format_P8:
+    case Format_Y8:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_Y8UNORM;
+        break;
+
+    case Format_IRW0:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_BAYERPATTERN;
+        bBayerOffset = VeboxSurfaceState.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISBLUE;
+        bBayerStride = VeboxSurfaceState.BAYER_PATTERN_FORMAT_16_BITINPUTATA16_BITSTRIDE;
+        break;
+
+    case Format_IRW1:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_BAYERPATTERN;
+        bBayerOffset = VeboxSurfaceState.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISRED;
+        bBayerStride = VeboxSurfaceState.BAYER_PATTERN_FORMAT_16_BITINPUTATA16_BITSTRIDE;
+        break;
+
+    case Format_IRW2:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_BAYERPATTERN;
+        bBayerOffset = VeboxSurfaceState.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISGREEN_PIXELATX1_Y0ISRED;
+        bBayerStride = VeboxSurfaceState.BAYER_PATTERN_FORMAT_16_BITINPUTATA16_BITSTRIDE;
+        break;
+
+    case Format_IRW3:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_BAYERPATTERN;
+        bBayerOffset = VeboxSurfaceState.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISGREEN_PIXELATX1_Y0ISBLUE;
+        bBayerStride = VeboxSurfaceState.BAYER_PATTERN_FORMAT_16_BITINPUTATA16_BITSTRIDE;
+        break;
+
+    case Format_IRW4:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_BAYERPATTERN;
+        bBayerOffset = VeboxSurfaceState.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISBLUE;
+        bBayerStride = VeboxSurfaceState.BAYER_PATTERN_FORMAT_8_BITINPUTATA8_BITSTRIDE;
+        break;
+
+    case Format_IRW5:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_BAYERPATTERN;
+        bBayerOffset = VeboxSurfaceState.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISRED;
+        bBayerStride = VeboxSurfaceState.BAYER_PATTERN_FORMAT_8_BITINPUTATA8_BITSTRIDE;
+        break;
+
+    case Format_IRW6:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_BAYERPATTERN;
+        bBayerOffset = VeboxSurfaceState.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISGREEN_PIXELATX1_Y0ISRED;
+        bBayerStride = VeboxSurfaceState.BAYER_PATTERN_FORMAT_8_BITINPUTATA8_BITSTRIDE;
+        break;
+
+    case Format_IRW7:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_BAYERPATTERN;
+        bBayerOffset = VeboxSurfaceState.BAYER_PATTERN_OFFSET_PIXELATX0_Y0ISGREEN_PIXELATX1_Y0ISBLUE;
+        bBayerStride = VeboxSurfaceState.BAYER_PATTERN_FORMAT_8_BITINPUTATA8_BITSTRIDE;
+        break;
+
+    case Format_P010:
+    case Format_P016:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PLANAR42016;
+        bInterleaveChroma = true;
+        wUYOffset = (uint16_t)pSurfaceParam->dwUYoffset;
+        break;
+
+    case Format_A8R8G8B8:
+    case Format_X8R8G8B8:
+        // Platform-specific logic: output surface uses different format
+        if (bIsOutputSurface)
+        {
+            dwFormat = VeboxSurfaceState.SURFACE_FORMAT_B8G8R8A8UNORM;
+        }
+        else
+        {
+            dwFormat = VeboxSurfaceState.SURFACE_FORMAT_R8G8B8A8UNORMR8G8B8A8UNORMSRGB;
+        }
+        break;
+
+    case Format_R10G10B10A2:
+    case Format_B10G10R10A2:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_R10G10B10A2UNORMR10G10B10A2UNORMSRGB;
+        break;
+
+    case Format_Y216:
+    case Format_Y210:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PACKED42216;
+        break;
+
+    case Format_P216:
+    case Format_P210:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PLANAR42216;
+        wUYOffset = (uint16_t)pSurfaceParam->dwUYoffset;
+        break;
+
+    case Format_Y16S:
+    case Format_Y16U:
+        dwFormat = VeboxSurfaceState.SURFACE_FORMAT_Y16UNORM;
+        break;
+
+    default:
+        MHW_ASSERTMESSAGE("Unsupported format.");
+        return MOS_STATUS_INVALID_PARAMETER;
+    }
+
+    // Secondary Bayer input alignment switch - only for input surfaces
+    if (!bIsOutputSurface)
+    {
+        // Camera pipe will use 10/12/14 for LSB, 0 for MSB. For other pipelines,
+        // dwBitDepth is inherited from pSrc->dwDepth which may not be among (0,10,12,14).
+        // For such cases should use MSB as default value.
+        switch (pSurfaceParam->dwBitDepth)
+        {
+        case 10:
+            bBayerInputAlignment = VeboxSurfaceState.BAYER_INPUT_ALIGNMENT_10BITLSBALIGNEDDATA;
+            break;
+
+        case 12:
+            bBayerInputAlignment = VeboxSurfaceState.BAYER_INPUT_ALIGNMENT_12BITLSBALIGNEDDATA;
+            break;
+
+        case 14:
+            bBayerInputAlignment = VeboxSurfaceState.BAYER_INPUT_ALIGNMENT_14BITLSBALIGNEDDATA;
+            break;
+
+        case 0:
+        default:
+            bBayerInputAlignment = VeboxSurfaceState.BAYER_INPUT_ALIGNMENT_MSBALIGNEDDATA;
+            break;
+        }
+    }
+    else
+    {
+        bBayerInputAlignment = VeboxSurfaceState.BAYER_INPUT_ALIGNMENT_MSBALIGNEDDATA;
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for setting up CSC coefficients for BT601 color space
+//! \details  Configures CSC transformation coefficients for BT601 color space.
+//!           Supports two modes: Color Balance (YUV to RGB with 16-bit precision)
+//!           and Gamut Expansion (YUV to RGB with 10-bit precision).
+//! \param    [in,out] pCscState
+//!           Pointer to CSC state structure to be configured
+//! \param    [in] isColorBalance
+//!           Mode selector: true for Color Balance mode, false for Gamut Expansion mode
+//! \return   void
+//!
+template <typename CSCStateType>
+inline void SetupCSCCoefficients_BT601(CSCStateType* pCscState, bool isColorBalance)
+{
+    pCscState->DW0.TransformEnable = true;
+    
+    if (isColorBalance)
+    {
+        // Color Balance mode: 16-bit precision coefficients
+        pCscState->DW0.C0          = 76309;
+        pCscState->DW1.C1          = 0;
+        pCscState->DW2.C2          = 104597;
+        pCscState->DW3.C3          = 76309;
+        pCscState->DW4.C4          = MOS_BITFIELD_VALUE((uint32_t)-25675, 19);
+        pCscState->DW5.C5          = MOS_BITFIELD_VALUE((uint32_t)-53279, 19);
+        pCscState->DW6.C6          = 76309;
+        pCscState->DW7.C7          = 132201;
+        pCscState->DW8.C8          = 0;
+        pCscState->DW9.OffsetIn1   = MOS_BITFIELD_VALUE((uint32_t)-2048, 16);
+        pCscState->DW9.OffsetOut1  = 0;
+        pCscState->DW10.OffsetIn2  = MOS_BITFIELD_VALUE((uint32_t)-16384, 16);
+        pCscState->DW10.OffsetOut2 = 0;
+        pCscState->DW11.OffsetIn3  = MOS_BITFIELD_VALUE((uint32_t)-16384, 16);
+        pCscState->DW11.OffsetOut3 = 0;
+    }
+    else
+    {
+        // Gamut Expansion mode: 10-bit precision coefficients
+        pCscState->DW0.C0          = 1192;
+        pCscState->DW1.C1          = MOS_BITFIELD_VALUE((uint32_t)-2, 19);
+        pCscState->DW2.C2          = 1634;
+        pCscState->DW3.C3          = 1192;
+        pCscState->DW4.C4          = MOS_BITFIELD_VALUE((uint32_t)-401, 19);
+        pCscState->DW5.C5          = MOS_BITFIELD_VALUE((uint32_t)-833, 19);
+        pCscState->DW6.C6          = 1192;
+        pCscState->DW7.C7          = 2066;
+        pCscState->DW8.C8          = MOS_BITFIELD_VALUE((uint32_t)-1, 19);
+        pCscState->DW9.OffsetIn1   = MOS_BITFIELD_VALUE((uint32_t)-64, 16);
+        pCscState->DW9.OffsetOut1  = 0;
+        pCscState->DW10.OffsetIn2  = MOS_BITFIELD_VALUE((uint32_t)-512, 16);
+        pCscState->DW10.OffsetOut2 = 0;
+        pCscState->DW11.OffsetIn3  = MOS_BITFIELD_VALUE((uint32_t)-512, 16);
+        pCscState->DW11.OffsetOut3 = 0;
+    }
+}
+
+//!
+//! \brief    Helper function for setting up CSC coefficients for BT709 color space
+//! \details  Configures CSC transformation coefficients for BT709 color space.
+//!           Supports two modes: Color Balance (YUV to RGB with 16-bit precision)
+//!           and Gamut Expansion (YUV to RGB with 10-bit precision).
+//! \param    [in,out] pCscState
+//!           Pointer to CSC state structure to be configured
+//! \param    [in] isColorBalance
+//!           Mode selector: true for Color Balance mode, false for Gamut Expansion mode
+//! \return   void
+//!
+template <typename CSCStateType>
+inline void SetupCSCCoefficients_BT709(CSCStateType* pCscState, bool isColorBalance)
+{
+    pCscState->DW0.TransformEnable = true;
+    
+    if (isColorBalance)
+    {
+        // Color Balance mode: 16-bit precision coefficients
+        pCscState->DW0.C0          = 76309;
+        pCscState->DW1.C1          = 0;
+        pCscState->DW2.C2          = 117489;
+        pCscState->DW3.C3          = 76309;
+        pCscState->DW4.C4          = MOS_BITFIELD_VALUE((uint32_t)-13975, 19);
+        pCscState->DW5.C5          = MOS_BITFIELD_VALUE((uint32_t)-34925, 19);
+        pCscState->DW6.C6          = 76309;
+        pCscState->DW7.C7          = 138438;
+        pCscState->DW8.C8          = 0;
+        pCscState->DW9.OffsetIn1   = MOS_BITFIELD_VALUE((uint32_t)-2048, 16);
+        pCscState->DW9.OffsetOut1  = 0;
+        pCscState->DW10.OffsetIn2  = MOS_BITFIELD_VALUE((uint32_t)-16384, 16);
+        pCscState->DW10.OffsetOut2 = 0;
+        pCscState->DW11.OffsetIn3  = MOS_BITFIELD_VALUE((uint32_t)-16384, 16);
+        pCscState->DW11.OffsetOut3 = 0;
+    }
+    else
+    {
+        // Gamut Expansion mode: 10-bit precision coefficients
+        pCscState->DW0.C0          = 1192;
+        pCscState->DW1.C1          = MOS_BITFIELD_VALUE((uint32_t)-1, 19);
+        pCscState->DW2.C2          = 1835;
+        pCscState->DW3.C3          = 1192;
+        pCscState->DW4.C4          = MOS_BITFIELD_VALUE((uint32_t)-218, 19);
+        pCscState->DW5.C5          = MOS_BITFIELD_VALUE((uint32_t)-537, 19);
+        pCscState->DW6.C6          = 1192;
+        pCscState->DW7.C7          = 2164;
+        pCscState->DW8.C8          = 1;
+        pCscState->DW9.OffsetIn1   = MOS_BITFIELD_VALUE((uint32_t)-64, 16);
+        pCscState->DW9.OffsetOut1  = 0;
+        pCscState->DW10.OffsetIn2  = MOS_BITFIELD_VALUE((uint32_t)-512, 16);
+        pCscState->DW10.OffsetOut2 = 0;
+        pCscState->DW11.OffsetIn3  = MOS_BITFIELD_VALUE((uint32_t)-512, 16);
+        pCscState->DW11.OffsetOut3 = 0;
+    }
+}
+
+//!
+//! \brief    Helper function for populating GE_Values array with identity mapping
+//! \details  Fills the GE_Values array with identity transformation (257*i for all channels).
+//!           This is used when no gamma correction is needed (both input and output gamma are 1.0).
+//! \param    [out] usGE_Values
+//!           2D array [256][8] to be populated with identity values
+//! \return   void
+//!
+inline void PopulateGEValues_Identity(uint16_t usGE_Values[256][8])
+{
+    for (uint32_t i = 0; i < 256; i++)
+    {
+        usGE_Values[i][0] = 257 * i;
+        usGE_Values[i][1] = 257 * i;
+        usGE_Values[i][2] = 257 * i;
+        usGE_Values[i][3] = 257 * i;
+        usGE_Values[i][4] = 257 * i;
+        usGE_Values[i][5] = 257 * i;
+        usGE_Values[i][6] = 257 * i;
+        usGE_Values[i][7] = 257 * i;
+    }
+}
+
+//!
+//! \brief    Helper function for populating GE_Values array with gamma correction
+//! \details  Fills the GE_Values array using power function-based gamma correction.
+//!           Applies inverse gamma to channels 1-3 and forward gamma to channels 5-7.
+//!           If both gamma values are 1.0 (identity), calls PopulateGEValues_Identity instead.
+//! \param    [out] usGE_Values
+//!           2D array [256][8] to be populated with gamma-corrected values
+//! \param    [in] dInverseGamma
+//!           Inverse gamma value (typically 1.0, 2.2, or 2.6)
+//! \param    [in] dForwardGamma
+//!           Forward gamma value (typically 1.0, 2.2, or 2.6)
+//! \param    [in] isIdentity
+//!           Flag indicating if both gamma values are 1.0 (identity transformation)
+//! \return   void
+//!
+inline void PopulateGEValues_Gamma(uint16_t usGE_Values[256][8], double dInverseGamma, double dForwardGamma, bool isIdentity)
+{
+    if (isIdentity)
+    {
+        PopulateGEValues_Identity(usGE_Values);
+        return;
+    }
+    
+    // Note: Loop only goes to 254, not 255
+    for (uint32_t i = 0; i < 255; i++)
+    {
+        usGE_Values[i][0] = 256 * i;
+        usGE_Values[i][1] = (uint16_t)MOS_F_ROUND(pow((double)((double)i / 256), dInverseGamma) * 65536);
+        usGE_Values[i][2] = usGE_Values[i][1];
+        usGE_Values[i][3] = usGE_Values[i][1];
+        
+        usGE_Values[i][4] = 256 * i;
+        usGE_Values[i][5] = (uint16_t)MOS_F_ROUND(pow((double)((double)i / 256), 1 / dForwardGamma) * 65536);
+        usGE_Values[i][6] = usGE_Values[i][5];
+        usGE_Values[i][7] = usGE_Values[i][5];
+    }
+}
+
+//!
+//! \brief    Helper function for populating GE_Values array from BT2020 global LUTs
+//! \details  Fills the GE_Values array using pre-defined BT2020 inverse and forward
+//!           pixel value and gamma LUT arrays. Used for BT2020 color space conversion.
+//! \param    [out] usGE_Values
+//!           2D array [256][8] to be populated with BT2020 LUT values
+//! \return   void
+//!
+inline void PopulateGEValues_BT2020(uint16_t usGE_Values[256][8])
+{
+    for (uint32_t i = 0; i < 256; i++)
+    {
+        usGE_Values[i][0] = (uint16_t)g_Vebox_BT2020_Inverse_Pixel_Value[i];
+        usGE_Values[i][1] = (uint16_t)g_Vebox_BT2020_Inverse_Gamma_LUT[i];
+        usGE_Values[i][2] = (uint16_t)g_Vebox_BT2020_Inverse_Gamma_LUT[i];
+        usGE_Values[i][3] = (uint16_t)g_Vebox_BT2020_Inverse_Gamma_LUT[i];
+        
+        usGE_Values[i][4] = (uint16_t)g_Vebox_BT2020_Forward_Pixel_Value[i];
+        usGE_Values[i][5] = (uint16_t)g_Vebox_BT2020_Forward_Gamma_LUT[i];
+        usGE_Values[i][6] = (uint16_t)g_Vebox_BT2020_Forward_Gamma_LUT[i];
+        usGE_Values[i][7] = (uint16_t)g_Vebox_BT2020_Forward_Gamma_LUT[i];
+    }
+}
+
+//!
+//! \brief    Helper function for populating GE_Values array from 1DLUT with AYUV processing
+//! \details  Fills the GE_Values array using 1DLUT data for AYUV channel processing.
+//!           Channels 0-3 use identity mapping, channels 4-7 use 1DLUT values.
+//!           Special handling for boundary values (i==0 and i==255).
+//! \param    [out] usGE_Values
+//!           2D array [256][8] to be populated with 1DLUT AYUV values
+//! \param    [in] pForwardGamma
+//!           Pointer to forward gamma LUT data (4 values per entry: in_val, Y, U, V)
+//! \param    [in] LUTSize
+//!           Size of the LUT (typically 256)
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+inline MOS_STATUS PopulateGEValues_1DLUT_AYUV(uint16_t usGE_Values[256][8], const uint16_t* pForwardGamma, uint32_t LUTSize)
+{
+    MHW_CHK_NULL_RETURN(pForwardGamma);
+    
+    for (uint32_t i = 0; i < LUTSize; i++)
+    {
+        // Channels 0-3: Identity mapping
+        usGE_Values[i][0] = 257 * i;
+        usGE_Values[i][1] = 257 * i;
+        usGE_Values[i][2] = 257 * i;
+        usGE_Values[i][3] = 257 * i;
+        
+        // Channels 4-7: 1DLUT AYUV values
+        uint32_t nIndex = 4 * i;
+        uint16_t in_val = pForwardGamma[nIndex];
+        uint16_t vchan1_y = pForwardGamma[nIndex + 1];
+        uint16_t vchan2_u = pForwardGamma[nIndex + 2];
+        uint16_t vchan3_v = pForwardGamma[nIndex + 3];
+        
+        // Special handling for boundary values
+        usGE_Values[i][4] = (i == 0) ? 0 : ((i == 255) ? 0xffff : in_val);
+        usGE_Values[i][5] = vchan1_y;
+        usGE_Values[i][6] = vchan2_u;
+        usGE_Values[i][7] = vchan3_v;
+    }
+    
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for setting up Gamut Compression
+//! \details  Configures gamut compression settings based on compression mode (Basic or Advanced).
+//!           For Basic mode, sets up scaling factor if specified. For Advanced mode, sets up
+//!           full range mapping parameters (D1Out, DOutDefault, DInDefault, D1In).
+//!           Calls SetVertexTableCallback to set up vertex table for the specified color space.
+//! \param    [in,out] pGamutState
+//!           Pointer to VEBOX_GAMUT_CONTROL_STATE_CMD structure
+//! \param    [in] gamutCmd
+//!           Reference to VEBOX_GAMUT_CONTROL_STATE_CMD for constant values
+//! \param    [in] pVeboxGamutParams
+//!           Pointer to gamut parameters
+//! \param    [in] SetVertexTableCallback
+//!           Callback function to set vertex table for the color space
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetGamutCompression(
+    typename cmd_t::VEBOX_GAMUT_CONTROL_STATE_CMD* pGamutState,
+    const typename cmd_t::VEBOX_GAMUT_CONTROL_STATE_CMD& gamutCmd,
+    PMHW_VEBOX_GAMUT_PARAMS pVeboxGamutParams)
+{
+    MHW_CHK_NULL_RETURN(pGamutState);
+    MHW_CHK_NULL_RETURN(pVeboxGamutParams);
+    
+    if (pVeboxGamutParams->GCompMode == MHW_GAMUT_MODE_BASIC)
+    {
+        pGamutState->DW15.Fullrangemappingenable = false;
+        
+        if (pVeboxGamutParams->GCompBasicMode == gamutCmd.GCC_BASICMODESELECTION_SCALINGFACTOR)
+        {
+            pGamutState->DW17.GccBasicmodeselection = gamutCmd.GCC_BASICMODESELECTION_SCALINGFACTOR;
+            pGamutState->DW17.Basicmodescalingfactor = pVeboxGamutParams->iBasicModeScalingFactor;
+        }
+    }
+    else if (pVeboxGamutParams->GCompMode == MHW_GAMUT_MODE_ADVANCED)
+    {
+        pGamutState->DW15.Fullrangemappingenable = true;
+        pGamutState->DW15.D1Out = pVeboxGamutParams->iDout;
+        pGamutState->DW15.DOutDefault = pVeboxGamutParams->iDoutDefault;
+        pGamutState->DW15.DInDefault = pVeboxGamutParams->iDinDefault;
+        pGamutState->DW16.D1In = pVeboxGamutParams->iDin;
+    }
+    else
+    {
+        MHW_ASSERTMESSAGE("Invalid GAMUT MODE");
+    }
+    
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for setting up Color Balance
+//! \details  Configures color balance by setting up CSC coefficients for YUV to RGB conversion
+//!           based on the color space (BT601 or BT709). Sets up gamut state with global mode
+//!           enabled and copies the color correction matrix. Populates GE_Values array with
+//!           identity mapping and copies to gamma correction structure.
+//! \param    [in,out] pIecpState
+//!           Pointer to VEBOX_IECP_STATE_CMD structure
+//! \param    [in] pVeboxGamutParams
+//!           Pointer to gamut parameters
+//! \param    [out] usGE_Values
+//!           2D array [256][8] for GE values
+//! \param    [out] pVeboxGEGammaCorrection
+//!           Pointer to gamma correction structure
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetColorBalance(
+    typename cmd_t::VEBOX_IECP_STATE_CMD* pIecpState,
+    PMHW_VEBOX_GAMUT_PARAMS pVeboxGamutParams,
+    uint16_t usGE_Values[256][8],
+    void* pVeboxGEGammaCorrection)
+{
+    MHW_CHK_NULL_RETURN(pIecpState);
+    MHW_CHK_NULL_RETURN(pVeboxGamutParams);
+    MHW_CHK_NULL_RETURN(pVeboxGEGammaCorrection);
+    
+    // Setup CSC coefficients based on color space (Color Balance mode)
+    if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT601 ||
+        pVeboxGamutParams->ColorSpace == MHW_CSpace_xvYCC601 ||
+        pVeboxGamutParams->ColorSpace == MHW_CSpace_BT601_FullRange)
+    {
+        SetupCSCCoefficients_BT601(&pIecpState->CscState, true);
+    }
+    else if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT709 ||
+             pVeboxGamutParams->ColorSpace == MHW_CSpace_xvYCC709 ||
+             pVeboxGamutParams->ColorSpace == MHW_CSpace_BT709_FullRange)
+    {
+        SetupCSCCoefficients_BT709(&pIecpState->CscState, true);
+    }
+    else
+    {
+        MHW_ASSERTMESSAGE("Unknown primary");
+    }
+    
+    // Setup gamut state - properly access from pIecpState
+    auto pGamutState = &pIecpState->GamutState;
+    MHW_CHK_NULL_RETURN(pGamutState);
+    pGamutState->DW0.GlobalModeEnable = true;
+    pGamutState->DW1.CmW = 1023;
+    
+    // Copy color correction matrix
+    pGamutState->DW1.C0 = pVeboxGamutParams->Matrix[0][0];
+    pGamutState->DW0.C1 = pVeboxGamutParams->Matrix[0][1];
+    pGamutState->DW3.C2 = pVeboxGamutParams->Matrix[0][2];
+    pGamutState->DW2.C3 = pVeboxGamutParams->Matrix[1][0];
+    pGamutState->DW5.C4 = pVeboxGamutParams->Matrix[1][1];
+    pGamutState->DW4.C5 = pVeboxGamutParams->Matrix[1][2];
+    pGamutState->DW7.C6 = pVeboxGamutParams->Matrix[2][0];
+    pGamutState->DW6.C7 = pVeboxGamutParams->Matrix[2][1];
+    pGamutState->DW8.C8 = pVeboxGamutParams->Matrix[2][2];
+    
+    // Set all offsets to 0
+    pGamutState->DW9.OffsetInR = 0;
+    pGamutState->DW10.OffsetInG = 0;
+    pGamutState->DW11.OffsetInB = 0;
+    pGamutState->DW12.OffsetOutR = 0;
+    pGamutState->DW13.OffsetOutG = 0;
+    pGamutState->DW14.OffsetOutB = 0;
+    
+    // Populate GE_Values with identity mapping
+    PopulateGEValues_Identity(usGE_Values);
+    
+    // Copy to gamma correction structure (1024 DWords = 256 entries * 8 uint16_t / 2)
+    MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1024, usGE_Values, sizeof(uint16_t) * 8 * 256);
+    
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for setting up Gamut Expansion
+//! \details  Configures gamut expansion by setting up CSC coefficients for YUV to RGB conversion
+//!           based on the color space (BT601 or BT709). Handles both Basic and Advanced gamut
+//!           expansion modes. Copies the color correction matrix to gamut state.
+//! \param    [in,out] pIecpState
+//!           Pointer to VEBOX_IECP_STATE_CMD structure
+//! \param    [in] pVeboxGamutParams
+//!           Pointer to gamut parameters
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetGamutExpansion(
+    typename cmd_t::VEBOX_IECP_STATE_CMD* pIecpState,
+    PMHW_VEBOX_GAMUT_PARAMS pVeboxGamutParams)
+{
+    MHW_CHK_NULL_RETURN(pIecpState);
+    MHW_CHK_NULL_RETURN(pVeboxGamutParams);
+    
+    // Setup CSC coefficients based on color space (Gamut Expansion mode)
+    if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT601 ||
+        pVeboxGamutParams->ColorSpace == MHW_CSpace_xvYCC601 ||
+        pVeboxGamutParams->ColorSpace == MHW_CSpace_BT601_FullRange)
+    {
+        SetupCSCCoefficients_BT601(&pIecpState->CscState, false);
+    }
+    else if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT709 ||
+             pVeboxGamutParams->ColorSpace == MHW_CSpace_xvYCC709 ||
+             pVeboxGamutParams->ColorSpace == MHW_CSpace_BT709_FullRange)
+    {
+        SetupCSCCoefficients_BT709(&pIecpState->CscState, false);
+    }
+    else
+    {
+        MHW_ASSERTMESSAGE("Unknown primary");
+    }
+    
+    // Setup gamut state based on expansion mode - properly access from pIecpState
+    auto pGamutState = &pIecpState->GamutState;
+    MHW_CHK_NULL_RETURN(pGamutState);
+    if (pVeboxGamutParams->GExpMode == MHW_GAMUT_MODE_BASIC)
+    {
+        pGamutState->DW0.GlobalModeEnable = true;
+        pGamutState->DW1.CmW = 1023;
+    }
+    else if (pVeboxGamutParams->GExpMode == MHW_GAMUT_MODE_ADVANCED)
+    {
+        pGamutState->DW0.GlobalModeEnable = false;
+    }
+    else
+    {
+        MHW_ASSERTMESSAGE("Invalid GAMUT MODE");
+    }
+    
+    // Copy color correction matrix
+    pGamutState->DW1.C0 = pVeboxGamutParams->Matrix[0][0];
+    pGamutState->DW0.C1 = pVeboxGamutParams->Matrix[0][1];
+    pGamutState->DW3.C2 = pVeboxGamutParams->Matrix[0][2];
+    pGamutState->DW2.C3 = pVeboxGamutParams->Matrix[1][0];
+    pGamutState->DW5.C4 = pVeboxGamutParams->Matrix[1][1];
+    pGamutState->DW4.C5 = pVeboxGamutParams->Matrix[1][2];
+    pGamutState->DW7.C6 = pVeboxGamutParams->Matrix[2][0];
+    pGamutState->DW6.C7 = pVeboxGamutParams->Matrix[2][1];
+    pGamutState->DW8.C8 = pVeboxGamutParams->Matrix[2][2];
+    
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for setting up Gamma Correction
+//! \details  Configures gamma correction by setting up CSC coefficients for YUV to RGB conversion
+//!           based on the color space. For BT2020, calls BT2020YUVToRGBCallback. Sets up color
+//!           correction matrix (CCM) for BT2020->BT709/BT601 conversion if needed. Populates
+//!           GE_Values array using power function-based gamma correction or identity mapping.
+//! \param    [in,out] pIecpState
+//!           Pointer to VEBOX_IECP_STATE_CMD structure
+//! \param    [in] pVeboxGamutParams
+//!           Pointer to gamut parameters
+//! \param    [out] usGE_Values
+//!           2D array [256][8] for GE values
+//! \param    [out] pVeboxGEGammaCorrection
+//!           Pointer to gamma correction structure
+//! \param    [in] pVeboxInterface
+//!           Pointer to VEBOX interface
+//! \param    [in] pVeboxHeap
+//!           Pointer to VEBOX heap
+//! \param    [in] pVeboxIecpParams
+//!           Pointer to IECP parameters
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t, typename T>
+inline MOS_STATUS SetGammaCorrection(
+    typename cmd_t::VEBOX_IECP_STATE_CMD* pIecpState,
+    PMHW_VEBOX_GAMUT_PARAMS pVeboxGamutParams,
+    uint16_t usGE_Values[256][8],
+    void* pVeboxGEGammaCorrection,
+    T* pVeboxInterface,
+    MHW_VEBOX_HEAP* pVeboxHeap,
+    PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams)
+{
+    MHW_CHK_NULL_RETURN(pIecpState);
+    MHW_CHK_NULL_RETURN(pVeboxGamutParams);
+    MHW_CHK_NULL_RETURN(pVeboxGEGammaCorrection);
+    MHW_CHK_NULL_RETURN(pVeboxInterface);
+    
+    // Setup CSC coefficients based on color space (Color Balance mode for gamma correction)
+    if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT601 ||
+        pVeboxGamutParams->ColorSpace == MHW_CSpace_xvYCC601 ||
+        pVeboxGamutParams->ColorSpace == MHW_CSpace_BT601_FullRange)
+    {
+        SetupCSCCoefficients_BT601(&pIecpState->CscState, true);
+    }
+    else if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT709 ||
+             pVeboxGamutParams->ColorSpace == MHW_CSpace_xvYCC709 ||
+             pVeboxGamutParams->ColorSpace == MHW_CSpace_BT709_FullRange)
+    {
+        SetupCSCCoefficients_BT709(&pIecpState->CscState, true);
+    }
+    else if (pVeboxGamutParams->ColorSpace == MHW_CSpace_BT2020 ||
+             pVeboxGamutParams->ColorSpace == MHW_CSpace_BT2020_FullRange)
+    {
+        pVeboxInterface->VeboxInterface_BT2020YUVToRGB(pVeboxHeap, pVeboxIecpParams, pVeboxGamutParams);
+    }
+    else
+    {
+        MHW_ASSERTMESSAGE("Unknown primary");
+    }
+    
+    // CCM is needed for CSC (BT2020->BT709/BT601 with different gamma)
+    bool bEnableCCM = (pVeboxGamutParams->InputGammaValue != pVeboxGamutParams->OutputGammaValue);
+    
+    // Setup gamut state - properly access from pIecpState
+    auto pGamutState = &pIecpState->GamutState;
+    MHW_CHK_NULL_RETURN(pGamutState);
+    pGamutState->DW0.GlobalModeEnable = true;
+    pGamutState->DW1.CmW = 1023;
+    
+    if ((pVeboxGamutParams->ColorSpace == MHW_CSpace_BT2020) && bEnableCCM)
+    {
+        if (pVeboxGamutParams->dstColorSpace == MHW_CSpace_BT709)
+        {
+            // BT2020->BT709 CCM matrix
+            pGamutState->DW1.C0 = 108190;
+            pGamutState->DW0.C1 = MOS_BITFIELD_VALUE((uint32_t)-38288, 21);
+            pGamutState->DW3.C2 = MOS_BITFIELD_VALUE((uint32_t)-4747, 21);
+            pGamutState->DW2.C3 = MOS_BITFIELD_VALUE((uint32_t)-7967, 21);
+            pGamutState->DW5.C4 = 74174;
+            pGamutState->DW4.C5 = MOS_BITFIELD_VALUE((uint32_t)-557, 21);
+            pGamutState->DW7.C6 = MOS_BITFIELD_VALUE((uint32_t)-1198, 21);
+            pGamutState->DW6.C7 = MOS_BITFIELD_VALUE((uint32_t)-6587, 21);
+            pGamutState->DW8.C8 = 73321;
+        }
+        else
+        {
+            // BT2020->BT601 CCM matrix
+            pGamutState->DW1.C0 = 116420;
+            pGamutState->DW0.C1 = MOS_BITFIELD_VALUE((uint32_t)-45094, 21);
+            pGamutState->DW3.C2 = MOS_BITFIELD_VALUE((uint32_t)-5785, 21);
+            pGamutState->DW2.C3 = MOS_BITFIELD_VALUE((uint32_t)-10586, 21);
+            pGamutState->DW5.C4 = 77814;
+            pGamutState->DW4.C5 = MOS_BITFIELD_VALUE((uint32_t)-1705, 21);
+            pGamutState->DW7.C6 = MOS_BITFIELD_VALUE((uint32_t)-1036, 21);
+            pGamutState->DW6.C7 = MOS_BITFIELD_VALUE((uint32_t)-6284, 21);
+            pGamutState->DW8.C8 = 72864;
+        }
+    }
+    else
+    {
+        // Identity matrix
+        pGamutState->DW1.C0 = 65536;
+        pGamutState->DW0.C1 = 0;
+        pGamutState->DW3.C2 = 0;
+        pGamutState->DW2.C3 = 0;
+        pGamutState->DW5.C4 = 65536;
+        pGamutState->DW4.C5 = 0;
+        pGamutState->DW7.C6 = 0;
+        pGamutState->DW6.C7 = 0;
+        pGamutState->DW8.C8 = 65536;
+        pGamutState->DW9.OffsetInR = 0;
+        pGamutState->DW10.OffsetInG = 0;
+        pGamutState->DW11.OffsetInB = 0;
+        pGamutState->DW12.OffsetOutR = 0;
+        pGamutState->DW13.OffsetOutG = 0;
+        pGamutState->DW14.OffsetOutB = 0;
+    }
+    
+    // Map gamma values
+    double dInverseGamma = 1.0;
+    if (pVeboxGamutParams->InputGammaValue == MHW_GAMMA_1P0)
+    {
+        dInverseGamma = 1.0;
+    }
+    else if (pVeboxGamutParams->InputGammaValue == MHW_GAMMA_2P2)
+    {
+        dInverseGamma = 2.2;
+    }
+    else if (pVeboxGamutParams->InputGammaValue == MHW_GAMMA_2P6)
+    {
+        dInverseGamma = 2.6;
+    }
+    else
+    {
+        MHW_ASSERTMESSAGE("Invalid InputGammaValue");
+    }
+    
+    double dForwardGamma = 1.0;
+    if (pVeboxGamutParams->OutputGammaValue == MHW_GAMMA_1P0)
+    {
+        dForwardGamma = 1.0;
+    }
+    else if (pVeboxGamutParams->OutputGammaValue == MHW_GAMMA_2P2)
+    {
+        dForwardGamma = 2.2;
+    }
+    else if (pVeboxGamutParams->OutputGammaValue == MHW_GAMMA_2P6)
+    {
+        dForwardGamma = 2.6;
+    }
+    else
+    {
+        MHW_ASSERTMESSAGE("Invalid OutputGammaValue");
+    }
+    
+    // Populate GE_Values with gamma correction
+    bool isIdentity = (pVeboxGamutParams->InputGammaValue == MHW_GAMMA_1P0) && 
+                      (pVeboxGamutParams->OutputGammaValue == MHW_GAMMA_1P0);
+    PopulateGEValues_Gamma(usGE_Values, dInverseGamma, dForwardGamma, isIdentity);
+    
+    // Copy to gamma correction structure
+    if (isIdentity)
+    {
+        MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1024, usGE_Values, sizeof(uint16_t) * 8 * 256);
+    }
+    else
+    {
+        MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1020, usGE_Values, sizeof(uint16_t) * 8 * 255);
+    }
+    
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for setting up BT2020 CSC
+//! \details  Configures BT2020 color space conversion with global tone mapping LUTs.
+//!           If 1DLUT is active, sets up CCM from 1DLUT parameters and returns early.
+//!           Otherwise, sets up BT2020->BT709/BT601 CCM matrix, populates GE_Values
+//!           from BT2020 global LUTs, and calls BT2020YUVToRGBCallback.
+//! \param    [in,out] pIecpState
+//!           Pointer to VEBOX_IECP_STATE_CMD structure
+//! \param    [in] pVeboxIecpParams
+//!           Pointer to IECP parameters
+//! \param    [in] pVeboxGamutParams
+//!           Pointer to gamut parameters
+//! \param    [out] usGE_Values
+//!           2D array [256][8] for GE values
+//! \param    [out] pVeboxGEGammaCorrection
+//!           Pointer to gamma correction structure
+//! \param    [in] pVeboxInterface
+//!           Pointer to VEBOX interface
+//! \param    [in] pVeboxHeap
+//!           Pointer to VEBOX heap
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t, typename T>
+inline MOS_STATUS SetBT2020CSC(
+    typename cmd_t::VEBOX_IECP_STATE_CMD* pIecpState,
+    PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams,
+    PMHW_VEBOX_GAMUT_PARAMS pVeboxGamutParams,
+    uint16_t usGE_Values[256][8],
+    void* pVeboxGEGammaCorrection,
+    T* pVeboxInterface,
+    MHW_VEBOX_HEAP* pVeboxHeap)
+{
+    MHW_CHK_NULL_RETURN(pIecpState);
+    MHW_CHK_NULL_RETURN(pVeboxIecpParams);
+    MHW_CHK_NULL_RETURN(pVeboxGamutParams);
+    MHW_CHK_NULL_RETURN(pVeboxGEGammaCorrection);
+    MHW_CHK_NULL_RETURN(pVeboxInterface);
+    
+    // Check if 1DLUT is active
+    if (pVeboxIecpParams->s1DLutParams.bActive)
+    {
+        // CCM setting if 1DLUT VEBOX HDR enabled
+        auto p1DLutParams = &pVeboxIecpParams->s1DLutParams;
+        
+        pIecpState->CcmState.DW1.C0 = p1DLutParams->pCCM[0];
+        pIecpState->CcmState.DW0.C1 = MOS_BITFIELD_VALUE((uint32_t)p1DLutParams->pCCM[1], 27);
+        pIecpState->CcmState.DW3.C2 = MOS_BITFIELD_VALUE((uint32_t)p1DLutParams->pCCM[2], 27);
+        pIecpState->CcmState.DW2.C3 = MOS_BITFIELD_VALUE((uint32_t)p1DLutParams->pCCM[3], 27);
+        pIecpState->CcmState.DW5.C4 = p1DLutParams->pCCM[4];
+        pIecpState->CcmState.DW4.C5 = MOS_BITFIELD_VALUE((uint32_t)p1DLutParams->pCCM[5], 27);
+        pIecpState->CcmState.DW7.C6 = MOS_BITFIELD_VALUE((uint32_t)p1DLutParams->pCCM[6], 27);
+        pIecpState->CcmState.DW6.C7 = MOS_BITFIELD_VALUE((uint32_t)p1DLutParams->pCCM[7], 27);
+        pIecpState->CcmState.DW8.C8 = p1DLutParams->pCCM[8];
+        pIecpState->CcmState.DW9.OffsetInR = p1DLutParams->pCCM[9];
+        pIecpState->CcmState.DW10.OffsetInG = p1DLutParams->pCCM[10];
+        pIecpState->CcmState.DW11.OffsetInB = p1DLutParams->pCCM[11];
+        pIecpState->CcmState.DW12.OffsetOutR = p1DLutParams->pCCM[12];
+        pIecpState->CcmState.DW13.OffsetOutG = p1DLutParams->pCCM[13];
+        pIecpState->CcmState.DW14.OffsetOutB = p1DLutParams->pCCM[14];
+        
+        auto pGamutState = &pIecpState->GamutState;
+        pGamutState->DW0.GlobalModeEnable = false;
+        
+        // Still need to set CSC params here
+        pVeboxInterface->VeboxInterface_BT2020YUVToRGB(pVeboxHeap, pVeboxIecpParams, pVeboxGamutParams);
+        
+        return MOS_STATUS_SUCCESS;
+    }
+    
+    // Setup gamut state for BT2020 CSC
+    auto pGamutState = &pIecpState->GamutState;
+    pGamutState->DW0.GlobalModeEnable = true;
+    pGamutState->DW1.CmW = 1023;  // Colorimetric accurate image
+    
+    if (pVeboxGamutParams->dstColorSpace == MHW_CSpace_BT601)
+    {
+        // BT2020->BT601 CCM matrix
+        pGamutState->DW1.C0 = 116420;
+        pGamutState->DW0.C1 = MOS_BITFIELD_VALUE((uint32_t)-45094, 21);
+        pGamutState->DW3.C2 = MOS_BITFIELD_VALUE((uint32_t)-5785, 21);
+        pGamutState->DW2.C3 = MOS_BITFIELD_VALUE((uint32_t)-10586, 21);
+        pGamutState->DW5.C4 = 77814;
+        pGamutState->DW4.C5 = MOS_BITFIELD_VALUE((uint32_t)-1705, 21);
+        pGamutState->DW7.C6 = MOS_BITFIELD_VALUE((uint32_t)-1036, 21);
+        pGamutState->DW6.C7 = MOS_BITFIELD_VALUE((uint32_t)-6284, 21);
+        pGamutState->DW8.C8 = 72864;
+    }
+    else  // BT709, sRGB has same chromaticity CIE 1931
+    {
+        // BT2020->BT709 CCM matrix
+        pGamutState->DW1.C0 = 108190;
+        pGamutState->DW0.C1 = MOS_BITFIELD_VALUE((uint32_t)-38288, 21);
+        pGamutState->DW3.C2 = MOS_BITFIELD_VALUE((uint32_t)-4747, 21);
+        pGamutState->DW2.C3 = MOS_BITFIELD_VALUE((uint32_t)-7967, 21);
+        pGamutState->DW5.C4 = 74174;
+        pGamutState->DW4.C5 = MOS_BITFIELD_VALUE((uint32_t)-557, 21);
+        pGamutState->DW7.C6 = MOS_BITFIELD_VALUE((uint32_t)-1198, 21);
+        pGamutState->DW6.C7 = MOS_BITFIELD_VALUE((uint32_t)-6587, 21);
+        pGamutState->DW8.C8 = 73321;
+    }
+    
+    // Populate GE_Values from BT2020 global LUTs
+    PopulateGEValues_BT2020(usGE_Values);
+    
+    // Copy to gamma correction structure (1024 DWords)
+    MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1024, usGE_Values, sizeof(uint16_t) * 8 * 256);
+    
+    // Back end CSC setting, need to convert BT2020 YUV input to RGB before GE
+    pVeboxInterface->VeboxInterface_BT2020YUVToRGB(pVeboxHeap, pVeboxIecpParams, pVeboxGamutParams);
+    
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for setting up 1DLUT Processing
+//! \details  Configures 1DLUT processing with AYUV channel processing for platforms that support it.
+//!           For platforms that don't support full processing, only
+//!           logs a message. For other platforms, sets up gamut state and populates GE_Values
+//!           from 1DLUT data with identity matrix.
+//! \param    [in,out] pGamutState
+//!           Pointer to VEBOX_GAMUT_CONTROL_STATE_CMD structure
+//! \param    [in] pVeboxIecpParams
+//!           Pointer to IECP parameters
+//! \param    [out] usGE_Values
+//!           2D array [256][8] for GE values
+//! \param    [out] pVeboxGEGammaCorrection
+//!           Pointer to gamma correction structure
+//! \param    [in] enableFullProcessing
+//!           Flag to enable full AYUV processing
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS Set1DLUTProcessing(
+    typename cmd_t::VEBOX_GAMUT_CONTROL_STATE_CMD* pGamutState,
+    PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams,
+    uint16_t usGE_Values[256][8],
+    void* pVeboxGEGammaCorrection,
+    bool enableFullProcessing)
+{
+    MHW_CHK_NULL_RETURN(pVeboxIecpParams);
+    
+    if (!enableFullProcessing)
+    {
+        // Platforms that don't support full processing only log for 1DLUT
+        MHW_NORMALMESSAGE("Use VEBOX_SHAPER_1K_LOOKUP_STATE for 1DLUT (4x 1DLUT but Gamut State only has 1DLUT)!");
+        return MOS_STATUS_SUCCESS;
+    }
+    
+    // Full AYUV processing for other platforms
+    MHW_CHK_NULL_RETURN(pGamutState);
+    MHW_CHK_NULL_RETURN(pVeboxIecpParams);
+    MHW_CHK_NULL_RETURN(pVeboxGEGammaCorrection);
+    
+    // Gamut Expansion setting
+    pGamutState->DW0.GlobalModeEnable = true;
+    pGamutState->DW1.CmW = 1023;
+    
+    // Populate GE_Values from 1DLUT AYUV data
+    MHW_CHK_STATUS_RETURN(PopulateGEValues_1DLUT_AYUV(
+        usGE_Values,
+        (uint16_t*)pVeboxIecpParams->s1DLutParams.p1DLUT,
+        pVeboxIecpParams->s1DLutParams.LUTSize));
+    
+    // Set identity matrix
+    pGamutState->DW1.C0 = 65536;
+    pGamutState->DW0.C1 = 0;
+    pGamutState->DW3.C2 = 0;
+    pGamutState->DW2.C3 = 0;
+    pGamutState->DW5.C4 = 65536;
+    pGamutState->DW4.C5 = 0;
+    pGamutState->DW7.C6 = 0;
+    pGamutState->DW6.C7 = 0;
+    pGamutState->DW8.C8 = 65536;
+    pGamutState->DW9.OffsetInR = 0;
+    pGamutState->DW10.OffsetInG = 0;
+    pGamutState->DW11.OffsetInB = 0;
+    pGamutState->DW12.OffsetOutR = 0;
+    pGamutState->DW13.OffsetOutG = 0;
+    pGamutState->DW14.OffsetOutB = 0;
+    
+    // Copy to gamma correction structure (1024 DWords)
+    MOS_SecureMemcpy(pVeboxGEGammaCorrection, sizeof(uint32_t) * 1024, usGE_Values, sizeof(uint16_t) * 8 * 256);
+    
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for programming CCM as identity matrix
+//! \details  Sets the Color Correction Matrix to identity (diagonal 0x400000, off-diagonal 0)
+//!           with all offsets zeroed. Used when no color correction is needed.
+//! \param    [in,out] pIecpState
+//!           Pointer to IECP state structure containing CcmState
+//! \param    [in] ccmEnable
+//!           Value to set for ColorCorrectionMatrixEnable flag
+//! \return   void
+//!
+template <typename IecpState_t>
+inline void SetCcmIdentityMatrix(IecpState_t* pIecpState, bool ccmEnable)
+{
+    pIecpState->CcmState.DW0.ColorCorrectionMatrixEnable = ccmEnable;
+    pIecpState->CcmState.DW1.C0                          = 0x400000;
+    pIecpState->CcmState.DW0.C1                          = 0;
+    pIecpState->CcmState.DW3.C2                          = 0;
+    pIecpState->CcmState.DW2.C3                          = 0;
+    pIecpState->CcmState.DW5.C4                          = 0x400000;
+    pIecpState->CcmState.DW4.C5                          = 0;
+    pIecpState->CcmState.DW7.C6                          = 0;
+    pIecpState->CcmState.DW6.C7                          = 0;
+    pIecpState->CcmState.DW8.C8                          = 0x400000;
+    pIecpState->CcmState.DW9.OffsetInR                   = 0;
+    pIecpState->CcmState.DW10.OffsetInG                  = 0;
+    pIecpState->CcmState.DW11.OffsetInB                  = 0;
+    pIecpState->CcmState.DW12.OffsetOutR                 = 0;
+    pIecpState->CcmState.DW13.OffsetOutG                 = 0;
+    pIecpState->CcmState.DW14.OffsetOutB                 = 0;
+}
+
+//!
+//! \brief    Helper function for programming CCM based on color space
+//! \details  Programs the Color Correction Matrix coefficients for BT709 or BT2020
+//!           color spaces. For other color spaces, optionally programs identity matrix
+//!           and always asserts with an error message.
+//! \param    [in,out] pIecpState
+//!           Pointer to IECP state structure containing CcmState
+//! \param    [in] colorSpace
+//!           Input color space (MHW_CSpace_BT709, MHW_CSpace_BT709_FullRange,
+//!           MHW_CSpace_BT2020, MHW_CSpace_BT2020_FullRange, or other)
+//! \param    [in] programFallbackIdentity
+//!           If true, programs identity matrix for unsupported color spaces before asserting.
+//!           If false, only asserts without programming
+//! \return   void
+//!
+template <typename IecpState_t>
+inline void SetCcmColorSpace(IecpState_t* pIecpState, MHW_CSPACE colorSpace, bool programFallbackIdentity = true)
+{
+    // Always disable CCM enable for color space programming
+    pIecpState->CcmState.DW0.ColorCorrectionMatrixEnable = false;
+
+    if ((colorSpace == MHW_CSpace_BT709) || (colorSpace == MHW_CSpace_BT709_FullRange))
+    {
+        // BT709 CCM coefficients
+        pIecpState->CcmState.DW1.C0          = 0x00009937;
+        pIecpState->CcmState.DW0.C1          = 0x000115f6;
+        pIecpState->CcmState.DW3.C2          = 0;
+        pIecpState->CcmState.DW2.C3          = 0x00009937;
+        pIecpState->CcmState.DW5.C4          = 0x07ffe3f1;
+        pIecpState->CcmState.DW4.C5          = 0x07ffb9e0;
+        pIecpState->CcmState.DW7.C6          = 0x00009937;
+        pIecpState->CcmState.DW6.C7          = 0;
+        pIecpState->CcmState.DW8.C8          = 0x0000ebe6;
+        // Limited range BT709 has non-zero input offsets; full range has zero offsets
+        pIecpState->CcmState.DW9.OffsetInR   = (colorSpace == MHW_CSpace_BT709) ? 0xf8000000 : 0;
+        pIecpState->CcmState.DW10.OffsetInG  = (colorSpace == MHW_CSpace_BT709) ? 0xc0000000 : 0;
+        pIecpState->CcmState.DW11.OffsetInB  = (colorSpace == MHW_CSpace_BT709) ? 0xc0000000 : 0;
+        pIecpState->CcmState.DW12.OffsetOutR = 0;
+        pIecpState->CcmState.DW13.OffsetOutG = 0;
+        pIecpState->CcmState.DW14.OffsetOutB = 0;
+    }
+    else if ((colorSpace == MHW_CSpace_BT2020) || (colorSpace == MHW_CSpace_BT2020_FullRange))
+    {
+        // BT2020 CCM coefficients
+        pIecpState->CcmState.DW1.C0          = 0x00009937;
+        pIecpState->CcmState.DW0.C1          = 0x000119d4;
+        pIecpState->CcmState.DW3.C2          = 0;
+        pIecpState->CcmState.DW2.C3          = 0x00009937;
+        pIecpState->CcmState.DW5.C4          = 0x07ffe75a;
+        pIecpState->CcmState.DW4.C5          = 0x07ffaa6a;
+        pIecpState->CcmState.DW7.C6          = 0x00009937;
+        pIecpState->CcmState.DW6.C7          = 0;
+        pIecpState->CcmState.DW8.C8          = 0x0000dce4;
+        // Limited range BT2020 has non-zero input offsets; full range has zero offsets
+        pIecpState->CcmState.DW9.OffsetInR   = (colorSpace == MHW_CSpace_BT2020) ? 0xf8000000 : 0;
+        pIecpState->CcmState.DW10.OffsetInG  = (colorSpace == MHW_CSpace_BT2020) ? 0xc0000000 : 0;
+        pIecpState->CcmState.DW11.OffsetInB  = (colorSpace == MHW_CSpace_BT2020) ? 0xc0000000 : 0;
+        pIecpState->CcmState.DW12.OffsetOutR = 0;
+        pIecpState->CcmState.DW13.OffsetOutG = 0;
+        pIecpState->CcmState.DW14.OffsetOutB = 0;
+    }
+    else
+    {
+        // Unsupported color space: optionally program identity matrix, then assert
+        if (programFallbackIdentity)
+        {
+            SetCcmIdentityMatrix(pIecpState, false);
+        }
+        MHW_ASSERTMESSAGE("Unsupported Input Color Space!");
+    }
+}
+
+//!
+//! \brief    Helper function for programming identity forward gamma LUT
+//! \details  Programs the forward gamma LUT with identity mapping (256*i for each entry).
+//!           Handles two special-entry modes: dual (entries 254 and 255) or single (entry 255 only).
+//! \param    [in,out] pForwardGamma
+//!           Pointer to array of forward gamma correction state entries
+//! \param    [in] loopBound
+//!           Number of entries to fill with identity (254 for dual-special-entry mode,
+//!           255 for single-special-entry mode)
+//! \param    [in] dualSpecialEntries
+//!           If true, entries 254 and 255 are both special.
+//!           If false, only entry 255 is special.
+//! \return   void
+//!
+template <typename FwdGamma_t>
+inline void SetForwardGammaIdentity(FwdGamma_t* pForwardGamma, uint32_t loopBound, bool dualSpecialEntries)
+{
+    // Fill identity entries from 0 to loopBound (exclusive)
+    for (uint32_t i = 0; i < loopBound; i++)
+    {
+        pForwardGamma[i].DW0.PointValueForForwardGammaLut        = 256 * i;
+        pForwardGamma[i].DW1.ForwardRChannelGammaCorrectionValue = 256 * i;
+        pForwardGamma[i].DW2.ForwardGChannelGammaCorrectionValue = 256 * i;
+        pForwardGamma[i].DW3.ForwardBChannelGammaCorrectionValue = 256 * i;
+    }
+
+    if (dualSpecialEntries)
+    {
+        // Dual special entries: entry 254 is all 0xffff, entry 255 point is 0xffffffff
+        pForwardGamma[254].DW0.PointValueForForwardGammaLut        = 0xffff;
+        pForwardGamma[254].DW1.ForwardRChannelGammaCorrectionValue = 0xffff;
+        pForwardGamma[254].DW2.ForwardGChannelGammaCorrectionValue = 0xffff;
+        pForwardGamma[254].DW3.ForwardBChannelGammaCorrectionValue = 0xffff;
+
+        pForwardGamma[255].DW0.PointValueForForwardGammaLut        = 0xffffffff;
+    }
+    else
+    {
+        // Single special entry: entry 255 point is 0xffff
+        pForwardGamma[255].DW0.PointValueForForwardGammaLut        = 0xffff;
+    }
+
+    // Entry 255 channel values are always 0xffff
+    pForwardGamma[255].DW1.ForwardRChannelGammaCorrectionValue = 0xffff;
+    pForwardGamma[255].DW2.ForwardGChannelGammaCorrectionValue = 0xffff;
+    pForwardGamma[255].DW3.ForwardBChannelGammaCorrectionValue = 0xffff;
+}
+
+//!
+//! \brief    Helper function for programming inverse gamma from API-provided 1D LUT
+//! \details  Programs the inverse gamma LUT entries from the API-provided 1D LUT data
+//!           for the active range, and zeros out the remaining entries up to fullSize.
+//! \param    [in,out] pInverseGamma
+//!           Pointer to array of inverse gamma correction state entries
+//! \param    [in] p1DLut
+//!           Pointer to 1D LUT data (4 uint16_t values per entry: index, R, G, B)
+//! \param    [in] lutSize
+//!           Number of active LUT entries to program from p1DLut
+//! \param    [in] fullSize
+//!           Total number of inverse gamma entries in hardware (4096 for older platforms,
+//!           1024 for newer platforms)
+//! \return   void
+//!
+template <typename InvGamma_t>
+inline void SetInverseGammaFromLut(InvGamma_t* pInverseGamma, uint16_t* p1DLut, uint32_t lutSize, uint32_t fullSize)
+{
+    // Program active LUT entries from API-provided data
+    for (uint32_t i = 0; i < lutSize; i++)
+    {
+        pInverseGamma[i].DW0.Value                               = 0;
+        pInverseGamma[i].DW1.InverseRChannelGammaCorrectionValue = (uint32_t)(p1DLut[4 * i + 1]);  // 32-bit precision
+        pInverseGamma[i].DW2.InverseGChannelGammaCorrectionValue = (uint32_t)(p1DLut[4 * i + 2]);  // 32-bit precision
+        pInverseGamma[i].DW3.InverseBChannelGammaCorrectionValue = (uint32_t)(p1DLut[4 * i + 3]);  // 32-bit precision
+    }
+
+    // Zero out remaining entries beyond the active LUT range
+    for (uint32_t i = lutSize; i < fullSize; i++)
+    {
+        pInverseGamma[i].DW0.Value                               = 0;
+        pInverseGamma[i].DW1.InverseRChannelGammaCorrectionValue = 0;
+        pInverseGamma[i].DW2.InverseGChannelGammaCorrectionValue = 0;
+        pInverseGamma[i].DW3.InverseBChannelGammaCorrectionValue = 0;
+    }
+}
+
+//!
+//! \brief    Helper function for programming identity inverse gamma LUT
+//! \details  Programs the inverse gamma LUT with identity mapping using linear interpolation
+//!           from 0 to maxValLutOut. The last entry is always set to maxValLutOut exactly.
+//! \param    [in,out] pInverseGamma
+//!           Pointer to array of inverse gamma correction state entries
+//! \param    [in] nLutInBitDepth
+//!           Bit depth of the LUT input (e.g., 12 for 4096-entry LUT, 10 for 1024-entry LUT)
+//! \param    [in] totalEntries
+//!           Total number of entries to program (e.g., 4096 or 1024)
+//! \return   void
+//!
+template <typename InvGamma_t>
+inline void SetInverseGammaIdentity(InvGamma_t* pInverseGamma, uint32_t nLutInBitDepth, uint32_t totalEntries)
+{
+    uint64_t maxValLutIn  = (((uint64_t)1) << nLutInBitDepth) - 1;
+    uint64_t maxValLutOut = (((uint64_t)1) << 32) - 1;
+    uint32_t lastEntry    = totalEntries - 1;
+
+    for (uint32_t i = 0; i < totalEntries; i++)
+    {
+        float    x               = (float)i / (float)maxValLutIn;
+        uint32_t nCorrectedValue = (i < lastEntry) ? (uint32_t)(x * (float)maxValLutOut + 0.5f) : (uint32_t)maxValLutOut;
+
+        pInverseGamma[i].DW0.Value                               = 0;
+        pInverseGamma[i].DW1.InverseRChannelGammaCorrectionValue = nCorrectedValue;
+        pInverseGamma[i].DW2.InverseGChannelGammaCorrectionValue = nCorrectedValue;
+        pInverseGamma[i].DW3.InverseBChannelGammaCorrectionValue = nCorrectedValue;
+    }
+}
+
+//!
+//! \brief    Helper function for VEBOX input format determination
+//! \details  Extracts input format determination logic shared across all platforms.
+//!           This helper function encapsulates the primary format switch (handling
+//!           25+ surface formats including YUV, RGB, Bayer patterns) for VeboxInputFormat.
+//!           Each platform's VeboxInputFormat can call this helper and only handle
+//!           platform-specific differences.
+//! \param    [in] pCurrSurf
+//!           Pointer to current surface parameters containing format information
+//! \param    [out] dwFormat
+//!           Pointer to format value to be set
+//! \param    [in] VeboxSurfaceState
+//!           Reference to VEBOX_SURFACE_STATE command structure (used for format constants)
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename SurfaceStateType>
+inline MOS_STATUS VeboxInputFormat(
+    PMHW_VEBOX_SURFACE_PARAMS pCurrSurf,
+    uint32_t                  *dwFormat,
+    SurfaceStateType          &VeboxSurfaceState)
+{
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    switch (pCurrSurf->Format)
+    {
+    case Format_NV12:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PLANAR4208;
+        break;
+
+    case Format_YUYV:
+    case Format_YUY2:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_YCRCBNORMAL;
+        break;
+
+    case Format_UYVY:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_YCRCBSWAPY;
+        break;
+
+    case Format_AYUV:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PACKED444A8;
+        break;
+
+    case Format_Y416:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PACKED44416;
+        break;
+
+    case Format_Y410:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PACKED44410;
+        break;
+
+    case Format_YVYU:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_YCRCBSWAPUV;
+        break;
+
+    case Format_VYUY:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_YCRCBSWAPUVY;
+        break;
+
+    case Format_A8B8G8R8:
+    case Format_X8B8G8R8:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_R8G8B8A8UNORMR8G8B8A8UNORMSRGB;
+        break;
+
+    case Format_A16B16G16R16:
+    case Format_A16R16G16B16:
+    case Format_A16B16G16R16F:
+    case Format_A16R16G16B16F:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_R16G16B16A16;
+        break;
+
+    case Format_L8:
+    case Format_P8:
+    case Format_Y8:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_Y8UNORM;
+        break;
+
+    case Format_IRW0:
+    case Format_IRW1:
+    case Format_IRW2:
+    case Format_IRW3:
+    case Format_IRW4:
+    case Format_IRW5:
+    case Format_IRW6:
+    case Format_IRW7:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_BAYERPATTERN;
+        break;
+
+    case Format_P010:
+    case Format_P016:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PLANAR42016;
+        break;
+
+    case Format_A8R8G8B8:
+    case Format_X8R8G8B8:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_R8G8B8A8UNORMR8G8B8A8UNORMSRGB;
+        break;
+
+    case Format_R10G10B10A2:
+    case Format_B10G10R10A2:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_R10G10B10A2UNORMR10G10B10A2UNORMSRGB;
+        break;
+
+    case Format_Y216:
+    case Format_Y210:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PACKED42216;
+        break;
+
+    case Format_P216:
+    case Format_P210:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_PLANAR42216;
+        break;
+
+    case Format_Y16S:
+    case Format_Y16U:
+        *dwFormat = VeboxSurfaceState.SURFACE_FORMAT_Y16UNORM;
+        break;
+
+    default:
+        MHW_ASSERTMESSAGE("Unsupported format.");
+        break;
+    }
+
+    return eStatus;
+}
+
+//!
+//! \brief    Helper function for VEB_DI_IECP surface resource binding
+//! \details  Handles all 11 surface resource binding blocks (DW2 through DW22)
+//!           for the VEB_DI_IECP command. This is the common logic shared across
+//!           all platforms. Platform-specific MMC field assignments (e.g.,
+//!           MemoryCompressionEnable, CompressionType) should be done before
+//!           calling this helper.
+//! \param    [in,out] cmd
+//!           Reference to VEB_DI_IECP command structure
+//! \param    [in] params
+//!           Reference to VEB_DI_IECP parameters
+//! \param    [in] pOsInterface
+//!           Pointer to OS interface
+//! \param    [in] pCmdBuffer
+//!           Pointer to command buffer
+//! \param    [in] AddResourceToCmd
+//!           Function pointer to AddResourceToCmd
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t, typename ParamsT>
+inline MOS_STATUS VebDiIecpSetResources(
+    typename cmd_t::VEB_DI_IECP_CMD &cmd,
+    const ParamsT                   &params,
+    PMOS_INTERFACE                  pOsInterface,
+    PMOS_COMMAND_BUFFER             pCmdBuffer,
+    MOS_STATUS (*AddResourceToCmd)(PMOS_INTERFACE, PMOS_COMMAND_BUFFER, PMHW_RESOURCE_PARAMS))
+{
+    MHW_RESOURCE_PARAMS resourceParams = {};
+
+    // Block 1 — pOsResCurrInput (DW2)
+    if (params.pOsResCurrInput)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResCurrInput;
+        resourceParams.dwOffset        = params.dwCurrInputSurfOffset + params.CurrInputSurfCtrl.Value;
+        resourceParams.pdwCmd          = &(cmd.DW2.Value);
+        resourceParams.dwLocationInCmd = 2;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    // Block 2 — pOsResPrevInput (DW4)
+    if (params.pOsResPrevInput)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResPrevInput;
+        resourceParams.dwOffset        = params.PrevInputSurfCtrl.Value + params.dwPrevInputSurfOffset;
+        resourceParams.pdwCmd          = &(cmd.DW4.Value);
+        resourceParams.dwLocationInCmd = 4;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    // Block 3 — pOsResStmmInput (DW6)
+    if (params.pOsResStmmInput)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResStmmInput;
+        resourceParams.dwOffset        = params.StmmInputSurfCtrl.Value;
+        resourceParams.pdwCmd          = &(cmd.DW6.Value);
+        resourceParams.dwLocationInCmd = 6;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    // Block 4 — pOsResStmmOutput (DW8)
+    if (params.pOsResStmmOutput)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResStmmOutput;
+        resourceParams.dwOffset        = params.StmmOutputSurfCtrl.Value;
+        resourceParams.pdwCmd          = &(cmd.DW8.Value);
+        resourceParams.dwLocationInCmd = 8;
+        resourceParams.bIsWritable     = true;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    // Block 5 — pOsResDenoisedCurrOutput (DW10)
+    if (params.pOsResDenoisedCurrOutput)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResDenoisedCurrOutput;
+        resourceParams.dwOffset        = params.DenoisedCurrOutputSurfCtrl.Value;
+        resourceParams.pdwCmd          = &(cmd.DW10.Value);
+        resourceParams.dwLocationInCmd = 10;
+        resourceParams.bIsWritable     = true;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    // Block 6 — pOsResCurrOutput (DW12)
+    if (params.pOsResCurrOutput)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResCurrOutput;
+        resourceParams.dwOffset        = params.CurrOutputSurfCtrl.Value + params.dwCurrOutputSurfOffset;
+        resourceParams.pdwCmd          = &(cmd.DW12.Value);
+        resourceParams.dwLocationInCmd = 12;
+        resourceParams.bIsWritable     = true;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    // Block 7 — pOsResPrevOutput (DW14)
+    if (params.pOsResPrevOutput)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResPrevOutput;
+        resourceParams.dwOffset        = params.PrevOutputSurfCtrl.Value;
+        resourceParams.pdwCmd          = &(cmd.DW14.Value);
+        resourceParams.dwLocationInCmd = 14;
+        resourceParams.bIsWritable     = true;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    // Block 8 — pOsResStatisticsOutput (DW16)
+    if (params.pOsResStatisticsOutput)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResStatisticsOutput;
+        resourceParams.dwOffset        = params.StatisticsOutputSurfCtrl.Value;
+        resourceParams.pdwCmd          = &(cmd.DW16.Value);
+        resourceParams.dwLocationInCmd = 16;
+        resourceParams.bIsWritable     = true;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    // Block 9 — pOsResAlphaOrVignette (DW18)
+    if (params.pOsResAlphaOrVignette)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResAlphaOrVignette;
+        resourceParams.dwOffset        = params.AlphaOrVignetteSurfCtrl.Value;
+        resourceParams.pdwCmd          = &(cmd.DW18.Value);
+        resourceParams.dwLocationInCmd = 18;
+        resourceParams.bIsWritable     = true;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    // Block 10 — pOsResLaceOrAceOrRgbHistogram (DW20)
+    if (params.pOsResLaceOrAceOrRgbHistogram)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResLaceOrAceOrRgbHistogram;
+        resourceParams.dwOffset        = params.LaceOrAceOrRgbHistogramSurfCtrl.Value;
+        resourceParams.pdwCmd          = &(cmd.DW20.Value);
+        resourceParams.dwLocationInCmd = 20;
+        resourceParams.bIsWritable     = true;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    // Block 11 — pOsResSkinScoreSurface (DW22)
+    if (params.pOsResSkinScoreSurface)
+    {
+        MOS_ZeroMemory(&resourceParams, sizeof(resourceParams));
+        resourceParams.presResource    = params.pOsResSkinScoreSurface;
+        resourceParams.dwOffset        = params.SkinScoreSurfaceSurfCtrl.Value;
+        resourceParams.pdwCmd          = &(cmd.DW22.Value);
+        resourceParams.dwLocationInCmd = 22;
+        resourceParams.bIsWritable     = true;
+        resourceParams.HwCommandType   = MOS_VEBOX_DI_IECP;
+
+        MHW_CHK_STATUS_RETURN(AddResourceToCmd(
+            pOsInterface,
+            pCmdBuffer,
+            &resourceParams));
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for VEB_DI_IECP scalability X coordinate calculation
+//! \details  Handles the vebox scalability X coordinate calculation block for the
+//!           VEB_DI_IECP command. This is the common logic shared across all platforms.
+//!           When scalability is disabled, simply sets EndingX and StartingX from params.
+//!           When scalability is enabled, computes the medium X split point and assigns
+//!           per-vebox start/end coordinates, with optional SFC overfetch adjustments.
+//! \param    [in,out] cmd
+//!           Reference to VEB_DI_IECP command structure
+//! \param    [in] params
+//!           Reference to VEB_DI_IECP parameters
+//! \param    [in] bVeboxScalabilityEnabled
+//!           Whether VEBOX scalability is enabled
+//! \param    [in] numVebox
+//!           Number of VEBOX
+//! \param    [in] indexofVebox
+//!           Index of current VEBOX
+//! \param    [in] bUsingSfc
+//!           Whether SFC is used
+//! \return   void
+//!
+template <typename cmd_t, typename ParamsT>
+inline void VebDiIecpSetScalability(
+    typename cmd_t::VEB_DI_IECP_CMD &cmd,
+    const ParamsT                   &params,
+    bool                             bVeboxScalabilityEnabled,
+    uint32_t                         numVebox,
+    uint32_t                         indexofVebox,
+    bool                             bUsingSfc)
+{
+    if (bVeboxScalabilityEnabled == false)
+    {
+        cmd.DW1.EndingX   = params.dwEndingX;
+        cmd.DW1.StartingX = params.dwStartingX;
+    }
+    else
+    {
+        uint32_t iMediumX;
+        MHW_ASSERT(params.dwEndingX >= numVebox * 64 - 1);
+
+        iMediumX = MOS_ALIGN_FLOOR(((params.dwEndingX + 1) / numVebox), 64);
+        iMediumX = MOS_CLAMP_MIN_MAX(iMediumX, 64, (params.dwEndingX - 63));
+
+        if (numVebox > 1)
+        {
+            if (indexofVebox == MHW_VEBOX_STARTING_INDEX)
+            {
+                cmd.DW1.EndingX   = iMediumX - 1;
+                cmd.DW1.StartingX = params.dwStartingX;
+            }
+            else if (indexofVebox == numVebox - 1)
+            {
+                cmd.DW1.EndingX   = params.dwEndingX;
+                cmd.DW1.StartingX = indexofVebox * iMediumX;
+            }
+            else if (indexofVebox < numVebox - 1)
+            {
+                cmd.DW1.EndingX   = (indexofVebox + 1) * iMediumX - 1;
+                cmd.DW1.StartingX = indexofVebox * iMediumX;
+            }
+            else
+            {
+                MHW_ASSERTMESSAGE("Unsupported Vebox Scalability Settings");
+            }
+        }
+
+        if (bUsingSfc)
+        {
+            cmd.DW1.SplitWorkloadEnable = true;
+
+            if ((params.dwEndingX + 1) != numVebox * iMediumX)
+            {
+                if (indexofVebox < numVebox - 1)
+                {
+                    cmd.DW1.EndingX += 64;
+                }
+
+                if (indexofVebox > MHW_VEBOX_STARTING_INDEX)
+                {
+                    cmd.DW1.StartingX += 64;
+                }
+            }
+        }
+        else
+        {
+            cmd.DW1.SplitWorkloadEnable = false;
+        }
+
+        cmd.DW24.OutputEndingX   = cmd.DW1.EndingX;
+        cmd.DW24.OutputStartingX = cmd.DW1.StartingX;
+
+        if (bUsingSfc)
+        {
+            // Use left overfetch for sfc split
+            if (cmd.DW1.StartingX >= 64)
+            {
+                cmd.DW1.StartingX -= 64;
+            }
+        }
+
+        MT_LOG3(MT_VP_MHW_VE_SCALABILITY, MT_NORMAL, MT_VP_MHW_VE_SCALABILITY_EN, bVeboxScalabilityEnabled,
+            MT_VP_MHW_VE_SCALABILITY_USE_SFC, bUsingSfc, MT_VP_MHW_VE_SCALABILITY_IDX, indexofVebox);
+
+        MHW_NORMALMESSAGE("VEBOX%d STATE: startx %d endx %d", indexofVebox, cmd.DW1.StartingX, cmd.DW1.EndingX);
+        MHW_NORMALMESSAGE("VEBOX%d STATE: output startx %d endx %d", indexofVebox, cmd.DW24.OutputStartingX, cmd.DW24.OutputEndingX);
+    }
+}
+
+//!
+//! \brief    Common helper for VEBOX IECP state field initialization
+//! \details  Resets all fields to HW defaults by default-constructing a local
+//!           VEBOX_IECP_STATE_CMD and then assigns the common field values that
+//!           are identical across all supported platforms. This function is
+//!           intended to be called from each platform's IecpStateInitialization
+//!           member function after the default-construct/assign step.
+//! \param    [in,out] pVeboxIecpState
+//!           Pointer to VEBOX_IECP_STATE_CMD to initialize
+//! \return   void
+//!
+template <typename cmd_t>
+inline void IecpStateInitialization(typename cmd_t::VEBOX_IECP_STATE_CMD *pVeboxIecpState)
+{
+    // Reset all fields to HW defaults via default construction
+    typename cmd_t::VEBOX_IECP_STATE_CMD IecpState;
+    *pVeboxIecpState = IecpState;
+
+    // Re-set the common values identical across all platforms
+    pVeboxIecpState->StdSteState.DW5.InvMarginVyl       = 3300;
+    pVeboxIecpState->StdSteState.DW5.InvSkinTypesMargin = 1638;
+    pVeboxIecpState->StdSteState.DW12.B3U               = 140;
+    pVeboxIecpState->StdSteState.DW27.Hues0Dark         = 256;
+    pVeboxIecpState->StdSteState.DW27.Hues1Dark         = 0;
+
+    pVeboxIecpState->AceState.DW0.LaceHistogramSize     = 1;
+
+    pVeboxIecpState->TccState.DW0.Satfactor1            = 160;
+    pVeboxIecpState->TccState.DW0.Satfactor2            = 160;
+    pVeboxIecpState->TccState.DW0.Satfactor3            = 160;
+    pVeboxIecpState->TccState.DW1.Satfactor4            = 160;
+    pVeboxIecpState->TccState.DW1.Satfactor5            = 160;
+    pVeboxIecpState->TccState.DW1.Satfactor6            = 160;
+
+    pVeboxIecpState->GamutState.DW2.CmS                 = 640;
+    pVeboxIecpState->GamutState.DW3.AG                  = 26;
+    pVeboxIecpState->GamutState.DW4.AB                  = 26;
+    pVeboxIecpState->GamutState.DW5.RS                  = 768;
+    pVeboxIecpState->GamutState.DW6.CmI                 = 192;
+    pVeboxIecpState->GamutState.DW7.RI                  = 128;
+}
+
+//!
+//! \brief    Common helper for SetVeboxIecpState shared control flow
+//! \details  Encapsulates the shared control flow of SetVeboxIecpState used
+//!           across all 6 platform-specific VEBOX implementations. Two
+//!           compile-time bool template parameters handle the two behavioral
+//!           differences across platforms:
+//!           - EnableLACEArg: if true, passes bEnableLACE from params to
+//!             SetVeboxIecpStateACELACE; if false, passes hardcoded false.
+//!           - HasFeCSCBlock: if true, includes the HDR Front End CSC block
+//!             that checks bFeCSCEnable.
+//! \param    [in] pImpl
+//!           Pointer to the platform-specific implementation object
+//! \param    [in] pVeboxHeap
+//!           Pointer to VEBOX heap
+//! \param    [in] pVeboxIecpParams
+//!           Pointer to VEBOX IECP parameters
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t, typename ImplType, bool EnableLACEArg, bool HasFeCSCBlock>
+inline MOS_STATUS SetVeboxIecpState(
+    ImplType               *pImpl,
+    MHW_VEBOX_HEAP         *pVeboxHeap,
+    PMHW_VEBOX_IECP_PARAMS  pVeboxIecpParams)
+{
+    bool                                   bEnableFECSC    = false;
+    PMHW_FORWARD_GAMMA_SEG                 pFwdGammaSeg    = nullptr;
+    uint32_t                               uiOffset        = 0;
+    MOS_STATUS                             eStatus         = MOS_STATUS_SUCCESS;
+    typename cmd_t::VEBOX_IECP_STATE_CMD  *pVeboxIecpState = nullptr;
+
+    MHW_CHK_NULL_RETURN(pVeboxIecpParams);
+    MHW_CHK_NULL_RETURN(pVeboxHeap);
+
+    uiOffset        = pVeboxHeap->uiCurState * pVeboxHeap->uiInstanceSize;
+    pVeboxIecpState = (typename cmd_t::VEBOX_IECP_STATE_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
+                                                                pVeboxHeap->uiIecpStateOffset +
+                                                                uiOffset);
+
+    MHW_CHK_NULL_RETURN(pVeboxIecpState);
+
+    // FDFB early-return block
+    if (pVeboxIecpParams->iecpstateforFDFB)
+    {
+        pImpl->IecpStateInitializationforFDFB(pVeboxIecpState);
+        return MOS_STATUS_SUCCESS;
+    }
+    else
+    {
+        pImpl->IecpStateInitialization(pVeboxIecpState);
+    }
+
+    // ColorPipe block: STD/E and TCC
+    if (pVeboxIecpParams->ColorPipeParams.bActive)
+    {
+        // Enable STD/E (Skin Tone Detection/Enhancement)
+        pImpl->SetVeboxIecpStateSTE(
+            &pVeboxIecpState->StdSteState,
+            &pVeboxIecpParams->ColorPipeParams);
+
+        // Enable TCC (Total Color Control)
+        if (pVeboxIecpParams->ColorPipeParams.bEnableTCC)
+        {
+            pImpl->SetVeboxIecpStateTCC(
+                &pVeboxIecpState->TccState,
+                &pVeboxIecpParams->ColorPipeParams);
+        }
+    }
+
+    // ACE/LACE block: Enable ACE (Automatic Contrast Enhancement).
+    // EnableLACEArg controls whether bEnableLACE is passed or hardcoded false.
+    if (pVeboxIecpParams->bAce ||
+        (pVeboxIecpParams->ColorPipeParams.bActive &&
+            pVeboxIecpParams->ColorPipeParams.bEnableACE))
+    {
+        // Compile-time selection of lace argument
+        bool laceArg = EnableLACEArg ? (pVeboxIecpParams->ColorPipeParams.bEnableLACE == true) : false;
+        pImpl->SetVeboxIecpStateACELACE(
+            &pVeboxIecpState->AceState,
+            &pVeboxIecpState->AlphaAoiState,
+            laceArg);
+    }
+
+    // CapPipe block: Front End CSC and Color Correction Matrix
+    if (pVeboxIecpParams->CapPipeParams.bActive)
+    {
+        // IECP needs to operate in YUV space
+        if ((pVeboxIecpParams->srcFormat != Format_AYUV) &&
+            (pVeboxIecpParams->dstFormat == Format_AYUV ||
+                pVeboxIecpParams->dstFormat == Format_Y416 ||
+                pVeboxIecpParams->ProcAmpParams.bActive ||
+                pVeboxIecpParams->ColorPipeParams.bActive))
+        {
+            bEnableFECSC = true;
+        }
+        else if (pVeboxIecpParams->CapPipeParams.FECSCParams.bActive)
+        {
+            bEnableFECSC = true;
+        }
+        else
+        {
+            bEnableFECSC = false;
+        }
+
+        // Enable Front End CSC so that input to IECP will be in YUV color space
+        if (bEnableFECSC)
+        {
+            pImpl->SetVeboxIecpStateFecsc(&pVeboxIecpState->FrontEndCsc, pVeboxIecpParams);
+        }
+
+        // Enable Color Correction Matrix
+        if (pVeboxIecpParams->CapPipeParams.ColorCorrectionParams.bActive)
+        {
+            pImpl->SetVeboxIecpStateCcm(
+                pVeboxIecpState,
+                &pVeboxIecpParams->CapPipeParams,
+                65536);
+        }
+    }
+
+    // HDR Front End CSC block (compile-time gated by HasFeCSCBlock).
+    if (HasFeCSCBlock && pVeboxIecpParams->bFeCSCEnable)
+    {
+        pImpl->SetVeboxIecpStateFecsc(&pVeboxIecpState->FrontEndCsc, pVeboxIecpParams);
+    }
+
+    // Back End CSC block: Enable Back End CSC for capture pipeline or Vebox output pipe
+    if (pVeboxIecpParams->CapPipeParams.bActive ||
+        pVeboxIecpParams->bCSCEnable)
+    {
+        pImpl->SetVeboxIecpStateBecsc(
+            pVeboxIecpState,
+            pVeboxIecpParams,
+            bEnableFECSC);
+    }
+
+    // ProcAmp block: Enable ProcAmp
+    if (pVeboxIecpParams->ProcAmpParams.bActive &&
+        pVeboxIecpParams->ProcAmpParams.bEnabled)
+    {
+        pImpl->SetVeboxIecpStateProcAmp(
+            &pVeboxIecpState->ProcampState,
+            &pVeboxIecpParams->ProcAmpParams);
+    }
+
+    // CapPipeState block
+    if (pVeboxIecpParams && pVeboxIecpParams->CapPipeParams.bActive)
+    {
+        pImpl->SetVeboxCapPipeState(
+            &pVeboxIecpParams->CapPipeParams);
+    }
+
+    // FwdGamma block
+    if (pVeboxIecpParams &&
+        pVeboxIecpParams->CapPipeParams.bActive &&
+        pVeboxIecpParams->CapPipeParams.FwdGammaParams.bActive)
+    {
+        pFwdGammaSeg =
+            (PMHW_FORWARD_GAMMA_SEG)(pVeboxHeap->pLockedDriverResourceMem +
+                                     pVeboxHeap->uiGammaCorrectionStateOffset +
+                                     uiOffset);
+
+        MHW_CHK_NULL_RETURN(pFwdGammaSeg);
+        MOS_SecureMemcpy(
+            pFwdGammaSeg,
+            sizeof(MHW_FORWARD_GAMMA_SEG) * MHW_FORWARD_GAMMA_SEGMENT_CONTROL_POINT,
+            &pVeboxIecpParams->CapPipeParams.FwdGammaParams.Segment[0],
+            sizeof(MHW_FORWARD_GAMMA_SEG) * MHW_FORWARD_GAMMA_SEGMENT_CONTROL_POINT);
+    }
+
+    return eStatus;
+}
+
+//!
+//! \brief    Helper function for direct copy of 1024-entry 1D LUT
+//! \details  Handles the LUTSize==1024 case by directly copying all 1024 source
+//!           LUT entries into the target hardware command array via the provided
+//!           R/G/B channel setter callables. Avoids any interpolation.
+//!           Setter signature: setter(LutArray& arr, uint32_t index, uint16_t value)
+//! \param    [in,out] lutArray
+//!           Reference to the target LUT array in the hardware command structure
+//! \param    [in] p1DLutParams
+//!           Pointer to 1D LUT parameters (must have LUTSize==1024 and valid p1DLUT)
+//! \param    [in] setR
+//!           Callable to set the R channel value at a given index
+//! \param    [in] setG
+//!           Callable to set the G channel value at a given index
+//! \param    [in] setB
+//!           Callable to set the B channel value at a given index
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename LutArray, typename SetterR, typename SetterG, typename SetterB>
+MOS_STATUS Copy1DLut1024(
+    LutArray                 &lutArray,
+    const MHW_1DLUT_PARAMS   *p1DLutParams,
+    SetterR                   setR,
+    SetterG                   setG,
+    SetterB                   setB)
+{
+    uint16_t *p1DLut = (uint16_t *)p1DLutParams->p1DLUT;
+    for (uint32_t i = 0; i < p1DLutParams->LUTSize; i++)
+    {
+        setR(lutArray, i, (uint16_t)(p1DLut[4 * i + 1]));
+        setG(lutArray, i, (uint16_t)(p1DLut[4 * i + 2]));
+        setB(lutArray, i, (uint16_t)(p1DLut[4 * i + 3]));
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for interpolating 256-entry 1D LUT to 1024 entries
+//! \details  Handles the LUTSize==256 case by computing 1024 output entries via
+//!           linear interpolation between adjacent 256-entry source samples using
+//!           cur_index/pre_index/point arithmetic, writing results via the provided
+//!           R/G/B channel setter callables.
+//!           Setter signature: setter(LutArray& arr, uint32_t index, uint16_t value)
+//! \param    [in,out] lutArray
+//!           Reference to the target LUT array in the hardware command structure
+//! \param    [in] p1DLutParams
+//!           Pointer to 1D LUT parameters (must have LUTSize==256 and valid p1DLUT)
+//! \param    [in] setR
+//!           Callable to set the R channel value at a given index
+//! \param    [in] setG
+//!           Callable to set the G channel value at a given index
+//! \param    [in] setB
+//!           Callable to set the B channel value at a given index
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename LutArray, typename SetterR, typename SetterG, typename SetterB>
+MOS_STATUS Interpolate1DLut256To1024(
+    LutArray                 &lutArray,
+    const MHW_1DLUT_PARAMS   *p1DLutParams,
+    SetterR                   setR,
+    SetterG                   setG,
+    SetterB                   setB)
+{
+    uint32_t  cur_index = 0, pre_index = 0, point = 1;
+    uint16_t *p1DLut    = (uint16_t *)p1DLutParams->p1DLUT;
+
+    // Set index 0 directly from first source entry
+    setR(lutArray, 0, (uint16_t)(p1DLut[1]));
+    setG(lutArray, 0, (uint16_t)(p1DLut[2]));
+    setB(lutArray, 0, (uint16_t)(p1DLut[3]));
+
+    for (uint32_t i = 1; i < 1024; i++)
+    {
+        for (uint32_t j = point; j <= 256; j++)
+        {
+            cur_index = 4 * j;
+            pre_index = cur_index ? 4 * (j - 1) : 0;
+            if (p1DLut[cur_index] == i * 64)
+            {
+                setR(lutArray, i, (uint16_t)(p1DLut[cur_index + 1]));
+                setG(lutArray, i, (uint16_t)(p1DLut[cur_index + 2]));
+                setB(lutArray, i, (uint16_t)(p1DLut[cur_index + 3]));
+                point = j;
+                break;
+            }
+            else if (p1DLut[cur_index] > i * 64)
+            {
+                if (cur_index != pre_index)
+                {
+                    setR(lutArray, i, (uint16_t)(p1DLut[pre_index + 1] + (p1DLut[cur_index + 1] - p1DLut[pre_index + 1]) * (i * 64 - p1DLut[pre_index]) / (p1DLut[cur_index] - p1DLut[pre_index])));
+                    setG(lutArray, i, (uint16_t)(p1DLut[pre_index + 2] + (p1DLut[cur_index + 2] - p1DLut[pre_index + 2]) * (i * 64 - p1DLut[pre_index]) / (p1DLut[cur_index] - p1DLut[pre_index])));
+                    setB(lutArray, i, (uint16_t)(p1DLut[pre_index + 3] + (p1DLut[cur_index + 3] - p1DLut[pre_index + 3]) * (i * 64 - p1DLut[pre_index]) / (p1DLut[cur_index] - p1DLut[pre_index])));
+                    point = j;
+                    break;
+                }
+                else
+                {
+                    MHW_ASSERTMESSAGE("Error in map 256 LUT to 1k LUT");
+                }
+            }
+        }
+    }
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function for writing identity 1D LUT (fallback)
+//! \details  Handles the identity/fallback case by writing i*64 for indices [0,1022]
+//!           and 0xFFFF for index 1023 into all three channels via the provided setter
+//!           callables. Used when p1DLutParams is null, LUT is disabled, or LUTSize
+//!           is not a recognized value.
+//!           Setter signature: setter(LutArray& arr, uint32_t index, uint16_t value)
+//! \param    [in,out] lutArray
+//!           Reference to the target LUT array in the hardware command structure
+//! \param    [in] setR
+//!           Callable to set the R channel value at a given index
+//! \param    [in] setG
+//!           Callable to set the G channel value at a given index
+//! \param    [in] setB
+//!           Callable to set the B channel value at a given index
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename LutArray, typename SetterR, typename SetterG, typename SetterB>
+MOS_STATUS WriteIdentity1DLut(
+    LutArray &lutArray,
+    SetterR   setR,
+    SetterG   setG,
+    SetterB   setB)
+{
+    MHW_NORMALMESSAGE("Fall back to the identity 1k 1dlut");
+    for (uint32_t i = 0; i < 1023; i++)
+    {
+        setR(lutArray, i, (uint16_t)(i * 64));
+        setG(lutArray, i, (uint16_t)(i * 64));
+        setB(lutArray, i, (uint16_t)(i * 64));
+    }
+    setR(lutArray, 1023, (uint16_t)0xffff);
+    setG(lutArray, 1023, (uint16_t)0xffff);
+    setB(lutArray, 1023, (uint16_t)0xffff);
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Helper function to unify Add1DLutState logic across platforms
+//! \details  Dispatches to Copy1DLut1024, Interpolate1DLut256To1024, or WriteIdentity1DLut
+//!           based on p1DLutParams validation and LUTSize.
+//! \param    [in,out] lutArray
+//!           Reference to the target LUT array in the hardware command structure
+//! \param    [in] p1DLutParams
+//!           Pointer to 1D LUT parameters
+//! \param    [in] setR
+//!           Callable to set the R channel value at a given index
+//! \param    [in] setG
+//!           Callable to set the G channel value at a given index
+//! \param    [in] setB
+//!           Callable to set the B channel value at a given index
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename LutArray, typename SetterR, typename SetterG, typename SetterB>
+MOS_STATUS Add1DLutState(
+    LutArray                 &lutArray,
+    const MHW_1DLUT_PARAMS   *p1DLutParams,
+    SetterR                   setR,
+    SetterG                   setG,
+    SetterB                   setB)
+{
+    if (p1DLutParams && p1DLutParams->bActive && (p1DLutParams->LUTSize == 1024))
+    {
+        return Copy1DLut1024(lutArray, p1DLutParams, setR, setG, setB);
+    }
+    else if (p1DLutParams && p1DLutParams->bActive && (p1DLutParams->LUTSize == 256))
+    {
+        return Interpolate1DLut256To1024(lutArray, p1DLutParams, setR, setG, setB);
+    }
+    else
+    {
+        return WriteIdentity1DLut(lutArray, setR, setG, setB);
+    }
+}
+
+//!
+//! \brief    Helper function for setting VEBOX DNDI state GNE fields (TGNE enabled path)
+//! \details  Sets the Global Noise Estimation (GNE) related fields in VEBOX_DNDI_STATE_CMD
+//!           for the Temporal GNE (TGNE) enabled path. Sets DW3/DW4/DW6/DW8/DW30/DW49/
+//!           DW50/DW51/DW52 fields with non-zero uniformity thresholds.
+//! \param    [in,out] pVeboxDndiState
+//!           Pointer to VEBOX_DNDI_STATE_CMD structure to configure
+//! \param    [in] bTGNEEnable
+//!           Temporal GNE enable flag
+//! \param    [in] dwChromaStadTh
+//!           Chroma STAD threshold value
+//! \param    [in] dwLumaStadTh
+//!           Luma STAD threshold value
+//! \param    [in] dw4X4TGNEThCnt
+//!           4x4 Temporal GNE threshold count value
+//! \return   void
+//!
+template <typename cmd_t>
+inline void SetVeboxDndiStateTGNE(
+    typename cmd_t::VEBOX_DNDI_STATE_CMD *pVeboxDndiState,
+    bool                                  bTGNEEnable,
+    uint32_t                              dwChromaStadTh,
+    uint32_t                              dwLumaStadTh,
+    uint32_t                              dw4X4TGNEThCnt)
+{
+    pVeboxDndiState->DW3.TemporalGneEnable                               = bTGNEEnable;
+    pVeboxDndiState->DW4.BlockNoiseEstimateNoiseThreshold                = 720;
+    pVeboxDndiState->DW6.BlockNoiseEstimateEdgeThreshold                 = 200;
+    pVeboxDndiState->DW8.ChromaDenoiseMovingPixelThreshold               = 2;
+    pVeboxDndiState->DW8.ChromaDenoiseAsdThreshold                       = 512;
+    pVeboxDndiState->DW8.ChromaDenoiseThresholdForSumOfComplexityMeasure = 512;
+    pVeboxDndiState->DW30.EightDirectionEdgeThreshold                    = 3200;
+    pVeboxDndiState->DW30.ValidPixelThreshold                            = 336;
+    pVeboxDndiState->DW49.ChromaStadTh                                   = dwChromaStadTh;
+    pVeboxDndiState->DW49.LumaStadTh                                     = dwLumaStadTh;
+    pVeboxDndiState->DW50.LumaUniformityHighTh2                          = 50;
+    pVeboxDndiState->DW50.LumaUniformityHighTh1                          = 15;
+    pVeboxDndiState->DW50.LumaUniformityLowTh2                           = 2;
+    pVeboxDndiState->DW50.LumaUniformityLowTh1                           = 2;
+    pVeboxDndiState->DW51.ChromaUniformityHighTh2                        = 30;
+    pVeboxDndiState->DW51.ChromaUniformityHighTh1                        = 15;
+    pVeboxDndiState->DW51.ChromaUniformityLowTh2                         = 2;
+    pVeboxDndiState->DW51.ChromaUniformityLowTh1                         = 1;
+    pVeboxDndiState->DW52._4X4TemporalGneThresholdCount                  = dw4X4TGNEThCnt;
+}
+
+//!
+//! \brief    Helper function for setting VEBOX DNDI state GNE fields (SGNE/disabled path)
+//! \details  Sets the Global Noise Estimation (GNE) related fields in VEBOX_DNDI_STATE_CMD
+//!           for the Spatial GNE (SGNE) or TGNE-disabled path. Sets DW3/DW4/DW6/DW8/DW30/
+//!           DW49/DW50/DW51/DW52 fields with uniformity thresholds zeroed out.
+//! \param    [in,out] pVeboxDndiState
+//!           Pointer to VEBOX_DNDI_STATE_CMD structure to configure
+//! \return   void
+//!
+template <typename cmd_t>
+inline void SetVeboxDndiStateSGNE(
+    typename cmd_t::VEBOX_DNDI_STATE_CMD *pVeboxDndiState)
+{
+    pVeboxDndiState->DW3.TemporalGneEnable                               = 0;
+    pVeboxDndiState->DW4.BlockNoiseEstimateNoiseThreshold                = 720;
+    pVeboxDndiState->DW6.BlockNoiseEstimateEdgeThreshold                 = 200;
+    pVeboxDndiState->DW8.ChromaDenoiseMovingPixelThreshold               = 2;
+    pVeboxDndiState->DW8.ChromaDenoiseAsdThreshold                       = 512;
+    pVeboxDndiState->DW8.ChromaDenoiseThresholdForSumOfComplexityMeasure = 512;
+    pVeboxDndiState->DW30.EightDirectionEdgeThreshold                    = 3200;
+    pVeboxDndiState->DW30.ValidPixelThreshold                            = 336;
+    pVeboxDndiState->DW49.ChromaStadTh                                   = 0;
+    pVeboxDndiState->DW49.LumaStadTh                                     = 0;
+    pVeboxDndiState->DW50.LumaUniformityHighTh2                          = 0;
+    pVeboxDndiState->DW50.LumaUniformityHighTh1                          = 0;
+    pVeboxDndiState->DW50.LumaUniformityLowTh2                           = 0;
+    pVeboxDndiState->DW50.LumaUniformityLowTh1                           = 0;
+    pVeboxDndiState->DW51.ChromaUniformityHighTh2                        = 0;
+    pVeboxDndiState->DW51.ChromaUniformityHighTh1                        = 0;
+    pVeboxDndiState->DW51.ChromaUniformityLowTh2                         = 0;
+    pVeboxDndiState->DW51.ChromaUniformityLowTh1                         = 0;
+    pVeboxDndiState->DW52._4X4TemporalGneThresholdCount                  = 0;
+}
+
+//!
+//! \brief    Common helper for SetVeboxDndiState shared body
+//! \details  Encapsulates the shared body of SetVeboxDndiState used across all
+//!           platform-specific VEBOX implementations. Contains all the common
+//!           field assignments from DW0 through DW52, including the SlimIPU
+//!           denoise block, SCD enable block, and GNE setting block.
+//!           This eliminates the ~270-line duplication across platform files.
+//! \param    [in,out] pVeboxDndiState
+//!           Pointer to VEBOX_DNDI_STATE_CMD structure to configure
+//! \param    [in] pVeboxDndiParams
+//!           Pointer to VEBOX DNDI parameters
+//! \param    [in] chromaParams
+//!           Reference to chroma parameters (MHW_VEBOX_CHROMA_PARAMS)
+//! \param    [in] bTGNEEnable
+//!           Temporal GNE enable flag
+//! \param    [in] dwChromaStadTh
+//!           Chroma STAD threshold value
+//! \param    [in] dwLumaStadTh
+//!           Luma STAD threshold value
+//! \param    [in] dw4X4TGNEThCnt
+//!           4x4 Temporal GNE threshold count value
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetVeboxDndiStateBody(
+    typename cmd_t::VEBOX_DNDI_STATE_CMD *pVeboxDndiState,
+    PMHW_VEBOX_DNDI_PARAMS                pVeboxDndiParams,
+    const MHW_VEBOX_CHROMA_PARAMS        &chromaParams,
+    bool                                  bTGNEEnable,
+    uint32_t                              dwChromaStadTh,
+    uint32_t                              dwLumaStadTh,
+    uint32_t                              dw4X4TGNEThCnt)
+{
+    MHW_CHK_NULL_RETURN(pVeboxDndiState);
+    MHW_CHK_NULL_RETURN(pVeboxDndiParams);
+
+    pVeboxDndiState->DW0.DenoiseMaximumHistory                         = pVeboxDndiParams->dwDenoiseMaximumHistory;
+    pVeboxDndiState->DW0.DenoiseStadThreshold                          = pVeboxDndiParams->dwDenoiseSTADThreshold > 4095 ? 4095 : pVeboxDndiParams->dwDenoiseSTADThreshold;
+    pVeboxDndiState->DW1.DenoiseAsdThreshold                           = pVeboxDndiParams->dwDenoiseASDThreshold;
+    pVeboxDndiState->DW1.DenoiseHistoryIncrease                        = pVeboxDndiParams->dwDenoiseHistoryDelta;
+    pVeboxDndiState->DW1.DenoiseMovingPixelThreshold                   = pVeboxDndiParams->dwDenoiseMPThreshold;
+    pVeboxDndiState->DW2.TemporalDifferenceThreshold                   = pVeboxDndiParams->dwTDThreshold;
+    pVeboxDndiState->DW3.LowTemporalDifferenceThreshold                = pVeboxDndiParams->dwLTDThreshold;
+    pVeboxDndiState->DW3.ProgressiveDn                                 = pVeboxDndiParams->bProgressiveDN;
+    pVeboxDndiState->DW3.HotPixelCountLuma                             = pVeboxDndiParams->dwHotPixelCount;
+    pVeboxDndiState->DW4.DenoiseThresholdForSumOfComplexityMeasureLuma = pVeboxDndiParams->dwDenoiseSCMThreshold;
+    pVeboxDndiState->DW4.HotPixelThresholdLuma                         = pVeboxDndiParams->dwHotPixelThreshold;
+    pVeboxDndiState->DW5.ChromaDenoiseStadThreshold                    = pVeboxDndiParams->dwChromaSTADThreshold > 4095 ? 4095 : pVeboxDndiParams->dwChromaSTADThreshold;
+    pVeboxDndiState->DW5.HotPixelCountChromaU                          = chromaParams.dwHotPixelCountChromaU;
+    pVeboxDndiState->DW5.HotPixelThresholdChromaU                      = chromaParams.dwHotPixelThresholdChromaU;
+    pVeboxDndiState->DW6.ChromaDenoiseEnable                           = pVeboxDndiParams->bChromaDNEnable;
+    pVeboxDndiState->DW6.ChromaTemporalDifferenceThreshold             = pVeboxDndiParams->dwChromaTDThreshold;
+    pVeboxDndiState->DW7.ChromaLowTemporalDifferenceThreshold          = pVeboxDndiParams->dwChromaLTDThreshold;
+    pVeboxDndiState->DW7.HotPixelCountChromaV                          = chromaParams.dwHotPixelCountChromaV;
+    pVeboxDndiState->DW7.HotPixelThresholdChromaV                      = chromaParams.dwHotPixelThresholdChromaV;
+    pVeboxDndiState->DW8.ChromaDenoiseMovingPixelThreshold             = chromaParams.dwHotPixelThresholdChromaV;
+
+    pVeboxDndiState->DW9.DnyWr040 = pVeboxDndiParams->dwPixRangeWeight[0];
+    pVeboxDndiState->DW9.DnyWr140 = pVeboxDndiParams->dwPixRangeWeight[1];
+    pVeboxDndiState->DW9.DnyWr240 = pVeboxDndiParams->dwPixRangeWeight[2];
+    pVeboxDndiState->DW9.DnyWr340 = pVeboxDndiParams->dwPixRangeWeight[3];
+    pVeboxDndiState->DW9.DnyWr440 = pVeboxDndiParams->dwPixRangeWeight[4];
+    pVeboxDndiState->DW9.DnyWr540 = pVeboxDndiParams->dwPixRangeWeight[5];
+
+    pVeboxDndiState->DW11.DnyPrt5120 = pVeboxDndiParams->dwPixRangeThreshold[5];
+    pVeboxDndiState->DW12.DnyPrt4120 = pVeboxDndiParams->dwPixRangeThreshold[4];
+    pVeboxDndiState->DW12.DnyPrt3120 = pVeboxDndiParams->dwPixRangeThreshold[3];
+    pVeboxDndiState->DW13.DnyPrt2120 = pVeboxDndiParams->dwPixRangeThreshold[2];
+    pVeboxDndiState->DW13.DnyPrt1120 = pVeboxDndiParams->dwPixRangeThreshold[1];
+    pVeboxDndiState->DW14.DnyPrt0120 = pVeboxDndiParams->dwPixRangeThreshold[0];
+
+    pVeboxDndiState->DW16.DnuWr040 = chromaParams.dwPixRangeWeightChromaU[0];
+    pVeboxDndiState->DW16.DnuWr140 = chromaParams.dwPixRangeWeightChromaU[1];
+    pVeboxDndiState->DW16.DnuWr240 = chromaParams.dwPixRangeWeightChromaU[2];
+    pVeboxDndiState->DW16.DnuWr340 = chromaParams.dwPixRangeWeightChromaU[3];
+    pVeboxDndiState->DW16.DnuWr440 = chromaParams.dwPixRangeWeightChromaU[4];
+    pVeboxDndiState->DW16.DnuWr540 = chromaParams.dwPixRangeWeightChromaU[5];
+
+    pVeboxDndiState->DW18.DnuPrt5120 = chromaParams.dwPixRangeThresholdChromaU[5];
+    pVeboxDndiState->DW19.DnuPrt4120 = chromaParams.dwPixRangeThresholdChromaU[4];
+    pVeboxDndiState->DW19.DnuPrt3120 = chromaParams.dwPixRangeThresholdChromaU[3];
+    pVeboxDndiState->DW20.DnuPrt2120 = chromaParams.dwPixRangeThresholdChromaU[2];
+    pVeboxDndiState->DW20.DnuPrt1120 = chromaParams.dwPixRangeThresholdChromaU[1];
+    pVeboxDndiState->DW21.DnuPrt0120 = chromaParams.dwPixRangeThresholdChromaU[0];
+
+    pVeboxDndiState->DW23.DnvWr040  = chromaParams.dwPixRangeWeightChromaV[0];
+    pVeboxDndiState->DW23.DnvWr5140 = chromaParams.dwPixRangeWeightChromaV[1];
+    pVeboxDndiState->DW23.DnvWr240  = chromaParams.dwPixRangeWeightChromaV[2];
+    pVeboxDndiState->DW23.DnvWr340  = chromaParams.dwPixRangeWeightChromaV[3];
+    pVeboxDndiState->DW23.DnvWr440  = chromaParams.dwPixRangeWeightChromaV[4];
+    pVeboxDndiState->DW23.DnvWr540  = chromaParams.dwPixRangeWeightChromaV[5];
+
+    pVeboxDndiState->DW25.DnvPrt5120 = chromaParams.dwPixRangeThresholdChromaV[5];
+    pVeboxDndiState->DW26.DnvPrt4120 = chromaParams.dwPixRangeThresholdChromaV[4];
+    pVeboxDndiState->DW26.DnvPrt3120 = chromaParams.dwPixRangeThresholdChromaV[3];
+    pVeboxDndiState->DW27.DnvPrt2120 = chromaParams.dwPixRangeThresholdChromaV[2];
+    pVeboxDndiState->DW27.DnvPrt1120 = chromaParams.dwPixRangeThresholdChromaV[1];
+    pVeboxDndiState->DW28.DnvPrt0120 = chromaParams.dwPixRangeThresholdChromaV[0];
+
+    pVeboxDndiState->DW38.DnDiTopFirst = pVeboxDndiParams->bDNDITopFirst;
+
+    pVeboxDndiState->DW39.ProgressiveCadenceReconstructionFor1StFieldOfCurrentFrame     = pVeboxDndiParams->dwFMDFirstFieldCurrFrame;
+    pVeboxDndiState->DW39.ProgressiveCadenceReconstructionForSecondFieldOfPreviousFrame = pVeboxDndiParams->dwFMDSecondFieldPrevFrame;
+
+    // Improved Deinterlacing
+    pVeboxDndiState->DW36.LumatdmWt   = pVeboxDndiParams->dwLumaTDMWeight;
+    pVeboxDndiState->DW36.ChromatdmWt = pVeboxDndiParams->dwChromaTDMWeight;
+
+    pVeboxDndiState->DW37.CoringThresholdForSvcm = pVeboxDndiParams->dwSVCMThreshold;
+    pVeboxDndiState->DW37.DeltabitValueForSvcm   = pVeboxDndiParams->dwSVCMDelta;
+    pVeboxDndiState->DW37.CoringThresholdForShcm = pVeboxDndiParams->dwSHCMThreshold;
+    pVeboxDndiState->DW37.DeltabitValueForShcm   = pVeboxDndiParams->dwSHCMDelta;
+
+    pVeboxDndiState->DW39.ChromaSmallerWindowForTdm = pVeboxDndiParams->bTDMChromaSmallerWindow;
+    pVeboxDndiState->DW39.LumaSmallerWindowForTdm   = pVeboxDndiParams->bTDMLumaSmallerWindow;
+    pVeboxDndiState->DW39.Fastercovergence          = pVeboxDndiParams->bFasterConvergence;
+
+    pVeboxDndiState->DW40.SadWt0 = pVeboxDndiParams->dwSADWT0;
+    pVeboxDndiState->DW40.SadWt1 = pVeboxDndiParams->dwSADWT1;
+    pVeboxDndiState->DW40.SadWt2 = pVeboxDndiParams->dwSADWT2;
+    pVeboxDndiState->DW40.SadWt3 = pVeboxDndiParams->dwSADWT3;
+    pVeboxDndiState->DW41.SadWt4 = pVeboxDndiParams->dwSADWT4;
+    pVeboxDndiState->DW41.SadWt6 = pVeboxDndiParams->dwSADWT6;
+
+    pVeboxDndiState->DW41.CoringThresholdForLumaSadCalculation   = pVeboxDndiParams->dwLumaTDMCoringThreshold;
+    pVeboxDndiState->DW41.CoringThresholdForChromaSadCalculation = pVeboxDndiParams->dwChromaTDMCoringThreshold;
+
+    pVeboxDndiState->DW42.ParDiffcheckslackthreshold   = pVeboxDndiParams->dwDiffCheckSlackThreshold;
+    pVeboxDndiState->DW42.ParTearinghighthreshold      = pVeboxDndiParams->dwTearingHighThreshold;
+    pVeboxDndiState->DW42.ParTearinglowthreshold       = pVeboxDndiParams->dwTearingLowThreshold;
+    pVeboxDndiState->DW42.ParDirectioncheckth          = pVeboxDndiParams->dwDirectionCheckThreshold;
+    pVeboxDndiState->DW42.ParSyntheticcontentcheck     = pVeboxDndiParams->bSyntheticContentCheck;
+    pVeboxDndiState->DW42.ParLocalcheck                = pVeboxDndiParams->bLocalCheck;
+    pVeboxDndiState->DW42.ParUsesyntheticcontentmedian = pVeboxDndiParams->bUseSyntheticContentMedian;
+    pVeboxDndiState->DW42.BypassDeflicker              = pVeboxDndiParams->bBypassDeflickerFilter;
+
+    pVeboxDndiState->DW43.Lpfwtlut0 = pVeboxDndiParams->dwLPFWtLUT0;
+    pVeboxDndiState->DW43.Lpfwtlut1 = pVeboxDndiParams->dwLPFWtLUT1;
+    pVeboxDndiState->DW43.Lpfwtlut2 = pVeboxDndiParams->dwLPFWtLUT2;
+    pVeboxDndiState->DW43.Lpfwtlut3 = pVeboxDndiParams->dwLPFWtLUT3;
+    pVeboxDndiState->DW44.Lpfwtlut4 = pVeboxDndiParams->dwLPFWtLUT4;
+    pVeboxDndiState->DW44.Lpfwtlut5 = pVeboxDndiParams->dwLPFWtLUT5;
+    pVeboxDndiState->DW44.Lpfwtlut6 = pVeboxDndiParams->dwLPFWtLUT6;
+    pVeboxDndiState->DW44.Lpfwtlut7 = pVeboxDndiParams->dwLPFWtLUT7;
+
+    pVeboxDndiState->DW10.DnyThmin120    = 512;
+    pVeboxDndiState->DW10.DnyThmax120    = 2048;
+    pVeboxDndiState->DW11.DnyDynThmin120 = 256;
+
+    pVeboxDndiState->DW14.DnyWd2040 = 10;
+    pVeboxDndiState->DW14.DnyWd2140 = 10;
+    pVeboxDndiState->DW14.DnyWd2240 = 8;
+    pVeboxDndiState->DW15.DnyWd0040 = 12;
+    pVeboxDndiState->DW15.DnyWd0140 = 12;
+    pVeboxDndiState->DW15.DnyWd0240 = 10;
+    pVeboxDndiState->DW15.DnyWd1040 = 12;
+    pVeboxDndiState->DW15.DnyWd1140 = 11;
+    pVeboxDndiState->DW15.DnyWd1240 = 10;
+
+    pVeboxDndiState->DW17.DnuThmin120    = 512;
+    pVeboxDndiState->DW17.DnuThmax120    = 2048;
+    pVeboxDndiState->DW18.DnuDynThmin120 = 256;
+
+    pVeboxDndiState->DW21.DnuWd2040 = 10;
+    pVeboxDndiState->DW21.DnuWd2140 = 10;
+    pVeboxDndiState->DW21.DnuWd2240 = 8;
+    pVeboxDndiState->DW22.DnuWd0040 = 12;
+    pVeboxDndiState->DW22.DnuWd0140 = 12;
+    pVeboxDndiState->DW22.DnuWd0240 = 10;
+    pVeboxDndiState->DW22.DnuWd1040 = 12;
+    pVeboxDndiState->DW22.DnuWd1140 = 11;
+    pVeboxDndiState->DW22.DnuWd1240 = 10;
+
+    pVeboxDndiState->DW24.DnvThmin120    = 512;
+    pVeboxDndiState->DW24.DnvThmax120    = 2048;
+    pVeboxDndiState->DW25.DnvDynThmin120 = 256;
+
+    pVeboxDndiState->DW28.DnvWd2040 = 10;
+    pVeboxDndiState->DW28.DnvWd2140 = 10;
+    pVeboxDndiState->DW28.DnvWd2240 = 8;
+    pVeboxDndiState->DW29.DnvWd0040 = 12;
+    pVeboxDndiState->DW29.DnvWd0140 = 12;
+    pVeboxDndiState->DW29.DnvWd0240 = 10;
+    pVeboxDndiState->DW29.DnvWd1040 = 12;
+    pVeboxDndiState->DW29.DnvWd1140 = 11;
+    pVeboxDndiState->DW29.DnvWd1240 = 10;
+
+    pVeboxDndiState->DW31.SmallSobelCountThreshold  = 6;
+    pVeboxDndiState->DW32.LargeSobelCountThreshold  = 6;
+    pVeboxDndiState->DW32.MedianSobelCountThreshold = 40;
+
+    pVeboxDndiState->DW34.StmmC2                                         = 2;
+    pVeboxDndiState->DW35.MaximumStmm                                    = 150;
+    pVeboxDndiState->DW35.MultiplierForVecm                              = 30;
+    pVeboxDndiState->DW35.BlendingConstantAcrossTimeForSmallValuesOfStmm = 125;
+    pVeboxDndiState->DW35.BlendingConstantAcrossTimeForLargeValuesOfStmm = 64;
+
+    pVeboxDndiState->DW36.FmdTemporalDifferenceThreshold = 175;
+    pVeboxDndiState->DW36.StmmOutputShift                = 5;
+    pVeboxDndiState->DW36.StmmShiftUp                    = 1;
+    pVeboxDndiState->DW36.MinimumStmm                    = 118;
+
+    pVeboxDndiState->DW38.McdiEnable                      = 1;
+    pVeboxDndiState->DW38.FmdTearThreshold                = 2;
+    pVeboxDndiState->DW38.Fmd2VerticalDifferenceThreshold = 100;
+    pVeboxDndiState->DW38.Fmd1VerticalDifferenceThreshold = 16;
+
+    pVeboxDndiState->DW45.SynthticFrame = pVeboxDndiParams->bSyntheticFrame;
+
+    // copy the DW0-DW33 SLIM_IPU_DN_PARAMS to VEBOX_DNDI_STATE, DW34-DW48 for DI according to DI DDI setting.
+    if (pVeboxDndiParams->bEnableSlimIPUDenoise)
+    {
+        uint32_t slimIpuDnCmdSize = MHW_VEBOX_SLIM_IPU_DN_CMD_SIZE_INUSE * sizeof(pVeboxDndiState->DW0);  //buffer size in use for SLIM IPU DN
+
+        if (nullptr == pVeboxDndiParams->pSystemMem || pVeboxDndiParams->MemSizeInBytes != sizeof(*pVeboxDndiState) || pVeboxDndiParams->MemSizeInBytes < slimIpuDnCmdSize)
+        {
+            MHW_ASSERTMESSAGE("SlimIPUDenoise size is invaild");
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
+        MOS_SecureMemcpy(pVeboxDndiState, sizeof(*pVeboxDndiState), pVeboxDndiParams->pSystemMem, slimIpuDnCmdSize);  // only copy dw0 - dw33 for DN
+
+        pVeboxDndiState->DW3.ProgressiveDn = pVeboxDndiParams->bProgressiveDN;
+    }
+
+    if (pVeboxDndiParams->bSCDEnable)
+    {
+        pVeboxDndiState->DW34.SignBitForMinimumStmm       = 1;
+        pVeboxDndiState->DW34.SignBitForMaximumStmm       = 1;
+        pVeboxDndiState->DW34.SignBitForSmoothMvThreshold = 1;
+    }
+    else
+    {
+        pVeboxDndiState->DW34.SignBitForMinimumStmm       = 0;
+        pVeboxDndiState->DW34.SignBitForMaximumStmm       = 0;
+        pVeboxDndiState->DW34.SignBitForSmoothMvThreshold = 0;
+    }
+
+    // GNE setting
+    if (bTGNEEnable)
+    {
+        SetVeboxDndiStateTGNE<cmd_t>(
+            pVeboxDndiState, bTGNEEnable, dwChromaStadTh, dwLumaStadTh, dw4X4TGNEThCnt);
+    }
+    else
+    {
+        SetVeboxDndiStateSGNE<cmd_t>(
+            pVeboxDndiState);
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Common helper for the full SetVeboxDndiState function
+//! \details  Encapsulates the entire SetVeboxDndiState function used across all
+//!           platform-specific VEBOX implementations. Handles heap access,
+//!           offset calculation, pointer casting, state initialization,
+//!           calling SetVeboxDndiStateBody, and DumpDNDIStates.
+//!           This eliminates the duplicated boilerplate platform files.
+//! \param    [in] pImpl
+//!           Pointer to the platform-specific implementation object
+//! \param    [in] pVeboxHeap
+//!           Pointer to VEBOX heap
+//! \param    [in] pVeboxDndiParams
+//!           Pointer to VEBOX DNDI parameters
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t, typename ImplType>
+inline MOS_STATUS SetVeboxDndiState(
+    ImplType              *pImpl,
+    MHW_VEBOX_HEAP        *pVeboxHeap,
+    PMHW_VEBOX_DNDI_PARAMS pVeboxDndiParams)
+{
+    uint32_t   uiOffset = 0;
+    MOS_STATUS eStatus  = MOS_STATUS_SUCCESS;
+
+    typename cmd_t::VEBOX_DNDI_STATE_CMD *pVeboxDndiState = nullptr;
+    typename cmd_t::VEBOX_DNDI_STATE_CMD  mVeboxDndiState;
+
+    MHW_CHK_NULL_RETURN(pVeboxDndiParams);
+    MHW_CHK_NULL_RETURN(pVeboxHeap);
+
+    uiOffset = pVeboxHeap->uiCurState * pVeboxHeap->uiInstanceSize;
+    pVeboxDndiState =
+        (typename cmd_t::VEBOX_DNDI_STATE_CMD *)(pVeboxHeap->pLockedDriverResourceMem +
+                                                 pVeboxHeap->uiDndiStateOffset +
+                                                 uiOffset);
+
+    MHW_CHK_NULL_RETURN(pVeboxDndiState);
+
+    *pVeboxDndiState = mVeboxDndiState;
+
+    // Delegate the shared body to the common helper function
+    MHW_CHK_STATUS_RETURN(SetVeboxDndiStateBody<cmd_t>(
+        pVeboxDndiState, pVeboxDndiParams, pImpl->GetChromaParams(), pImpl->GetTGNEEnable(), pImpl->GetChromaStadThreshold(), pImpl->GetLumaStadThreshold(), pImpl->Get4X4TGNEThresholdCount()));
+
+    pImpl->DumpDNDIStates((uint8_t *)pVeboxDndiState);
+    return eStatus;
+}
+
+//!
+//! \brief    Shared helper for SetVeboxIecpStateSTE across all platforms
+//! \details  Encapsulates the common implementation of SetVeboxIecpStateSTE.
+//!           The only behavioral difference between platforms is the StdScoreOutput
+//!           assignment at the end:
+//!           - Older platforms:
+//!             enableLaceStdScoreOutput = true ->
+//!             DW1.StdScoreOutput = (bEnableLACE && LaceParams.bSTD) || bEnableSTD
+//!           - Newer platforms:
+//!             enableLaceStdScoreOutput = false ->
+//!             DW1.StdScoreOutput = bEnableSTD
+//! \param    [in,out] pVeboxStdSteState
+//!           Pointer to platform-specific VEBOX_STD_STE_STATE_CMD structure
+//! \param    [in] pColorPipeParams
+//!           Pointer to COLOR PIPE Params
+//! \param    [in] enableLaceStdScoreOutput
+//!           If true, StdScoreOutput includes the LACE condition (older platforms).
+//!           If false, StdScoreOutput is just bEnableSTD (newer platforms).
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename VEBOX_STD_STE_STATE_CMD>
+inline MOS_STATUS SetVeboxIecpStateSTE(
+    VEBOX_STD_STE_STATE_CMD *pVeboxStdSteState,
+    PMHW_COLORPIPE_PARAMS    pColorPipeParams,
+    bool                     enableLaceStdScoreOutput)
+{
+    MHW_FUNCTION_ENTER;
+
+    MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
+
+    MHW_CHK_NULL_RETURN(pVeboxStdSteState);
+    MHW_CHK_NULL_RETURN(pColorPipeParams);
+
+    // STD detects the skin like colors and passes a grade of skin tone
+    // color to STE (Skin Tone Enhancement). STD operates in the YUV color
+    // space. The level of skin tone detection is determined through skin
+    // tone factors in UV plane. If skin tone detection in VY plane is also
+    // enabled, the final skin tone factor is given by the minimum of STD
+    // in the (U, V) plane and (V, Y) plane.
+    //
+    // The skin tone factor will also be passed to ACE and TCC to indicate
+    // the strength of skin tone likelihood.
+    pVeboxStdSteState->DW0.StdEnable = true;
+
+    // Enable skin tone detection in VY plane
+    pVeboxStdSteState->DW3.VyStdEnable = true;
+
+    // Enable STE (Skin Tone Enhancement)
+    // STE modify the saturation and hue of the pixels which were detected
+    // as the skin-tone pixels by STD
+    if (pColorPipeParams->bEnableSTE &&
+        pColorPipeParams->SteParams.dwSTEFactor > 0)
+    {
+        pVeboxStdSteState->DW0.SteEnable = true;
+
+        if (pColorPipeParams->SteParams.dwSTEFactor <= MHW_STE_OPTIMAL)
+        {
+            pVeboxStdSteState->DW15.Satb1 = MOS_BITFIELD_VALUE((uint32_t)-8, 10);
+            pVeboxStdSteState->DW15.Satp3 = 31;
+            pVeboxStdSteState->DW15.Satp2 = 6;
+            pVeboxStdSteState->DW15.Satp1 = pColorPipeParams->SteParams.satP1;
+
+            pVeboxStdSteState->DW16.Sats0 = pColorPipeParams->SteParams.satS0;
+            pVeboxStdSteState->DW16.Satb3 = 124;
+            pVeboxStdSteState->DW16.Satb2 = 8;
+
+            pVeboxStdSteState->DW17.Sats2 = 297;
+            pVeboxStdSteState->DW17.Sats1 = pColorPipeParams->SteParams.satS1;
+
+            pVeboxStdSteState->DW18.Huep3 = 14;
+            pVeboxStdSteState->DW18.Huep2 = 6;
+            pVeboxStdSteState->DW18.Huep1 = MOS_BITFIELD_VALUE((uint32_t)-6, 7);
+            pVeboxStdSteState->DW18.Sats3 = 256;
+
+            pVeboxStdSteState->DW19.Hueb3 = 56;
+            pVeboxStdSteState->DW19.Hueb2 = 8;
+            pVeboxStdSteState->DW19.Hueb1 = MOS_BITFIELD_VALUE((uint32_t)-8, 10);
+
+            pVeboxStdSteState->DW20.Hues1 = 85;
+            pVeboxStdSteState->DW20.Hues0 = 384;
+
+            pVeboxStdSteState->DW21.Hues3 = 256;
+            pVeboxStdSteState->DW21.Hues2 = 384;
+        }
+        else  // if (pColorPipeParams->SteParams.dwSTEFactor > MHW_STE_OPTIMAL)
+        {
+            pVeboxStdSteState->DW15.Satb1 = 0;
+            pVeboxStdSteState->DW15.Satp3 = 31;
+            pVeboxStdSteState->DW15.Satp2 = 31;
+            pVeboxStdSteState->DW15.Satp1 = pColorPipeParams->SteParams.satP1;
+
+            pVeboxStdSteState->DW16.Sats0 = pColorPipeParams->SteParams.satS0;
+            pVeboxStdSteState->DW16.Satb3 = 124;
+            pVeboxStdSteState->DW16.Satb2 = 124;
+
+            pVeboxStdSteState->DW17.Sats2 = 256;
+            pVeboxStdSteState->DW17.Sats1 = pColorPipeParams->SteParams.satS1;
+
+            pVeboxStdSteState->DW18.Huep3 = 14;
+            pVeboxStdSteState->DW18.Huep2 = 14;
+            pVeboxStdSteState->DW18.Huep1 = 14;
+            pVeboxStdSteState->DW18.Sats3 = 256;
+
+            pVeboxStdSteState->DW19.Hueb3 = 56;
+            pVeboxStdSteState->DW19.Hueb2 = 56;
+            pVeboxStdSteState->DW19.Hueb1 = 56;
+
+            pVeboxStdSteState->DW20.Hues1 = 256;
+            pVeboxStdSteState->DW20.Hues0 = 256;
+
+            pVeboxStdSteState->DW21.Hues3 = 256;
+            pVeboxStdSteState->DW21.Hues2 = 256;
+        }
+    }
+    else if (pColorPipeParams->bEnableSTD)
+    {
+        if (nullptr == pColorPipeParams->StdParams.param ||
+            pColorPipeParams->StdParams.paraSizeInBytes > pVeboxStdSteState->byteSize)
+        {
+            MHW_CHK_STATUS_RETURN(MOS_STATUS_INVALID_PARAMETER);
+        }
+
+        MOS_SecureMemcpy(pVeboxStdSteState,
+                         pColorPipeParams->StdParams.paraSizeInBytes,
+                         pColorPipeParams->StdParams.param,
+                         pColorPipeParams->StdParams.paraSizeInBytes);
+    }
+
+    // Enable Skin Score Output surface to be written by Vebox
+    if (enableLaceStdScoreOutput)
+    {
+        // Older platforms:
+        // include LACE condition in StdScoreOutput
+        pVeboxStdSteState->DW1.StdScoreOutput =
+            (pColorPipeParams->bEnableLACE && pColorPipeParams->LaceParams.bSTD) || pColorPipeParams->bEnableSTD;
+    }
+    else
+    {
+        // Newer platforms:
+        // StdScoreOutput is just bEnableSTD (LACE condition dropped)
+        pVeboxStdSteState->DW1.StdScoreOutput = pColorPipeParams->bEnableSTD;
+    }
+
+    return eStatus;
+}
+
+//!
+//! \brief    Common helper for SetVeboxIecpStateFecsc (Front-End CSC)
+//! \details  Encapsulates the shared implementation of SetVeboxIecpStateFecsc used
+//!           across all 6 platform-specific VEBOX implementations. Uses duck typing
+//!           on the FecscStateType template parameter so that all platforms can call
+//!           the same implementation regardless of their specific command namespace.
+//! \param    [in,out] pVeboxFecscState
+//!           Pointer to platform-specific VEBOX_FRONT_END_CSC_STATE_CMD structure
+//! \param    [in] pVeboxIecpParams
+//!           Pointer to VEBOX IECP State Params
+//! \return   void
+//!
+template <typename FecscStateType>
+inline void SetVeboxIecpStateFecsc(
+    FecscStateType        *pVeboxFecscState,
+    PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams)
+{
+    MHW_CAPPIPE_PARAMS *pCapPipeParams = nullptr;
+
+    MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxFecscState);
+    MHW_CHK_NULL_NO_STATUS_RETURN(pVeboxIecpParams);
+
+    pCapPipeParams = &pVeboxIecpParams->CapPipeParams;
+    MHW_CHK_NULL_NO_STATUS_RETURN(pCapPipeParams);
+    MHW_ASSERT(pCapPipeParams->bActive);
+
+#define SET_COEFS(_c0, _c1, _c2, _c3, _c4, _c5, _c6, _c7, _c8)   \
+    {                                                            \
+        pVeboxFecscState->DW0.FecscC0TransformCoefficient = _c0; \
+        pVeboxFecscState->DW1.FecscC1TransformCoefficient = _c1; \
+        pVeboxFecscState->DW2.FecscC2TransformCoefficient = _c2; \
+        pVeboxFecscState->DW3.FecscC3TransformCoefficient = _c3; \
+        pVeboxFecscState->DW4.FecscC4TransformCoefficient = _c4; \
+        pVeboxFecscState->DW5.FecscC5TransformCoefficient = _c5; \
+        pVeboxFecscState->DW6.FecscC6TransformCoefficient = _c6; \
+        pVeboxFecscState->DW7.FecscC7TransformCoefficient = _c7; \
+        pVeboxFecscState->DW8.FecscC8TransformCoefficient = _c8; \
+    }
+
+#define SET_INPUT_OFFSETS(_in1, _in2, _in3)                         \
+    {                                                               \
+        pVeboxFecscState->DW9.FecScOffsetIn1OffsetInForYR   = _in1; \
+        pVeboxFecscState->DW10.FecScOffsetIn2OffsetOutForUG = _in2; \
+        pVeboxFecscState->DW11.FecScOffsetIn3OffsetOutForVB = _in3; \
+    }
+
+#define SET_OUTPUT_OFFSETS(_out1, _out2, _out3)                       \
+    {                                                                 \
+        pVeboxFecscState->DW9.FecScOffsetOut1OffsetOutForYR  = _out1; \
+        pVeboxFecscState->DW10.FecScOffsetOut2OffsetOutForUG = _out2; \
+        pVeboxFecscState->DW11.FecScOffsetOut3OffsetOutForVB = _out3; \
+    }
+
+    pVeboxFecscState->DW0.FrontEndCscTransformEnable = true;
+
+    if (pCapPipeParams->FECSCParams.bActive)
+    {
+        // Coeff is S2.16, so multiply the floating value by 65536
+        SET_COEFS(
+            ((uint32_t)(pCapPipeParams->FECSCParams.Matrix[0][0] * 65536)),
+            ((uint32_t)(pCapPipeParams->FECSCParams.Matrix[0][1] * 65536)),
+            ((uint32_t)(pCapPipeParams->FECSCParams.Matrix[0][2] * 65536)),
+            ((uint32_t)(pCapPipeParams->FECSCParams.Matrix[1][0] * 65536)),
+            ((uint32_t)(pCapPipeParams->FECSCParams.Matrix[1][1] * 65536)),
+            ((uint32_t)(pCapPipeParams->FECSCParams.Matrix[1][2] * 65536)),
+            ((uint32_t)(pCapPipeParams->FECSCParams.Matrix[2][0] * 65536)),
+            ((uint32_t)(pCapPipeParams->FECSCParams.Matrix[2][1] * 65536)),
+            ((uint32_t)(pCapPipeParams->FECSCParams.Matrix[2][2] * 65536)));
+        SET_INPUT_OFFSETS(
+            ((uint32_t)pCapPipeParams->FECSCParams.PreOffset[0]),
+            ((uint32_t)pCapPipeParams->FECSCParams.PreOffset[1]),
+            ((uint32_t)pCapPipeParams->FECSCParams.PreOffset[2]));
+        SET_OUTPUT_OFFSETS(
+            ((uint32_t)pCapPipeParams->FECSCParams.PostOffset[0]),
+            ((uint32_t)pCapPipeParams->FECSCParams.PostOffset[1]),
+            ((uint32_t)pCapPipeParams->FECSCParams.PostOffset[2]));
+    }
+    else if (pVeboxIecpParams->bFeCSCEnable)
+    {
+        // Coeff is S2.16, so multiply the floating value by 65536
+        SET_COEFS(
+            ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[0] * 65536)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[1] * 65536)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[2] * 65536)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[3] * 65536)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[4] * 65536)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[5] * 65536)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[6] * 65536)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[7] * 65536)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscCoeff[8] * 65536)));
+        SET_INPUT_OFFSETS(
+            ((uint32_t)(pVeboxIecpParams->pfFeCscInOffset[0] * 128.0F)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscInOffset[1] * 128.0F)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscInOffset[2] * 128.0F)));
+        SET_OUTPUT_OFFSETS(
+            ((uint32_t)(pVeboxIecpParams->pfFeCscOutOffset[0] * 128.0F)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscOutOffset[1] * 128.0F)),
+            ((uint32_t)(pVeboxIecpParams->pfFeCscOutOffset[2] * 128.0F)));
+    }
+    else if (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT601)
+    {
+        SET_COEFS(16843, 33030, 6423, MOS_BITFIELD_VALUE((uint32_t)-9698, 19), MOS_BITFIELD_VALUE((uint32_t)-19070, 19), 28770, 28770, MOS_BITFIELD_VALUE((uint32_t)-24116, 19), MOS_BITFIELD_VALUE((uint32_t)-4652, 19));
+        SET_INPUT_OFFSETS(0, 0, 0);
+        SET_OUTPUT_OFFSETS(2048, 16384, 16384);
+    }
+    else if (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT709)
+    {
+        SET_COEFS(11993, 40239, 4063, MOS_BITFIELD_VALUE((uint32_t)-6618, 19), MOS_BITFIELD_VALUE((uint32_t)-22216, 19), 28770, 28770, MOS_BITFIELD_VALUE((uint32_t)-26148, 19), MOS_BITFIELD_VALUE((uint32_t)-2620, 19));
+        SET_INPUT_OFFSETS(0, 0, 0);
+        SET_OUTPUT_OFFSETS(2048, 16384, 16384);
+    }
+    else if (pVeboxIecpParams->ColorSpace == MHW_CSpace_sRGB)
+    {
+        SET_COEFS(13932, 46871, 4731, MOS_BITFIELD_VALUE((uint32_t)-7508, 19), MOS_BITFIELD_VALUE((uint32_t)-25260, 19), 32768, 32768, MOS_BITFIELD_VALUE((uint32_t)-29764, 19), MOS_BITFIELD_VALUE((uint32_t)-3005, 19));
+        SET_INPUT_OFFSETS(0, 0, 0);
+        SET_OUTPUT_OFFSETS(0, 16384, 16384);
+    }
+    else
+    {
+        MHW_ASSERT(0);
+    }
+
+#undef SET_COEFS
+#undef SET_INPUT_OFFSETS
+#undef SET_OUTPUT_OFFSETS
+}
+
+//!
+//! \brief    Common helper for SetVeboxIecpStateBecsc (Back-End CSC)
+//! \details  Encapsulates the shared implementation of SetVeboxIecpStateBecsc used
+//!           across all 6 platform-specific VEBOX implementations. Uses duck typing
+//!           on the IecpStateType template parameter so that all platforms can call
+//!           the same implementation regardless of their specific command namespace.
+//! \param    [in,out] pVeboxIecpState
+//!           Pointer to platform-specific VEBOX_IECP_STATE_CMD structure
+//! \param    [in] pVeboxIecpParams
+//!           Pointer to VEBOX IECP State Params
+//! \param    [in] bEnableFECSC
+//!           Whether Front-End CSC is enabled
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename IecpStateType>
+inline MOS_STATUS SetVeboxIecpStateBecsc(
+    IecpStateType         *pVeboxIecpState,
+    PMHW_VEBOX_IECP_PARAMS pVeboxIecpParams,
+    bool                   bEnableFECSC)
+{
+    MHW_CAPPIPE_PARAMS *m_capPipeParams = nullptr;
+    MOS_FORMAT          dstFormat;
+
+    MHW_CHK_NULL_RETURN(pVeboxIecpState);
+    MHW_CHK_NULL_RETURN(pVeboxIecpParams);
+
+    m_capPipeParams = &pVeboxIecpParams->CapPipeParams;
+    dstFormat       = pVeboxIecpParams->dstFormat;
+
+#define SET_COEFS(_c0, _c1, _c2, _c3, _c4, _c5, _c6, _c7, _c8) \
+    {                                                          \
+        pVeboxIecpState->CscState.DW0.C0 = _c0;                \
+        pVeboxIecpState->CscState.DW1.C1 = _c1;                \
+        pVeboxIecpState->CscState.DW2.C2 = _c2;                \
+        pVeboxIecpState->CscState.DW3.C3 = _c3;                \
+        pVeboxIecpState->CscState.DW4.C4 = _c4;                \
+        pVeboxIecpState->CscState.DW5.C5 = _c5;                \
+        pVeboxIecpState->CscState.DW6.C6 = _c6;                \
+        pVeboxIecpState->CscState.DW7.C7 = _c7;                \
+        pVeboxIecpState->CscState.DW8.C8 = _c8;                \
+    }
+
+#define SET_INPUT_OFFSETS(_in1, _in2, _in3)              \
+    {                                                    \
+        pVeboxIecpState->CscState.DW9.OffsetIn1  = _in1; \
+        pVeboxIecpState->CscState.DW10.OffsetIn2 = _in2; \
+        pVeboxIecpState->CscState.DW11.OffsetIn3 = _in3; \
+    }
+
+#define SET_OUTPUT_OFFSETS(_out1, _out2, _out3)            \
+    {                                                      \
+        pVeboxIecpState->CscState.DW9.OffsetOut1  = _out1; \
+        pVeboxIecpState->CscState.DW10.OffsetOut2 = _out2; \
+        pVeboxIecpState->CscState.DW11.OffsetOut3 = _out3; \
+    }
+
+    MHW_CHK_NULL_RETURN(m_capPipeParams);
+    if (m_capPipeParams->bActive)
+    {
+        // Application controlled CSC operation
+        if (m_capPipeParams->BECSCParams.bActive)
+        {
+            pVeboxIecpState->CscState.DW0.TransformEnable = true;
+
+            // Coeff is S2.16, so multiply the floating value by 65536
+            SET_COEFS(
+                ((uint32_t)(m_capPipeParams->BECSCParams.Matrix[0][0] * 65536)),
+                ((uint32_t)(m_capPipeParams->BECSCParams.Matrix[0][1] * 65536)),
+                ((uint32_t)(m_capPipeParams->BECSCParams.Matrix[0][2] * 65536)),
+                ((uint32_t)(m_capPipeParams->BECSCParams.Matrix[1][0] * 65536)),
+                ((uint32_t)(m_capPipeParams->BECSCParams.Matrix[1][1] * 65536)),
+                ((uint32_t)(m_capPipeParams->BECSCParams.Matrix[1][2] * 65536)),
+                ((uint32_t)(m_capPipeParams->BECSCParams.Matrix[2][0] * 65536)),
+                ((uint32_t)(m_capPipeParams->BECSCParams.Matrix[2][1] * 65536)),
+                ((uint32_t)(m_capPipeParams->BECSCParams.Matrix[2][2] * 65536)));
+            SET_INPUT_OFFSETS(
+                ((uint32_t)m_capPipeParams->BECSCParams.PreOffset[0]),
+                ((uint32_t)m_capPipeParams->BECSCParams.PreOffset[1]),
+                ((uint32_t)m_capPipeParams->BECSCParams.PreOffset[2]));
+            SET_OUTPUT_OFFSETS(
+                ((uint32_t)m_capPipeParams->BECSCParams.PostOffset[0]),
+                ((uint32_t)m_capPipeParams->BECSCParams.PostOffset[1]),
+                ((uint32_t)m_capPipeParams->BECSCParams.PostOffset[2]));
+        }
+        // YUV 4:4:4 CSC to xBGR or xRGB
+        else if ((bEnableFECSC || (pVeboxIecpParams->srcFormat == Format_AYUV)) &&
+                 (IS_RGB_FORMAT(dstFormat)))
+        {
+            pVeboxIecpState->CscState.DW0.TransformEnable = true;
+
+            // CSC matrix to convert YUV 4:4:4 to xBGR. e.g. Format_A8B8G8R8. In the
+            // event that dstFormat is xRGB, driver sets R & B channel swapping via
+            // CscState.DW0.YuvChannelSwap so a separate matrix is not needed.
+
+            if (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT601)
+            {
+                SET_COEFS(76284, 0, 104595, 76284, MOS_BITFIELD_VALUE((uint32_t)-25689, 19), MOS_BITFIELD_VALUE((uint32_t)-53280, 19), 76284, 132186, 0);
+
+                SET_INPUT_OFFSETS(MOS_BITFIELD_VALUE((uint32_t)-2048, 16),
+                    MOS_BITFIELD_VALUE((uint32_t)-16384, 16),
+                    MOS_BITFIELD_VALUE((uint32_t)-16384, 16));
+                SET_OUTPUT_OFFSETS(0, 0, 0);
+            }
+            else if (pVeboxIecpParams->ColorSpace == MHW_CSpace_BT709)
+            {
+                SET_COEFS(76284, 0, 117506, 76284, MOS_BITFIELD_VALUE((uint32_t)-13958, 19), MOS_BITFIELD_VALUE((uint32_t)-34930, 19), 76284, 138412, 0);
+
+                SET_INPUT_OFFSETS(MOS_BITFIELD_VALUE((uint32_t)-2048, 16),
+                    MOS_BITFIELD_VALUE((uint32_t)-16384, 16),
+                    MOS_BITFIELD_VALUE((uint32_t)-16384, 16));
+                SET_OUTPUT_OFFSETS(0, 0, 0);
+            }
+            else
+            {
+                MHW_ASSERT(false);
+            }
+        }
+    }
+    else if (pVeboxIecpParams->bCSCEnable)
+    {
+        pVeboxIecpState->CscState.DW0.TransformEnable = true;
+
+        // Coeff is S2.16, so multiply the floating value by 65536
+        SET_COEFS(
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[0] * 65536.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[1] * 65536.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[2] * 65536.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[3] * 65536.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[4] * 65536.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[5] * 65536.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[6] * 65536.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[7] * 65536.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscCoeff[8] * 65536.0F)));
+
+        // Offset is S15, but the SW offsets are calculated as 8bits,
+        // so left shift them 7bits to be in the position of MSB
+        SET_INPUT_OFFSETS(
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscInOffset[0] * 128.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscInOffset[1] * 128.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscInOffset[2] * 128.0F)));
+        SET_OUTPUT_OFFSETS(
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscOutOffset[0] * 128.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscOutOffset[1] * 128.0F)),
+            ((uint32_t)MOS_F_ROUND(pVeboxIecpParams->pfCscOutOffset[2] * 128.0F)));
+    }
+
+    pVeboxIecpState->AlphaAoiState.DW0.AlphaFromStateSelect = pVeboxIecpParams->bAlphaEnable;
+
+    if (pVeboxIecpParams->dstFormat == Format_Y416)
+    {
+        pVeboxIecpState->AlphaAoiState.DW0.ColorPipeAlpha = pVeboxIecpParams->wAlphaValue;
+    }
+    else
+    {
+        // Alpha is U16, but the SW alpha is calculated as 8bits,
+        // so left shift it 8bits to be in the position of MSB
+        pVeboxIecpState->AlphaAoiState.DW0.ColorPipeAlpha = pVeboxIecpParams->wAlphaValue * 256;
+    }
+
+#undef SET_COEFS
+#undef SET_INPUT_OFFSETS
+#undef SET_OUTPUT_OFFSETS
+
+    return MOS_STATUS_SUCCESS;
+}
+
+//!
+//! \brief    Common helper for SetVeboxCapPipeState shared logic
+//! \details  Encapsulates the BlackLevelParams and WhiteBalanceParams logic
+//!           that is 100% identical across all 6 platform-specific VEBOX
+//!           implementations. Each platform's member function sets up the
+//!           heap pointer and fetches the typed state pointer, then delegates
+//!           all logic to this helper.
+//! \param    [in,out] pVeboxCapPipeState
+//!           Pointer to platform-specific VEBOX_CAPTURE_PIPE_STATE_CMD structure
+//! \param    [in] pCapPipeParams
+//!           Pointer to capture pipe parameters
+//! \return   void
+//!
+template <typename CapPipeStateCmdType>
+inline void SetVeboxCapPipeStateCommon(
+    CapPipeStateCmdType *pVeboxCapPipeState,
+    PMHW_CAPPIPE_PARAMS  pCapPipeParams)
+{
+    if (pCapPipeParams->BlackLevelParams.bActive)
+    {
+        pVeboxCapPipeState->DW2.BlackPointCorrectionEnable = true;
+        // Red
+        pVeboxCapPipeState->DW2.BlackPointOffsetRedMsb =
+            (pCapPipeParams->BlackLevelParams.R & MOS_BITFIELD_BIT_N(16)) >> 16;
+        pVeboxCapPipeState->DW3.BlackPointOffsetRed =
+            pCapPipeParams->BlackLevelParams.R & MOS_MASK(0, 15);
+        // Green Top
+        pVeboxCapPipeState->DW2.BlackPointOffsetGreenTopMsb =
+            (pCapPipeParams->BlackLevelParams.G1 & MOS_BITFIELD_BIT_N(16)) >> 16;
+        pVeboxCapPipeState->DW3.BlackPointOffsetGreenTop =
+            pCapPipeParams->BlackLevelParams.G1 & MOS_MASK(0, 15);
+        // Green Bottom
+        pVeboxCapPipeState->DW2.BlackPointOffsetGreenBottomMsb =
+            (pCapPipeParams->BlackLevelParams.G0 & MOS_BITFIELD_BIT_N(16)) >> 16;
+        pVeboxCapPipeState->DW4.BlackPointOffsetGreenBottom =
+            pCapPipeParams->BlackLevelParams.G0 & MOS_MASK(0, 15);
+        // Blue
+        pVeboxCapPipeState->DW2.BlackPointOffsetBlueMsb =
+            (pCapPipeParams->BlackLevelParams.B & MOS_BITFIELD_BIT_N(16)) >> 16;
+        pVeboxCapPipeState->DW4.BlackPointOffsetBlue =
+            pCapPipeParams->BlackLevelParams.B & MOS_MASK(0, 15);
+    }
+
+    if (pCapPipeParams->WhiteBalanceParams.bActive &&
+        pCapPipeParams->WhiteBalanceParams.Mode == MHW_WB_MANUAL)
+    {
+        pVeboxCapPipeState->DW2.WhiteBalanceCorrectionEnable = true;
+
+        // Is U4.12, so multiply the floating value by 4096
+        // Red
+        pVeboxCapPipeState->DW5.WhiteBalanceRedCorrection =
+            (uint32_t)(pCapPipeParams->WhiteBalanceParams.RedCorrection * 4096);
+
+        // Green Top
+        pVeboxCapPipeState->DW5.WhiteBalanceGreenTopCorrection =
+            (uint32_t)(pCapPipeParams->WhiteBalanceParams.GreenTopCorrection * 4096);
+
+        // Green Bottom
+        pVeboxCapPipeState->DW6.WhiteBalanceGreenBottomCorrection =
+            (uint32_t)(pCapPipeParams->WhiteBalanceParams.GreenBottomCorrection * 4096);
+
+        // Blue
+        pVeboxCapPipeState->DW6.WhiteBalanceBlueCorrection =
+            (uint32_t)(pCapPipeParams->WhiteBalanceParams.BlueCorrection * 4096);
+    }
+}
+
+//!
+//! \brief    Common helper for AddVeboxTilingConvert shared logic
+//! \details  Encapsulates the tiling mode switch logic, MOCS index assignment,
+//!           InitMocsParams/AddResourceToCmd calls for both input and output
+//!           surfaces, SurfaceControlBits assignment, and pfnAddCommand call.
+//!           This logic is common across all 6 platform-specific VEBOX
+//!           implementations. Platform-specific differences (e.g., compression
+//!           handling for, different MOCS usage) are
+//!           handled by the caller before invoking this helper.
+//! \param    [in,out] cmd
+//!           Reference to VEBOX_TILING_CONVERT_CMD structure
+//! \param    [in,out] veboxInputSurfCtrlBits
+//!           Reference to input surface control bits (may have compression bits
+//!           pre-set by caller)
+//! \param    [in,out] veboxOutputSurfCtrlBits
+//!           Reference to output surface control bits (may have compression bits
+//!           pre-set by caller)
+//! \param    [in] inputSurface
+//!           Pointer to input MOS resource
+//! \param    [in] outputSurface
+//!           Pointer to output MOS resource
+//! \param    [in] inSurParams
+//!           Pointer to input surface parameters
+//! \param    [in] outSurParams
+//!           Pointer to output surface parameters
+//! \param    [in] mocsIndex
+//!           MOCS index value already computed by the caller
+//! \param    [in] osItf
+//!           Pointer to OS interface
+//! \param    [in] cmdBuffer
+//!           Pointer to command buffer
+//! \param    [in] AddResourceToCmd
+//!           Function pointer to AddResourceToCmd
+//! \return   MOS_STATUS
+//!           MOS_STATUS_SUCCESS if success, else fail reason
+//!
+template <typename cmd_t>
+inline MOS_STATUS SetupVeboxTilingConvertCommon(
+    typename cmd_t::VEBOX_TILING_CONVERT_CMD                     &cmd,
+    typename cmd_t::VEB_DI_IECP_COMMAND_SURFACE_CONTROL_BITS_CMD &veboxInputSurfCtrlBits,
+    typename cmd_t::VEB_DI_IECP_COMMAND_SURFACE_CONTROL_BITS_CMD &veboxOutputSurfCtrlBits,
+    PMOS_RESOURCE                                                  inputSurface,
+    PMOS_RESOURCE                                                  outputSurface,
+    PMHW_VEBOX_SURFACE_PARAMS                                      inSurParams,
+    PMHW_VEBOX_SURFACE_PARAMS                                      outSurParams,
+    uint32_t                                                       mocsIndex,
+    PMOS_INTERFACE                                                 osItf,
+    PMOS_COMMAND_BUFFER                                            cmdBuffer,
+    MOS_STATUS(*AddResourceToCmd)(PMOS_INTERFACE, PMOS_COMMAND_BUFFER, PMHW_RESOURCE_PARAMS))
+{
+    MHW_RESOURCE_PARAMS ResourceParams = {0};
+
+    // Set input tiling mode
+    switch (inputSurface->TileType)
+    {
+    case MOS_TILE_YF:
+        veboxInputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_TILEYF;
+        break;
+    case MOS_TILE_YS:
+        veboxInputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_TILEYS;
+        break;
+    default:
+        veboxInputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_NONE;
+        break;
+    }
+
+    // Set output tiling mode
+    if (outputSurface)
+    {
+        switch (outputSurface->TileType)
+        {
+        case MOS_TILE_YF:
+            veboxOutputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_TILEYF;
+            break;
+        case MOS_TILE_YS:
+            veboxOutputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_TILEYS;
+            break;
+        default:
+            veboxOutputSurfCtrlBits.DW0.TiledResourceModeForOutputFrameSurfaceBaseAddress = TRMODE_NONE;
+            break;
+        }
+    }
+
+    // Set MOCS index for both input and output
+    veboxInputSurfCtrlBits.DW0.IndexToMemoryObjectControlStateMocsTables  = mocsIndex;
+    veboxOutputSurfCtrlBits.DW0.IndexToMemoryObjectControlStateMocsTables = mocsIndex;
+
+    // Setup input resource params: set up DW[2:1], input graphics address
+    MOS_ZeroMemory(&ResourceParams, sizeof(MHW_RESOURCE_PARAMS));
+    InitMocsParams(ResourceParams, &cmd.DW1_2.Value[0], 1, 6);
+    ResourceParams.presResource    = inputSurface;
+    ResourceParams.HwCommandType   = MOS_VEBOX_TILING_CONVERT;
+    ResourceParams.dwLocationInCmd = 1;
+    ResourceParams.pdwCmd          = &(cmd.DW1_2.Value[0]);
+    ResourceParams.bIsWritable     = false;
+    ResourceParams.dwOffset        = inSurParams->dwOffset + veboxInputSurfCtrlBits.DW0.Value;
+    MHW_CHK_STATUS_RETURN(AddResourceToCmd(osItf, cmdBuffer, &ResourceParams));
+    cmd.DW1_2.InputSurfaceControlBits = veboxInputSurfCtrlBits.DW0.Value;
+
+    // Setup output resource params: set up DW[4:3], output graphics address
+    MOS_ZeroMemory(&ResourceParams, sizeof(MHW_RESOURCE_PARAMS));
+    InitMocsParams(ResourceParams, &cmd.DW3_4.Value[0], 1, 6);
+    ResourceParams.presResource    = outputSurface;
+    ResourceParams.HwCommandType   = MOS_VEBOX_TILING_CONVERT;
+    ResourceParams.dwLocationInCmd = 3;
+    ResourceParams.pdwCmd          = &(cmd.DW3_4.Value[0]);
+    ResourceParams.bIsWritable     = true;
+    ResourceParams.dwOffset        = outSurParams->dwOffset + veboxOutputSurfCtrlBits.DW0.Value;
+    MHW_CHK_STATUS_RETURN(AddResourceToCmd(osItf, cmdBuffer, &ResourceParams));
+    cmd.DW3_4.OutputSurfaceControlBits = veboxOutputSurfCtrlBits.DW0.Value;
+
+    // Issue command
+    osItf->pfnAddCommand(cmdBuffer, &cmd, cmd.byteSize);
+
+    return MOS_STATUS_SUCCESS;
+}
+
+}  // namespace common
+}  // namespace vebox
+}  // namespace mhw
+
+#endif  // __MHW_VEBOX_COMMON_IMPL_H__

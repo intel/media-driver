@@ -341,10 +341,10 @@ uint16_t CodechalVdencAvcStateXe_Hpm::GetAdaptiveRoundingNumSlices()
 MOS_STATUS CodechalVdencAvcStateXe_Hpm::InitMmcState()
 {
     CODECHAL_ENCODE_FUNCTION_ENTER;
-#ifdef _MMC_SUPPORTED
+
     m_mmcState = MOS_New(CodechalMmcEncodeAvcXe_Hpm, m_hwInterface, this);
     CODECHAL_ENCODE_CHK_NULL_RETURN(m_mmcState);
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -550,10 +550,9 @@ MOS_STATUS CodechalVdencAvcStateXe_Hpm::SetMfxPipeBufAddrStateParams(
             param.presVdencColocatedMVReadBuffer = nullptr;
     }
 
-#ifdef _MMC_SUPPORTED
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceState(param.pDecodedReconParam));
     CODECHAL_ENCODE_CHK_STATUS_RETURN(m_mmcState->SetSurfaceState(param.pRawSurfParam));
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

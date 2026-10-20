@@ -92,10 +92,8 @@ namespace decode{
 
         m_avcPicParams      = m_avcBasicFeature->m_avcPicParams;
 
-#ifdef _MMC_SUPPORTED
         m_mmcState = m_avcPipeline->GetMmcState();
         DECODE_CHK_NULL(m_mmcState);
-#endif
 
         DECODE_CHK_STATUS(SetRowstoreCachingOffsets());
 
@@ -236,11 +234,10 @@ namespace decode{
         dstSurfaceParams.Mode      = CODECHAL_DECODE_MODE_AVCVLD;
         dstSurfaceParams.psSurface = &m_avcBasicFeature->m_destSurface;
 
-#ifdef _MMC_SUPPORTED
         DECODE_CHK_STATUS(m_mmcState->SetSurfaceMmcState(&(m_avcBasicFeature->m_destSurface)));
         DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(dstSurfaceParams.psSurface, &dstSurfaceParams.mmcState));
         DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(dstSurfaceParams.psSurface, &dstSurfaceParams.dwCompressionFormat));
-#endif
+
         return MOS_STATUS_SUCCESS;
     }
 

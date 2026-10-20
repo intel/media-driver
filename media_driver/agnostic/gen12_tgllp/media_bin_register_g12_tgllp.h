@@ -26,14 +26,8 @@
 #define __MEDIA_BIN_REGISTER_G12_TGLLP_H__
 
 #include "igvpkrn_isa_g12_tgllp.h"
-
-#ifdef IGFX_GEN12_TGLLP_CMFC_SUPPORTED
 #include "igvpkrn_g12_tgllp_cmfc.h"
-#endif
-
-#ifdef IGFX_GEN12_TGLLP_CMFCPATCH_SUPPORTED
 #include "igvpkrn_g12_tgllp_cmfcpatch.h"
-#endif
 
 #ifdef IGFX_GEN12_TGLLP_CMFCCMLPCH_SUPPORTED
 #include "igvpkrn_g12_tgllp_cmfccmlpch.h"

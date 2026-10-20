@@ -64,6 +64,17 @@ MOS_STATUS Vp9DecodePkt::Init()
     m_allocator = m_vp9Pipeline->GetDecodeAllocator();
     DECODE_CHK_NULL(m_allocator);
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Initialize debug packet
+    DecodeSubPacket* subPacket = m_vp9Pipeline->GetSubPacket(
+        DecodePacketId(m_vp9Pipeline, vp9DebugSubPacketId));
+    m_debugPkt = dynamic_cast<Vp9DecodeDebugPkt*>(subPacket);
+    if (m_debugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_debugPkt->Init());
+    }
+#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -83,6 +94,14 @@ MOS_STATUS Vp9DecodePkt::Prepare()
 
 MOS_STATUS Vp9DecodePkt::Destroy()
 {
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Destroy debug packet
+    if (m_debugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_debugPkt->Destroy());
+    }
+#endif
+
     m_statusReport->UnregistObserver(this);
     return MOS_STATUS_SUCCESS;
 }
@@ -100,6 +119,8 @@ void Vp9DecodePkt::SetPerfTag(CODECHAL_MODE mode, uint16_t picCodingType)
 MOS_STATUS Vp9DecodePkt::AddForceWakeup(MOS_COMMAND_BUFFER& cmdBuffer)
 {
     DECODE_FUNC_CALL();
+    // NativeFence sync BB may cause preemption and ring idle, so force wakeup after it
+    DECODE_CHK_STATUS(AddNativeFenceSyncBBStartCmd(cmdBuffer));
 
     auto &par = m_miItf->GETPAR_MI_FORCE_WAKEUP();
     par                                         = {};
@@ -120,22 +141,19 @@ MOS_STATUS Vp9DecodePkt::SendPrologWithFrameTracking(MOS_COMMAND_BUFFER& cmdBuff
     DECODE_CHK_NULL(makerPacket);
     DECODE_CHK_STATUS(makerPacket->Execute(cmdBuffer));
 
-#ifdef _MMC_SUPPORTED
     DecodeMemComp *mmcState = m_vp9Pipeline->GetMmcState();
     bool isMmcEnabled = (mmcState != nullptr && mmcState->IsMmcEnabled());
     if (isMmcEnabled)
     {
         DECODE_CHK_STATUS(mmcState->SendPrologCmd(&cmdBuffer, false));
     }
-#endif
 
     MHW_GENERIC_PROLOG_PARAMS  genericPrologParams;
     MOS_ZeroMemory(&genericPrologParams, sizeof(genericPrologParams));
     genericPrologParams.pOsInterface = m_osInterface;
     genericPrologParams.pvMiInterface = nullptr;
-#ifdef _MMC_SUPPORTED
+
     genericPrologParams.bMmcEnabled = isMmcEnabled;
-#endif
 
     DECODE_CHK_STATUS(Mhw_SendGenericPrologCmdNext(&cmdBuffer, &genericPrologParams, m_miItf));
 
@@ -182,6 +200,14 @@ MOS_STATUS Vp9DecodePkt::Completed(void *mfxStatus, void *rcsStatus, void *statu
 
     DECODE_VERBOSEMESSAGE("Index = %d", statusReportData->currDecodedPic.FrameIdx);
     DECODE_VERBOSEMESSAGE("FrameCrc = 0x%x", statusReportData->frameCrc);
+
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Call debug packet completion handling for HCP debug functionality
+    if (m_debugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_debugPkt->Completed(mfxStatus));
+    }
+#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -236,12 +262,17 @@ MOS_STATUS Vp9DecodePkt::ReadHcpStatus(MediaStatusReport *statusReport, MOS_COMM
 
     DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_STORE_REGISTER_MEM(&cmdBuffer));
 
-    DECODE_CHK_STATUS(statusReport->GetAddress(decode::DecodeStatusReportType::DecFrameCrcOffset, osResource, offset));
-    par.presStoreBuffer    = osResource;
-    par.dwOffset           = offset;
-    par.dwRegister         = mmioRegistersHcp->hcpFrameCrcRegOffset;
+    // Skip CRC MMIO register read when CRC output is enabled
+    // When CRC debug mode is enabled, debug packet Execute() handles CRC data collection via HCP_MEM_DATA_ACCESS
+    if (!m_vp9Pipeline->GetMemDataAccessCrcOutputEnable())
+    {
+        DECODE_CHK_STATUS(statusReport->GetAddress(decode::DecodeStatusReportType::DecFrameCrcOffset, osResource, offset));
+        par.presStoreBuffer    = osResource;
+        par.dwOffset           = offset;
+        par.dwRegister         = mmioRegistersHcp->hcpFrameCrcRegOffset;
 
-    DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_STORE_REGISTER_MEM(&cmdBuffer));
+        DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_STORE_REGISTER_MEM(&cmdBuffer));
+    }
 
     DECODE_CHK_STATUS(statusReport->GetAddress(decode::DecodeStatusReportType::DecMBCountOffset, osResource, offset));
     par.presStoreBuffer    = osResource;
@@ -271,6 +302,11 @@ MOS_STATUS Vp9DecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* 
         DECODE_CHK_NULL(m_phase);
         StoreEngineId(cmdBuffer, decode::DecodeStatusReportType::CsEngineIdOffset_0, m_phase->GetPipe());
     }
+    // Add command counter commands for debug
+    if (m_debugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_debugPkt->AddCommandCounterCmds(*cmdBuffer, m_statusReport));
+    }
 #endif
     return MOS_STATUS_SUCCESS;
 }
@@ -279,17 +315,25 @@ MOS_STATUS Vp9DecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cm
 {
     DECODE_FUNC_CALL();
     DECODE_CHK_NULL(cmdBuffer);
+#if (_DEBUG || _RELEASE_INTERNAL)
+    // Execute debug packet BEFORE ReadHcpStatus when CRC output is enabled
+    // This ensures CRC data and MI_FLUSH commands from debug packet are inserted before status reads
+    if (m_debugPkt != nullptr)
+    {
+        DECODE_CHK_STATUS(m_debugPkt->Execute(*cmdBuffer, m_statusReport));
+    }
+#endif
     DECODE_CHK_STATUS(ReadHcpStatus(m_statusReport, *cmdBuffer));
     DECODE_CHK_STATUS(MediaPacket::EndStatusReportNext(srType, cmdBuffer));
-
+    
     MediaPerfProfiler *perfProfiler = MediaPerfProfiler::Instance();
     DECODE_CHK_NULL(perfProfiler);
     DECODE_CHK_STATUS(perfProfiler->AddPerfCollectEndCmd(
         (void*)m_vp9Pipeline, m_osInterface, m_miItf, cmdBuffer));
-
+    
     // Add Mi flush here to ensure end status tag flushed to memory earlier than completed count
     DECODE_CHK_STATUS(MiFlush(*cmdBuffer));
-
+    
     return MOS_STATUS_SUCCESS;
 }
 
@@ -300,6 +344,14 @@ MOS_STATUS Vp9DecodePkt::EnsureAllCommandsExecuted(MOS_COMMAND_BUFFER &cmdBuffer
     // Send MI_FLUSH command
     auto &par = m_miItf->GETPAR_MI_FLUSH_DW();
     par       = {};
+
+    // Add Video Pipeline Cache Invalidate when CRC output is enabled
+    if (m_vp9Pipeline && m_vp9Pipeline->GetMemDataAccessCrcOutputEnable())
+    {
+        par.bVideoPipelineCacheInvalidate = true;
+    }
+
+    DECODE_CHK_NULL(m_vp9Pipeline);
     auto *skuTable = m_vp9Pipeline->GetSkuTable();
     if (skuTable && MEDIA_IS_SKU(skuTable, FtrEnablePPCFlush))
     {

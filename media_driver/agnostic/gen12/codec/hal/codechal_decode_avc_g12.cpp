@@ -43,7 +43,7 @@ MOS_STATUS CodechalDecodeAvcG12::AllocateStandard(
     CODECHAL_DECODE_CHK_NULL_RETURN(settings);
 
     CODECHAL_DECODE_CHK_STATUS_RETURN(CodechalDecodeAvc::AllocateStandard(settings));
-#ifdef _MMC_SUPPORTED
+
     // To WA invalid aux data caused HW issue when MMC on
     // Add disable Clear CCS WA due to green corruption issue
     if (m_mmc->IsMmcEnabled())
@@ -60,7 +60,6 @@ MOS_STATUS CodechalDecodeAvcG12::AllocateStandard(
                 &stateCmdSizeParams);
         }
     }
-#endif
 
     if ( MOS_VE_SUPPORTED(m_osInterface))
     {
@@ -116,10 +115,8 @@ CodechalDecodeAvcG12::~CodechalDecodeAvcG12()
 
 MOS_STATUS CodechalDecodeAvcG12::InitMmcState()
 {
-#ifdef _MMC_SUPPORTED
     m_mmc = MOS_New(CodechalMmcDecodeAvcG12, m_hwInterface, this);
     CODECHAL_DECODE_CHK_NULL_RETURN(m_mmc);
-#endif
 
     if (m_osInterface->pfnIsMismatchOrderProgrammingSupported())
     {
@@ -276,7 +273,6 @@ MOS_STATUS CodechalDecodeAvcG12::DecodeStateLevel()
 
     CODECHAL_DECODE_FUNCTION_ENTER;
 
-#ifdef _MMC_SUPPORTED
     // To WA invalid aux data caused HW issue when MMC on
     // Add disable Clear CCS WA due to green corruption issue
     if (m_mmc->IsMmcEnabled() && m_decodeParams.m_destSurface && !Mos_ResourceIsNull(&m_decodeParams.m_destSurface->OsResource) &&
@@ -297,7 +293,6 @@ MOS_STATUS CodechalDecodeAvcG12::DecodeStateLevel()
         }
 
     }
-#endif
 
     if (m_secureDecoder)
     {
@@ -501,7 +496,6 @@ MOS_STATUS CodechalDecodeAvcG12::DecodePrimitiveLevel()
     auto decProcessingParams = (DecodeProcessingParams *)m_decodeParams.m_procParams;
     if (decProcessingParams != nullptr && !m_sfcState->m_sfcPipeOut && (m_isSecondField || m_avcPicParams->seq_fields.mb_adaptive_frame_field_flag))
     {
-#ifdef _MMC_SUPPORTED
         // To Clear invalid aux data of output surface when MMC on
         if (m_mmc && m_mmc->IsMmcEnabled() &&
             !Mos_ResourceIsNull(&decProcessingParams->m_outputSurface->OsResource) &&
@@ -511,7 +505,7 @@ MOS_STATUS CodechalDecodeAvcG12::DecodePrimitiveLevel()
             CODECHAL_DECODE_CHK_STATUS_RETURN(static_cast<CodecHalMmcStateG12 *>(m_mmc)->ClearAuxSurf(
                 this, m_miInterface, &decProcessingParams->m_outputSurface->OsResource, m_veState));
         }
-#endif
+
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_fieldScalingInterface->DoFieldScaling(
             decProcessingParams,
             m_renderContext,
@@ -604,7 +598,6 @@ MOS_STATUS CodechalDecodeAvcG12::FormatAvcMonoPicture(PMOS_SURFACE surface)
         return MOS_STATUS_INVALID_PARAMETER;
     }
 
-#ifdef _MMC_SUPPORTED
     // Initialize the UV aux data of protected surfaces before HucCopy of UV plane
     if (m_mmc && m_mmc->IsMmcEnabled() && !MEDIA_IS_WA(m_waTable, Wa_1408785368) &&
         m_secureDecoder && m_osInterface->osCpInterface->IsHMEnabled())
@@ -612,7 +605,6 @@ MOS_STATUS CodechalDecodeAvcG12::FormatAvcMonoPicture(PMOS_SURFACE surface)
         CODECHAL_DECODE_VERBOSEMESSAGE("Initialize the UV aux data for %d submission", m_frameNum);
         CODECHAL_DECODE_CHK_STATUS_RETURN(m_secureDecoder->InitAuxSurface(&surface->OsResource, true, true));
     }
-#endif
 
     return CodechalDecodeAvc::FormatAvcMonoPicture(surface);
 }

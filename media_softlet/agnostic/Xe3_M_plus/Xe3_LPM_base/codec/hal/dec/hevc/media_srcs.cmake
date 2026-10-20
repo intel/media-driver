@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Intel Corporation
+# Copyright (c) 2022-2025, Intel Corporation
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
 # copy of this software and associated documentation files (the "Software"),
@@ -22,3 +22,4 @@
 media_include_subdirectory(pipeline)
 media_include_subdirectory(packet)
 media_include_subdirectory(mmc)
+media_include_subdirectory(features)

@@ -113,6 +113,7 @@ MOS_STATUS SurfaceStateHeapManager::DestroyHeap()
                 m_osInterface->pfnUnlockResource(
                     m_osInterface,
                     &m_surfStateHeap->osResource);
+                m_surfStateHeap->pLockedOsResourceMem = nullptr;
             }
 
             m_osInterface->pfnFreeResource(
@@ -156,6 +157,10 @@ void SurfaceStateHeapManager::RefreshSync()
     {
         dwCurrentTag = pSurfStateHeap->pSync[0];
     }
+    if (dwCurrentTag < 1)
+    {
+        return;
+    }
     pSurfStateHeap->dwSyncTag = dwCurrentTag - 1;
 
     NullRenderingFlags = m_osInterface->pfnGetNullHWRenderFlags(
@@ -184,7 +189,7 @@ void SurfaceStateHeapManager::RefreshSync()
     m_surfHeapInUse = iInstanceInUse;
 }
 
-MOS_STATUS SurfaceStateHeapManager::AssignSurfaceState()
+MOS_STATUS SurfaceStateHeapManager::AssignSurfaceState(uint32_t surfaceStateEntryIndex, uint32_t &offset, uint8_t *&curSurfaceStatePtr, PMOS_RESOURCE &stateHeap, int32_t &surfaceStateIndex)
 {
     VP_FUNC_CALL();
 
@@ -193,7 +198,6 @@ MOS_STATUS SurfaceStateHeapManager::AssignSurfaceState()
 
     SURFACE_STATES_OBJ      *pSurfStateCurObj;
     SURFACE_STATES_HEAP_OBJ *pSurfStateHeap;
-    uint32_t                 uiOffset;
 
     MHW_FUNCTION_ENTER;
     MHW_CHK_NULL_RETURN(m_surfStateHeap);
@@ -264,8 +268,28 @@ MOS_STATUS SurfaceStateHeapManager::AssignSurfaceState()
     pSurfStateHeap->uiNextState = (pSurfStateHeap->uiNextState + 1) % MAX_SURFACE_STATES;
 
     //Clean the memory of current veboxheap to avoid the history states
-    uiOffset = pSurfStateHeap->uiCurState * pSurfStateHeap->uiInstanceSize;
-    MOS_ZeroMemory(pSurfStateHeap->pLockedOsResourceMem + uiOffset, pSurfStateHeap->uiInstanceSize);
+    offset = pSurfStateHeap->uiCurState * pSurfStateHeap->uiInstanceSize;
+    MOS_ZeroMemory(pSurfStateHeap->pLockedOsResourceMem + offset, pSurfStateHeap->uiInstanceSize);
+
+    curSurfaceStatePtr = pSurfStateHeap->pLockedOsResourceMem + offset;
+    stateHeap          = &pSurfStateHeap->osResource;
+    surfaceStateIndex  = pSurfStateHeap->uiCurState;
+
+    m_usedStates.insert(std::make_pair(surfaceStateIndex, surfaceStateEntryIndex));
 
     return eStatus;
+}
+
+MOS_STATUS SurfaceStateHeapManager::GetSurfaceStateSize(uint32_t& size)
+{
+    MHW_CHK_NULL_RETURN(m_surfStateHeap);
+    size = m_surfStateHeap->uiInstanceSize;
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS SurfaceStateHeapManager::GetSurfaceStateBasePtr(uint8_t*& ptr)
+{
+    MHW_CHK_NULL_RETURN(m_surfStateHeap);
+    ptr = m_surfStateHeap->pLockedOsResourceMem;
+    return MOS_STATUS_SUCCESS;
 }

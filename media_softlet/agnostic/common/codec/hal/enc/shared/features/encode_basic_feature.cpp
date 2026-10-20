@@ -95,6 +95,20 @@ MOS_STATUS EncodeBasicFeature::Init(void *setting)
     m_enableTileStitchByHW = outValue.Get<bool>();
 
 
+#if (_DEBUG || _RELEASE_INTERNAL)
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        m_disableTileBToTile4,
+        "DisableTilebToTile4",
+        MediaUserSetting::Group::Sequence);
+
+    ReadUserSettingForDebug(
+        m_userSettingPtr,
+        m_forceTile64ReconToTile4,
+        "ForceTile64ReconSurfaceToTile4",
+        MediaUserSetting::Group::Sequence);
+#endif
+
     if (m_osInterface != nullptr)
     {
         //If Wa_16025947269 is set, disable chroma prefetch
@@ -137,7 +151,7 @@ MOS_STATUS EncodeBasicFeature::Update(void *params)
 
     ENCODE_CHK_NULL_RETURN(encodeParams->psRawSurface);
     m_rawSurface           = *(encodeParams->psRawSurface);           // used by all
-    m_allocator->GetSurfaceInfo(&m_rawSurface);
+    ENCODE_CHK_STATUS_RETURN(m_allocator->GetSurfaceInfo(&m_rawSurface));
     ENCODE_CHK_STATUS_RETURN(m_allocator->UpdateResourceUsageType(&m_rawSurface.OsResource, MOS_HW_RESOURCE_USAGE_ENCODE_INPUT_RAW));
 
     ENCODE_CHK_NULL_RETURN(encodeParams->presBitstreamBuffer);
@@ -146,11 +160,17 @@ MOS_STATUS EncodeBasicFeature::Update(void *params)
     m_resMetadataBuffer    = (encodeParams->presMetadataBuffer);
     m_metaDataOffset       = encodeParams->metaDataOffset;
 
+    m_laDataBufferEnabled = encodeParams->bLaDataBufferEnabled;
+    if (encodeParams->bLaDataBufferEnabled)
+    {
+        m_LaDataBuffer = (encodeParams->presLaDataBuffer);
+    }
+    
     // Get resource details of the bitstream resource
     MOS_SURFACE bsSurface;
     MOS_ZeroMemory(&bsSurface, sizeof(bsSurface));
     bsSurface.OsResource = m_resBitstreamBuffer;
-    m_allocator->GetSurfaceInfo(&bsSurface);
+    ENCODE_CHK_STATUS_RETURN(m_allocator->GetSurfaceInfo(&bsSurface));
     ENCODE_CHK_STATUS_RETURN(m_allocator->UpdateResourceUsageType(&m_resBitstreamBuffer, MOS_HW_RESOURCE_USAGE_ENCODE_OUTPUT_BITSTREAM));
 
     m_bitstreamSize = encodeParams->dwBitstreamSize = bsSurface.dwHeight * bsSurface.dwWidth;
@@ -162,11 +182,15 @@ MOS_STATUS EncodeBasicFeature::Update(void *params)
     }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
-    ReportUserSettingForDebug(
-        m_userSettingPtr,
-        "Encode Raw Surface Tile",
-        m_rawSurface.TileType,
-        MediaUserSetting::Group::Sequence);
+    if (m_rawSurfaceTileTypeReported != (int32_t)m_rawSurface.TileType)
+    {
+        ReportUserSettingForDebug(
+            m_userSettingPtr,
+            "Encode Raw Surface Tile",
+            m_rawSurface.TileType,
+            MediaUserSetting::Group::Sequence);
+        m_rawSurfaceTileTypeReported = (int32_t)m_rawSurface.TileType;
+    }
 #endif
 
     m_rawSurfaceToEnc     =

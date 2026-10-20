@@ -1862,6 +1862,8 @@ namespace xe_lpm_plus_base_next
             static const size_t byteSize = 20;
         };
 
+        typedef MI_SEMAPHORE_WAIT_CMD MI_SEMAPHORE_WAIT_64_CMD;
+
         //!
         //! \brief MI_CONDITIONAL_BATCH_BUFFER_END
         //! \details

@@ -92,10 +92,8 @@ MOS_STATUS AvcDecodePicPkt::Prepare()
 
     m_avcPicParams = m_avcBasicFeature->m_avcPicParams;
 
-#ifdef _MMC_SUPPORTED
     m_mmcState = m_avcPipeline->GetMmcState();
     DECODE_CHK_NULL(m_mmcState);
-#endif
 
     DECODE_CHK_STATUS(SetRowstoreCachingOffsets());
 
@@ -260,7 +258,7 @@ MHW_SETPAR_DECL_SRC(MFX_SURFACE_STATE, AvcDecodePicPkt)
 {
     uint32_t uvPlaneAlignment = MHW_VDBOX_MFX_RECON_UV_PLANE_ALIGNMENT;
     params.psSurface          = &m_avcBasicFeature->m_destSurface;
-    params.tilemode           = m_mfxItf->MosGetHWTileType(params.psSurface->TileType, params.psSurface->TileModeGMM, params.psSurface->bGMMTileEnabled);
+    params.tilemode           = MhwGetHwTileType(params.psSurface->TileType, params.psSurface->TileModeGMM, params.psSurface->bGMMTileEnabled);
     params.height             = params.psSurface->dwHeight - 1;
     params.width              = params.psSurface->dwWidth - 1;
     params.surfacePitch       = params.psSurface->dwPitch - 1;
@@ -289,11 +287,10 @@ MHW_SETPAR_DECL_SRC(MFX_SURFACE_STATE, AvcDecodePicPkt)
     params.yOffsetForVCr = MOS_ALIGN_CEIL((params.psSurface->VPlaneOffset.iSurfaceOffset - params.psSurface->dwOffset) /
         params.psSurface->dwPitch + params.psSurface->RenderOffset.YUV.V.YOffset, uvPlaneAlignment);
 
-#ifdef _MMC_SUPPORTED
     DECODE_CHK_STATUS(m_mmcState->SetSurfaceMmcState(&(m_avcBasicFeature->m_destSurface)));
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcState(params.psSurface, &params.mmcState));
     DECODE_CHK_STATUS(m_mmcState->GetSurfaceMmcFormat(&m_avcBasicFeature->m_destSurface, &params.compressionFormat));
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 
@@ -336,9 +333,9 @@ MHW_SETPAR_DECL_SRC(MFX_PIPE_BUF_ADDR_STATE, AvcDecodePicPkt)
     }
     DECODE_CHK_STATUS(FixMfxPipeBufAddrParams());
     params.references = params.presReferences;
-#ifdef _MMC_SUPPORTED
+
     DECODE_CHK_STATUS(SetSurfaceMmcState());
-#endif
+
     return MOS_STATUS_SUCCESS;
 }
 

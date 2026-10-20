@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2021, Intel Corporation
+* Copyright (c) 2021-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -39,6 +39,55 @@ struct _MHW_BATCH_BUFFER;
 
 typedef struct _MHW_RCS_SURFACE_PARAMS MHW_RCS_SURFACE_PARAMS, * PMHW_RCS_SURFACE_PARAMS;
 typedef struct _MHW_BATCH_BUFFER MHW_BATCH_BUFFER, * PMHW_BATCH_BUFFER;
+
+inline uint32_t MhwGetHwTileType(MOS_TILE_TYPE tileType, MOS_TILE_MODE_GMM tileModeGMM, bool gmmTileEnabled)
+{
+    if (gmmTileEnabled)
+    {
+        return tileModeGMM;
+    }
+
+    switch (tileType)
+    {
+    case MOS_TILE_LINEAR:
+        return 0;
+    case MOS_TILE_YS:
+        return 1;
+    case MOS_TILE_X:
+    case MOS_TILE_B:
+        return 2;
+    default:
+        return 3;
+    }
+}
+
+//!
+//! \brief    Resolve the HW tile-mode value with the encode reference/recon overrides applied.
+//! \details  Precedence: (1) the Tile64->Tile4 force (non-420-8bit encode refs, keyed on the
+//!           caller-supplied forceTile64ReconToTile4 flag + MOS_TILE_64_GMM); (2) the legacy
+//!           TileB->Tile4 workaround (keyed on overrideTileBToTile4 + MOS_TILE_B); otherwise the
+//!           plain MhwGetHwTileType result. Both override flags default false at every call site
+//!           and are set true only by encode producers, so a decode call (both flags false)
+//!           returns exactly MhwGetHwTileType(...) — decode output is byte-identical. The helper
+//!           never inspects the surface tile itself; the caller-supplied flags are the only gate.
+//!
+inline uint32_t MhwGetHwTileTypeWithOverride(
+    MOS_TILE_TYPE     tileType,
+    MOS_TILE_MODE_GMM tileModeGMM,
+    bool              gmmTileEnabled,
+    bool              forceTile64ReconToTile4,
+    bool              overrideTileBToTile4)
+{
+    if (forceTile64ReconToTile4 && tileModeGMM == MOS_TILE_64_GMM)
+    {
+        return MOS_TILE_4_GMM;  // new Tile64 policy: non-420-8bit encode refs forced to Tile4
+    }
+    if (overrideTileBToTile4 && tileType == MOS_TILE_B)
+    {
+        return MOS_TILE_4_GMM;  // legacy TileB workaround (unchanged)
+    }
+    return MhwGetHwTileType(tileType, tileModeGMM, gmmTileEnabled);
+}
 
 #define MHW_CACHELINE_SIZE      64
 #define MHW_PAGE_SIZE           0x1000
@@ -106,59 +155,100 @@ typedef struct _MHW_BATCH_BUFFER MHW_BATCH_BUFFER, * PMHW_BATCH_BUFFER;
 //------------------------------------------------------------------------------
 // Macros specific to MOS_CODEC_SUBCOMP_HW sub-comp
 //------------------------------------------------------------------------------
+#ifndef MHW_ASSERT
 #define MHW_ASSERT(_expr)                                                       \
     MOS_ASSERT(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _expr)
+#endif
 
+#ifndef MHW_ASSERTMESSAGE
 #define MHW_ASSERTMESSAGE(_message, ...)                                        \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _message, ##__VA_ARGS__)
+#endif
 
+#ifndef MHW_WARNINGMESSAGE
+#define MHW_WARNINGMESSAGE(_message, ...)                                       \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _message, ##__VA_ARGS__)
+#endif
+
+#ifndef MHW_NORMALMESSAGE
 #define MHW_NORMALMESSAGE(_message, ...)                                        \
     MOS_NORMALMESSAGE(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _message, ##__VA_ARGS__)
+#endif
 
+#ifndef MHW_VERBOSEMESSAGE
 #define MHW_VERBOSEMESSAGE(_message, ...)                                       \
     MOS_VERBOSEMESSAGE(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _message, ##__VA_ARGS__)
+#endif
 
+#ifndef MHW_FUNCTION_ENTER
 #define MHW_FUNCTION_ENTER                                                      \
     MOS_FUNCTION_ENTER(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL)
+#endif
 
+#ifndef MHW_FUNCTION_EXIT
 #define MHW_FUNCTION_EXIT                                                      \
     MOS_FUNCTION_EXIT(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, eStatus)
+#endif
 
+#ifndef MHW_CHK_STATUS
 #define MHW_CHK_STATUS(_stmt)                                                   \
     MOS_CHK_STATUS(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _stmt)
+#endif
 
+#ifndef MHW_CHK_STATUS_RETURN
 #define MHW_CHK_STATUS_RETURN(_stmt)                                            \
     MOS_CHK_STATUS_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _stmt)
+#endif
 
+#ifndef MHW_CHK_STATUS_MESSAGE
 #define MHW_CHK_STATUS_MESSAGE(_stmt, _message, ...)                        \
     MOS_CHK_STATUS_MESSAGE(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _stmt, _message, ##__VA_ARGS__)
+#endif
 
+#ifndef MHW_CHK_NULL
 #define MHW_CHK_NULL(_ptr)                                                      \
     MOS_CHK_NULL(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _ptr)
+#endif
 
+#ifndef MHW_CHK_NULL_NO_STATUS
 #define MHW_CHK_NULL_NO_STATUS(_ptr)                                            \
     MOS_CHK_NULL_NO_STATUS(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _ptr)
+#endif
 
+#ifndef MHW_CHK_NULL_NO_STATUS_RETURN
 #define MHW_CHK_NULL_NO_STATUS_RETURN(_ptr) \
     MOS_CHK_NULL_NO_STATUS_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _ptr)
+#endif
 
+#ifndef MHW_CHK_COND
 #define MHW_CHK_COND(_condition,  _message, ...)                                \
     MOS_CHK_COND_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, (_condition),  (_message),  ##__VA_ARGS__)
+#endif
 
+#ifndef MHW_CHK_NULL_RETURN
 #define MHW_CHK_NULL_RETURN(_ptr)                                                      \
     MOS_CHK_NULL_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _ptr)
+#endif
 
+#ifndef MHW_CHK_STATUS_RETURN
 #define MHW_CHK_STATUS_RETURN(_stmt)                                                   \
     MOS_CHK_STATUS_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _stmt)
+#endif
 
+#ifndef MHW_MI_CHK_STATUS
 #define MHW_MI_CHK_STATUS(_stmt)                                               \
     MOS_CHK_STATUS_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _stmt)
+#endif
 
+#ifndef MHW_MI_CHK_STATUS_MESSAGE
 #define MHW_MI_CHK_STATUS_MESSAGE(_stmt, _message, ...)                        \
     MOS_CHK_STATUS_MESSAGE_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _stmt, _message, ##__VA_ARGS__)
+#endif
 
+#ifndef MHW_MI_CHK_NULL
 #define MHW_MI_CHK_NULL(_ptr)                                                  \
     MOS_CHK_NULL_RETURN(MOS_COMPONENT_HW, MOS_HW_SUBCOMP_ALL, _ptr)
+#endif
 
 enum GFX_OPCODE
 {
@@ -514,6 +604,11 @@ typedef union _MHW_MEMORY_OBJECT_CONTROL_PARAMS
         uint32_t : 25;
     } Gen9, Gen10, Gen11, Gen12, Gen12_5, Gen12_7;
     uint32_t       Value;
+
+    _MHW_MEMORY_OBJECT_CONTROL_PARAMS()
+    {
+        Value = 0;
+    }
 } MHW_MEMORY_OBJECT_CONTROL_PARAMS, * PMHW_MEMORY_OBJECT_CONTROL_PARAMS;
 
 typedef struct _MHW_RENDER_PWR_CLK_STATE_PARAMS
@@ -603,6 +698,23 @@ typedef struct _MHW_MOCS_PARAMS
     uint8_t  bitFieldHigh;
 } MHW_MOCS_PARAMS;
 
+struct MHW_INDIRECT_STATE_RESOURCE_PARAMS
+{
+    PMOS_RESOURCE stateHeap      = nullptr;
+    uint8_t      *stateBasePtr   = nullptr;
+    uint32_t      stateOffset    = 0;
+    PMOS_RESOURCE resource       = nullptr;
+    uint32_t      resourceOffset = 0;
+    bool          isWrite        = false;
+#if MOS_COMMAND_BUFFER_DUMP_SUPPORTED
+    bool        needDump        = false;
+    uint32_t    dumpSize        = 0;
+    const char *dumpName        = nullptr;
+    uint8_t    *resourceBasePtr = nullptr;
+#endif
+};
+using PMHW_INDIRECT_STATE_RESOURCE_PARAMS = MHW_INDIRECT_STATE_RESOURCE_PARAMS*;
+
 typedef struct _MHW_RESOURCE_PARAMS
 {
     PMOS_RESOURCE                       presResource;
@@ -665,6 +777,11 @@ MOS_STATUS Mhw_SurfaceFormatToType(
     uint32_t                    dwForceSurfaceFormat,
     PMOS_SURFACE                psSurface,
     uint32_t* pdwSurfaceType);
+
+MOS_STATUS Mhw_SendNativeFenceSyncBBStartCmd(
+    PMOS_COMMAND_BUFFER           pCmdBuffer,
+    PMOS_INTERFACE                pOsInterface,
+    std::shared_ptr<void>         pMiItf);
 
 MOS_STATUS Mhw_SendGenericPrologCmdNext(
     PMOS_COMMAND_BUFFER           pCmdBuffer,

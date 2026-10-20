@@ -411,6 +411,64 @@ int32_t AvcReferenceFrames::GetBiWeight(
     return biWeight;
 }
 
+#if USE_CODECHAL_DEBUG_TOOL
+MOS_STATUS AvcReferenceFrames::DumpReferences(CodechalDebugInterface &debugInterface)
+{
+    ENCODE_FUNC_CALL();
+
+    if (m_pictureCodingType == I_TYPE)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
+    for (uint8_t refIdx = 0; refIdx <= m_basicFeature->m_sliceParams->num_ref_idx_l0_active_minus1; refIdx++)
+    {
+        auto refPic = m_basicFeature->m_sliceParams->RefPicList[LIST_0][refIdx];
+        if (!CodecHal_PictureIsInvalid(refPic) && m_picIdx[refPic.FrameIdx].bValid)
+        {
+            auto refPicIdx = m_picIdx[refPic.FrameIdx].ucPicIdx;
+            ENCODE_CHK_STATUS_RETURN(debugInterface.DumpYUVSurface(
+                &m_refList[refPicIdx]->sRefReconBuffer,
+                CodechalDbgAttr::attrReferenceSurfaces,
+                ("RefSurfL0" + std::to_string((int)refIdx)).c_str()));
+
+            uint8_t scaledIdx        = m_refList[refPicIdx]->ucScalingIdx;
+            auto    vdenc4xDsSurface = m_basicFeature->m_trackedBuf->GetSurface(BufferType::ds4xSurface, scaledIdx);
+            ENCODE_CHK_STATUS_RETURN(debugInterface.DumpYUVSurface(
+                vdenc4xDsSurface,
+                CodechalDbgAttr::attrReferenceSurfaces,
+                ("4xDsRefSurfL0" + std::to_string((int)refIdx)).c_str()));
+        }
+    }
+
+    if (m_pictureCodingType == B_TYPE)
+    {
+        for (uint8_t refIdx = 0; refIdx <= m_basicFeature->m_sliceParams->num_ref_idx_l1_active_minus1; refIdx++)
+        {
+            auto refPic = m_basicFeature->m_sliceParams->RefPicList[LIST_1][refIdx];
+
+            if (!CodecHal_PictureIsInvalid(refPic) && m_picIdx[refPic.FrameIdx].bValid)
+            {
+                auto refPicIdx = m_picIdx[refPic.FrameIdx].ucPicIdx;
+                ENCODE_CHK_STATUS_RETURN(debugInterface.DumpYUVSurface(
+                    &m_refList[refPicIdx]->sRefReconBuffer,
+                    CodechalDbgAttr::attrReferenceSurfaces,
+                    ("RefSurfL1" + std::to_string((int)refIdx)).c_str()));
+
+                uint8_t scaledIdx        = m_refList[refPicIdx]->ucScalingIdx;
+                auto    vdenc4xDsSurface = m_basicFeature->m_trackedBuf->GetSurface(BufferType::ds4xSurface, scaledIdx);
+                ENCODE_CHK_STATUS_RETURN(debugInterface.DumpYUVSurface(
+                    vdenc4xDsSurface,
+                    CodechalDbgAttr::attrReferenceSurfaces,
+                    ("4xDsRefSurfL1" + std::to_string((int)refIdx)).c_str()));
+            }
+        }
+    }
+
+    return MOS_STATUS_SUCCESS;
+}
+#endif
+
 MOS_STATUS AvcReferenceFrames::SetFrameStoreIds(uint8_t frameIdx)
 {
     uint8_t invalidFrame = (m_basicFeature->m_mode == CODECHAL_DECODE_MODE_AVCVLD) ? 0x7f : 0x1f;
@@ -564,16 +622,31 @@ MHW_SETPAR_DECL_SRC(VDENC_AVC_IMG_STATE, AvcReferenceFrames)
 
         MHW_CHK_STATUS_RETURN(slcParams->num_ref_idx_l0_active_minus1 > 2);
         uint8_t fwdRefIdx[3] = {0xf, 0xf, 0xf};
+        uint8_t fwdRefFieldType[3] = {0, 0, 0};
         for (auto i = 0; i < slcParams->num_ref_idx_l0_active_minus1 + 1; i++)
         {
             auto id = slcParams->RefPicList[LIST_0][i].FrameIdx;
             id = m_picIdx[id].ucPicIdx;
             fwdRefIdx[i] = m_refList[id]->ucFrameId;
-            refPoc[0][i] = (uint8_t)m_refList[id]->iFieldOrderCnt[0];
+
+            if (slcParams->RefPicList[LIST_0][i].PicFlags == PICTURE_TOP_FIELD) {
+                refPoc[0][i] = (uint8_t)m_refList[id]->iFieldOrderCnt[0];
+                fwdRefFieldType[i] = 0;
+            } else if (slcParams->RefPicList[LIST_0][i].PicFlags == PICTURE_BOTTOM_FIELD) {
+                refPoc[0][i] = (uint8_t)m_refList[id]->iFieldOrderCnt[1];
+                fwdRefFieldType[i] = 1;
+            } else {
+                refPoc[0][i] = (uint8_t)m_refList[id]->iFieldOrderCnt[0];
+                fwdRefFieldType[i] = 0;
+            }
         }
         params.fwdRefIdx0ReferencePicture = fwdRefIdx[0];
         params.fwdRefIdx1ReferencePicture = fwdRefIdx[1];
         params.fwdRefIdx2ReferencePicture = fwdRefIdx[2];
+
+        params.fwdRefIdx0FieldType = fwdRefFieldType[0];
+        params.fwdRefIdx1FieldType = fwdRefFieldType[1];
+        params.fwdRefIdx2FieldType = fwdRefFieldType[2];
 
         if (picParams->CodingType == B_TYPE)
         {
@@ -585,7 +658,17 @@ MHW_SETPAR_DECL_SRC(VDENC_AVC_IMG_STATE, AvcReferenceFrames)
             }             
             id = m_picIdx[id].ucPicIdx;
             params.bwdRefIdx0ReferencePicture = m_refList[id]->ucFrameId;
-            refPoc[1][0] = (uint8_t)m_refList[id]->iFieldOrderCnt[0];
+
+            if (slcParams->RefPicList[LIST_1][0].PicFlags == PICTURE_TOP_FIELD) {
+                refPoc[1][0] = (uint8_t)m_refList[id]->iFieldOrderCnt[0];
+                params.bwdRefIdx0FieldType = 0;
+            } else if (slcParams->RefPicList[LIST_1][0].PicFlags == PICTURE_BOTTOM_FIELD) {
+                refPoc[1][0] = (uint8_t)m_refList[id]->iFieldOrderCnt[1];
+                params.bwdRefIdx0FieldType = 1;
+            } else {
+                refPoc[1][0] = (uint8_t)m_refList[id]->iFieldOrderCnt[0];
+                params.bwdRefIdx0FieldType = 0;
+            }
         }
     }
 

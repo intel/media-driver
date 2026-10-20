@@ -262,7 +262,7 @@ namespace decode
             {
                 uint8_t refPicIdx = m_curSliceParams->m_refPicList[0][refIdx].FrameIdx;
 
-                if (m_vvcPicParams->m_refFramePocList[refPicIdx] > currPOC)
+                if (refPicIdx < vvcMaxNumRefFrame && m_vvcPicParams->m_refFramePocList[refPicIdx] > currPOC)
                 {
                     lowDelay = false;
                 }
@@ -272,7 +272,7 @@ namespace decode
                 for (refIdx = 0; refIdx < m_curSliceParams->m_numRefIdxActive[1] && lowDelay; refIdx++)
                 {
                     uint8_t refPicIdx = m_curSliceParams->m_refPicList[1][refIdx].FrameIdx;
-                    if (m_vvcPicParams->m_refFramePocList[refPicIdx] > currPOC)
+                    if (refPicIdx < vvcMaxNumRefFrame && m_vvcPicParams->m_refFramePocList[refPicIdx] > currPOC)
                     {
                         lowDelay = false;
                     }

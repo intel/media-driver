@@ -231,12 +231,14 @@ typedef enum _MOS_HW_RESOURCE_DEF
     MOS_HW_RESOURCE_USAGE_CP_EXTERNAL_READ,
     MOS_HW_RESOURCE_USAGE_CP_INTERNAL_WRITE,
 
+    //Fence barrier
+    MOS_HW_RESOURCE_USAGE_UMD_SCOPED_FENCE_BUFFER,
     // PAT Media Usages END
 
     // always last one
     MOS_HW_RESOURCE_DEF_MAX
 } MOS_HW_RESOURCE_DEF;
-C_ASSERT(MOS_HW_RESOURCE_DEF_MAX == 174); //!< update this and Mos_CachePolicyGetMemoryObject_XXX()
+C_ASSERT(MOS_HW_RESOURCE_DEF_MAX == 175); //!< update this and Mos_CachePolicyGetMemoryObject_XXX()
 
 //!
 //! \brief Enum allow callers to specify a command streamer.
@@ -302,6 +304,7 @@ typedef enum MOS_HW_COMMAND_ENUM
     MOS_MFX_CC_BASE_ADDR_STATE,
     MOS_VEBOX_SURFACE_STATE,
     MOS_OCA_RESERVED,
+    MOS_BINDLESS_STATELESS_SURFACE,
     MOS_HW_COMMAND_MAX
 } MOS_HW_COMMAND;
 C_ASSERT(MOS_HW_COMMANDS == 16); //!< update this and Mos_GetUseGlobalGtt_XXX()

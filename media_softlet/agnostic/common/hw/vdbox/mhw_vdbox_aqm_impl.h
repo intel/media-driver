@@ -31,7 +31,7 @@
 #include "mhw_vdbox_aqm_itf.h"
 #include "mhw_impl.h"
 
-#ifdef IGFX_AQM_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #include "mhw_vdbox_aqm_hwcmd_ext.h"
 #include "mhw_vdbox_aqm_cmdpar_ext.h"
 #include "mhw_vdbox_aqm_impl_ext.h"
@@ -135,7 +135,7 @@ protected:
 
             cmd.SourcePixelsFrameBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.mmcStateRawSurf);
             cmd.SourcePixelsFrameBufferAddressAttributes.DW0.CompressionType                    = MmcRcEnabled(params.mmcStateRawSurf);
-            cmd.SourcePixelsFrameBufferAddressAttributes.DW0.Tilemode                           = GetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+            cmd.SourcePixelsFrameBufferAddressAttributes.DW0.Tilemode                           = MhwGetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
 
             resourceParams.presResource    = params.surfaceRawBuffer;
             resourceParams.dwOffset        = 0;
@@ -167,7 +167,9 @@ protected:
 
             cmd.ReconstructedPixelsFrameBufferAddressAttributes.DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.mmcStateReconSurf);
             cmd.ReconstructedPixelsFrameBufferAddressAttributes.DW0.CompressionType                    = MmcRcEnabled(params.mmcStateReconSurf);
-            cmd.ReconstructedPixelsFrameBufferAddressAttributes.DW0.Tilemode                           = GetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+            cmd.ReconstructedPixelsFrameBufferAddressAttributes.DW0.Tilemode                           = MhwGetHwTileTypeWithOverride(
+                details.TileType, details.TileModeGMM, details.bGMMTileEnabled,
+                params.forceTile64ReconToTile4, params.overrideTileBToTile4);
 
             resourceParams.presResource    = params.surfaceReconBuffer;
             resourceParams.dwOffset        = 0;
@@ -227,7 +229,7 @@ protected:
 
             cmd.AQM_PIPE_BUF_ADDR_STATE_DW30.DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.AqmPipeBufAddrStatePar3);
             cmd.AQM_PIPE_BUF_ADDR_STATE_DW30.DW0.CompressionType                    = MmcRcEnabled(params.AqmPipeBufAddrStatePar3);
-            cmd.AQM_PIPE_BUF_ADDR_STATE_DW30.DW0.Tilemode                           = GetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+            cmd.AQM_PIPE_BUF_ADDR_STATE_DW30.DW0.Tilemode                           = MhwGetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
 
             resourceParams.presResource    = params.AqmPipeBufAddrStatePar2;
             resourceParams.dwOffset        = 0;
@@ -261,7 +263,7 @@ protected:
 
                 AqmCmdArr2Attributes[depth]->DW0.BaseAddressMemoryCompressionEnable = MmcEnabled(params.AqmPipeBufAddrStatePar5[depth]);
                 AqmCmdArr2Attributes[depth]->DW0.CompressionType                    = MmcRcEnabled(params.AqmPipeBufAddrStatePar5[depth]);
-                AqmCmdArr2Attributes[depth]->DW0.Tilemode                           = GetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
+                AqmCmdArr2Attributes[depth]->DW0.Tilemode                           = MhwGetHwTileType(details.TileType, details.TileModeGMM, details.bGMMTileEnabled);
 
                 resourceParams.presResource    = params.AqmPipeBufAddrStatePar4[depth];
                 resourceParams.dwOffset        = 0;
@@ -311,6 +313,7 @@ protected:
 #include "mhw_hwcmd_process_cmdfields.h"
     }
 
+#ifdef _MEDIA_RESERVED
     _MHW_SETCMD_OVERRIDE_DECL(AQM_HIST_STATE)
     {
         _MHW_SETCMD_CALLBASE(AQM_HIST_STATE);
@@ -343,7 +346,7 @@ protected:
         {
             cmd.AQMYChannelHistogramOutputAddressAttributes.DW0.BaseAddressIndexToMemoryObjectControlStateMocsTables = 1;  //TODO: change to below line when enabling GMM Cacheability for HW resources; this->m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_AVP_CDF_INIT_CODEC].Value;
 
-            resourceParams.presResource                                                                      = params.AqmYChannelHistogramOutputBuffer;
+            resourceParams.presResource    = params.AqmYChannelHistogramOutputBuffer;
             resourceParams.dwOffset        = 0;
             resourceParams.pdwCmd          = (cmd.AQMYChannelHistogramOutputAddress.DW0_1.Value);
             resourceParams.dwLocationInCmd = _MHW_CMD_DW_LOCATION(AQMYChannelHistogramOutputAddress);
@@ -458,6 +461,7 @@ protected:
 
         #include "mhw_hwcmd_process_cmdfields.h"
     }
+#endif //_MEDIA_RESERVED
 
     _MHW_SETCMD_OVERRIDE_DECL(AQM_VD_CONTROL_STATE)
     {

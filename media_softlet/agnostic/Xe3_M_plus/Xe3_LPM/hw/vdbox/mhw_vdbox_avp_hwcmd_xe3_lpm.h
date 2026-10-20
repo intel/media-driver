@@ -32,12 +32,17 @@
 #define __MHW_VDBOX_AVP_HWCMD_XE3_LPM_H__
 
 #pragma once
-#pragma pack(1)
-
 #include "mhw_hwcmd.h"
 #include <cstdint>
 #include <cstddef>
 #include "media_class_trace.h"
+
+
+#pragma pack(1)
+
+#ifdef _MEDIA_RESERVED
+#include "mhw_vdbox_avp_hwcmd_ext.h"
+#endif
 
 namespace mhw
 {
@@ -792,7 +797,7 @@ public:
                 uint32_t                 Reserved1650                                     : __CODEGEN_BITFIELD(18, 24)    ; //!< Reserved
                 uint32_t                 FrameszoverstatusenFramebitratemaxreportmask     : __CODEGEN_BITFIELD(25, 25)    ; //!< FRAMESZOVERSTATUSEN_FRAMEBITRATEMAXREPORTMASK
                 uint32_t                 FrameszunderstatusenFramebitrateminreportmask    : __CODEGEN_BITFIELD(26, 26)    ; //!< FRAMESZUNDERSTATUSEN_FRAMEBITRATEMINREPORTMASK
-                uint32_t                 RhoDomainStreamoutEnableFlag                     : __CODEGEN_BITFIELD(27, 27)    ; //!< Rho Domain Streamout Enable Flag
+                uint32_t                 AVP_PIC_STATE_DW51_BIT27                         : __CODEGEN_BITFIELD(27, 27)    ; //!< Rho Domain Streamout Enable Flag
                 uint32_t                 Reserved1660                                     : __CODEGEN_BITFIELD(28, 31)    ; //!< Reserved
             };
             uint32_t                     Value;
@@ -906,7 +911,7 @@ public:
         {
             struct
             {
-                uint32_t                 RhoDomainQp                                      : __CODEGEN_BITFIELD( 0,  7)    ; //!< Rho Domain QP
+                uint32_t                 AVP_PIC_STATE_DW75_BIT0                          : __CODEGEN_BITFIELD( 0,  7)    ; //!< 
                 uint32_t                 Reserved8                                        : __CODEGEN_BITFIELD( 8, 31)    ; //!< Reserved MBZ
             };
             uint32_t                     Value;
@@ -2200,8 +2205,22 @@ public:
         MEMORYADDRESSATTRIBUTES_CMD              SSETileLineReadWriteBufferAddressAttributes;                             //!< DW208, SSE Tile Line Read/Write Buffer Address Attributes
         SPLITBASEADDRESS64BYTEALIGNED_CMD        PostCDEFpixelsBufferAddress;                                             //!< DW209..210, PostCDEF pixels Buffer Address
         MEMORYADDRESSATTRIBUTES_CMD              PostCDEFpixelsBufferAddressAttributes;                                   //!< DW211, PostCDEF pixels Buffer Address Attributes
-        SPLITBASEADDRESS64BYTEALIGNED_CMD        RhoDomainThresholdsBufferAddress;                                        //!< DW212..213, Rho Domain Thresholds Buffer Address
-        MEMORYADDRESSATTRIBUTES_CMD              RhoDomainThresholdsBufferAddressAttributes;                              //!< DW214, Rho Domain Thresholds Buffer Address Attributes
+        union
+        {
+            struct
+            {
+                uint64_t                 Reserved6784                                                                     ; //!< Reserved
+            };
+            uint32_t                     Value[2];
+        } DW212_213;
+        union
+        {
+            struct
+            {
+                uint32_t                 Rererved                                                                         ; //!< Rererved
+            };
+            uint32_t                     Value;
+        } DW214;
 
         //! \name Local enumerations
 
@@ -2249,6 +2268,10 @@ public:
             memset(&Reserved5824, 0, sizeof(Reserved5824));
 
             memset(&Reserved5920, 0, sizeof(Reserved5920));
+
+            DW212_213.Value[0] = DW212_213.Value[1]          = 0x00000000;
+
+            DW214.Value                                      = 0x00000000;
         }
 
         static const size_t dwSize = 215;

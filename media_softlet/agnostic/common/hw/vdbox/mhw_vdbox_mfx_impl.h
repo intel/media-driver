@@ -40,6 +40,7 @@
 #define AVC_IP_ROWSTORE_BASEADDRESS           512
 #define AVC_IP_ROWSTORE_BASEADDRESS_MBAFF     1024
 #define AVC_VLF_ROWSTORE_BASEADDRESS          768
+#define AVC_VLF_ROWSTORE_BASEADDRESS_MBAFF    1280
 #define VP8_IP_ROWSTORE_BASEADDRESS           256
 #define VP8_VLF_ROWSTORE_BASEADDRESS          512
 
@@ -73,10 +74,10 @@ public:
 
         MHW_MI_CHK_NULL(rowstoreParams);
 
-        bool avc          = rowstoreParams->Mode == CODECHAL_DECODE_MODE_AVCVLD || rowstoreParams->Mode == CODECHAL_ENCODE_MODE_AVC;
-        bool vp8          = rowstoreParams->Mode == CODECHAL_DECODE_MODE_VP8VLD || rowstoreParams->Mode == CODECHAL_ENCODE_MODE_VP8;
-        bool widthLE4K    = rowstoreParams->dwPicWidth <= MHW_VDBOX_PICWIDTH_4K;
-        bool mbaffOrField = rowstoreParams->bMbaff || !rowstoreParams->bIsFrame;
+        bool avc = IsAvcMode(rowstoreParams);
+        bool vp8 = IsVp8Mode(rowstoreParams);
+        bool widthLE4K = IsPictureWidthLE4K(rowstoreParams);
+        bool mbaffOrField = IsMbaffOrField(rowstoreParams);
 
         //BSD row store cache
         m_bsdMpcRowstoreCache.enabled   = m_bsdMpcRowstoreCache.supported && widthLE4K && (avc || vp8);
@@ -99,9 +100,8 @@ public:
             m_intraRowstoreCache.dwAddress = 0;
         }
 
-        //VLF row store cache
-        m_deblockingFilterRowstoreCache.enabled   = m_deblockingFilterRowstoreCache.supported && widthLE4K && ((avc && !mbaffOrField) || vp8);
-        m_deblockingFilterRowstoreCache.dwAddress = m_deblockingFilterRowstoreCache.enabled ? (avc ? AVC_VLF_ROWSTORE_BASEADDRESS : VP8_VLF_ROWSTORE_BASEADDRESS) : 0;
+        //VLF row store cache - platform-aware configuration
+        ConfigureVlfRowstoreCache(rowstoreParams);
 
         return MOS_STATUS_SUCCESS;
     }
@@ -111,83 +111,83 @@ public:
         MHW_FUNCTION_ENTER;
         m_preDeblockingMemoryCtrl.Value = m_osItf->pfnCachePolicyGetMemoryObject(
                                                      MOS_CODEC_RESOURCE_USAGE_PRE_DEBLOCKING_CODEC,
-                                                     m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+                                                     m_osItf).DwordValue;
         m_postDeblockingMemoryCtrl.Value = m_osItf->pfnCachePolicyGetMemoryObject(
                                                       MOS_CODEC_RESOURCE_USAGE_POST_DEBLOCKING_CODEC,
-                                                      m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+                                                      m_osItf).DwordValue;
         m_OriginalUncompressedPictureSourceMemoryCtrl.Value = 
                                            m_osItf->pfnCachePolicyGetMemoryObject(
                                                       MOS_CODEC_RESOURCE_USAGE_ORIGINAL_UNCOMPRESSED_PICTURE_DECODE,
-                                                      m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+                                                      m_osItf).DwordValue;
         m_streamoutDataDestinationMemoryCtrl.Value = 
                                            m_osItf->pfnCachePolicyGetMemoryObject(
                                                       MOS_CODEC_RESOURCE_USAGE_STREAMOUT_DATA_CODEC,
-                                                      m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+                                                      m_osItf).DwordValue;
         m_intraRowStoreScratchBufferMemoryCtrl.Value = 
                                            m_osItf->pfnCachePolicyGetMemoryObject(
                                                       MOS_CODEC_RESOURCE_USAGE_INTRA_ROWSTORE_SCRATCH_BUFFER_CODEC,
-                                                      m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+                                                      m_osItf).DwordValue;
         m_deblockingFilterRowStoreScratchMemoryCtrl.Value = 
                                            m_osItf->pfnCachePolicyGetMemoryObject(
                                                       MOS_CODEC_RESOURCE_USAGE_DEBLOCKINGFILTER_ROWSTORE_SCRATCH_BUFFER_CODEC,
-                                                      m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+                                                      m_osItf).DwordValue;
         m_referncePictureMemoryObjectControlStateCtrl.Value =
                                            m_osItf->pfnCachePolicyGetMemoryObject(
                                                       MOS_CODEC_RESOURCE_USAGE_REFERENCE_PICTURE_CODEC,
-                                                      m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+                                                      m_osItf).DwordValue;
         m_referncePictureMemoryObjectControlStateCtrlDecode.Value =
                                            m_osItf->pfnCachePolicyGetMemoryObject(
                                                       MOS_HW_RESOURCE_USAGE_DECODE_INPUT_REFERENCE,
-                                                      m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+                                                      m_osItf).DwordValue;
         m_referncePictureMemoryObjectControlStateCtrlEncode.Value =
                                            m_osItf->pfnCachePolicyGetMemoryObject(
                                                       MOS_HW_RESOURCE_USAGE_ENCODE_INPUT_RECON,
-                                                      m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+                                                      m_osItf).DwordValue;
         m_macroblockIldbStreamoutBufferCtrl.Value = 
                                            m_osItf->pfnCachePolicyGetMemoryObject(
                                                       MOS_CODEC_RESOURCE_USAGE_MACROBLOCK_ILDB_STREAM_OUT_BUFFER_CODEC,
-                                                      m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+                                                      m_osItf).DwordValue;
         m_secondMacroblockIldbStreamoutBufferCtrl.Value =
                                            m_osItf->pfnCachePolicyGetMemoryObject(
                                                       MOS_CODEC_RESOURCE_USAGE_MACROBLOCK_ILDB_STREAM_OUT_BUFFER_CODEC,
-                                                      m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+                                                      m_osItf).DwordValue;
         m_slicesizeStreamoutDataDestinationCtrl.Value =
                                            m_osItf->pfnCachePolicyGetMemoryObject(
                                                       MOS_CODEC_RESOURCE_USAGE_STREAMOUT_DATA_CODEC,
-                                                      m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+                                                      m_osItf).DwordValue;
         m_mfxIndirectBitstreamCtrl.Value =
                                            m_osItf->pfnCachePolicyGetMemoryObject(
                                                       MOS_CODEC_RESOURCE_USAGE_MFX_INDIRECT_BITSTREAM_OBJECT_DECODE,
-                                                      m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+                                                      m_osItf).DwordValue;
         m_mfdIndirectItCoeffCtrl.Value =
                                            m_osItf->pfnCachePolicyGetMemoryObject(
                                                       MOS_CODEC_RESOURCE_USAGE_MFD_INDIRECT_IT_COEF_OBJECT_DECODE,
-                                                      m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+                                                      m_osItf).DwordValue;
         m_mfxIndirectMvCtrl.Value =
                                            m_osItf->pfnCachePolicyGetMemoryObject(
                                                       MOS_CODEC_RESOURCE_USAGE_MFX_INDIRECT_MV_OBJECT_CODEC,
-                                                      m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+                                                      m_osItf).DwordValue;
         m_mfcIndirectPakBseCtrl.Value = 
                                            m_osItf->pfnCachePolicyGetMemoryObject(
                                                       MOS_CODEC_RESOURCE_USAGE_MFC_INDIRECT_PAKBASE_OBJECT_CODEC,
-                                                      m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+                                                      m_osItf).DwordValue;
         m_bsdMpcRowStoreScratchBufferCtrl.Value =
                                            m_osItf->pfnCachePolicyGetMemoryObject(
                                                       MOS_CODEC_RESOURCE_USAGE_BSDMPC_ROWSTORE_SCRATCH_BUFFER_CODEC,
-                                                      m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+                                                      m_osItf).DwordValue;
         m_mprRowStoreScratchBufferCtrl.Value = 
                                            m_osItf->pfnCachePolicyGetMemoryObject(
                                                       MOS_CODEC_RESOURCE_USAGE_MPR_ROWSTORE_SCRATCH_BUFFER_CODEC,
-                                                      m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+                                                      m_osItf).DwordValue;
         m_bitplaneReadBufferIndexToMemoryCtrl.Value =
                                            m_osItf->pfnCachePolicyGetMemoryObject(
                                                       MOS_CODEC_RESOURCE_USAGE_BITPLANE_READ_CODEC,
-                                                      m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+                                                      m_osItf).DwordValue;
 
         m_directMvBufferForWriteCtrl.Value =
                                            m_osItf->pfnCachePolicyGetMemoryObject(
                                                       MOS_CODEC_RESOURCE_USAGE_DIRECTMV_BUFFER_CODEC,
-                                                      m_osItf->pfnGetGmmClientContext(m_osItf)).DwordValue;
+                                                      m_osItf).DwordValue;
 
     }
 
@@ -206,6 +206,8 @@ public:
         uint32_t              currIdx,
         uint32_t              list)
     {
+        MHW_FUNCTION_ENTER;
+
         auto avcPicParams    = params.pAvcPicParams;
         auto mvcExtPicParams = params.pMvcExtPicParams;
         auto avcRefList      = params.ppAvcRefList;
@@ -261,6 +263,8 @@ public:
     //!
     uint8_t GetNumVdbox() override
     {
+        MHW_FUNCTION_ENTER;
+
         MEDIA_ENGINE_INFO mediaEngineInfo = {};
         m_osItf->pfnGetMediaEngineInfo(m_osItf, mediaEngineInfo);
 
@@ -272,6 +276,8 @@ public:
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_STATUS CheckScalabilityOverrideValidity()
     {
+        MHW_FUNCTION_ENTER;
+
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
 
         MEDIA_SYSTEM_INFO *gtSystemInfo;
@@ -339,6 +345,8 @@ public:
 
     MOS_STATUS FindGpuNodeToUse(PMHW_VDBOX_GPUNODE_LIMIT gpuNodeLimit) override
     {
+        MHW_FUNCTION_ENTER;
+
         bool       setVideoNode = false;
         MOS_STATUS eStatus      = MOS_STATUS_SUCCESS;
 
@@ -401,6 +409,74 @@ public:
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_directMvBufferForWriteCtrl;
 
 protected:
+    bool IsAvcMode(PMHW_VDBOX_ROWSTORE_PARAMS rowstoreParams) const
+    {
+        return rowstoreParams->Mode == CODECHAL_DECODE_MODE_AVCVLD || 
+               rowstoreParams->Mode == CODECHAL_ENCODE_MODE_AVC;
+    }
+
+    bool IsVp8Mode(PMHW_VDBOX_ROWSTORE_PARAMS rowstoreParams) const
+    {
+        return rowstoreParams->Mode == CODECHAL_DECODE_MODE_VP8VLD || 
+               rowstoreParams->Mode == CODECHAL_ENCODE_MODE_VP8;
+    }
+
+    bool IsPictureWidthLE4K(PMHW_VDBOX_ROWSTORE_PARAMS rowstoreParams) const
+    {
+        return rowstoreParams->dwPicWidth <= MHW_VDBOX_PICWIDTH_4K;
+    }
+
+    bool IsMbaffOrField(PMHW_VDBOX_ROWSTORE_PARAMS rowstoreParams) const
+    {
+        return rowstoreParams->bMbaff || !rowstoreParams->bIsFrame;
+    }
+
+    virtual bool GetVlfRowstoreCacheMbaffSupport() const
+    {
+        return false; // Base implementation: no MBAFF support for VLF cache
+    }
+
+    void ConfigureVlfRowstoreCache(PMHW_VDBOX_ROWSTORE_PARAMS rowstoreParams)
+    {
+        bool avc = IsAvcMode(rowstoreParams);
+        bool vp8 = IsVp8Mode(rowstoreParams);
+        bool widthLE4K = IsPictureWidthLE4K(rowstoreParams);
+        bool mbaffOrField = IsMbaffOrField(rowstoreParams);
+        bool supportMbaff = GetVlfRowstoreCacheMbaffSupport();
+
+        // Enable VLF cache based on platform support
+        if (supportMbaff)
+        {
+            // xe3+ platforms: Enable VLF for AVC or VP8, including MBAFF
+            m_deblockingFilterRowstoreCache.enabled = 
+                m_deblockingFilterRowstoreCache.supported && widthLE4K && (avc || vp8);
+        }
+        else
+        {
+            // Base/older platforms: Enable VLF for AVC (non-MBAFF) or VP8
+            m_deblockingFilterRowstoreCache.enabled = 
+                m_deblockingFilterRowstoreCache.supported && widthLE4K && ((avc && !mbaffOrField) || vp8);
+        }
+
+        // Configure VLF address based on enablement and codec/format
+        if (m_deblockingFilterRowstoreCache.enabled)
+        {
+            if (avc)
+            {
+                m_deblockingFilterRowstoreCache.dwAddress = 
+                    mbaffOrField ? AVC_VLF_ROWSTORE_BASEADDRESS_MBAFF : AVC_VLF_ROWSTORE_BASEADDRESS;
+            }
+            else // VP8
+            {
+                m_deblockingFilterRowstoreCache.dwAddress = VP8_VLF_ROWSTORE_BASEADDRESS;
+            }
+        }
+        else
+        {
+            m_deblockingFilterRowstoreCache.dwAddress = 0;
+        }
+    }
+
     using base_t = Itf;
     MhwCpInterface *m_cpItf = nullptr;
     MHW_MEMORY_OBJECT_CONTROL_PARAMS m_cacheabilitySettings[MOS_CODEC_RESOURCE_USAGE_END_CODEC] = {};
@@ -970,7 +1046,7 @@ protected:
             InitMocsParams(resourceParams, &cmd.DirectMvBufferAttributes.DW0.Value, 1, 6);
         }
 
-        bool dmvPresent[CODEC_MAX_NUM_REF_FRAME] = { false };
+        bool dmvPresent[CODEC_AVC_NUM_REF_DMV_BUFFERS] = { false };
         for (auto i = 0; i < CODEC_MAX_NUM_REF_FRAME; i++)
         {
             if (params.pAvcPicIdx[i].bValid)

@@ -47,14 +47,27 @@ namespace decode
 
         DECODE_CHK_NULL(m_basicFeature);
 
+        DECODE_CHK_COND(
+            SlimVdboxPrefInconsistent(m_skuTable, m_pipelineVdboxTypePref),
+            "FtrWithSlimVdbox=1 but VvcPipeline pref != FULL "
+            "(VVCP HW is Type-A only; VDBoxTypePref likely culprit)");
+
         DecodeScalabilityPars scalPars;
         MOS_ZeroMemory(&scalPars, sizeof(scalPars));
         scalPars.disableScalability = true;
         scalPars.enableVE           = MOS_VE_SUPPORTED(m_osInterface);
-        scalPars.usingSlimVdbox     = false;
         scalPars.numVdbox           = m_numVdbox;
+        scalPars.vdboxTypePref = m_pipelineVdboxTypePref;
 
-        m_mediaContext->SwitchContext(VdboxDecodeFunc, &scalPars, &m_scalability);
+        if (GetBypassHWLegacy())
+        {
+            MediaFunction decFunc = (m_bypassHWLegacyGpuNode == MOS_GPU_NODE_VE) ? VeboxVppFunc : VdboxDecodeFunc;
+            DECODE_CHK_STATUS(m_mediaContext->SwitchContext(decFunc, &scalPars, &m_scalability));
+        }
+        else
+        {
+            DECODE_CHK_STATUS(m_mediaContext->SwitchContext(VdboxDecodeFunc, &scalPars, &m_scalability));
+        }
         DECODE_CHK_NULL(m_scalability);
 
         m_decodeContext = m_osInterface->pfnGetGpuContext(m_osInterface);
@@ -65,6 +78,13 @@ namespace decode
         m_scalability->SetPassNumber(m_passNum);
 
         return MOS_STATUS_SUCCESS;
+    }
+
+    VdboxTypePref VvcPipeline::GetDefaultVdboxTypePref() const
+    {
+        auto sku = m_osInterface->pfnGetSkuTable(m_osInterface);
+        return (sku && MEDIA_IS_SKU(sku, FtrWithSlimVdbox))
+             ? MOS_VDBOX_PREFER_FULL : MOS_VDBOX_PREFER_NONE;
     }
 
     MOS_STATUS VvcPipeline::ActivateDecodePackets()
@@ -296,12 +316,11 @@ namespace decode
         DECODE_FUNC_CALL();
         DECODE_CHK_STATUS(DecodePipeline::UserFeatureReport());
 
-    #ifdef _MMC_SUPPORTED
         CODECHAL_DEBUG_TOOL(
             if (m_mmcState != nullptr){
                 m_mmcState->UpdateUserFeatureKey(&(m_basicFeature->m_destSurface));
             })
-    #endif
+
         return MOS_STATUS_SUCCESS;
     }
 
@@ -319,28 +338,34 @@ namespace decode
         DECODE_CHK_STATUS(subPacketManager.Register(
                             DecodePacketId(this, vvcSliceSubPacketId), *sliceDecodePkt));
 
-        if(m_decodecp!=nullptr)
+        DECODE_CHK_STATUS(RegisterCpSubPacket(subPacketManager));
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS VvcPipeline::RegisterCpSubPacket(DecodeSubPacketManager &subPacketManager)
+    {
+        if (m_decodecp != nullptr)
         {
             auto feature = dynamic_cast<VvcBasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
             DECODE_CHK_NULL(feature);
             DecodeSubPacket *cpSubPkt = (DecodeSubPacket *)m_decodecp->CreateDecodeCpIndSubPkt((DecodePipeline *)this, feature->m_mode, m_hwInterface);
             DECODE_CHK_NULL(cpSubPkt);
             DECODE_CHK_STATUS(subPacketManager.Register(
-                            DecodePacketId(this, vvcCpSubPacketId), *cpSubPkt));
+                DecodePacketId(this, vvcCpSubPacketId), *cpSubPkt));
         }
+
         return MOS_STATUS_SUCCESS;
     }
 
     MOS_STATUS VvcPipeline::InitMmcState()
     {
-#ifdef _MMC_SUPPORTED
         DECODE_CHK_NULL(m_hwInterface);
         DECODE_CHK_NULL(m_basicFeature);
 
         m_mmcState = MOS_New(DecodeMemComp, m_hwInterface);
         DECODE_CHK_NULL(m_mmcState);
         DECODE_CHK_STATUS(m_basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
-#endif
 
         return MOS_STATUS_SUCCESS;
     }

@@ -38,6 +38,8 @@
 namespace decode
 {
 
+class HevcDecodeDebugPkt;
+
 class HevcDecodePkt : public CmdPacket, public MediaStatusReportObserver
 {
 public:
@@ -124,7 +126,9 @@ protected:
     uint32_t m_picturePatchListSize = 0;
     uint32_t m_sliceStatesSize      = 0;
     uint32_t m_slicePatchListSize   = 0;
-
+#if (_DEBUG || _RELEASE_INTERNAL)
+    HevcDecodeDebugPkt*             m_debugPkt = nullptr;
+#endif
     MEDIA_CLASS_DEFINE_END(decode__HevcDecodePkt)
 };
 

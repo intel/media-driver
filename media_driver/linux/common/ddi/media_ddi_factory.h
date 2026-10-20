@@ -154,8 +154,7 @@ public:
     template <class C>
     static bool RegisterCodec(const KeyType &key)
     {
-        std::pair<iterator, bool> result =
-            GetCreators().insert(std::make_pair(key, create<C>));
+        std::pair<iterator, bool> result = GetCreators().emplace(key, create<C>);
 
         return result.second;
     }

@@ -2528,7 +2528,7 @@ protected:
                 }
             }
 
-            inlineDataVc1->DW1.Osedgemaskluma = edgeMaskLuma;
+            inlineDataVc1->DW1.Osedgemaskluma = static_cast<uint8_t>(edgeMaskLuma);
             inlineDataVc1->DW1.Osedgemaskchroma = edgeMaskChroma;
         }
         else

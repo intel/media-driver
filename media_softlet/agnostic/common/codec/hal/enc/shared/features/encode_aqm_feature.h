@@ -186,6 +186,10 @@ protected:
     uint32_t                m_frameNumPrevious  = 0;
 #endif
 
+    uint32_t m_dsWidth     = 0;
+    uint32_t m_dsHeight    = 0;
+    bool     m_useFastPass = false;
+
 MEDIA_CLASS_DEFINE_END(encode__EncodeAqmFeature)
 };
 

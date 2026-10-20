@@ -37,7 +37,10 @@ namespace decode
     }
 
     MOS_STATUS Mpeg2DecodeMemCompXe2_Lpm_Base::CheckReferenceList(
-        Mpeg2BasicFeature &mpeg2BasicFeature, MOS_MEMCOMP_STATE &preDeblockSurfMmcState, MOS_MEMCOMP_STATE &postDeblockSurfMmcState)
+        Mpeg2BasicFeature &mpeg2BasicFeature,
+        MOS_MEMCOMP_STATE &preDeblockSurfMmcState,
+        MOS_MEMCOMP_STATE &postDeblockSurfMmcState,
+        PMOS_RESOURCE     *presReferences)
     {
         return MOS_STATUS_SUCCESS;
     }

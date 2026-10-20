@@ -142,7 +142,7 @@ MOS_STATUS MhwInterfacesG12Tgllp::Initialize(
     CreateParams params,
     PMOS_INTERFACE osInterface)
 {
-#ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
     bool useBaseVdencInterface = false;
 #if (_DEBUG || _RELEASE_INTERNAL)
     MOS_USER_FEATURE_VALUE_DATA     UserFeatureData;
@@ -280,7 +280,7 @@ MOS_STATUS MhwInterfacesG12Tgllp::Initialize(
     }
     if (params.Flags.m_vdboxAll || params.Flags.m_vdenc)
     {
-#ifdef IGFX_VDENC_INTERFACE_EXT_SUPPORT
+#ifdef _MEDIA_RESERVED
 #if (_DEBUG || _RELEASE_INTERNAL)
         if(useBaseVdencInterface)
         {
@@ -333,7 +333,6 @@ void MhwInterfacesG12Tgllp::Destroy()
     }
 }
 
-#ifdef _MMC_SUPPORTED
 static bool tgllpRegisteredMmd =
     MediaFactory<uint32_t, MmdDevice>::
     Register<MmdDeviceG12Tgllp>((uint32_t)IGFX_TIGERLAKE_LP);
@@ -402,7 +401,6 @@ MhwInterfaces* MmdDeviceG12Tgllp::CreateMhwInterface(
 
     return mhw;
 }
-#endif
 
 static bool tgllpRegisteredMcpy =
     MediaFactory<uint32_t, McpyDevice>::
@@ -417,6 +415,12 @@ MOS_STATUS McpyDeviceG12Tgllp::Initialize(
     MhwInterfaces* mhwInterfaces = nullptr;
 
     auto deleterOnFailure = [&](bool deleteOsInterface, bool deleteMhwInterface){
+        if (deleteMhwInterface && mhwInterfaces != nullptr)
+        {
+            mhwInterfaces->Destroy();
+            MOS_Delete(mhwInterfaces);
+        }
+
         if (deleteOsInterface && osInterface != nullptr)
         {
             if (osInterface->pfnDestroy)
@@ -424,12 +428,6 @@ MOS_STATUS McpyDeviceG12Tgllp::Initialize(
                 osInterface->pfnDestroy(osInterface, false);
             }
             MOS_FreeMemory(osInterface);
-        }
-
-        if (deleteMhwInterface && mhwInterfaces != nullptr)
-        {
-            mhwInterfaces->Destroy();
-            MOS_Delete(mhwInterfaces);
         }
 
         MOS_Delete(device);
@@ -571,7 +569,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
         if (info->Mode == CODECHAL_DECODE_MODE_MPEG2IDCT ||
             info->Mode == CODECHAL_DECODE_MODE_MPEG2VLD)
         {
-        #ifdef _APOGEIOS_SUPPORTED
+        #ifdef _MEDIA_RESERVED
             bool apogeiosEnable = false;
             MOS_USER_FEATURE_VALUE_DATA         userFeatureData;
             MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -609,7 +607,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
         if (info->Mode == CODECHAL_DECODE_MODE_AVCVLD)
         {
             bool apogeiosEnable = false;
-        #ifdef _APOGEIOS_SUPPORTED
+        #ifdef _MEDIA_RESERVED
             MOS_USER_FEATURE_VALUE_DATA         userFeatureData;
             MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
 
@@ -668,7 +666,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
         if (info->Mode == CODECHAL_DECODE_MODE_JPEG)
         {
             bool apogeiosEnable = false;
-#ifdef _APOGEIOS_SUPPORTED
+#ifdef _MEDIA_RESERVED
             MOS_USER_FEATURE_VALUE_DATA userFeatureData;
             MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
 
@@ -703,7 +701,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
     #ifdef _HEVC_DECODE_SUPPORTED
         if (info->Mode == CODECHAL_DECODE_MODE_HEVCVLD)
         {
-            #ifdef _APOGEIOS_SUPPORTED
+            #ifdef _MEDIA_RESERVED
             bool apogeiosEnable = false;
             MOS_USER_FEATURE_VALUE_DATA         userFeatureData;
             MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));
@@ -732,7 +730,7 @@ MOS_STATUS CodechalInterfacesG12Tgllp::Initialize(
     #ifdef _VP9_DECODE_SUPPORTED
         if (info->Mode == CODECHAL_DECODE_MODE_VP9VLD)
         {
-#ifdef _APOGEIOS_SUPPORTED
+#ifdef _MEDIA_RESERVED
             bool                        apogeiosEnable = false;
             MOS_USER_FEATURE_VALUE_DATA userFeatureData;
             MOS_ZeroMemory(&userFeatureData, sizeof(userFeatureData));

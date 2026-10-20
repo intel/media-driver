@@ -172,6 +172,7 @@ MOS_STATUS AvcVdencFullEnc::UpdatePreEncSize()
 
 MOS_STATUS AvcVdencFullEnc::UpdateTrackedBufferParameters()
 {
+    ENCODE_FUNC_CALL();
     MOS_ALLOC_GFXRES_PARAMS allocParams;
     MOS_ZeroMemory(&allocParams, sizeof(MOS_ALLOC_GFXRES_PARAMS));
     allocParams.Type     = MOS_GFXRES_BUFFER;

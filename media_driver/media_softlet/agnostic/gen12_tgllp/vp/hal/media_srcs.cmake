@@ -19,3 +19,4 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(platform_interface)
+media_include_subdirectory(vp_pipeline)

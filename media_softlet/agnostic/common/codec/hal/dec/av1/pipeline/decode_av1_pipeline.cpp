@@ -29,6 +29,9 @@
 #include "decode_av1_feature_manager.h"
 #include "decode_huc_packet_creator_base.h"
 #include "media_debug_fast_dump.h"
+#if (_DEBUG || _RELEASE_INTERNAL)
+#include "decode_av1_debug_packet.h"
+#endif
 
 namespace decode {
 

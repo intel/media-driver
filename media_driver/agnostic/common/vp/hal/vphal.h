@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009-2022, Intel Corporation
+* Copyright (c) 2009-2025, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -59,6 +59,9 @@
 #define VPHAL_HW_ASSERTMESSAGE(_message, ...)                                        \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_HW, _message, ##__VA_ARGS__)
 
+#define VPHAL_HW_WARNINGMESSAGE(_message, ...)                                       \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_HW, _message, ##__VA_ARGS__)
+
 #define VPHAL_HW_NORMALMESSAGE(_message, ...)                                        \
     MOS_NORMALMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_HW, _message, ##__VA_ARGS__)
 
@@ -85,6 +88,9 @@
 
 #define VPHAL_PUBLIC_ASSERTMESSAGE(_message, ...)                                    \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC, _message, ##__VA_ARGS__)
+
+#define VPHAL_PUBLIC_WARNINGMESSAGE(_message, ...)                                   \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC, _message, ##__VA_ARGS__)
 
 #define VPHAL_PUBLIC_NORMALMESSAGE(_message, ...)                                    \
     MOS_NORMALMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_PUBLIC, _message, ##__VA_ARGS__)
@@ -119,6 +125,9 @@
 #define VPHAL_DEBUG_ASSERTMESSAGE(_message, ...)                                     \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DEBUG, _message, ##__VA_ARGS__)
 
+#define VPHAL_DEBUG_WARNINGMESSAGE(_message, ...)                                    \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DEBUG, _message, ##__VA_ARGS__)
+
 #define VPHAL_DEBUG_NORMALMESSAGE(_message, ...)                                     \
     MOS_NORMALMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DEBUG, _message, ##__VA_ARGS__)
 
@@ -148,6 +157,9 @@
 
 #define VPHAL_RENDER_ASSERTMESSAGE(_message, ...)                                    \
     MOS_ASSERTMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_RENDER, _message, ##__VA_ARGS__)
+
+#define VPHAL_RENDER_WARNINGMESSAGE(_message, ...)                                   \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_RENDER, _message, ##__VA_ARGS__)
 
 #define VPHAL_RENDER_NORMALMESSAGE(_message, ...)                                    \
     MOS_NORMALMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_RENDER, _message, ##__VA_ARGS__)
@@ -196,6 +208,9 @@
 
 #define VP_DDI_NORMALMESSAGE(_message, ...)                                          \
     MOS_NORMALMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DDI, _message, ##__VA_ARGS__)
+
+#define VP_DDI_WARNINGMESSAGE(_message, ...)                                         \
+    MOS_WARNINGMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DDI, _message, ##__VA_ARGS__)
 
 #define VP_DDI_VERBOSEMESSAGE(_message, ...)                                         \
     MOS_VERBOSEMESSAGE(MOS_COMPONENT_VP, MOS_VP_SUBCOMP_DDI, _message, ##__VA_ARGS__)

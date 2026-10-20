@@ -92,7 +92,7 @@ MOS_STATUS VPStatusReport::UpdateStatusTableAfterSubmit(
     pStatusEntry                    = &pStatusTable->aTableEntries[pStatusTable->uiCurrent];
     pStatusEntry->StatusFeedBackID  = dwStatusFeedBackID;
     pStatusEntry->GpuContextOrdinal = eMosGpuContext;
-    dwLastTag                       = m_osInterface->pfnGetGpuStatusTag(m_osInterface, eMosGpuContext) - 1;
+    dwLastTag                       = m_osInterface->pfnGetGpuStatusTag(m_osInterface, eMosGpuContext) > 1 ? m_osInterface->pfnGetGpuStatusTag(m_osInterface, eMosGpuContext) - 1 : 0;
     pStatusEntry->dwTag             = dwLastTag;
     pStatusEntry->dwStatus          = (eLastStatus == MOS_STATUS_SUCCESS)? VPREP_NOTREADY : VPREP_ERROR;
     pStatusTable->uiCurrent         = (pStatusTable->uiCurrent + 1) & (VPHAL_STATUS_TABLE_MAX_SIZE - 1);

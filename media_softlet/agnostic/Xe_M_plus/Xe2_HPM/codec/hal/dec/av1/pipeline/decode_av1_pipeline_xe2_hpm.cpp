@@ -76,6 +76,12 @@ Av1PipelineXe2_Hpm::Av1PipelineXe2_Hpm(
                 inputParameters.currOriginalPic            = basicFeature->m_curRenderPic;
                 inputParameters.currDecodedPicRes          = basicFeature->m_destSurface.OsResource;
                 inputParameters.numUsedVdbox               = m_numVdbox;
+
+                CODECHAL_DEBUG_TOOL(
+                    if (m_streamout != nullptr) {
+                        DECODE_CHK_STATUS(m_streamout->InitStatusReportParam(inputParameters));
+                    });
+
 #ifdef _DECODE_PROCESSING_SUPPORTED
                 CODECHAL_DEBUG_TOOL(
                     DecodeDownSamplingFeature *downSamplingFeature = dynamic_cast<DecodeDownSamplingFeature *>(
@@ -140,7 +146,6 @@ Av1PipelineXe2_Hpm::Av1PipelineXe2_Hpm(
     {
         DECODE_FUNC_CALL();
 
-#ifdef _MMC_SUPPORTED
         DECODE_CHK_NULL(m_hwInterface);
         m_mmcState = MOS_New(DecodeMemCompXe2_Hpm, m_hwInterface);
         DECODE_CHK_NULL(m_mmcState);
@@ -148,7 +153,7 @@ Av1PipelineXe2_Hpm::Av1PipelineXe2_Hpm(
         Av1BasicFeature *basicFeature = dynamic_cast<Av1BasicFeature *>(m_featureManager->GetFeature(FeatureIDs::basicFeature));
         DECODE_CHK_NULL(basicFeature);
         DECODE_CHK_STATUS(basicFeature->SetMmcState(m_mmcState->IsMmcEnabled()));
-#endif
+
         return MOS_STATUS_SUCCESS;
     }
 

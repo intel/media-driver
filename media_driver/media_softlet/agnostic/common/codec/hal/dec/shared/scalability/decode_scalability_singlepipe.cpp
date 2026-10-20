@@ -69,10 +69,6 @@ MOS_STATUS DecodeScalabilitySinglePipe::Initialize(const MediaScalabilityOption 
     PMOS_GPUCTX_CREATOPTIONS_ENHANCED gpuCtxCreateOption = dynamic_cast<PMOS_GPUCTX_CREATOPTIONS_ENHANCED>(m_gpuCtxCreateOption);
     SCALABILITY_CHK_NULL_RETURN(gpuCtxCreateOption);
     gpuCtxCreateOption->UsingSFC = decodeScalabilityOption->IsUsingSFC();
-    if (decodeScalabilityOption->IsUsingSlimVdbox())
-    {
-        gpuCtxCreateOption->Flags |=  (1 << 2);
-    }
 
     return MOS_STATUS_SUCCESS;
 }
