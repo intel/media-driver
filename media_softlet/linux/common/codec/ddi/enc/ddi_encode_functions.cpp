@@ -239,7 +239,6 @@ VAStatus DdiEncodeFunctions::CreateContext (
         // Attach PMEDIDA_DRIVER_CONTEXT
         encCtx->pMediaCtx = mediaCtx;
 
-        encCtx->pCpDdiInterfaceNext->SetCpFlags(flag);
         encCtx->pCpDdiInterfaceNext->SetCpParams(CP_TYPE_NONE, encCtx->m_encode->m_codechalSettings);
 
         vaStatus = encCtx->m_encode->ContextInitialize(encCtx->m_encode->m_codechalSettings);
@@ -331,7 +330,6 @@ VAStatus DdiEncodeFunctions::CreateContext (
         encCtx->targetUsage           = TARGETUSAGE_RT_SPEED;
         encCtx->pMediaCtx             = mediaCtx;
 
-        encCtx->pCpDdiInterfaceNext->SetCpFlags(flag);
         encCtx->pCpDdiInterfaceNext->SetCpParams(CP_TYPE_NONE, encCtx->m_encode->m_codechalSettings);
 
         vaStatus = ddiEncode->CodecHalInit(mediaCtx, &mosCtx);

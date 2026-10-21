@@ -800,12 +800,6 @@ VAStatus DdiEncodeAvc::ContextInitialize(CodechalSetting * codecHalSettings)
         m_encodeCtx->ppNALUnitParams[i] = &(nalUnitParams[i]);
     }
 
-    VAStatus status = m_encodeCtx->pCpDdiInterfaceNext->ParseCpParamsForEncode();
-    if (VA_STATUS_SUCCESS != status)
-    {
-        return status;
-    }
-
     m_encodeCtx->pVuiParams = (void *)MOS_AllocAndZeroMemory(sizeof(CODECHAL_ENCODE_AVC_VUI_PARAMS));
     DDI_CODEC_CHK_NULL(m_encodeCtx->pVuiParams, "nullptr m_encodeCtx->pVuiParams", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
@@ -973,9 +967,6 @@ VAStatus DdiEncodeAvc::EncodeInCodecHal(uint32_t numSlices)
     rawSurface->dwOffset = 0;
 
     MediaLibvaCommonNext::MediaSurfaceToMosResource(rtTbl->pCurrentRT, &(rawSurface->OsResource));
-
-    PMOS_INTERFACE osInterface = m_encodeCtx->pCodecHal->GetOsInterface();
-    m_encodeCtx->pCpDdiInterfaceNext->SetInputResourceEncryption(osInterface, &(rawSurface->OsResource));
 
     // Recon Surface
     PMOS_SURFACE reconSurface = &encodeParams->reconSurface;

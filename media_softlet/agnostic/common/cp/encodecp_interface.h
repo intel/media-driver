@@ -42,6 +42,7 @@ public:
     virtual bool       isCpEnabled()                                         = 0;
     virtual MOS_STATUS setStatusReport(MediaStatusReport *statusReport)       = 0;
     virtual MOS_STATUS patchForHM()                                          = 0;
+    virtual MOS_STATUS EnsureCpBuffer()                                      = 0;
 
 MEDIA_CLASS_DEFINE_END(encode__EncodeCpInterface)
 };

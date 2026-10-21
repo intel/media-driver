@@ -29,9 +29,16 @@
 
 #include "codechal_common.h"
 
+namespace encode
+{
+class EncodeCpInterface;
+}
+
 class EncoderPipelineAdapter: public Codechal
 {
 public:
+    virtual encode::EncodeCpInterface *GetEncodeCp() { return nullptr; }
+
     //!
     //! \brief    Constructor
     //! \param    [in] hwInterface

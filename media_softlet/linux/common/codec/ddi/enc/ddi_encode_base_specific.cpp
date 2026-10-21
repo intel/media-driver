@@ -135,8 +135,6 @@ VAStatus DdiEncodeBase::InitCompBuffer()
     }
     bufMgr->pCodedBufferSegment->next = nullptr;
 
-    DDI_CODEC_CHK_RET(m_encodeCtx->pCpDdiInterfaceNext->InitHdcp2Buffer(bufMgr), "fail to init hdcp2 buffer!");
-
     return VA_STATUS_SUCCESS;
 }
 
@@ -229,7 +227,7 @@ VAStatus DdiEncodeBase::StatusReport(
             }
             status = status | ((encodeStatusReportData[0].numberPasses) & 0xf)<<24;
             // fill hdcp related buffer
-            DDI_CODEC_CHK_RET(m_encodeCtx->pCpDdiInterfaceNext->StatusReportForHdcp2Buffer(&m_encodeCtx->BufMgr, encodeStatusReportData), "fail to get hdcp2 status report!");
+            DDI_CODEC_CHK_RET(m_encodeCtx->pCpDdiInterfaceNext->StatusReportForHdcp2Buffer(&m_encodeCtx->BufMgr, encodeStatusReportData, m_encodeCtx->pCodecHal->GetOsInterface()), "fail to get hdcp2 status report!");
             if (UpdateStatusReportBuffer(encodeStatusReportData[0].bitstreamSize, status) != VA_STATUS_SUCCESS)
             {
                 m_encodeCtx->BufMgr.pCodedBufferSegment->buf  = MediaLibvaUtilNext::LockBuffer(mediaBuf, MOS_LOCKFLAG_READONLY);

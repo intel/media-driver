@@ -50,6 +50,9 @@ public:
     virtual void Destroy();
 
 protected:
+    virtual encode::EncodeCpInterface *GetEncodeCp() override { return m_encoder ? m_encoder->GetEncodeCp() : nullptr; }
+
+protected:
     std::shared_ptr<encode::HevcVdencPipelineXe3_Lpm_Base> m_encoder = nullptr;
 
 MEDIA_CLASS_DEFINE_END(EncodeHevcVdencPipelineAdapterXe3_Lpm_Base)

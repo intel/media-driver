@@ -47,6 +47,8 @@ public:
 
     virtual void Destroy();
 
+    virtual encode::EncodeCpInterface *GetEncodeCp() override { return m_encoder ? m_encoder->GetEncodeCp() : nullptr; }
+
 protected:
     std::shared_ptr<encode::Av1VdencPipelineXe_M_Base> m_encoder = nullptr;
 MEDIA_CLASS_DEFINE_END(EncodeAv1VdencPipelineAdapterXe_M_Base)

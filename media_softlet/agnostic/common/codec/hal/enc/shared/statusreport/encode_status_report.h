@@ -359,6 +359,13 @@ namespace encode {
 
         virtual PMOS_RESOURCE GetHwCtrBuf();
 
+        //!
+        //! \brief  Allocate the HW-counter status buffer.
+        //! \return MOS_STATUS
+        //!         MOS_STATUS_SUCCESS if success, else fail reason
+        //!
+        virtual MOS_STATUS EnableCounterBuffer();
+
 #if (_DEBUG || _RELEASE_INTERNAL)
         //!
         //! \brief  Report Used Vdbox Ids
@@ -386,6 +393,13 @@ namespace encode {
         //! \return void
         //!
         void SetOffsetsForStatusBufMfx();
+
+        //!
+        //! \brief  Allocate the HW-counter query buffer.
+        //! \return MOS_STATUS
+        //!         MOS_STATUS_SUCCESS if success, else fail reason
+        //!
+        MOS_STATUS AllocateHwCounterBuffer();
 
         //!
         //! \brief  Collect the common MFX status report data.

@@ -43,6 +43,8 @@ public:
 
     virtual MOS_STATUS ResolveMetaData(PMOS_RESOURCE pInput, PMOS_RESOURCE pOutput);
 
+    virtual encode::EncodeCpInterface *GetEncodeCp() override { return m_encoder ? m_encoder->GetEncodeCp() : nullptr; }
+
 protected:
     std::shared_ptr<encode::Av1VdencPipelineXe3_Lpm_Base> m_encoder = nullptr;
 

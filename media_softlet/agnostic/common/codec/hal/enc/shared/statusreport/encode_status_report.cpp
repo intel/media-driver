@@ -111,14 +111,7 @@ namespace encode {
 
         if (m_enableCp)  // && m_skipFrameBasedHWCounterRead == false)
         {
-            param.dwBytes       = sizeof(HwCounter) * CODECHAL_ENCODE_STATUS_NUM + sizeof(HwCounter);
-            param.pBufName      = "HWCounterQueryBuffer";
-            param.bIsPersistent = true;  // keeping status buffer persistent since its used in all command buffers
-            m_hwcounterBuf      = m_allocator->AllocateResource(param, false);
-            ENCODE_CHK_STATUS_RETURN(m_allocator->SkipResourceSync(m_hwcounterBuf));
-
-            m_hwcounterBase = (uint32_t *)m_allocator->LockResourceWithNoOverwrite(m_hwcounterBuf);
-            ENCODE_CHK_NULL_RETURN(m_hwcounterBase);
+            ENCODE_CHK_STATUS_RETURN(AllocateHwCounterBuffer());
         }
 
         m_submittedCount = 0;
@@ -265,6 +258,41 @@ namespace encode {
     PMOS_RESOURCE EncoderStatusReport::GetHwCtrBuf()
     {
         return m_hwcounterBuf;
+    }
+
+    MOS_STATUS EncoderStatusReport::EnableCounterBuffer()
+    {
+        ENCODE_FUNC_CALL();
+        if (m_enableCp)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+        ENCODE_CHK_STATUS_RETURN(AllocateHwCounterBuffer());
+        m_enableCp = true;
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS EncoderStatusReport::AllocateHwCounterBuffer()
+    {
+        ENCODE_CHK_NULL_RETURN(m_allocator);
+
+        MOS_ALLOC_GFXRES_PARAMS param;
+        MOS_ZeroMemory(&param, sizeof(MOS_ALLOC_GFXRES_PARAMS));
+        param.Type          = MOS_GFXRES_BUFFER;
+        param.TileType      = MOS_TILE_LINEAR;
+        param.Format        = Format_Buffer;
+        param.ResUsageType  = MOS_HW_RESOURCE_USAGE_ENCODE_INTERNAL_READ_WRITE_NOCACHE;
+        param.dwBytes       = sizeof(HwCounter) * CODECHAL_ENCODE_STATUS_NUM + sizeof(HwCounter);
+        param.pBufName      = "HWCounterQueryBuffer";
+        param.bIsPersistent = true;
+        m_hwcounterBuf      = m_allocator->AllocateResource(param, false);
+        ENCODE_CHK_NULL_RETURN(m_hwcounterBuf);
+        ENCODE_CHK_STATUS_RETURN(m_allocator->SkipResourceSync(m_hwcounterBuf));
+
+        m_hwcounterBase = (uint32_t *)m_allocator->LockResourceWithNoOverwrite(m_hwcounterBuf);
+        ENCODE_CHK_NULL_RETURN(m_hwcounterBase);
+
+        return MOS_STATUS_SUCCESS;
     }
 
     MOS_STATUS EncoderStatusReport::GetCommonMfxReportData(EncodeStatusReportData *statusReportData, uint32_t index)

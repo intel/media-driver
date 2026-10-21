@@ -96,7 +96,7 @@ public:
         return VA_STATUS_ERROR_UNSUPPORTED_BUFFERTYPE;
     }
 
-    virtual VAStatus InitHdcp2Buffer(DDI_CODEC_COM_BUFFER_MGR* bufMgr)
+    virtual VAStatus InitHdcp2Buffer(DDI_CODEC_COM_BUFFER_MGR* bufMgr, PMOS_INTERFACE osInterface)
     {
         DDI_CP_STUB_MESSAGE;
         return VA_STATUS_SUCCESS;
@@ -104,7 +104,8 @@ public:
 
     virtual VAStatus StatusReportForHdcp2Buffer(
         DDI_CODEC_COM_BUFFER_MGR *bufMgr,
-        void                     *encodeStatusReport)
+        void                     *encodeStatusReport,
+        PMOS_INTERFACE            osInterface)
     {
         DDI_CP_STUB_MESSAGE;
         return VA_STATUS_SUCCESS;
@@ -123,28 +124,10 @@ public:
         return MOS_STATUS_SUCCESS;
     }
 
-    virtual VAStatus ParseCpParamsForEncode()
+    virtual VAStatus ParseCpParamsForEncode(PMOS_INTERFACE osInterface)
     {
         DDI_CP_STUB_MESSAGE;
         return VA_STATUS_SUCCESS;
-    }
-
-    virtual void SetCpFlags(int32_t flag)
-    {
-        DDI_CP_STUB_MESSAGE;
-    }
-
-    virtual bool IsHdcp2Enabled()
-    {
-        DDI_CP_STUB_MESSAGE;
-        return false;
-    }
-
-    virtual void SetInputResourceEncryption(
-        PMOS_INTERFACE osInterface,
-        PMOS_RESOURCE  resource)
-    {
-        DDI_CP_STUB_MESSAGE;
     }
 
     virtual VAStatus CreateCencDecode(

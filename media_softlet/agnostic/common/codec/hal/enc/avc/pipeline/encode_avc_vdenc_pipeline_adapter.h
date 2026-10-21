@@ -47,6 +47,8 @@ public:
 
     virtual void Destroy();
 
+    virtual encode::EncodeCpInterface *GetEncodeCp() override { return m_encoder ? m_encoder->GetEncodeCp() : nullptr; }
+
 protected:
     std::shared_ptr<encode::AvcVdencPipeline> m_encoder = nullptr;  //think about moving this pointer to base class
 

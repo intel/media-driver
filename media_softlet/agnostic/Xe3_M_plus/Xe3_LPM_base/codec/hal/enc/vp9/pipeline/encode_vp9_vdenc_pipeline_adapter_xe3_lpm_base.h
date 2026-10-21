@@ -90,6 +90,8 @@ public:
     //!
     virtual void Destroy();
 
+    virtual encode::EncodeCpInterface *GetEncodeCp() override { return m_encoder ? m_encoder->GetEncodeCp() : nullptr; }
+
 protected:
     std::shared_ptr<encode::Vp9VdencPipelineXe3_Lpm_Base> m_encoder = nullptr;
 
