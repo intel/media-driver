@@ -44,13 +44,19 @@ MOS_STATUS JpegDecodePicPktXe3P_Lpm_Base::Execute(MOS_COMMAND_BUFFER &cmdBuffer)
     auto &mfxWaitParams               = m_miItf->MHW_GETPAR_F(MFX_WAIT)();
     mfxWaitParams                     = {};
     mfxWaitParams.iStallVdboxPipeline = true;
-    DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+    if (!m_osInterface->bNullHwIsEnabled)
+    {
+        DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+    }
 
     SETPAR_AND_ADDCMD(MFX_PIPE_MODE_SELECT, m_mfxItf, &cmdBuffer);
 
     mfxWaitParams                     = {};
     mfxWaitParams.iStallVdboxPipeline = true;
-    DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+    if (!m_osInterface->bNullHwIsEnabled)
+    {
+        DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
+    }
 
 #ifdef _DECODE_PROCESSING_SUPPORTED
     if (m_downSamplingFeature != nullptr && m_downSamplingPkt != nullptr &&

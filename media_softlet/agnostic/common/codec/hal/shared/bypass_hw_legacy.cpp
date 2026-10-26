@@ -24,7 +24,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //!
 //! \file     bypass_hw_legacy.cpp
-//! \brief    Implementation of BypassHwLegacy for legacy codecs (HEVC/AVC/AV1/VVC)
+//! \brief    Implementation of BypassHwLegacy for legacy codecs (HEVC/AVC/AV1/VVC/VP9/JPEG/JXS)
 //!
 
 #include "bypass_hw_legacy.h"
@@ -406,6 +406,13 @@ std::string BypassHwLegacy::MapCodecName(CODECHAL_STANDARD codec)
         return "av1";
     case CODECHAL_VVC:
         return "vvc";
+    case CODECHAL_VP9:
+        return "vp9";
+    case CODECHAL_JPEG:
+        return "jpeg";
+    case CODECHAL_RESERVED2:
+        // JXS decode reports CODECHAL_RESERVED2
+        return "jxs";
     default:
         return "";
     }
@@ -424,6 +431,20 @@ std::string BypassHwLegacy::MapSubsampling(uint32_t chromaFormat)
     case 3:
     case 444:
         return "444";
+    case 400:
+        return "400";
+    case 411:
+        return "411";
+    case 4224:
+        return "4224";
+    case 4444:
+        return "4444";
+    case BYPASS_HW_SUBSAMPLING_BAYER:
+        return "bayer";
+    case BYPASS_HW_SUBSAMPLING_RGB:
+        return "rgb";
+    case BYPASS_HW_SUBSAMPLING_BGR:
+        return "bgr";
     default:
         return "";
     }

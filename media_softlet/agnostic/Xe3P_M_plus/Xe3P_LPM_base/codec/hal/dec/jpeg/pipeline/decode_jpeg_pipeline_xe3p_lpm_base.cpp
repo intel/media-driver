@@ -156,7 +156,15 @@ MOS_STATUS JpegPipelineXe3P_Lpm_Base::InitContext()
         scalPars.usingSfc = true;
     }
 #endif
-    m_mediaContext->SwitchContext(VdboxDecodeFunc, &scalPars, &m_scalability);
+    if (GetBypassHWLegacy())
+    {
+        MediaFunction decFunc = (m_bypassHWLegacyGpuNode == MOS_GPU_NODE_VE) ? VeboxVppFunc : VdboxDecodeFunc;
+        DECODE_CHK_STATUS(m_mediaContext->SwitchContext(decFunc, &scalPars, &m_scalability));
+    }
+    else
+    {
+        DECODE_CHK_STATUS(m_mediaContext->SwitchContext(VdboxDecodeFunc, &scalPars, &m_scalability));
+    }
     DECODE_CHK_NULL(m_scalability);
 
     return MOS_STATUS_SUCCESS;

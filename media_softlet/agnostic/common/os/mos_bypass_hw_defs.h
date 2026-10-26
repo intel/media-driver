@@ -54,17 +54,27 @@ struct DummyVdboxInfo
 //!
 struct RepeatCountEntry
 {
-    std::string codec;        //!< Codec name (e.g. "av1", "avc", "hevc", "vvc")
+    std::string codec;        //!< Codec name ("av1", "avc", "hevc", "vvc", "vp9", "jpeg", "jxs")
     std::string direction;    //!< "decode" or "encode"
-    std::string subsampling;  //!< "420", "422", or "444"
+    std::string subsampling;  //!< "420", "422", "444", "400", "411", "4224", "4444", "bayer", "rgb", or "bgr"
     uint32_t    width;        //!< Frame width in pixels (e.g. 3840)
     uint32_t    height;       //!< Frame height in pixels (e.g. 2160)
-    uint32_t    bitDepth;     //!< 8, 10, or 12
+    uint32_t    bitDepth;     //!< 8, 10, 12, 14, or 16
     uint32_t    tu;           //!< Target usage (1-7 for encode, 0 for decode)
     uint32_t    repeatCount;  //!< Repeat count value
     uint32_t    scalability;  //!< 1 = scalability-aware slot assignment, 0 = standard
 };
 
+//! \name     NullHW subsampling sentinels
+//! \brief    Chroma formats without a natural numeric value, passed to
+//!           BypassHwLegacy::SetPipelineCharacteristics and mapped by MapSubsampling.
+//!           Values >= 1000 do not collide with the numeric formats
+//!           (1/2/3/400/411/420/422/444/4224/4444).
+// @{
+#define BYPASS_HW_SUBSAMPLING_BAYER  1000u  //!< JXS Bayer     -> "bayer"
+#define BYPASS_HW_SUBSAMPLING_RGB    1001u  //!< JPEG RGB      -> "rgb"
+#define BYPASS_HW_SUBSAMPLING_BGR    1002u  //!< JPEG BGR      -> "bgr"
+// @}
 
 //! \name     NullHW / MockAdaptor engine ID constants
 //! \brief    CS_ENGINE_ID MMIO address and per-engine instance values written by the
