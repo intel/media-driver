@@ -5146,6 +5146,7 @@ MOS_STATUS RenderHal_Reset(
         }
     }
 
+    MHW_RENDERHAL_CHK_NULL_RETURN(pRenderHal->pStateHeap);
     MHW_RENDERHAL_CHK_STATUS_RETURN(pOsInterface->pfnRegisterResource(pOsInterface,
                                             &pRenderHal->pStateHeap->GshOsResource,
                                             true,
