@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2025, Intel Corporation
+* Copyright (c) 2025-2026, Intel Corporation
 *
 * Permission is hereby granted, free of charge, to any person obtaining a
 * copy of this software and associated documentation files (the "Software"),
@@ -48,7 +48,7 @@ static const AttribList attribList_VAProfileJPEGBaseline_VAEntrypointVLD_Xe3p_Hp
 {
    {VAConfigAttribRTFormat, VA_RT_FORMAT_YUV420 | VA_RT_FORMAT_YUV422 | VA_RT_FORMAT_YUV444 | VA_RT_FORMAT_YUV400 | VA_RT_FORMAT_YUV411 | VA_RT_FORMAT_RGB16 | VA_RT_FORMAT_RGB32},
    {VAConfigAttribDecSliceMode, VA_DEC_SLICE_MODE_NORMAL},
-   {VAConfigAttribDecProcessing, VA_DEC_PROCESSING},
+   {VAConfigAttribDecProcessing, VA_DEC_PROCESSING_NONE},
    {VAConfigAttribMaxPictureWidth, CODEC_16K_MAX_PIC_WIDTH},
    {VAConfigAttribMaxPictureHeight, CODEC_16K_MAX_PIC_HEIGHT},
    {VAConfigAttribEncryption, VA_ATTRIB_NOT_SUPPORTED},
