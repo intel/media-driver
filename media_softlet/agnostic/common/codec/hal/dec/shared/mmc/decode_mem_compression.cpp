@@ -69,6 +69,7 @@ MOS_STATUS DecodeMemComp::UpdateUserFeatureKey(PMOS_SURFACE surface)
 
     ReportUserSetting(m_userSettingPtr, "Decode RT Compressible", surface->bCompressible, MediaUserSetting::Group::Sequence);
     ReportUserSetting(m_userSettingPtr, "Decode RT Compress Mode", surface->MmcState, MediaUserSetting::Group::Sequence);
+    ReportUserSetting(m_userSettingPtr, "Decode RT TileModeGMM", (int32_t)surface->TileModeGMM, MediaUserSetting::Group::Sequence);
 
     return MOS_STATUS_SUCCESS;
 }

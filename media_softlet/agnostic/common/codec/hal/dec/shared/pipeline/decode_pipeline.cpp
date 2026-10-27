@@ -454,6 +454,7 @@ void DecodePipeline::TraceDecodeFrameInfo()
             uint32_t numSlices;      // m_numSlices
             uint32_t dataSize;       // m_dataSize
             uint32_t cpInfo;         // extra decode info
+            uint32_t tileModeGmm;    // m_destSurface.TileModeGMM
         } picInfo = {
             basicFeature->m_frameNum,
             (uint16_t)basicFeature->m_width,
@@ -465,6 +466,7 @@ void DecodePipeline::TraceDecodeFrameInfo()
             basicFeature->m_numSlices,
             basicFeature->m_dataSize,
             m_decodecp ? m_decodecp->GetTraceInfo() : 0,
+            (uint32_t)basicFeature->m_destSurface.TileModeGMM,
         };
         MOS_TraceEvent(EVENT_DECODE_FRAME, EVENT_TYPE_INFO, &picInfo, sizeof(picInfo), nullptr, 0);
     }
