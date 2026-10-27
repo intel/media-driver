@@ -414,6 +414,8 @@ VAStatus DdiDecodeFunctions::DestroyContext(
 
     if (decCtx->m_ddiDecodeNext)
     {
+        // guard against decCtx use-after-free in StatusCheck
+        MediaLibvaUtilNext_LockGuard guard(&mediaCtx->SurfaceMutex);
         CleanUp(ctx, decCtx);
         return VA_STATUS_SUCCESS;
     }
@@ -1017,8 +1019,11 @@ VAStatus DdiDecodeFunctions::StatusCheck(
     DDI_CODEC_CHK_NULL(surface,  "nullptr surface in Decode StatusCheck", VA_STATUS_ERROR_INVALID_CONTEXT);
 
     uint32_t i = 0;
-    PDDI_DECODE_CONTEXT decCtx = (decltype(decCtx))surface->pDecCtx;
+
+    // guard against pDecCtx has been freed by DestroyContext
     MediaLibvaUtilNext_LockGuard guard(&mediaCtx->SurfaceMutex);
+    PDDI_DECODE_CONTEXT decCtx = (decltype(decCtx))surface->pDecCtx;
+    DDI_CODEC_CHK_NULL(decCtx, "nullptr surface->pDecCtx", VA_STATUS_SUCCESS);
 
     Codechal *codecHal = decCtx->pCodecHal;
     // return success just avoid vaDestroyContext is ahead of vaSyncSurface
