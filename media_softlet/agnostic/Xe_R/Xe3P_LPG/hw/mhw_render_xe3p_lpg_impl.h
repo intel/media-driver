@@ -202,9 +202,18 @@ public:
         _MHW_SETCMD_CALLBASE(COMPUTE_WALKER);
 
         //cmd.DW0.CfeSubopcode  = 2;
-        cmd.DW4.SimdSize      = 2;
-        cmd.DW4.MessageSimd   = Cmd::COMPUTE_WALKER_CMD::MESSAGE_SIMD_SIMT32;
-        cmd.DW5.ExecutionMask = 0xffffffff;
+        if (params.simdSize == 16)
+        {
+            cmd.DW4.SimdSize      = 1;
+            cmd.DW4.MessageSimd   = Cmd::COMPUTE_WALKER_CMD::MESSAGE_SIMD_SIMT16;
+            cmd.DW5.ExecutionMask = 0xffff;
+        }
+        else
+        {
+            cmd.DW4.SimdSize      = 2;
+            cmd.DW4.MessageSimd   = Cmd::COMPUTE_WALKER_CMD::MESSAGE_SIMD_SIMT32;
+            cmd.DW5.ExecutionMask = 0xffffffff;
+        }
         cmd.DW6.LocalXMaximum = params.ThreadWidth - 1;
         cmd.DW6.LocalYMaximum = params.ThreadHeight - 1;
         cmd.DW6.LocalZMaximum = params.ThreadDepth - 1;

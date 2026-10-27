@@ -172,6 +172,14 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_XE3P_LPG::SetSurfaceStateEntry(
                 Surface format is %d, SurfaceMemoryObjectControlState %d, Index to Mocs table %d",pSurfaceState->DW0.SurfaceType, pSurfaceState->DW2.Width,
                pSurfaceState->DW2.Height, pSurfaceState->DW0.SurfaceFormat, pParams->dwCacheabilityControl, (pParams->dwCacheabilityControl >> 1) & 0x0000003f);
 
+    if (pSurfaceState->DW0.SurfaceType == 2)  // 3D surface
+    {
+        pSurfaceState->DW4.RenderTargetViewExtent = pParams->dwDepth - 1;
+    }
+    else
+    {
+        pSurfaceState->DW4.RenderTargetViewExtent = 0;
+    }
     pSurfaceState->DW4.RenderTargetAndSampleUnormRotation = pParams->RotationMode;
     pSurfaceState->DW5.XOffset                            = pParams->iXOffset >> 2;
     pSurfaceState->DW5.YOffset                            = pParams->iYOffset >> 2;
