@@ -635,7 +635,7 @@ endif()
 set(MEDIA_LINK_FLAGS "-Wl,--no-as-needed -Wl,--gc-sections -z relro -z now -fPIC")
 option(MEDIA_BUILD_HARDENING "Enable hardening (stack-protector, fortify source)" ON)
 if(MEDIA_BUILD_HARDENING)
-    set(MEDIA_LINK_FLAGS "${MEDIA_LINK_FLAGS} -fstack-protector")
+    set(MEDIA_LINK_FLAGS "${MEDIA_LINK_FLAGS} -fstack-protector-strong")
 endif()
 set_target_properties(${LIB_NAME} PROPERTIES LINK_FLAGS ${MEDIA_LINK_FLAGS})
 
