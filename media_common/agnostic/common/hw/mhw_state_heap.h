@@ -366,6 +366,7 @@ typedef struct _MHW_SURFACE_STATE_PARAMS {
     uint32_t    RotationMode              : 3;
     uint32_t    bSurfaceArraySpacing      : 1;
     uint32_t    bBoardColorOGL            : 1;
+    uint32_t    bSwapRBChannel            : 1;  // B8G8R8A8 -> R8G8B8A8 + red/blue channel select swap (reads only)
     int32_t     iXOffset;
     int32_t     iYOffset;
     uint32_t    dwXOffsetForU; // U or UV

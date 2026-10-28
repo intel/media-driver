@@ -84,6 +84,7 @@ extern const MHW_SURFACE_STATE_PARAMS g_cInit_MhwSurfaceStateParams =
     0,        // RotationMode
     0,        // bSurfaceArraySpacing
     false,    // bBoardColorOGL
+    false,    // bSwapRBChannel
     0,        // iXOffset
     0,        // iYOffset
     0,        // dwXOffsetForU

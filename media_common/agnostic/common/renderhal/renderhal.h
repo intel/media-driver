@@ -1048,6 +1048,7 @@ typedef struct _RENDERHAL_SURFACE_STATE_PARAMS
     MOS_COMPONENT                   Component                 : 4;
     uint32_t                        combineChannelY           : 1;              // Combine 2 Luma Channel pixels into 1 pixel, so that kernel can reduce write times
     uint32_t                        usePackedPlanar           : 1;              // Force using packed planr
+    uint32_t                        useSwappedChannel         : 1;              // Bind B8G8R8A8 as R8G8B8A8 with red/blue swapped by channel select; reads only
     RENDERHAL_MEMORY_OBJECT_CONTROL MemObjCtl;                                  // Caching attributes
 } RENDERHAL_SURFACE_STATE_PARAMS, *PRENDERHAL_SURFACE_STATE_PARAMS;
 

@@ -330,6 +330,7 @@ MOS_STATUS XRenderHal_Interface_Xe2_Hpg_Next::SetupSurfaceState(
         SurfStateParams.bVerticalLineStride       = pSurfaceEntry->bVertStride;
         SurfStateParams.bHalfPitchChroma          = pSurfaceEntry->bHalfPitchChroma;
         SurfStateParams.bBoardColorOGL            = pParams->bWidthInDword_UV ? false : true;  //sampler surface
+        SurfStateParams.bSwapRBChannel            = pParams->useSwappedChannel;
 
         // Setup surface state
         if (pSurfaceEntry->YUVPlane == MHW_U_PLANE ||

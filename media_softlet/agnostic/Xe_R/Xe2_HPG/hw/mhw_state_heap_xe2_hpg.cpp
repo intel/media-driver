@@ -206,6 +206,17 @@ MOS_STATUS MHW_STATE_HEAP_INTERFACE_XE2_HPG::SetSurfaceStateEntry(
         pSurfaceState->DW7.ShaderChannelSelectGreen = mhw_state_heap_xe2_hpg::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_BLUE;
         pSurfaceState->DW7.ShaderChannelSelectRed   = mhw_state_heap_xe2_hpg::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_RED_RED;
     }
+    // Typed loads from B8G8R8A8_UNORM are much slower than from R8G8B8A8_UNORM, so a caller can
+    // bind a read-only B8G8R8A8 surface as R8G8B8A8 and swap red/blue back with channel select.
+    // The data the shader sees is unchanged. Channel select does not apply to writes.
+    else if (pParams->bSwapRBChannel && pParams->dwFormat == MHW_GFX3DSTATE_SURFACEFORMAT_B8G8R8A8_UNORM)
+    {
+        pSurfaceState->DW0.SurfaceFormat            = MHW_GFX3DSTATE_SURFACEFORMAT_R8G8B8A8_UNORM;
+        pSurfaceState->DW7.ShaderChannelSelectAlpha = mhw_state_heap_xe2_hpg::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_ALPHA_ALPHA;
+        pSurfaceState->DW7.ShaderChannelSelectBlue  = mhw_state_heap_xe2_hpg::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_BLUE_RED;
+        pSurfaceState->DW7.ShaderChannelSelectGreen = mhw_state_heap_xe2_hpg::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_GREEN_GREEN;
+        pSurfaceState->DW7.ShaderChannelSelectRed   = mhw_state_heap_xe2_hpg::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_RED_BLUE;
+    }
     else
     {
         pSurfaceState->DW7.ShaderChannelSelectAlpha = mhw_state_heap_xe2_hpg::RENDER_SURFACE_STATE_CMD::SHADER_CHANNEL_SELECT_ALPHA_ALPHA;
