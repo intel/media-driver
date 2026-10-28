@@ -26,6 +26,7 @@ set(TMP_SOURCES_
 set(TMP_HEADERS_
     ${TMP_HEADERS_}
     ${CMAKE_CURRENT_LIST_DIR}/media_perf_profiler.h
+    ${CMAKE_CURRENT_LIST_DIR}/media_perf_profiler_defs.h
 )
 
 set(SOFTLET_COMMON_PRIVATE_INCLUDE_DIRS_

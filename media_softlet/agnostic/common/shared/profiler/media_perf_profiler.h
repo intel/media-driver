@@ -37,6 +37,7 @@
 #include "igfxfmid.h"
 #include "mos_defs_specific.h"
 #include "mos_os_specific.h"
+#include "media_perf_profiler_defs.h"
 namespace mhw
 {
     namespace mi
@@ -265,6 +266,58 @@ private:
     //!           MOS_STATUS_SUCCESS if success, else fail reason
     //!
     MOS_STATUS SavePerfData(MOS_INTERFACE *osInterface, bool cmdCompletionConfirmed);
+
+    //!
+    //! \brief    Query the CPU/GPU timestamp correlation points of the GT and media clocks
+    //!
+    //! \details  Issues the GTDI_FNC_GET_GPU_CPU_TIMESTAMPS and
+    //!           GTDI_FNC_GET_MEDIA_GPU_CPU_TIMESTAMPS escapes once. A domain whose query fails
+    //!           stays zeroed, without MEDIA_PERF_TS_CORR_FLAG_VALID, so the data is best effort
+    //!           and never blocks profiling.
+    //!
+    //! \param    [in] osInterface
+    //!           Pointer of OS interface
+    //! \param    [out] tsCorr
+    //!           Array of MEDIA_PERF_TS_CORR_DOMAIN_COUNT correlation points, indexed by
+    //!           MEDIA_PERF_TS_CORR_DOMAIN_*
+    //!
+    //! \return   void
+    //!
+    void QueryTsCorrelation(MOS_INTERFACE *osInterface, MediaPerfTsCorrelation *tsCorr);
+
+    //!
+    //! \brief    Write the constant part of a MediaPerfBinHeader into the perf data buffer
+    //!
+    //! \details  No-op unless the output format is MEDIA_PERF_BIN_VERSION_TS_CORR. The node header
+    //!           dword the header starts with has to be written by the caller first.
+    //!
+    //! \param    [in,out] data
+    //!           Locked perf data buffer, starting at the file header
+    //! \param    [in] tsCorrBegin
+    //!           Array of MEDIA_PERF_TS_CORR_DOMAIN_COUNT correlation points from
+    //!           QueryTsCorrelation, copied into MediaPerfBinHeader::tsCorrBegin
+    //!
+    //! \return   void
+    //!
+    void InitBinHeader(uint8_t *data, const MediaPerfTsCorrelation *tsCorrBegin);
+
+    //!
+    //! \brief    Take the second CPU/GPU correlation point and finish the MediaPerfBinHeader
+    //!
+    //! \details  No-op unless the output format is MEDIA_PERF_BIN_VERSION_TS_CORR. Called right
+    //!           before the buffer is written out, so that the two correlation points bracket the
+    //!           collected entries and a parser can fit the ratio of the two clocks.
+    //!
+    //! \param    [in,out] data
+    //!           Locked perf data buffer, starting at the file header
+    //! \param    [in] osInterface
+    //!           Pointer of OS interface, used to query the timestamps
+    //! \param    [in] nodeCount
+    //!           Number of entries collected in the buffer
+    //!
+    //! \return   void
+    //!
+    void UpdateBinHeaderEnd(uint8_t *data, MOS_INTERFACE *osInterface, uint32_t nodeCount);
 
     //!
     //! \brief    Convert GPU context to GPU node
@@ -626,6 +679,8 @@ private:
     bool                          m_enableProfilerDump = true;   //!< Indicate whether enable UMD Profiler dump
     std::shared_ptr<mhw::mi::Itf> m_miItf = nullptr;
     int32_t                       m_multiprocesssinglebin = 0;   //!< multi process single binary flag
+    uint32_t                      m_binVersion = MEDIA_PERF_BIN_VERSION_LEGACY; //!< Output file format, MEDIA_PERF_BIN_VERSION_*, also gates the CPU/GPU timestamp correlation
+    uint32_t                      m_binHeaderSize = (uint32_t)sizeof(uint32_t); //!< Size of the output file header, i.e. offset of the first entry
     int32_t                       m_mergeheader = 0;            //!< multi header support
     uint32_t*                     m_perfDataCombined = nullptr;  //!< Combined perf data pointer
     uint32_t                      m_perfDataCombinedSize = 0;    //!< Combined perf data size

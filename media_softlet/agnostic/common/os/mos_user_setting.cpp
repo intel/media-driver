@@ -265,6 +265,15 @@ MOS_STATUS MosUserSetting::InitMosCommonUserSetting(MediaUserSettingSharedPtr us
 
     DeclareUserSettingKey(
         userSettingPtr,
+        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_TS_CORRELATION,
+        MediaUserSetting::Group::Device,
+        false,
+        true,
+        true,
+        USER_SETTING_CONFIG_PERF_PATH); //"Perf Profiler CPU/GPU Timestamp Correlation."
+
+    DeclareUserSettingKey(
+        userSettingPtr,
         __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_OUTPUT_FILE_NAME,
         MediaUserSetting::Group::Device,
         "Perf_DATA_00_00.bin",

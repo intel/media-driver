@@ -1997,6 +1997,25 @@ typedef struct _MOS_INTERFACE
         PMOS_INTERFACE         pOsInterface);
 
     //!
+    //! \brief    Query a CPU/GPU timestamp correlation point
+    //! \details  Samples the CPU clock and the command streamer clock of the given domain at the
+    //!           same moment, so that GPU timestamps can be placed on an absolute CPU timeline.
+    //!           Optional, only implemented where the KMD exposes it, so check for nullptr.
+    //! \param    PMOS_INTERFACE pOsInterface
+    //!           [in] OS Interface
+    //! \param    MOS_GPU_TIMESTAMP_DOMAIN domain
+    //!           [in] Clock domain to correlate against
+    //! \param    PMOS_GPU_CPU_TIMESTAMPS pTimestamps
+    //!           [out] Correlation point, untouched on failure
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if success, else fail reason
+    //!
+    MOS_STATUS (*pfnQueryGpuCpuTimestamps)(
+        PMOS_INTERFACE           pOsInterface,
+        MOS_GPU_TIMESTAMP_DOMAIN domain,
+        PMOS_GPU_CPU_TIMESTAMPS  pTimestamps);
+
+    //!
     //! \brief    Set hint parameters
     //! \details  
     //! \param    PMOS_INTERFACE pOsInterface

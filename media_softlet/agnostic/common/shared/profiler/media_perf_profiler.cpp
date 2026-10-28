@@ -101,10 +101,20 @@ struct NodeHeader
     uint32_t perfMode    : 3;
     uint32_t genAndroid  : 4;
     uint32_t genPlatform_ext : 2;
-    uint32_t reserved    : 13;
+    uint32_t binVersion  : 3;    //!< MEDIA_PERF_BIN_VERSION_*, tells a parser where the entries start
+    uint32_t reserved    : 10;
 };
 
-#define BASE_OF_NODE(perfDataIndex) (sizeof(NodeHeader) + (sizeof(PerfEntry) * perfDataIndex))
+static_assert(sizeof(NodeHeader) == sizeof(uint32_t),
+    "The node header is the first dword of the output file and MediaPerfBinHeader::nodeHeader.");
+
+//! The offset of the first entry depends on the file format version, so it is a member and not a
+//! constant. Every use of this macro has to be inside a MediaPerfProfiler member function.
+//! Note for parsers: the two timestamp writes round their destination up to 8 bytes, so the header
+//! size decides where they land inside an entry. Behind the 4 byte MEDIA_PERF_BIN_VERSION_LEGACY
+//! header an entry starts on an odd dword and both timestamps end up 4 bytes past their struct
+//! offset; behind the 256 byte MediaPerfBinHeader they land exactly on it.
+#define BASE_OF_NODE(perfDataIndex) (m_binHeaderSize + (sizeof(PerfEntry) * perfDataIndex))
 
 #define CHK_STATUS_RETURN(_stmt)                   \
 {                                                  \
@@ -272,6 +282,28 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
         __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_ENABLE,
         MediaUserSetting::Group::Device);
 
+    // The CPU/GPU timestamp correlation is stored in the MEDIA_PERF_BIN_VERSION_TS_CORR file header,
+    // so this key also selects the output file format. Set it before anything can use
+    // BASE_OF_NODE, and on every call, because a second context re-enters here after the
+    // m_initializedMap early return below.
+    bool tsCorrelationEnabled = false;
+    ReadUserSetting(
+        userSettingPtr,
+        tsCorrelationEnabled,
+        __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_TS_CORRELATION,
+        MediaUserSetting::Group::Device);
+
+    if (tsCorrelationEnabled)
+    {
+        m_binVersion    = MEDIA_PERF_BIN_VERSION_TS_CORR;
+        m_binHeaderSize = (uint32_t)sizeof(MediaPerfBinHeader);
+    }
+    else
+    {
+        m_binVersion    = MEDIA_PERF_BIN_VERSION_LEGACY;
+        m_binHeaderSize = (uint32_t)sizeof(NodeHeader);
+    }
+
     if (m_profilerEnabled == 0 || m_mutex == nullptr)
     {
         return MOS_STATUS_SUCCESS;
@@ -355,6 +387,13 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
         __MEDIA_USER_FEATURE_VALUE_PERF_PROFILER_MUL_PROC_SINGLE_BIN,
         MediaUserSetting::Group::Device);
 
+    // Only the MEDIA_PERF_BIN_VERSION_TS_CORR file header has room for the correlation points.
+    MediaPerfTsCorrelation tsCorrBegin[MEDIA_PERF_TS_CORR_DOMAIN_COUNT] = {};
+    if (m_binVersion != MEDIA_PERF_BIN_VERSION_LEGACY)
+    {
+        QueryTsCorrelation(osInterface, tsCorrBegin);
+    }
+
     PMOS_RESOURCE  pPerfStoreBuffer = (PMOS_RESOURCE)MOS_AllocAndZeroMemory(sizeof(MOS_RESOURCE));
     m_perfStoreBufferMap[pOsContext] = pPerfStoreBuffer;
     // Allocate the buffer which store the performance data
@@ -383,15 +422,17 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
     MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
     lockFlags.WriteOnly   = 1;
 
-    NodeHeader* header = (NodeHeader*)osInterface->pfnLockResource(
+    uint8_t *pData = (uint8_t *)osInterface->pfnLockResource(
             osInterface,
             pPerfStoreBuffer,
             &lockFlags);
 
-    CHK_NULL_UNLOCK_MUTEX_RETURN(header);
+    CHK_NULL_UNLOCK_MUTEX_RETURN(pData);
 
     // Append the header info
-    MOS_ZeroMemory(header, m_bufferSize);
+    MOS_ZeroMemory(pData, m_bufferSize);
+
+    NodeHeader* header = (NodeHeader*)pData;
     header->eventType   = UMD_PERF_LOG;
 
     uint32_t mappedPlatFormId = PlatFormIdMap(platform);
@@ -406,6 +447,12 @@ MOS_STATUS MediaPerfProfiler::Initialize(void* context, MOS_INTERFACE *osInterfa
     {
         header->perfMode    = UMD_PERF_MODE_TIMING_ONLY;
     }
+
+    header->binVersion  = m_binVersion;
+
+    // The node header dword is shared with MediaPerfBinHeader::nodeHeader, so the file header is
+    // filled in after it, and leaves that dword alone.
+    InitBinHeader(pData, tsCorrBegin);
 
     osInterface->pfnUnlockResource(
             osInterface,
@@ -862,6 +909,7 @@ MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface, bool cmdC
                 &LockFlagsNoOverWrite);
 
             CHK_NULL_RETURN(pData);
+            UpdateBinHeaderEnd(pData, osInterface, m_perfDataIndexMap[pOsContext]);
             MOS_SecureMemcpy(((uint8_t *)m_perfDataCombined) + m_perfDataCombinedOffset, BASE_OF_NODE(m_perfDataIndexMap[pOsContext]), pData, BASE_OF_NODE(m_perfDataIndexMap[pOsContext]));
 
             osInterface->pfnUnlockResource(
@@ -901,6 +949,8 @@ MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface, bool cmdC
 
         CHK_NULL_RETURN(pData);
 
+        UpdateBinHeaderEnd(pData, osInterface, m_perfDataIndexMap[pOsContext]);
+
         if (m_multiprocess)
         {
             int32_t pid = MosUtilities::MosGetPid();
@@ -926,7 +976,7 @@ MOS_STATUS MediaPerfProfiler::SavePerfData(MOS_INTERFACE *osInterface, bool cmdC
             else
             {
                 MosUtilities::MosCloseHandle(hFile);
-                MosUtilities::MosAppendFileFromPtr(outputFileName, pData + sizeof(NodeHeader), BASE_OF_NODE(m_perfDataIndexMap[pOsContext]) - sizeof(NodeHeader));
+                MosUtilities::MosAppendFileFromPtr(outputFileName, pData + m_binHeaderSize, BASE_OF_NODE(m_perfDataIndexMap[pOsContext]) - m_binHeaderSize);
             }
         }
         else
@@ -1026,4 +1076,123 @@ bool MediaPerfProfiler::IsPerfModeWidthMemInfo(uint32_t *regs)
     }
 
     return ret;
+}
+
+//!
+//! \brief    Convert one MOS correlation point into its binary file representation
+//!
+//! \param    [in] osInterface
+//!           Pointer of OS interface
+//! \param    [in] domain
+//!           Clock domain to query
+//! \param    [in] isMedia
+//!           Whether the domain is the media one, recorded in the flags
+//!
+//! \return   MediaPerfTsCorrelation
+//!           The correlation point, zeroed if the query failed
+//!
+static MediaPerfTsCorrelation GetTsCorrelation(
+    MOS_INTERFACE            *osInterface,
+    MOS_GPU_TIMESTAMP_DOMAIN  domain,
+    bool                      isMedia)
+{
+    MediaPerfTsCorrelation correlation = {};
+    MOS_GPU_CPU_TIMESTAMPS timestamps  = {};
+
+    if (osInterface->pfnQueryGpuCpuTimestamps(osInterface, domain, &timestamps) != MOS_STATUS_SUCCESS)
+    {
+        // Not fatal: the escape is rejected on platforms the instrumentation KMD does not cover.
+        MOS_OS_NORMALMESSAGE("Perf profiler could not query the CPU/GPU timestamps of domain %d.", domain);
+        return correlation;
+    }
+
+    // The frequencies are stored as 32 bits to leave room for the flags and the version.
+    if (timestamps.cpuFreq == 0 || timestamps.cpuFreq > 0xFFFFFFFFull ||
+        timestamps.gpuFreq == 0 || timestamps.gpuFreq > 0xFFFFFFFFull)
+    {
+        MOS_OS_NORMALMESSAGE("Perf profiler got an out of range clock frequency for domain %d.", domain);
+        return correlation;
+    }
+
+    correlation.cpuPerfTicks = timestamps.cpuTicks;
+    correlation.gpuPerfTicks = timestamps.gpuTicks;
+    correlation.cpuPerfFreq  = (uint32_t)timestamps.cpuFreq;
+    correlation.gpuPerfFreq  = (uint32_t)timestamps.gpuFreq;
+    correlation.flags        = MEDIA_PERF_TS_CORR_FLAG_VALID | (isMedia ? MEDIA_PERF_TS_CORR_FLAG_MEDIA : 0);
+    correlation.version      = MEDIA_PERF_TS_CORR_VERSION;
+
+    return correlation;
+}
+
+void MediaPerfProfiler::QueryTsCorrelation(MOS_INTERFACE *osInterface, MediaPerfTsCorrelation *tsCorr)
+{
+    if (osInterface == nullptr || tsCorr == nullptr)
+    {
+        return;
+    }
+
+    // Optional MOS service, only wired up where the KMD serves the instrumentation escape.
+    if (osInterface->pfnQueryGpuCpuTimestamps == nullptr)
+    {
+        return;
+    }
+
+    tsCorr[MEDIA_PERF_TS_CORR_DOMAIN_GT]    = GetTsCorrelation(osInterface, MOS_GPU_TIMESTAMP_DOMAIN_GT, false);
+    tsCorr[MEDIA_PERF_TS_CORR_DOMAIN_MEDIA] = GetTsCorrelation(osInterface, MOS_GPU_TIMESTAMP_DOMAIN_MEDIA, true);
+}
+
+void MediaPerfProfiler::InitBinHeader(uint8_t *data, const MediaPerfTsCorrelation *tsCorrBegin)
+{
+    if (data == nullptr || m_binVersion == MEDIA_PERF_BIN_VERSION_LEGACY)
+    {
+        return;
+    }
+
+    // The buffer comes from pfnLockResource, so it is at least page aligned.
+    MediaPerfBinHeader *binHeader = reinterpret_cast<MediaPerfBinHeader *>(data);
+
+    // binHeader->nodeHeader is the NodeHeader dword, already written by the caller.
+    binHeader->magic      = MEDIA_PERF_BIN_HEADER_MAGIC;
+    binHeader->headerSize = (uint32_t)sizeof(MediaPerfBinHeader);
+    binHeader->entrySize  = (uint32_t)sizeof(PerfEntry);
+    binHeader->entryCount = 0;
+    binHeader->processId  = (uint32_t)MosUtilities::MosGetPid();
+
+    // The only copy of the first correlation point. The entries do not carry one, so a parser
+    // picks the domain of an entry from its engine and maps it with the point stored here.
+    if (tsCorrBegin != nullptr)
+    {
+        MOS_SecureMemcpy(
+            binHeader->tsCorrBegin,
+            sizeof(binHeader->tsCorrBegin),
+            tsCorrBegin,
+            sizeof(binHeader->tsCorrBegin));
+    }
+}
+
+void MediaPerfProfiler::UpdateBinHeaderEnd(uint8_t *data, MOS_INTERFACE *osInterface, uint32_t nodeCount)
+{
+    if (data == nullptr || osInterface == nullptr || m_binVersion == MEDIA_PERF_BIN_VERSION_LEGACY)
+    {
+        return;
+    }
+
+    MediaPerfBinHeader *binHeader = reinterpret_cast<MediaPerfBinHeader *>(data);
+
+    // The merge header output appends the entries of several contexts behind the header of whichever
+    // context created the file, so the count in the header would only reflect the first one.
+    binHeader->entryCount = m_mergeheader ? 0 : nodeCount;
+
+    if (osInterface->pfnQueryGpuCpuTimestamps == nullptr)
+    {
+        return;
+    }
+
+    // A second correlation point, taken as late as possible. The pair gives the parser the real
+    // ratio of the two clocks, which the nominal frequencies are off by tens of ppm. If the query
+    // fails the fields stay zeroed and the parser falls back to the single point in tsCorrBegin.
+    binHeader->tsCorrEnd[MEDIA_PERF_TS_CORR_DOMAIN_GT] =
+        GetTsCorrelation(osInterface, MOS_GPU_TIMESTAMP_DOMAIN_GT, false);
+    binHeader->tsCorrEnd[MEDIA_PERF_TS_CORR_DOMAIN_MEDIA] =
+        GetTsCorrelation(osInterface, MOS_GPU_TIMESTAMP_DOMAIN_MEDIA, true);
 }

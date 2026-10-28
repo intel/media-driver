@@ -561,6 +561,26 @@ typedef enum _NATIVE_FENCE_MODE
     NATIVE_FENCE_MODE_GPU_SYNC_BY_CMD = 2
 } NATIVE_FENCE_MODE;
 
+//!
+//! \brief Command streamer clock domains a CPU/GPU timestamp correlation can be taken in
+//!
+typedef enum _MOS_GPU_TIMESTAMP_DOMAIN
+{
+    MOS_GPU_TIMESTAMP_DOMAIN_GT    = 0,     //!< Render/GT clock
+    MOS_GPU_TIMESTAMP_DOMAIN_MEDIA = 1      //!< Media (VDBOX/VEBOX) clock
+} MOS_GPU_TIMESTAMP_DOMAIN;
+
+//!
+//! \brief One CPU/GPU timestamp correlation point
+//!
+typedef struct _MOS_GPU_CPU_TIMESTAMPS
+{
+    uint64_t gpuTicks;                      //!< GPU ticks, in the queried domain
+    uint64_t cpuTicks;                      //!< CPU ticks sampled at the same moment
+    uint64_t gpuFreq;                       //!< GPU tick frequency, in Hz
+    uint64_t cpuFreq;                       //!< CPU tick frequency, in Hz
+} MOS_GPU_CPU_TIMESTAMPS, *PMOS_GPU_CPU_TIMESTAMPS;
+
 using MediaUserSettingSharedPtr = std::shared_ptr<MediaUserSetting::MediaUserSetting>;
 
 const unsigned int BITS_PER_BYTE = 8;
