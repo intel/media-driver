@@ -232,6 +232,8 @@ else()
     set(MEDIA_GMM_INTERFACE_LIBS "")
 endif()
 
+# Must be declared before media_compile_flags.cmake, which evaluates it.
+option(MEDIA_BUILD_HARDENING "Enable hardening (stack-protector, fortify source)" ON)
 include(${MEDIA_DRIVER_CMAKE}/media_compile_flags.cmake)
 
 #
@@ -633,7 +635,6 @@ if(MEDIA_BUILD_FATAL_WARNINGS)
 endif()
 
 set(MEDIA_LINK_FLAGS "-Wl,--no-as-needed -Wl,--gc-sections -z relro -z now -fPIC")
-option(MEDIA_BUILD_HARDENING "Enable hardening (stack-protector, fortify source)" ON)
 if(MEDIA_BUILD_HARDENING)
     set(MEDIA_LINK_FLAGS "${MEDIA_LINK_FLAGS} -fstack-protector-strong")
 endif()

@@ -57,6 +57,9 @@ option (BUILD_CMRTLIB "Build and Install cmrtlib together with media driver" ON)
 
 option (ENABLE_PRODUCTION_KMD "Enable Production KMD header files" OFF)
 
+# Declared before cmrtlib and media_driver are added, since both evaluate it.
+option (MEDIA_BUILD_HARDENING "Enable hardening (stack-protector, fortify source)" ON)
+
 include(GNUInstallDirs)
 
 if (BUILD_CMRTLIB AND NOT CMAKE_WDDM_LINUX)
