@@ -130,12 +130,10 @@ MOS_STATUS AvcHucBrcInitPktXe3p_Lpm_Base::Execute(PMOS_COMMAND_BUFFER cmdBuffer,
 
     ENCODE_CHK_STATUS_RETURN(StartPerfCollect(*cmdBuffer));
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (m_bypassHwLegacyEnabled)
+    if (m_bypassHwLegacy)
     {
-        ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StartPredicate(cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(m_bypassHwLegacy->StartPredicate(cmdBuffer));
     }
-#endif
 
     if (m_isPPGTT)
     {
@@ -157,12 +155,10 @@ MOS_STATUS AvcHucBrcInitPktXe3p_Lpm_Base::Execute(PMOS_COMMAND_BUFFER cmdBuffer,
 
     SETPAR_AND_ADDCMD(VD_PIPELINE_FLUSH, m_vdencItf, cmdBuffer);
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (m_bypassHwLegacyEnabled)
+    if (m_bypassHwLegacy)
     {
-        ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StopPredicate(cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(m_bypassHwLegacy->StopPredicate(cmdBuffer));
     }
-#endif
 
     // Flush the engine to ensure memory written out
     ENCODE_CHK_NULL_RETURN(m_miItf);
@@ -210,9 +206,7 @@ MOS_STATUS AvcHucBrcInitPktXe3p_Lpm_Base::AddAllCmds_HUC_IMEM_STATE(PMOS_COMMAND
     auto &mfxWaitParams               = m_miItf->MHW_GETPAR_F(MFX_WAIT)();
     mfxWaitParams                     = {};
     mfxWaitParams.iStallVdboxPipeline = true;
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (!m_bypassHwLegacyEnabled)
-#endif
+    if (!m_bypassHwLegacy)
     {
         ENCODE_CHK_STATUS_RETURN((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(cmdBuffer)));
     }

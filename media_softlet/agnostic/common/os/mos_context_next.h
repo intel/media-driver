@@ -34,10 +34,8 @@
 #include "mos_decompression.h"
 #endif
 #include "mos_mediacopy.h"
-#if (_DEBUG || _RELEASE_INTERNAL)
 #include "mos_bypass_hw_defs.h"
 #include <mutex>
-#endif
 
 class MosOcaRTLogMgr;
 class MosMockAdaptor;
@@ -430,7 +428,6 @@ protected:
     //! \brief is pooled resource is supported
     bool                            m_resourcePooling = false;
 
-#if (_DEBUG || _RELEASE_INTERNAL)
 public:
     //!
     //! \brief  Initialize dummy VDBox slot array; reads fakeCount/realCount from MockAdaptor
@@ -578,7 +575,6 @@ protected:
     uint32_t     m_startSlotCounterDecode = DUMMY_VDBOX_NUM_MAX - 1;    //!< Decode: VEBox-first
     uint32_t     m_startSlotCounterEncode = 0;                          //!< Encode: VDBox-first
     bool         m_hasSlimVdboxTopology = false;                        //!< FtrWithSlimVdbox latched at init; selects Tiered vs Uniform
-#endif // (_DEBUG || _RELEASE_INTERNAL)
 
 MEDIA_CLASS_DEFINE_END(OsContextNext)
 };

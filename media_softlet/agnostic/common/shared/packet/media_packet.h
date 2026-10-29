@@ -41,6 +41,7 @@
 #include "mhw_cmdpar.h"
 #include "mhw_mi_itf.h"
 class MediaStatusReport;
+class BypassHwLegacy;
 class MhwMiInterface;
 namespace mhw{namespace mi{class Itf;}}  // namespace mhw
 
@@ -356,12 +357,10 @@ protected:
     MediaStatusReport             *m_statusReport = nullptr;
     std::shared_ptr<mhw::mi::Itf> m_miItf         = nullptr;
     MediaUserSettingSharedPtr     m_userSettingPtr = nullptr;  //!< usersettingInstance
-#if (_DEBUG || _RELEASE_INTERNAL)
-    //! Set to true when BypassHwLegacy is fully initialized and active. Controls two behaviors:
-    //! (1) Disables NullHW::StartPredicateNext/StopPredicateNext so BypassHwLegacy is the
-    //!     sole owner of MI_SET_PREDICATE in the command buffer.
-    bool                          m_bypassHwLegacyEnabled = false;
-#endif
+    //! BypassHwLegacy of the owning pipeline; non-null when it is fully initialized and active.
+    //! When set, BypassHwLegacy is the sole owner of MI_SET_PREDICATE in the command buffer,
+    //! so NullHW::StartPredicateNext/StopPredicateNext are disabled.
+    BypassHwLegacy               *m_bypassHwLegacy = nullptr;
 
     //!
     //! \brief  Add native fence sync BB start command before force wakeup and prolog

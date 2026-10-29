@@ -145,11 +145,9 @@ protected:
     uint16_t m_numOfRealVdbox;
     bool m_enabled;
 
-#if (_DEBUG || _RELEASE_INTERNAL)
 public:
     uint16_t GetFakeVdboxCount() const { return m_numOfVdbox; }
     uint16_t GetRealVdboxCount() const { return m_numOfRealVdbox; }
-#endif
 
 MEDIA_CLASS_DEFINE_END(MosMockAdaptor)
 };

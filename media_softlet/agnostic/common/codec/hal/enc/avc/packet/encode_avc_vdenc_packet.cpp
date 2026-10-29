@@ -106,12 +106,7 @@ namespace encode {
 
         m_usePatchList = m_osInterface->bUsesPatchList;
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (m_pipeline->GetBypassHWLegacy())
-        {
-            m_bypassHwLegacyEnabled = true;
-        }
-#endif
+        m_bypassHwLegacy = m_pipeline->GetBypassHWLegacy();
 
         return MOS_STATUS_SUCCESS;
     }
@@ -343,10 +338,8 @@ namespace encode {
             if (!brcFeature->m_swBrc)
             {
 #endif
-#if (_DEBUG || _RELEASE_INTERNAL)
             // In NullHW mode HuC never runs so HucStatus2=0 would always fire the early-exit.
-            if (!m_bypassHwLegacyEnabled)
-#endif
+            if (!m_bypassHwLegacy)
             {
                 // Insert conditional batch buffer end for HuC valid IMEM loaded check
                 m_pResource = brcFeature->GetHucStatus2Buffer();
@@ -366,9 +359,7 @@ namespace encode {
                 ENCODE_CHK_STATUS_RETURN(MediaPacket::UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer));
             }
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-            if (!m_bypassHwLegacyEnabled)
-#endif
+            if (!m_bypassHwLegacy)
             {
                 // Insert conditional batch buffer end
                 // VDENC uses HuC BRC FW generated semaphore for conditional 2nd pass
@@ -383,27 +374,25 @@ namespace encode {
             ENCODE_CHK_STATUS_RETURN(StartStatusReport(statusReportMfx, &cmdBuffer));
         }
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (m_bypassHwLegacyEnabled)
+        if (m_bypassHwLegacy)
         {
-            if (!m_pipeline->GetBypassHWLegacy()->IsPipelineCharacteristicsSet())
+            if (!m_bypassHwLegacy->IsPipelineCharacteristicsSet())
             {
                 // AVC codecSettings->chromaFormat = 0 means default 4:2:0 (not MONOCHROME).
                 // Normalize to HCP_CHROMA_FORMAT_YUV420 (= 1) so cfg file "420" entries match.
                 uint32_t avcChromaFmt = m_basicFeature->m_chromaFormat == 0 ? 1 : m_basicFeature->m_chromaFormat;
-                m_pipeline->GetBypassHWLegacy()->SetPipelineCharacteristics(
+                m_bypassHwLegacy->SetPipelineCharacteristics(
                     CODECHAL_AVC,
                     avcChromaFmt,
                     m_basicFeature->m_frameWidth,
                     m_basicFeature->m_frameHeight,
                     m_basicFeature->m_bitDepth,
                     m_seqParam->TargetUsage);
-                m_pipeline->GetBypassHWLegacy()->SetPipelineCharacteristicsFlag();
+                m_bypassHwLegacy->SetPipelineCharacteristicsFlag();
             }
-            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->AddNullHwProxyCmd(&cmdBuffer, true));
-            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StartPredicate(&cmdBuffer));
+            ENCODE_CHK_STATUS_RETURN(m_bypassHwLegacy->AddNullHwProxyCmd(&cmdBuffer, true));
+            ENCODE_CHK_STATUS_RETURN(m_bypassHwLegacy->StartPredicate(&cmdBuffer));
         }
-#endif
 
         SETPAR_AND_ADDCMD(VDENC_CONTROL_STATE, m_vdencItf, &cmdBuffer);
 
@@ -567,12 +556,10 @@ namespace encode {
 
         ENCODE_CHK_STATUS_RETURN(EnsureAllCommandsExecuted(cmdBuffer));
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (m_bypassHwLegacyEnabled)
+        if (m_bypassHwLegacy)
         {
-            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StopPredicate(&cmdBuffer));
+            ENCODE_CHK_STATUS_RETURN(m_bypassHwLegacy->StopPredicate(&cmdBuffer));
         }
-#endif
 
         ENCODE_CHK_STATUS_RETURN(PrepareHWMetaData(&cmdBuffer));
         ENCODE_CHK_STATUS_RETURN(ReadMfcStatus(cmdBuffer));
@@ -1592,16 +1579,12 @@ namespace encode {
         ENCODE_FUNC_CALL();
 
         //for gen 12, we need to add MFX wait for both KIN and VRT before and after MFX Pipemode select...
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (!m_bypassHwLegacyEnabled)
-#endif
+        if (!m_bypassHwLegacy)
             SETPAR_AND_ADDCMD(MFX_WAIT, m_miItf, &cmdBuffer);
 
         SETPAR_AND_ADDCMD(MFX_PIPE_MODE_SELECT, m_mfxItf, &cmdBuffer);
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (!m_bypassHwLegacyEnabled)
-#endif
+        if (!m_bypassHwLegacy)
             SETPAR_AND_ADDCMD(MFX_WAIT, m_miItf, &cmdBuffer);
 
         ENCODE_CHK_STATUS_RETURN(AddAllCmds_MFX_SURFACE_STATE(&cmdBuffer));
@@ -1653,12 +1636,10 @@ namespace encode {
             // base part of 2nd lvl BB must be aligned for CODECHAL_CACHELINE_SIZE
             secondLevelBatchBuffer->dwOffset = MOS_ALIGN_CEIL(m_hwInterface->m_vdencBrcImgStateBufferSize, CODECHAL_CACHELINE_SIZE) +
                                                m_basicFeature->m_curNumSlices * brcFeature->GetVdencOneSliceStateSize();
-#if (_DEBUG || _RELEASE_INTERNAL)
             // In NullHW/BRC mode HuC never ran so the BRC img-state buffer (slice section)
             // is uninitialized. MI_BATCH_BUFFER_START always executes even under
             // MI_SET_PREDICATE, so jumping into this buffer causes a GPU hang.
-            if (!m_bypassHwLegacyEnabled)
-#endif
+            if (!m_bypassHwLegacy)
             {
                 ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(cmdBuffer, secondLevelBatchBuffer));
                 HalOcaInterfaceNext::OnSubLevelBBStart(

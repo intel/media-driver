@@ -205,9 +205,7 @@ MOS_STATUS AvcHucBrcUpdatePktXe3p_Lpm_Base::Execute(PMOS_COMMAND_BUFFER cmdBuffe
         auto &miConditionalBatchBufferEndParams               = m_miItf->MHW_GETPAR_F(MI_CONDITIONAL_BATCH_BUFFER_END)();
         miConditionalBatchBufferEndParams                     = {};
         miConditionalBatchBufferEndParams.presSemaphoreBuffer = m_resHucStatus2Buffer;
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (!m_bypassHwLegacyEnabled)
-#endif
+        if (!m_bypassHwLegacy)
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_CONDITIONAL_BATCH_BUFFER_END)(cmdBuffer));
     }
 
@@ -231,12 +229,10 @@ MOS_STATUS AvcHucBrcUpdatePktXe3p_Lpm_Base::Execute(PMOS_COMMAND_BUFFER cmdBuffe
         ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_COPY_MEM_MEM)(cmdBuffer));
     }
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (m_bypassHwLegacyEnabled)
+    if (m_bypassHwLegacy)
     {
-        ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StartPredicate(cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(m_bypassHwLegacy->StartPredicate(cmdBuffer));
     }
-#endif
 
     if (m_isPPGTT)
     {
@@ -296,12 +292,10 @@ MOS_STATUS AvcHucBrcUpdatePktXe3p_Lpm_Base::Execute(PMOS_COMMAND_BUFFER cmdBuffe
     //TODO: double confirm why need Vdenc pipe flush
     SETPAR_AND_ADDCMD(VD_PIPELINE_FLUSH, m_vdencItf, cmdBuffer);
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (m_bypassHwLegacyEnabled)
+    if (m_bypassHwLegacy)
     {
-        ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StopPredicate(cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(m_bypassHwLegacy->StopPredicate(cmdBuffer));
     }
-#endif
 
     // Flush the engine to ensure memory written out
     auto &flushDwParams                         = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();
@@ -347,9 +341,7 @@ MOS_STATUS AvcHucBrcUpdatePktXe3p_Lpm_Base::AddAllCmds_HUC_IMEM_STATE(PMOS_COMMA
     auto &mfxWaitParams               = m_miItf->MHW_GETPAR_F(MFX_WAIT)();
     mfxWaitParams                     = {};
     mfxWaitParams.iStallVdboxPipeline = true;
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (!m_bypassHwLegacyEnabled)
-#endif
+    if (!m_bypassHwLegacy)
     {
         ENCODE_CHK_STATUS_RETURN((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(cmdBuffer)));
     }

@@ -68,16 +68,12 @@ MOS_STATUS BypassHwLegacy::Initialize(PMOS_INTERFACE pOsInterface, std::shared_p
     m_osInterface = pOsInterface;
     m_miItf       = std::move(pMiItf);
 
-#if (_DEBUG || _RELEASE_INTERNAL)
     OsContextNext *osDevCtx = GetOsDeviceContext();
     if (osDevCtx == nullptr)
     {
         return MOS_STATUS_NULL_POINTER;
     }
     return osDevCtx->InitDummyVdboxSlots();
-#else
-    return MOS_STATUS_SUCCESS;
-#endif // (_DEBUG || _RELEASE_INTERNAL)
 }
 
 MOS_STATUS BypassHwLegacy::FetchDummyVdNode(
@@ -125,7 +121,6 @@ MOS_STATUS BypassHwLegacy::FetchDummyVdNodeInternal(
     uint8_t            bitDepth,
     uint8_t            targetUsage)
 {
-#if (_DEBUG || _RELEASE_INTERNAL)
     // Re-entrance guard: reuse existing slot
     if (m_claimedSlotIndex >= 0)
     {
@@ -161,17 +156,6 @@ MOS_STATUS BypassHwLegacy::FetchDummyVdNodeInternal(
         m_claimedSlotIndex, gpuNode, isEncode ? "encode" : "decode", isScalable);
 
     m_isScalable = isScalable;
-#else
-    MOS_UNUSED(gpuNode);
-    MOS_UNUSED(codec);
-    MOS_UNUSED(isEncode);
-    MOS_UNUSED(needFullVdbox);
-    MOS_UNUSED(width);
-    MOS_UNUSED(height);
-    MOS_UNUSED(chromaFormat);
-    MOS_UNUSED(bitDepth);
-    MOS_UNUSED(targetUsage);
-#endif // (_DEBUG || _RELEASE_INTERNAL)
 
     return MOS_STATUS_SUCCESS;
 }
@@ -238,7 +222,6 @@ MOS_STATUS BypassHwLegacy::AddNullHwProxyCmd(PMOS_COMMAND_BUFFER cmdBuffer, bool
         return MOS_STATUS_SUCCESS;
     }
 
-#if (_DEBUG || _RELEASE_INTERNAL)
     // Read repeat count once per pipeline lifetime
     if (!m_readRepeatCount)
     {
@@ -349,7 +332,6 @@ MOS_STATUS BypassHwLegacy::AddNullHwProxyCmd(PMOS_COMMAND_BUFFER cmdBuffer, bool
     {
         return eStatus;
     }
-#endif // (_DEBUG || _RELEASE_INTERNAL)
 
     return MOS_STATUS_SUCCESS;
 }
@@ -367,7 +349,6 @@ MOS_STATUS BypassHwLegacy::Destroy()
         return MOS_STATUS_SUCCESS;
     }
 
-#if (_DEBUG || _RELEASE_INTERNAL)
     // Release slot ref count
     OsContextNext *osDevCtx = GetOsDeviceContext();
     if (osDevCtx && m_claimedSlotIndex >= 0)
@@ -388,7 +369,6 @@ MOS_STATUS BypassHwLegacy::Destroy()
         m_secondLevelBBAllocated    = false;
         m_secondLevelBBInitialized  = false;
     }
-#endif // (_DEBUG || _RELEASE_INTERNAL)
 
     m_destroyed = true;
     return MOS_STATUS_SUCCESS;

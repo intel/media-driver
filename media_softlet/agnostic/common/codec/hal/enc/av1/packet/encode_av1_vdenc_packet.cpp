@@ -215,12 +215,7 @@ namespace encode{
 
         m_usePatchList = m_osInterface->bUsesPatchList;
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (m_pipeline->GetBypassHWLegacy())
-        {
-            m_bypassHwLegacyEnabled = true;
-        }
-#endif
+        m_bypassHwLegacy = m_pipeline->GetBypassHWLegacy();
 
         return MOS_STATUS_SUCCESS;
     }
@@ -380,24 +375,22 @@ namespace encode{
                 (void *)m_pipeline, m_osInterface, m_miItf, &cmdBuffer));
         }
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (m_bypassHwLegacyEnabled)
+        if (m_bypassHwLegacy)
         {
-            if (!m_pipeline->GetBypassHWLegacy()->IsPipelineCharacteristicsSet())
+            if (!m_bypassHwLegacy->IsPipelineCharacteristicsSet())
             {
-                m_pipeline->GetBypassHWLegacy()->SetPipelineCharacteristics(
+                m_bypassHwLegacy->SetPipelineCharacteristics(
                     CODECHAL_AV1,
                     m_basicFeature->m_chromaFormat,
                     m_basicFeature->m_oriFrameWidth,
                     m_basicFeature->m_oriFrameHeight,
                     m_basicFeature->m_bitDepth,
                     m_basicFeature->m_av1SeqParams->TargetUsage);
-                m_pipeline->GetBypassHWLegacy()->SetPipelineCharacteristicsFlag();
+                m_bypassHwLegacy->SetPipelineCharacteristicsFlag();
             }
-            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->AddNullHwProxyCmd(&cmdBuffer, true));
-            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StartPredicate(&cmdBuffer));
+            ENCODE_CHK_STATUS_RETURN(m_bypassHwLegacy->AddNullHwProxyCmd(&cmdBuffer, true));
+            ENCODE_CHK_STATUS_RETURN(m_bypassHwLegacy->StartPredicate(&cmdBuffer));
         }
-#endif
 
         ENCODE_CHK_STATUS_RETURN(AddPictureVdencCommands(cmdBuffer));
 
@@ -490,12 +483,10 @@ namespace encode{
         ENCODE_CHK_NULL_RETURN(scalability);
         ENCODE_CHK_STATUS_RETURN(scalability->SyncPipe(syncOnePipeWaitOthers, 0, &cmdBuffer));
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (m_bypassHwLegacyEnabled)
+        if (m_bypassHwLegacy)
         {
-            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StopPredicate(&cmdBuffer));
+            ENCODE_CHK_STATUS_RETURN(m_bypassHwLegacy->StopPredicate(&cmdBuffer));
         }
-#endif
 
         if (m_pipeline->IsFirstPipe())
         {
@@ -532,24 +523,20 @@ namespace encode{
             ENCODE_CHK_STATUS_RETURN(MediaPacket::UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer));
         }
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (m_bypassHwLegacyEnabled)
+        if (m_bypassHwLegacy)
         {
-            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StartPredicate(&cmdBuffer));
+            ENCODE_CHK_STATUS_RETURN(m_bypassHwLegacy->StartPredicate(&cmdBuffer));
         }
-#endif
 
         if (m_pipeline->IsDualEncEnabled())
         {
             SETPAR_AND_ADDCMD(VDENC_CONTROL_STATE, m_vdencItf, &cmdBuffer);
         }
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (m_bypassHwLegacyEnabled)
+        if (m_bypassHwLegacy)
         {
-            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StopPredicate(&cmdBuffer));
+            ENCODE_CHK_STATUS_RETURN(m_bypassHwLegacy->StopPredicate(&cmdBuffer));
         }
-#endif
 
         CODECHAL_DEBUG_TOOL(
             if (m_mmcState) {

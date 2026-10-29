@@ -171,12 +171,10 @@ MOS_STATUS HucSLBBUpdatePkt::Execute(PMOS_COMMAND_BUFFER cmdBuffer, bool storeHu
     // Start performance collection
     ENCODE_CHK_STATUS_RETURN(StartPerfCollect(*cmdBuffer));
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (m_bypassHwLegacyEnabled)
+    if (m_bypassHwLegacy)
     {
-        ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StartPredicate(cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(m_bypassHwLegacy->StartPredicate(cmdBuffer));
     }
-#endif
 
     // Conditionally add HUC_IMEM_ADDR commands for PPGTT mode
     if (m_isPPGTT)
@@ -204,12 +202,10 @@ MOS_STATUS HucSLBBUpdatePkt::Execute(PMOS_COMMAND_BUFFER cmdBuffer, bool storeHu
     // Perform pipeline flush
     SETPAR_AND_ADDCMD(VD_PIPELINE_FLUSH, m_vdencItf, cmdBuffer);
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (m_bypassHwLegacyEnabled)
+    if (m_bypassHwLegacy)
     {
-        ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StopPredicate(cmdBuffer));
+        ENCODE_CHK_STATUS_RETURN(m_bypassHwLegacy->StopPredicate(cmdBuffer));
     }
-#endif
 
     // Flush the engine to ensure memory written out
     ENCODE_CHK_NULL_RETURN(m_miItf);

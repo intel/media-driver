@@ -197,7 +197,6 @@ public:
     //!
     void SetDummyVdNodeFetchFlag();
 
-#if (_DEBUG || _RELEASE_INTERNAL)
     //! \brief  Get repeat count (debug accessor for ULT)
     uint32_t GetRepeatCount() const { return m_repeatCount; }
 
@@ -206,7 +205,6 @@ public:
 
     //! \brief  Get claimed slot index (debug accessor for ULT)
     int32_t GetClaimedSlotIndex() const { return m_claimedSlotIndex; }
-#endif
 
     // Static config file cache (shared across all BypassHwLegacy instances)
     static std::mutex                    s_configFileMutex;

@@ -50,12 +50,7 @@ namespace decode
             return MOS_STATUS_NULL_POINTER;
         }
 #endif
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (m_av1Pipeline->GetBypassHWLegacy())
-        {
-            m_bypassHwLegacyEnabled = true;
-        }
-#endif
+        m_bypassHwLegacy = m_av1Pipeline->GetBypassHWLegacy();
         return MOS_STATUS_SUCCESS;
     }
 

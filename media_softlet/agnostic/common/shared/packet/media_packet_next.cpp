@@ -54,9 +54,7 @@ MOS_STATUS MediaPacket::StartStatusReportNext(
 
     result = SetStartTagNext(osResource, offset, srType, cmdBuffer);
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (!m_bypassHwLegacyEnabled)
-#endif
+    if (!m_bypassHwLegacy)
     {
         MEDIA_CHK_STATUS_RETURN(NullHW::StartPredicateNext(m_osInterface, m_miItf, cmdBuffer));
     }
@@ -107,9 +105,7 @@ MOS_STATUS MediaPacket::EndStatusReportNext(
     PMOS_RESOURCE osResource = nullptr;
     uint32_t      offset     = 0;
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (!m_bypassHwLegacyEnabled)
-#endif
+    if (!m_bypassHwLegacy)
     {
         MEDIA_CHK_STATUS_RETURN(NullHW::StopPredicateNext(m_osInterface, m_miItf, cmdBuffer));
     }

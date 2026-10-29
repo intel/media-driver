@@ -83,13 +83,8 @@ MOS_STATUS HucVp9ProbUpdatePkt::Init()
     m_sliceStatesSize += cpCmdsize;
     m_slicePatchListSize += cpPatchListSize;
 
-#if (_DEBUG || _RELEASE_INTERNAL)
     DECODE_CHK_NULL(m_pipeline);
-    if (m_pipeline->GetBypassHWLegacy())
-    {
-        m_bypassHwLegacyEnabled = true;
-    }
-#endif
+    m_bypassHwLegacy = m_pipeline->GetBypassHWLegacy();
 
     return MOS_STATUS_SUCCESS;
 }
@@ -126,23 +121,19 @@ MOS_STATUS HucVp9ProbUpdatePkt::Execute(MOS_COMMAND_BUFFER &cmdBuffer, bool prol
         DECODE_CHK_STATUS(SendPrologCmds(cmdBuffer));
     }
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (m_bypassHwLegacyEnabled)
+    if (m_bypassHwLegacy)
     {
-        DECODE_CHK_NULL(m_pipeline->GetBypassHWLegacy());
-        DECODE_CHK_STATUS(m_pipeline->GetBypassHWLegacy()->StartPredicate(&cmdBuffer));
+        DECODE_CHK_NULL(m_bypassHwLegacy);
+        DECODE_CHK_STATUS(m_bypassHwLegacy->StartPredicate(&cmdBuffer));
     }
-#endif
 
     DECODE_CHK_STATUS(PackPictureLevelCmds(cmdBuffer));
     DECODE_CHK_STATUS(PackSliceLevelCmds(cmdBuffer));
     DECODE_CHK_STATUS(VdPipelineFlush(cmdBuffer));
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (m_bypassHwLegacyEnabled)
+    if (m_bypassHwLegacy)
     {
-        DECODE_CHK_STATUS(m_pipeline->GetBypassHWLegacy()->StopPredicate(&cmdBuffer));
+        DECODE_CHK_STATUS(m_bypassHwLegacy->StopPredicate(&cmdBuffer));
     }
-#endif
     DECODE_CHK_STATUS(MemoryFlush(cmdBuffer));
     DECODE_CHK_STATUS(m_miItf->ADDCMD_MI_BATCH_BUFFER_END(&cmdBuffer, nullptr));
 
@@ -248,9 +239,7 @@ MOS_STATUS HucVp9ProbUpdatePkt::AddCmd_HUC_IMEM_STATE(MOS_COMMAND_BUFFER &cmdBuf
     auto &mfxWaitParams               = m_miItf->MHW_GETPAR_F(MFX_WAIT)();
     mfxWaitParams                     = {};
     mfxWaitParams.iStallVdboxPipeline = true;
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (!m_bypassHwLegacyEnabled)
-#endif
+    if (!m_bypassHwLegacy)
     {
         DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
     }
@@ -264,9 +253,7 @@ MOS_STATUS HucVp9ProbUpdatePkt::AddCmd_HUC_PIPE_MODE_SELECT(MOS_COMMAND_BUFFER &
     auto &mfxWaitParams               = m_miItf->MHW_GETPAR_F(MFX_WAIT)();
     mfxWaitParams                     = {};
     mfxWaitParams.iStallVdboxPipeline = true;
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (!m_bypassHwLegacyEnabled)
-#endif
+    if (!m_bypassHwLegacy)
     {
         DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
     }
@@ -279,9 +266,7 @@ MOS_STATUS HucVp9ProbUpdatePkt::AddCmd_HUC_PIPE_MODE_SELECT(MOS_COMMAND_BUFFER &
 
     mfxWaitParams                     = {};
     mfxWaitParams.iStallVdboxPipeline = true;
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (!m_bypassHwLegacyEnabled)
-#endif
+    if (!m_bypassHwLegacy)
     {
         DECODE_CHK_STATUS((m_miItf->MHW_ADDCMD_F(MFX_WAIT)(&cmdBuffer)));
     }

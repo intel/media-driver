@@ -56,12 +56,7 @@ MOS_STATUS HevcDecodeLongPktXe3P_Lpm_Base::Init()
     m_aqmPkt  = dynamic_cast<HevcDecodeAqmPktXe3PLpmBase *>(subPacket);
 #endif
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (m_hevcPipeline->GetBypassHWLegacy())
-    {
-        m_bypassHwLegacyEnabled = true;
-    }
-#endif
+    m_bypassHwLegacy = m_hevcPipeline->GetBypassHWLegacy();
 
     return MOS_STATUS_SUCCESS;
 }

@@ -44,12 +44,7 @@ MOS_STATUS AvcDecodePktXe3P_Lpm_Base::Init()
     DecodeSubPacket *subPacket = m_avcPipeline->GetSubPacket(DecodePacketId(m_avcPipeline, avcDecodeAqmId));
     m_aqmPkt                   = dynamic_cast<AvcDecodeAqmPktXe3PLpmBase *>(subPacket);
 #endif
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (m_avcPipeline->GetBypassHWLegacy())
-    {
-        m_bypassHwLegacyEnabled = true;
-    }
-#endif
+    m_bypassHwLegacy = m_avcPipeline->GetBypassHWLegacy();
     return MOS_STATUS_SUCCESS;
 }
 

@@ -69,12 +69,7 @@ MOS_STATUS VvcDecodePkt::Init()
     DECODE_CHK_STATUS(m_slicePkt->CalculateCommandSize(m_sliceStatesSize, m_slicePatchListSize));
     DECODE_CHK_STATUS(m_slicePkt->CalculateTileCommandSize(m_tileStateSize, m_tilePatchListSize));
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (m_vvcPipeline->GetBypassHWLegacy())
-    {
-        m_bypassHwLegacyEnabled = true;
-    }
-#endif
+    m_bypassHwLegacy = m_vvcPipeline->GetBypassHWLegacy();
 
     return MOS_STATUS_SUCCESS;
 }
@@ -292,10 +287,10 @@ MOS_STATUS VvcDecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* 
     }
 #endif
 
-    if (m_vvcPipeline->GetBypassHWLegacy())
+    if (m_bypassHwLegacy)
     {
-        DECODE_CHK_STATUS(m_vvcPipeline->GetBypassHWLegacy()->AddNullHwProxyCmd(cmdBuffer, false));
-        DECODE_CHK_STATUS(m_vvcPipeline->GetBypassHWLegacy()->StartPredicate(cmdBuffer));
+        DECODE_CHK_STATUS(m_bypassHwLegacy->AddNullHwProxyCmd(cmdBuffer, false));
+        DECODE_CHK_STATUS(m_bypassHwLegacy->StartPredicate(cmdBuffer));
     }
     return MOS_STATUS_SUCCESS;
 }
@@ -306,9 +301,9 @@ MOS_STATUS VvcDecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* cm
 
     DECODE_CHK_NULL(cmdBuffer);
 
-    if (m_vvcPipeline->GetBypassHWLegacy())
+    if (m_bypassHwLegacy)
     {
-        DECODE_CHK_STATUS(m_vvcPipeline->GetBypassHWLegacy()->StopPredicate(cmdBuffer));
+        DECODE_CHK_STATUS(m_bypassHwLegacy->StopPredicate(cmdBuffer));
     }
     DECODE_CHK_STATUS(ReadVvcpStatus(m_statusReport, *cmdBuffer));
     DECODE_CHK_STATUS(MediaPacket::EndStatusReportNext(srType, cmdBuffer));

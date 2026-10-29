@@ -46,6 +46,8 @@ namespace decode {
 
         DECODE_CHK_STATUS(HucS2lPkt::Init());
 
+        m_bypassHwLegacy = m_hevcPipeline->GetBypassHWLegacy();
+
         if (m_isPpgttMode)
         {
             std::shared_ptr<mhw::vdbox::huc::ItfPPGTT> itf =
@@ -159,22 +161,18 @@ namespace decode {
         }
 
         DECODE_CHK_STATUS(StartPerfCollect(cmdBuffer));
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (m_hevcPipeline->GetBypassHWLegacy())
+        if (m_bypassHwLegacy)
         {
-            DECODE_CHK_STATUS(m_hevcPipeline->GetBypassHWLegacy()->StartPredicate(&cmdBuffer));
+            DECODE_CHK_STATUS(m_bypassHwLegacy->StartPredicate(&cmdBuffer));
         }
-#endif
 
         DECODE_CHK_STATUS(PackPictureLevelCmds(cmdBuffer));
         DECODE_CHK_STATUS(PackSliceLevelCmds(cmdBuffer));
         DECODE_CHK_STATUS(VdPipelineFlush(cmdBuffer));
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (m_hevcPipeline->GetBypassHWLegacy())
+        if (m_bypassHwLegacy)
         {
-            DECODE_CHK_STATUS(m_hevcPipeline->GetBypassHWLegacy()->StopPredicate(&cmdBuffer));
+            DECODE_CHK_STATUS(m_bypassHwLegacy->StopPredicate(&cmdBuffer));
         }
-#endif
         DECODE_CHK_STATUS(EndPerfCollect(cmdBuffer));
         // Flush the engine to ensure memory written out
         DECODE_CHK_STATUS(MemoryFlush(cmdBuffer));

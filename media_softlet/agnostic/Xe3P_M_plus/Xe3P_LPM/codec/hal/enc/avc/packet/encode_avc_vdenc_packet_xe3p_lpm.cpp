@@ -185,11 +185,9 @@ namespace encode
             if (!brcFeature->m_swBrc)
             {
 #endif
-#if (_DEBUG || _RELEASE_INTERNAL)
             // In NullHW mode HuC never runs so HucStatus2=0 would always fire the early-exit.
             // Skip the check to allow profiler and codec commands to execute.
-            if (!m_bypassHwLegacyEnabled)
-#endif
+            if (!m_bypassHwLegacy)
             {
                 m_pResource = brcFeature->GetHucStatus2Buffer();
                 SETPAR_AND_ADDCMD(MI_CONDITIONAL_BATCH_BUFFER_END, m_miItf, &cmdBuffer);
@@ -207,8 +205,7 @@ namespace encode
                 ENCODE_CHK_STATUS_RETURN(MediaPacket::UpdateStatusReportNext(statusReportGlobalCount, &cmdBuffer));
             }
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-            if (m_bypassHwLegacyEnabled)
+            if (m_bypassHwLegacy)
             {
                 // NullHW: unconditionally end batch buffer to skip entire second pass.
                 // In NullHW mode, HuC BRC never runs, so VdencBrcPakMmioBuffer is uninitialized.
@@ -217,7 +214,6 @@ namespace encode
                 SETPAR_AND_ADDCMD(MI_BATCH_BUFFER_END, m_miItf, &cmdBuffer);
             }
             else
-#endif
             {
                 m_pResource =
                     m_basicFeature->m_recycleBuf->GetBuffer(VdencBrcPakMmioBuffer, 0);
@@ -230,27 +226,25 @@ namespace encode
             ENCODE_CHK_STATUS_RETURN(StartStatusReport(statusReportMfx, &cmdBuffer));
         }
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (m_bypassHwLegacyEnabled)
+        if (m_bypassHwLegacy)
         {
-            if (!m_pipeline->GetBypassHWLegacy()->IsPipelineCharacteristicsSet())
+            if (!m_bypassHwLegacy->IsPipelineCharacteristicsSet())
             {
                 // AVC codecSettings->chromaFormat = 0 means default 4:2:0 (not MONOCHROME).
                 // Normalize to HCP_CHROMA_FORMAT_YUV420 (= 1) so cfg file "420" entries match.
                 uint32_t avcChromaFmt = m_basicFeature->m_chromaFormat == 0 ? 1 : m_basicFeature->m_chromaFormat;
-                m_pipeline->GetBypassHWLegacy()->SetPipelineCharacteristics(
+                m_bypassHwLegacy->SetPipelineCharacteristics(
                     CODECHAL_AVC,
                     avcChromaFmt,
                     m_basicFeature->m_frameWidth,
                     m_basicFeature->m_frameHeight,
                     m_basicFeature->m_bitDepth,
                     m_seqParam->TargetUsage);
-                m_pipeline->GetBypassHWLegacy()->SetPipelineCharacteristicsFlag();
+                m_bypassHwLegacy->SetPipelineCharacteristicsFlag();
             }
-            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->AddNullHwProxyCmd(&cmdBuffer, true));
-            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StartPredicate(&cmdBuffer));
+            ENCODE_CHK_STATUS_RETURN(m_bypassHwLegacy->AddNullHwProxyCmd(&cmdBuffer, true));
+            ENCODE_CHK_STATUS_RETURN(m_bypassHwLegacy->StartPredicate(&cmdBuffer));
         }
-#endif
 
         SETPAR_AND_ADDCMD(VDENC_CONTROL_STATE, m_vdencItf, &cmdBuffer);
 
@@ -275,14 +269,12 @@ namespace encode
         secondLevelBatchBufferUsed->iCurrent = 0;
         secondLevelBatchBufferUsed->dwOffset = 0;
 
-#if (_DEBUG || _RELEASE_INTERNAL)
         // MI_BATCH_BUFFER_START is an MI command — it is NOT predicated by MI_SET_PREDICATE.
         // It always executes even inside a StartPredicate(ENABLE_ALWAYS) region.
         // In NullHW/BRC mode HuC never ran, so the BRC img-state batch buffer is
         // uninitialized. Jumping to it causes a GPU hang (MFX_ERR_DEVICE_FAILED).
         // Skip the sub-level batch entirely in NullHW mode.
-        if (!m_bypassHwLegacyEnabled)
-#endif
+        if (!m_bypassHwLegacy)
         {
             ENCODE_CHK_STATUS_RETURN(m_miItf->MHW_ADDCMD_F(MI_BATCH_BUFFER_START)(&cmdBuffer, secondLevelBatchBufferUsed));
             HalOcaInterfaceNext::OnSubLevelBBStart(

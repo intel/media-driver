@@ -27,7 +27,6 @@
 #include "mos_context_next.h"
 #include "mos_os_mock_adaptor.h"
 
-#if (_DEBUG || _RELEASE_INTERNAL)
 
 MOS_STATUS OsContextNext::InitDummyVdboxSlots()
 {
@@ -474,4 +473,3 @@ void OsContextNext::ReleaseDummyVdSlot(int32_t slotIndex, bool isScalable)
     }
 }
 
-#endif // (_DEBUG || _RELEASE_INTERNAL)

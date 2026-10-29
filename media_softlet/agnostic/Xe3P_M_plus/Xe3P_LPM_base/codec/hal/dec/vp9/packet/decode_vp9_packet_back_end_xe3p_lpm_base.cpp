@@ -175,13 +175,11 @@ MOS_STATUS Vp9DecodeBackEndPktXe3P_Lpm_Base::PackPictureLevelCmds(MOS_COMMAND_BU
     }
     else
     {
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (m_bypassHwLegacyEnabled)
+        if (m_bypassHwLegacy)
         {
-            DECODE_CHK_NULL(m_vp9Pipeline->GetBypassHWLegacy());
-            DECODE_CHK_STATUS(m_vp9Pipeline->GetBypassHWLegacy()->StopPredicate(&cmdBuffer));
+            DECODE_CHK_NULL(m_bypassHwLegacy);
+            DECODE_CHK_STATUS(m_bypassHwLegacy->StopPredicate(&cmdBuffer));
         }
-#endif
     }
     // Keep EnsureAllCommandsExecuted UNCONDITIONAL - it comes AFTER EndStatusReport
     DECODE_CHK_STATUS(EnsureAllCommandsExecuted(cmdBuffer));

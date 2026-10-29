@@ -190,12 +190,10 @@ namespace encode
 
         ENCODE_CHK_STATUS_RETURN(StartPerfCollect(*cmdBuffer));
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (m_bypassHwLegacyEnabled)
+        if (m_bypassHwLegacy)
         {
-            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StartPredicate(cmdBuffer));
+            ENCODE_CHK_STATUS_RETURN(m_bypassHwLegacy->StartPredicate(cmdBuffer));
         }
-#endif
 
         if (m_isPPGTT)
         {
@@ -217,12 +215,10 @@ namespace encode
 
         SETPAR_AND_ADDCMD(VD_PIPELINE_FLUSH, m_vdencItf, cmdBuffer);
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-        if (m_bypassHwLegacyEnabled)
+        if (m_bypassHwLegacy)
         {
-            ENCODE_CHK_STATUS_RETURN(m_pipeline->GetBypassHWLegacy()->StopPredicate(cmdBuffer));
+            ENCODE_CHK_STATUS_RETURN(m_bypassHwLegacy->StopPredicate(cmdBuffer));
         }
-#endif
 
         // Flush the engine to ensure memory written out
         auto &flushDwParams                         = m_miItf->MHW_GETPAR_F(MI_FLUSH_DW)();

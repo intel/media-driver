@@ -315,13 +315,11 @@ MOS_STATUS HevcDecodePkt::StartStatusReport(uint32_t srType, MOS_COMMAND_BUFFER*
 
     DECODE_CHK_STATUS(MediaPacket::StartStatusReportNext(srType, cmdBuffer));
 
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (m_bypassHwLegacyEnabled)
+    if (m_bypassHwLegacy)
     {
-        DECODE_CHK_STATUS(m_hevcPipeline->GetBypassHWLegacy()->AddNullHwProxyCmd(cmdBuffer, false));
-        DECODE_CHK_STATUS(m_hevcPipeline->GetBypassHWLegacy()->StartPredicate(cmdBuffer));
+        DECODE_CHK_STATUS(m_bypassHwLegacy->AddNullHwProxyCmd(cmdBuffer, false));
+        DECODE_CHK_STATUS(m_bypassHwLegacy->StartPredicate(cmdBuffer));
     }
-#endif
 
     return MOS_STATUS_SUCCESS;
 }
@@ -338,12 +336,10 @@ MOS_STATUS HevcDecodePkt::EndStatusReport(uint32_t srType, MOS_COMMAND_BUFFER* c
         DECODE_CHK_STATUS(m_debugPkt->Execute(*cmdBuffer, m_statusReport));
     }
 #endif
-#if (_DEBUG || _RELEASE_INTERNAL)
-    if (m_bypassHwLegacyEnabled)
+    if (m_bypassHwLegacy)
     {
-        DECODE_CHK_STATUS(m_hevcPipeline->GetBypassHWLegacy()->StopPredicate(cmdBuffer));
+        DECODE_CHK_STATUS(m_bypassHwLegacy->StopPredicate(cmdBuffer));
     }
-#endif
     DECODE_CHK_STATUS(ReadHcpStatus(m_statusReport, *cmdBuffer));
     DECODE_CHK_STATUS(MediaPacket::EndStatusReportNext(srType, cmdBuffer));
 

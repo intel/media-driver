@@ -107,9 +107,7 @@ public:
     //!
     void SetFrameTrackingForMultiTaskPhase();
 
-#if (_DEBUG || _RELEASE_INTERNAL)
     virtual ::BypassHwLegacy *GetBypassHW() const { return nullptr; }
-#endif
 
     enum ComponentPacketIds
     {
