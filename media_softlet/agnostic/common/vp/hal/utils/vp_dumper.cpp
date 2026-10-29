@@ -2378,6 +2378,12 @@ MOS_STATUS VpSurfaceDumper::DumpSurface(
 {
     VP_FUNC_CALL();
 
+    // Nothing is configured to be dumped; skip the per-call pid/timestamp/user-setting work.
+    if (m_dumpSpec.iNumDumpLocs == 0)
+    {
+        return MOS_STATUS_SUCCESS;
+    }
+
     MOS_USER_FEATURE_VALUE_DATA UserFeatureData;
     int32_t VphalSurfDumpManualTrigger = VPHAL_SURF_DUMP_MANUAL_TRIGGER_DEFAULT_NOT_SET;
 

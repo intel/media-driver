@@ -1959,6 +1959,12 @@ MOS_STATUS VpRenderCmdPacket::DumpOutput()
 void VpRenderCmdPacket::PrintWalkerParas(MHW_GPGPU_WALKER_PARAMS& WalkerParams)
 {
 #if (_DEBUG || _RELEASE_INTERNAL)
+    // Skip building the inline-data string when the "Perf Utility Tool Enable" regkey is set to 0x33133.
+    constexpr int32_t perfUtilityToolEnableSkipWalkerPrint = 0x00033133;
+    if (g_perfutility && g_perfutility->dwPerfUtilityIsEnabled == perfUtilityToolEnableSkipWalkerPrint)
+    {
+        return;
+    }
     std::string inlineData = "";
     if (WalkerParams.inlineDataLength > 0 && WalkerParams.inlineData != nullptr)
     {
