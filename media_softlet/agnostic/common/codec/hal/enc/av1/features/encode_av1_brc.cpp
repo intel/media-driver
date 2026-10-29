@@ -241,7 +241,7 @@ namespace encode
         dmem->UPD_Asyn = 0;
         dmem->UPD_EnableAdaptiveRounding = m_basicFeature->m_roundingMethod;
         dmem->UPD_AdaptiveTUEnabled = picParams->AdaptiveTUEnabled;
-        dmem->UPD_EnableDeltaQP = picParams->PicFlags.fields.EnableDeltaQP;
+        dmem->UPD_EnableAdaptiveChromaDeltaQP = picParams->PicFlags.fields.EnableAdaptiveChromaDeltaQP;
 
         if (seqParams->GopRefDist == 16 && m_rcMode == RATECONTROL_CQL)
             dmem->UPD_MaxBRCLevel = 4;

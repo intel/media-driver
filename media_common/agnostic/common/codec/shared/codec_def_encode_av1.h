@@ -391,8 +391,10 @@ typedef struct _CODEC_AV1_ENCODE_PICTURE_PARAMS
             uint32_t    LongTermReference               : 1;
             uint32_t    allow_intrabc                   : 1;
             uint32_t    PaletteModeEnable               : 1;
-            uint32_t    EnableDeltaQP                   : 1;
-            uint32_t    Reserved2                       : 14;
+            uint32_t    EnableAdaptiveChromaDeltaQP     : 1;
+            uint32_t    EnableMCTF                      : 1;
+            uint32_t    EnableBlockQP                   : 1;
+            uint32_t    Reserved2                       : 12;
         } fields;
         uint32_t    value;
     } PicFlags;

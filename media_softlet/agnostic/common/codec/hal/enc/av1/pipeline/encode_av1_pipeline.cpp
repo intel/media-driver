@@ -321,7 +321,9 @@ MOS_STATUS Av1Pipeline::DumpPicParams(
     oss << "LongTermReference = " << +picParams->PicFlags.fields.LongTermReference << std::endl;
     oss << "allow_intrabc = " << +picParams->PicFlags.fields.allow_intrabc << std::endl;
     oss << "PaletteModeEnable = " << +picParams->PicFlags.fields.PaletteModeEnable << std::endl;
-    oss << "EnableDeltaQP = " << +picParams->PicFlags.fields.EnableDeltaQP << std::endl;
+    oss << "EnableAdaptiveChromaDeltaQP = " << +picParams->PicFlags.fields.EnableAdaptiveChromaDeltaQP << std::endl;
+    oss << "EnableMCTF = " << +picParams->PicFlags.fields.EnableMCTF << std::endl;
+    oss << "EnableBlockQP = " << +picParams->PicFlags.fields.EnableBlockQP << std::endl;
     oss << "Reserved2 = " << +picParams->PicFlags.fields.Reserved2 << std::endl;
     oss << "PicFlags.value = " << +picParams->PicFlags.value << std::endl;
 
