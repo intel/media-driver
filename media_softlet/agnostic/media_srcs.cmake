@@ -27,7 +27,7 @@ if(Xe2_M_plus)
     media_include_subdirectory(Xe2_M_plus)
 endif()
 
-if(PTL)
+if(PTL OR CRI)
     media_include_subdirectory(Xe3_M_plus)
 endif()
 
