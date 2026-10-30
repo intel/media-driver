@@ -420,15 +420,15 @@ MOS_STATUS Vp9DecodePicPktXe3_Lpm_Base::Init()
             m_miItf->GETSIZE_VD_CONTROL_STATE() * 2;
 
         patchListMaxSize =
-            PATCH_LIST_COMMAND(VD_PIPELINE_FLUSH_CMD) +
-            PATCH_LIST_COMMAND(mhw::mi::Itf::MI_FLUSH_DW_CMD) +
-            PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::HCP_PIPE_MODE_SELECT_CMD) +
-            PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::HCP_SURFACE_STATE_CMD) * 4 +
-            PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::HCP_PIPE_BUF_ADDR_STATE_CMD) +
-            PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::HCP_IND_OBJ_BASE_ADDR_STATE_CMD) +
-            PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::HCP_VP9_SEGMENT_STATE_CMD) * 8 +
-            PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::HCP_BSD_OBJECT_CMD) +
-            PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::HCP_VP9_PIC_STATE_CMD);
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(VD_PIPELINE_FLUSH_CMD)) +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::mi::Itf::MI_FLUSH_DW_CMD)) +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::HCP_PIPE_MODE_SELECT_CMD)) +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::HCP_SURFACE_STATE_CMD)) * 4 +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::HCP_PIPE_BUF_ADDR_STATE_CMD)) +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::HCP_IND_OBJ_BASE_ADDR_STATE_CMD)) +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::HCP_VP9_SEGMENT_STATE_CMD)) * 8 +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::HCP_BSD_OBJECT_CMD)) +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::hcp::Itf::HCP_VP9_PIC_STATE_CMD));
 
        if (params->bSfcInUse)
         {
@@ -474,12 +474,12 @@ MOS_STATUS Vp9DecodePicPktXe3_Lpm_Base::Init()
                 mhw::mi::xe3_lpm_base::Cmd::MI_LOAD_REGISTER_REG_CMD::byteSize;                  // 1 needed for FE status set
 
             patchListMaxSize +=
-                4 * PATCH_LIST_COMMAND(mhw::mi::Itf::MI_ATOMIC_CMD) +
-                2 * PATCH_LIST_COMMAND(mhw::mi::Itf::MI_CONDITIONAL_BATCH_BUFFER_END_CMD) +
-                3 * PATCH_LIST_COMMAND(mhw::mi::Itf::MI_SEMAPHORE_WAIT_CMD) +
-                18 * PATCH_LIST_COMMAND(mhw::mi::Itf::MI_STORE_DATA_IMM_CMD) +
-                2 * PATCH_LIST_COMMAND(mhw::mi::Itf::MI_FLUSH_DW_CMD) +
-                2 * PATCH_LIST_COMMAND(mhw::mi::Itf::MI_STORE_REGISTER_MEM_CMD);
+                4 * static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::mi::Itf::MI_ATOMIC_CMD)) +
+                2 * static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::mi::Itf::MI_CONDITIONAL_BATCH_BUFFER_END_CMD)) +
+                3 * static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::mi::Itf::MI_SEMAPHORE_WAIT_CMD)) +
+                18 * static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::mi::Itf::MI_STORE_DATA_IMM_CMD)) +
+                2 * static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::mi::Itf::MI_FLUSH_DW_CMD)) +
+                2 * static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::mi::Itf::MI_STORE_REGISTER_MEM_CMD));
 
             if (params->bSfcInUse)
             {
