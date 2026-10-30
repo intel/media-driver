@@ -227,10 +227,8 @@ namespace decode
     {
         AvcDecodePicPkt::MHW_SETPAR_F(MFX_AVC_IMG_STATE)(params);
 
-#ifdef IGFX_MFX_INTERFACE_EXT_SUPPORT
         params.bitDepthLumaMinus8   = m_avcPicParams->bit_depth_luma_minus8;
         params.bitDepthChromaMinus8 = m_avcPicParams->bit_depth_chroma_minus8;
-#endif
 #ifdef _DECODE_PROCESSING_SUPPORTED
         if (m_downSamplingFeature->IsVDAQMHistogramEnabled())
         {
@@ -257,7 +255,6 @@ namespace decode
                 params.surfaceFormat = SURFACE_FORMAT_PLANAR4208;  // 420 8 bit
             }
         }
-#ifdef IGFX_MFX_INTERFACE_EXT_SUPPORT
         else if (chromaType == avcChromaFormat420 && psSurface->Format == Format_P010)
         {
             if (ucBitDepthLumaMinus8 == 2 && ucBitDepthChromaMinus8 == 2)
@@ -272,7 +269,6 @@ namespace decode
                 params.surfaceFormat = SURFACE_FORMAT_Y216;  // 422 10 bit (upto 16 bit)
             }
         }
-#endif
 
         return MOS_STATUS_SUCCESS;
     }
