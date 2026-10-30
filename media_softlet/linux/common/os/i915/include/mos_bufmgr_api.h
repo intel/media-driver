@@ -28,6 +28,7 @@
 #ifndef MOS_BUFMGR_API_H
 #define MOS_BUFMGR_API_H
 
+#include <errno.h>
 #include <stdio.h>
 #include "drm.h"
 #include "libdrm_macros.h"
