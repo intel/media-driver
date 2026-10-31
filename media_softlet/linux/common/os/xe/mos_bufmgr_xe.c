@@ -832,6 +832,9 @@ drm_export void mos_bo_unreference_xe(struct mos_linux_bo *bo)
 {
     struct mos_xe_bo_gem *bo_gem = (struct mos_xe_bo_gem *) bo;
 
+    struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bo->bufmgr;
+    std::unique_lock<std::recursive_mutex> guard(bufmgr_gem->m_lock);
+
     if (atomic_read(&bo_gem->ref_count) <= 0)
         return;
 
@@ -845,8 +848,9 @@ drm_export void mos_bo_unreference_xe(struct mos_linux_bo *bo)
             __mos_bo_mark_mmaps_incoherent_xe(bo);
         }
 
-        DRMLISTDEL(&bo_gem->name_list);
-
+        // Leave a zero-reference named entry until GEM_CLOSE, so PRIME import
+        // cannot create another wrapper for the same per-file GEM handle.
+        guard.unlock();
         mos_bo_free_xe(bo);
     }
 }
@@ -1690,6 +1694,11 @@ mos_bo_create_from_prime_xe(struct mos_bufmgr *bufmgr, struct mos_drm_bo_alloc_p
         bo_gem = DRMLISTENTRY(struct mos_xe_bo_gem, list, name_list);
         if (bo_gem->gem_handle == handle)
         {
+            if (atomic_read(&bo_gem->ref_count) <= 0)
+            {
+                bufmgr_gem->m_lock.unlock();
+                return nullptr;
+            }
             mos_bo_reference_xe(&bo_gem->bo);
             bufmgr_gem->m_lock.unlock();
             return &bo_gem->bo;
@@ -3084,6 +3093,8 @@ mos_bo_free_xe(struct mos_linux_bo *bo)
             bo->vm_id = INVALID_VM;
         }
     }
+
+    DRMLISTDELINIT(&bo_gem->name_list);
 
     if (!bo_gem->is_userptr)
     {
