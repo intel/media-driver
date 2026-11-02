@@ -965,7 +965,8 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
         Mos_MemPool             memType,
         bool                    isNotLockable,
         void *                  systemMemory,
-        uint32_t                depth)
+        uint32_t                depth,
+        bool                    checkTile64ByForce)
 {
     VP_FUNC_CALL();
     MOS_STATUS              eStatus = MOS_STATUS_SUCCESS;
@@ -993,6 +994,9 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
                                         (surface->osSurface->TileType             == defaultTileType  ||
                                         MOS_TILE_Y                                == defaultTileType  &&
                                         IS_Y_MAJOR_TILE_FORMAT(surface->osSurface->TileType))         &&
+                                        (!checkTile64ByForce                                          ||
+                                        ((MOS_TILE_64_GMM == surface->osSurface->TileModeGMM)         ==
+                                        (MOS_TILE_64_GMM == tileModeByForce)))                        &&
                                         ((Format_Buffer                           == format           &&
                                         surface->bufferWidth                      == width            &&
                                         surface->bufferHeight                     == height)          ||
@@ -1072,20 +1076,23 @@ MOS_STATUS VpAllocator::ReAllocateSurface(
     if (!surfInfoCheck(surface))
     {
         VP_PUBLIC_ASSERTMESSAGE("Allocated surface is not matched with allocating parameter.");
-        VP_PUBLIC_ASSERTMESSAGE("Allocated surface : format %d, compressible %d, compressionMode %d, tileType %d, bufferWidth %d, bufferHeight %d, width %d, height %d",
+        VP_PUBLIC_ASSERTMESSAGE("Allocated surface : format %d, compressible %d, compressionMode %d, tileType %d, tileModeGMM %d, bufferWidth %d, bufferHeight %d, width %d, height %d",
             surface->osSurface->Format,
             surface->osSurface->bCompressible,
             surface->osSurface->CompressionMode,
             surface->osSurface->TileType,
+            surface->osSurface->TileModeGMM,
             surface->bufferWidth,
             surface->bufferHeight,
             surface->osSurface->dwWidth,
             surface->osSurface->dwHeight);
-        VP_PUBLIC_ASSERTMESSAGE("Parameter to allocate : format %d, compressible %d, compressionMode %d, tileType %d, width %d, height %d",
+        VP_PUBLIC_ASSERTMESSAGE("Parameter to allocate : format %d, compressible %d, compressionMode %d, tileType %d, tileModeByForce %d, checkTile64ByForce %d, width %d, height %d",
             format,
             compressible,
             compressionMode,
             defaultTileType,
+            tileModeByForce,
+            checkTile64ByForce,
             width,
             height);
     }

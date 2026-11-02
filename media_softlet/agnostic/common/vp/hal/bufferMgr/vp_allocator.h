@@ -368,6 +368,9 @@ public:
     //!           resource usage type for cache policy
     //! \param    [in] Flag to indicate whether resource being lockable
     //!           resource usage type for cache policy
+    //! \param    [in] checkTile64ByForce
+    //!           If true, surface is only reused when its Tile64 state matches tileModeByForce,
+    //!           i.e. Tile64 if tileModeByForce is MOS_TILE_64_GMM, otherwise non-Tile64
     //! \return   MOS_STATUS
     //!           MOS_STATUS_SUCCESS if success. Error code otherwise
     //!
@@ -389,7 +392,8 @@ public:
         Mos_MemPool             memType = MOS_MEMPOOL_VIDEOMEMORY,
         bool                    isNotLockable = false,
         void                    *systemMemory = nullptr,
-        uint32_t                depth = 0);
+        uint32_t                depth = 0,
+        bool                    checkTile64ByForce = false);
 
     //!
     //! \brief    Reallocates the VP Surface
