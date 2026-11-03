@@ -363,7 +363,11 @@ MOS_STATUS BypassHwLegacy::Destroy()
         // Buffer is unlocked after init; only unlock here if init never completed
         if (!m_secondLevelBBInitialized)
         {
-            Mhw_UnlockBb(m_osInterface, &m_secondLevelBB, true);
+            MOS_STATUS eStatus = Mhw_UnlockBb(m_osInterface, &m_secondLevelBB, true);
+            if (eStatus != MOS_STATUS_SUCCESS)
+            {
+                MOS_OS_ASSERTMESSAGE("NullHW: Mhw_UnlockBb failed in Destroy, status %d", eStatus);
+            }
         }
         Mhw_FreeBb(m_osInterface, &m_secondLevelBB, nullptr);
         m_secondLevelBBAllocated    = false;
