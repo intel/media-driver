@@ -126,7 +126,7 @@ MOS_STATUS EncodeHevcVdencFeatureManagerXe3P_Lpm_Base::CreateFeatures(void *cons
     ENCODE_CHK_STATUS_RETURN(RegisterFeatures(HevcFeatureIDs::hevcVdencFastPassFeature, hevcFastPass, noTfPkts()));
 
 #if _KERNEL_RESERVED
-    if (m_hwInterface->GetPlatform().eRenderCoreFamily == IGFX_XE3P_CORE)
+    if (m_hwInterface->GetPlatform().eRenderCoreFamily >= IGFX_XE3P_CORE)
     {
         HevcVdencSaliencyXe3p_Lpm *hevcSaliency = MOS_New(HevcVdencSaliencyXe3p_Lpm, this, m_allocator, m_hwInterface, constSettings);
         ENCODE_CHK_STATUS_RETURN(RegisterFeatures(FeatureIDs::saliencyFeature, hevcSaliency, stdPkts()));
