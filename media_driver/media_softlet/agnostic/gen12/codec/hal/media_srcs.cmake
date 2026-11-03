@@ -20,5 +20,3 @@
 
 media_include_subdirectory(dec)
 media_include_subdirectory(shared)
-
-media_add_curr_to_include_path()

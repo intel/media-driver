@@ -22,5 +22,4 @@ media_include_subdirectory(pipeline)
 media_include_subdirectory(features)
 media_include_subdirectory(packet)
 endif()
-media_add_curr_to_include_path()
 

@@ -51,4 +51,3 @@ set(CODEC_HEADERS_
 source_group(CodecHalNext\\Gen12\\Decode FILES ${TMP_HEADERS_} ${TMP_SOURCES_})
 set(TMP_SOURCES_ "")
 set(TMP_HEADERS_ "")
-media_add_curr_to_include_path()

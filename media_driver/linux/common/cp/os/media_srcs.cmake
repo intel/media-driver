@@ -26,10 +26,3 @@ set(SOURCES_
     ${SOURCES_}
     ${TMP_SOURCES_}
 )
-
-set(COMMON_CP_DIRECTORIES_
-    ${COMMON_CP_DIRECTORIES_}
-    ${CMAKE_CURRENT_LIST_DIR}
-)
-
-media_add_curr_to_include_path()

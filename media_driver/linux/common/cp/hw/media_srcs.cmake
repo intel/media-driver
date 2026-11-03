@@ -26,5 +26,3 @@ set(SOURCES_
     ${SOURCES_}
     ${TMP_SOURCES_}
 )
-
-media_add_curr_to_include_path()

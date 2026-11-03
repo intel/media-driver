@@ -23,5 +23,3 @@ media_include_subdirectory(packet)
 media_include_subdirectory(mmc)
 media_include_subdirectory(hucitf)
 media_include_subdirectory(features)
-
-media_add_curr_to_include_path()

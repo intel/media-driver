@@ -19,4 +19,3 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 media_include_subdirectory(enc)
-media_add_curr_to_include_path()
