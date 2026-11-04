@@ -348,6 +348,8 @@ protected:
     CodechalDebugInterface *m_statusReportDebugInterface = nullptr;  //!< Interface used for debug dumps in status report callback function
 
     uint8_t m_numVdbox = 0;
+    uint8_t m_numVdboxHw = 0;  //!< Enabled VDBox number before scalability-disable processing
+    uint8_t m_numVdboxEmulated = 0;  //!< NullHW emulated VDBox number, overrides m_numVdboxHw when non-zero
 
     bool m_singleTaskPhaseSupported      = true;
     bool m_singleTaskPhaseSupportedInPak = false;

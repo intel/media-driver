@@ -46,6 +46,13 @@ HevcVdencPipeline::HevcVdencPipeline(
 MOS_STATUS HevcVdencPipeline::Initialize(void *settings)
 {
     ENCODE_FUNC_CALL();
+    ENCODE_CHK_NULL_RETURN(settings);
+
+    CodechalSetting *codecSettings = (CodechalSetting *)settings;
+    m_multiEngineCtrlEnabled       = codecSettings->isMultiEngineCtrlEnabled;
+    m_multiEngineEnabled           = codecSettings->isDualEncEnabled;
+    m_numVdboxEmulated             = codecSettings->emulatedNumVdbox;
+
     ENCODE_CHK_STATUS_RETURN(HevcPipeline::Initialize(settings));
     return MOS_STATUS_SUCCESS;
 }
@@ -254,6 +261,12 @@ MOS_STATUS HevcVdencPipeline::SwitchContext(uint8_t outputChromaFormat, uint16_t
     m_scalPars->enableVDEnc = true;
     m_scalPars->enableVE    = MOS_VE_SUPPORTED(m_osInterface);
     m_scalPars->numVdbox    = m_numVdbox;
+
+    // Restrict to single pipe when multi-engine encoding is not allowed on platforms with 3+ VDBoxes
+    if (m_multiEngineCtrlEnabled && !m_multiEngineEnabled && m_numVdboxHw >= m_multiEngineCtrlMinVdbox)
+    {
+        m_scalPars->numVdbox = 1;
+    }
 
     m_scalPars->forceMultiPipe     = true;
     m_scalPars->outputChromaFormat = outputChromaFormat;

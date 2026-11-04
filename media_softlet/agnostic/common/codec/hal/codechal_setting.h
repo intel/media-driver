@@ -79,6 +79,10 @@ public:
 
     bool                    isDualEncEnabled = false;      //!< Flag to indicate if frame-split encoding in multi engies is needed
 
+    bool                    isMultiEngineCtrlEnabled = false; //!< Applies currently to HEVC VDEnc only, flag to indicate if isDualEncEnabled controls multi-pipe encoding, set when the runtime opts in
+
+    uint8_t                 emulatedNumVdbox = 0;          //!< NullHW emulated VDBox number for multi-engine control, 0 when not emulated
+
 
     //!
     //! \brief    Destructor 

@@ -306,6 +306,14 @@ MOS_STATUS EncodePipeline::GetSystemVdboxNumber()
         m_numVdbox = 1;
     }
 
+    m_numVdboxHw = m_numVdbox;
+
+    // NullHW: the media engine info keeps the physical count, so take the emulated one; m_numVdbox is unchanged
+    if (m_numVdboxEmulated != 0 && !MEDIA_IS_SKU(m_skuTable, FtrWithSlimVdbox))
+    {
+        m_numVdboxHw = m_numVdboxEmulated;
+    }
+
     return MOS_STATUS_SUCCESS;
 }
 

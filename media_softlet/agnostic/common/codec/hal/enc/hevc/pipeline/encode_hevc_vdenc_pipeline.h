@@ -83,6 +83,11 @@ protected:
     virtual MOS_STATUS HuCCheckAndInit();
     virtual MOS_STATUS ExecuteSaliencyPackets();
 
+    static constexpr uint8_t m_multiEngineCtrlMinVdbox = 3;  //!< Minimum enabled VDBox number on which multi-engine control applies
+
+    bool m_multiEngineCtrlEnabled = false;  //!< Multi-pipe encoding is controlled by m_multiEngineEnabled
+    bool m_multiEngineEnabled     = false;  //!< Multi-pipe encoding is allowed when multi-engine control is enabled
+
 MEDIA_CLASS_DEFINE_END(encode__HevcVdencPipeline)
 };
 
