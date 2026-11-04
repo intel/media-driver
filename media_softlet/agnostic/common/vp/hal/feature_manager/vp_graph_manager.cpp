@@ -51,7 +51,7 @@ MOS_STATUS VpGraphManager::GetGraphPackage(std::vector<AI_SINGLE_NPU_GRAPH_SETTI
     VpGraphIDList graphIDs = {};
     for (AI_SINGLE_NPU_GRAPH_SETTING &graphSetting : graphSettings)
     {
-        graphIDs.push_back(graphSetting.id);
+        graphIDs.push_back({graphSetting.id, graphSetting.inputWidth, graphSetting.inputHeight});
     }
     auto handle = m_graphPackages.find(graphIDs);
     if (handle == m_graphPackages.end())
@@ -84,7 +84,8 @@ MOS_STATUS VpGraphManager::GetGraphPackage(std::vector<AI_SINGLE_NPU_GRAPH_SETTI
             package.GetNpuWLContext().CmdList().push_back(cmdList);
 
             GraphHandle *graphHandle = nullptr;
-            VP_PUBLIC_CHK_STATUS_RETURN(m_graphset->GetGraphObject(graphSetting.id, graphHandle));
+            VpGraphKey   graphKey    = {graphSetting.id, graphSetting.inputWidth, graphSetting.inputHeight};
+            VP_PUBLIC_CHK_STATUS_RETURN(m_graphset->GetGraphObject(graphKey, graphHandle));
             VP_PUBLIC_CHK_NULL_RETURN(graphHandle);
 
             std::vector<void *> graphArgs = {};
@@ -105,6 +106,14 @@ MOS_STATUS VpGraphManager::GetGraphPackage(std::vector<AI_SINGLE_NPU_GRAPH_SETTI
     }
     graphPackage = &handle->second;
 
+    return MOS_STATUS_SUCCESS;
+}
+
+MOS_STATUS VpGraphManager::GetGraphObject(const VpGraphKey &graphKey, GraphHandle *&graphHandle)
+{
+    VP_PUBLIC_CHK_NULL_RETURN(m_graphset);
+    VP_PUBLIC_CHK_STATUS_RETURN(m_graphset->GetGraphObject(graphKey, graphHandle));
+    VP_PUBLIC_CHK_NULL_RETURN(graphHandle);
     return MOS_STATUS_SUCCESS;
 }
 

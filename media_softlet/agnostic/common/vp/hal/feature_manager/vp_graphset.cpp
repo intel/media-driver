@@ -29,6 +29,7 @@
 #include "levelzero_npu_interface.h"
 #include "vp_utils.h"
 #include "vp_platform_interface.h"
+#include <chrono>
 
 using namespace vp;
 
@@ -74,24 +75,28 @@ MOS_STATUS VpGraphSet::Clean()
 }
 
 MOS_STATUS VpGraphSet::GetGraphObject(
-    VP_GRAPH_ID   graphId,
-    GraphHandle *&graphHandle)
+    const VpGraphKey &graphKey,
+    GraphHandle      *&graphHandle)
 {
     VP_PUBLIC_CHK_NULL_RETURN(m_osInterface);
     VP_PUBLIC_CHK_NULL_RETURN(m_osInterface->npuInterface);
-    VP_PUBLIC_CHK_NULL_RETURN(m_graphPool);
 
-    auto handle = m_cachedGraphs.find(graphId);
+    auto handle = m_cachedGraphs.find(graphKey);
     if (handle == m_cachedGraphs.end())
     {
+        VP_PUBLIC_CHK_NULL_RETURN(m_graphPool);
 #if (_DEBUG || _RELEASE_INTERNAL)
         VP_PUBLIC_CHK_STATUS_RETURN(LoadGraphForDebug());
 #endif
-        auto blobHandle = m_graphPool->find(graphId);
-        VP_PUBLIC_CHK_NOT_FOUND_RETURN(blobHandle, m_graphPool);
-        handle = m_cachedGraphs.emplace(std::piecewise_construct, std::forward_as_tuple(graphId), std::forward_as_tuple()).first;
+        auto graphBin = m_graphPool->find(graphKey.id);
+        VP_PUBLIC_CHK_NOT_FOUND_RETURN(graphBin, m_graphPool);
+
+        // An IR graph is compiled for the input size in the key. A blob ignores it,
+        // so callers leave the size at zero for a blob.
+        uint32_t timeoutMs = graphBin->second.type == GRAPH_BIN_TYPE::IR ? GRAPH_HANDLE_IR_INITIALIZE_TIMEOUT_MS : GRAPH_HANDLE_BLOB_INITIALIZE_TIMEOUT_MS;
+        handle             = m_cachedGraphs.emplace(std::piecewise_construct, std::forward_as_tuple(graphKey), std::forward_as_tuple(timeoutMs)).first;
         VP_PUBLIC_CHK_NOT_FOUND_RETURN(handle, &m_cachedGraphs);
-        InitGraphCmdPackage cmdPackage(blobHandle->second, m_osInterface->npuInterface, &handle->second);
+        InitGraphCmdPackage cmdPackage(graphBin->second, graphKey.inputWidth, graphKey.inputHeight, m_osInterface->npuInterface, &handle->second);
         VP_PUBLIC_CHK_STATUS_RETURN(m_osInterface->pfnSubmitPackage(m_osInterface, cmdPackage));
     }
     graphHandle = &handle->second;
@@ -103,15 +108,38 @@ std::unique_ptr<CmdPackage> InitGraphCmdPackage::Clone() const
     return std::make_unique<InitGraphCmdPackage>(*this);
 }
 
+MOS_STATUS InitGraphCmdPackage::BuildGraph()
+{
+    if (m_graphBin.type == GRAPH_BIN_TYPE::IR)
+    {
+        NpuIrGraphRequest request = {};
+        request.xml               = m_graphBin.ir.xml;
+        request.xmlSize           = m_graphBin.ir.xmlSize;
+        request.bin               = m_graphBin.ir.bin;
+        request.binSize           = m_graphBin.ir.binSize;
+        request.width             = m_width;
+        request.height            = m_height;
+        return m_npuInterface->pfnBuildGraphFromIr(m_npuInterface, request, m_graphHandle->Graph());
+    }
+    return m_npuInterface->pfnBuildGraph(m_npuInterface, m_graphBin.blob.data, m_graphBin.blob.size, m_graphHandle->Graph());
+}
+
 MOS_STATUS InitGraphCmdPackage::Submit()
 {
     VP_PUBLIC_CHK_NULL_RETURN(m_graphHandle);
     VP_PUBLIC_CHK_NULL_RETURN(m_npuInterface);
-    VP_PUBLIC_CHK_NULL_RETURN(m_npuInterface->pfnBuildGraph);
+    if (m_graphBin.type == GRAPH_BIN_TYPE::IR)
+    {
+        VP_PUBLIC_CHK_NULL_RETURN(m_npuInterface->pfnBuildGraphFromIr);
+    }
+    else
+    {
+        VP_PUBLIC_CHK_NULL_RETURN(m_npuInterface->pfnBuildGraph);
+    }
 
     m_graphHandle->Thread() = std::thread([this]() {
         {
-            MOS_STATUS                  status = m_npuInterface->pfnBuildGraph(m_npuInterface, m_graphBin.blob, m_graphBin.size, m_graphHandle->Graph());
+            MOS_STATUS                  status = BuildGraph();
             std::lock_guard<std::mutex> lock(m_graphHandle->Mutex());
             if (MOS_STATUS_SUCCESS == status)
             {
@@ -129,3 +157,4 @@ MOS_STATUS InitGraphCmdPackage::Submit()
     });
     return MOS_STATUS_SUCCESS;
 }
+

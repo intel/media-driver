@@ -101,6 +101,10 @@ struct AI_SINGLE_NPU_GRAPH_SETTING : public AI_SINGLE_LAYER_BASE_SETTING
     void      Init();
     virtual   ~AI_SINGLE_NPU_GRAPH_SETTING() {};
     VP_GRAPH_ID              id        = VP_GRAPH_ID_INVALID;
+    // The shape the graph is built for, zero for a graph that does not depend on it.
+    // It is the logical frame size, never allocation pitch or padded bucket size.
+    uint32_t                 inputWidth  = 0;
+    uint32_t                 inputHeight = 0;
     std::vector<SurfaceType> graphArgs = {};
     MOS_STATUS (*pfnGetIntermediateSurfaceSetting) (SwFilterPipe &executingPipe, AI_NPU_BUFFER_ALLOCATION_MAP &surfaceMap) = nullptr;
 

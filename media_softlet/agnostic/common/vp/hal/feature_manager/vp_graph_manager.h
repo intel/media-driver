@@ -57,6 +57,8 @@ private:
     // GraphPackage cannot be copied for it contains a non-copiable member m_npuWLContext
     std::map<SurfaceType, PVP_SURFACE> m_intermediateSurfaces = {};
     NpuWLContext                       m_npuWLContext;
+
+MEDIA_CLASS_DEFINE_END(vp__GraphPackage)
 };
 
 class VpGraphManager
@@ -66,6 +68,10 @@ public:
     ~VpGraphManager() { Destroy(); };
 
     MOS_STATUS GetGraphPackage(std::vector<AI_SINGLE_NPU_GRAPH_SETTING> &graphSettings, SwFilterPipe &executingPipe, GraphPackage *&graphPackage);
+
+    // The graph of the key. A graph that does not exist yet is created and starts to
+    // build in the background, this call never waits for it.
+    MOS_STATUS GetGraphObject(const VpGraphKey &graphKey, GraphHandle *&graphHandle);
 
 private:
     MOS_STATUS Destroy();
@@ -105,6 +111,8 @@ private:
     std::vector<GraphHandle *>       m_graphHandles        = {};
     std::vector<std::vector<void *>> m_multiLayerGraphArgs = {};
     bool                             m_releaseable         = false;
+
+MEDIA_CLASS_DEFINE_END(vp__InitGraphListCmdPackage)
 };
 
 }  // namespace vp

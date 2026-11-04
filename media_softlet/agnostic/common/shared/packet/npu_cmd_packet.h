@@ -71,6 +71,8 @@ private:
     std::mutex                            m_mtx         = {};
     uint32_t                              m_timeoutMs   = 0;
     std::thread                           m_initThread;
+
+MEDIA_CLASS_DEFINE_END(NpuWLContext)
 };
 
 struct NPU_PACKET_PARAM
@@ -90,6 +92,8 @@ public:
 private:
     L0NpuInterface *m_npuInterface = nullptr;
     NpuWLContext   *m_npuWLContext = nullptr;
+
+MEDIA_CLASS_DEFINE_END(NpuCmdPackageSpecific)
 };
 
 class NpuCmdPacket : virtual public CmdPacket

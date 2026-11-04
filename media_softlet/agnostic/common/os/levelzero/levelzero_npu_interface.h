@@ -24,7 +24,8 @@
 #include "levelzero_interface.h"
 #include <cstdint>
 
-#define GRAPH_HANDLE_INITIALIZE_TIMEOUT_MS 20
+#define GRAPH_HANDLE_BLOB_INITIALIZE_TIMEOUT_MS 20
+#define GRAPH_HANDLE_IR_INITIALIZE_TIMEOUT_MS 200000  // runtime IR compile takes seconds
 
 // A bounded OpenVINO IR model is supplied as two independent buffers.  The
 // XML is copied and specialized for every new input shape; the BIN remains
@@ -43,7 +44,7 @@ struct NpuIrGraphRequest
 class GraphHandle
 {
 public:
-    GraphHandle() : m_timeoutMs(GRAPH_HANDLE_INITIALIZE_TIMEOUT_MS) {};
+    GraphHandle(uint32_t timeoutMs) : m_timeoutMs(timeoutMs) {};
     ze_graph_handle_t &Graph()
     {
         return m_graph;
