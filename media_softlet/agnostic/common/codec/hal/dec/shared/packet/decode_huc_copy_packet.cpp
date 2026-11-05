@@ -60,6 +60,7 @@ MOS_STATUS HucCopyPkt::Execute(MOS_COMMAND_BUFFER &cmdBuffer, bool prologNeeded)
 {
     DECODE_FUNC_CALL();
     DECODE_CHK_NULL(m_hucItf);
+    DECODE_CHK_NULL(m_pipeline);
 
     SetPerfTag();
 
