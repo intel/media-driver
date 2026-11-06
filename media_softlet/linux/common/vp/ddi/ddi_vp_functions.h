@@ -1086,6 +1086,8 @@ private:
     //!         Buffer data
     //! \param  [in]  elementNum
     //!         number of elements in the buffer(FilterParameter)
+    //! \param  [in]  bufferSize
+    //!         total size of the buffer data in bytes
     //! \param  [in]  vpStateFlags
     //!         filter enable status
     //!
@@ -1098,7 +1100,31 @@ private:
         int32_t          filterType,
         void             *data,
         uint32_t         elementNum,
+        uint32_t         bufferSize,
         DDI_VP_STATE     *vpStateFlags);
+
+    //!
+    //! \brief Pass a DDI-private (negative) filter parameter buffer to the VPHAL pipeline
+    //! \param  [in]  vpCtx
+    //!         VP context
+    //! \param  [in]  surfIndex
+    //!         surfIndex to the input surface array
+    //! \param  [in]  filterType
+    //!         DDI-private filter type
+    //! \param  [in]  data
+    //!         Buffer data
+    //! \param  [in]  bufferSize
+    //!         total size of the buffer data in bytes
+    //!
+    //! \returns VA_STATUS_SUCCESS if call succeeds,
+    //!          VA_STATUS_ERROR_UNSUPPORTED_FILTER if the pipeline does not handle the type
+    //!
+    VAStatus DdiSetProcFilterPrivateParams(
+        PDDI_VP_CONTEXT  vpCtx,
+        uint32_t         surfIndex,
+        int32_t          filterType,
+        void             *data,
+        uint32_t         bufferSize);
 
     //!
     //! \brief Set DI filter params for input VPHAL surface

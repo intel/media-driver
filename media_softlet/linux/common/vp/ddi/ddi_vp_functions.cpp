@@ -47,8 +47,6 @@
 #define VP_MIN_PIC_HEIGHT                   16
 #define QUERY_CAPS_ATTRIBUTE                1                     /* query the actual filter caps attribute in vp module */
 
-#define VA_PROC_MODE_HIGH_QUALITY           3
-
 // ITU-T H.265 Table E.3: Colour Primaries
 #define COLOUR_PRIMARY_BT2020                  9
 #define COLOUR_PRIMARY_BT709                   1
@@ -775,7 +773,20 @@ VAStatus DdiVpFunctions::QueryVideoProcFilterCaps(
             return VA_STATUS_ERROR_INVALID_VALUE;
 
         default:
+        {
+            // DDI-private filter types carry no caps attributes; succeeding with zero caps
+            // tells the app that the filter buffer is accepted on this context.
+            uint32_t ctxType = DDI_MEDIA_CONTEXT_TYPE_NONE;
+            PDDI_VP_CONTEXT vpCtx = (static_cast<int32_t>(type) < 0) ?
+                (PDDI_VP_CONTEXT)MediaLibvaCommonNext::GetContextFromContextID(ctx, context, &ctxType) : nullptr;
+            if (vpCtx && ctxType == DDI_MEDIA_CONTEXT_TYPE_VP && vpCtx->pVpHal &&
+                vpCtx->pVpHal->IsDdiPrivateFilterSupported(static_cast<int32_t>(type)))
+            {
+                *filterCapsNum = 0;
+                break;
+            }
             return VA_STATUS_ERROR_UNSUPPORTED_FILTER;
+        }
     }
 
     return VA_STATUS_SUCCESS;
@@ -903,7 +914,7 @@ VAStatus DdiVpFunctions::DdiInitCtx(
 
     // initialize vphal render params.
     // Allocate via the vphal hook so the ext pipeline gets VPHAL_SURFACE_EXT (its ext
-    // feature handlers - SR3/LACE/ACE - read ext-only fields), while base pipelines get
+    // feature handlers read ext-only fields), while base pipelines get
     // the base VPHAL_SURFACE. Freed with MOS_Delete in FreeVpHalRenderParams either way.
     for (int32_t surfIndex = 0; surfIndex < VPHAL_MAX_SOURCES; surfIndex++)
     {
@@ -2371,12 +2382,19 @@ VAStatus DdiVpFunctions::DdiUpdateFilterParamBuffer(
     int32_t          filterType,
     void             *data,
     uint32_t         elementNum,
+    uint32_t         bufferSize,
     DDI_VP_STATE     *vpStateFlags)
 {
     VAStatus vaStatus = VA_STATUS_SUCCESS;
     DDI_VP_FUNC_ENTER;
     DDI_VP_CHK_NULL(vpCtx, "nullptr vpCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
     DDI_VP_CHK_NULL(vpStateFlags, "nullptr vpStateFlags.", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    // Negative filter types are DDI-private and owned by the VPHAL pipeline.
+    if (filterType < 0)
+    {
+        return DdiSetProcFilterPrivateParams(vpCtx, surfIndex, filterType, data, bufferSize);
+    }
 
     switch (filterType)
     {
@@ -2424,6 +2442,42 @@ VAStatus DdiVpFunctions::DdiUpdateFilterParamBuffer(
     }  // switch (type)
 
     return vaStatus;
+}
+
+VAStatus DdiVpFunctions::DdiSetProcFilterPrivateParams(
+    PDDI_VP_CONTEXT  vpCtx,
+    uint32_t         surfIndex,
+    int32_t          filterType,
+    void             *data,
+    uint32_t         bufferSize)
+{
+    PVPHAL_RENDER_PARAMS vpHalRenderParams = nullptr;
+    PVPHAL_SURFACE       srcSurf           = nullptr;
+
+    DDI_VP_FUNC_ENTER;
+    DDI_VP_CHK_NULL(vpCtx, "nullptr vpCtx.", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_VP_CHK_NULL(vpCtx->pVpHal, "nullptr vpCtx->pVpHal.", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_VP_CHK_NULL(data, "nullptr data.", VA_STATUS_ERROR_INVALID_BUFFER);
+
+    if (!vpCtx->pVpHal->IsDdiPrivateFilterSupported(filterType))
+    {
+        DDI_VP_ASSERTMESSAGE("VAProcFilterType %d is unknown.", filterType);
+        return VA_STATUS_ERROR_UNSUPPORTED_FILTER;
+    }
+
+    vpHalRenderParams = VpGetRenderParams(vpCtx);
+    DDI_VP_CHK_NULL(vpHalRenderParams, "nullptr vpHalRenderParams.", VA_STATUS_ERROR_INVALID_PARAMETER);
+    srcSurf = vpHalRenderParams->pSrc[surfIndex];
+    DDI_VP_CHK_NULL(srcSurf, "nullptr srcSurf.", VA_STATUS_ERROR_INVALID_SURFACE);
+
+    MOS_STATUS eStatus = vpCtx->pVpHal->SetDdiPrivateFilterParams(srcSurf, filterType, data, bufferSize);
+    if (MOS_STATUS_SUCCESS != eStatus)
+    {
+        DDI_VP_ASSERTMESSAGE("Failed to set params for VAProcFilterType %d, status %d.", filterType, eStatus);
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+
+    return VA_STATUS_SUCCESS;
 }
 
 VAStatus DdiVpFunctions::DdiSetProcFilterDinterlaceParams(
@@ -4017,13 +4071,6 @@ VAStatus DdiVpFunctions::DdiSetProcPipelineParams(
     osInterface = vpCtx->pVpHal->GetOsInterface();
     DDI_VP_CHK_NULL(osInterface, "nullptr osInterface.", VA_STATUS_ERROR_INVALID_BUFFER);
 
-#if defined(LINUX) && !defined(WDDM_LINUX)
-    if (static_cast<int>(pipelineParam->processing_mode) == VA_PROC_MODE_HIGH_QUALITY)
-    {
-        vpHalRenderParams->isHighQualityModeEnabled = true;
-    }
-#endif
-
     // increment surface count
     vpHalRenderParams->uSrcCount++;
 
@@ -4164,6 +4211,9 @@ VAStatus DdiVpFunctions::DdiSetProcPipelineParams(
         }
     }
 
+    // DDI-private filter params only apply to the frame whose filter buffers carry them.
+    vpCtx->pVpHal->ResetDdiPrivateFilterParams(vpHalSrcSurf);
+
     for (i = 0; i < pipelineParam->num_filters; i++)
     {
         VABufferID filter = pipelineParam->filters[i];
@@ -4184,7 +4234,7 @@ VAStatus DdiVpFunctions::DdiSetProcPipelineParams(
         if (!((filterParam->type == VAProcFilterColorBalance) && vpHalSrcSurf->SurfType != SURF_IN_PRIMARY))
         {
             // Pass the filter type
-            vaStatus = DdiUpdateFilterParamBuffer(vaDrvCtx, vpCtx, surfIndex, filterParam->type, data, filterBuf->uiNumElements, &vpStateFlags);
+            vaStatus = DdiUpdateFilterParamBuffer(vaDrvCtx, vpCtx, surfIndex, filterParam->type, data, filterBuf->uiNumElements, filterBuf->iSize, &vpStateFlags);
             DDI_CHK_RET(vaStatus, "Failed to update parameter buffer!");
         }
     }
@@ -4574,8 +4624,6 @@ VAStatus DdiVpFunctions::PutSurfaceLinuxHW(
 {
     VpBase                 *vpHal        = nullptr;
     int32_t                ovRenderIndex = 0;
-    VPHAL_SURFACE          surf          = {};
-    VPHAL_SURFACE          target        = {};
     VPHAL_RENDER_PARAMS    renderParams  = {};
     VPHAL_COLORFILL_PARAMS colorFill     = {};
     MOS_STATUS             eStatus       = MOS_STATUS_INVALID_PARAMETER;
@@ -4622,6 +4670,17 @@ VAStatus DdiVpFunctions::PutSurfaceLinuxHW(
     DDI_VP_CHK_NULL(vpCtx, "nullptr vpCtx", VA_STATUS_ERROR_INVALID_PARAMETER);
     vpHal = vpCtx->pVpHal;
     DDI_VP_CHK_NULL(vpHal, "nullptr vpHal", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    // Allocate via the vphal hook, like the render params in DdiInitCtx: the ext pipeline
+    // reads ext-only fields of the surfaces it renders, so a base VPHAL_SURFACE on the
+    // stack is too small for it.
+    auto freeVphalSurface = [](PVPHAL_SURFACE vphalSurf) { MOS_Delete(vphalSurf); };
+    std::unique_ptr<VPHAL_SURFACE, decltype(freeVphalSurface)> surfHolder(vpHal->AllocateVphalSurface(), freeVphalSurface);
+    std::unique_ptr<VPHAL_SURFACE, decltype(freeVphalSurface)> targetHolder(vpHal->AllocateVphalSurface(), freeVphalSurface);
+    DDI_VP_CHK_NULL(surfHolder, "nullptr surf", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    DDI_VP_CHK_NULL(targetHolder, "nullptr target", VA_STATUS_ERROR_ALLOCATION_FAILED);
+    VPHAL_SURFACE &surf   = *surfHolder;
+    VPHAL_SURFACE &target = *targetHolder;
 
     renderParams.Component = COMPONENT_LibVA;
 

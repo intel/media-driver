@@ -192,7 +192,7 @@ public:
     //!
     //! \brief    Allocate a render-param surface (pSrc[]/pTarget[]).
     //! \details  The ext pipeline overrides this to allocate the larger
-    //!           VPHAL_SURFACE_EXT so ext feature handlers (SR3/LACE/ACE) can safely
+    //!           VPHAL_SURFACE_EXT so ext feature handlers can safely
     //!           access ext-only fields. Base pipelines allocate the base struct.
     //!           Defined inline so ULT/stub link closures that do not link
     //!           vp_base.cpp still resolve it.
@@ -202,6 +202,52 @@ public:
     virtual PVPHAL_SURFACE AllocateVphalSurface()
     {
         return MOS_New(VPHAL_SURFACE);
+    }
+
+    //!
+    //! \brief    Check whether a DDI-private filter type is handled.
+    //! \details  DDI-private filter types are negative values outside the public
+    //!           filter enumeration. Base pipelines handle none of them; an
+    //!           extended pipeline overrides this to claim the ones it owns.
+    //! \param    [in] type
+    //!           DDI-private filter type
+    //! \return   bool
+    //!           true if SetDdiPrivateFilterParams accepts this type
+    //!
+    virtual bool IsDdiPrivateFilterSupported(int32_t type)
+    {
+        return false;
+    }
+
+    //!
+    //! \brief    Apply a DDI-private filter parameter buffer to a source surface.
+    //! \details  The surface must come from AllocateVphalSurface. Parameters stay
+    //!           attached until ResetDdiPrivateFilterParams is called on it.
+    //! \param    [in] src
+    //!           Source surface
+    //! \param    [in] type
+    //!           DDI-private filter type
+    //! \param    [in] data
+    //!           Filter parameter buffer
+    //! \param    [in] size
+    //!           Size of the filter parameter buffer in bytes
+    //! \return   MOS_STATUS
+    //!           MOS_STATUS_SUCCESS if the parameters were applied
+    //!
+    virtual MOS_STATUS SetDdiPrivateFilterParams(PVPHAL_SURFACE src, int32_t type, const void *data, uint32_t size)
+    {
+        return MOS_STATUS_UNIMPLEMENTED;
+    }
+
+    //!
+    //! \brief    Detach all DDI-private filter parameters from a source surface.
+    //! \details  Called for every source surface of every frame before its filter
+    //!           buffers are parsed, so a frame without the buffer runs without the filter.
+    //! \param    [in] src
+    //!           Source surface
+    //!
+    virtual void ResetDdiPrivateFilterParams(PVPHAL_SURFACE src)
+    {
     }
 
 protected:

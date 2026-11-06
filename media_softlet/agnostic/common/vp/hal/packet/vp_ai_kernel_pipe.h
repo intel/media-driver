@@ -44,7 +44,7 @@ struct AI_SURFACE_PARAMS
     uint32_t        height          = 0;
     // Depth for a genuine 3D-volume intermediate surface (resourceType=MOS_GFXRES_VOLUME,
     // e.g. an image3d_t LUT). Default 0 matches VpAllocator::ReAllocateSurface's own default
-    // and preserves exact existing behavior for every current 2D caller (SR3/VFI/S2H backbone),
+    // and preserves exact prior behavior for every current 2D caller,
     // none of which ever set this field.
     uint32_t        depth           = 0;
     uint8_t        *fillContent     = nullptr;
