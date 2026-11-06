@@ -2823,45 +2823,42 @@ MOS_STATUS HevcVdencPkt::AddAllCmds_HCP_PAK_INSERT_OBJECT_BRC(PMOS_COMMAND_BUFFE
             "EncodeStatusReport_Buffer"));
 
         // VDENC frame statistics streamout
-        PMOS_RESOURCE vdencStatsBuffer = m_basicFeature->m_recycleBuf->GetBuffer(VdencStatsBuffer, 0);
-        uint32_t      vdencStatsOffset = 0;
-        bool          tileEnabled      = false;
-        RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, HevcFeatureIDs::encodeTile, IsEnabled, tileEnabled);
-        if (tileEnabled)
+        if (debugInterface->DumpIsEnabled(CodechalDbgAttr::attrVdencFrameStats))
         {
-            uint32_t      statsBufIdx     = statusReportData->currOriginalPic.FrameIdx;
-            MOS_RESOURCE *tileStatsBuffer = nullptr;
-            RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, HevcFeatureIDs::encodeTile, GetTileBasedStatisticsBuffer, statsBufIdx, tileStatsBuffer);
-
-            if (!Mos_ResourceIsNull(tileStatsBuffer))
+            uint32_t      numTiles         = MOS_MAX(statusReportData->numberTilesInFrame, 1u);
+            PMOS_RESOURCE vdencStatsBuffer = m_basicFeature->m_recycleBuf->GetBuffer(VdencStatsBuffer, 0);
+            uint32_t      vdencStatsOffset = 0;
+            if (numTiles > 1)
             {
-                HevcTileStatusInfo tileStatsOffset  = {};
-                HevcTileStatusInfo frameStatsOffset = {};
-                HevcTileStatusInfo statsSize        = {};
-                RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, HevcFeatureIDs::encodeTile, GetTileStatusInfo, tileStatsOffset, frameStatsOffset, statsSize);
+                uint32_t      statsBufIdx     = statusReportData->currOriginalPic.FrameIdx;
+                MOS_RESOURCE *tileStatsBuffer = nullptr;
+                RUN_FEATURE_INTERFACE_RETURN(HevcEncodeTile, HevcFeatureIDs::encodeTile, GetTileBasedStatisticsBuffer, statsBufIdx, tileStatsBuffer);
 
-                vdencStatsBuffer = tileStatsBuffer;
-                vdencStatsOffset = tileStatsOffset.vdencStatistics;
+                if (!Mos_ResourceIsNull(tileStatsBuffer))
+                {
+                    vdencStatsBuffer = tileStatsBuffer;
+                    vdencStatsOffset = MOS_ALIGN_CEIL(EncodeBasicFeature::m_sizeOfHcpPakFrameStats * numTiles, CODECHAL_PAGE_SIZE);
+                }
             }
-        }
-        if (vdencStatsBuffer != nullptr && debugInterface->DumpIsEnabled(CodechalDbgAttr::attrVdencFrameStats))
-        {
-            MOS_LOCK_PARAMS lockFlags;
-            MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
-            lockFlags.ReadOnly = 1;
-
-            uint8_t *statsData = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, vdencStatsBuffer, &lockFlags);
-            if (statsData != nullptr)
+            if (!Mos_ResourceIsNull(vdencStatsBuffer))
             {
-                uint8_t *statsBase = statsData + vdencStatsOffset;
+                MOS_LOCK_PARAMS lockFlags;
+                MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+                lockFlags.ReadOnly = 1;
 
-                debugInterface->DumpData(
-                    statsBase,
-                    CODECHAL_PAGE_SIZE,
-                    CodechalDbgAttr::attrVdencFrameStats,
-                    "VdencFrameStats");
+                uint8_t *statsData = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, vdencStatsBuffer, &lockFlags);
+                if (statsData != nullptr)
+                {
+                    uint8_t *statsBase = statsData + vdencStatsOffset;
 
-                m_osInterface->pfnUnlockResource(m_osInterface, vdencStatsBuffer);
+                    debugInterface->DumpData(
+                        statsBase,
+                        CODECHAL_HEVC_VDENC_STATS_SIZE * numTiles,
+                        CodechalDbgAttr::attrVdencFrameStats,
+                        "VdencFrameStats");
+
+                    m_osInterface->pfnUnlockResource(m_osInterface, vdencStatsBuffer);
+                }
             }
         }
 

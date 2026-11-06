@@ -2411,28 +2411,31 @@ namespace encode{
         debugInterface->m_frameType          = encodeStatusMfx->pictureCodingType;
 
         // VDENC frame statistics streamout
-        uint32_t      vdencStatsBufIdx = statusReportData->currOriginalPic.FrameIdx;
-        uint32_t      vdencStatsOffset = 0;
-        MOS_RESOURCE *vdencStatsBuffer = nullptr;
-        RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetTileBasedStatisticsBuffer, vdencStatsBufIdx, vdencStatsBuffer);
-        RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetTileStatsOffset, vdencStatsOffset);
-        if (vdencStatsBuffer != nullptr && debugInterface->DumpIsEnabled(CodechalDbgAttr::attrVdencFrameStats))
+        if (debugInterface->DumpIsEnabled(CodechalDbgAttr::attrVdencFrameStats))
         {
-            MOS_LOCK_PARAMS lockFlags;
-            MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
-            lockFlags.ReadOnly = 1;
-
-            uint8_t *statsData = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, vdencStatsBuffer, &lockFlags);
-            if (statsData != nullptr)
+            uint32_t      numTiles         = MOS_MAX(statusReportData->numberTilesInFrame, 1u);
+            uint32_t      vdencStatsBufIdx = statusReportData->currOriginalPic.FrameIdx;
+            MOS_RESOURCE *vdencStatsBuffer = nullptr;
+            RUN_FEATURE_INTERFACE_RETURN(Av1EncodeTile, Av1FeatureIDs::encodeTile, GetTileBasedStatisticsBuffer, vdencStatsBufIdx, vdencStatsBuffer);
+            if (!Mos_ResourceIsNull(vdencStatsBuffer))
             {
-                uint8_t *statsBase = statsData + vdencStatsOffset;
-                debugInterface->DumpData(
-                    statsBase,
-                    CODECHAL_PAGE_SIZE,
-                    CodechalDbgAttr::attrVdencFrameStats,
-                    "VdencFrameStats");
+                MOS_LOCK_PARAMS lockFlags;
+                MOS_ZeroMemory(&lockFlags, sizeof(MOS_LOCK_PARAMS));
+                lockFlags.ReadOnly = 1;
 
-                m_osInterface->pfnUnlockResource(m_osInterface, vdencStatsBuffer);
+                uint8_t *statsData = (uint8_t *)m_osInterface->pfnLockResource(m_osInterface, vdencStatsBuffer, &lockFlags);
+                if (statsData != nullptr)
+                {
+                    uint32_t vdencStatsOffset = MOS_ALIGN_CEIL(EncodeBasicFeature::m_sizeOfHcpPakFrameStats * numTiles, CODECHAL_PAGE_SIZE);
+                    uint8_t *statsBase        = statsData + vdencStatsOffset;
+                    debugInterface->DumpData(
+                        statsBase,
+                        static_cast<uint32_t>(VdencStatistics::byteSize) * numTiles,
+                        CodechalDbgAttr::attrVdencFrameStats,
+                        "VdencFrameStats");
+
+                    m_osInterface->pfnUnlockResource(m_osInterface, vdencStatsBuffer);
+                }
             }
         }
 
