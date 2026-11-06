@@ -105,6 +105,26 @@ struct MetaDataOffset
 };
 
 //!
+//! \struct CodecEncodeTfPreRunParams
+//! \brief  [AV1 TF] Next-anchor pre-run request: run the next TF anchor's downscale/ME/MC
+//!         right after this frame's temporal filter (bPreRunNextAnchor), or report that this
+//!         frame's downscale/ME/MC were pre-run by the previous anchor (bUsePreRunResult).
+//!
+struct CodecEncodeTfPreRunParams
+{
+    bool        bPreRunNextAnchor        = false;
+    bool        bUsePreRunResult         = false;
+    uint8_t     uiNextL0RefCount         = 0;
+    uint8_t     uiNextL1RefCount         = 0;
+    uint8_t     uiNextHierarchLevelPlus1 = 0;
+    uint32_t    uiCurrDisplayOrder       = 0;
+    uint32_t    uiNextDisplayOrder       = 0;
+    MOS_SURFACE sNextRawSurface          = {};
+    MOS_SURFACE sNextL0Surface[4]        = {};
+    MOS_SURFACE sNextL1Surface[6]        = {};
+};
+
+//!
 //! \struct EncoderParams
 //! \brief  Encoder parameters
 //!
@@ -178,6 +198,7 @@ struct EncoderParams
     bool                            bSegmentMapProvided             = false;                    //!< [VP9]
     uint8_t                         uiTFL0RefCount                = 0;
     uint8_t                         uiTFL1RefCount                = 0;
+    CodecEncodeTfPreRunParams       *pTFPreRunParams              = nullptr;                  //!< [AV1 TF] next-anchor pre-run request
 
     void                            *pMpeg2UserDataListHead         = nullptr;                  //!< [MPEG2]
 
