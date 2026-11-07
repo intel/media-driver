@@ -194,3 +194,15 @@ static bool criDevice6751 = DeviceInfoFactory<GfxDeviceInfo>::
 
 static bool criDevice6752 = DeviceInfoFactory<GfxDeviceInfo>::
     RegisterDevice(0x6752, &criInfo);
+
+static bool criDevice6753 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x6753, &criInfo);
+
+static bool criDevice6754 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x6754, &criInfo);
+
+static bool criDevice6755 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x6755, &criInfo);
+
+static bool criDevice6756 = DeviceInfoFactory<GfxDeviceInfo>::
+    RegisterDevice(0x6756, &criInfo);
