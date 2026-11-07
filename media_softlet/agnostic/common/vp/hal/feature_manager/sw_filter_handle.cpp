@@ -732,6 +732,111 @@ SwFilterHdrHandler::SwFilterHdrHandler(VpInterface &vpInterface) :
 SwFilterHdrHandler::~SwFilterHdrHandler()
 {}
 
+static bool IsRgb10Format(MOS_FORMAT format)
+{
+    return format == Format_R10G10B10A2 || format == Format_B10G10R10A2;
+}
+
+// Input/output formats for which HDR processing can be skipped when they are equivalent:
+// FP16 -> FP16 or RGB10 -> RGB10. Mixed FP16 <-> RGB10 is excluded since the value range differs.
+static bool IsHdrPassThroughFormatPair(MOS_FORMAT srcFormat, MOS_FORMAT dstFormat)
+{
+    return (IS_RGB64_FLOAT_FORMAT(srcFormat) && IS_RGB64_FLOAT_FORMAT(dstFormat)) ||
+           (IsRgb10Format(srcFormat) && IsRgb10Format(dstFormat));
+}
+
+static void PrintHdrMetadata(const char *name, const VPHAL_HDR_PARAMS *hdr)
+{
+    if (hdr == nullptr)
+    {
+        VP_PUBLIC_NORMALMESSAGE("%s HDR metadata: none", name);
+        return;
+    }
+    VP_PUBLIC_NORMALMESSAGE("%s HDR metadata: EOTF %d, primaries (%d,%d) (%d,%d) (%d,%d), white point (%d,%d), "
+                            "mastering luminance max %d min %d, MaxCLL %d, MaxFALL %d",
+        name,
+        hdr->EOTF,
+        hdr->display_primaries_x[0], hdr->display_primaries_y[0],
+        hdr->display_primaries_x[1], hdr->display_primaries_y[1],
+        hdr->display_primaries_x[2], hdr->display_primaries_y[2],
+        hdr->white_point_x, hdr->white_point_y,
+        hdr->max_display_mastering_luminance, hdr->min_display_mastering_luminance,
+        hdr->MaxCLL, hdr->MaxFALL);
+}
+
+// Return true if input and output HDR metadata describe the same signal, so no tone mapping is needed.
+static bool IsHdrMetadataEquivalent(const VPHAL_HDR_PARAMS *src, const VPHAL_HDR_PARAMS *dst)
+{
+    if (src == nullptr && dst == nullptr)
+    {
+        return true;
+    }
+    if (src == nullptr || dst == nullptr)
+    {
+        VP_PUBLIC_NORMALMESSAGE("HDR metadata mismatch: only %s has HDR metadata", src ? "input" : "output");
+        return false;
+    }
+    if (src->EOTF != dst->EOTF)
+    {
+        VP_PUBLIC_NORMALMESSAGE("HDR metadata mismatch: EOTF %d vs %d", src->EOTF, dst->EOTF);
+        return false;
+    }
+    for (uint32_t i = 0; i < 3; ++i)
+    {
+        if (src->display_primaries_x[i] != dst->display_primaries_x[i] ||
+            src->display_primaries_y[i] != dst->display_primaries_y[i])
+        {
+            VP_PUBLIC_NORMALMESSAGE("HDR metadata mismatch: display primaries[%d] (%d,%d) vs (%d,%d)",
+                i,
+                src->display_primaries_x[i], src->display_primaries_y[i],
+                dst->display_primaries_x[i], dst->display_primaries_y[i]);
+            return false;
+        }
+    }
+    if (src->white_point_x != dst->white_point_x || src->white_point_y != dst->white_point_y)
+    {
+        VP_PUBLIC_NORMALMESSAGE("HDR metadata mismatch: white point (%d,%d) vs (%d,%d)",
+            src->white_point_x, src->white_point_y, dst->white_point_x, dst->white_point_y);
+        return false;
+    }
+    if (src->max_display_mastering_luminance != dst->max_display_mastering_luminance ||
+        src->min_display_mastering_luminance != dst->min_display_mastering_luminance)
+    {
+        VP_PUBLIC_NORMALMESSAGE("HDR metadata mismatch: mastering luminance max %d min %d vs max %d min %d",
+            src->max_display_mastering_luminance, src->min_display_mastering_luminance,
+            dst->max_display_mastering_luminance, dst->min_display_mastering_luminance);
+        return false;
+    }
+
+    // MaxCLL check (mastering luminance already checked equal above):
+    //   input MaxCLL == output MaxCLL, and
+    //   MaxCLL == max_display_mastering_luminance, or MaxCLL is unknown.
+    // MaxCLL 0 means unknown (CTA-861.3). The DDI (SetHDRParams) rewrites 0 to HDR_DEFAULT_MAXCLL
+    // and sets bMaxCllDefaulted, so an app-provided 0 is identified by that flag.
+    bool srcMaxCllUnknown = (src->MaxCLL == 0) || src->bMaxCllDefaulted;
+    bool dstMaxCllUnknown = (dst->MaxCLL == 0) || dst->bMaxCllDefaulted;
+    if (src->MaxCLL != dst->MaxCLL || srcMaxCllUnknown != dstMaxCllUnknown)
+    {
+        VP_PUBLIC_NORMALMESSAGE("HDR metadata mismatch: MaxCLL %d (unknown %d) vs %d (unknown %d)",
+            src->MaxCLL, srcMaxCllUnknown, dst->MaxCLL, dstMaxCllUnknown);
+        return false;
+    }
+    if (srcMaxCllUnknown)
+    {
+        VP_PUBLIC_NORMALMESSAGE("MaxCLL is 0 from app (unknown, DDI value %d), mastering peak %d, HDR metadata equivalent",
+            src->MaxCLL, src->max_display_mastering_luminance);
+        return true;
+    }
+    if (src->MaxCLL == src->max_display_mastering_luminance)
+    {
+        VP_PUBLIC_NORMALMESSAGE("MaxCLL %d equals mastering peak, HDR metadata equivalent", src->MaxCLL);
+        return true;
+    }
+    VP_PUBLIC_NORMALMESSAGE("HDR metadata not equivalent: MaxCLL %d != mastering peak %d",
+        src->MaxCLL, src->max_display_mastering_luminance);
+    return false;
+}
+
 bool SwFilterHdrHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputSurf, int surfIndex, SwFilterPipeType pipeType)
 {
     VP_FUNC_CALL();
@@ -761,6 +866,23 @@ bool SwFilterHdrHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInp
     {
         isExternal3DLutEnabled = true;
     }
+
+    // FP16 -> FP16 or RGB10 -> RGB10 with same color space, same gamma and equivalent (or no) HDR metadata:
+    // input and output encodings are identical, so neither tone mapping nor FP16 HDR CSC is needed.
+    bool bHdrInOutEquivalent = false;
+    if (!pSrc->p3DLutParams &&
+        IsHdrPassThroughFormatPair(pSrc->Format, pRenderTarget->Format) &&
+        pSrc->ColorSpace == pRenderTarget->ColorSpace && pSrc->GammaType == pRenderTarget->GammaType)
+    {
+        VP_PUBLIC_NORMALMESSAGE("HDR passthrough candidate: format %d -> %d, colorspace %d, gammatype %d",
+            pSrc->Format, pRenderTarget->Format, pSrc->ColorSpace, pSrc->GammaType);
+        PrintHdrMetadata("Input", pSrc->pHDRParams);
+        PrintHdrMetadata("Output", pRenderTarget->pHDRParams);
+
+        bHdrInOutEquivalent = IsHdrMetadataEquivalent(pSrc->pHDRParams, pRenderTarget->pHDRParams);
+        VP_PUBLIC_NORMALMESSAGE("HDR input/output equivalent %d", bHdrInOutEquivalent);
+    }
+
     // Need to use HDR to process BT601/BT709->BT2020
     if (IS_COLOR_SPACE_BT2020(pRenderTarget->ColorSpace) &&
         !IS_COLOR_SPACE_BT2020(pSrc->ColorSpace))
@@ -771,7 +893,20 @@ bool SwFilterHdrHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInp
     if ((pSrc->pHDRParams && (pSrc->pHDRParams->EOTF != VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR)) ||
         (pRenderTarget->pHDRParams && (pRenderTarget->pHDRParams->EOTF != VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR)))
     {
-        bToneMapping = true;
+        if (bHdrInOutEquivalent)
+        {
+            // e.g. R10 BT2020 PQ -> R10 BT2020 PQ (or FP16 -> FP16) with the same HDR metadata.
+            VP_PUBLIC_NORMALMESSAGE("Skip tone mapping: format %d -> %d, colorspace %d, gammatype %d, EOTF %d, same HDR metadata.",
+                pSrc->Format,
+                pRenderTarget->Format,
+                pSrc->ColorSpace,
+                pSrc->GammaType,
+                pSrc->pHDRParams ? pSrc->pHDRParams->EOTF : -1);
+        }
+        else
+        {
+            bToneMapping = true;
+        }
     }
 
     if ((pSrc->Format == Format_A16B16G16R16F) || (pSrc->Format == Format_A16R16G16B16F))
@@ -826,6 +961,14 @@ bool SwFilterHdrHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInp
         {
             bColorSpaceConversion = false;
             // HDR pipe cannot be used for RGB16 input.
+        }
+        else if (IS_RGB64_FLOAT_FORMAT(pSrc->Format) && IS_RGB64_FLOAT_FORMAT(pRenderTarget->Format) && bHdrInOutEquivalent)
+        {
+            VP_PUBLIC_NORMALMESSAGE("Not use HDR path for FP16->FP16: same colorspace %d, gammatype %d, HDR metadata %s.",
+                pSrc->ColorSpace,
+                pSrc->GammaType,
+                pSrc->pHDRParams ? "equivalent" : "none");
+            bColorSpaceConversion = false;
         }
         bFP16HdrProcessing = bColorSpaceConversion;
     }

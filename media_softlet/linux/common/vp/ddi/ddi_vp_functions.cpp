@@ -3253,6 +3253,7 @@ VAStatus DdiVpFunctions::VpUpdateProcHdrState(
                 DDI_VP_NORMALMESSAGE("hdr10MetaData MaxCLL %d, MaxFALL %d.", hdr10MetaData->max_content_light_level, hdr10MetaData->max_pic_average_light_level);
 
                 vpHalSurf->pHDRParams->bAutoMode = false;
+                vpHalSurf->pHDRParams->bMaxCllDefaulted = (vpHalSurf->pHDRParams->MaxCLL == 0);
                 vpHalSurf->pHDRParams->MaxCLL  = (vpHalSurf->pHDRParams->MaxCLL == 0) ? HDR_DEFAULT_MAXCLL : vpHalSurf->pHDRParams->MaxCLL;
                 vpHalSurf->pHDRParams->MaxFALL = (vpHalSurf->pHDRParams->MaxFALL == 0) ? HDR_DEFAULT_MAXFALL : vpHalSurf->pHDRParams->MaxFALL;
 

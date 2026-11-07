@@ -286,6 +286,7 @@ typedef struct _VPHAL_HDR_PARAMS
     uint16_t MaxFALL                         = 0;                         //!< Max Frame Average Light Level
     bool     bAutoMode                       = false;                     //!< Hdr auto mode.
     bool     bPathKernel                     = false;                     //!< Hdr path config to use kernel
+    bool     bMaxCllDefaulted                = false;                     //!< MaxCLL was 0 (unknown) from app and replaced by HDR_DEFAULT_MAXCLL in DDI
 } VPHAL_HDR_PARAMS, *PVPHAL_HDR_PARAMS;
 
 #endif  // __VP_COMMON_HDR_H__

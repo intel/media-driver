@@ -1232,6 +1232,15 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature, bool isCamPipeWithBaye
         bool veboxSupported = m_hwCaps.m_veboxHwEntry[cscParams->formatInput].inputSupported;
         bool sfcSupported = veboxSupported && m_hwCaps.m_sfcHwEntry[cscParams->formatInput].inputSupported;
 
+        if (IS_RGB64_FLOAT_FORMAT(cscParams->formatInput) && IS_RGB64_FLOAT_FORMAT(cscParams->formatOutput) &&
+            cscParams->input.gammaType == cscParams->output.gammaType)
+        {
+            VP_PUBLIC_NORMALMESSAGE("Force to render for FP16->FP16 without hdr and csc. colorspace %d, gammatype %d",
+                cscParams->input.colorSpace,
+                cscParams->input.gammaType);
+            veboxSupported = false;
+        }
+
         if (!veboxSupported)
         {
             VP_PUBLIC_NORMALMESSAGE("VPOutputPipe will be render(0) since format %d not supported by vebox. Force to render.", cscParams->formatInput);
@@ -1778,6 +1787,12 @@ MOS_STATUS Policy::GetScalingExecutionCaps(SwFilter *feature, bool isHdrEnabled,
                     }
                     else
                     {
+                        if (IS_RGB64_FLOAT_FORMAT(scalingParams->formatInput) && IS_RGB64_FLOAT_FORMAT(scalingParams->formatOutput) && !isHdrEnabled)
+                        {
+                            VP_PUBLIC_NORMALMESSAGE("Always keep FC as fallback for FP16->FP16.");
+                            scalingEngine->RenderNeeded = 1;
+                            scalingEngine->fcSupported  = 1;
+                        }
                         scalingEngine->hdrKernelSupported = 1;
                     }
                 }
