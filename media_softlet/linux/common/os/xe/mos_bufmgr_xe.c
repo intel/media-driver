@@ -84,6 +84,11 @@ typedef struct MOS_OCA_EXEC_LIST_INFO mos_oca_exec_list_info;
 
 #include "mos_bufmgr_priv.h"
 
+// Compatibility with older Xe UAPI headers.
+#ifndef DRM_XE_MAX_SYNCS
+#define DRM_XE_MAX_SYNCS 1024
+#endif
+
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
@@ -198,6 +203,10 @@ typedef struct mos_xe_bufmgr_gem {
 
     std::recursive_mutex m_lock;
 
+    // m_lock protects native MAP completion handles and failed retirements.
+    bool map_sync_failed = false;
+    struct mos_xe_bo_gem *quarantined_bos = nullptr;
+
     drmMMListHead managers;
     drmMMListHead named;
 
@@ -291,6 +300,13 @@ typedef struct mos_xe_bo_gem {
      * Note: conbine with bo.handle to use same one.
      */
     uint32_t gem_handle;
+
+    // One immutable binary fence per accepted MAP; never reset by EXEC.
+    // All access is serialized by the owning bufmgr's m_lock.
+    uint32_t bind_syncobj = 0;
+    uint32_t unbind_syncobj = 0;
+    bool bind_failed = false;
+    struct mos_xe_bo_gem *quarantine_next = nullptr;
     /**
      * Save bo name, this is for debug usage;
      * Suggest giving bo name when allocating bo.
@@ -453,6 +469,9 @@ int mos_query_engines_xe(struct mos_bufmgr *bufmgr,
                       unsigned int *nengine,
                       void *engine_map);
 static void mos_gem_bo_wait_rendering_xe(struct mos_linux_bo *bo);
+static int __mos_gem_bo_wait_timeline_rendering_with_flags_xe(
+            struct mos_linux_bo *bo, int64_t timeout_nsec, uint32_t wait_flags,
+            uint32_t rw_flags, uint32_t *first_signaled);
 
 static struct mos_xe_gem_bo_bucket*
 __mos_gem_find_bucket_xe(
@@ -832,6 +851,9 @@ drm_export void mos_bo_unreference_xe(struct mos_linux_bo *bo)
 {
     struct mos_xe_bo_gem *bo_gem = (struct mos_xe_bo_gem *) bo;
 
+    struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bo->bufmgr;
+    std::unique_lock<std::recursive_mutex> guard(bufmgr_gem->m_lock);
+
     if (atomic_read(&bo_gem->ref_count) <= 0)
         return;
 
@@ -845,8 +867,9 @@ drm_export void mos_bo_unreference_xe(struct mos_linux_bo *bo)
             __mos_bo_mark_mmaps_incoherent_xe(bo);
         }
 
-        DRMLISTDEL(&bo_gem->name_list);
-
+        // Leave a zero-reference named entry until GEM_CLOSE, so PRIME import
+        // cannot create another wrapper for the same per-file GEM handle.
+        guard.unlock();
         mos_bo_free_xe(bo);
     }
 }
@@ -870,7 +893,7 @@ __mos_vm_create_xe(struct mos_bufmgr *bufmgr)
     return vm.vm_id;
 }
 
-static void
+static int
 __mos_vm_destroy_xe(struct mos_bufmgr *bufmgr, uint32_t vm_id)
 {
     struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *)bufmgr;
@@ -880,7 +903,7 @@ __mos_vm_destroy_xe(struct mos_bufmgr *bufmgr, uint32_t vm_id)
     if (INVALID_VM == vm_id)
     {
         MOS_DRM_ASSERTMESSAGE("invalid vm_id");
-        return;
+        return -EINVAL;
     }
 
     memclear(vm_destroy);
@@ -891,6 +914,7 @@ __mos_vm_destroy_xe(struct mos_bufmgr *bufmgr, uint32_t vm_id)
         MOS_DRM_ASSERTMESSAGE("DRM_IOCTL_XE_VM_DESTROY failed: %s",
             strerror(errno));
     }
+    return ret;
 }
 
 
@@ -1291,42 +1315,171 @@ static int __mos_vm_bind_xe(int fd, uint32_t vm_id, uint32_t exec_queue_id, uint
     return ret;
 }
 
-static int mos_vm_bind_sync_xe(int fd, uint32_t vm_id, uint32_t bo, uint64_t offset,
-        uint64_t addr, uint64_t size, uint16_t pat_index, uint32_t op)
-{
-    struct drm_xe_sync sync;
-
-    memclear(sync);
-    sync.flags = DRM_XE_SYNC_FLAG_SIGNAL;
-    sync.type = DRM_XE_SYNC_TYPE_SYNCOBJ;
-    sync.handle = mos_sync_syncobj_create(fd, 0);
-
-    int ret = __mos_vm_bind_xe(fd, vm_id, 0, bo, offset, addr, size, pat_index,
-                op, 0, &sync, 1,  0);
-    if (ret)
-    {
-        MOS_DRM_ASSERTMESSAGE("ret:%d, error:%d", ret, -errno);
-        mos_sync_syncobj_destroy(fd, sync.handle);
-        return ret;
-    }
-
-    ret = mos_sync_syncobj_wait_err(fd, &sync.handle, 1, INT64_MAX, 0, NULL);
-    if (ret)
-    {
-        MOS_DRM_ASSERTMESSAGE("syncobj_wait error:%d", -errno);
-    }
-
-    mos_sync_syncobj_destroy(fd, sync.handle);
-
-    return ret;
-}
-
 static int mos_vm_bind_async_xe(int fd, uint32_t vm_id, uint32_t bo, uint64_t offset,
         uint64_t addr, uint64_t size, uint16_t pat_index, uint32_t op,
         struct drm_xe_sync *sync, uint32_t num_syncs)
 {
     return __mos_vm_bind_xe(fd, vm_id, 0, bo, offset, addr, size, pat_index,
                 op, 0, sync, num_syncs,    0);
+}
+
+// Normalize ioctl-style -1/errno without losing the error during cleanup.
+static int mos_xe_map_error(int ret)
+{
+    return ret == -1 ? (errno ? -errno : -EIO) : ret;
+}
+
+// Caller holds m_lock. A timeout is a poll result, not a failed mapping.
+static int mos_xe_wait_bind_locked(struct mos_linux_bo *bo, int64_t timeout)
+{
+    auto bo_gem = (struct mos_xe_bo_gem *)bo;
+    auto bufmgr_gem = (struct mos_xe_bufmgr_gem *)bo->bufmgr;
+    if (bo_gem->bind_failed)
+        return -EIO;
+    if (!bo_gem->bind_syncobj)
+        return 0;
+
+    int ret;
+    do
+    {
+        ret = mos_xe_map_error(mos_sync_syncobj_wait_err(bufmgr_gem->fd,
+                    &bo_gem->bind_syncobj, 1, timeout,
+                    DRM_SYNCOBJ_WAIT_FLAGS_WAIT_ALL, nullptr));
+    } while (ret == -EINTR);
+    if (ret == -ETIME)
+        return ret;
+    if (!ret)
+    {
+        ret = mos_xe_map_error(mos_sync_syncobj_destroy(bufmgr_gem->fd,
+                                                       bo_gem->bind_syncobj));
+        if (!ret)
+        {
+            bo_gem->bind_syncobj = 0;
+            return 0;
+        }
+    }
+    bo_gem->bind_failed = true;
+    bufmgr_gem->map_sync_failed = true;
+    return ret;
+}
+
+// Caller holds m_lock. Retain the completion handle on any uncertain UNMAP
+// result, just as for MAP; SYNCOBJ_DESTROY itself is not a completion wait.
+static int mos_xe_unbind_bo_locked(struct mos_linux_bo *bo)
+{
+    auto bo_gem = (struct mos_xe_bo_gem *)bo;
+    auto bufmgr_gem = (struct mos_xe_bufmgr_gem *)bo->bufmgr;
+    int handle = mos_sync_syncobj_create(bufmgr_gem->fd, 0);
+    if (handle <= 0)
+        return handle < 0 ? mos_xe_map_error(handle) : -ENOMEM;
+    bo_gem->unbind_syncobj = handle;
+    struct drm_xe_sync syncs[2];
+    memclear(syncs);
+    syncs[0].type = DRM_XE_SYNC_TYPE_SYNCOBJ;
+    syncs[0].flags = DRM_XE_SYNC_FLAG_SIGNAL;
+    syncs[0].handle = handle;
+    uint32_t num_syncs = 1;
+    if (bo_gem->bind_syncobj)
+    {
+        syncs[1].type = DRM_XE_SYNC_TYPE_SYNCOBJ;
+        syncs[1].handle = bo_gem->bind_syncobj;
+        num_syncs++;
+    }
+    int ret = mos_xe_map_error(__mos_vm_bind_xe(bufmgr_gem->fd,
+                    bo->vm_id, 0, 0, 0, bo->offset64, bo->size,
+                    bo_gem->pat_index, DRM_XE_VM_BIND_OP_UNMAP,
+                    0, syncs, num_syncs, 0));
+    if (!ret)
+    {
+        do
+        {
+            ret = mos_xe_map_error(mos_sync_syncobj_wait_err(bufmgr_gem->fd,
+                        &bo_gem->unbind_syncobj, 1, INT64_MAX,
+                        DRM_SYNCOBJ_WAIT_FLAGS_WAIT_ALL, nullptr));
+        } while (ret == -EINTR);
+        if (ret)
+            return ret;
+        bo->vm_id = INVALID_VM;
+    }
+    int destroy_ret = mos_xe_map_error(mos_sync_syncobj_destroy(bufmgr_gem->fd,
+                                                               handle));
+    if (!destroy_ret)
+        bo_gem->unbind_syncobj = 0;
+    return ret ? ret : destroy_ret;
+}
+
+// Native GEM MAPs may return once accepted. Imported/userptr mappings keep
+// their synchronous completion boundary, sharing the same failure ownership.
+static int mos_xe_bind_bo(struct mos_linux_bo *bo, uint32_t op,
+                          uint64_t userptr_addr, bool async_native)
+{
+    auto bo_gem = (struct mos_xe_bo_gem *)bo;
+    auto bufmgr_gem = (struct mos_xe_bufmgr_gem *)bo->bufmgr;
+    std::lock_guard<std::recursive_mutex> guard(bufmgr_gem->m_lock);
+    if (bufmgr_gem->map_sync_failed)
+        return -EIO;
+
+    int handle = mos_sync_syncobj_create(bufmgr_gem->fd, 0);
+    if (handle <= 0)
+        return handle < 0 ? mos_xe_map_error(handle) : -ENOMEM;
+    bo_gem->bind_syncobj = handle;
+    struct drm_xe_sync sync;
+    memclear(sync);
+    sync.type = DRM_XE_SYNC_TYPE_SYNCOBJ;
+    sync.flags = DRM_XE_SYNC_FLAG_SIGNAL;
+    sync.handle = handle;
+    int ret = mos_xe_map_error(__mos_vm_bind_xe(bufmgr_gem->fd,
+                    bufmgr_gem->vm_id, 0,
+                    op == DRM_XE_VM_BIND_OP_MAP_USERPTR ? 0 : bo_gem->gem_handle,
+                    userptr_addr, bo->offset64, bo->size, bo_gem->pat_index,
+                    op, 0, &sync, 1, 0));
+    if (ret)
+    {
+        if (!mos_sync_syncobj_destroy(bufmgr_gem->fd, handle))
+            bo_gem->bind_syncobj = 0;
+        else
+        {
+            bo_gem->bind_failed = true;
+            bufmgr_gem->map_sync_failed = true;
+        }
+        return ret;
+    }
+    // Even if a later CPU observation fails, this VA is now owned by the VM.
+    bo->vm_id = bufmgr_gem->vm_id;
+    if (async_native)
+        return 0;
+    return mos_xe_wait_bind_locked(bo, INT64_MAX);
+}
+
+// Caller holds m_lock through EXEC and retry. Do not consume BO ownership:
+// a second context or engine must carry the same MAP dependency as the first.
+static void mos_xe_add_bind_sync(struct mos_linux_bo *bo,
+                                 std::vector<struct drm_xe_sync> &syncs,
+                                 std::set<uint32_t> &seen)
+{
+    auto bo_gem = (struct mos_xe_bo_gem *)bo;
+    if (bo_gem->bind_syncobj && seen.insert(bo_gem->bind_syncobj).second)
+    {
+        struct drm_xe_sync sync;
+        memclear(sync);
+        sync.type = DRM_XE_SYNC_TYPE_SYNCOBJ;
+        sync.handle = bo_gem->bind_syncobj;
+        syncs.push_back(sync);
+    }
+}
+
+// Called only after the application's last BO reference has been dropped.
+// Keep an uncertain mapping's VA and handles out of all reuse paths.
+static void mos_xe_quarantine_bo_locked(struct mos_linux_bo *bo)
+{
+    auto bo_gem = (struct mos_xe_bo_gem *)bo;
+    auto bufmgr_gem = (struct mos_xe_bufmgr_gem *)bo->bufmgr;
+    bufmgr_gem->map_sync_failed = true;
+    DRMLISTDELINIT(&bo_gem->name_list);
+    bo_gem->quarantine_next = bufmgr_gem->quarantined_bos;
+    bufmgr_gem->quarantined_bos = bo_gem;
+    MOS_DRM_ASSERTMESSAGE("Retaining BO %u and VA %lx until bufmgr teardown",
+                           bo_gem->gem_handle, bo->offset64);
 }
 
 drm_export struct mos_linux_bo *
@@ -1464,14 +1617,7 @@ mos_bo_alloc_xe(struct mos_bufmgr *bufmgr,
 
     __mos_bo_set_offset_xe(&bo_gem->bo);
 
-    ret = mos_vm_bind_sync_xe(bufmgr_gem->fd,
-                    bufmgr_gem->vm_id,
-                    bo_gem->gem_handle,
-                    0,
-                    bo_gem->bo.offset64,
-                    bo_gem->bo.size,
-                    bo_gem->pat_index,
-                    DRM_XE_VM_BIND_OP_MAP);
+    ret = mos_xe_bind_bo(&bo_gem->bo, DRM_XE_VM_BIND_OP_MAP, 0, true);
     if (ret)
     {
         MOS_DRM_ASSERTMESSAGE("mos_vm_bind_sync_xe ret: %d", ret);
@@ -1632,14 +1778,8 @@ mos_bo_alloc_userptr_xe(struct mos_bufmgr *bufmgr,
 
     __mos_bo_set_offset_xe(&bo_gem->bo);
 
-    ret = mos_vm_bind_sync_xe(bufmgr_gem->fd,
-                bufmgr_gem->vm_id,
-                0,
-                (uint64_t)alloc_uptr->addr,
-                bo_gem->bo.offset64,
-                bo_gem->bo.size,
-                bo_gem->pat_index,
-                DRM_XE_VM_BIND_OP_MAP_USERPTR);
+    ret = mos_xe_bind_bo(&bo_gem->bo, DRM_XE_VM_BIND_OP_MAP_USERPTR,
+                         (uint64_t)alloc_uptr->addr, false);
 
     if (ret)
     {
@@ -1672,6 +1812,11 @@ mos_bo_create_from_prime_xe(struct mos_bufmgr *bufmgr, struct mos_drm_bo_alloc_p
     drmMMListHead *list;
 
     bufmgr_gem->m_lock.lock();
+    if (bufmgr_gem->map_sync_failed)
+    {
+        bufmgr_gem->m_lock.unlock();
+        return nullptr;
+    }
     ret = drmPrimeFDToHandle(bufmgr_gem->fd, prime_fd, &handle);
     if (ret)
     {
@@ -1690,6 +1835,12 @@ mos_bo_create_from_prime_xe(struct mos_bufmgr *bufmgr, struct mos_drm_bo_alloc_p
         bo_gem = DRMLISTENTRY(struct mos_xe_bo_gem, list, name_list);
         if (bo_gem->gem_handle == handle)
         {
+            if (atomic_read(&bo_gem->ref_count) <= 0 ||
+                mos_xe_wait_bind_locked(&bo_gem->bo, INT64_MAX))
+            {
+                bufmgr_gem->m_lock.unlock();
+                return nullptr;
+            }
             mos_bo_reference_xe(&bo_gem->bo);
             bufmgr_gem->m_lock.unlock();
             return &bo_gem->bo;
@@ -1723,6 +1874,7 @@ mos_bo_create_from_prime_xe(struct mos_bufmgr *bufmgr, struct mos_drm_bo_alloc_p
     else
         bo_gem->bo.size = size;
 
+    bo_gem->bo.vm_id = INVALID_VM;
     bo_gem->bo.handle = handle;
     /*
      * Note: Need to get the pat_index by the customer_gmminfo with 1way coherency at least.
@@ -1740,22 +1892,15 @@ mos_bo_create_from_prime_xe(struct mos_bufmgr *bufmgr, struct mos_drm_bo_alloc_p
     bo_gem->mem_region = MEMZONE_PRIME;
 
     DRMLISTADDTAIL(&bo_gem->name_list, &bufmgr_gem->named);
-    bufmgr_gem->m_lock.unlock();
 
     __mos_bo_set_offset_xe(&bo_gem->bo);
 
-    ret = mos_vm_bind_sync_xe(bufmgr_gem->fd,
-                bufmgr_gem->vm_id,
-                bo_gem->gem_handle,
-                0,
-                bo_gem->bo.offset64,
-                bo_gem->bo.size,
-                bo_gem->pat_index,
-                DRM_XE_VM_BIND_OP_MAP);
+    ret = mos_xe_bind_bo(&bo_gem->bo, DRM_XE_VM_BIND_OP_MAP, 0, false);
     if (ret)
     {
         MOS_DRM_ASSERTMESSAGE("mos_vm_bind_sync_xe ret: %d", ret);
         mos_bo_free_xe(&bo_gem->bo);
+        bufmgr_gem->m_lock.unlock();
         return nullptr;
     }
     else
@@ -1763,6 +1908,7 @@ mos_bo_create_from_prime_xe(struct mos_bufmgr *bufmgr, struct mos_drm_bo_alloc_p
         bo_gem->bo.vm_id = bufmgr_gem->vm_id;
     }
 
+    bufmgr_gem->m_lock.unlock();
     return &bo_gem->bo;
 }
 
@@ -1773,17 +1919,28 @@ mos_bo_export_to_prime_xe(struct mos_linux_bo *bo, int *prime_fd)
     struct mos_xe_bo_gem *bo_gem = (struct mos_xe_bo_gem *) bo;
 
     bufmgr_gem->m_lock.lock();
+    int ret = mos_xe_wait_bind_locked(bo, INT64_MAX);
+    if (ret)
+    {
+        bufmgr_gem->m_lock.unlock();
+        return ret;
+    }
     if (DRMLISTEMPTY(&bo_gem->name_list))
         DRMLISTADDTAIL(&bo_gem->name_list, &bufmgr_gem->named);
+    // Publish external synchronization requirements before dropping the lock.
+    // A failed export may conservatively leave this flag set.
+    bo_gem->is_exported = true;
     bufmgr_gem->m_lock.unlock();
 
-    mos_gem_bo_wait_rendering_xe(bo);
+    ret = __mos_gem_bo_wait_timeline_rendering_with_flags_xe(bo,
+                INT64_MAX, DRM_SYNCOBJ_WAIT_FLAGS_WAIT_ALL,
+                EXEC_OBJECT_READ_XE | EXEC_OBJECT_WRITE_XE, nullptr);
+    if (ret)
+        return ret;
 
     if (drmPrimeHandleToFD(bufmgr_gem->fd, bo_gem->gem_handle,
                    DRM_CLOEXEC, prime_fd) != 0)
         return -errno;
-
-    bo_gem->is_exported = true;
 
     return 0;
 }
@@ -1803,6 +1960,9 @@ mos_gem_bo_update_exec_list_xe(struct mos_linux_bo *cmd_bo, struct mos_linux_bo 
     struct mos_xe_bo_gem *cmd_bo_gem = (struct mos_xe_bo_gem *) cmd_bo;
     struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *) cmd_bo->bufmgr;
     MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr_gem, -EINVAL)
+    if (exec_bo->bufmgr != cmd_bo->bufmgr)
+        return -EINVAL;
+    std::lock_guard<std::recursive_mutex> guard(bufmgr_gem->m_lock);
     std::map<uintptr_t, struct mos_xe_exec_bo> &exec_list = cmd_bo_gem->exec_list;
 
     if (exec_bo->handle == cmd_bo->handle)
@@ -1853,12 +2013,15 @@ mos_gem_bo_clear_exec_list_xe(struct mos_linux_bo *cmd_bo, int start)
     {
         struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *) cmd_bo->bufmgr;
         struct mos_xe_bo_gem *bo_gem = (struct mos_xe_bo_gem *) cmd_bo;
-        std::map<uintptr_t, struct mos_xe_exec_bo> &exec_list = bo_gem->exec_list;
-
-        for (auto &it : exec_list) {
-            mos_bo_unreference_xe(it.second.bo);
+        std::map<uintptr_t, struct mos_xe_exec_bo> retired;
+        {
+            std::lock_guard<std::recursive_mutex> guard(bufmgr_gem->m_lock);
+            retired.swap(bo_gem->exec_list);
         }
-        exec_list.clear();
+        // Transfer the list's owned references before dropping them. A last
+        // unreference may wait for GPU work and must not retain this lock.
+        for (auto &it : retired)
+            mos_bo_unreference_xe(it.second.bo);
     }
 }
 
@@ -1935,6 +2098,13 @@ __mos_gem_bo_wait_timeline_rendering_with_flags_xe(struct mos_linux_bo *bo,
     std::vector<uint64_t> points;
     std::set<uint32_t> exec_queue_ids;
     bufmgr_gem->m_lock.lock();
+    ret = mos_xe_wait_bind_locked(bo, timeout_nsec);
+    if (ret)
+    {
+        bufmgr_gem->m_lock.unlock();
+        errno = -ret;
+        return ret;
+    }
     bufmgr_gem->sync_obj_rw_lock.lock_shared();
     MOS_XE_GET_KEYS_FROM_MAP(bufmgr_gem->global_ctx_info, exec_queue_ids);
 
@@ -2052,8 +2222,9 @@ mos_gem_bo_wait_xe(struct mos_linux_bo *bo, int64_t timeout_ns)
 {
     if (timeout_ns)
     {
-        mos_gem_bo_wait_rendering_xe(bo);
-        return 0;
+        return __mos_gem_bo_wait_timeline_rendering_with_flags_xe(bo,
+                    INT64_MAX, DRM_SYNCOBJ_WAIT_FLAGS_WAIT_ALL,
+                    EXEC_OBJECT_READ_XE | EXEC_OBJECT_WRITE_XE, nullptr);
     }
     else
     {
@@ -2087,6 +2258,7 @@ mos_bo_map_xe(struct mos_linux_bo *bo, int write_enable)
     if (ret)
     {
         MOS_DRM_ASSERTMESSAGE("bo wait rendering error(%d ns)", -errno);
+        return ret;
     }
 
     if (bo_gem->is_userptr)
@@ -2529,10 +2701,24 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
         return -EINVAL;
     }
 
+    MOS_DRM_CHK_NULL_RETURN_VALUE(bo[0], -EINVAL)
     struct mos_xe_bufmgr_gem *bufmgr_gem = (struct mos_xe_bufmgr_gem *) bo[0]->bufmgr;
     MOS_DRM_CHK_NULL_RETURN_VALUE(bufmgr_gem, -EINVAL)
 
+    std::unique_lock<std::recursive_mutex> map_guard(bufmgr_gem->m_lock);
+    if (bufmgr_gem->map_sync_failed)
+        return -EIO;
+    if (ctx->bufmgr != &bufmgr_gem->bufmgr || ctx->vm_id != bufmgr_gem->vm_id)
+        return -EINVAL;
+    for (int i = 0; i < num_bo; ++i)
+        if (!bo[i] || bo[i]->bufmgr != &bufmgr_gem->bufmgr ||
+            bo[i]->vm_id != bufmgr_gem->vm_id)
+            return -EINVAL;
+
     uint64_t *batch_addrs = (uint64_t*)MOS_AllocAndZeroMemory(num_bo * sizeof(uint64_t));
+
+    if (!batch_addrs)
+        return -ENOMEM;
 
     std::vector<mos_xe_exec_bo> exec_list;
     for (int i = 0; i < num_bo; i++)
@@ -2556,7 +2742,15 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
         MOS_DRM_NORMALMESSAGE("invalid exec list count(%d)", exec_list_size);
     }
 
-    bufmgr_gem->m_lock.lock();
+    for (const auto &target : exec_list)
+    {
+        if (!target.bo || target.bo->bufmgr != &bufmgr_gem->bufmgr ||
+            target.bo->vm_id != bufmgr_gem->vm_id)
+        {
+            MOS_SafeFreeMemory(batch_addrs);
+            return -EINVAL;
+        }
+    }
 
     if (context->timeline_dep == nullptr)
     {
@@ -2565,7 +2759,6 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
         if (context->timeline_dep == nullptr)
         {
             MOS_DRM_ASSERTMESSAGE("Failed to initial context timeline dep");
-            bufmgr_gem->m_lock.unlock();
             MOS_SafeFreeMemory(batch_addrs);
             return -ENOMEM;
         }
@@ -2589,6 +2782,33 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
                 syncs,
                 external_bos);
 
+    std::set<uint32_t> bind_handles;
+    std::vector<struct drm_xe_sync> bind_syncs;
+    for (int i = 0; i < num_bo; ++i)
+        mos_xe_add_bind_sync(bo[i], bind_syncs, bind_handles);
+    for (const auto &target : exec_list)
+        mos_xe_add_bind_sync(target.bo, bind_syncs, bind_handles);
+
+    // The UAPI limit includes existing GPU dependencies and the output point.
+    constexpr size_t max_exec_syncs = DRM_XE_MAX_SYNCS;
+    if (syncs.size() > max_exec_syncs)
+        ret = -E2BIG;
+    else if (bind_syncs.size() > max_exec_syncs - syncs.size())
+    {
+        // Rare large submissions keep the synchronous completion boundary.
+        // Drain only BOs referenced by this EXEC, never unrelated allocations.
+        for (int i = 0; i < num_bo && !ret; ++i)
+            ret = mos_xe_wait_bind_locked(bo[i], INT64_MAX);
+        for (const auto &target : exec_list)
+        {
+            if (ret)
+                break;
+            ret = mos_xe_wait_bind_locked(target.bo, INT64_MAX);
+        }
+    }
+    else
+        syncs.insert(syncs.end(), bind_syncs.begin(), bind_syncs.end());
+
     //exec submit
     uint32_t sync_count = syncs.size();
     struct drm_xe_sync *syncs_array = syncs.data();
@@ -2610,8 +2830,10 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
     */
     exec.address = (num_bo == 1 ? (uintptr_t)batch_addrs[0] : (uintptr_t)batch_addrs);
     exec.num_batch_buffer = num_bo;
-    ret = drmIoctl(bufmgr_gem->fd, DRM_IOCTL_XE_EXEC, &exec);
-    if (ret)
+    bool exec_attempted = !ret;
+    if (exec_attempted)
+        ret = mos_xe_map_error(drmIoctl(bufmgr_gem->fd, DRM_IOCTL_XE_EXEC, &exec));
+    if (exec_attempted && ret)
     {
         MOS_DRM_ASSERTMESSAGE("Failed to submission in DRM_IOCTL_XE_EXEC(errno:%d): exec_queue_id = %d, num_syncs = %d, num_bo = %d",
                     -errno, curr_exec_queue_id, sync_count, num_bo);
@@ -2619,26 +2841,26 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
         //check if it caused by guilty exec_queue_id, if so, could restore the exec_queue_id/ queue here and re-try exec again.
         if (ret == -EPERM)
         {
-            ret = __mos_bo_context_exec_retry_xe(&bufmgr_gem->bufmgr, ctx, exec, curr_exec_queue_id);
+            ret = mos_xe_map_error(__mos_bo_context_exec_retry_xe(
+                        &bufmgr_gem->bufmgr, ctx, exec, curr_exec_queue_id));
         }
     }
-    curr_timeline = dep->timeline_index;
+    if (!ret)
+    {
+        curr_timeline = dep->timeline_index;
+        // Publish only output points for work actually accepted by EXEC.
+        __mos_context_exec_update_bo_deps_xe(bo, num_bo, exec_list, context->dummy_exec_queue_id, dep);
+        mos_sync_update_timeline_dep(dep);
+    }
 
-    //update bos' read and write dep with new timeline
-    __mos_context_exec_update_bo_deps_xe(bo, num_bo, exec_list, context->dummy_exec_queue_id, dep);
-
-    //Update dep with latest available timeline
-    mos_sync_update_timeline_dep(dep);
-
-    bufmgr_gem->sync_obj_rw_lock.unlock_shared();
-    bufmgr_gem->m_lock.unlock();
+    map_guard.unlock();
 
     //import batch syncobj or its point for external bos and close syncobj created for external bo before.
     uint32_t external_bo_count = external_bos.size();
     int sync_file_fd = INVALID_HANDLE;
     int temp_syncobj = INVALID_HANDLE;
 
-    if (external_bo_count > 0)
+    if (!ret && external_bo_count > 0)
     {
         temp_syncobj = mos_sync_syncobj_create(bufmgr_gem->fd, 0);
         if (temp_syncobj > 0)
@@ -2647,6 +2869,9 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
             sync_file_fd = mos_sync_syncobj_handle_to_syncfile_fd(bufmgr_gem->fd, temp_syncobj);
         }
     }
+    // The context's timeline remains protected until its output has been
+    // converted to an independently owned sync_file. No dep access below.
+    bufmgr_gem->sync_obj_rw_lock.unlock_shared();
     for (int i = 0; i < external_bo_count; i++)
     {
         //import syncobj for external bos
@@ -3049,9 +3274,26 @@ mos_bo_free_xe(struct mos_linux_bo *bo)
         return;
     }
 
-    mos_gem_bo_wait_rendering_xe(bo);
-
-    bufmgr_gem->m_lock.lock();
+    std::unique_lock<std::recursive_mutex> guard(bufmgr_gem->m_lock, std::defer_lock);
+    ret = __mos_gem_bo_wait_timeline_rendering_with_flags_xe(bo,
+                INT64_MAX, DRM_SYNCOBJ_WAIT_FLAGS_WAIT_ALL,
+                EXEC_OBJECT_READ_XE | EXEC_OBJECT_WRITE_XE, nullptr);
+    guard.lock();
+    if (ret)
+    {
+        // A userptr wrapper does not own the application's memory. Attempt
+        // synchronous detachment even if observing MAP/render completion
+        // failed. If this also fails, quarantine cannot extend that memory's
+        // lifetime; this is a terminal device/VM error boundary.
+        if (bo_gem->is_userptr && bo->vm_id != INVALID_VM)
+        {
+            int unmap_ret = mos_xe_unbind_bo_locked(bo);
+            MOS_DRM_ASSERTMESSAGE("userptr completion error %d, detach result %d",
+                                   ret, unmap_ret);
+        }
+        mos_xe_quarantine_bo_locked(bo);
+        return;
+    }
 
     if (!bo_gem->is_userptr)
     {
@@ -3065,19 +3307,14 @@ mos_bo_free_xe(struct mos_linux_bo *bo)
 
     if (bo->vm_id != INVALID_VM)
     {
-        ret = mos_vm_bind_sync_xe(bufmgr_gem->fd,
-                    bo->vm_id,
-                    0,
-                    0,
-                    bo->offset64,
-                    bo->size,
-                    bo_gem->pat_index,
-                    DRM_XE_VM_BIND_OP_UNMAP);
+        ret = mos_xe_unbind_bo_locked(bo);
         if (ret)
         {
             MOS_DRM_ASSERTMESSAGE("mos_gem_bo_free mos_vm_unbind ret error. bo:0x%lx, vm_id:%d\r",
                     (uint64_t)bo,
                     bo->vm_id);
+            mos_xe_quarantine_bo_locked(bo);
+            return;
         }
         else
         {
@@ -3085,6 +3322,7 @@ mos_bo_free_xe(struct mos_linux_bo *bo)
         }
     }
 
+    DRMLISTDELINIT(&bo_gem->name_list);
     if (!bo_gem->is_userptr)
     {
         /* Close this object */
@@ -3115,7 +3353,6 @@ mos_bo_free_xe(struct mos_linux_bo *bo)
 
     /* Return the VMA for reuse */
     __mos_bo_vma_free_xe(bo->bufmgr, bo->offset64, bo->size);
-    bufmgr_gem->m_lock.unlock();
 
     MOS_Delete(bo_gem);
 }
@@ -3139,15 +3376,40 @@ mos_bufmgr_gem_destroy_xe(struct mos_bufmgr *bufmgr)
 
     /* Release userptr bo kept hanging around for optimisation. */
 
+    if (bufmgr_gem->vm_id != INVALID_VM)
+    {
+        ret = __mos_vm_destroy_xe(bufmgr, bufmgr_gem->vm_id);
+        if (ret)
+            MOS_DRM_ASSERTMESSAGE("VM teardown failed; kernel VM may remain until DRM fd close");
+        bufmgr_gem->vm_id = INVALID_VM;
+    }
+
+    // The application has released the manager and all BO references.
+    // Kernel VM/job/fence references remain owned by the kernel, including
+    // when VM_DESTROY fails. Do not close the caller-owned DRM fd here.
+    while (bufmgr_gem->quarantined_bos)
+    {
+        auto bo_gem = bufmgr_gem->quarantined_bos;
+        bufmgr_gem->quarantined_bos = bo_gem->quarantine_next;
+        if (bo_gem->bind_syncobj)
+            mos_sync_syncobj_destroy(bufmgr_gem->fd, bo_gem->bind_syncobj);
+        if (bo_gem->unbind_syncobj)
+            mos_sync_syncobj_destroy(bufmgr_gem->fd, bo_gem->unbind_syncobj);
+        if (!bo_gem->is_userptr)
+        {
+            if (bo_gem->mem_virtual)
+                drm_munmap(bo_gem->mem_virtual, bo_gem->bo.size);
+            struct drm_gem_close close_ioctl;
+            memclear(close_ioctl);
+            close_ioctl.handle = bo_gem->gem_handle;
+            if (drmIoctl(bufmgr_gem->fd, DRM_IOCTL_GEM_CLOSE, &close_ioctl))
+                MOS_DRM_ASSERTMESSAGE("Failed to close quarantined BO %u", bo_gem->gem_handle);
+        }
+        MOS_Delete(bo_gem);
+    }
     mos_vma_heap_finish(&bufmgr_gem->vma_heap[MEMZONE_SYS]);
     mos_vma_heap_finish(&bufmgr_gem->vma_heap[MEMZONE_DEVICE]);
     mos_vma_heap_finish(&bufmgr_gem->vma_heap[MEMZONE_PRIME]);
-
-    if (bufmgr_gem->vm_id != INVALID_VM)
-    {
-        __mos_vm_destroy_xe(bufmgr, bufmgr_gem->vm_id);
-        bufmgr_gem->vm_id = INVALID_VM;
-    }
 
     if (bufmgr_gem->mem_profiler_fd != -1)
     {
