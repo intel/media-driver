@@ -265,11 +265,16 @@ CommandBufferNext *CmdBufMgrNext::PickupOneCmdBuf(uint32_t size)
                 if (eStatus != MOS_STATUS_SUCCESS)
                 {
                     MOS_OS_ASSERTMESSAGE("Allocate CmdBuf failed");
+                    cmdBuf->Free();
+                    MOS_Delete(cmdBuf);
+                    cmdBuf = nullptr;
                 }
-
-                // directly push into inuse pool
-                m_inUseCmdBufPool.push_back(cmdBuf);
-                m_cmdBufTotalNum++;
+                else
+                {
+                    // directly push into inuse pool
+                    m_inUseCmdBufPool.push_back(cmdBuf);
+                    m_cmdBufTotalNum++;
+                }
 
             }
         }
