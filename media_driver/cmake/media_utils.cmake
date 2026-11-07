@@ -68,4 +68,6 @@ macro (MediaAddCommonTargetDefines target)
     endif()
 endmacro()
 
+include(${CMAKE_CURRENT_LIST_DIR}/media_include_index.cmake)
+
 include( ${MEDIA_EXT_CMAKE}/ext/media_utils_ext.cmake OPTIONAL)
