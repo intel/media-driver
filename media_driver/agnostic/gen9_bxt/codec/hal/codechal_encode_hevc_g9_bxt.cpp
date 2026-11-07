@@ -24,6 +24,8 @@
 //! \brief    HEVC dual-pipe encoder for GEN9 BXT.
 //!
 
+#include <type_traits>
+
 #include "codechal_encode_hevc_g9_bxt.h"
 //#include "igcodeckrn_g9_bxt.h"
 #include "igcodeckrn_g9.h"
@@ -90,7 +92,9 @@ MOS_STATUS CodechalEncHevcStateG9Bxt::GetKernelHeaderAndSize(
         // Only BXT supports P frame. P HME index CODECHAL_ENCODE_ME_IDX_P is 0 and B HME index CODECHAL_ENCODE_ME_IDX_B is 1
         // Use kernel total number to check if P frame is supported
         // MBEnc kernels + BRC kernels + DownSampling kernel + DS combined kernel
-        if (kernelHeaderTable->nKernelCount == (CODECHAL_HEVC_MBENC_NUM_BXT_SKL + CODECHAL_HEVC_BRC_NUM + 2))
+        auto mbencNum = static_cast<typename std::underlying_type<decltype(CODECHAL_HEVC_MBENC_NUM_BXT_SKL)>::type>(CODECHAL_HEVC_MBENC_NUM_BXT_SKL);
+        auto brcNum = static_cast<typename std::underlying_type<decltype(CODECHAL_HEVC_BRC_NUM)>::type>(CODECHAL_HEVC_BRC_NUM);
+        if (kernelHeaderTable->nKernelCount == (mbencNum + brcNum + 2))
         {
             if (krnStateIdx == 0)
             {

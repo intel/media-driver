@@ -59,35 +59,35 @@ MOS_STATUS HevcVdencPipelineXe_Hpm::Init(void *settings)
     MediaTask* task = CreateTask(MediaTask::TaskType::cmdTask);
     ENCODE_CHK_NULL_RETURN(task);
 
-    RegisterPacket(HucLaInit, [=]() -> MediaPacket * { return MOS_New(HucLaInitPkt, this, task, m_hwInterface); });
+    RegisterPacket(HucLaInit, [=, this]() -> MediaPacket * { return MOS_New(HucLaInitPkt, this, task, m_hwInterface); });
 
-    RegisterPacket(HucLaUpdate, [=]() -> MediaPacket * { return MOS_New(HucLaUpdatePkt, this, task, m_hwInterface); });
+    RegisterPacket(HucLaUpdate, [=, this]() -> MediaPacket * { return MOS_New(HucLaUpdatePkt, this, task, m_hwInterface); });
 
-    RegisterPacket(HucBrcInit, [=]() -> MediaPacket * { return MOS_New(HucBrcInitPkt, this, task, m_hwInterface); });
+    RegisterPacket(HucBrcInit, [=, this]() -> MediaPacket * { return MOS_New(HucBrcInitPkt, this, task, m_hwInterface); });
 
-    RegisterPacket(HucBrcUpdate, [=]() -> MediaPacket * { return MOS_New(HucBrcUpdatePkt, this, task, m_hwInterface); });
+    RegisterPacket(HucBrcUpdate, [=, this]() -> MediaPacket * { return MOS_New(HucBrcUpdatePkt, this, task, m_hwInterface); });
 
 #ifdef _ENCODE_RESERVED
-    RegisterPacket(hevcVdencPacket, [=]() -> MediaPacket * { return MOS_New(HevcVdencPktXeHpmExt, this, task, m_hwInterface); });
+    RegisterPacket(hevcVdencPacket, [=, this]() -> MediaPacket * { return MOS_New(HevcVdencPktXeHpmExt, this, task, m_hwInterface); });
 #else
-    RegisterPacket(hevcVdencPacket, [=]() -> MediaPacket * { return MOS_New(HevcVdencPkt, this, task, m_hwInterface); });
+    RegisterPacket(hevcVdencPacket, [=, this]() -> MediaPacket * { return MOS_New(HevcVdencPkt, this, task, m_hwInterface); });
 #endif
 
-    RegisterPacket(hevcPakIntegrate, [=]() -> MediaPacket * { return MOS_New(HevcPakIntegratePkt, this, task, m_hwInterface); });
+    RegisterPacket(hevcPakIntegrate, [=, this]() -> MediaPacket * { return MOS_New(HevcPakIntegratePkt, this, task, m_hwInterface); });
 
-    RegisterPacket(hevcVdencPicPacket, [=]() -> MediaPacket * {
+    RegisterPacket(hevcVdencPicPacket, [=, this]() -> MediaPacket * {
         auto vdencPkt = dynamic_cast<HevcVdencPkt *>(GetOrCreate(hevcVdencPacket));
         return vdencPkt == nullptr ? nullptr : MOS_New(HevcVdencPicPacket, task, vdencPkt);
     });
 
-    RegisterPacket(hevcVdencTileRowPacket, [=]() -> MediaPacket * {
+    RegisterPacket(hevcVdencTileRowPacket, [=, this]() -> MediaPacket * {
         auto vdencPkt = dynamic_cast<HevcVdencPkt *>(GetOrCreate(hevcVdencPacket));
         return vdencPkt == nullptr ? nullptr : MOS_New(HevcVdencTileRowPkt, task, vdencPkt);
     });
 
-    RegisterPacket(hevcVdencPacket422, [=]() -> MediaPacket * { return MOS_New(HevcVdencPkt422, this, task, m_hwInterface); });
+    RegisterPacket(hevcVdencPacket422, [=, this]() -> MediaPacket * { return MOS_New(HevcVdencPkt422, this, task, m_hwInterface); });
 
-    RegisterPacket(EncodeCheckHucLoad, [=]() -> MediaPacket * { return MOS_New(EncodeCheckHucLoadPkt, this, task, m_hwInterface); });
+    RegisterPacket(EncodeCheckHucLoad, [=, this]() -> MediaPacket * { return MOS_New(EncodeCheckHucLoadPkt, this, task, m_hwInterface); });
 
     return MOS_STATUS_SUCCESS;
 }
