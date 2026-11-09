@@ -109,6 +109,36 @@ namespace decode {
 
         DECODE_CHK_STATUS(SetPictureStructs());
         DECODE_CHK_STATUS(SetSliceStructs());
+        DECODE_CHK_STATUS(SurfaceSizeCheck(params));
+
+        return MOS_STATUS_SUCCESS;
+    }
+
+    MOS_STATUS AvcBasicFeature::SurfaceSizeCheck(void *params)
+    {
+        DECODE_FUNC_CALL();
+
+#ifdef _DECODE_PROCESSING_SUPPORTED
+        DECODE_CHK_NULL(params);
+        CodechalDecodeParams *decodeParams = (CodechalDecodeParams *)params;
+        // Skip decode process cases, surface size smaller than picture size is expected.
+        if (decodeParams->m_procParams != nullptr)
+        {
+            return MOS_STATUS_SUCCESS;
+        }
+#endif
+
+        // Dest surface info is zeroed when no dest surface is provided.
+        if (m_destSurface.dwWidth != 0)
+        {
+            // m_width/m_height are MB aligned (e.g. 1088 for 1080p), while RT surface size is usually the display size,
+            // so align surface size to MB to avoid rejecting valid streams.
+            // Compare in pixels, pitch is in bytes and depends on bit depth.
+            uint32_t alignedWidth  = MOS_ALIGN_CEIL(m_destSurface.dwWidth, CODECHAL_MACROBLOCK_WIDTH);
+            uint32_t alignedHeight = MOS_ALIGN_CEIL(m_destSurface.dwHeight, CODECHAL_MACROBLOCK_HEIGHT);
+            DECODE_CHK_COND(alignedWidth < m_width || alignedHeight < m_height,
+                "The RT surface size is smaller than decoded picture size, insufficient surface size will cause read/write access violation.");
+        }
 
         return MOS_STATUS_SUCCESS;
     }

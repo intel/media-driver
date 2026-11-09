@@ -173,6 +173,7 @@ protected:
     virtual MOS_STATUS SetRequiredBitstreamSize(uint32_t requiredSize) override;
     MOS_STATUS SetPictureStructs();
     MOS_STATUS SetSliceStructs();
+    MOS_STATUS SurfaceSizeCheck(void *params);
     virtual MOS_STATUS CheckBitDepthAndChromaSampling();
 
     PMOS_INTERFACE        m_osInterface  = nullptr;
