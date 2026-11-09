@@ -182,6 +182,12 @@ MOS_STATUS HevcVdencPipelineXe3P_Lpm_Base::GetSystemVdboxNumber()
         m_numVdbox = 1;
     }
 
+    // HEVC HW frame split supports at most two VDBOXes.
+    if (m_numVdbox > m_maxHevcScalabilityPipeNum)
+    {
+        m_numVdbox = m_maxHevcScalabilityPipeNum;
+    }
+
     return eStatus;
 }
 

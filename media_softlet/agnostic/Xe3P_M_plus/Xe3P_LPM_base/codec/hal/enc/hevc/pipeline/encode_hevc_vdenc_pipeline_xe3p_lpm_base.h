@@ -96,6 +96,7 @@ protected:
     virtual MOS_STATUS UserFeatureReport() override;
 
     static const uint32_t m_brcHistoryBufSize = 2304;            //!< BRC history buffer size
+    static const uint8_t  m_maxHevcScalabilityPipeNum = 2;       //!< HEVC HW frame split uses at most two VDBOXes
 
     bool m_preEncEnabled = false;
     uint32_t m_encodeMode = 0;
