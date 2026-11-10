@@ -57,6 +57,28 @@
 #define TRANSFER_CHARACTERISTICS_LINEAR        8
 #define TRANSFER_CHARACTERISTICS_BT2020        14
 #define TRANSFER_CHARACTERISTICS_ST2084        16
+// ITU-T H.273 Table 4: Matrix coefficients
+#define MATRIX_COEFFICIENTS_BT709              1
+#define MATRIX_COEFFICIENTS_BT470BG            5
+#define MATRIX_COEFFICIENTS_SMPTE170M          6
+#define MATRIX_COEFFICIENTS_BT2020_NCL         9
+
+static uint8_t VpYuvColourPrimaries(const VAProcColorProperties &colorProperties)
+{
+    switch (colorProperties.matrix_coefficients)
+    {
+    case MATRIX_COEFFICIENTS_BT709:
+        return COLOUR_PRIMARY_BT709;
+    case MATRIX_COEFFICIENTS_BT470BG:
+    case MATRIX_COEFFICIENTS_SMPTE170M:
+        return COLOUR_PRIMARY_BT601;
+    case MATRIX_COEFFICIENTS_BT2020_NCL:
+        return COLOUR_PRIMARY_BT2020;
+    default:
+        return colorProperties.colour_primaries;
+    }
+}
+
 
 const VAProcFilterCapColorBalance DdiVpFunctions::m_vpColorBalCap[] = {
     /** \brief Hue. */
@@ -1736,7 +1758,7 @@ VAStatus DdiVpFunctions::VpSetColorStandardExplictly(
 
     if (IS_YUV_FORMAT(vpHalSurf->Format) || IS_ALPHA_YUV_FORMAT(vpHalSurf->Format))
     {
-        switch (colorProperties.colour_primaries)
+        switch (VpYuvColourPrimaries(colorProperties))
         {
             case COLOUR_PRIMARY_BT2020:
                 vpHalSurf->ColorSpace = (colorProperties.color_range & VA_SOURCE_RANGE_FULL) ? CSpace_BT2020_FullRange : CSpace_BT2020;
