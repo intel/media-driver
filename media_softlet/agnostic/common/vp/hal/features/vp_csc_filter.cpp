@@ -162,7 +162,7 @@ MOS_STATUS VpCscFilter::CalculateEngineParams()
     return MOS_STATUS_SUCCESS;
 }
 
-VPHAL_CSPACE GetSfcInputColorSpace(VP_EXECUTE_CAPS &executeCaps, VPHAL_CSPACE inputColorSpace, VPHAL_CSPACE colorSpaceOutput, MOS_FORMAT outputFormat)
+VPHAL_CSPACE GetSfcInputColorSpace(VP_EXECUTE_CAPS &executeCaps, VPHAL_CSPACE inputColorSpace, VPHAL_CSPACE colorSpaceOutput, MOS_FORMAT inputFormat, MOS_FORMAT outputFormat)
 {
     VP_FUNC_CALL();
 
@@ -170,12 +170,21 @@ VPHAL_CSPACE GetSfcInputColorSpace(VP_EXECUTE_CAPS &executeCaps, VPHAL_CSPACE in
     {
         if (IS_RGB64_FLOAT_FORMAT(outputFormat))
         {
-            VP_PUBLIC_NORMALMESSAGE("H2S Caps %d, inputColorSpace %d", executeCaps.bH2S, inputColorSpace);
-            if (executeCaps.bH2S || !IS_COLOR_SPACE_BT2020(inputColorSpace))
+            VP_PUBLIC_NORMALMESSAGE("FP16 output: bHDR3DLUT %d, bDV %d, bH2S %d, inputColorSpace %d, inputFormat %d",
+                executeCaps.bHDR3DLUT, executeCaps.bDV, executeCaps.bH2S, inputColorSpace, inputFormat);
+            // FP16 -> FP16 HDR H2H: the vebox FP16 front end (CCM BT709->BT2020 + OETF ST2084) feeds the
+            // 3DLUT in the BT2020 domain and Policy::GetCSCExecutionCapsHdr sets the 3DLUT output to
+            // CSpace_BT2020_RGB. inputColorSpace here is the original stream colorspace (e.g. scRGB),
+            // not the 3DLUT output, so it cannot be used to tell the SFC input colorspace.
+            // b3DlutOutput is also set by DV and LutCompound, so bHDR3DLUT is needed to pick the HDR 3DLUT.
+            if (executeCaps.bHDR3DLUT && !executeCaps.bDV && !executeCaps.bH2S && IS_RGB64_FLOAT_FORMAT(inputFormat))
             {
-                return CSpace_sRGB;
+                VP_PUBLIC_NORMALMESSAGE("FP16 -> FP16 HDR H2H, SFC input colorspace CSpace_BT2020_RGB");
+                return CSpace_BT2020_RGB;
             }
-            return CSpace_BT2020_RGB;
+            VPHAL_CSPACE sfcInputColorSpace = (executeCaps.bH2S || !IS_COLOR_SPACE_BT2020(inputColorSpace)) ? CSpace_sRGB : CSpace_BT2020_RGB;
+            VP_PUBLIC_NORMALMESSAGE("SFC input colorspace %d", sfcInputColorSpace);
+            return sfcInputColorSpace;
         }
         else
         {
@@ -269,7 +278,7 @@ MOS_STATUS VpCscFilter::CalculateSfcEngineParams()
     // IsDitheringNeeded should be called before input format being updated by GetSfcInputFormat
     m_sfcCSCParams->isDitheringNeeded = IsDitheringNeeded(m_cscParams.formatInput, m_cscParams.formatOutput);
 
-    m_sfcCSCParams->inputColorSpace = GetSfcInputColorSpace(m_executeCaps, m_cscParams.input.colorSpace, m_cscParams.output.colorSpace, m_cscParams.formatOutput);
+    m_sfcCSCParams->inputColorSpace = GetSfcInputColorSpace(m_executeCaps, m_cscParams.input.colorSpace, m_cscParams.output.colorSpace, m_cscParams.formatInput, m_cscParams.formatOutput);
 
     // Capture the original pipeline input format before GetSfcInputFormat overwrites m_cscParams.formatInput.
     // The external RGB-to-RGB 3DLUT FP16 passthrough is keyed off FP16 *input*; a case with non-FP16 input
