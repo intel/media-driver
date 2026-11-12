@@ -718,7 +718,7 @@ namespace encode
 
         ENCODE_CHK_STATUS_RETURN(m_miItf->SetWatchdogTimerThreshold((uint32_t)m_basicFeature->m_rawSurfaceToEnc->dwWidth, (uint32_t)m_basicFeature->m_rawSurfaceToEnc->dwHeight, true));
 
-        SetPerfTag(CODECHAL_ENCODE_PERFTAG_CALL_PAK_ENGINE, (uint16_t)m_basicFeature->m_mode, m_basicFeature->GetPictureCodingType());
+        SetPerfTag(CODECHAL_ENCODE_PERFTAG_CALL_PREENC, (uint16_t)m_basicFeature->m_mode, m_basicFeature->GetPictureCodingType());
 
         bool firstTaskInPhase = packetPhase & firstPacket;
         if (!m_pipeline->IsSingleTaskPhaseSupported() || firstTaskInPhase)
