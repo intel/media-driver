@@ -156,6 +156,8 @@ MOS_STATUS HevcVdencPktXe3P_Lpm_Base::AddAQMCommands(
     ENCODE_CHK_NULL_RETURN(aqmFeature);
     if (aqmFeature->IsEnabled())
     {
+        // Select this pipe's AQM row store slot; resets to 0 when a frame uses one pipe
+        aqmFeature->SetCurrentPipe(m_pipeline->GetCurrentPipe());
         SETPAR_AND_ADDCMD(AQM_VD_CONTROL_STATE, m_aqmItf, &cmdBuffer);
         SETPAR_AND_ADDCMD(AQM_PIPE_BUF_ADDR_STATE, m_aqmItf, &cmdBuffer);
         SETPAR_AND_ADDCMD(AQM_PIC_STATE, m_aqmItf, &cmdBuffer);
