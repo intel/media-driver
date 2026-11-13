@@ -409,7 +409,7 @@ struct FeatureParamCsc : public FeatureParam
         VPHAL_GAMMA_TYPE gammaType      = VPHAL_GAMMA_NONE;
         uint32_t        chromaSiting    = 0;
         MOS_TILE_MODE_GMM tileMode      = MOS_TILE_4_GMM;
-        bool operator == (const struct CSC_PARAMS &b)
+        bool operator == (const struct CSC_PARAMS &b) const
         {
             return colorSpace == b.colorSpace && gammaType == b.gammaType && chromaSiting == b.chromaSiting;
         }
@@ -465,7 +465,7 @@ struct FeatureParamScaling : public FeatureParam
         RECT                    rcMaxSrc = {0, 0, 0, 0};
         VPHAL_SAMPLE_TYPE       sampleType = SAMPLE_PROGRESSIVE;
         MOS_TILE_MODE_GMM       tileMode   = MOS_TILE_4_GMM;
-        bool operator == (struct SCALING_PARAMS &b)
+        bool operator == (const struct SCALING_PARAMS &b) const
         {
             // no use sizeof(SCALING_PARAMS) to avoid undefined padding data being used.
             return 0 == memcmp(this, &b, (uint64_t)(&tileMode) - (uint64_t)(this) + sizeof(tileMode));
@@ -493,7 +493,7 @@ struct FeatureParamScaling : public FeatureParam
         bool                    rotationNeeded = false;                 //!< Whether rotate SwFilter exists on SwFilterPipe.
     } rotation;
 
-    bool operator == (struct FeatureParamScaling &b)
+    bool operator == (const struct FeatureParamScaling &b) const
     {
         return formatInput          == b.formatInput            &&
             formatOutput            == b.formatOutput           &&
@@ -565,7 +565,7 @@ struct FeatureParamRotMir : public FeatureParam
         MOS_TILE_TYPE tileOutput = MOS_TILE_X;
     } surfInfo;
 
-    bool operator == (const struct FeatureParamRotMir &b)
+    bool operator == (const struct FeatureParamRotMir &b) const
     {
         return rotation == b.rotation &&
             surfInfo.tileOutput == b.surfInfo.tileOutput;
@@ -615,7 +615,7 @@ struct FeatureParamDenoise : public FeatureParam
     bool                 secureDnNeeded       = false;
     DN_STAGE             stage                = DN_STAGE_DEFAULT;
     uint32_t             srcBottom            = 0;
-    bool                 operator==(const struct FeatureParamDenoise &b)
+    bool                 operator==(const struct FeatureParamDenoise &b) const
     {
         return sampleTypeInput     == b.sampleTypeInput &&
                denoiseParams       == b.denoiseParams   &&
@@ -1011,7 +1011,7 @@ MEDIA_CLASS_DEFINE_END(vp__SwFilterBlending)
 struct FeatureParamColorFill : public FeatureParam
 {
     PVPHAL_COLORFILL_PARAMS colorFillParams = nullptr;     //!< ColorFill - BG only
-    bool operator == (const struct FeatureParamColorFill &b)
+    bool operator == (const struct FeatureParamColorFill &b) const
     {
         return (nullptr == colorFillParams && nullptr == b.colorFillParams ||
             nullptr != colorFillParams && nullptr != b.colorFillParams &&
@@ -1050,7 +1050,7 @@ struct FeatureParamAlpha : public FeatureParam
 {
     PVPHAL_ALPHA_PARAMS     compAlpha         = nullptr;      //!< Alpha for composited surface
     bool                    calculatingAlpha  = false;        //!< Alpha calculation parameters
-    bool operator == (const struct FeatureParamAlpha &b)
+    bool operator == (const struct FeatureParamAlpha &b) const
     {
         return calculatingAlpha == b.calculatingAlpha &&
             (nullptr == compAlpha   && nullptr == b.compAlpha ||

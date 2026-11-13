@@ -915,7 +915,7 @@ typedef struct _VPHAL_DENOISE_PARAMS
     VPHAL_HVSDENOISE_PARAMS     HVSDenoise            = {};
     bool                        bEnableSlimIPUDenoise = false;
     VPHAL_SLIMIPU_DENOISE_PARAM SlimIPUDenoise        = {};
-    bool                        operator==(const struct _VPHAL_DENOISE_PARAMS &b)
+    bool                        operator==(const struct _VPHAL_DENOISE_PARAMS &b) const
     {
         return bEnableChroma == b.bEnableChroma &&
                bEnableLuma == b.bEnableLuma &&

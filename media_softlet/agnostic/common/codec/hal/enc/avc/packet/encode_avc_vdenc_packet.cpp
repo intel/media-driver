@@ -1386,13 +1386,13 @@ namespace encode {
                 8 * m_miItf->MHW_GETSIZE_F(MI_LOAD_REGISTER_REG)();
 
             uint32_t patchListMaxSize =
-                PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_FLUSH_DW_CMD) +
-                PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_PIPE_MODE_SELECT_CMD) +
-                PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_SURFACE_STATE_CMD) +
-                PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_PIPE_BUF_ADDR_STATE_CMD) +
-                PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_IND_OBJ_BASE_ADDR_STATE_CMD) +
-                (2 * PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_STORE_DATA_IMM_CMD)) +
-                (2 * PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_STORE_REGISTER_MEM_CMD));
+                static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_FLUSH_DW_CMD)) +
+                static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_PIPE_MODE_SELECT_CMD)) +
+                static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_SURFACE_STATE_CMD)) +
+                static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_PIPE_BUF_ADDR_STATE_CMD)) +
+                static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_IND_OBJ_BASE_ADDR_STATE_CMD)) +
+                (2 * static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_STORE_DATA_IMM_CMD))) +
+                (2 * static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_STORE_REGISTER_MEM_CMD)));
 
             maxSize +=
                 m_mfxItf->MHW_GETSIZE_F(MFX_BSP_BUF_BASE_ADDR_STATE)() +
@@ -1402,11 +1402,11 @@ namespace encode {
                 m_mfxItf->MHW_GETSIZE_F(MFX_QM_STATE)() * 4;  // QM_State sent 4 times
 
             patchListMaxSize +=
-                PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_BSP_BUF_BASE_ADDR_STATE_CMD) +
-                PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFD_AVC_PICID_STATE_CMD) +
-                PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_AVC_DIRECTMODE_STATE_CMD) +
-                PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_AVC_IMG_STATE_CMD) +
-                PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_QM_STATE_CMD) * 4;
+                static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_BSP_BUF_BASE_ADDR_STATE_CMD)) +
+                static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFD_AVC_PICID_STATE_CMD)) +
+                static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_AVC_DIRECTMODE_STATE_CMD)) +
+                static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_AVC_IMG_STATE_CMD)) +
+                static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_QM_STATE_CMD)) * 4;
 
             maxSize +=
                 m_miItf->MHW_GETSIZE_F(MI_CONDITIONAL_BATCH_BUFFER_END)() +
@@ -1418,12 +1418,12 @@ namespace encode {
                 m_mfxItf->MHW_GETSIZE_F(MFX_PAK_INSERT_OBJECT)() * 4;  // for inserting AU, SPS, PSP, SEI headers before first slice header
 
             patchListMaxSize +=
-                PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_CONDITIONAL_BATCH_BUFFER_END_CMD) +
-                PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_FLUSH_DW_CMD) * 3 +            // 3 extra MI_FLUSH_DWs for encode
-                PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_FQM_STATE_CMD) * 4 +  // FQM_State sent 4 times
-                PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_STORE_REGISTER_MEM_CMD) * 8 +  // 5 extra register queries for encode, 3 extra slice level commands for BrcPakStatistics
-                PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_STORE_DATA_IMM_CMD) * 3;       // slice level commands for StatusReport, BrcPakStatistics
-            PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFC_AVC_PAK_INSERT_OBJECT_CMD) * 4;  // for inserting AU, SPS, PSP, SEI headers before first slice header
+                static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_CONDITIONAL_BATCH_BUFFER_END_CMD)) +
+                static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_FLUSH_DW_CMD)) * 3 +            // 3 extra MI_FLUSH_DWs for encode
+                static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_FQM_STATE_CMD)) * 4 +  // FQM_State sent 4 times
+                static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_STORE_REGISTER_MEM_CMD)) * 8 +  // 5 extra register queries for encode, 3 extra slice level commands for BrcPakStatistics
+                static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::huc::Itf::MI_STORE_DATA_IMM_CMD)) * 3;       // slice level commands for StatusReport, BrcPakStatistics
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFC_AVC_PAK_INSERT_OBJECT_CMD)) * 4;  // for inserting AU, SPS, PSP, SEI headers before first slice header
 
             *commandsSize  = maxSize;
             *patchListSize = patchListMaxSize;

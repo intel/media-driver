@@ -65,15 +65,15 @@
 #define MHW_HWCMDPARSER_INITCMDNAME(CMD)
 #endif
 
-#define __MHW_ADDCMD_DEF(CMD)                                             \
-    __MHW_ADDCMD_DECL(CMD) override                                       \
-    {                                                                     \
-        MHW_FUNCTION_ENTER;                                               \
-        MHW_HWCMDPARSER_INITCMDNAME(CMD);                                 \
-        return this->AddCmd(cmdBuf,                                       \
-            batchBuf,                                                     \
-            this->__MHW_CMDINFO_M(CMD)->second,                           \
-            [=]() -> MOS_STATUS { return this->__MHW_SETCMD_F(CMD)(); }); \
+#define __MHW_ADDCMD_DEF(CMD)                                                   \
+    __MHW_ADDCMD_DECL(CMD) override                                             \
+    {                                                                           \
+        MHW_FUNCTION_ENTER;                                                     \
+        MHW_HWCMDPARSER_INITCMDNAME(CMD);                                       \
+        return this->AddCmd(cmdBuf,                                             \
+            batchBuf,                                                           \
+            this->__MHW_CMDINFO_M(CMD)->second,                                 \
+            [=, this]() -> MOS_STATUS { return this->__MHW_SETCMD_F(CMD)(); }); \
     }
 
 #define __MHW_CMDINFO_DEF(CMD) std::unique_ptr<__MHW_CMDINFO_T(CMD)> \
