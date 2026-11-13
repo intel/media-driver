@@ -489,13 +489,6 @@ VAStatus DdiDecodeJpeg::BeginPicture(
         return vaStatus;
     }
 
-    if (m_jpegBitstreamBuf)
-    {
-        MediaLibvaUtilNext::FreeBuffer(m_jpegBitstreamBuf);
-        MOS_FreeMemory(m_jpegBitstreamBuf);
-        m_jpegBitstreamBuf = nullptr;
-    }
-
     CodecDecodeJpegScanParameter *jpegSliceParam =
         (CodecDecodeJpegScanParameter *)(m_decodeCtx->DecodeParams.m_sliceParams);
     jpegSliceParam->NumScans = 0;
@@ -598,36 +591,48 @@ VAStatus DdiDecodeJpeg::SetDecodeParams()
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
-    // Allocate GPU Buffer description keeper.
-    m_jpegBitstreamBuf = (DDI_MEDIA_BUFFER *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_BUFFER));
-    if (m_jpegBitstreamBuf == nullptr)
-    {
-        DDI_CODEC_ASSERTMESSAGE("DDI: Allocate Jpeg Media Buffer Failed!\n");
-        return VA_STATUS_ERROR_UNKNOWN;
-    }
-
-    m_jpegBitstreamBuf->iSize         = bufMgr->dwSizeOfRenderedSliceData;
-    m_jpegBitstreamBuf->uiNumElements = bufMgr->dwNumOfRenderedSliceData;
-    m_jpegBitstreamBuf->uiType        = VASliceDataBufferType;
-    m_jpegBitstreamBuf->format        = Media_Format_Buffer;
-    m_jpegBitstreamBuf->uiOffset      = 0;
-    m_jpegBitstreamBuf->bCFlushReq    = false;
-    m_jpegBitstreamBuf->pMediaCtx     = m_decodeCtx->pMediaCtx;
-
-    // Create GPU buffer
-    VAStatus va  = MediaLibvaUtilNext::CreateBuffer(m_jpegBitstreamBuf, m_decodeCtx->pMediaCtx->pDrmBufMgr);
-    if (va != VA_STATUS_SUCCESS)
+    // Keep the bitstream buffer across frames and grow it only when necessary.
+    if (m_jpegBitstreamBuf &&
+        bufMgr->dwSizeOfRenderedSliceData > static_cast<uint32_t>(m_jpegBitstreamBuf->iSize))
     {
         MediaLibvaUtilNext::FreeBuffer(m_jpegBitstreamBuf);
         MOS_FreeMemory(m_jpegBitstreamBuf);
         m_jpegBitstreamBuf = nullptr;
-        return va;
     }
 
-    // For the first time you call MediaLibvaUtilNext::LockBuffer for a fresh GPU memory, it will map GPU address to a virtual address.
-    // and then, MediaLibvaUtilNext::LockBuffer is acutally to increase the reference count. so we used here for 2 resaons:
-    //
-    // 1. Map GPU address to virtual at the beginning when we combine the CPU -> GPU.
+    if (m_jpegBitstreamBuf == nullptr)
+    {
+        m_jpegBitstreamBuf = (DDI_MEDIA_BUFFER *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_BUFFER));
+        if (m_jpegBitstreamBuf == nullptr)
+        {
+            DDI_CODEC_ASSERTMESSAGE("DDI: Allocate Jpeg Media Buffer Failed!\n");
+            return VA_STATUS_ERROR_UNKNOWN;
+        }
+
+        m_jpegBitstreamBuf->iSize         = bufMgr->dwSizeOfRenderedSliceData;
+        m_jpegBitstreamBuf->uiType        = VASliceDataBufferType;
+        m_jpegBitstreamBuf->format        = Media_Format_Buffer;
+        m_jpegBitstreamBuf->uiOffset      = 0;
+        m_jpegBitstreamBuf->bCFlushReq    = false;
+        m_jpegBitstreamBuf->pMediaCtx     = m_decodeCtx->pMediaCtx;
+
+        VAStatus va = MediaLibvaUtilNext::CreateBuffer(m_jpegBitstreamBuf, m_decodeCtx->pMediaCtx->pDrmBufMgr);
+        if (va != VA_STATUS_SUCCESS)
+        {
+            MediaLibvaUtilNext::FreeBuffer(m_jpegBitstreamBuf);
+            MOS_FreeMemory(m_jpegBitstreamBuf);
+            m_jpegBitstreamBuf = nullptr;
+            return va;
+        }
+    }
+    else
+    {
+        // The previous decode may still be reading the buffer we are about to overwrite.
+        mos_bo_wait_rendering(m_jpegBitstreamBuf->bo);
+    }
+    m_jpegBitstreamBuf->uiNumElements = bufMgr->dwNumOfRenderedSliceData;
+
+    // Map the buffer for combining the CPU slice data into the GPU bitstream.
     uint8_t *mappedBuf = (uint8_t *)MediaLibvaUtilNext::LockBuffer(m_jpegBitstreamBuf, MOS_LOCKFLAG_WRITEONLY);
 
     if (mappedBuf == nullptr)
