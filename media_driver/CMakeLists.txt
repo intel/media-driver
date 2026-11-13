@@ -94,3 +94,6 @@ if(EXT_CONF)
 else()
     include(${CMAKE_CURRENT_LIST_DIR}/media_top_cmake.cmake)
 endif()
+
+# Last, once all targets have their include directories.
+media_apply_include_index()
