@@ -93,6 +93,15 @@ MOS_STATUS SfcRenderXe3P_Lpm_Base::SetupSfcState(
     // in which conversion tap they imply, and that is chosen where the command is programmed.
     bool bFp16OutputPassthrough = m_renderData.sfcStateParams->bFp16OutputPassthrough ||
                                   m_renderData.sfcStateParams->bRgb3DLutFp16Passthrough;
+    // SDR YUV SFC input (e.g. P010 BT709 / SDR BT2020 -> FP16 G10): SFC CSC -> gamma2.2 EOTF LUT, which is
+    // SDR-normalized (1.0 = SDR white = 1.0 scRGB), so the FP16 gain must be 1. Only when the SFC CSC really runs
+    // (platforms with IsSfcCscForFp16G10SdrYuvInputSupported()). All other FP16 G10 cases keep their programming.
+    // A BT2020 YUV SFC input only gets here for SDR: HDR (PQ) input goes through the 3DLUT and reaches SFC as RGB.
+    m_renderData.sfcStateParams->isFp16G10SdrYuvInput = !bFp16OutputPassthrough &&
+                                                        m_renderData.sfcStateParams->isFullRgbG10P709 &&
+                                                        m_renderData.bCSC &&
+                                                        !IS_RGB_CSPACE(m_renderData.SfcInputCspace) &&
+                                                        !IS_COLOR_SPACE_BT2020_RGB(m_renderData.SfcInputCspace);
     if ((m_renderData.sfcStateParams->isFullRgbG10P709 || bFp16OutputPassthrough) && IS_RGB64_FLOAT_FORMAT(m_renderData.sfcStateParams->OutputFrameFormat))
     {
         if (!m_EOTF)
@@ -124,7 +133,7 @@ MOS_STATUS SfcRenderXe3P_Lpm_Base::SetupSfcState(
                 }
                 VP_RENDER_NORMALMESSAGE("Generate 1 K identity EOTF Lut for DV 3DLUT FP16 passthrough.");
             }
-            else if (IS_COLOR_SPACE_BT2020(m_renderData.SfcInputCspace))
+            else if (IS_COLOR_SPACE_BT2020(m_renderData.SfcInputCspace) && !m_renderData.sfcStateParams->isFp16G10SdrYuvInput)
             {
                 // st2084 to linear
                 VP_RENDER_CHK_STATUS_RETURN(Gen2084EOTFLUT_1K(m_EOTF, EOTF_LUT_SIZE));  //generage 1K EOTF Lut

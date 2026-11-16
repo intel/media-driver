@@ -484,6 +484,12 @@ protected:
     virtual bool IsOutputChannelSwapNeeded(MOS_FORMAT outputFormat) = 0;
     virtual bool IsCscNeeded(SFC_CSC_PARAMS &cscParams) = 0;
 
+    //!
+    //! \brief    Colorspace the SFC CSC converts to: the SFC output surface colorspace, except for FP16 G10 output with
+    //!           SDR BT2020 YUV input, where the CSC only goes to BT2020 RGB and the FP16 stage does the gamut change.
+    //!
+    VPHAL_CSPACE GetSfcCscOutputColorSpace();
+
     virtual MOS_STATUS AddSfcState(
         PMOS_COMMAND_BUFFER         pCmdBuffer,
         mhw::sfc::SFC_STATE_PAR     *pSfcStateParams,

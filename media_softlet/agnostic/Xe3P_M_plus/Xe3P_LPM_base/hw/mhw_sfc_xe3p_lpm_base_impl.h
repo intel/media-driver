@@ -162,8 +162,10 @@ public:
             }
             else if (params.isFullRgbG10P709)
             {
+                // 125 = 10000 nits / 80 nits. SDR YUV input goes through the SDR-normalized gamma2.2 EOTF LUT,
+                // where 1.0 must stay 1.0 in scRGB.
                 cmd->DW3.Fp16InputSelect                      = 0;
-                cmd->DW66.GainFactorForRgb232ToFp16Conversion = 125;
+                cmd->DW66.GainFactorForRgb232ToFp16Conversion = params.isFp16G10SdrYuvInput ? 1 : 125;
             }
             else
             {

@@ -30,6 +30,7 @@
 #include "hw_filter.h"
 #include "sw_filter_pipe.h"
 #include "vp_hal_ddi_utils.h"
+#include "vp_platform_interface.h"
 
 namespace vp {
 
@@ -364,8 +365,26 @@ MOS_STATUS VpCscFilter::CalculateSfcEngineParams()
     }
 
     // No need to check m_cscParams.pAlphaParams as CalculateVeboxEngineParams does, as alpha is done by scaling filter on SFC.
+    // FP16 G10 (scRGB) output was designed for the HDR path: HDR => VEBOX 3DLUT on => VEBOX output (SFC input) is RGB
+    // (BT2020_RGB for H2H, sRGB for tone mapping). The SFC FP16 stage (EOTF LUT -> CCM -> RGBtoFP16) finishes the
+    // colorspace conversion there, so the generic SFC CSC is not used.
+    bool bFp16G10Output = IS_RGB64_FLOAT_FORMAT(m_sfcCSCParams->outputFormat) && m_sfcCSCParams->isFullRgbG10P709;
+    // SDR YUV input (e.g. P010 BT709 -> FP16: no HDR / no 3DLUT, VeboxNeeded 0 / SfcNeeded 1) is outside that assumption.
+    // The FP16 stage cannot do YUV -> RGB, so the generic SFC CSC must still run. Only on platforms that opt in.
+    // SDR BT2020 YUV is included (HDR is not enabled for it, see IsFp16G10SdrBt2020YuvInputCase): the SFC CSC goes to
+    // BT2020 RGB (SfcRenderBase::GetSfcCscOutputColorSpace) and the FP16 stage converts BT2020 -> BT709.
+    bool bSfcCscForFp16G10SdrYuvInput =
+        bFp16G10Output &&
+        !IS_RGB_CSPACE(m_sfcCSCParams->inputColorSpace) &&
+        !IS_COLOR_SPACE_BT2020_RGB(m_sfcCSCParams->inputColorSpace) &&
+        m_pvpMhwInterface && m_pvpMhwInterface->m_vpPlatformInterface &&
+        m_pvpMhwInterface->m_vpPlatformInterface->IsSfcCscForFp16G10SdrYuvInputSupported();
+    if (bSfcCscForFp16G10SdrYuvInput)
+    {
+        VP_PUBLIC_NORMALMESSAGE("FP16 G10 output with SDR YUV SFC input (cspace %d): SFC CSC enabled", m_sfcCSCParams->inputColorSpace);
+    }
     if (m_sfcCSCParams->inputColorSpace != m_cscParams.output.colorSpace &&
-        !(IS_RGB64_FLOAT_FORMAT(m_sfcCSCParams->outputFormat) && m_sfcCSCParams->isFullRgbG10P709) &&
+        (!bFp16G10Output || bSfcCscForFp16G10SdrYuvInput) &&
         !bFp16OutputPassthrough &&
         !bRgb3DLutFp16Passthrough &&
         !bFp16NonLinearSfcCscBypass)

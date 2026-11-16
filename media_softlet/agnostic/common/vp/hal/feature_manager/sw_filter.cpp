@@ -184,7 +184,11 @@ MOS_STATUS SwFilterCsc::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
     m_Params.output.chromaSiting    = surfOutput->ChromaSiting;
     m_Params.input.tileMode         = surfInput->TileModeGMM;
     m_Params.output.tileMode        = surfOutput->TileModeGMM;
-    m_Params.isFullRgbG10P709       = surfOutput->pGamutParams ? surfOutput->pGamutParams->GammaValue == GAMMA_1P0 : 0 && surfOutput->ColorSpace == CSpace_sRGB && IS_RGB64_FLOAT_FORMAT(surfOutput->Format);
+    // Output colorspace is RGB_FULL_G10_NONE_P709: G10 (linear) gamma AND sRGB (P709 RGB). Colorspace only, as the name
+    // says; users that need an FP16 output check IS_RGB64_FLOAT_FORMAT themselves. The ?: must be parenthesized: without
+    // it, the colorspace check only applied when pGamutParams is null (where the result was always false).
+    m_Params.isFullRgbG10P709       = (surfOutput->pGamutParams ? surfOutput->pGamutParams->GammaValue == GAMMA_1P0 : false) &&
+                                      surfOutput->ColorSpace == CSpace_sRGB;
     // Alpha should be handled in input pipe to avoid alpha data lost from image.
     m_Params.pAlphaParams           = params.pCompAlpha;
     // formatForCUS will be set on demand in Policy::GetCSCExecutionCapsBT2020ToRGB.
@@ -1369,7 +1373,8 @@ MOS_STATUS SwFilterHdr::Configure(VP_PIPELINE_PARAMS &params, bool isInputSurf, 
                 }
             }
         }
-        else if (surfInput->pHDRParams->EOTF == VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR && surfOutput->pHDRParams->EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084)
+        else if (surfInput->pHDRParams->EOTF == VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR &&
+                 surfOutput->pHDRParams && surfOutput->pHDRParams->EOTF == VPHAL_HDR_EOTF_SMPTE_ST2084)
         {
             m_Params.hdrMode = VPHAL_HDR_MODE_INVERSE_TONE_MAPPING;
         }

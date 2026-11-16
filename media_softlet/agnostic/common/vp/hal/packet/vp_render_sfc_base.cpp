@@ -296,11 +296,11 @@ MOS_STATUS SfcRenderBase::SetIefStateCscParams(
             m_cscOutOffset[2] = 0.000000000f;  // Adjusted to S8.2 to accommodate VPHAL
         }
         else if ((m_cscInputCspace != m_renderData.SfcInputCspace) ||
-                (m_renderData.pSfcPipeOutSurface && m_cscRTCspace != m_renderData.pSfcPipeOutSurface->ColorSpace))
+                (m_renderData.pSfcPipeOutSurface && m_cscRTCspace != GetSfcCscOutputColorSpace()))
         {
             VpUtils::GetCscMatrixForVeSfc8Bit(
                 m_renderData.SfcInputCspace,
-                m_renderData.pSfcPipeOutSurface->ColorSpace,
+                GetSfcCscOutputColorSpace(),
                 m_cscCoeff,
                 m_cscInOffset,
                 m_cscOutOffset);
@@ -329,11 +329,11 @@ MOS_STATUS SfcRenderBase::SetIefStateCscParams(
             }
 
             VP_RENDER_NORMALMESSAGE("sfc csc coeff calculated. (sfcInputCspace, cscRTCspace) current (%d, %d), previous (%d, %d), swap flag %d",
-                m_renderData.SfcInputCspace, m_renderData.pSfcPipeOutSurface->ColorSpace,
+                m_renderData.SfcInputCspace, GetSfcCscOutputColorSpace(),
                 m_cscInputCspace, m_cscRTCspace, m_cscInputSwapNeeded ? 1 :0);
 
             m_cscInputCspace = m_renderData.SfcInputCspace;
-            m_cscRTCspace    = m_renderData.pSfcPipeOutSurface->ColorSpace;
+            m_cscRTCspace    = GetSfcCscOutputColorSpace();
         }
         else if (m_cscInputSwapNeeded != IsInputChannelSwapNeeded(m_renderData.SfcInputFormat))
         {
@@ -831,6 +831,25 @@ MOS_STATUS SfcRenderBase::UpdateCscParams(FeatureParamCsc &cscParams)
 {
     VP_RENDER_CHK_STATUS_RETURN(UpdateIefParams(cscParams.pIEFParams));
     return MOS_STATUS_SUCCESS;
+}
+
+VPHAL_CSPACE SfcRenderBase::GetSfcCscOutputColorSpace()
+{
+    VPHAL_CSPACE rtCspace = m_renderData.pSfcPipeOutSurface ? m_renderData.pSfcPipeOutSurface->ColorSpace : CSpace_None;
+
+    // FP16 G10 (scRGB) output with SDR BT2020 YUV SFC input: there is no BT2020 YUV -> sRGB matrix (it would be a
+    // gamut change, not a matrix in the gamma domain). The SFC CSC only does BT2020 YUV -> BT2020 RGB; the SFC FP16
+    // stage (gamma2.2 EOTF LUT -> CCM BT2020 -> BT709) then produces linear BT709 scRGB.
+    if (m_renderData.sfcStateParams &&
+        m_renderData.sfcStateParams->isFullRgbG10P709 &&
+        m_renderData.pSfcPipeOutSurface && m_renderData.pSfcPipeOutSurface->osSurface &&
+        IS_RGB64_FLOAT_FORMAT(m_renderData.pSfcPipeOutSurface->osSurface->Format) &&
+        IS_COLOR_SPACE_BT2020_YUV(m_renderData.SfcInputCspace) &&
+        IS_RGB_CSPACE(rtCspace))
+    {
+        return CSpace_BT2020_RGB;
+    }
+    return rtCspace;
 }
 
 MOS_STATUS SfcRenderBase::SetCSCParams(PSFC_CSC_PARAMS cscParams)

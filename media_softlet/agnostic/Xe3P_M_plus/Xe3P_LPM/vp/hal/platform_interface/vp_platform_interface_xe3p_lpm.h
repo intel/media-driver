@@ -67,6 +67,11 @@ public:
         return true;
     }
 
+    virtual bool IsSfcCscForFp16G10SdrYuvInputSupported() override
+    {
+        return true;
+    }
+
     virtual void DisableKernelPathFor3DLUTGen() override
     {
         // Disable 3DLUT generation kernel path for emulation PipeSM (render not supported)

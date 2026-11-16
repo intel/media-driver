@@ -419,6 +419,15 @@ public:
         return false;
     }
 
+    //!
+    //! \brief    Whether the SFC CSC runs for FP16 G10 (scRGB) output when the SFC input is SDR YUV
+    //!           (e.g. P010 BT709 -> FP16). When false, the SFC CSC stays bypassed as before.
+    //!
+    virtual bool IsSfcCscForFp16G10SdrYuvInputSupported()
+    {
+        return false;
+    }
+
     virtual bool IsAdvanceNativeKernelSupported()
     {
         return true;

@@ -837,6 +837,25 @@ static bool IsHdrMetadataEquivalent(const VPHAL_HDR_PARAMS *src, const VPHAL_HDR
     return false;
 }
 
+bool vp::IsFp16G10SdrBt2020YuvInputCase(VpInterface &vpInterface, PVPHAL_SURFACE pSrc, PVPHAL_SURFACE pTarget)
+{
+    auto hwInterface = vpInterface.GetHwInterface();
+    if (!pSrc || !pTarget || !hwInterface || !hwInterface->m_vpPlatformInterface)
+    {
+        return false;
+    }
+
+    bool bPlatformSupported = hwInterface->m_vpPlatformInterface->IsSfcCscForFp16G10SdrYuvInputSupported();
+    bool bBt2020YuvInput    = IS_COLOR_SPACE_BT2020_YUV(pSrc->ColorSpace) && !pSrc->p3DLutParams;
+    bool bSdr               = !(pSrc->pHDRParams && pSrc->pHDRParams->EOTF != VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR) &&
+                              !(pTarget->pHDRParams && pTarget->pHDRParams->EOTF != VPHAL_HDR_EOTF_TRADITIONAL_GAMMA_SDR);
+    bool bFp16G10Output     = IS_RGB64_FLOAT_FORMAT(pTarget->Format) &&
+                              IS_RGB_CSPACE(pTarget->ColorSpace) &&
+                              pTarget->pGamutParams && pTarget->pGamutParams->GammaValue == GAMMA_1P0;
+
+    return bPlatformSupported && bBt2020YuvInput && bSdr && bFp16G10Output;
+}
+
 bool SwFilterHdrHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInputSurf, int surfIndex, SwFilterPipeType pipeType)
 {
     VP_FUNC_CALL();
@@ -950,6 +969,14 @@ bool SwFilterHdrHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS &params, bool isInp
         else if ((pRenderTarget->ColorSpace == CSpace_sRGB || pRenderTarget->ColorSpace == CSpace_stRGB) &&
             (pSrc->ColorSpace == CSpace_BT601 || pSrc->ColorSpace == CSpace_BT601_FullRange))
         {
+            bColorSpaceConversion = false;
+        }
+        else if (IsFp16G10SdrBt2020YuvInputCase(m_vpInterface, pSrc, pRenderTarget))
+        {
+            // SDR BT2020 YUV -> FP16 G10 (scRGB): no tone mapping. The HDR path would run the 3DLUT with HDR mode
+            // NONE (invalid) and the SFC would treat its BT2020 input as ST2084. Use SFC CSC (BT2020 YUV -> RGB) +
+            // SFC FP16 stage (gamma2.2 EOTF, CCM BT2020 -> BT709, gain 1) instead.
+            VP_PUBLIC_NORMALMESSAGE("Not use HDR path for SDR BT2020 YUV (cspace %d) -> FP16 G10 output.", pSrc->ColorSpace);
             bColorSpaceConversion = false;
         }
         else if (IS_RGB32_FORMAT(pSrc->Format))
@@ -1263,6 +1290,14 @@ bool SwFilterCgcHandler::IsFeatureEnabled(VP_PIPELINE_PARAMS& params, bool isInp
     if (isInputSurf && (SwFilterPipeType1ToN == pipeType) ||
         !isInputSurf && (SwFilterPipeType1To1 == pipeType || SwFilterPipeTypeNTo1 == pipeType))
     {
+        return false;
+    }
+
+    if (IsFp16G10SdrBt2020YuvInputCase(m_vpInterface, inputSurf, outputSurf))
+    {
+        // BT2020 -> BT709 is done by the SFC FP16 stage (CCM, linear domain); the VEBOX gamut compression would
+        // clip the out-of-BT709 colors that scRGB can carry, and its sRGB output would be taken as SFC input.
+        VP_PUBLIC_NORMALMESSAGE("Disable Cgc for SDR BT2020 YUV -> FP16 G10 output, SFC does BT2020 -> BT709.");
         return false;
     }
 

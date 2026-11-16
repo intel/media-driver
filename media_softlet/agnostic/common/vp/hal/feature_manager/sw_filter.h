@@ -904,6 +904,12 @@ struct FeatureParamHdr : public FeatureParam
     PVPHAL_3DLUT_PARAMS external3DLutParams = nullptr;
 };
 
+//!
+//! \brief    SDR (non-PQ) BT2020 YUV input -> FP16 G10 (scRGB, P709) output on platforms with
+//!           IsSfcCscForFp16G10SdrYuvInputSupported(): no HDR / no VEBOX CGC, the SFC does the whole conversion.
+//!
+bool IsFp16G10SdrBt2020YuvInputCase(VpInterface &vpInterface, PVPHAL_SURFACE pSrc, PVPHAL_SURFACE pTarget);
+
 class SwFilterHdr : public SwFilter
 {
 public:

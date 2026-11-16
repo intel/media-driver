@@ -142,6 +142,7 @@ struct _MHW_PAR_T(SFC_STATE)
     bool bRGBASwapEnable                        = false;  // R, B Channel Swap enable
     bool bInputColorSpace                       = false;  //0: YUV color space, 1:RGB color space
     bool isFullRgbG10P709                       = false;  // Whether output colorspace is COLOR_SPACE_RGB_FULL_G10_NONE_P709
+    bool isFp16G10SdrYuvInput                   = false;  // FP16 G10 output from an SDR YUV SFC input (SFC CSC -> gamma2.2 EOTF LUT, 1.0 = SDR white): FP16 gain must be 1, not 125
     bool bFp16OutputPassthrough                 = false;  // FP16 output identity passthrough (DV FP16-in/FP16-out 3DLUT, or LutCompound FP16 output): SFC passthrough (identity EOTF + identity CCM, FP16_input_select=0 (CCM tap), gain=1) per HW Arch
     // Standalone external RGB-to-RGB 3DLUT FP16-in/FP16-out passthrough. Kept SEPARATE from the
     // flag above rather than folded into it: that one covers two other feature classes and selects

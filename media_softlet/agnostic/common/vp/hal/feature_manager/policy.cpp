@@ -1303,7 +1303,15 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature, bool isCamPipeWithBaye
         return MOS_STATUS_SUCCESS;
     }
 
-    if (IS_COLOR_SPACE_BT2020_YUV(cscParams->input.colorSpace))
+    // SDR BT2020 YUV -> FP16 G10 (scRGB) output: HDR and CGC are not used (see IsFp16G10SdrBt2020YuvInputCase).
+    // Only the SFC can do it (SFC CSC BT2020 YUV -> BT2020 RGB + FP16 stage gamma2.2 EOTF / CCM BT2020 -> BT709).
+    bool isFp16G10SdrBt2020YuvSfcCsc = IS_COLOR_SPACE_BT2020_YUV(cscParams->input.colorSpace) &&
+                                       cscParams->isFullRgbG10P709 &&
+                                       IS_RGB64_FLOAT_FORMAT(cscParams->formatOutput) &&
+                                       m_vpInterface.GetHwInterface()->m_vpPlatformInterface &&
+                                       m_vpInterface.GetHwInterface()->m_vpPlatformInterface->IsSfcCscForFp16G10SdrYuvInputSupported();
+
+    if (IS_COLOR_SPACE_BT2020_YUV(cscParams->input.colorSpace) && !isFp16G10SdrBt2020YuvSfcCsc)
     {
         if ((cscParams->output.colorSpace == CSpace_BT601)              ||
             (cscParams->output.colorSpace == CSpace_BT709)              ||
@@ -1369,6 +1377,20 @@ MOS_STATUS Policy::GetCSCExecutionCaps(SwFilter* feature, bool isCamPipeWithBaye
                                     isAlphaSettingSupportedByVebox);
             
         }
+    }
+
+    if (isFp16G10SdrBt2020YuvSfcCsc)
+    {
+        if (!cscEngine->SfcNeeded)
+        {
+            VP_PUBLIC_ASSERTMESSAGE("SDR BT2020 YUV -> FP16 G10 output needs SFC, but SFC is not supported (format %d -> %d).",
+                cscParams->formatInput, cscParams->formatOutput);
+            return MOS_STATUS_UNIMPLEMENTED;
+        }
+        VP_PUBLIC_NORMALMESSAGE("SDR BT2020 YUV -> FP16 G10 output: SFC only.");
+        cscEngine->VeboxNeeded  = 0;
+        cscEngine->RenderNeeded = 0;
+        cscEngine->fcSupported  = 0;
     }
 
     if (isTileBSurface)
