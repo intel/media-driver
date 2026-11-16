@@ -1417,9 +1417,18 @@ MOS_STATUS RenderCmdPacket::SendMultiKernelMediaStates(
     // Send State Base Address command
     MHW_RENDERHAL_CHK_STATUS(pRenderHal->pfnSendStateBaseAddress(pRenderHal, pCmdBuffer));
 
-    if (pRenderHal->bComputeContextInUse && !pRenderHal->isBindlessHeapInUse)
+    if (pRenderHal->bComputeContextInUse)
     {
-        pRenderHal->pRenderHalPltInterface->SendTo3DStateBindingTablePoolAlloc(pRenderHal, pCmdBuffer);
+        if (!pRenderHal->isBindlessHeapInUse)
+        {
+            pRenderHal->pRenderHalPltInterface->SendTo3DStateBindingTablePoolAlloc(pRenderHal, pCmdBuffer);
+        }
+        else
+        {
+            // Same as RenderHal_SendMediaStates: bindless platforms program STATE_COMPUTE_MODE (VRT / GRF mode) here,
+            // otherwise a kernel compiled for more than 128 GRF runs without VRT and hangs the GPU.
+            MHW_RENDERHAL_CHK_STATUS(pRenderHal->pRenderHalPltInterface->SendStateComputeMode(pRenderHal, pCmdBuffer));
+        }
     }
 
     // Send Surface States
