@@ -51,6 +51,7 @@
 #define COLOUR_PRIMARY_BT2020                  9
 #define COLOUR_PRIMARY_BT709                   1
 #define COLOUR_PRIMARY_BT601                   5
+#define COLOUR_PRIMARY_UNSPECIFIED             2
 // ITU-T H.265 Table E.4 Transfer characteristics
 #define TRANSFER_CHARACTERISTICS_BT709         1
 #define TRANSFER_CHARACTERISTICS_GMAMA2P2      4
@@ -65,6 +66,15 @@
 
 static uint8_t VpYuvColourPrimaries(const VAProcColorProperties &colorProperties)
 {
+    const bool matrixIsBt2020     = colorProperties.matrix_coefficients == MATRIX_COEFFICIENTS_BT2020_NCL;
+    const bool primariesAreBt2020 = colorProperties.colour_primaries == COLOUR_PRIMARY_BT2020;
+
+    if (colorProperties.colour_primaries != COLOUR_PRIMARY_UNSPECIFIED &&
+        matrixIsBt2020 != primariesAreBt2020)
+    {
+        return colorProperties.colour_primaries;
+    }
+
     switch (colorProperties.matrix_coefficients)
     {
     case MATRIX_COEFFICIENTS_BT709:
