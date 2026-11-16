@@ -332,6 +332,43 @@ VAStatus DdiMediaUtil_AllocateSurface(
         alignedHeight = MOS_ALIGN_CEIL(alignedHeight, 16);
     }
 
+    if (mediaSurface->bHasRequestedModifier && !DdiMediaUtil_IsExternalSurface(mediaSurface))
+    {
+        // Application requested a specific DRM format modifier, override the default tiling and compression.
+        switch (mediaSurface->requestedModifier)
+        {
+            case DRM_FORMAT_MOD_LINEAR:
+                tileformat     = TILING_NONE;
+                bMemCompEnable = false;
+                break;
+            case I915_FORMAT_MOD_X_TILED:
+                tileformat     = TILING_X;
+                bMemCompEnable = false;
+                break;
+            case I915_FORMAT_MOD_Y_TILED:
+            case I915_FORMAT_MOD_Yf_TILED:
+            case I915_FORMAT_MOD_4_TILED:
+                tileformat     = TILING_Y;
+                bMemCompEnable = false;
+                break;
+            case I915_FORMAT_MOD_Y_TILED_GEN12_RC_CCS:
+            case I915_FORMAT_MOD_4_TILED_DG2_RC_CCS:
+                tileformat     = TILING_Y;
+                bMemCompEnable = true;
+                bMemCompRC     = true;
+                break;
+            case I915_FORMAT_MOD_Y_TILED_GEN12_MC_CCS:
+            case I915_FORMAT_MOD_4_TILED_DG2_MC_CCS:
+                tileformat     = TILING_Y;
+                bMemCompEnable = true;
+                bMemCompRC     = false;
+                break;
+            default:
+                DDI_VERBOSEMESSAGE("Unsupported requested modifier 0x%" PRIx64 ".", mediaSurface->requestedModifier);
+                return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+    }
+
     if (DdiMediaUtil_IsExternalSurface(mediaSurface))
     {
         // Default set as compression not supported, surface compression import only support from Memory Type VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2 or VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_3

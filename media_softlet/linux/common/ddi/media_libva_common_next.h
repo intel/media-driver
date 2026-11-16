@@ -283,6 +283,12 @@ typedef struct _DDI_MEDIA_SURFACE
 
     uint32_t                uiVariantFlag;
     int                     memType;
+
+    // DRM format modifier requested by the application through
+    // VASurfaceAttribDRMFormatModifiers. Only used while allocating an
+    // internal surface, ignored when bHasRequestedModifier is false.
+    bool                    bHasRequestedModifier;
+    uint64_t                requestedModifier;
 } DDI_MEDIA_SURFACE, *PDDI_MEDIA_SURFACE;
 
 typedef struct _DDI_MEDIA_BUFFER
