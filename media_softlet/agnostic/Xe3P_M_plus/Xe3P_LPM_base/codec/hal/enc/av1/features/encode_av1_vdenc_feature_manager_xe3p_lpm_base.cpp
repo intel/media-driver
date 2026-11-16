@@ -42,6 +42,7 @@
 #endif
 #if _KERNEL_RESERVED
 #include "encode_av1_tf_xe3p_lpm.h"
+#include "encode_av1_tf_xe3p_lpg.h"
 #endif
 
 #include <vector>
@@ -115,7 +116,16 @@ MOS_STATUS EncodeAv1VdencFeatureManagerXe3P_Lpm_Base::CreateFeatures(void *const
     ENCODE_CHK_STATUS_RETURN(RegisterFeatures(Av1FeatureIDs::av1LplaEncFeature, lplaEnc, stdPkts()));
 
 #if _KERNEL_RESERVED
-    Av1TfFeature *tf = MOS_New(Av1TfFeatureXe3pLpm, this, m_allocator, m_hwInterface, m_trackedBuf, m_recycleResource);
+    ENCODE_CHK_NULL_RETURN(m_hwInterface);
+    Av1TfFeature *tf = nullptr;
+    if (m_hwInterface->GetPlatform().eRenderCoreFamily >= IGFX_XE3P_CORE)
+    {
+        tf = MOS_New(Av1TfFeatureXe3pLpg, this, m_allocator, m_hwInterface, m_trackedBuf, m_recycleResource);
+    }
+    else
+    {
+        tf = MOS_New(Av1TfFeatureXe3pLpm, this, m_allocator, m_hwInterface, m_trackedBuf, m_recycleResource);
+    }
     ENCODE_CHK_STATUS_RETURN(RegisterFeatures(FeatureIDs::tfFeature, tf,
                             {Av1Pipeline::hmeDsPacket, Av1Pipeline::mePacket},
                             LIST_TYPE::ALLOW_LIST));

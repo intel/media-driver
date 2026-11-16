@@ -36,6 +36,7 @@
 #include "encode_hevc_vdenc_saliency.h"
 #include "encode_hevc_vdenc_saliency_xe3p_lpm.h"
 #include "encode_hevc_tf_xe3p_lpm.h"
+#include "encode_hevc_tf_xe3p_lpg.h"
 #endif
 
 #include <vector>
@@ -145,7 +146,16 @@ MOS_STATUS EncodeHevcVdencFeatureManagerXe3P_Lpm_Base::CreateFeatures(void *cons
     // Temporal filter (pre-encode): HEVC reuses the shared TF feature + the reused kernel
     // packets. It is registered under the shared FeatureIDs::tfFeature id so the reused
     // hme-ds / me / mc / tf packets (which look it up by that id) resolve it unchanged.
-    TfFeature *tf = MOS_New(HevcTfFeatureXe3pLpm, this, m_allocator, m_hwInterface, m_trackedBuf, m_recycleResource);
+    ENCODE_CHK_NULL_RETURN(m_hwInterface);
+    TfFeature *tf = nullptr;
+    if (m_hwInterface->GetPlatform().eRenderCoreFamily >= IGFX_XE3P_CORE)
+    {
+        tf = MOS_New(HevcTfFeatureXe3pLpg, this, m_allocator, m_hwInterface, m_trackedBuf, m_recycleResource);
+    }
+    else
+    {
+        tf = MOS_New(HevcTfFeatureXe3pLpm, this, m_allocator, m_hwInterface, m_trackedBuf, m_recycleResource);
+    }
     ENCODE_CHK_STATUS_RETURN(RegisterFeatures(FeatureIDs::tfFeature, tf,
                             {EncodePipeline::hmeDsPacket, EncodePipeline::mePacket},
                             LIST_TYPE::ALLOW_LIST));
