@@ -87,6 +87,12 @@ typedef struct DDI_VP_CONTEXT
 
     DDI_VP_FRAMEID_TRACER                     FrameIDTracer       = {};
 
+    // Protects the status table. vaEndPicture adds an entry to it, and
+    // vaSyncSurface removes entries and marks the surfaces they name. The
+    // application serializes vaEndPicture on a context, but any thread may
+    // call vaSyncSurface on a surface this context rendered.
+    MEDIA_MUTEX_T                             StatusMutex         = PTHREAD_MUTEX_INITIALIZER;
+
 #if (_DEBUG || _RELEASE_INTERNAL)
     DDI_VP_DUMP_PARAM                         *pCurVpDumpDDIParam = nullptr;
     DDI_VP_DUMP_PARAM                         *pPreVpDumpDDIParam = nullptr;
