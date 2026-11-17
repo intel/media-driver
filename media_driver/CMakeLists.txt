@@ -19,7 +19,7 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.11)
 
 if(NOT DEFINED BS_USE_OSDM_BUILD_SYSTEM)
     if(DEFINED ENV{BS_USE_OSDM_BUILD_SYSTEM})
