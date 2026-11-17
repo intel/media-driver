@@ -147,6 +147,11 @@ public:
         bool m_hardwareProtected = false;
 
         //!
+        //! \brief   Skip GPU VA mapping on create for this allocation only, without changing the shared OS context state
+        //!
+        bool m_skipMapOnCreate = false;
+
+        //!
         //! \brief   Create the graphics buffer from a PMOS_ALLOC_GFXRES_PARAMS, for wrapper usage, to be deleted
         //!
         CreateParams(PMOS_ALLOC_GFXRES_PARAMS pParams);
