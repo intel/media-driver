@@ -1735,6 +1735,20 @@ MOS_STATUS SwFilterBlending::Configure(VP_PIPELINE_PARAMS& params, bool isInputS
             }
         }
     }
+    //Skip Blend CONSTANT_PARTIAL for alpha input YUV output
+    if (m_Params.blendingParams && m_Params.blendingParams->BlendType == BLEND_CONSTANT_PARTIAL)
+    {
+        auto surfOutput = params.pTarget[0];
+        if (surfOutput)
+        {
+            if (IS_ALPHA_FORMAT(m_Params.formatInput) &&
+                IS_YUV_FORMAT(surfOutput->Format))
+            {
+                VP_PUBLIC_NORMALMESSAGE("Force to use Blend Constant Source instead of Blend Constant Partial");
+                m_Params.blendingParams->BlendType = BLEND_CONSTANT_SOURCE;
+            }
+        }
+    }
     return MOS_STATUS_SUCCESS;
 }
 
