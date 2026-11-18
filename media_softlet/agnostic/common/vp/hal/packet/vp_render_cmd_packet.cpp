@@ -1870,6 +1870,16 @@ MOS_STATUS VpRenderCmdPacket::SubmitWithMultiKernel(MOS_COMMAND_BUFFER *commandB
     PipeControlParams.bIndirectStatePointersDisable = true;
     PipeControlParams.bDisableCSStall               = false;
 
+    if (m_renderHal->isBindlessHeapInUse)
+    {
+        // Bindless kernels write through the dataport: also flush HDC / untyped dataport caches, otherwise the next
+        // engine or the CPU may read stale data (run-to-run output differences).
+        PipeControlParams.dwFlushMode                = MHW_FLUSH_CUSTOM;
+        PipeControlParams.bFlushRenderTargetCache    = true;  // RT + DC flush, as in MHW_FLUSH_WRITE_CACHE
+        PipeControlParams.bHdcPipelineFlush          = true;
+        PipeControlParams.bUnTypedDataPortCacheFlush = true;
+    }
+
     RENDER_PACKET_CHK_NULL_RETURN(pOsInterface->pfnGetSkuTable);
     auto *skuTable = pOsInterface->pfnGetSkuTable(pOsInterface);
     if (skuTable && MEDIA_IS_SKU(skuTable, FtrEnablePPCFlush))
