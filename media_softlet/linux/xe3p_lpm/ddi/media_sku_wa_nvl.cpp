@@ -202,6 +202,7 @@ static bool InitNvlMediaSkuExt(struct GfxDeviceInfo *devInfo,
     MEDIA_WR_SKU(skuTable, FtrE2ECompression, 1);
     MEDIA_WR_SKU(skuTable, FtrXe2Compression , 1);
     MEDIA_WR_SKU(skuTable, FtrHDR, 1);
+    MEDIA_WR_SKU(skuTable, FtrVideoFrameInterpolation, 1);
     MEDIA_WR_SKU(skuTable, FtrDisableRenderTargetWidthAdjust, 1);
 
     MOS_USER_FEATURE_VALUE_DATA userFeatureData;

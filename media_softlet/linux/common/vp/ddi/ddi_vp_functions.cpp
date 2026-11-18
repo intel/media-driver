@@ -2270,23 +2270,25 @@ VAStatus DdiVpFunctions::DdiUpdateProcPipelineFutureReferenceFrames(
     {
         if (surface->pFwdRef == nullptr)
         {
-            surface->pFwdRef = MOS_New(VPHAL_SURFACE);
+            // Same allocation hook as pSrc[], so an ext pipeline gets its ext surface type for references too.
+            surface->pFwdRef = vpCtx->pVpHal->AllocateVphalSurface();
             DDI_VP_CHK_NULL(surface->pFwdRef, "nullptr surface->pFwdRef!", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
-            surface->pFwdRef->Format        = vpHalSrcSurf->Format;
-            surface->pFwdRef->SurfType      = vpHalSrcSurf->SurfType;
-            surface->pFwdRef->rcSrc         = vpHalSrcSurf->rcSrc;
-            surface->pFwdRef->rcDst         = vpHalSrcSurf->rcDst;
-            surface->pFwdRef->ColorSpace    = vpHalSrcSurf->ColorSpace;
-            surface->pFwdRef->ExtendedGamut = vpHalSrcSurf->ExtendedGamut;
-            surface->pFwdRef->SampleType    = vpHalSrcSurf->SampleType;
-            surface->pFwdRef->ScalingMode   = vpHalSrcSurf->ScalingMode;
             surface->pFwdRef->OsResource    = vpHalSrcSurf->OsResource;
-            surface->pFwdRef->dwWidth       = vpHalSrcSurf->dwWidth;
-            surface->pFwdRef->dwHeight      = vpHalSrcSurf->dwHeight;
-            surface->pFwdRef->dwPitch       = vpHalSrcSurf->dwPitch;
             surface->uFwdRefCount           = pipelineParam->num_backward_references - i;
         }
+        // The reference surface is reused across blts, so refresh its description every blt.
+        surface->pFwdRef->Format        = vpHalSrcSurf->Format;
+        surface->pFwdRef->SurfType      = vpHalSrcSurf->SurfType;
+        surface->pFwdRef->rcSrc         = vpHalSrcSurf->rcSrc;
+        surface->pFwdRef->rcDst         = vpHalSrcSurf->rcDst;
+        surface->pFwdRef->ColorSpace    = vpHalSrcSurf->ColorSpace;
+        surface->pFwdRef->ExtendedGamut = vpHalSrcSurf->ExtendedGamut;
+        surface->pFwdRef->SampleType    = vpHalSrcSurf->SampleType;
+        surface->pFwdRef->ScalingMode   = vpHalSrcSurf->ScalingMode;
+        surface->pFwdRef->dwWidth       = vpHalSrcSurf->dwWidth;
+        surface->pFwdRef->dwHeight      = vpHalSrcSurf->dwHeight;
+        surface->pFwdRef->dwPitch       = vpHalSrcSurf->dwPitch;
         refSurfBuffObj = MediaLibvaCommonNext::GetSurfaceFromVASurfaceID(mediaCtx, pipelineParam->backward_references[i]);
         DDI_VP_CHK_NULL(refSurfBuffObj, "nullptr refSurfBuffObj!", VA_STATUS_ERROR_INVALID_SURFACE);
 
@@ -2338,23 +2340,25 @@ VAStatus DdiVpFunctions::DdiUpdateProcPipelinePastReferenceFrames(
     {
         if (surface->pBwdRef == nullptr)
         {
-            surface->pBwdRef = MOS_New(VPHAL_SURFACE);
+            // Same allocation hook as pSrc[], so an ext pipeline gets its ext surface type for references too.
+            surface->pBwdRef = vpCtx->pVpHal->AllocateVphalSurface();
             DDI_VP_CHK_NULL(surface->pBwdRef, "nullptr surface->pBwdRef!", VA_STATUS_ERROR_ALLOCATION_FAILED);
 
-            surface->pBwdRef->Format        = vpHalSrcSurf->Format;
-            surface->pBwdRef->SurfType      = vpHalSrcSurf->SurfType;
-            surface->pBwdRef->rcSrc         = vpHalSrcSurf->rcSrc;
-            surface->pBwdRef->rcDst         = vpHalSrcSurf->rcDst;
-            surface->pBwdRef->ColorSpace    = vpHalSrcSurf->ColorSpace;
-            surface->pBwdRef->ExtendedGamut = vpHalSrcSurf->ExtendedGamut;
-            surface->pBwdRef->SampleType    = vpHalSrcSurf->SampleType;
-            surface->pBwdRef->ScalingMode   = vpHalSrcSurf->ScalingMode;
             surface->pBwdRef->OsResource    = vpHalSrcSurf->OsResource;
-            surface->pBwdRef->dwWidth       = vpHalSrcSurf->dwWidth;
-            surface->pBwdRef->dwHeight      = vpHalSrcSurf->dwHeight;
-            surface->pBwdRef->dwPitch       = vpHalSrcSurf->dwPitch;
             surface->uBwdRefCount           = pipelineParam->num_forward_references - i;
         }
+        // The reference surface is reused across blts, so refresh its description every blt.
+        surface->pBwdRef->Format        = vpHalSrcSurf->Format;
+        surface->pBwdRef->SurfType      = vpHalSrcSurf->SurfType;
+        surface->pBwdRef->rcSrc         = vpHalSrcSurf->rcSrc;
+        surface->pBwdRef->rcDst         = vpHalSrcSurf->rcDst;
+        surface->pBwdRef->ColorSpace    = vpHalSrcSurf->ColorSpace;
+        surface->pBwdRef->ExtendedGamut = vpHalSrcSurf->ExtendedGamut;
+        surface->pBwdRef->SampleType    = vpHalSrcSurf->SampleType;
+        surface->pBwdRef->ScalingMode   = vpHalSrcSurf->ScalingMode;
+        surface->pBwdRef->dwWidth       = vpHalSrcSurf->dwWidth;
+        surface->pBwdRef->dwHeight      = vpHalSrcSurf->dwHeight;
+        surface->pBwdRef->dwPitch       = vpHalSrcSurf->dwPitch;
         refSurfBuffObj = MediaLibvaCommonNext::GetSurfaceFromVASurfaceID(mediaCtx, pipelineParam->forward_references[i]);
         DDI_VP_CHK_NULL(refSurfBuffObj, "nullptr refSurfBuffObj!", VA_STATUS_ERROR_INVALID_SURFACE);
 
