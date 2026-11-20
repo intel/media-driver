@@ -2116,6 +2116,8 @@ private:
     //!         surface usage hint
     //! \param  [in] memType
     //!         memory type
+    //! \param  [in] modifier
+    //!         DRM format modifier to allocate the surface with, nullptr for driver default
     //! \return uint_32
     //!     surface ID
     //!
@@ -2126,7 +2128,26 @@ private:
         uint32_t                      height,
         DDI_MEDIA_SURFACE_DESCRIPTOR  *surfDesc,
         uint32_t                      surfaceUsageHint,
-        int                           memType);
+        int                           memType,
+        const uint64_t                *modifier = nullptr);
+
+#if VA_CHECK_VERSION(1, 13, 0)
+    //!
+    //! \brief  Create an internal surface using one of the DRM format modifiers in the list
+    //!
+    //! \return VAStatus
+    //!     VA_STATUS_SUCCESS if success, VA_STATUS_ERROR_ATTR_NOT_SUPPORTED if
+    //!     none of the modifiers can be allocated
+    //!
+    static VAStatus CreateRenderTargetWithModifiers(
+        VADriverContextP                ctx,
+        DDI_MEDIA_FORMAT                mediaFormat,
+        uint32_t                        width,
+        uint32_t                        height,
+        uint32_t                        surfaceUsageHint,
+        const VADRMFormatModifierList   *modifierList,
+        VASurfaceID                     *surface);
+#endif
 
 public:
     //!
