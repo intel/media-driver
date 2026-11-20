@@ -1,0 +1,14 @@
+{
+    local:
+        _ZNSt*;
+        _ZNKSt*;
+        _ZSt*;
+        _ZZNSt*;
+        _ZN9__gnu_cxx*;
+        _ZTISt*;
+        _ZTSSt*;
+        _ZTINSt*;
+        _ZTSNSt*;
+        _ZTVSt*;
+        _ZTVNSt*;
+};
