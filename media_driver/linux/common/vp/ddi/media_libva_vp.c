@@ -3235,6 +3235,7 @@ VAStatus DdiVp_DestroyContext (
     // remove from context array
     DdiMediaUtil_LockMutex(&pMediaCtx->VpMutex);
     // destroy vp context
+    DdiMediaUtil_DestroyMutex(&pVpCtx->StatusMutex);
     MOS_Delete(pVpCtx);
     DdiMediaUtil_ReleasePVAContextFromHeap(pMediaCtx->pVpCtxHeap, uiVpIndex);
 
@@ -3622,7 +3623,11 @@ VAStatus DdiVp_EndPicture (
 
     pVpHal  = pVpCtx->pVpHal;
     DDI_CHK_NULL(pVpHal, "Null pVpHal.", VA_STATUS_ERROR_INVALID_PARAMETER);
-    eStatus = pVpHal->Render(pVpCtx->pVpHalRenderParams);
+    {
+        // Render adds this job to the status table.
+        DdiMediaUtil_LockGuard statusGuard(&pVpCtx->StatusMutex);
+        eStatus = pVpHal->Render(pVpCtx->pVpHalRenderParams);
+    }
 
 #if (_DEBUG || _RELEASE_INTERNAL)
     VpDumpProcPipelineParams(pVaDrvCtx, pVpCtx);
