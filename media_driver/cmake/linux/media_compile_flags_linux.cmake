@@ -69,7 +69,7 @@ set(MEDIA_COMPILER_FLAGS_COMMON
 if(MEDIA_BUILD_HARDENING)
     set(MEDIA_COMPILER_FLAGS_COMMON
         ${MEDIA_COMPILER_FLAGS_COMMON}
-        -fstack-protector)
+        -fstack-protector-strong)
 endif()
 
 if(${UFO_MARCH} STREQUAL "slm")
