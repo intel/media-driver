@@ -1656,6 +1656,20 @@ MOS_STATUS VpHal_HdrInitCoeff_g9 (
                             1.000000f,  1.855600f,  0.000000f,  0.000000f);
                 VpHal_HdrCalcYuvToRgbMatrix(CSpace_BT709, CSpace_sRGB, TempMatrix, PriorCscMatrix);
             }
+            else if (pHdrState->PriorCSC[i] == VPHAL_HDR_CSC_YUV_TO_RGB_BT601_FULLRANGE)
+            {
+                SET_MATRIX( 1.000000f,  0.000000f,  1.402000f,  0.000000f,
+                            1.000000f, -0.344136f, -0.714136f,  0.000000f,
+                            1.000000f,  1.772000f,  0.000000f,  0.000000f);
+                VpHal_HdrCalcYuvToRgbMatrix(CSpace_BT601_FullRange, CSpace_sRGB, TempMatrix, PriorCscMatrix);
+            }
+            else if (pHdrState->PriorCSC[i] == VPHAL_HDR_CSC_YUV_TO_RGB_BT709_FULLRANGE)
+            {
+                SET_MATRIX( 1.000000f,  0.000000f,  1.574800f,  0.000000f,
+                            1.000000f, -0.187324f, -0.468124f,  0.000000f,
+                            1.000000f,  1.855600f,  0.000000f,  0.000000f);
+                VpHal_HdrCalcYuvToRgbMatrix(CSpace_BT709_FullRange, CSpace_sRGB, TempMatrix, PriorCscMatrix);
+            }
             else if (pHdrState->PriorCSC[i] == VPHAL_HDR_CSC_YUV_TO_RGB_BT2020)
             {
                 SET_MATRIX( 1.000000f,  0.000000f,  1.474600f,  0.000000f,
@@ -1719,6 +1733,13 @@ MOS_STATUS VpHal_HdrInitCoeff_g9 (
                              0.587000f,  0.299000f,  0.114000f,  0.000000f,
                             -0.418688f,  0.500000f, -0.081312f,  0.000000f);
                 VpHal_HdrCalcRgbToYuvMatrix(CSpace_sRGB, CSpace_BT601, TempMatrix, PostCscMatrix);
+            }
+            else if (pHdrState->PostCSC[i] == VPHAL_HDR_CSC_RGB_TO_YUV_BT601_FULLRANGE)
+            {
+                SET_MATRIX( -0.331264f, -0.168736f,  0.500000f,  0.000000f,
+                             0.587000f,  0.299000f,  0.114000f,  0.000000f,
+                            -0.418688f,  0.500000f, -0.081312f,  0.000000f);
+                VpHal_HdrCalcRgbToYuvMatrix(CSpace_sRGB, CSpace_BT601_FullRange, TempMatrix, PostCscMatrix);
             }
             else if (pHdrState->PostCSC[i] == VPHAL_HDR_CSC_RGB_TO_YUV_BT709)
             {
