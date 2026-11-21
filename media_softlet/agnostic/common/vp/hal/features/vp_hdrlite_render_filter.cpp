@@ -343,6 +343,14 @@ MOS_STATUS VpHdrLiteRenderFilter::InitLayerParam(
         {
             currentPriorCSC = VPHAL_HDR_CSC_YUV_TO_RGB_BT709;
         }
+        else if (input->ColorSpace == CSpace_BT601_FullRange)
+        {
+            currentPriorCSC = VPHAL_HDR_CSC_YUV_TO_RGB_BT601_FULLRANGE;
+        }
+        else if (input->ColorSpace == CSpace_BT709_FullRange)
+        {
+            currentPriorCSC = VPHAL_HDR_CSC_YUV_TO_RGB_BT709_FULLRANGE;
+        }
         else if (input->ColorSpace == CSpace_BT2020)
         {
             currentPriorCSC = VPHAL_HDR_CSC_YUV_TO_RGB_BT2020;
@@ -407,6 +415,10 @@ MOS_STATUS VpHdrLiteRenderFilter::InitLayerParam(
         else if (targetCSpace == CSpace_BT709)
         {
             currentPostCSC = VPHAL_HDR_CSC_RGB_TO_YUV_BT709;
+        }
+        else if (targetCSpace == CSpace_BT601_FullRange)
+        {
+            currentPostCSC = VPHAL_HDR_CSC_RGB_TO_YUV_BT601_FULLRANGE;
         }
         else if (targetCSpace == CSpace_BT709_FullRange)
         {
@@ -1954,6 +1966,14 @@ MOS_STATUS VpHdrLiteRenderFilter::CalculateCscMatrix(VPHAL_HDR_CSC_TYPE cscType,
     {
         VP_PUBLIC_CHK_STATUS_RETURN(VpUtils::GetCscMatrixForHDR(CSpace_BT709, CSpace_sRGB, is3DLutPath, outMatrix));
     }
+    else if (cscType == VPHAL_HDR_CSC_YUV_TO_RGB_BT601_FULLRANGE)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(VpUtils::GetCscMatrixForHDR(CSpace_BT601_FullRange, CSpace_sRGB, is3DLutPath, outMatrix));
+    }
+    else if (cscType == VPHAL_HDR_CSC_YUV_TO_RGB_BT709_FULLRANGE)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(VpUtils::GetCscMatrixForHDR(CSpace_BT709_FullRange, CSpace_sRGB, is3DLutPath, outMatrix));
+    }
     else if (cscType == VPHAL_HDR_CSC_YUV_TO_RGB_BT2020)
     {
         VP_PUBLIC_CHK_STATUS_RETURN(VpUtils::GetCscMatrixForHDR(CSpace_BT2020, CSpace_sRGB, is3DLutPath, outMatrix));
@@ -1961,6 +1981,10 @@ MOS_STATUS VpHdrLiteRenderFilter::CalculateCscMatrix(VPHAL_HDR_CSC_TYPE cscType,
     else if (cscType == VPHAL_HDR_CSC_RGB_TO_YUV_BT601)
     {
         VP_PUBLIC_CHK_STATUS_RETURN(VpUtils::GetCscMatrixForHDR(CSpace_sRGB, CSpace_BT601, is3DLutPath, outMatrix));
+    }
+    else if (cscType == VPHAL_HDR_CSC_RGB_TO_YUV_BT601_FULLRANGE)
+    {
+        VP_PUBLIC_CHK_STATUS_RETURN(VpUtils::GetCscMatrixForHDR(CSpace_sRGB, CSpace_BT601_FullRange, is3DLutPath, outMatrix));
     }
     else if (cscType == VPHAL_HDR_CSC_RGB_TO_YUV_BT709)
     {
