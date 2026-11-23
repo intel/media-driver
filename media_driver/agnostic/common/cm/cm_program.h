@@ -186,26 +186,26 @@ public:
     virtual int32_t GetKernelCount( uint32_t& kernelCount );
     virtual int32_t GetKernelInfo( uint32_t index, CM_KERNEL_INFO*& kernelInfo );
     int32_t GetIsaFileName( char* & kernelName );
-    int32_t GetKernelOptions( char* & kernelOptions );
+    int32_t GetKernelOptions( char* & kernelOptions ) const;
 
-    uint32_t GetSurfaceCount(void);
+    uint32_t GetSurfaceCount(void) const;
     int32_t SetSurfaceCount(uint32_t count);
 
-    bool IsJitterEnabled( void ){ return m_isJitterEnabled; }
-    bool IsHwDebugEnabled (void ){ return m_isHwDebugEnabled;}
+    bool IsJitterEnabled( void ) const { return m_isJitterEnabled; }
+    bool IsHwDebugEnabled (void ) const { return m_isHwDebugEnabled;}
 
     uint32_t AcquireKernelInfo(uint32_t index);
     uint32_t ReleaseKernelInfo(uint32_t index);
-    int32_t GetKernelInfoRefCount(uint32_t index, uint32_t& refCount);
+    int32_t GetKernelInfoRefCount(uint32_t index, uint32_t& refCount) const;
 
-    int32_t GetCISAVersion(uint32_t& majorVersion, uint32_t& minorVersion);
+    int32_t GetCISAVersion(uint32_t& majorVersion, uint32_t& minorVersion) const;
 
     int32_t Acquire( void);
     int32_t SafeRelease( void);
 
     virtual uint32_t GetProgramIndex();
 
-    uint32_t GetKernelStartIndex()
+    uint32_t GetKernelStartIndex() const
     {
         return m_kernelIndex;
     }
@@ -213,7 +213,7 @@ public:
     //! \brief    get m_isaFile object
     //! \detail   m_isaFile object provides methods to read, parse and write ISA files.
     //! \return   Pointer to m_isaFile object
-    vISA::ISAfile *getISAfile();
+    vISA::ISAfile *getISAfile() const;
 
 protected:
     CmProgramRT( CmDeviceRT* device, uint32_t programId );
@@ -223,7 +223,7 @@ protected:
 #if USE_EXTENSION_CODE
     int InitForGTPin(const char *jitFlags[CM_RT_JITTER_MAX_NUM_FLAGS], int &numJitFlags);
 #endif
-    uint32_t GetKernelInfoHash(CM_KERNEL_INFO *kernelInfo);
+    uint32_t GetKernelInfoHash(CM_KERNEL_INFO *kernelInfo) const;
 
     CmDeviceRT* m_device;
 

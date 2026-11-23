@@ -79,11 +79,11 @@ public:
 
     CM_RT_API int32_t GetExecutionTickTime(uint64_t &ticks);
 
-    int32_t GetIndex(uint32_t &index);
+    int32_t GetIndex(uint32_t &index) const;
 
     int32_t SetTaskDriverId(int32_t id);
 
-    int32_t GetTaskDriverId(int32_t &id);
+    int32_t GetTaskDriverId(int32_t &id) const;
 
     int32_t SetTaskOsData(void *data);
 
@@ -109,7 +109,7 @@ public:
 
     int32_t GetCompleteTime(LARGE_INTEGER *time);
 
-    uint32_t GetKernelCount();
+    uint32_t GetKernelCount() const;
 
     int32_t GetEnqueueTime(LARGE_INTEGER *time);
 
@@ -119,11 +119,11 @@ public:
 
     int32_t ModifyStatus(CM_STATUS status, uint64_t elapsedTime);
 
-    int32_t GetQueue(CmQueueRT *&queue);
+    int32_t GetQueue(CmQueueRT *&queue) const;
 
     int32_t Query();
 
-    CM_STATUS GetStatusWithoutFlush();
+    CM_STATUS GetStatusWithoutFlush() const;
 
 #if CM_LOG_ON
     std::string Log(const char *callerFuncName);

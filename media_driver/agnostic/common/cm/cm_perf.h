@@ -38,10 +38,10 @@ public:
     CmTimer(std::string FunctionName);
     ~CmTimer();
     void Stop();
-    std::string ToString();
+    std::string ToString() const;
 
 private:
-    float TotalMilliSecond();
+    float TotalMilliSecond() const;
     void Start();
 
     uint64_t            m_cycles;

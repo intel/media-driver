@@ -2708,7 +2708,7 @@ CM_QUEUE_CREATE_OPTION &CmQueueRT::GetQueueOption()
 //| Purpose:    Get the count of task in queue
 //| Returns:    Result of the operation.
 //*-----------------------------------------------------------------------------
-int32_t CmQueueRT::GetTaskCount( uint32_t& numTasks )
+int32_t CmQueueRT::GetTaskCount( uint32_t& numTasks ) const
 {
     numTasks = m_enqueuedTasks.GetCount() + m_flushedTasks.GetCount();
     return CM_SUCCESS;
