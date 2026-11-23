@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 cmake ../media-driver \
 -DGEN8=OFF \
