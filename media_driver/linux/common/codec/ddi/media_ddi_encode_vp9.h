@@ -325,4 +325,6 @@ private:
     uint8_t vp9TargetUsage = 0;
 
     bool isSegParamsChanged = false;
+
+    bool m_isPreviousFrameKey = false;
 };
