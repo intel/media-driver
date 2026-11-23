@@ -477,7 +477,7 @@ VAStatus DdiDecode_StatusReport(PDDI_MEDIA_CONTEXT mediaCtx, DecodePipelineAdapt
             for (uint32_t i = 0; i < uNumCompletedReport; i++)
             {
                 decode::DecodeStatusReportData tempNewReport;
-                MOS_ZeroMemory(&tempNewReport, sizeof(CodechalDecodeStatusReport));
+                MOS_ZeroMemory(&tempNewReport, sizeof(tempNewReport));
                 MOS_STATUS eStatus = decoder->GetStatusReport(&tempNewReport, 1);
                 DDI_CHK_CONDITION(MOS_STATUS_SUCCESS != eStatus, "Get status report fail", VA_STATUS_ERROR_OPERATION_FAILED);
 
