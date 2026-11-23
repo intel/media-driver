@@ -1811,25 +1811,19 @@ MOS_STATUS CodechalEncHevcStateG12::GetFrameBrcLevel()
 
     //if L0/L1 both points to previous frame, then its LBD otherwise its is level 1 RA B.
     auto                               B_or_LDB_brclevel = m_lowDelay ? HEVC_BRC_FRAME_TYPE_P_OR_LB : HEVC_BRC_FRAME_TYPE_B;
-    std::map<int, HEVC_BRC_FRAME_TYPE> codingtype_to_brclevel{
-        {I_TYPE, HEVC_BRC_FRAME_TYPE_I},
-        {P_TYPE, HEVC_BRC_FRAME_TYPE_P_OR_LB},
-        {B_TYPE, B_or_LDB_brclevel},
-        {B1_TYPE, HEVC_BRC_FRAME_TYPE_B1},
-        {B2_TYPE, HEVC_BRC_FRAME_TYPE_B2}};
 
     //Both I or P/LDB type at same HierarchLevelPlus1
     auto                               intra_LDBFrame_to_Brclevel = (m_pictureCodingType == I_TYPE) ? HEVC_BRC_FRAME_TYPE_I : HEVC_BRC_FRAME_TYPE_P_OR_LB;
-    std::map<int, HEVC_BRC_FRAME_TYPE> hierchLevelPlus1_to_brclevel{
-        {1, intra_LDBFrame_to_Brclevel},
-        {2, HEVC_BRC_FRAME_TYPE_B},
-        {3, HEVC_BRC_FRAME_TYPE_B1},
-        {4, HEVC_BRC_FRAME_TYPE_B2}};
 
     if (m_hevcSeqParams->HierarchicalFlag && m_hevcSeqParams->GopRefDist > 1 && m_hevcSeqParams->GopRefDist <= 8)
     {
         if (m_hevcPicParams->HierarchLevelPlus1 > 0)  // LDB or RAB
         {
+            std::map<int, HEVC_BRC_FRAME_TYPE> hierchLevelPlus1_to_brclevel{
+                {1, intra_LDBFrame_to_Brclevel},
+                {2, HEVC_BRC_FRAME_TYPE_B},
+                {3, HEVC_BRC_FRAME_TYPE_B1},
+                {4, HEVC_BRC_FRAME_TYPE_B2}};
             m_currFrameBrcLevel = hierchLevelPlus1_to_brclevel.count(m_hevcPicParams->HierarchLevelPlus1) ? hierchLevelPlus1_to_brclevel[m_hevcPicParams->HierarchLevelPlus1] : HEVC_BRC_FRAME_TYPE_INVALID;
             //Invalid HierarchLevelPlus1 or LBD frames at level 3 eror check.
             if ((m_currFrameBrcLevel == HEVC_BRC_FRAME_TYPE_INVALID) ||
@@ -1843,6 +1837,12 @@ MOS_STATUS CodechalEncHevcStateG12::GetFrameBrcLevel()
         {
             if (!m_hevcSeqParams->LowDelayMode)  // RA B
             {
+                std::map<int, HEVC_BRC_FRAME_TYPE> codingtype_to_brclevel{
+                    {I_TYPE, HEVC_BRC_FRAME_TYPE_I},
+                    {P_TYPE, HEVC_BRC_FRAME_TYPE_P_OR_LB},
+                    {B_TYPE, B_or_LDB_brclevel},
+                    {B1_TYPE, HEVC_BRC_FRAME_TYPE_B1},
+                    {B2_TYPE, HEVC_BRC_FRAME_TYPE_B2}};
                 m_currFrameBrcLevel = codingtype_to_brclevel.count(m_pictureCodingType) ? codingtype_to_brclevel[m_pictureCodingType] : HEVC_BRC_FRAME_TYPE_INVALID;
                 //Invalid CodingType.
                 if (m_currFrameBrcLevel == HEVC_BRC_FRAME_TYPE_INVALID)

@@ -1304,8 +1304,6 @@ MOS_STATUS CM_HAL_G9_X::AllocateSIPCSRResource()
 
 MOS_STATUS CM_HAL_G9_X::GetGenStepInfo(char*& stepInfoStr)
 {
-    const char *cmSteppingInfo[] = { "A", "B", "C", "D", "E", "F",
-                                         "G", "H", "I", "J" };
     uint32_t genStepId = m_cmState->platform.usRevId;
 
     if (m_steppingTable.size() != 0) //check if the stepping table been overwritten
@@ -1321,6 +1319,8 @@ MOS_STATUS CM_HAL_G9_X::GetGenStepInfo(char*& stepInfoStr)
     }
     else
     {
+        const char *cmSteppingInfo[] = { "A", "B", "C", "D", "E", "F",
+                                     "G", "H", "I", "J" };
         if (genStepId < sizeof(cmSteppingInfo)/sizeof(const char *))
         {
             stepInfoStr = (char *)cmSteppingInfo[genStepId];

@@ -306,9 +306,9 @@ std::string Configure::GetReadPath(
     std::shared_ptr<Definition> def,
     uint32_t option)
 {
-    std::string path = "";
     if (def == nullptr)
     {
+        std::string path = "";
         return path;
     }
 
@@ -330,9 +330,9 @@ std::string Configure::GetReportPath(
     std::shared_ptr<Definition> def,
     uint32_t option)
 {
-    std::string path = "";
     if (def == nullptr)
     {
+        std::string path = "";
         return path;
     }
     if (option == MEDIA_USER_SETTING_INTERNAL)
@@ -347,10 +347,10 @@ std::string Configure::GetReportPath(
 
 std::string Configure::GetExternalPath(uint32_t option)
 {
-    std::string path = "";
     auto it = m_pathOption.find(option);
     if (it != m_pathOption.end())
     {
+        std::string path = "";
         if (it->second.bStated && m_keyPathInfo != nullptr && m_keyPathInfo->Path != nullptr)
         {
             path = m_keyPathInfo->Path;
