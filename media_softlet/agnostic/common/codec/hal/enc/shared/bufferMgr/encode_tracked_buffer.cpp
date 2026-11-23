@@ -40,6 +40,7 @@ TrackedBuffer::TrackedBuffer(EncodeAllocator *allocator, uint8_t maxRefCnt, uint
       m_allocator(allocator)
 {
     m_maxSlotCnt = m_maxRefSlotCnt + m_maxNonRefSlotCnt;
+    m_bufferSlots.reserve(m_maxSlotCnt);
     for (uint8_t i = 0; i < m_maxSlotCnt; i++)
     {
         m_bufferSlots.push_back(MOS_New(BufferSlot, this));

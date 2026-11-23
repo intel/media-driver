@@ -62,6 +62,7 @@ MOS_STATUS Av1DownSamplingFeatureXe2_Lpm_Base::GetRefFrameList(std::vector<uint3
     }
 
     refFrameList.clear();
+    refFrameList.reserve(refFrameIndexList.size());
     for (uint32_t frameIdx : refFrameIndexList)
     {
         refFrameList.push_back(frameIdx);
