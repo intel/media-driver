@@ -74,6 +74,11 @@ uint32_t CodecHalAvcEncode_GetMaxVmvR(uint8_t levelIdc)
     case CODEC_AVC_LEVEL_52:
         maxVmvR = 512 * 4;
         break;
+    case CODEC_AVC_LEVEL_6:
+    case CODEC_AVC_LEVEL_61:
+    case CODEC_AVC_LEVEL_62:
+        maxVmvR = 8192 * 4;
+        break;
     default:
         CODECHAL_ENCODE_NORMALMESSAGE("Unsupported LevelIDC setting.");
         CODECHAL_ENCODE_ASSERT(false);
@@ -115,6 +120,11 @@ uint32_t CodecHalAvcEncode_GetMaxMvLen(uint8_t levelIdc)
     case CODEC_AVC_LEVEL_51:
     case CODEC_AVC_LEVEL_52:
         maxMvLen = 511;
+        break;
+    case CODEC_AVC_LEVEL_6:
+    case CODEC_AVC_LEVEL_61:
+    case CODEC_AVC_LEVEL_62:
+        maxMvLen = 8191;
         break;
     default:
         CODECHAL_ENCODE_NORMALMESSAGE("Unsupported LevelIDC setting.");
@@ -484,6 +494,15 @@ static int32_t GetMaxMBPS(uint8_t levelIdc)
         break;
     case CODEC_AVC_LEVEL_52:
         maxMBPS = 2073600;
+        break;
+    case CODEC_AVC_LEVEL_6:
+        maxMBPS = 4177920;
+        break;
+    case CODEC_AVC_LEVEL_61:
+        maxMBPS = 8355840;
+        break;
+    case CODEC_AVC_LEVEL_62:
+        maxMBPS = 16711680;
         break;
     default:
         maxMBPS = 0;
@@ -1728,12 +1747,12 @@ MOS_STATUS CodecHalAvcEncode_PackPictureHeader(
     return eStatus;
 }
 
-uint16_t CodecHalAvcEncode_GetMaxNumSlicesAllowed(
+uint32_t CodecHalAvcEncode_GetMaxNumSlicesAllowed(
     CODEC_AVC_PROFILE_IDC profileIdc,
     CODEC_AVC_LEVEL_IDC   levelIdc,
     uint32_t              framesPer100Sec)
 {
-    uint16_t maxAllowedNumSlices = 0;
+    uint32_t maxAllowedNumSlices = 0;
 
     if ((profileIdc == CODEC_AVC_MAIN_PROFILE) ||
         (profileIdc == CODEC_AVC_HIGH_PROFILE) ||
@@ -1745,29 +1764,38 @@ uint16_t CodecHalAvcEncode_GetMaxNumSlicesAllowed(
         switch (levelIdc)
         {
         case CODEC_AVC_LEVEL_3:
-            maxAllowedNumSlices = (uint16_t)(40500.0 * 100 / 22.0 / framesPer100Sec);
+            maxAllowedNumSlices = (uint32_t)(40500.0 * 100 / 22.0 / framesPer100Sec);
             break;
         case CODEC_AVC_LEVEL_31:
-            maxAllowedNumSlices = (uint16_t)(108000.0 * 100 / 60.0 / framesPer100Sec);
+            maxAllowedNumSlices = (uint32_t)(108000.0 * 100 / 60.0 / framesPer100Sec);
             break;
         case CODEC_AVC_LEVEL_32:
-            maxAllowedNumSlices = (uint16_t)(216000.0 * 100 / 60.0 / framesPer100Sec);
+            maxAllowedNumSlices = (uint32_t)(216000.0 * 100 / 60.0 / framesPer100Sec);
             break;
         case CODEC_AVC_LEVEL_4:
         case CODEC_AVC_LEVEL_41:
-            maxAllowedNumSlices = (uint16_t)(245760.0 * 100 / 24.0 / framesPer100Sec);
+            maxAllowedNumSlices = (uint32_t)(245760.0 * 100 / 24.0 / framesPer100Sec);
             break;
         case CODEC_AVC_LEVEL_42:
-            maxAllowedNumSlices = (uint16_t)(522240.0 * 100 / 24.0 / framesPer100Sec);
+            maxAllowedNumSlices = (uint32_t)(522240.0 * 100 / 24.0 / framesPer100Sec);
             break;
         case CODEC_AVC_LEVEL_5:
-            maxAllowedNumSlices = (uint16_t)(589824.0 * 100 / 24.0 / framesPer100Sec);
+            maxAllowedNumSlices = (uint32_t)(589824.0 * 100 / 24.0 / framesPer100Sec);
             break;
         case CODEC_AVC_LEVEL_51:
-            maxAllowedNumSlices = (uint16_t)(983040.0 * 100 / 24.0 / framesPer100Sec);
+            maxAllowedNumSlices = (uint32_t)(983040.0 * 100 / 24.0 / framesPer100Sec);
             break;
         case CODEC_AVC_LEVEL_52:
-            maxAllowedNumSlices = (uint16_t)(2073600.0 * 100 / 24.0 / framesPer100Sec);
+            maxAllowedNumSlices = (uint32_t)(2073600.0 * 100 / 24.0 / framesPer100Sec);
+            break;
+        case CODEC_AVC_LEVEL_6:
+            maxAllowedNumSlices = (uint32_t)(4177920.0 * 100 / 24.0 / framesPer100Sec);
+            break;
+        case CODEC_AVC_LEVEL_61:
+            maxAllowedNumSlices = (uint32_t)(8355840.0 * 100 / 24.0 / framesPer100Sec);
+            break;
+        case CODEC_AVC_LEVEL_62:
+            maxAllowedNumSlices = (uint32_t)(16711680.0 * 100 / 24.0 / framesPer100Sec);
             break;
         default:
             maxAllowedNumSlices = 0;
