@@ -262,6 +262,13 @@ struct mos_drm_uc_version {
     uint32_t minor_version;
 };
 
+struct mos_exec_fences
+{
+#define FENCES_MAX  10
+    int32_t *fences;
+    int32_t count;
+};
+
 struct mos_linux_bo *mos_bo_alloc(struct mos_bufmgr *bufmgr,
                                 struct mos_drm_bo_alloc *alloc);
 struct mos_linux_bo *mos_bo_alloc_userptr(struct mos_bufmgr *bufmgr,
@@ -321,6 +328,9 @@ void mos_bufmgr_disable_object_capture(struct mos_bufmgr *bufmgr);
 int mos_bufmgr_get_memory_info(struct mos_bufmgr *bufmgr, char *info, uint32_t length);
 int mos_bufmgr_get_devid(struct mos_bufmgr *bufmgr);
 void mos_bufmgr_realloc_cache(struct mos_bufmgr *bufmgr, uint8_t alloc_mode);
+
+int mos_set_fences(struct mos_bufmgr *bufmgr, struct mos_exec_fences *exec_fences);
+int mos_get_fence(struct mos_bufmgr *bufmgr, int32_t *fence_out);
 
 int mos_bo_map_unsynchronized(struct mos_linux_bo *bo);
 int mos_bo_map_gtt(struct mos_linux_bo *bo);
