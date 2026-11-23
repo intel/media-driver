@@ -29,7 +29,12 @@ include_directories(${CMAKE_BINARY_DIR})
 
 bs_set_if_undefined(LIB_NAME iHD_drv_video)
 
-option (MEDIA_RUN_TEST_SUITE "run google test module after install" ON) 
+option (MEDIA_RUN_TEST_SUITE "run google test module after install" ON)
+# BUILD_MEDIA_ULT is the master switch for the Linux ULT (devult). It is OFF by
+# default so a normal build has no googletest dependency and does not build ULT.
+# When ON, googletest is downloaded from upstream (see linux/ult/CMakeLists.txt)
+# and the ULT is built.
+option (BUILD_MEDIA_ULT "Download googletest from upstream and build the Linux ULT (devult)" OFF)
 include(${MEDIA_DRIVER_CMAKE}/media_gen_flags.cmake)
 include(${MEDIA_DRIVER_CMAKE}/media_feature_flags.cmake)
 
@@ -684,7 +689,7 @@ endif(NOT DEFINED INCLUDED_LIBS OR "${INCLUDED_LIBS}" STREQUAL "")
 # post target attributes
 bs_set_post_target()
 
-if(MEDIA_RUN_TEST_SUITE AND ENABLE_KERNELS AND ENABLE_NONFREE_KERNELS AND "${CMAKE_BUILD_TYPE}" STREQUAL "ReleaseInternal")
+if(BUILD_MEDIA_ULT AND MEDIA_RUN_TEST_SUITE AND ENABLE_KERNELS AND ENABLE_NONFREE_KERNELS AND "${CMAKE_BUILD_TYPE}" STREQUAL "ReleaseInternal")
     add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/linux/ult)
     include(${MEDIA_SOFTLET_EXT}/proprietary/ult/ult_top_cmake.cmake OPTIONAL)
 endif()
