@@ -3064,6 +3064,7 @@ VAStatus DdiVp_CreateBuffer(
     pBuf->format        = Media_Format_Buffer;
     pBuf->uiOffset      = 0;
     pBuf->pData         = (uint8_t*)MOS_AllocAndZeroMemory(uiSize * uiNumElements);
+    pBuf->lock          = MOS_New(std::shared_timed_mutex);
     if (nullptr == pBuf->pData)
     {
         MOS_FreeMemAndSetNull(pBuf);
