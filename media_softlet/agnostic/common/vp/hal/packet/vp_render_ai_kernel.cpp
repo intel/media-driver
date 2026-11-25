@@ -331,6 +331,13 @@ MOS_STATUS VpRenderAiKernel::GetCurbeState(void *&curbe, uint32_t &curbeLength)
         case ARG_KIND_SAMPLER:
             if (arg.addressMode == AddressingModeBindless)
             {
+                if (!m_kernelEnv.bHasSample)
+                {
+                    // The kernel declares a sampler arg it never samples through (has_sample = false), so no
+                    // sampler state is created for it. Leave the zero-initialized payload slot untouched.
+                    VP_RENDER_NORMALMESSAGE("Skip Bindless Sampler for kernel without sampling. KernelName %s, index %d", m_kernelName.c_str(), arg.uIndex);
+                    break;
+                }
                 VP_RENDER_CHK_NULL_RETURN(arg.pData);
                 uint32_t samplerIndex = (*(uint32_t *)arg.pData == MHW_SAMPLER_FILTER_NEAREST) ? AI_BINDLESS_NEAREST_SAMPLER_INDEX : AI_BINDLESS_BILIEAR_SAMPLER_INDEX;
                 VP_RENDER_CHK_STATUS_RETURN(SetBindlessSamplerToResourceList(arg, samplerIndex));
