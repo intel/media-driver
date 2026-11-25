@@ -196,7 +196,7 @@ namespace decode
             DECODE_ASSERT(tileParams[i].m_bsTileBytesInBuffer == tileParams[i].m_bsTilePayloadSizeInBytes);//this is to assume the whole tile is in one single bitstream buffer
 
             // Check invalid tile column and tile row
-            if (tileParams[i].m_tileColumn > picParams.m_tileCols || tileParams[i].m_tileRow > picParams.m_tileRows)
+            if (tileParams[i].m_tileColumn >= picParams.m_tileCols || tileParams[i].m_tileRow >= picParams.m_tileRows)
             {
                 DECODE_ASSERTMESSAGE("Invalid tile column or tile row\n");
                 return MOS_STATUS_INVALID_PARAMETER;
