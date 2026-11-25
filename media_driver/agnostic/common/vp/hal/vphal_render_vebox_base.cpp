@@ -5079,9 +5079,15 @@ MOS_STATUS VPHAL_VEBOX_STATE::VeboxSetHVSDNParams(
 //!        5. Field Weaving Disabled
 //!        6. LumaKey Disabled
 //!        8. Constriction Disabled
+//!        9. A linear input's pitch is a multiple of MHW_VEBOX_LINEAR_PITCH:
+//!           SetVeboxSurfaces() rounds it up to one, so VEBOX (and SFC
+//!           behind it) would read any other pitch's rows from the wrong place
 //!
 bool VPHAL_VEBOX_STATE::IS_COMP_BYPASS_FEASIBLE(bool _bCompNeeded, PCVPHAL_RENDER_PARAMS _pcRenderParams, PVPHAL_SURFACE _pSrcSurface)
 {
+    bool bVeboxPitchSupported = _pSrcSurface->TileType != MOS_TILE_LINEAR ||
+                                MOS_IS_ALIGNED(_pSrcSurface->dwPitch, MHW_VEBOX_LINEAR_PITCH);
+
     VPHAL_RENDER_NORMALMESSAGE(
         "_bCompNeeded %d, \
          uSrcCount %d, \
@@ -5090,7 +5096,8 @@ bool VPHAL_VEBOX_STATE::IS_COMP_BYPASS_FEASIBLE(bool _bCompNeeded, PCVPHAL_RENDE
          bInterlacedScaling %d, \
          bFieldWeaving %d, \
          pLumaKeyParams %p, \
-         pConstriction %p",
+         pConstriction %p, \
+         bVeboxPitchSupported %d",
         _bCompNeeded,
         _pcRenderParams->uSrcCount,
         _pcRenderParams->uDstCount,
@@ -5098,7 +5105,8 @@ bool VPHAL_VEBOX_STATE::IS_COMP_BYPASS_FEASIBLE(bool _bCompNeeded, PCVPHAL_RENDE
         _pSrcSurface->bInterlacedScaling,
         _pSrcSurface->bFieldWeaving,
         _pSrcSurface->pLumaKeyParams,
-        _pcRenderParams->pConstriction);
+        _pcRenderParams->pConstriction,
+        bVeboxPitchSupported);
 
     return (_bCompNeeded == false &&
             _pcRenderParams->uSrcCount == 1 &&
@@ -5107,7 +5115,8 @@ bool VPHAL_VEBOX_STATE::IS_COMP_BYPASS_FEASIBLE(bool _bCompNeeded, PCVPHAL_RENDE
             _pSrcSurface->bInterlacedScaling == false &&
             _pSrcSurface->bFieldWeaving == false &&
             _pSrcSurface->pLumaKeyParams == nullptr &&
-            _pcRenderParams->pConstriction == nullptr);
+            _pcRenderParams->pConstriction == nullptr &&
+            bVeboxPitchSupported);
 }
 
 //!
