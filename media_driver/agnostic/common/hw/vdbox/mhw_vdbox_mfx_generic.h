@@ -249,6 +249,11 @@ protected:
         else if (params->Standard == CODECHAL_JPEG)
         {
             MHW_MI_CHK_NULL(params->pJpegQuantMatrix);
+            if (params->JpegQMTableSelector >= JPEG_MAX_NUM_OF_QUANTMATRIX)
+            {
+                MHW_ASSERTMESSAGE("Unsupported JPEG quantization table selector.");
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
             cmd.DW1.Obj0.Avc = params->pJpegQuantMatrix->m_jpegQMTableType[params->JpegQMTableSelector];
 
             if (params->bJpegQMRotation)

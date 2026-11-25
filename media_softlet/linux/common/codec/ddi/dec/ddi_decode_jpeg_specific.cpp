@@ -122,6 +122,20 @@ VAStatus DdiDecodeJpeg::ParsePicParams(
         return VA_STATUS_ERROR_INVALID_PARAMETER;
     }
 
+    if (picParam->num_components > jpegNumComponent)
+    {
+        DDI_CODEC_NORMALMESSAGE("Unsupported component num in JPEG Picture  parameter\n");
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+    for (int32_t i = 0; i < picParam->num_components; i++)
+    {
+        if (picParam->components[i].quantiser_table_selector >= JPEG_MAX_NUM_OF_QUANTMATRIX)
+        {
+            DDI_CODEC_NORMALMESSAGE("Unsupported quantization table selector in JPEG Picture parameter\n");
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+    }
+
     jpegPicParam->m_frameWidth     = picParam->picture_width;
     jpegPicParam->m_frameHeight    = picParam->picture_height;
     jpegPicParam->m_numCompInFrame = picParam->num_components;
@@ -221,11 +235,6 @@ VAStatus DdiDecodeJpeg::ParsePicParams(
     memset(jpegPicParam->m_componentIdentifier, 0, jpegNumComponent);
     memset(jpegPicParam->m_quantTableSelector, 0, jpegNumComponent);
 
-    if (picParam->num_components > jpegNumComponent)
-    {
-        DDI_CODEC_NORMALMESSAGE("Unsupported component num in JPEG Picture  parameter\n");
-        return VA_STATUS_ERROR_INVALID_PARAMETER;
-    }
     for (int32_t i = 0; i < picParam->num_components; i++)
     {
         jpegPicParam->m_componentIdentifier[i] = picParam->components[i].component_id;
