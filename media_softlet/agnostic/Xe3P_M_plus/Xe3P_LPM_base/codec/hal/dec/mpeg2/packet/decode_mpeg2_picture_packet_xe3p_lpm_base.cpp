@@ -84,15 +84,15 @@ namespace decode
             m_miItf->GETSIZE_MI_LOAD_REGISTER_REG() * 8;
 
         uint32_t patchListMaxSize =
-            PATCH_LIST_COMMAND(mhw::mi::Itf::MI_FLUSH_DW_CMD) +
-            PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_PIPE_MODE_SELECT_CMD) +
-            PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_SURFACE_STATE_CMD) +
-            PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_PIPE_BUF_ADDR_STATE_CMD) +
-            PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_IND_OBJ_BASE_ADDR_STATE_CMD) +
-            (2 * PATCH_LIST_COMMAND(mhw::mi::Itf::MI_STORE_DATA_IMM_CMD)) +
-            (2 * PATCH_LIST_COMMAND(mhw::mi::Itf::MI_STORE_REGISTER_MEM_CMD));
-        
-        //MPEG2 SPECIFIC PART      
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::mi::Itf::MI_FLUSH_DW_CMD)) +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_PIPE_MODE_SELECT_CMD)) +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_SURFACE_STATE_CMD)) +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_PIPE_BUF_ADDR_STATE_CMD)) +
+            static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_IND_OBJ_BASE_ADDR_STATE_CMD)) +
+            (2 * static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::mi::Itf::MI_STORE_DATA_IMM_CMD))) +
+            (2 * static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::mi::Itf::MI_STORE_REGISTER_MEM_CMD)));
+
+        //MPEG2 SPECIFIC PART
         maxSize += m_mfxItf->GETSIZE_MFX_MPEG2_PIC_STATE();
         patchListMaxSize += PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_MPEG2_PIC_STATE_CMD);
 
@@ -103,8 +103,8 @@ namespace decode
                 m_mfxItf->GETSIZE_MFX_QM_STATE() + (16 * sizeof(uint32_t) * 2);
 
             patchListMaxSize +=
-                PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_BSP_BUF_BASE_ADDR_STATE_CMD) +
-                PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_QM_STATE_CMD) * 2;
+                static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_BSP_BUF_BASE_ADDR_STATE_CMD)) +
+                static_cast<uint32_t>(PATCH_LIST_COMMAND(mhw::vdbox::mfx::Itf::MFX_QM_STATE_CMD)) * 2;
         }
         else if (mode == CODECHAL_DECODE_MODE_MPEG2IDCT)
         {

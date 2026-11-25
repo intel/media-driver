@@ -109,7 +109,7 @@ MOS_STATUS NpuCmdPackageSpecific::Submit()
     NPU_CHK_NULL_RETURN(m_npuInterface->pfnExecute);
 
     std::unique_lock<std::mutex> lock(m_npuWLContext->Mutex());
-    if (m_npuWLContext->Condition().wait_for(lock, std::chrono::milliseconds(m_npuWLContext->GetTimeoutMs()), [=] { return m_npuWLContext->Initialized() || m_npuWLContext->Failed(); }))
+    if (m_npuWLContext->Condition().wait_for(lock, std::chrono::milliseconds(m_npuWLContext->GetTimeoutMs()), [=, this] { return m_npuWLContext->Initialized() || m_npuWLContext->Failed(); }))
     {
         if (m_npuWLContext->Failed())
         {
