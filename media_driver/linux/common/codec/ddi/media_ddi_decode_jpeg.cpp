@@ -772,26 +772,46 @@ VAStatus DdiDecodeJPEG::AllocBsBuffer(
 
     index = bufMgr->dwNumSliceData;
 
-    /* the pSliceData needs to be reallocated in order to contain more SliceDataBuf */
+    // Keep all per-buffer tracking arrays at the same capacity.
     if (index >= bufMgr->m_maxNumSliceData)
     {
-        /* In theroy it can resize the m_maxNumSliceData one by one. But in order to
-         * avoid calling realloc frequently, it will try to allocate 10 to  hold more
-         * SliceDataBuf. This is only for the optimized purpose.
-         */
-        int32_t reallocSize = bufMgr->m_maxNumSliceData + 10;
-
-        bufMgr->pSliceData = (DDI_CODEC_BITSTREAM_BUFFER_INFO *)realloc(bufMgr->pSliceData, sizeof(bufMgr->pSliceData[0]) * reallocSize);
-
-        if (bufMgr->pSliceData == nullptr)
+        if (bufMgr->m_maxNumSliceData > INT32_MAX - 10)
         {
-            DDI_ASSERTMESSAGE("fail to reallocate pSliceData for JPEG\n.");
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
-        memset((void *)(bufMgr->pSliceData + bufMgr->m_maxNumSliceData), 0,
-               sizeof(bufMgr->pSliceData[0]) * 10);
+        size_t newCapacity = (size_t)bufMgr->m_maxNumSliceData + 10;
+        if (newCapacity > SIZE_MAX / sizeof(bufMgr->pSliceData[0]))
+        {
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
+        auto sliceData = (DDI_CODEC_BITSTREAM_BUFFER_INFO *)MOS_AllocAndZeroMemory(
+            sizeof(bufMgr->pSliceData[0]) * (size_t)newCapacity);
+        auto renderedOrder = (int32_t *)MOS_AllocAndZeroMemory(
+            sizeof(bufMgr->pRenderedOrder[0]) * (size_t)newCapacity);
+        auto renderedSlicePara = (int32_t *)MOS_AllocAndZeroMemory(
+            sizeof(bufMgr->pNumOfRenderedSliceParaForOneBuffer[0]) * (size_t)newCapacity);
+        if (sliceData == nullptr || renderedOrder == nullptr || renderedSlicePara == nullptr)
+        {
+            MOS_FreeMemory(sliceData);
+            MOS_FreeMemory(renderedOrder);
+            MOS_FreeMemory(renderedSlicePara);
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
 
-        bufMgr->m_maxNumSliceData += 10;
+        memcpy(sliceData, bufMgr->pSliceData,
+            sizeof(bufMgr->pSliceData[0]) * (size_t)bufMgr->m_maxNumSliceData);
+        memcpy(renderedOrder, bufMgr->pRenderedOrder,
+            sizeof(bufMgr->pRenderedOrder[0]) * (size_t)bufMgr->m_maxNumSliceData);
+        memcpy(renderedSlicePara, bufMgr->pNumOfRenderedSliceParaForOneBuffer,
+            sizeof(bufMgr->pNumOfRenderedSliceParaForOneBuffer[0]) * (size_t)bufMgr->m_maxNumSliceData);
+
+        MOS_FreeMemory(bufMgr->pSliceData);
+        MOS_FreeMemory(bufMgr->pRenderedOrder);
+        MOS_FreeMemory(bufMgr->pNumOfRenderedSliceParaForOneBuffer);
+        bufMgr->pSliceData = sliceData;
+        bufMgr->pRenderedOrder = renderedOrder;
+        bufMgr->pNumOfRenderedSliceParaForOneBuffer = renderedSlicePara;
+        bufMgr->m_maxNumSliceData = newCapacity;
     }
 
     bsAddr = (uint8_t*)MOS_AllocAndZeroMemory(buf->iSize);
