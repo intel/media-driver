@@ -166,6 +166,16 @@ static bool RegisteredH264HighVLD =
 static bool RegisteredH264ConstrainedBaselineVLD =
     DdiDecodeFactory::
         Register<decode::DdiDecodeAvc>(ComponentInfo{VAProfileH264ConstrainedBaseline, VAEntrypointVLD});
+#if VA_CHECK_VERSION(1, 18, 0)
+static bool RegisteredH264High10VLD =
+    DdiDecodeFactory::
+        Register<decode::DdiDecodeAvc>(ComponentInfo{VAProfileH264High10, VAEntrypointVLD});
+#endif
+#if VA_CHECK_VERSION(1, 23, 0)
+static bool RegisteredH264High422VLD =
+    DdiDecodeFactory::
+        Register<decode::DdiDecodeAvc>(ComponentInfo{VAProfileH264High422, VAEntrypointVLD});
+#endif
 #endif // _AVC_DECODE_SUPPORTED
 
 #if defined (_AV1_DECODE_SUPPORTED)
