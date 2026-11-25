@@ -387,6 +387,9 @@ MOS_STATUS EncodeAv1VdencConstSettingsXe_Lpm_Plus_Base::SetVdencCmd2Settings()
                     static const uint32_t dw5Lut = 0xc0ac80;
                     data[5] |= dw5Lut;
 
+                    // Set the 10 and 11 bit to zero to force using integer MV.
+                    data[5] &= 0xfffff3ff;
+
                     static const uint32_t dw6Lut = 0xe0080200;
                     data[6] |= dw6Lut;
 
