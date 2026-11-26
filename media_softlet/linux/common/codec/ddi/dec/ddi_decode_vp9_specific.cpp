@@ -264,12 +264,11 @@ VAStatus DdiDecodeVp9::RenderPicture(
         {
         case VASliceDataBufferType:
         {
-            if (slcFlag)
+            if (m_decodeCtx->DecodeParams.m_dataSize != 0)
             {
-                // VP9 only supports only one slice_data. If it is passed, another slice_data
-                // buffer will be ignored.
+                // VP9 accepts only one slice data buffer per picture.
                 DDI_CODEC_NORMALMESSAGE("Slice data is already rendered\n");
-                break;
+                return VA_STATUS_ERROR_INVALID_BUFFER;
             }
             int32_t index = GetBitstreamBufIndexFromBuffer(&m_decodeCtx->BufMgr, buf);
             if (index == DDI_CODEC_INVALID_BUFFER_INDEX)
@@ -603,8 +602,26 @@ VAStatus DdiDecodeVp9::InitDecodeParams(
     slcFlag = false;
     /* skip the mediaCtx check as it is checked in caller */
     PDDI_MEDIA_CONTEXT mediaCtx = GetMediaContext(ctx);
-    DDI_CODEC_CHK_RET(DecodeCombineBitstream(mediaCtx),"DecodeCombineBitstream failed!");
     DDI_CODEC_COM_BUFFER_MGR *bufMgr = &(m_decodeCtx->BufMgr);
+    uint64_t createdSize = 0;
+    for (uint32_t i = 0; i < bufMgr->dwNumSliceData; ++i)
+    {
+        const auto &slice = bufMgr->pSliceData[i];
+        if (slice.uiOffset != createdSize)
+        {
+            return VA_STATUS_ERROR_INVALID_BUFFER;
+        }
+        createdSize += slice.uiLength;
+        if (createdSize > m_decodeCtx->DecodeParams.m_dataSize)
+        {
+            return VA_STATUS_ERROR_INVALID_BUFFER;
+        }
+    }
+    if (createdSize == 0 || createdSize != m_decodeCtx->DecodeParams.m_dataSize)
+    {
+        return VA_STATUS_ERROR_INVALID_BUFFER;
+    }
+    DDI_CODEC_CHK_RET(DecodeCombineBitstream(mediaCtx),"DecodeCombineBitstream failed!");
     bufMgr->dwNumSliceData    = 0;
     bufMgr->dwNumSliceControl = 0;
 
