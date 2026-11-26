@@ -1909,6 +1909,17 @@ VAStatus DdiMediaUtil_UnRegisterRTSurfaces(
                 PDDI_DECODE_CONTEXT  decCtx = (PDDI_DECODE_CONTEXT)decVACtxHeapBase[j].pVaContext;
                 if (decCtx && decCtx->m_ddiDecode)
                 {
+                    for (uint32_t i = 0; i < DDI_MEDIA_MAX_SURFACE_NUMBER_CONTEXT; i++)
+                    {
+                        if (decCtx->RTtbl.pRT[i] == surface)
+                        {
+                            decCtx->RecListSurfaceID[i] = VA_INVALID_ID;
+                        }
+                    }
+                    if (decCtx->RTtbl.pCurrentRT == surface)
+                    {
+                        decCtx->RTtbl.pCurrentRT = nullptr;
+                    }
                     //not check the return value since the surface may not be registered in the context. pay attention to LOGW.
                     decCtx->m_ddiDecode->UnRegisterRTSurfaces(&decCtx->RTtbl, surface);
                 }

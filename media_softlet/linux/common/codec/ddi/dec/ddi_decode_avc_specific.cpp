@@ -192,6 +192,14 @@ VAStatus DdiDecodeAvc::ParsePicParams(
         (avcPicParams == nullptr))
         return VA_STATUS_ERROR_INVALID_PARAMETER;
 
+    // The picture index must describe the target selected by BeginPicture.
+    auto currentSurface = MediaLibvaCommonNext::GetSurfaceFromVASurfaceID(mediaCtx, picParam->CurrPic.picture_id);
+    if (currentSurface == nullptr || currentSurface != m_decodeCtx->RTtbl.pCurrentRT ||
+        GetRenderTargetID(&m_decodeCtx->RTtbl, currentSurface) < 0)
+    {
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+
     SetupCodecPicture(mediaCtx,
         &(m_decodeCtx->RTtbl),
         &avcPicParams->CurrPic,
@@ -200,13 +208,7 @@ VAStatus DdiDecodeAvc::ParsePicParams(
         false,
         false);
 
-    // Check the current frame index
-    // Add the invalid surface id to RecList
-    if (avcPicParams->CurrPic.FrameIdx < CODEC_AVC_NUM_UNCOMPRESSED_SURFACE)
-    {
-        m_decodeCtx->RecListSurfaceID[avcPicParams->CurrPic.FrameIdx] =
-            picParam->CurrPic.picture_id;
-    }
+    m_currentSurfaceId = picParam->CurrPic.picture_id;
 
     uint32_t i;
     uint32_t j;
@@ -257,7 +259,8 @@ VAStatus DdiDecodeAvc::ParsePicParams(
     {     
         // Check the surface id of reference list
         if (avcPicParams->RefFrameList[i].FrameIdx < CODEC_AVC_NUM_UNCOMPRESSED_SURFACE && 
-            VA_INVALID_ID == m_decodeCtx->RecListSurfaceID[avcPicParams->RefFrameList[i].FrameIdx])
+            (VA_INVALID_ID == m_decodeCtx->RecListSurfaceID[avcPicParams->RefFrameList[i].FrameIdx] ||
+             picParam->ReferenceFrames[i].picture_id != m_decodeCtx->RecListSurfaceID[avcPicParams->RefFrameList[i].FrameIdx]))
         {
             // Set invalid flag
             avcPicParams->RefFrameList[i].PicFlags = PICTURE_INVALID;
@@ -488,9 +491,43 @@ VAStatus DdiDecodeAvc::RenderPicture(
     return va;
 }
 
+VAStatus DdiDecodeAvc::EndPicture(VADriverContextP ctx, VAContextID context)
+{
+    auto picParams = (PCODEC_AVC_PIC_PARAMS)m_decodeCtx->DecodeParams.m_picParams;
+    uint32_t index = picParams ? picParams->CurrPic.FrameIdx : CODEC_AVC_NUM_UNCOMPRESSED_SURFACE;
+    VAStatus status = DdiDecodeBase::EndPicture(ctx, context);
+    if (index < CODEC_AVC_NUM_UNCOMPRESSED_SURFACE)
+    {
+        m_decodeCtx->RecListSurfaceID[index] = status == VA_STATUS_SUCCESS ? m_currentSurfaceId : VA_INVALID_ID;
+    }
+    m_currentSurfaceId = VA_INVALID_ID;
+    return status;
+}
+
 VAStatus DdiDecodeAvc::SetDecodeParams()
 {
     DDI_CODEC_FUNC_ENTER;
+
+    auto picParams = (PCODEC_AVC_PIC_PARAMS)m_decodeCtx->DecodeParams.m_picParams;
+    if (picParams == nullptr || m_decodeCtx->RTtbl.pCurrentRT == nullptr ||
+        GetRenderTargetID(&m_decodeCtx->RTtbl, m_decodeCtx->RTtbl.pCurrentRT) != picParams->CurrPic.FrameIdx ||
+        picParams->CurrPic.FrameIdx >= CODEC_AVC_NUM_UNCOMPRESSED_SURFACE ||
+        MediaLibvaCommonNext::GetSurfaceFromVASurfaceID(m_decodeCtx->pMediaCtx, m_currentSurfaceId) != m_decodeCtx->RTtbl.pCurrentRT)
+    {
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+    // A surface may have been destroyed after its picture parameters were parsed.
+    for (uint32_t i = 0; i < CODEC_MAX_NUM_REF_FRAME; i++)
+    {
+        auto index = picParams->RefFrameList[i].FrameIdx;
+        if (!CodecHal_PictureIsInvalid(picParams->RefFrameList[i]) &&
+            (index >= CODEC_AVC_NUM_UNCOMPRESSED_SURFACE ||
+             m_decodeCtx->RTtbl.pRT[index] == nullptr ||
+             m_decodeCtx->RecListSurfaceID[index] == VA_INVALID_ID))
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+    }
 
     DDI_CHK_RET(DdiDecodeBase::SetDecodeParams(),"SetDecodeParams failed!");
 #ifdef _DECODE_PROCESSING_SUPPORTED

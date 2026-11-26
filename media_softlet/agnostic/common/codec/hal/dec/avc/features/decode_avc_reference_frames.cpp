@@ -127,6 +127,10 @@ namespace decode
 
         for (uint32_t i = 0; i < CODEC_AVC_MAX_NUM_REF_FRAME; i++)
         {
+            if (CodecHal_PictureIsInvalid(picParams->RefFrameList[i]))
+            {
+                continue;
+            }
             uint8_t frameIdx = picParams->RefFrameList[i].FrameIdx;
             if (frameIdx >= m_basicFeature->m_maxFrameIndex)
             {

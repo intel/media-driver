@@ -59,6 +59,8 @@ public:
 
     virtual VAStatus SetDecodeParams() override;
 
+    VAStatus EndPicture(VADriverContextP ctx, VAContextID context) override;
+
     virtual void ContextInit(
         int32_t picWidth,
         int32_t picHeight) override;
@@ -191,6 +193,8 @@ private:
         bool                                fieldPicFlag,
         bool                                picReference,
         bool                                sliceReference);
+    VASurfaceID m_currentSurfaceId = VA_INVALID_ID;
+
 };
 
 #endif /* _MEDIA_DDI_DECODE_AVC_H */
