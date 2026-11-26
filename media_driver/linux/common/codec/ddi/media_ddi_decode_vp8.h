@@ -145,6 +145,8 @@ private:
     //!
     void FreeResourceBuffer();
 
+    VASurfaceID m_referenceSurfaceIds[3] = {VA_INVALID_ID, VA_INVALID_ID, VA_INVALID_ID};
+
     MOS_RESOURCE m_resNoneRegLastRefFrame;
     MOS_RESOURCE m_resNoneRegGoldenRefFrame;
     MOS_RESOURCE m_resNoneRegAltRefFrame;

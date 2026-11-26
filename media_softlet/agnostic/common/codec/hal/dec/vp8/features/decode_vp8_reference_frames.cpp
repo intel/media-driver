@@ -84,29 +84,32 @@ namespace decode
         }
         else
         {
-            if((Mos_ResourceIsNull(&m_vp8RefList[picParams.ucLastRefPicIndex]->resRefPic)) && (m_basicFeature->m_LastRefSurface))
+            // Supplied resources belong to this frame; do not replace them with cached pointers.
+            if (m_basicFeature->m_LastRefSurface == nullptr)
             {
-                m_vp8RefList[picParams.ucLastRefPicIndex]->resRefPic = *(m_basicFeature->m_LastRefSurface);
+                if (picParams.ucLastRefPicIndex >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8 - 1)
+                {
+                    return MOS_STATUS_INVALID_PARAMETER;
+                }
+                m_basicFeature->m_LastRefSurface = &m_vp8RefList[picParams.ucLastRefPicIndex]->resRefPic;
             }
-            else
+            // Supplied resources belong to this frame; do not replace them with cached pointers.
+            if (m_basicFeature->m_GoldenRefSurface == nullptr)
             {
-                m_basicFeature->m_LastRefSurface = &(m_vp8RefList[picParams.ucLastRefPicIndex]->resRefPic);
+                if (picParams.ucGoldenRefPicIndex >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8 - 1)
+                {
+                    return MOS_STATUS_INVALID_PARAMETER;
+                }
+                m_basicFeature->m_GoldenRefSurface = &m_vp8RefList[picParams.ucGoldenRefPicIndex]->resRefPic;
             }
-            if((Mos_ResourceIsNull(&m_vp8RefList[picParams.ucGoldenRefPicIndex]->resRefPic)) && (m_basicFeature->m_GoldenRefSurface))
+            // Supplied resources belong to this frame; do not replace them with cached pointers.
+            if (m_basicFeature->m_AltRefSurface == nullptr)
             {
-                m_vp8RefList[picParams.ucGoldenRefPicIndex]->resRefPic = *(m_basicFeature->m_GoldenRefSurface);
-            }
-            else
-            {
-                m_basicFeature->m_GoldenRefSurface = &(m_vp8RefList[picParams.ucGoldenRefPicIndex]->resRefPic);
-            }
-            if((Mos_ResourceIsNull(&m_vp8RefList[picParams.ucAltRefPicIndex]->resRefPic)) && (m_basicFeature->m_AltRefSurface))
-            {
-                m_vp8RefList[picParams.ucAltRefPicIndex]->resRefPic = *(m_basicFeature->m_AltRefSurface);
-            }
-            else
-            {
-                m_basicFeature->m_AltRefSurface = &(m_vp8RefList[picParams.ucAltRefPicIndex]->resRefPic);
+                if (picParams.ucAltRefPicIndex >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8 - 1)
+                {
+                    return MOS_STATUS_INVALID_PARAMETER;
+                }
+                m_basicFeature->m_AltRefSurface = &m_vp8RefList[picParams.ucAltRefPicIndex]->resRefPic;
             }
         }
         return MOS_STATUS_SUCCESS;
