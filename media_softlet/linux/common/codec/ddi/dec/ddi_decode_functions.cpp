@@ -1376,7 +1376,27 @@ bool DdiDecodeFunctions::ReleaseBsBuffer(DDI_CODEC_COM_BUFFER_MGR *bufMgr, DDI_M
                     }
                 }
                 MOS_ZeroMemory((void*)(&(bufMgr->pSliceData[i])), sizeof(bufMgr->pSliceData[0]));
-                bufMgr->dwNumSliceData --;
+                if (bufMgr->pRenderedOrder != nullptr)
+                {
+                    // JPEG slots retain their indices while other buffers are alive.
+                    // Invalidate references to a destroyed rendered buffer before reuse.
+                    for (uint32_t j = 0; j < bufMgr->dwNumOfRenderedSliceData; ++j)
+                    {
+                        if (bufMgr->pRenderedOrder[j] == static_cast<int32_t>(i))
+                        {
+                            bufMgr->pRenderedOrder[j] = -1;
+                        }
+                    }
+                    while (bufMgr->dwNumSliceData > 0 &&
+                        bufMgr->pSliceData[bufMgr->dwNumSliceData - 1].pBaseAddress == nullptr)
+                    {
+                        --bufMgr->dwNumSliceData;
+                    }
+                }
+                else
+                {
+                    --bufMgr->dwNumSliceData;
+                }
                 return true;
             }
         }
