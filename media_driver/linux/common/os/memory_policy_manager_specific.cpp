@@ -54,14 +54,12 @@ int MemoryPolicyManager::UpdateMemoryPolicyWithWA(
         }
     }
 
-    if(memPolicyPar->isServer)
+    // The CPU reads command and batch buffers back while writing them (MHW sets header bits in
+    // place). In local memory every such read crosses PCIe uncached, so keep them in system memory
+    if (strcmp(memPolicyPar->resName, "MOS CmdBuf") == 0 ||
+        strcmp(memPolicyPar->resName, "BatchBuffer") == 0)
     {
-        if (strcmp(memPolicyPar->resName, "MOS CmdBuf") == 0 ||
-            strcmp(memPolicyPar->resName, "BatchBuffer") == 0
-            )
-        {
-            mem_type = MOS_MEMPOOL_SYSTEMMEMORY;
-        }
+        mem_type = MOS_MEMPOOL_SYSTEMMEMORY;
     }
 
     return 0;
