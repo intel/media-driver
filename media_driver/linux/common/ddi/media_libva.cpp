@@ -291,7 +291,8 @@ static uint32_t DdiMedia_CreateRenderTarget(
     uint32_t                      height,
     DDI_MEDIA_SURFACE_DESCRIPTOR *surfDesc,
     uint32_t                      surfaceUsageHint,
-    int                           memType
+    int                           memType,
+    const uint64_t               *modifier = nullptr
 )
 {
     DdiMediaUtil_LockMutex(&mediaDrvCtx->SurfaceMutex);
@@ -320,6 +321,11 @@ static uint32_t DdiMedia_CreateRenderTarget(
     surfaceElement->pSurface->uiLockedImageID = VA_INVALID_ID;
     surfaceElement->pSurface->surfaceUsageHint= surfaceUsageHint;
     surfaceElement->pSurface->memType         = memType;
+    if (modifier)
+    {
+        surfaceElement->pSurface->bHasRequestedModifier = true;
+        surfaceElement->pSurface->requestedModifier     = *modifier;
+    }
 
     if(DdiMediaUtil_CreateSurface(surfaceElement->pSurface, mediaDrvCtx)!= VA_STATUS_SUCCESS)
     {
@@ -2538,6 +2544,90 @@ VAStatus DdiMedia_DestroySurfaces (
     return VA_STATUS_SUCCESS;
 }
 
+#if VA_CHECK_VERSION(1, 13, 0)
+//!
+//! \brief  Create an internal surface using one of the DRM format modifiers in the list
+//!
+//! \return VAStatus
+//!     VA_STATUS_SUCCESS if success, VA_STATUS_ERROR_ATTR_NOT_SUPPORTED if
+//!     none of the modifiers can be allocated
+//!
+static VAStatus DdiMedia_CreateRenderTargetWithModifiers(
+    VADriverContextP                ctx,
+    DDI_MEDIA_FORMAT                mediaFormat,
+    uint32_t                        width,
+    uint32_t                        height,
+    uint32_t                        surfaceUsageHint,
+    const VADRMFormatModifierList  *modifierList,
+    VASurfaceID                    *surface)
+{
+    DDI_CHK_NULL(ctx,          "nullptr ctx",          VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(modifierList, "nullptr modifierList", VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_NULL(surface,      "nullptr surface",      VA_STATUS_ERROR_INVALID_PARAMETER);
+    DDI_CHK_CONDITION(modifierList->num_modifiers == 0 || modifierList->modifiers == nullptr,
+        "Empty DRM format modifier list", VA_STATUS_ERROR_INVALID_PARAMETER);
+
+    PDDI_MEDIA_CONTEXT mediaCtx = DdiMedia_GetMediaContext(ctx);
+    DDI_CHK_NULL(mediaCtx,         "nullptr mediaCtx", VA_STATUS_ERROR_INVALID_CONTEXT);
+    DDI_CHK_NULL(mediaCtx->m_caps, "nullptr m_caps",   VA_STATUS_ERROR_INVALID_CONTEXT);
+
+    auto isInList = [modifierList](uint64_t modifier) {
+        for (uint32_t i = 0; i < modifierList->num_modifiers; i++)
+        {
+            if (modifierList->modifiers[i] == modifier)
+            {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    // Allocate with the given modifier (nullptr for driver default) and
+    // check that the resulting surface is exported with a modifier from the list.
+    auto tryCreate = [&](const uint64_t *modifier, uint64_t &resultModifier) {
+        VASurfaceID id = (VASurfaceID)DdiMedia_CreateRenderTarget(mediaCtx, mediaFormat, width, height, nullptr, surfaceUsageHint, MOS_MEMPOOL_VIDEOMEMORY, modifier);
+        if (VA_INVALID_ID == id)
+        {
+            return id;
+        }
+        DDI_MEDIA_SURFACE *mediaSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, id);
+        if (mediaSurface &&
+            mediaCtx->m_caps->GetSurfaceModifier(mediaSurface, resultModifier) == VA_STATUS_SUCCESS &&
+            isInList(resultModifier))
+        {
+            return id;
+        }
+        DdiMedia_DestroySurfaces(ctx, &id, 1);
+        return (VASurfaceID)VA_INVALID_ID;
+    };
+
+    // Prefer the driver default layout when the application accepts it, it is the optimal one.
+    uint64_t defaultModifier = DRM_FORMAT_MOD_INVALID;
+    VASurfaceID id = tryCreate(nullptr, defaultModifier);
+
+    for (uint32_t i = 0; VA_INVALID_ID == id && i < modifierList->num_modifiers; i++)
+    {
+        uint64_t modifier = modifierList->modifiers[i];
+        if (modifier == defaultModifier)
+        {
+            // Already tried
+            continue;
+        }
+        uint64_t resultModifier = DRM_FORMAT_MOD_INVALID;
+        id = tryCreate(&modifier, resultModifier);
+    }
+
+    if (VA_INVALID_ID == id)
+    {
+        DDI_ASSERTMESSAGE("None of the requested DRM format modifiers is supported.");
+        return VA_STATUS_ERROR_ATTR_NOT_SUPPORTED;
+    }
+
+    *surface = id;
+    return VA_STATUS_SUCCESS;
+}
+#endif
+
 VAStatus DdiMedia_CreateSurfaces2(
     VADriverContextP    ctx,
     uint32_t            format,
@@ -2730,6 +2820,9 @@ VAStatus DdiMedia_CreateSurfaces2(
     uint32_t surfaceUsageHint = VA_SURFACE_ATTRIB_USAGE_HINT_GENERIC;
     bool     surfDescProvided = false;
     bool     surfIsUserPtr    = false;
+#if VA_CHECK_VERSION(1, 13, 0)
+    const VADRMFormatModifierList *modifierList = nullptr;
+#endif
 
     for (uint32_t i = 0; i < num_attribs && attrib_list; i++)
     {
@@ -2741,6 +2834,13 @@ VAStatus DdiMedia_CreateSurfaces2(
                 DDI_ASSERT(attrib_list[i].value.type == VAGenericValueTypeInteger);
                 surfaceUsageHint = attrib_list[i].value.value.i;
                 break;
+#if VA_CHECK_VERSION(1, 13, 0)
+            case VASurfaceAttribDRMFormatModifiers:
+                DDI_CHK_CONDITION(attrib_list[i].value.type != VAGenericValueTypePointer || attrib_list[i].value.value.p == nullptr,
+                    "Invalid VASurfaceAttribDRMFormatModifiers", VA_STATUS_ERROR_INVALID_PARAMETER);
+                modifierList = (const VADRMFormatModifierList *)attrib_list[i].value.value.p;
+                break;
+#endif
             case VASurfaceAttribPixelFormat:
                 DDI_ASSERT(attrib_list[i].value.type == VAGenericValueTypeInteger);
                 expected_fourcc = attrib_list[i].value.value.i;
@@ -2835,6 +2935,32 @@ VAStatus DdiMedia_CreateSurfaces2(
         DDI_ASSERTMESSAGE("DDI: unsupported surface type in DdiMedia_CreateSurfaces2.");
         return VA_STATUS_ERROR_UNSUPPORTED_RT_FORMAT;
     }
+
+#if VA_CHECK_VERSION(1, 13, 0)
+    if (modifierList)
+    {
+        // DRM format modifiers can only be used when allocating new surfaces, not when importing.
+        DDI_CHK_CONDITION(surfDescProvided,
+            "VASurfaceAttribDRMFormatModifiers cannot be used with an external buffer descriptor",
+            VA_STATUS_ERROR_INVALID_PARAMETER);
+
+        for (uint32_t i = 0; i < num_surfaces; i++)
+        {
+            VAStatus vaStatus = DdiMedia_CreateRenderTargetWithModifiers(ctx, mediaFmt, width, height, surfaceUsageHint, modifierList, &surfaces[i]);
+            if (vaStatus != VA_STATUS_SUCCESS)
+            {
+                if (i > 0)
+                {
+                    DdiMedia_DestroySurfaces(ctx, surfaces, i);
+                }
+                return vaStatus;
+            }
+        }
+
+        MOS_TraceEventExt(EVENT_VA_SURFACE, EVENT_TYPE_END, &num_surfaces, sizeof(uint32_t), surfaces, num_surfaces*sizeof(VAGenericID));
+        return VA_STATUS_SUCCESS;
+    }
+#endif
 
     for (uint32_t i = 0; i < num_surfaces; i++)
     {

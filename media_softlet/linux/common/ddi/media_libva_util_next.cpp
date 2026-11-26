@@ -1016,6 +1016,17 @@ VAStatus MediaLibvaUtilNext::AllocateSurface(
         return status;
     }
 
+    if (mediaSurface->bHasRequestedModifier && !IsExternalSurface(mediaSurface))
+    {
+        // Application requested a specific DRM format modifier, override the default tiling and compression.
+        status = SetSurfaceParameterFromModifier(params, mediaSurface->requestedModifier);
+        if (status != VA_STATUS_SUCCESS)
+        {
+            DDI_VERBOSEMESSAGE("Unsupported requested modifier 0x%" PRIx64 ".", mediaSurface->requestedModifier);
+            return status;
+        }
+    }
+
     if (IsExternalSurface(mediaSurface))
     {
         return CreateExternalSurface(params, mediaSurface, mediaDrvCtx);
