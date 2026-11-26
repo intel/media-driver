@@ -91,6 +91,10 @@ public:
 
     virtual MOS_FORMAT GetFormat() override;
 
+    VAStatus SetDecodeParams() override;
+
+    VAStatus EndPicture(VADriverContextP ctx, VAContextID context) override;
+
     /*virtual VAStatus EndPicture(
     VADriverContextP ctx,
     VAContextID      context) override;*/
@@ -261,6 +265,9 @@ private:
 
     //! \brief   flag list for VVC reference surfaces
     uint32_t m_refListFlags[vvcMaxNumRefFrame];
+
+    VASurfaceID m_currentSurfaceId = VA_INVALID_SURFACE;
+    VASurfaceID m_referenceSurfaceIds[vvcMaxNumRefFrame] = {};
 
     MEDIA_CLASS_DEFINE_END(decode__DdiDecodeVvc)
 };

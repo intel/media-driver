@@ -80,6 +80,14 @@ VAStatus DdiDecodeVvc::ParsePicParams(
     }
     MOS_ZeroMemory(pVvcPicParams, sizeof(CodecVvcPicParams));
 
+    auto currentSurface = MediaLibvaCommonNext::GetSurfaceFromVASurfaceID(mediaCtx, picParam->CurrPic.picture_id);
+    if (currentSurface == nullptr || currentSurface != m_decodeCtx->RTtbl.pCurrentRT ||
+        (picParam->CurrPic.flags & (VA_PICTURE_VVC_INVALID | VA_PICTURE_VVC_UNAVAILABLE_REFERENCE)))
+    {
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+    m_currentSurfaceId = picParam->CurrPic.picture_id;
+
     // Set up current frame
     pVvcPicParams->m_picOrderCntVal = picParam->CurrPic.pic_order_cnt;
     SetupCodecPicture(mediaCtx,
@@ -98,13 +106,15 @@ VAStatus DdiDecodeVvc::ParsePicParams(
     for (auto i = 0; i < vvcMaxNumRefFrame; i++)
     {
         m_refListFlags[i] = picParam->ReferenceFrames[i].flags;
+        m_referenceSurfaceIds[i] = picParam->ReferenceFrames[i].picture_id;
         pVvcPicParams->m_refFramePocList[i] = picParam->ReferenceFrames[i].pic_order_cnt;
         SetupCodecPicture(mediaCtx,
             &m_decodeCtx->RTtbl,
             &pVvcPicParams->m_refFrameList[i],
             picParam->ReferenceFrames[i],
             VvcPicEntryRefFrameList);
-        if(pVvcPicParams->m_refFrameList[i].FrameIdx > CODEC_MAX_DPB_NUM_VVC)
+        if (pVvcPicParams->m_refFrameList[i].PicFlags == PICTURE_INVALID ||
+            pVvcPicParams->m_refFrameList[i].FrameIdx >= CODEC_MAX_DPB_NUM_VVC)
         {
             pVvcPicParams->m_refFrameList[i].FrameIdx = CODEC_MAX_DPB_NUM_VVC;
         }
@@ -304,6 +314,69 @@ VAStatus DdiDecodeVvc::ParsePicParams(
     pVvcPicParams->m_picMiscFlags.m_fields.m_intraPicFlag                = picParam->PicMiscFlags.fields.IntraPicFlag;
 
     return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiDecodeVvc::SetDecodeParams()
+{
+    auto picParams = static_cast<CodecVvcPicParams *>(m_decodeCtx->DecodeParams.m_picParams);
+    DDI_CODEC_CHK_NULL(picParams, "nullptr picture params", VA_STATUS_ERROR_INVALID_PARAMETER);
+    auto &rtTbl = m_decodeCtx->RTtbl;
+    uint8_t currentIndex = picParams->m_currPic.FrameIdx;
+    if (currentIndex >= CODEC_MAX_DPB_NUM_VVC || rtTbl.pCurrentRT == nullptr ||
+        rtTbl.pRT[currentIndex] != rtTbl.pCurrentRT ||
+        MediaLibvaCommonNext::GetSurfaceFromVASurfaceID(rtTbl.pCurrentRT->pMediaCtx, m_currentSurfaceId) != rtTbl.pCurrentRT)
+    {
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+
+    for (auto i = 0; i < vvcMaxNumRefFrame; i++)
+    {
+        auto &ref = picParams->m_refFrameList[i];
+        if (ref.FrameIdx >= CODEC_MAX_DPB_NUM_VVC || ref.PicFlags == PICTURE_INVALID)
+        {
+            ref.FrameIdx = CODEC_MAX_DPB_NUM_VVC;
+            continue;
+        }
+        if (ref.PicFlags == PICTURE_UNAVAILABLE_FRAME)
+        {
+            continue;
+        }
+        auto surface = rtTbl.pRT[ref.FrameIdx];
+        if (surface == nullptr ||
+            MediaLibvaCommonNext::GetSurfaceFromVASurfaceID(rtTbl.pCurrentRT->pMediaCtx, m_referenceSurfaceIds[i]) != surface ||
+            m_decodeCtx->RecListSurfaceID[ref.FrameIdx] != m_referenceSurfaceIds[i])
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+    }
+
+    VAStatus status = DdiDecodeBase::SetDecodeParams();
+    if (status != VA_STATUS_SUCCESS)
+    {
+        return status;
+    }
+    // Unavailable references use the target resource, without decoded surface identity.
+    for (auto i = 0; i < vvcMaxNumRefFrame; i++)
+    {
+        auto &ref = picParams->m_refFrameList[i];
+        if (ref.PicFlags == PICTURE_UNAVAILABLE_FRAME && ref.FrameIdx < CODEC_MAX_DPB_NUM_VVC)
+        {
+            m_decodeCtx->RecListSurfaceID[ref.FrameIdx] = VA_INVALID_ID;
+        }
+    }
+    m_decodeCtx->RecListSurfaceID[currentIndex] = VA_INVALID_ID;
+    return VA_STATUS_SUCCESS;
+}
+
+VAStatus DdiDecodeVvc::EndPicture(VADriverContextP ctx, VAContextID context)
+{
+    VAStatus status = DdiDecodeBase::EndPicture(ctx, context);
+    if (status == VA_STATUS_SUCCESS)
+    {
+        auto picParams = static_cast<CodecVvcPicParams *>(m_decodeCtx->DecodeParams.m_picParams);
+        m_decodeCtx->RecListSurfaceID[picParams->m_currPic.FrameIdx] = m_currentSurfaceId;
+    }
+    return status;
 }
 
 VAStatus DdiDecodeVvc::RenderPicture(
