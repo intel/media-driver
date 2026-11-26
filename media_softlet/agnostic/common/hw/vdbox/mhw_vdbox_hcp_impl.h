@@ -84,6 +84,19 @@ public:
         return MOS_SecureMemcpy(m_cacheabilitySettings, size, settings, size);
     }
 
+    //! \brief  Attribute DW offset of one reference picture of HCP_PIPE_BUF_ADDR_STATE
+    //! \details Signed DW distance from the reference address DW to the DW that receives the
+    //!          per-reference attribute, returned as two's complement. The default is the shared reference 0
+    //!          attribute DW for every reference; platforms with per-reference attribute DWs override it.
+    //! \param   [in] cmd  the command being built
+    //! \param   [in] refIdx  reference picture index, equal to the HW reference number
+    //! \param   [in] dwLocationInCmd  DW location of the reference address in the command
+    virtual uint32_t GetRefAttrDwOffset(typename cmd_t::HCP_PIPE_BUF_ADDR_STATE_CMD &cmd, uint32_t refIdx, uint32_t dwLocationInCmd)
+    {
+        MOS_UNUSED(refIdx);
+        return _MHW_CMD_DW_LOCATION(ReferencePictureBaseAddressMemoryAddressAttributes) - dwLocationInCmd;
+    }
+
     MOS_STATUS GetHcpBufSize(const HcpBufferSizePar &par, uint32_t &size) override
     {
         MOS_STATUS eStatus = MOS_STATUS_SUCCESS;
@@ -1704,7 +1717,7 @@ protected:
                     resourceParams.bIsWritable = false;
                 }
 
-                resourceParams.dwSharedMocsOffset = 53 - resourceParams.dwLocationInCmd;  // Common Prodected Data bit is in DW53
+                resourceParams.dwSharedMocsOffset = GetRefAttrDwOffset(cmd, i, resourceParams.dwLocationInCmd);
 
                 InitMocsParams(resourceParams, &cmd.ReferencePictureBaseAddressMemoryAddressAttributes.DW0.Value, 1, 6);
 

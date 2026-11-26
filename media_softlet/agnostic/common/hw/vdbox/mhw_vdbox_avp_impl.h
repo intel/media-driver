@@ -67,6 +67,19 @@ public:
         return MOS_SecureMemcpy(m_cacheabilitySettings, size, settings, size);
     }
 
+    //! \brief  Attribute DW offset of one reference frame of AVP_PIPE_BUF_ADDR_STATE
+    //! \details Signed DW distance from the reference address DW to the DW that receives the
+    //!          per-reference attribute, returned as two's complement. The default is the shared reference 0
+    //!          attribute DW for every reference; platforms with per-reference attribute DWs override it.
+    //! \param   [in] cmd  the command being built
+    //! \param   [in] refIdx  reference frame index, equal to the HW reference number (0 is the intra-frame slot)
+    //! \param   [in] dwLocationInCmd  DW location of the reference address in the command
+    virtual uint32_t GetRefAttrDwOffset(typename cmd_t::AVP_PIPE_BUF_ADDR_STATE_CMD &cmd, uint32_t refIdx, uint32_t dwLocationInCmd)
+    {
+        MOS_UNUSED(refIdx);
+        return _MHW_CMD_DW_LOCATION(ReferenceFrameBufferBaseAddressAttributes) - dwLocationInCmd;
+    }
+
     MOS_STATUS GetAvpBufSize(AvpBufferType bufferType, AvpBufferSizePar *avpBufSizeParam) override
     {
         MHW_FUNCTION_ENTER;
@@ -1071,10 +1084,14 @@ protected:
 
                 InitMocsParams(resourceParams, &cmd.ReferenceFrameBufferBaseAddressAttributes.DW0.Value, 1, 6);
 
+                // The per-reference attribute offset is for this reference only: use a copy, the buffers after the loop use resourceParams
+                MHW_RESOURCE_PARAMS refResourceParams = resourceParams;
+                refResourceParams.dwSharedMocsOffset = GetRefAttrDwOffset(cmd, i, refResourceParams.dwLocationInCmd);
+
                 MHW_MI_CHK_STATUS(AddResourceToCmd(
                     this->m_osItf,
                     this->m_currentCmdBuf,
-                    &resourceParams));
+                    &refResourceParams));
             }
         }
 
