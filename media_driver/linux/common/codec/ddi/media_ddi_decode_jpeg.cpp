@@ -46,6 +46,22 @@ typedef enum _DDI_DECODE_JPEG_BUFFER_STATE
 
 #define DDI_DECODE_JPEG_SLICE_PARAM_BUF_NUM      0x4     //According to JPEG SPEC, max slice per frame is 4
 
+static void ResetJpegRenderedBuffers(DDI_CODEC_COM_BUFFER_MGR *bufMgr)
+{
+    for (uint32_t i = 0; i < bufMgr->dwNumSliceData; ++i)
+    {
+        bufMgr->pSliceData[i].bRendered = false;
+    }
+    for (uint32_t i = 0; i < bufMgr->dwNumOfRenderedSlicePara &&
+        i < DDI_DECODE_JPEG_SLICE_PARAM_BUF_NUM; ++i)
+    {
+        bufMgr->pNumOfRenderedSliceParaForOneBuffer[i] = 0;
+    }
+    bufMgr->dwNumOfRenderedSliceData  = 0;
+    bufMgr->dwNumOfRenderedSlicePara  = 0;
+    bufMgr->dwSizeOfRenderedSliceData = 0;
+}
+
 static const uint32_t zigzag_order[64] =
 {
     0,   1,  8, 16,  9,  2,  3, 10,
@@ -345,10 +361,17 @@ VAStatus DdiDecodeJPEG::SetBufferRendered(VABufferID bufferID)
     {
         // Depend on the ID we tracked, if application want to rendered one of them
         // we set some flags
-        if (bufMgr->pSliceData[i].vaBufferId == bufferID)
+        if (bufMgr->pSliceData[i].pBaseAddress != nullptr &&
+            bufMgr->pSliceData[i].vaBufferId == bufferID)
         {
             if (bufMgr->pSliceData[i].bRendered == false)
             {
+                if (bufMgr->dwNumOfRenderedSliceData >= DDI_DECODE_JPEG_SLICE_PARAM_BUF_NUM ||
+                    bufMgr->dwSizeOfRenderedSliceData > INT32_MAX ||
+                    bufMgr->pSliceData[i].uiLength > INT32_MAX - bufMgr->dwSizeOfRenderedSliceData)
+                {
+                    return VA_STATUS_ERROR_INVALID_PARAMETER;
+                }
                 // set the rendered flags. which will be used when EndPicture.
                 bufMgr->pSliceData[i].bRendered = true;
                 // calculate the size of a bunch of rendered buffers. for endpicture to allocate appropriate memory size of GPU.
@@ -485,6 +508,8 @@ VAStatus DdiDecodeJPEG::BeginPicture(
     VAContextID      context,
     VASurfaceID      renderTarget)
 {
+    ResetJpegRenderedBuffers(&(m_ddiDecodeCtx->BufMgr));
+
     VAStatus vaStatus = DdiMediaDecode::BeginPicture(ctx, context, renderTarget);
 
     if (vaStatus != VA_STATUS_SUCCESS)
@@ -593,12 +618,46 @@ VAStatus DdiDecodeJPEG::SetDecodeParams()
 {
     DDI_CODEC_COM_BUFFER_MGR *bufMgr = &(m_ddiDecodeCtx->BufMgr);
 
+    // EndPicture consumes the rendered state even when validation or allocation fails.
+    struct RenderedStateReset
+    {
+        DDI_CODEC_COM_BUFFER_MGR *bufMgr;
+        ~RenderedStateReset() { ResetJpegRenderedBuffers(bufMgr); }
+    } reset{bufMgr};
+
     // we do not support mismatched usecase.
     if ((bufMgr->dwNumOfRenderedSlicePara != bufMgr->dwNumOfRenderedSliceData) ||
-        (bufMgr->dwNumOfRenderedSlicePara == 0))
+        (bufMgr->dwNumOfRenderedSlicePara == 0) ||
+        (bufMgr->dwNumOfRenderedSliceData > DDI_DECODE_JPEG_SLICE_PARAM_BUF_NUM))
     {
         DDI_NORMALMESSAGE("DDI: Unsupported buffer mismatch usage!\n");
         return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+
+    uint32_t totalSize = 0;
+    for (uint32_t i = 0; i < bufMgr->dwNumOfRenderedSliceData; ++i)
+    {
+        int32_t index = bufMgr->pRenderedOrder[i];
+        if (index < 0 || static_cast<uint32_t>(index) >= bufMgr->dwNumSliceData ||
+            bufMgr->pSliceData[index].pBaseAddress == nullptr ||
+            !bufMgr->pSliceData[index].bRendered ||
+            bufMgr->pSliceData[index].uiLength > INT32_MAX - totalSize)
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+        totalSize += bufMgr->pSliceData[index].uiLength;
+    }
+    if (totalSize == 0 || totalSize != bufMgr->dwSizeOfRenderedSliceData)
+    {
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+
+    // A previous EndPicture may have failed after allocating the bitstream buffer.
+    if (m_jpegBitstreamBuf != nullptr)
+    {
+        DdiMediaUtil_FreeBuffer(m_jpegBitstreamBuf);
+        MOS_FreeMemory(m_jpegBitstreamBuf);
+        m_jpegBitstreamBuf = nullptr;
     }
 
     // Allocate GPU Buffer description keeper.
@@ -654,10 +713,16 @@ VAStatus DdiDecodeJPEG::SetDecodeParams()
         int32_t renderedBufIdx = bufMgr->pRenderedOrder[i];
         if (bufMgr->pSliceData[renderedBufIdx].bRendered)
         {
-            MOS_SecureMemcpy((void *)(mappedBuf + bufOffset),
-                bufMgr->pSliceData[renderedBufIdx].uiLength,
-                bufMgr->pSliceData[renderedBufIdx].pBaseAddress,
-                bufMgr->pSliceData[renderedBufIdx].uiLength);
+            uint32_t capacity = static_cast<uint32_t>(m_jpegBitstreamBuf->iSize);
+            if (bufOffset > capacity ||
+                bufMgr->pSliceData[renderedBufIdx].uiLength > capacity - bufOffset ||
+                MOS_SecureMemcpy((void *)(mappedBuf + bufOffset), capacity - bufOffset,
+                    bufMgr->pSliceData[renderedBufIdx].pBaseAddress,
+                    bufMgr->pSliceData[renderedBufIdx].uiLength) != MOS_STATUS_SUCCESS)
+            {
+                DdiMediaUtil_UnlockBuffer(m_jpegBitstreamBuf);
+                return VA_STATUS_ERROR_INVALID_PARAMETER;
+            }
 
             // since we assume application must make sure ONE slice parameter buffer ONE slice data buffer, so we recaculate header offset here.
             for (int32_t j = 0; j < bufMgr->pNumOfRenderedSliceParaForOneBuffer[orderSliceData]; j++)
@@ -804,6 +869,7 @@ VAStatus DdiDecodeJPEG::AllocBsBuffer(
     buf->format                            = Media_Format_CPU;
     buf->bCFlushReq                        = false;
     buf->uiOffset                          = 0;
+    MOS_ZeroMemory(&(bufMgr->pSliceData[index]), sizeof(bufMgr->pSliceData[0]));
     bufMgr->pSliceData[index].uiLength     = buf->iSize;
     bufMgr->pSliceData[index].uiOffset     = buf->uiOffset;
     bufMgr->pSliceData[index].pBaseAddress = buf->pData;
