@@ -438,6 +438,10 @@ struct mos_xe_external_bo_info {
      * prime fd export from external bo handle
      */
     int prime_fd;
+    /**
+     * EXEC_OBJECT_READ_XE / EXEC_OBJECT_WRITE_XE of the exec on this bo
+     */
+    uint32_t exec_flags;
 };
 
 #define MOS_UNIMPLEMENT(param)    (void)(param)
@@ -2369,6 +2373,7 @@ __mos_context_exec_update_syncs_xe(struct mos_xe_bufmgr_gem *bufmgr_gem,
                     memclear(infos);
                     infos.syncobj_handle = syncs[count - 1].handle;
                     infos.prime_fd = prime_fd;
+                    infos.exec_flags = exec_flags;
                     external_bos.push_back(infos);
                 }
                 else
@@ -2652,7 +2657,7 @@ mos_bo_context_exec_with_sync_xe(struct mos_linux_bo **bo, int num_bo, struct mo
         //import syncobj for external bos
         if (sync_file_fd >= 0)
         {
-            mos_sync_import_syncfile_to_external_bo(bufmgr_gem->fd, external_bos[i].prime_fd, sync_file_fd);
+            mos_sync_import_syncfile_to_external_bo(bufmgr_gem->fd, external_bos[i].prime_fd, sync_file_fd, external_bos[i].exec_flags);
         }
         if (external_bos[i].prime_fd != INVALID_HANDLE)
         {

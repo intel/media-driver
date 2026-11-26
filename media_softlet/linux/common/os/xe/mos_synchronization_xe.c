@@ -367,19 +367,25 @@ int mos_sync_export_external_bo_sync(int fd, int bo_handle, uint32_t flags, int 
  *
  * @fd indicates to opened device;
  * @prime_fd indicates to the prime fd of the external bo;
- * @syncfile_fd indicates to syncfile fd got from fence out syncobj handle umd.
+ * @syncfile_fd indicates to syncfile fd got from fence out syncobj handle umd;
+ * @flags indicates to the exec's operation flags of read and write on the bo.
  *
  * Note: if umd wants to export its fence out for external process to sync, umd
  *     should always import its batch syncobj into all external bo dma sync buffer.
  *
  */
-int mos_sync_import_syncfile_to_external_bo(int fd, int prime_fd, int syncfile_fd)
+int mos_sync_import_syncfile_to_external_bo(int fd, int prime_fd, int syncfile_fd, uint32_t flags)
 {
     int ret = 0;
 
     struct dma_buf_import_sync_file import_sync_file;
     memclear(import_sync_file);
-    import_sync_file.flags = DMA_BUF_SYNC_WRITE;
+    /**
+     * A read-only use adds a shared fence: other readers of the buffer must not wait
+     * for it, only the next writer. A write fence here would serialize every exec that
+     * reads the same external buffer, e.g. several encoders of one input surface.
+     */
+    import_sync_file.flags = (flags & EXEC_OBJECT_WRITE_XE) ? DMA_BUF_SYNC_WRITE : DMA_BUF_SYNC_READ;
     import_sync_file.fd = syncfile_fd;
     ret = drmIoctl(prime_fd, DMA_BUF_IOCTL_IMPORT_SYNC_FILE, &import_sync_file);
     return ret;
