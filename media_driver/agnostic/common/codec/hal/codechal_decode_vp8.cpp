@@ -1241,29 +1241,32 @@ MOS_STATUS CodechalDecodeVp8::DecodeStateLevel()
     }
     else
     {
-        if((Mos_ResourceIsNull(&m_vp8RefList[m_vp8PicParams->ucLastRefPicIndex]->resRefPic)) && (m_presLastRefSurface))
+        // Supplied resources belong to this frame; do not replace them with cached pointers.
+        if (m_presLastRefSurface == nullptr)
         {
-           m_vp8RefList[m_vp8PicParams->ucLastRefPicIndex]->resRefPic = *m_presLastRefSurface;
+            if (m_vp8PicParams->ucLastRefPicIndex >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8 - 1)
+            {
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+            m_presLastRefSurface = &m_vp8RefList[m_vp8PicParams->ucLastRefPicIndex]->resRefPic;
         }
-        else
+        // Supplied resources belong to this frame; do not replace them with cached pointers.
+        if (m_presGoldenRefSurface == nullptr)
         {
-           m_presLastRefSurface = &(m_vp8RefList[m_vp8PicParams->ucLastRefPicIndex]->resRefPic);
+            if (m_vp8PicParams->ucGoldenRefPicIndex >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8 - 1)
+            {
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+            m_presGoldenRefSurface = &m_vp8RefList[m_vp8PicParams->ucGoldenRefPicIndex]->resRefPic;
         }
-        if((Mos_ResourceIsNull(&m_vp8RefList[m_vp8PicParams->ucGoldenRefPicIndex]->resRefPic)) && (m_presGoldenRefSurface))
+        // Supplied resources belong to this frame; do not replace them with cached pointers.
+        if (m_presAltRefSurface == nullptr)
         {
-           m_vp8RefList[m_vp8PicParams->ucGoldenRefPicIndex]->resRefPic = *m_presGoldenRefSurface;
-        }
-        else
-        {
-           m_presGoldenRefSurface = &(m_vp8RefList[m_vp8PicParams->ucGoldenRefPicIndex]->resRefPic);
-        }
-        if((Mos_ResourceIsNull(&m_vp8RefList[m_vp8PicParams->ucAltRefPicIndex]->resRefPic)) && (m_presAltRefSurface))
-        {
-           m_vp8RefList[m_vp8PicParams->ucAltRefPicIndex]->resRefPic = *m_presAltRefSurface;
-        }
-        else
-        {
-           m_presAltRefSurface = &(m_vp8RefList[m_vp8PicParams->ucAltRefPicIndex]->resRefPic);
+            if (m_vp8PicParams->ucAltRefPicIndex >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8 - 1)
+            {
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+            m_presAltRefSurface = &m_vp8RefList[m_vp8PicParams->ucAltRefPicIndex]->resRefPic;
         }
     }
 

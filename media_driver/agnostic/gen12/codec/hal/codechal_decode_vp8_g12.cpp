@@ -82,10 +82,6 @@ MOS_STATUS CodechalDecodeVp8G12::DecodeStateLevel()
 
     PCODEC_REF_LIST *vp8RefList = m_vp8RefList;
 
-    uint8_t lastRefPicIndex   = m_vp8PicParams->ucLastRefPicIndex;
-    uint8_t goldenRefPicIndex = m_vp8PicParams->ucGoldenRefPicIndex;
-    uint8_t altRefPicIndex    = m_vp8PicParams->ucAltRefPicIndex;
-
     PMOS_SURFACE destSurface = &m_destSurface;
     if (m_vp8PicParams->key_frame)  // reference surface should be nullptr when key_frame == true
     {
@@ -95,9 +91,33 @@ MOS_STATUS CodechalDecodeVp8G12::DecodeStateLevel()
     }
     else
     {
-        m_presLastRefSurface   = &(vp8RefList[lastRefPicIndex]->resRefPic);
-        m_presGoldenRefSurface = &(vp8RefList[goldenRefPicIndex]->resRefPic);
-        m_presAltRefSurface    = &(vp8RefList[altRefPicIndex]->resRefPic);
+        // Supplied resources belong to this frame; do not replace them with cached pointers.
+        if (m_presLastRefSurface == nullptr)
+        {
+            if (m_vp8PicParams->ucLastRefPicIndex >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8 - 1)
+            {
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+            m_presLastRefSurface = &vp8RefList[m_vp8PicParams->ucLastRefPicIndex]->resRefPic;
+        }
+        // Supplied resources belong to this frame; do not replace them with cached pointers.
+        if (m_presGoldenRefSurface == nullptr)
+        {
+            if (m_vp8PicParams->ucGoldenRefPicIndex >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8 - 1)
+            {
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+            m_presGoldenRefSurface = &vp8RefList[m_vp8PicParams->ucGoldenRefPicIndex]->resRefPic;
+        }
+        // Supplied resources belong to this frame; do not replace them with cached pointers.
+        if (m_presAltRefSurface == nullptr)
+        {
+            if (m_vp8PicParams->ucAltRefPicIndex >= CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8 - 1)
+            {
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+            m_presAltRefSurface = &vp8RefList[m_vp8PicParams->ucAltRefPicIndex]->resRefPic;
+        }
     }
 
     MOS_COMMAND_BUFFER cmdBuffer;

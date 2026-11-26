@@ -159,26 +159,25 @@ VAStatus DdiDecodeVP8::ParsePicParams(
 
     PDDI_MEDIA_SURFACE currentSurface = m_ddiDecodeCtx->RTtbl.pCurrentRT;
 
-    // only no-keyframe have last/gold/alt reference frame
+    MOS_ZeroMemory(&m_resNoneRegLastRefFrame, sizeof(m_resNoneRegLastRefFrame));
+    MOS_ZeroMemory(&m_resNoneRegGoldenRefFrame, sizeof(m_resNoneRegGoldenRefFrame));
+    MOS_ZeroMemory(&m_resNoneRegAltRefFrame, sizeof(m_resNoneRegAltRefFrame));
+    m_ddiDecodeCtx->DecodeParams.m_presNoneRegLastRefFrame = nullptr;
+    m_ddiDecodeCtx->DecodeParams.m_presNoneRegGoldenRefFrame = nullptr;
+    m_ddiDecodeCtx->DecodeParams.m_presNoneRegAltRefFrame = nullptr;
+    m_referenceSurfaceIds[0] = picParam->last_ref_frame;
+    m_referenceSurfaceIds[1] = picParam->golden_ref_frame;
+    m_referenceSurfaceIds[2] = picParam->alt_ref_frame;
+
+    // Resolve indices here; borrow live resources only when submitting the frame.
     if (picParam->pic_fields.bits.key_frame)
     {
-        lastRefSurface   = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->last_ref_frame);
-        if(lastRefSurface)
+        lastRefSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, m_referenceSurfaceIds[0]);
+        goldenRefSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, m_referenceSurfaceIds[1]);
+        altRefSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, m_referenceSurfaceIds[2]);
+        if (lastRefSurface == nullptr || goldenRefSurface == nullptr || altRefSurface == nullptr)
         {
-            DdiMedia_MediaSurfaceToMosResource(lastRefSurface, &m_resNoneRegLastRefFrame);
-            m_ddiDecodeCtx->DecodeParams.m_presNoneRegLastRefFrame = &m_resNoneRegLastRefFrame;
-        }
-        goldenRefSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->golden_ref_frame);
-        if(goldenRefSurface)
-        {
-            DdiMedia_MediaSurfaceToMosResource(goldenRefSurface, &m_resNoneRegGoldenRefFrame);
-            m_ddiDecodeCtx->DecodeParams.m_presNoneRegGoldenRefFrame = &m_resNoneRegGoldenRefFrame;
-        }
-        altRefSurface    = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, picParam->alt_ref_frame);
-        if(altRefSurface)
-        {
-            DdiMedia_MediaSurfaceToMosResource(altRefSurface, &m_resNoneRegAltRefFrame);
-            m_ddiDecodeCtx->DecodeParams.m_presNoneRegAltRefFrame = &m_resNoneRegAltRefFrame;
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
         }
     }
 
@@ -618,6 +617,37 @@ CleanUpandReturn:
 
 VAStatus DdiDecodeVP8::SetDecodeParams()
 {
+    auto picParams = (PCODEC_VP8_PIC_PARAMS)m_ddiDecodeCtx->DecodeParams.m_picParams;
+    if (picParams == nullptr || m_ddiDecodeCtx->RTtbl.pCurrentRT == nullptr ||
+        GetRenderTargetID(&m_ddiDecodeCtx->RTtbl, m_ddiDecodeCtx->RTtbl.pCurrentRT) != picParams->ucCurrPicIndex)
+    {
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+    if (!picParams->key_frame)
+    {
+        PDDI_MEDIA_SURFACE surfaces[3] = {};
+        for (uint32_t i = 0; i < 3; i++)
+        {
+            surfaces[i] = DdiMedia_GetSurfaceFromVASurfaceID(m_ddiDecodeCtx->pMediaCtx, m_referenceSurfaceIds[i]);
+            if (surfaces[i] == nullptr)
+            {
+                return VA_STATUS_ERROR_INVALID_PARAMETER;
+            }
+        }
+        int32_t lastIndex = GetRenderTargetID(&m_ddiDecodeCtx->RTtbl, surfaces[0]);
+        picParams->ucLastRefPicIndex = lastIndex < 0 ? CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8 - 1 : lastIndex;
+        int32_t goldenIndex = GetRenderTargetID(&m_ddiDecodeCtx->RTtbl, surfaces[1]);
+        picParams->ucGoldenRefPicIndex = goldenIndex < 0 ? CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8 - 1 : goldenIndex;
+        int32_t altIndex = GetRenderTargetID(&m_ddiDecodeCtx->RTtbl, surfaces[2]);
+        picParams->ucAltRefPicIndex = altIndex < 0 ? CODECHAL_NUM_UNCOMPRESSED_SURFACE_VP8 - 1 : altIndex;
+        DdiMedia_MediaSurfaceToMosResource(surfaces[0], &m_resNoneRegLastRefFrame);
+        DdiMedia_MediaSurfaceToMosResource(surfaces[1], &m_resNoneRegGoldenRefFrame);
+        DdiMedia_MediaSurfaceToMosResource(surfaces[2], &m_resNoneRegAltRefFrame);
+        m_ddiDecodeCtx->DecodeParams.m_presNoneRegLastRefFrame = &m_resNoneRegLastRefFrame;
+        m_ddiDecodeCtx->DecodeParams.m_presNoneRegGoldenRefFrame = &m_resNoneRegGoldenRefFrame;
+        m_ddiDecodeCtx->DecodeParams.m_presNoneRegAltRefFrame = &m_resNoneRegAltRefFrame;
+    }
+
     DDI_CHK_RET(DdiMediaDecode::SetDecodeParams(),"SetDecodeParams failed!");
     DDI_CODEC_COM_BUFFER_MGR *bufMgr = &(m_ddiDecodeCtx->BufMgr);
     (&m_ddiDecodeCtx->DecodeParams)->m_coefProbBuffer = &(bufMgr->Codec_Param.Codec_Param_VP8.resProbabilityDataBuffer);
