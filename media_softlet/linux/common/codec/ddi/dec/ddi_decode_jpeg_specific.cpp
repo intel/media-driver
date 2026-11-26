@@ -686,9 +686,16 @@ VAStatus DdiDecodeJpeg::SetDecodeParams()
     if ((m_decodeCtx->RTtbl.pCurrentRT->format == Media_Format_NV12)
         &&(jpegPicParam->m_chromaType == jpegYUV444))
     {
-        UnRegisterRTSurfaces(&(m_decodeCtx->RTtbl), m_decodeCtx->RTtbl.pCurrentRT);
-        m_decodeCtx->RTtbl.pCurrentRT = MediaLibvaCommonNext::ReplaceSurfaceWithNewFormat(m_decodeCtx->RTtbl.pCurrentRT, Media_Format_444P);
-        RegisterRTSurfaces(&(m_decodeCtx->RTtbl), m_decodeCtx->RTtbl.pCurrentRT);
+        PDDI_MEDIA_SURFACE originalSurface = m_decodeCtx->RTtbl.pCurrentRT;
+        UnRegisterRTSurfaces(&(m_decodeCtx->RTtbl), originalSurface);
+        PDDI_MEDIA_SURFACE replacementSurface = MediaLibvaCommonNext::ReplaceSurfaceWithNewFormat(originalSurface, Media_Format_444P);
+        if (replacementSurface == nullptr)
+        {
+            RegisterRTSurfaces(&(m_decodeCtx->RTtbl), originalSurface);
+            return VA_STATUS_ERROR_ALLOCATION_FAILED;
+        }
+        m_decodeCtx->RTtbl.pCurrentRT = replacementSurface;
+        RegisterRTSurfaces(&(m_decodeCtx->RTtbl), replacementSurface);
     }
     if (m_decodeCtx->RTtbl.pCurrentRT != nullptr)
     {

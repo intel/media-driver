@@ -110,57 +110,81 @@ PDDI_MEDIA_SURFACE MediaLibvaCommonNext::ReplaceSurfaceWithNewFormat(PDDI_MEDIA_
 {
     DDI_FUNC_ENTER;
     DDI_CHK_NULL(surface, "nullptr surface", nullptr);
-
-    PDDI_MEDIA_SURFACE_HEAP_ELEMENT surfaceElement = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)surface->pMediaCtx->pSurfaceHeap->pHeapBase;
     PDDI_MEDIA_CONTEXT mediaCtx = surface->pMediaCtx;
-
-    // Check some conditions
+    DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", nullptr);
+    DDI_CHK_NULL(mediaCtx->pSurfaceHeap, "nullptr surface heap", nullptr);
+    DDI_CHK_NULL(mediaCtx->pGmmClientContext, "nullptr GMM context", nullptr);
     if (expectedFormat == surface->format)
     {
         return surface;
     }
-    // Create new dst surface and copy the structure
-    PDDI_MEDIA_SURFACE dstSurface = (DDI_MEDIA_SURFACE *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_SURFACE));
-    if (nullptr == surfaceElement)
-    {
-        MOS_FreeMemory(dstSurface);
-        return nullptr;
-    }
 
-    MOS_SecureMemcpy(dstSurface, sizeof(DDI_MEDIA_SURFACE), surface, sizeof(DDI_MEDIA_SURFACE));
+    PDDI_MEDIA_SURFACE dstSurface = (DDI_MEDIA_SURFACE *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_SURFACE));
     DDI_CHK_NULL(dstSurface, "nullptr dstSurface", nullptr);
+    MOS_SecureMemcpy(dstSurface, sizeof(DDI_MEDIA_SURFACE), surface, sizeof(DDI_MEDIA_SURFACE));
     dstSurface->format = expectedFormat;
     dstSurface->uiLockedBufID = VA_INVALID_ID;
     dstSurface->uiLockedImageID = VA_INVALID_ID;
     dstSurface->pSurfDesc = nullptr;
-    // Lock surface heap
+    // Keep the original resources owned by the original surface until success.
+    dstSurface->bo = nullptr;
+    dstSurface->pGmmResourceInfo = nullptr;
+    dstSurface->pData = nullptr;
+    dstSurface->pSystemShadow = nullptr;
+    dstSurface->pShadowBuffer = nullptr;
+    dstSurface->bMapped = false;
+    dstSurface->iRefCount = 0;
+
     MosUtilities::MosLockMutex(&mediaCtx->SurfaceMutex);
-    uint32_t i;
-    // Get current element heap and index
-    for (i = 0; i < mediaCtx->pSurfaceHeap->uiAllocatedHeapElements; i++)
+    PDDI_MEDIA_SURFACE_HEAP_ELEMENT surfaceElement = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)mediaCtx->pSurfaceHeap->pHeapBase;
+    uint32_t i = 0;
+    if (surfaceElement)
     {
-        if (surface == surfaceElement->pSurface)
+        for (; i < mediaCtx->pSurfaceHeap->uiAllocatedHeapElements; ++i, ++surfaceElement)
         {
-            break;
+            if (surface == surfaceElement->pSurface)
+            {
+                break;
+            }
         }
-        surfaceElement++;
     }
-    // If cant find
-    if (i == surface->pMediaCtx->pSurfaceHeap->uiAllocatedHeapElements)
+    if (!surfaceElement || i == mediaCtx->pSurfaceHeap->uiAllocatedHeapElements)
     {
         MosUtilities::MosUnlockMutex(&mediaCtx->SurfaceMutex);
         MOS_FreeMemory(dstSurface);
         return nullptr;
     }
-    // FreeSurface
-    MediaLibvaUtilNext::FreeSurface(surface);
-    MOS_FreeMemory(surface);
-    // CreateNewSurface
-    MediaLibvaUtilNext::CreateSurface(dstSurface,mediaCtx);
+
+    if (MediaLibvaUtilNext::CreateSurface(dstSurface, mediaCtx) != VA_STATUS_SUCCESS)
+    {
+        if (dstSurface->bo)
+        {
+            MediaLibvaUtilNext::FreeSurface(dstSurface);
+        }
+        else if (dstSurface->pGmmResourceInfo)
+        {
+            mediaCtx->pGmmClientContext->DestroyResInfoObject(dstSurface->pGmmResourceInfo);
+        }
+        MosUtilities::MosUnlockMutex(&mediaCtx->SurfaceMutex);
+        MOS_FreeMemory(dstSurface);
+        return nullptr;
+    }
+
     surfaceElement->pSurface = dstSurface;
-
+    MediaLibvaUtilNext::FreeSurface(surface);
+    if (surface->pShadowBuffer)
+    {
+        MediaLibvaUtilNext::FreeBuffer(surface->pShadowBuffer);
+        MOS_Delete(surface->pShadowBuffer);
+        surface->pShadowBuffer = nullptr;
+    }
+    if (surface->pSystemShadow)
+    {
+        MOS_DeleteArray(surface->pSystemShadow);
+        surface->pSystemShadow = nullptr;
+    }
+    MOS_FreeMemory(surface);
     MosUtilities::MosUnlockMutex(&mediaCtx->SurfaceMutex);
-
     return dstSurface;
 }
 
