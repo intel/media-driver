@@ -172,85 +172,75 @@ VASurfaceID DdiMedia_GetVASurfaceIDFromSurface(PDDI_MEDIA_SURFACE surface)
 PDDI_MEDIA_SURFACE DdiMedia_ReplaceSurfaceWithNewFormat(PDDI_MEDIA_SURFACE surface, DDI_MEDIA_FORMAT expectedFormat)
 {
     DDI_CHK_NULL(surface, "nullptr surface", nullptr);
-
-    PDDI_MEDIA_SURFACE_HEAP_ELEMENT  surfaceElement = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)surface->pMediaCtx->pSurfaceHeap->pHeapBase;
     PDDI_MEDIA_CONTEXT mediaCtx = surface->pMediaCtx;
-
-    //check some conditions
-    if(expectedFormat == surface->format)
+    DDI_CHK_NULL(mediaCtx, "nullptr mediaCtx", nullptr);
+    DDI_CHK_NULL(mediaCtx->pSurfaceHeap, "nullptr surface heap", nullptr);
+    DDI_CHK_NULL(mediaCtx->pGmmClientContext, "nullptr GMM context", nullptr);
+    if (expectedFormat == surface->format)
     {
         return surface;
     }
-    //create new dst surface and copy the structure
+
     PDDI_MEDIA_SURFACE dstSurface = (DDI_MEDIA_SURFACE *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_SURFACE));
     DDI_CHK_NULL(dstSurface, "nullptr dstSurface", nullptr);
-    if (nullptr == surfaceElement)
-    {
-        MOS_FreeMemory(dstSurface);
-        return nullptr;
-    }
-
-    MOS_SecureMemcpy(dstSurface,sizeof(DDI_MEDIA_SURFACE),surface,sizeof(DDI_MEDIA_SURFACE));
+    MOS_SecureMemcpy(dstSurface, sizeof(DDI_MEDIA_SURFACE), surface, sizeof(DDI_MEDIA_SURFACE));
     dstSurface->format = expectedFormat;
     dstSurface->uiLockedBufID = VA_INVALID_ID;
     dstSurface->uiLockedImageID = VA_INVALID_ID;
     dstSurface->pSurfDesc = nullptr;
+    // Keep the original resources owned by the original surface until success.
+    dstSurface->bo = nullptr;
+    dstSurface->pGmmResourceInfo = nullptr;
+    dstSurface->pData = nullptr;
+    dstSurface->pSystemShadow = nullptr;
+    dstSurface->pShadowBuffer = nullptr;
+    dstSurface->bMapped = false;
+    dstSurface->iRefCount = 0;
 
-    // copy for some pointer resource
-    if(dstSurface->pShadowBuffer)
-    {
-        dstSurface->pShadowBuffer = (PDDI_MEDIA_BUFFER)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_BUFFER));
-        if (nullptr == dstSurface->pShadowBuffer)
-        {
-            MOS_FreeMemory(dstSurface);
-            return nullptr;
-        }
-        MOS_SecureMemcpy(dstSurface->pShadowBuffer, sizeof(DDI_MEDIA_BUFFER), surface->pShadowBuffer, sizeof(DDI_MEDIA_BUFFER));
-        mos_bo_reference(dstSurface->pShadowBuffer->bo);
-
-        dstSurface->pShadowBuffer->pGmmResourceInfo = (GMM_RESOURCE_INFO *)MOS_AllocAndZeroMemory(sizeof(GMM_RESOURCE_INFO));
-        if (nullptr == dstSurface->pShadowBuffer->pGmmResourceInfo)
-        {
-            MOS_FreeMemory(dstSurface->pShadowBuffer);
-            MOS_FreeMemory(dstSurface);
-            return nullptr;
-        }
-        MOS_SecureMemcpy(dstSurface->pShadowBuffer->pGmmResourceInfo, sizeof(GMM_RESOURCE_INFO), surface->pShadowBuffer->pGmmResourceInfo, sizeof(GMM_RESOURCE_INFO));
-    }
-
-    //lock surface heap
     DdiMediaUtil_LockMutex(&mediaCtx->SurfaceMutex);
-    uint32_t i;
-    //get current element heap and index
-    for(i = 0; i < mediaCtx->pSurfaceHeap->uiAllocatedHeapElements; i ++)
+    PDDI_MEDIA_SURFACE_HEAP_ELEMENT surfaceElement = (PDDI_MEDIA_SURFACE_HEAP_ELEMENT)mediaCtx->pSurfaceHeap->pHeapBase;
+    uint32_t i = 0;
+    if (surfaceElement)
     {
-        if(surface == surfaceElement->pSurface)
+        for (; i < mediaCtx->pSurfaceHeap->uiAllocatedHeapElements; ++i, ++surfaceElement)
         {
-            break;
+            if (surface == surfaceElement->pSurface)
+            {
+                break;
+            }
         }
-        surfaceElement ++;
     }
-    //if cant find
-    if(i == surface->pMediaCtx->pSurfaceHeap->uiAllocatedHeapElements)
+    if (!surfaceElement || i == mediaCtx->pSurfaceHeap->uiAllocatedHeapElements)
     {
         DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
-        if(dstSurface->pShadowBuffer)
-        {
-            MOS_FreeMemory(dstSurface->pShadowBuffer->pGmmResourceInfo);
-            MOS_FreeMemory(dstSurface->pShadowBuffer);
-        }
         MOS_FreeMemory(dstSurface);
         return nullptr;
     }
-    //CreateNewSurface
-    DdiMediaUtil_CreateSurface(dstSurface,mediaCtx);
+
+    if (DdiMediaUtil_CreateSurface(dstSurface, mediaCtx) != VA_STATUS_SUCCESS)
+    {
+        if (dstSurface->bo)
+        {
+            DdiMediaUtil_FreeSurface(dstSurface);
+        }
+        else if (dstSurface->pGmmResourceInfo)
+        {
+            mediaCtx->pGmmClientContext->DestroyResInfoObject(dstSurface->pGmmResourceInfo);
+        }
+        DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
+        MOS_FreeMemory(dstSurface);
+        return nullptr;
+    }
+
     surfaceElement->pSurface = dstSurface;
-    //FreeSurface
     DdiMediaUtil_FreeSurface(surface);
+    if (surface->pSystemShadow)
+    {
+        MOS_FreeMemory(surface->pSystemShadow);
+        surface->pSystemShadow = nullptr;
+    }
     MOS_FreeMemory(surface);
-
     DdiMediaUtil_UnLockMutex(&mediaCtx->SurfaceMutex);
-
     return dstSurface;
 }
 
