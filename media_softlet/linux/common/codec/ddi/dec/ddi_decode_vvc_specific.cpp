@@ -384,19 +384,29 @@ VAStatus DdiDecodeVvc::RenderPicture(
         {
             // VVC scaling list
             CodecVvcPicParams *pVvcPicParams              = static_cast<CodecVvcPicParams*>(m_decodeCtx->DecodeParams.m_picParams);
-            pVvcPicParams->m_numScalingMatrixBuffers      = buf->uiNumElements;
-            if (vvcMaxScalingMatrixNum < (pVvcPicParams->m_numScalingMatrixBuffers + scaling_list_buffer_nums))
+            const uint32_t numScalingMatrixBuffers = buf->uiNumElements;
+            if (numScalingMatrixBuffers > vvcMaxScalingMatrixNum ||
+                scaling_list_buffer_nums > vvcMaxScalingMatrixNum - numScalingMatrixBuffers)
             {
-                DDI_CODEC_ASSERTMESSAGE("numScalingListBuffers = %d exceeds max size = %d", pVvcPicParams->m_numScalingMatrixBuffers + scaling_list_buffer_nums, vvcMaxScalingMatrixNum);
+                DDI_CODEC_ASSERTMESSAGE("Scaling list buffer count exceeds max size = %d", vvcMaxScalingMatrixNum);
                 return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
             }
-            m_decodeCtx->DecodeParams.m_iqMatrixSize   = dataSize + scaling_list_buffer_nums * sizeof(CodecVvcQmData);
+            const size_t copySize = numScalingMatrixBuffers * sizeof(CodecVvcQmData);
+            if (dataSize != copySize)
+            {
+                return VA_STATUS_ERROR_INVALID_PARAMETER;
+            }
             CodecVvcQmData *pVvcScalingData           = (CodecVvcQmData*)(m_decodeCtx->DecodeParams.m_iqMatrixBuffer);
             pVvcScalingData += scaling_list_buffer_nums;
-            scaling_list_buffer_nums += buf->uiNumElements;
-            MOS_SecureMemcpy(pVvcScalingData,
-                buf->uiNumElements * sizeof(CodecVvcQmData),
-                data, dataSize);
+            if (MOS_SecureMemcpy(pVvcScalingData,
+                    (vvcMaxScalingMatrixNum - scaling_list_buffer_nums) * sizeof(CodecVvcQmData),
+                    data, copySize) != MOS_STATUS_SUCCESS)
+            {
+                return VA_STATUS_ERROR_INVALID_PARAMETER;
+            }
+            scaling_list_buffer_nums += numScalingMatrixBuffers;
+            pVvcPicParams->m_numScalingMatrixBuffers = scaling_list_buffer_nums;
+            m_decodeCtx->DecodeParams.m_iqMatrixSize = scaling_list_buffer_nums * sizeof(CodecVvcQmData);
             break;
         }
         case VAAlfBufferType:
