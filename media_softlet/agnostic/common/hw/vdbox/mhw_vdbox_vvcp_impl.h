@@ -1706,6 +1706,11 @@ protected:
     {
         _MHW_SETCMD_CALLBASE(VVCP_REF_IDX_STATE);
 
+        if (params.numRefForList > vvcMaxNumRefFrame || params.listIdx >= 2)
+        {
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
         for (uint8_t i = 0; i < static_cast<uint8_t>(params.numRefForList); i++)
         {
             uint8_t refFrameIDx = params.refPicList[params.listIdx][i].FrameIdx;

@@ -217,6 +217,15 @@ namespace decode
         DECODE_CHK_NULL(m_vvcSliceParams);
         m_curSlice = 0;
 
+        for (uint32_t slc = 0; slc < m_numSlices; slc++)
+        {
+            if (m_vvcSliceParams[slc].m_numRefIdxActive[0] > vvcMaxNumRefFrame ||
+                m_vvcSliceParams[slc].m_numRefIdxActive[1] > vvcMaxNumRefFrame)
+            {
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+        }
+
         DECODE_CHK_STATUS(SetPictureStructs(decodeParams));
 
         // APS update

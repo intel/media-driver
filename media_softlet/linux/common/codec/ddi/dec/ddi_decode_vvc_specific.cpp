@@ -1248,6 +1248,11 @@ VAStatus DdiDecodeVvc::ParseSliceParams(
         pVvcSliceParams->m_shAlfCcCbApsId           = slcParam->sh_alf_cc_cb_aps_id;
         pVvcSliceParams->m_shAlfCcCrApsId           = slcParam->sh_alf_cc_cr_aps_id;
 
+        if (slcParam->NumRefIdxActive[0] > vvcMaxNumRefFrame ||
+            slcParam->NumRefIdxActive[1] > vvcMaxNumRefFrame)
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
         MOS_SecureMemcpy(pVvcSliceParams->m_numRefIdxActive, 2, slcParam->NumRefIdxActive, 2);
 
         pVvcSliceParams->m_shCollocatedRefIdx       = slcParam->sh_collocated_ref_idx;
