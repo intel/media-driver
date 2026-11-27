@@ -58,6 +58,12 @@ VAStatus DdiDecodeAV1::ParseTileParams(
         return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
     }
 
+    if (m_ddiDecodeCtx->DecodeParams.m_numSlices > av1MaxTileNum - numTiles)
+    {
+        DDI_ASSERTMESSAGE("Cumulative tile count exceeds av1MaxTileNum");
+        return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
+    }
+
     pTileCtrl = slcParam;
     tileParams = (CodecAv1TileParams*)(m_ddiDecodeCtx->DecodeParams.m_sliceParams);
     tileParams += m_ddiDecodeCtx->DecodeParams.m_numSlices;
@@ -789,6 +795,12 @@ VAStatus DdiDecodeAV1::AllocSliceControlBuffer(
                           buf->uiNumElements, av1MaxTileNum);
         return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
     }
+    if (bufMgr->dwNumSliceControl > av1MaxTileNum - buf->uiNumElements)
+    {
+        DDI_ASSERTMESSAGE("Cumulative slice count exceeds av1MaxTileNum");
+        return VA_STATUS_ERROR_MAX_NUM_EXCEEDED;
+    }
+
     buf->pData = (uint8_t*)codec_Param_AV1->pVASliceParameterBufferAV1;
     buf->uiOffset = bufMgr->dwNumSliceControl * sizeof(VASliceParameterBufferAV1);
 
