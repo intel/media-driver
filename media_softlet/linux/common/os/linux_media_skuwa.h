@@ -38,7 +38,8 @@ class MediaFeatureTable
 {
 public:
     typedef std::string SkuKey;
-    typedef std::map<SkuKey, uint8_t> MediaMap;
+    // std::less<> lets find() compare a const char * key without converting it
+    typedef std::map<SkuKey, uint8_t, std::less<>> MediaMap;
     typedef MediaMap::iterator MapIterator;
 public:
     //!
@@ -79,7 +80,14 @@ public:
     //! \return   bool. true indicates that the attribute is enabled
     //!           false indicates that the attribute is disabled
 
-    bool MediaReadSku(SkuKey ftrKey)
+    bool MediaReadSku(const SkuKey &ftrKey)
+    {
+        return MediaReadSku(ftrKey.c_str());
+    }
+
+    //! \brief   the same for a literal key, as MEDIA_IS_SKU passes, without building a
+    //!           std::string for every lookup
+    bool MediaReadSku(const char *ftrKey)
     {
         if (mediaMap == nullptr)
         {
@@ -164,7 +172,8 @@ class MediaWaTable
 {
 public:
     typedef std::string WaKey;
-    typedef std::map<WaKey, uint8_t> MediaMap;
+    // std::less<> lets find() compare a const char * key without converting it
+    typedef std::map<WaKey, uint8_t, std::less<>> MediaMap;
     typedef MediaMap::iterator MapIterator;
 public:
     //!
@@ -203,7 +212,14 @@ public:
     //! \return   bool. true indicates that the attribute is enabled
     //!           false indicates that the attribute is disabled
 
-    bool MediaReadWa(WaKey waKey)
+    bool MediaReadWa(const WaKey &waKey)
+    {
+        return MediaReadWa(waKey.c_str());
+    }
+
+    //! \brief   the same for a literal key, as MEDIA_IS_WA passes, without building a
+    //!           std::string for every lookup
+    bool MediaReadWa(const char *waKey)
     {
         if (mediaMap == nullptr)
         {
