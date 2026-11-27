@@ -646,7 +646,7 @@ struct CodecVvcSliceParams
     uint8_t       m_shAlfApsIdChroma;                  // [0..7]
     uint8_t       m_shAlfCcCbApsId;                    // [0..7]
     uint8_t       m_shAlfCcCrApsId;                    // [0..7]
-    int8_t        m_numRefIdxActive[ 2 ];              // [0..14]
+    uint8_t       m_numRefIdxActive[ 2 ];              // [0..15], active reference count
     uint8_t       m_shCollocatedRefIdx;                // [0..14]
     int8_t        m_sliceQpY;                          // [-12..63]
     int8_t        m_shCbQpOffset;                      // [-12..12]
