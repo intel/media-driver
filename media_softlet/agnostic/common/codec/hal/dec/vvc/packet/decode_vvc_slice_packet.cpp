@@ -194,6 +194,11 @@ namespace decode
     {
         DECODE_FUNC_CALL()
 
+        if (m_vvcPicParams->m_phLmcsApsId >= vvcMaxLmcsNum)
+        {
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
         int32_t reshapeLUTSize = 1 << (m_vvcPicParams->m_spsBitdepthMinus8 + 8);
         int32_t pwlFwdLUTsize = vvcPicCodeCwBins;
         int32_t pwlFwdBinLen = reshapeLUTSize / vvcPicCodeCwBins;
@@ -545,11 +550,18 @@ namespace decode
     {
         params = {};
 
-        if (m_curSliceParams->m_longSliceFlags.m_fields.m_shLmcsUsedFlag &&
-            !(m_vvcBasicFeature->m_lmcsReshaperReady & (1 << m_vvcPicParams->m_phLmcsApsId)))
+        if (m_curSliceParams->m_longSliceFlags.m_fields.m_shLmcsUsedFlag)
         {
-            MOS_ZeroMemory(&m_vvcBasicFeature->m_lmcsReshaperInfo[m_vvcPicParams->m_phLmcsApsId], sizeof(ApsLmcsReshapeInfo));
-            DECODE_CHK_STATUS(ConstructLmcsReshaper());
+            if (m_vvcPicParams->m_phLmcsApsId >= vvcMaxLmcsNum)
+            {
+                return MOS_STATUS_INVALID_PARAMETER;
+            }
+
+            if (!(m_vvcBasicFeature->m_lmcsReshaperReady & (1 << m_vvcPicParams->m_phLmcsApsId)))
+            {
+                MOS_ZeroMemory(&m_vvcBasicFeature->m_lmcsReshaperInfo[m_vvcPicParams->m_phLmcsApsId], sizeof(ApsLmcsReshapeInfo));
+                DECODE_CHK_STATUS(ConstructLmcsReshaper());
+            }
         }
 
         CodecVvcPicParams   *picParams   = m_vvcBasicFeature->m_vvcPicParams;
