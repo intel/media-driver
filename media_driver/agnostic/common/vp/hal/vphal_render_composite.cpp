@@ -2109,6 +2109,19 @@ MOS_STATUS CompositeState::RenderMultiPhase(
                     }
                 }
             }
+            //Skip Blend CONSTANT_PARTIAL for alpha input YUV output
+            if (pSrc->pBlendingParams && pSrc->pBlendingParams->BlendType == BLEND_CONSTANT_PARTIAL)
+            {
+                if (pOutput)
+                {
+                    if (IS_ALPHA_FORMAT(pSrc->Format) &&
+                        IS_YUV_FORMAT(pOutput->Format))
+                    {
+                        VP_PUBLIC_NORMALMESSAGE("Force to use Blend Constant Source instead of Blend Constant Partial");
+                        pSrc->pBlendingParams->BlendType = BLEND_CONSTANT_SOURCE;
+                    }
+                }
+            }
             if (!AddCompLayer(&CompositeParams, pSrc, disableAvsSampler))
             {
                 bLastPhase = false;
