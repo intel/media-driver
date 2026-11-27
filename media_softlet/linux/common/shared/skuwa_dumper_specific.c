@@ -47,7 +47,7 @@ MOS_STATUS VpParameterDumper::SkuWa_DumpToXML(
     pcOutContents         = nullptr;
     enableSkuWaDump       = m_dumpSpec.enableSkuWaDump;
 
-    std::map<std::string, uint8_t>::iterator iter;
+    MediaFeatureTable::MapIterator           iter;
     MediaFeatureTable::MediaMap *            mediaSkuMap = skuTable->GetMediaSku();
     MediaWaTable::MediaMap *                 mediaWaMap  = waTable->GetMediaWa();
 
