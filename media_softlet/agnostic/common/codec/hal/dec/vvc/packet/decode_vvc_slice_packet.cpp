@@ -85,7 +85,11 @@ namespace decode
                 uint16_t subPicId           = m_curSliceParams->m_shSubpicId;
                 uint16_t subPicIdx          = m_vvcBasicFeature->GetSubPicIdxFromSubPicId(subPicId);
                 uint16_t sliceIdxInSubpic   = m_curSliceParams->m_shSliceAddress;
+                DECODE_CHK_COND(sliceIdxInSubpic >= vvcMaxSliceNum,
+                    "Error detected: sh_slice_address out of range\n");
                 uint16_t sliceIdxInPic      = m_vvcBasicFeature->m_subPicParams[subPicIdx].m_sliceIdx[sliceIdxInSubpic];
+                DECODE_CHK_COND(sliceIdxInPic >= vvcMaxSliceNum,
+                    "Error detected: slice index out of range\n");
 
                 m_subPicParams  = &m_vvcBasicFeature->m_subPicParams[subPicIdx];
                 m_sliceDesc     = &m_vvcBasicFeature->m_sliceDesc[sliceIdxInPic];
@@ -95,6 +99,8 @@ namespace decode
                 uint16_t subPicId           = m_curSliceParams->m_shSubpicId;
                 DECODE_ASSERT(subPicId == 0);
                 uint16_t sliceIdxInSubpic   = m_curSliceParams->m_shSliceAddress;
+                DECODE_CHK_COND(sliceIdxInSubpic >= vvcMaxSliceNum,
+                    "Error detected: sh_slice_address out of range\n");
 
                 m_subPicParams  = nullptr;
                 m_sliceDesc     = &m_vvcBasicFeature->m_sliceDesc[sliceIdxInSubpic];
@@ -193,6 +199,11 @@ namespace decode
     MOS_STATUS VvcDecodeSlicePkt::ConstructLmcsReshaper() const
     {
         DECODE_FUNC_CALL()
+
+        if (m_vvcPicParams->m_phLmcsApsId >= vvcMaxLmcsNum)
+        {
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
 
         int32_t reshapeLUTSize = 1 << (m_vvcPicParams->m_spsBitdepthMinus8 + 8);
         int32_t pwlFwdLUTsize = vvcPicCodeCwBins;
@@ -545,7 +556,8 @@ namespace decode
     {
         params = {};
 
-        if (m_curSliceParams->m_longSliceFlags.m_fields.m_shLmcsUsedFlag &&
+        if (m_vvcPicParams->m_phLmcsApsId < vvcMaxLmcsNum &&
+            m_curSliceParams->m_longSliceFlags.m_fields.m_shLmcsUsedFlag &&
             !(m_vvcBasicFeature->m_lmcsReshaperReady & (1 << m_vvcPicParams->m_phLmcsApsId)))
         {
             MOS_ZeroMemory(&m_vvcBasicFeature->m_lmcsReshaperInfo[m_vvcPicParams->m_phLmcsApsId], sizeof(ApsLmcsReshapeInfo));

@@ -316,7 +316,21 @@ VAStatus DdiDecodeBase::DecodeCombineBitstream(DDI_MEDIA_CONTEXT *mediaCtx)
         return VA_STATUS_ERROR_DECODING_ERROR;
     }
 
-    newBitstreamBuffer->iSize     = m_decodeCtx->DecodeParams.m_dataSize;
+    // Layer 1: Compute the true required buffer size as the maximum of
+    // m_dataSize and the furthest byte written by any pSliceData entry
+    // (offset + length).  m_dataSize can under-count when a codec (e.g. VP9)
+    // only accumulates the first slice-data buffer, so using it alone would
+    // produce a buffer that is too small for subsequent slices.
+    uint32_t requiredSize = m_decodeCtx->DecodeParams.m_dataSize;
+    for (uint32_t i = 0; i < bufMgr->dwNumSliceData; i++)
+    {
+        uint32_t sliceEnd = bufMgr->pSliceData[i].uiOffset + bufMgr->pSliceData[i].uiLength;
+        if (sliceEnd > requiredSize)
+        {
+            requiredSize = sliceEnd;
+        }
+    }
+    newBitstreamBuffer->iSize     = requiredSize;
     newBitstreamBuffer->uiType    = VASliceDataBufferType;
     newBitstreamBuffer->format    = Media_Format_Buffer;
     newBitstreamBuffer->uiOffset  = 0;
@@ -347,12 +361,24 @@ VAStatus DdiDecodeBase::DecodeCombineBitstream(DDI_MEDIA_CONTEXT *mediaCtx)
     // copy data to new bit stream
     for (slcInd = 0; slcInd < bufMgr->dwNumSliceData; slcInd++)
     {
+        // Layer 2: Per-copy bounds guard.  Although requiredSize above should
+        // always be large enough, this check is a second-layer defence that
+        // prevents any residual mismatch from producing a heap OOB write.
+        uint32_t sliceEnd = bufMgr->pSliceData[slcInd].uiOffset + bufMgr->pSliceData[slcInd].uiLength;
+        if (sliceEnd > requiredSize)
+        {
+            DDI_CODEC_ASSERTMESSAGE("DDI: slice %u extent (%u) exceeds bitstream buffer (%u), skipping.",
+                slcInd, sliceEnd, requiredSize);
+            continue;
+        }
+        // Remaining bytes from this slice's start offset to the buffer end.
+        uint32_t dstAvail = requiredSize - bufMgr->pSliceData[slcInd].uiOffset;
         if (bufMgr->pSliceData[slcInd].bIsUseExtBuf == true)
         {
             if (bufMgr->pSliceData[slcInd].pSliceBuf)
             {
                 MOS_SecureMemcpy(newBitStreamBase + bufMgr->pSliceData[slcInd].uiOffset,
-                    bufMgr->pSliceData[slcInd].uiLength,
+                    dstAvail,
                     bufMgr->pSliceData[slcInd].pSliceBuf,
                     bufMgr->pSliceData[slcInd].uiLength);
                 MOS_FreeMemory(bufMgr->pSliceData[slcInd].pSliceBuf);
@@ -363,7 +389,7 @@ VAStatus DdiDecodeBase::DecodeCombineBitstream(DDI_MEDIA_CONTEXT *mediaCtx)
         else
         {
             MOS_SecureMemcpy(newBitStreamBase + bufMgr->pSliceData[slcInd].uiOffset,
-                bufMgr->pSliceData[slcInd].uiLength,
+                dstAvail,
                 bufMgr->pBitStreamBase[bufMgr->dwBitstreamIndex] + bufMgr->pSliceData[slcInd].uiOffset,
                 bufMgr->pSliceData[slcInd].uiLength);
         }

@@ -358,6 +358,8 @@ namespace decode
 
                 if(m_vvcPicParams->m_spsFlags0.m_fields.m_spsSubpicInfoPresentFlag && m_vvcPicParams->m_spsNumSubpicsMinus1 > 0)
                 {
+                    DECODE_CHK_COND(m_vvcSliceParams[i].m_shSliceAddress >= vvcMaxSliceNum,
+                        "Error detected: sh_slice_address out of range\n");
                     sliceIdx = m_subPicParams[subPicIdx].m_sliceIdx[m_vvcSliceParams[i].m_shSliceAddress];
                 }
                 else
@@ -365,6 +367,7 @@ namespace decode
                     DECODE_CHK_COND(subPicIdx != 0, "Error detected: incorrect subpic index\n");
                     sliceIdx = m_vvcSliceParams[i].m_shSliceAddress;
                 }
+                DECODE_CHK_COND(sliceIdx >= vvcMaxSliceNum, "Error detected: slice index out of range\n");
 
                 if (!m_sliceDesc[sliceIdx].m_sliceAvailableFlag)
                 {
