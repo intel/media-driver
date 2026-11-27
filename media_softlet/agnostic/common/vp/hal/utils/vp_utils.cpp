@@ -744,11 +744,11 @@ MOS_STATUS VpUtils::GetCscMatrixForHDR(
     std::array<float, 12> tempMatrix;
     if (dst == CSpace_sRGB)
     {
-        if (src == CSpace_BT601)
+        if (src == CSpace_BT601 || src == CSpace_BT601_FullRange)
         {
             tempMatrix = {1.000000f, 0.000000f, 1.402000f, 0.000000f, 1.000000f, -0.344136f, -0.714136f, 0.000000f, 1.000000f, 1.772000f, 0.000000f, 0.000000f};
         }
-        else if (src == CSpace_BT709)
+        else if (src == CSpace_BT709 || src == CSpace_BT709_FullRange)
         {
             tempMatrix = {1.000000f, 0.000000f, 1.574800f, 0.000000f, 1.000000f, -0.187324f, -0.468124f, 0.000000f, 1.000000f, 1.855600f, 0.000000f, 0.000000f};
         }
@@ -764,7 +764,7 @@ MOS_STATUS VpUtils::GetCscMatrixForHDR(
     }
     else if (src == CSpace_sRGB)
     {
-        if (dst == CSpace_BT601)
+        if (dst == CSpace_BT601 || dst == CSpace_BT601_FullRange)
         {
             if (swapChannel)
             {

@@ -346,6 +346,14 @@ MOS_STATUS VpHal_HdrUpdatePerLayerPipelineStates(
             {
                 CurrentPriorCSC = VPHAL_HDR_CSC_YUV_TO_RGB_BT709;
             }
+            else if (pSrc->ColorSpace == CSpace_BT601_FullRange)
+            {
+                CurrentPriorCSC = VPHAL_HDR_CSC_YUV_TO_RGB_BT601_FULLRANGE;
+            }
+            else if (pSrc->ColorSpace == CSpace_BT709_FullRange)
+            {
+                CurrentPriorCSC = VPHAL_HDR_CSC_YUV_TO_RGB_BT709_FULLRANGE;
+            }
             else if (pSrc->ColorSpace == CSpace_BT2020)
             {
                 CurrentPriorCSC = VPHAL_HDR_CSC_YUV_TO_RGB_BT2020;
@@ -423,6 +431,10 @@ MOS_STATUS VpHal_HdrUpdatePerLayerPipelineStates(
             else if (pTarget->ColorSpace == CSpace_BT709)
             {
                 CurrentPostCSC = VPHAL_HDR_CSC_RGB_TO_YUV_BT709;
+            }
+            else if (pTarget->ColorSpace == CSpace_BT601_FullRange)
+            {
+                CurrentPostCSC = VPHAL_HDR_CSC_RGB_TO_YUV_BT601_FULLRANGE;
             }
             else if (pTarget->ColorSpace == CSpace_BT709_FullRange)
             {
