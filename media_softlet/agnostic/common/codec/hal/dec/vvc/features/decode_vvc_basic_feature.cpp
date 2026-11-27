@@ -351,13 +351,23 @@ namespace decode
         }
         else
         {
+            uint16_t numSliceDesc = (m_vvcPicParams->m_ppsFlags.m_fields.m_ppsSingleSlicePerSubpicFlag) ?
+                                    ((m_vvcPicParams->m_spsNumSubpicsMinus1 == 0 || !m_vvcPicParams->m_spsFlags0.m_fields.m_spsSubpicInfoPresentFlag) ? 1 : (m_vvcPicParams->m_spsNumSubpicsMinus1 + 1)) : (m_vvcPicParams->m_ppsNumSlicesInPicMinus1 + 1);
+            DECODE_CHK_COND(numSliceDesc == 0 || numSliceDesc > vvcMaxSliceNum, "Error detected: incorrect slice descriptor count\n");
+
             for (uint16_t i = 0; i < m_numSlices; i++)
             {
-                uint16_t subPicIdx = GetSubPicIdxFromSubPicId(m_vvcSliceParams[i].m_shSubpicId);
+                int16_t subPicIdx = GetSubPicIdxFromSubPicId(m_vvcSliceParams[i].m_shSubpicId);
                 uint16_t sliceIdx = 0;
 
                 if(m_vvcPicParams->m_spsFlags0.m_fields.m_spsSubpicInfoPresentFlag && m_vvcPicParams->m_spsNumSubpicsMinus1 > 0)
                 {
+                    DECODE_CHK_NULL(m_subPicParams);
+                    DECODE_CHK_COND(subPicIdx < 0 || subPicIdx > m_vvcPicParams->m_spsNumSubpicsMinus1, "Error detected: incorrect subpic index\n");
+                    DECODE_CHK_NULL(m_subPicParams[subPicIdx].m_sliceIdx);
+                    DECODE_CHK_COND(m_subPicParams[subPicIdx].m_numSlices <= 0 ||
+                        m_vvcSliceParams[i].m_shSliceAddress >= m_subPicParams[subPicIdx].m_numSlices,
+                        "Error detected: incorrect slice address in subpic\n");
                     sliceIdx = m_subPicParams[subPicIdx].m_sliceIdx[m_vvcSliceParams[i].m_shSliceAddress];
                 }
                 else
@@ -366,6 +376,7 @@ namespace decode
                     sliceIdx = m_vvcSliceParams[i].m_shSliceAddress;
                 }
 
+                DECODE_CHK_COND(sliceIdx >= numSliceDesc, "Error detected: incorrect slice index\n");
                 if (!m_sliceDesc[sliceIdx].m_sliceAvailableFlag)
                 {
                     m_sliceDesc[sliceIdx].m_sliceAvailableFlag = true;
@@ -377,8 +388,6 @@ namespace decode
                 }
             }
 
-            uint16_t numSliceDesc = (m_vvcPicParams->m_ppsFlags.m_fields.m_ppsSingleSlicePerSubpicFlag) ?
-                                    ((m_vvcPicParams->m_spsNumSubpicsMinus1 == 0 || !m_vvcPicParams->m_spsFlags0.m_fields.m_spsSubpicInfoPresentFlag) ? 1 : (m_vvcPicParams->m_spsNumSubpicsMinus1 + 1)) : (m_vvcPicParams->m_ppsNumSlicesInPicMinus1 + 1);
             for (auto i = 0; i < numSliceDesc; i++)
             {
                 if (m_sliceDesc[i].m_sliceAvailableFlag)
