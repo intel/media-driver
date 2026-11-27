@@ -299,6 +299,32 @@ VAStatus DdiMediaDecode::DecodeCombineBitstream(DDI_MEDIA_CONTEXT *mediaCtx)
         return VA_STATUS_SUCCESS;
     }
 
+    for (uint32_t i = 0; i < bufMgr->dwNumSliceData; i++)
+    {
+        const auto &slice = bufMgr->pSliceData[i];
+        if (slice.bIsUseExtBuf && slice.pSliceBuf == nullptr)
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+        if (slice.uiOffset > m_ddiDecodeCtx->DecodeParams.m_dataSize ||
+            slice.uiLength > m_ddiDecodeCtx->DecodeParams.m_dataSize - slice.uiOffset)
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+        if (!slice.bIsUseExtBuf)
+        {
+            if (bufMgr->pBitStreamBase[bufMgr->dwBitstreamIndex] == nullptr)
+            {
+                return VA_STATUS_ERROR_INVALID_PARAMETER;
+            }
+            uint32_t capacity = bufMgr->pBitStreamBuffObject[bufMgr->dwBitstreamIndex]->iSize;
+            if (slice.uiOffset > capacity || slice.uiLength > capacity - slice.uiOffset)
+            {
+                return VA_STATUS_ERROR_INVALID_PARAMETER;
+            }
+        }
+    }
+
     PDDI_MEDIA_BUFFER newBitstreamBuffer;
     //allocate a new bit stream buffer
     newBitstreamBuffer = (DDI_MEDIA_BUFFER *)MOS_AllocAndZeroMemory(sizeof(DDI_MEDIA_BUFFER));
@@ -344,7 +370,7 @@ VAStatus DdiMediaDecode::DecodeCombineBitstream(DDI_MEDIA_CONTEXT *mediaCtx)
             if (bufMgr->pSliceData[slcInd].pSliceBuf)
             {
                 MOS_SecureMemcpy(newBitStreamBase + bufMgr->pSliceData[slcInd].uiOffset,
-                    bufMgr->pSliceData[slcInd].uiLength,
+                    newBitstreamBuffer->iSize - bufMgr->pSliceData[slcInd].uiOffset,
                     bufMgr->pSliceData[slcInd].pSliceBuf,
                     bufMgr->pSliceData[slcInd].uiLength);
                 MOS_FreeMemory(bufMgr->pSliceData[slcInd].pSliceBuf);
@@ -355,7 +381,7 @@ VAStatus DdiMediaDecode::DecodeCombineBitstream(DDI_MEDIA_CONTEXT *mediaCtx)
         else
         {
             MOS_SecureMemcpy(newBitStreamBase + bufMgr->pSliceData[slcInd].uiOffset,
-                bufMgr->pSliceData[slcInd].uiLength,
+                newBitstreamBuffer->iSize - bufMgr->pSliceData[slcInd].uiOffset,
                 bufMgr->pBitStreamBase[bufMgr->dwBitstreamIndex] + bufMgr->pSliceData[slcInd].uiOffset,
                 bufMgr->pSliceData[slcInd].uiLength);
         }
@@ -495,6 +521,13 @@ VAStatus DdiMediaDecode::AllocBsBuffer(
     vaStatus    = VA_STATUS_SUCCESS;
     sliceBuf   = nullptr;
 
+    uint64_t offset = index == 0 ? 0 :
+        (uint64_t)bufMgr->pSliceData[index - 1].uiOffset + bufMgr->pSliceData[index - 1].uiLength;
+    if (offset + buf->iSize > UINT32_MAX)
+    {
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
+
     /* the pSliceData needs to be reallocated in order to contain more SliceDataBuf */
     if (index >= bufMgr->m_maxNumSliceData)
     {
@@ -519,8 +552,8 @@ VAStatus DdiMediaDecode::AllocBsBuffer(
 
     if(index >= 1)
     {
-        buf->uiOffset = bufMgr->pSliceData[index-1].uiOffset + bufMgr->pSliceData[index-1].uiLength;
-        if((buf->uiOffset + buf->iSize) > bufMgr->pBitStreamBuffObject[bufMgr->dwBitstreamIndex]->iSize)
+        buf->uiOffset = (uint32_t)offset;
+        if (offset + buf->iSize > bufMgr->pBitStreamBuffObject[bufMgr->dwBitstreamIndex]->iSize)
         {
             sliceBuf = (uint8_t*)MOS_AllocAndZeroMemory(buf->iSize);
             if(sliceBuf == nullptr)
@@ -529,10 +562,6 @@ VAStatus DdiMediaDecode::AllocBsBuffer(
                 return VA_STATUS_ERROR_ALLOCATION_FAILED;
             }
             bufMgr->bIsSliceOverSize = true;
-        }
-        else
-        {
-            bufMgr->bIsSliceOverSize = false;
         }
     }
     else
@@ -616,7 +645,7 @@ VAStatus DdiMediaDecode::AllocBsBuffer(
     bufMgr->pSliceData[index].uiLength = buf->iSize;
     bufMgr->pSliceData[index].uiOffset = buf->uiOffset;
 
-    if(bufMgr->bIsSliceOverSize == true)
+    if (sliceBuf != nullptr)
     {
         buf->pData                              = sliceBuf;
         buf->uiOffset                           = 0;
@@ -1114,7 +1143,15 @@ VAStatus DdiMediaDecode::CreateBuffer(
     {
         mos_bo_wait_rendering(buf->bo);
     }
-    status = MOS_SecureMemcpy((void *)(buf->pData + buf->uiOffset), size * numElements, data, size * numElements);
+    {
+        uint32_t remaining = buf->iSize;
+        if (buf->bCFlushReq && (type == VASliceDataBufferType || type == VAProtectedSliceDataBufferType))
+        {
+            uint32_t capacity = m_ddiDecodeCtx->BufMgr.pBitStreamBuffObject[m_ddiDecodeCtx->BufMgr.dwBitstreamIndex]->iSize;
+            remaining = capacity - buf->uiOffset;
+        }
+        status = MOS_SecureMemcpy((void *)(buf->pData + buf->uiOffset), remaining, data, size * numElements);
+    }
     DDI_CHK_CONDITION((status != MOS_STATUS_SUCCESS), "DDI:Failed to copy buffer data!", VA_STATUS_ERROR_OPERATION_FAILED);
     return va;
 
