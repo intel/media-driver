@@ -187,6 +187,12 @@ namespace decode
         m_totalTileNum      = (picParams.m_picInfoFlags.m_fields.m_largeScaleTile) ?
             (picParams.m_tileCountMinus1 + 1) : picParams.m_tileRows * picParams.m_tileCols;
 
+        if (m_totalTileNum > av1MaxTileNum)
+        {
+            DECODE_ASSERTMESSAGE("m_totalTileNum = %d exceeds av1MaxTileNum = %d", m_totalTileNum, av1MaxTileNum);
+            return MOS_STATUS_INVALID_PARAMETER;
+        }
+
         int16_t tileId           = 0;
         int16_t tileGroupId      = -1;
         int16_t lastStartTileIdx = -1;
