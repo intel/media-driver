@@ -4072,6 +4072,11 @@ static VAStatus DdiMedia_StatusCheck (
         DDI_CHK_NULL(vpCtx ,        "nullptr vpCtx",         VA_STATUS_ERROR_INVALID_CONTEXT);
         DDI_CHK_NULL(vpCtx->pVpHal ,"nullptr vpCtx->pVpHal", VA_STATUS_ERROR_INVALID_CONTEXT);
 
+        // Other threads may be syncing surfaces this context rendered. Hold
+        // the lock until every entry we remove has been marked, so no thread
+        // finds its entry removed but its surface not yet marked.
+        DdiMediaUtil_LockGuard statusGuard(&vpCtx->StatusMutex);
+
         QUERY_STATUS_REPORT_APP tempVpReport;
         MOS_ZeroMemory(&tempVpReport, sizeof(QUERY_STATUS_REPORT_APP));
 
@@ -4087,12 +4092,20 @@ static VAStatus DdiMedia_StatusCheck (
                 MOS_ZeroMemory(&tempVpReport, sizeof(QUERY_STATUS_REPORT_APP));
                 vpCtx->pVpHal->GetStatusReport(&tempVpReport, 1);
 
+                // The table is empty. This is a placeholder, not an entry.
+                if (tempVpReport.dwStatus == VPREP_NOTAVAILABLE)
+                {
+                    break;
+                }
+
                 // StatusFeedBackID is last time submitted Target Surface ID which is set in BeginPicture,
                 // So we can know the report is for which surface here.
                 DDI_MEDIA_SURFACE *tempSurface = DdiMedia_GetSurfaceFromVASurfaceID(mediaCtx, tempVpReport.StatusFeedBackID);
                 if(tempSurface == nullptr)
                 {
-                    return VA_STATUS_ERROR_OPERATION_FAILED;
+                    // That surface was destroyed after its job was submitted.
+                    // It isn't this caller's surface, so don't fail this call.
+                    continue;
                 }
 
                 // Update the status of the surface which is reported.
