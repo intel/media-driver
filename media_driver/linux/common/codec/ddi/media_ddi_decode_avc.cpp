@@ -359,26 +359,36 @@ VAStatus DdiDecodeAVC::ParseIQMatrix(
 VAStatus DdiDecodeAVC::AllocSliceParamContext(
     uint32_t numSlices)
 {
-    uint32_t baseSize = sizeof(CODEC_AVC_SLICE_PARAMS);
-
-    if (m_sliceParamBufNum < (m_ddiDecodeCtx->DecodeParams.m_numSlices + numSlices))
+    const size_t baseSize = sizeof(CODEC_AVC_SLICE_PARAMS);
+    if (numSlices > UINT32_MAX - m_ddiDecodeCtx->DecodeParams.m_numSlices)
     {
-        // in order to avoid that the buffer is reallocated multi-times,
-        // extra 10 slices are added.
-        uint32_t extraSlices                           = numSlices + 10;
-        m_ddiDecodeCtx->DecodeParams.m_sliceParams = realloc(m_ddiDecodeCtx->DecodeParams.m_sliceParams,
-            baseSize * (m_sliceParamBufNum + extraSlices));
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
 
-        if (m_ddiDecodeCtx->DecodeParams.m_sliceParams == nullptr)
+    if (m_sliceParamBufNum < m_ddiDecodeCtx->DecodeParams.m_numSlices + numSlices)
+    {
+        // Reserve extra slices to avoid repeated allocations.
+        if (numSlices > UINT32_MAX - 10 ||
+            m_sliceParamBufNum > UINT32_MAX - (numSlices + 10))
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+        const uint32_t extraSlices = numSlices + 10;
+        const uint32_t newCapacity = m_sliceParamBufNum + extraSlices;
+        if (baseSize > SIZE_MAX / newCapacity)
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+
+        void *sliceParams = realloc(m_ddiDecodeCtx->DecodeParams.m_sliceParams, baseSize * newCapacity);
+        if (sliceParams == nullptr)
         {
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
-
-        memset((void *)((uint8_t *)m_ddiDecodeCtx->DecodeParams.m_sliceParams + baseSize * m_sliceParamBufNum),
-            0,
-            baseSize * extraSlices);
-
-        m_sliceParamBufNum += extraSlices;
+        memset(static_cast<uint8_t *>(sliceParams) + baseSize * m_sliceParamBufNum,
+            0, baseSize * extraSlices);
+        m_ddiDecodeCtx->DecodeParams.m_sliceParams = sliceParams;
+        m_sliceParamBufNum = newCapacity;
     }
 
     return VA_STATUS_SUCCESS;

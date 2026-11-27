@@ -499,39 +499,64 @@ MOS_FORMAT DdiDecodeHEVCG11::GetFormat()
 VAStatus DdiDecodeHEVCG11::AllocSliceParamContext(
     uint32_t numSlices)
 {
-    uint32_t baseSize = sizeof(CODEC_HEVC_SLICE_PARAMS);
-
-    if (m_sliceParamBufNum < (m_ddiDecodeCtx->DecodeParams.m_numSlices + numSlices))
+    const size_t baseSize = sizeof(CODEC_HEVC_SLICE_PARAMS);
+    if (numSlices > UINT32_MAX - m_ddiDecodeCtx->DecodeParams.m_numSlices)
     {
-        // in order to avoid that the buffer is reallocated multi-times,
-        // extra 10 slices are added.
-        uint32_t extraSlices = numSlices + 10;
+        return VA_STATUS_ERROR_INVALID_PARAMETER;
+    }
 
-        m_ddiDecodeCtx->DecodeParams.m_sliceParams = realloc(m_ddiDecodeCtx->DecodeParams.m_sliceParams,
-            baseSize * (m_sliceParamBufNum + extraSlices));
+    if (m_sliceParamBufNum < m_ddiDecodeCtx->DecodeParams.m_numSlices + numSlices)
+    {
+        // Reserve extra slices to avoid repeated allocations.
+        if (numSlices > UINT32_MAX - 10 ||
+            m_sliceParamBufNum > UINT32_MAX - (numSlices + 10))
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+        const uint32_t extraSlices = numSlices + 10;
+        const uint32_t newCapacity = m_sliceParamBufNum + extraSlices;
+        if (baseSize > SIZE_MAX / newCapacity)
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
 
-        if (m_ddiDecodeCtx->DecodeParams.m_sliceParams == nullptr)
+        const size_t rextSize = sizeof(CODEC_HEVC_EXT_SLICE_PARAMS);
+        if (IsRextProfile() && rextSize > SIZE_MAX / newCapacity)
+        {
+            return VA_STATUS_ERROR_INVALID_PARAMETER;
+        }
+        // Allocate both arrays before replacing either existing allocation.
+        void *sliceParams = calloc(newCapacity, baseSize);
+        if (sliceParams == nullptr)
         {
             return VA_STATUS_ERROR_ALLOCATION_FAILED;
         }
-
-        memset((void *)((uint8_t *)m_ddiDecodeCtx->DecodeParams.m_sliceParams + baseSize * m_sliceParamBufNum), 0, baseSize * extraSlices);
-
-        if(IsRextProfile())
+        void *extSliceParams = nullptr;
+        if (IsRextProfile())
         {
-            uint32_t rextSize = sizeof(CODEC_HEVC_EXT_SLICE_PARAMS);
-            m_ddiDecodeCtx->DecodeParams.m_extSliceParams = realloc(m_ddiDecodeCtx->DecodeParams.m_extSliceParams,
-            rextSize * (m_sliceParamBufNum + extraSlices));
-
-            if (m_ddiDecodeCtx->DecodeParams.m_extSliceParams == nullptr)
+            extSliceParams = calloc(newCapacity, rextSize);
+            if (extSliceParams == nullptr)
             {
+                free(sliceParams);
                 return VA_STATUS_ERROR_ALLOCATION_FAILED;
             }
-    
-            memset((void *)((uint8_t *)m_ddiDecodeCtx->DecodeParams.m_extSliceParams + rextSize * m_sliceParamBufNum), 0, rextSize * extraSlices);
+            if (m_sliceParamBufNum != 0)
+            {
+                memcpy(extSliceParams, m_ddiDecodeCtx->DecodeParams.m_extSliceParams, rextSize * m_sliceParamBufNum);
+            }
         }
-        
-        m_sliceParamBufNum += extraSlices;
+        if (m_sliceParamBufNum != 0)
+        {
+            memcpy(sliceParams, m_ddiDecodeCtx->DecodeParams.m_sliceParams, baseSize * m_sliceParamBufNum);
+        }
+        free(m_ddiDecodeCtx->DecodeParams.m_sliceParams);
+        m_ddiDecodeCtx->DecodeParams.m_sliceParams = sliceParams;
+        if (IsRextProfile())
+        {
+            free(m_ddiDecodeCtx->DecodeParams.m_extSliceParams);
+            m_ddiDecodeCtx->DecodeParams.m_extSliceParams = extSliceParams;
+        }
+        m_sliceParamBufNum = newCapacity;
     }
 
     return VA_STATUS_SUCCESS;
